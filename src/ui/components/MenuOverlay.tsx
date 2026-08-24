@@ -16,6 +16,7 @@ import {
   Mail,
   RefreshCcw,
   Settings,
+  Sparkles,
   Stethoscope,
   Target,
   Trash2,
@@ -68,6 +69,15 @@ export function MenuOverlay({ open, onClose }: Props) {
       portColor: 'bg-blue-500',
       action: () => {
         useUiStore.getState().setTemplatesOpen(true);
+      },
+    },
+    {
+      icon: Sparkles,
+      label: 'Interactive Tutorial',
+      description: 'Guided tour: Student basics or Pro standards',
+      portColor: 'bg-sky-500',
+      action: () => {
+        useUiStore.getState().startTour('student');
       },
     },
     {

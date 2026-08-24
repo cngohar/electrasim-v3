@@ -1,25 +1,25 @@
-import { type FC, useEffect, useRef, useState } from 'react';
 import {
-  X,
-  Zap,
-  Shield,
   Activity,
   AlertTriangle,
-  Info,
-  CheckCircle2,
-  Cpu,
-  Layers,
   Award,
-  Cable,
-  Copy,
-  Check,
   BookOpen,
+  Cable,
+  Check,
+  CheckCircle2,
+  Copy,
+  Cpu,
+  Info,
+  Layers,
+  Shield,
   Sparkles,
+  X,
+  Zap,
 } from 'lucide-react';
-import { useUiStore } from '../../store/uiStore';
+import { type FC, useEffect, useRef, useState } from 'react';
 import { getComponentHelp } from '../../domain/componentHelp';
-import { getComponentImage } from './componentImages';
+import { useUiStore } from '../../store/uiStore';
 import { useDialogFocus } from '../hooks/useDialogFocus';
+import { getComponentImage } from './componentImages';
 
 export const ComponentInfoModal: FC = () => {
   const activeType = useUiStore((s) => s.activeComponentInfoType);
@@ -240,7 +240,8 @@ export const ComponentInfoModal: FC = () => {
                   {data.circuitBehavior && (
                     <div className="space-y-1.5">
                       <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                        <Activity className="w-3.5 h-3.5 text-emerald-400" /> Circuit & Simulation Behavior
+                        <Activity className="w-3.5 h-3.5 text-emerald-400" /> Circuit & Simulation
+                        Behavior
                       </h4>
                       <p className="text-xs text-slate-300 leading-relaxed bg-slate-800/40 p-3.5 rounded-xl border border-slate-800">
                         {data.circuitBehavior}
@@ -284,7 +285,9 @@ export const ComponentInfoModal: FC = () => {
                         <Zap className="w-3 h-3 text-emerald-400" /> Power Rating
                       </div>
                       <div className="text-xs font-bold text-slate-100 mt-1 font-mono">
-                        {typeof data.powerWatts === 'number' ? `${data.powerWatts}W` : data.powerWatts}
+                        {typeof data.powerWatts === 'number'
+                          ? `${data.powerWatts}W`
+                          : data.powerWatts}
                       </div>
                     </div>
                   )}
@@ -360,13 +363,40 @@ export const ComponentInfoModal: FC = () => {
                       <div className="text-[10px] uppercase font-semibold text-slate-400 flex items-center gap-1">
                         <Award className="w-3 h-3 text-yellow-400" /> Standards
                       </div>
-                      <div className="text-xs font-bold text-slate-100 mt-1 font-mono truncate" title={data.standards}>
+                      <div
+                        className="text-xs font-bold text-slate-100 mt-1 font-mono truncate"
+                        title={data.standards}
+                      >
                         {data.standards}
                       </div>
                     </div>
                   )}
                 </div>
               </div>
+
+              {/* Deep-dive article on the ElectraSim blog */}
+              {data.learnMoreSlug && (
+                <a
+                  href={`/blog/${data.learnMoreSlug}/`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center justify-between gap-3 p-3.5 bg-sky-950/40 border border-sky-500/25 rounded-xl transition-colors hover:border-sky-400/50 hover:bg-sky-950/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                >
+                  <span className="flex items-center gap-2.5 text-xs text-sky-200">
+                    <BookOpen aria-hidden="true" className="w-4 h-4 shrink-0 text-sky-400" />
+                    <span>
+                      <span className="font-semibold text-sky-100 block">Read the full guide</span>
+                      In-depth article on this component — opens the ElectraSim blog in a new tab.
+                    </span>
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className="text-sky-400 text-sm transition-transform group-hover:translate-x-0.5"
+                  >
+                    →
+                  </span>
+                </a>
+              )}
             </>
           )}
 
@@ -378,12 +408,20 @@ export const ComponentInfoModal: FC = () => {
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-300">
                   <div className="p-3 bg-slate-900/60 border border-slate-800 rounded-lg">
-                    <span className="font-semibold text-slate-200 block mb-1">Recommended Conductor</span>
-                    <span className="font-mono text-emerald-300">{data.cableSize || '1.5 mm² - 2.5 mm² Copper'}</span>
+                    <span className="font-semibold text-slate-200 block mb-1">
+                      Recommended Conductor
+                    </span>
+                    <span className="font-mono text-emerald-300">
+                      {data.cableSize || '1.5 mm² - 2.5 mm² Copper'}
+                    </span>
                   </div>
                   <div className="p-3 bg-slate-900/60 border border-slate-800 rounded-lg">
-                    <span className="font-semibold text-slate-200 block mb-1">Protection Curve & Poles</span>
-                    <span className="font-mono text-sky-300">{data.tripCurve || 'Standard'} ({data.poles || '1P / Single'})</span>
+                    <span className="font-semibold text-slate-200 block mb-1">
+                      Protection Curve & Poles
+                    </span>
+                    <span className="font-mono text-sky-300">
+                      {data.tripCurve || 'Standard'} ({data.poles || '1P / Single'})
+                    </span>
                   </div>
                 </div>
               </div>
@@ -423,7 +461,8 @@ export const ComponentInfoModal: FC = () => {
               {data.quickTips && data.quickTips.length > 0 && (
                 <div className="p-4 bg-amber-500/5 border border-amber-500/20 rounded-xl">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400 mb-2.5 flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-amber-400" /> Electrician Practical Safety Tips
+                    <AlertTriangle className="w-4 h-4 text-amber-400" /> Electrician Practical
+                    Safety Tips
                   </h4>
                   <ul className="space-y-2">
                     {data.quickTips.map((tip, idx) => (
@@ -459,4 +498,3 @@ export const ComponentInfoModal: FC = () => {
     </dialog>
   );
 };
-

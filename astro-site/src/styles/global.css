@@ -619,7 +619,7 @@ a {
   transition: color .15s;
 }
 .nav-links a:hover,
-.nav-links a[aria-current="page"] {
+.nav-links a[aria-current] {
   color: var(--blue);
 }
 .btn-nav {
@@ -680,6 +680,10 @@ a {
 }
 .nav-mobile-menu a:hover {
   color: var(--blue);
+}
+.nav-mobile-menu a[aria-current] {
+  color: var(--blue);
+  font-weight: 700;
 }
 .theme-toggle-mobile {
   min-height: 44px;
@@ -963,7 +967,9 @@ footer .ft-top {
 }
 
 /* ── Mobile ─────────────────────────────────────────── */
-@media (max-width: 900px) {
+/* With only three hub links + utilities in the bar, the real nav fits down
+   to 680px — tablets get actual navigation instead of a burger. */
+@media (max-width: 680px) {
   .hide-m {
     display: none;
   }
@@ -1296,11 +1302,11 @@ h5 {
   transition: background-position 0.22s var(--ease-snap), background-image 0.22s, box-shadow 0.22s;
 }
 .nav-links a:not(.btn-nav):hover,
-.nav-links a[aria-current="page"] {
+.nav-links a[aria-current] {
   color: var(--live);
 }
 .nav-links a:not(.btn-nav):hover::before,
-.nav-links a[aria-current="page"]::before {
+.nav-links a[aria-current]::before {
   background-image: linear-gradient(var(--live-2), var(--live));
   background-position: 0 0;
   box-shadow: 0 0 8px var(--rail-glow);
@@ -1654,7 +1660,39 @@ footer .ft-bot a:hover {
 }
 
 /* ══ 9. Small screens ═════════════════════════════════════════════════════ */
-@media (max-width: 900px) {
+/* Mid widths: the bar is visible but tight — collapse the search button to
+   its icon so three links + utilities + CTA breathe. */
+@media (max-width: 1099px) {
+  .nav-search-text,
+  .nav-search-kbd {
+    display: none;
+  }
+  .search-toggle-btn {
+    padding: 0.45rem 0.6rem;
+  }
+}
+/* Newly liberated tablet range (the burger used to own it): tighten the
+   bar so it fits down to 681px. */
+@media (min-width: 681px) and (max-width: 900px) {
+  .nav-in {
+    gap: 0.75rem;
+  }
+  .nav-links {
+    gap: 0.9rem;
+  }
+  .logo {
+    font-size: 1.05rem;
+  }
+  .logo-icon {
+    width: 1.9rem;
+    height: 1.9rem;
+  }
+  .nav-links .btn-nav {
+    padding: 0.5rem 0.9rem;
+    font-size: 0.82rem;
+  }
+}
+@media (max-width: 680px) {
   /* `.nav-links a:not(.btn-nav)` out-specifies the shared `.hide-m` helper,
      so restate the hide at equal weight for the collapsed nav. */
   .nav-links a.hide-m,
@@ -1684,6 +1722,8 @@ footer .ft-bot a:hover {
     padding: 0.5rem 0.85rem;
     font-size: 0.8rem;
   }
+}
+@media (max-width: 900px) {
   .sec {
     padding: 3.75rem 0;
   }

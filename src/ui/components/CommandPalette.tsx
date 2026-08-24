@@ -19,6 +19,7 @@ import {
   Search,
   Settings,
   ShieldCheck,
+  Sparkles,
   Zap,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -93,6 +94,28 @@ export function CommandPalette() {
         keywords: 'safety check compliance bs7671 validate',
         run: () => {
           ui().runCircuitValidation();
+          setOpen(false);
+        },
+      },
+      {
+        id: 'tour-student',
+        label: 'Start Interactive Tutorial',
+        hint: 'Guided walkthrough: place, wire, run',
+        icon: Sparkles,
+        keywords: 'tour tutorial onboarding walkthrough help learn guide',
+        run: () => {
+          ui().startTour('student');
+          setOpen(false);
+        },
+      },
+      {
+        id: 'tour-pro',
+        label: 'Standards & Compliance Tour',
+        hint: 'Pro walkthrough: regions, validation, diagnostics',
+        icon: Sparkles,
+        keywords: 'tour tutorial pro standards compliance region country bs7671 nec',
+        run: () => {
+          ui().startTour('pro');
           setOpen(false);
         },
       },

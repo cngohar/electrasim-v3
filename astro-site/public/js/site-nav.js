@@ -38,7 +38,7 @@
     if (!menu.contains(e.target) && !button.contains(e.target)) close(false);
   });
 
-  window.matchMedia('(min-width: 901px)').addEventListener('change', (e) => {
+  window.matchMedia('(min-width: 681px)').addEventListener('change', (e) => {
     if (e.matches) close(false);
   });
 })();

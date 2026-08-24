@@ -237,6 +237,10 @@ export interface UiState {
   faultLabOpen: boolean;
   /** Keyboard shortcuts overlay (? key). */
   shortcutsOpen: boolean;
+  /** Interactive tutorial: active tour id (null = no tour running). */
+  tourId: 'student' | 'pro' | null;
+  /** Interactive tutorial: zero-based index into the active tour's steps. */
+  tourStep: number;
   /** A transient undo toast, e.g. after a delete. { message, id }. */
   undoToast: { message: string; id: number } | null;
 
@@ -284,6 +288,10 @@ export interface UiState {
   toggleFaultLab: () => void;
   setShortcutsOpen: (open: boolean) => void;
   toggleShortcuts: () => void;
+  /** Interactive tutorial controls. */
+  startTour: (id: 'student' | 'pro') => void;
+  endTour: () => void;
+  setTourStep: (step: number) => void;
   showUndoToast: (message: string) => void;
   clearUndoToast: () => void;
   setInspectorOpen: (open: boolean) => void;

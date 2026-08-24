@@ -2,6 +2,7 @@
 title: "6 New Components in ElectraSim: RCD, Contactor, Timer Switch, Dimmer Switch, Distribution Board & Bell"
 description: "ElectraSim just added 6 new electrical components — RCD, Contactor, Timer Switch, Dimmer Switch, Distribution Board, and Bell/Buzzer. Here's what each one does and how to use them in your circuits."
 pubDate: 2026-05-09
+updatedDate: 2026-08-22
 author: ElectraSim
 category: App Update
 tags: [RCD, contactor, timer switch, dimmer switch, distribution board, bell buzzer, new features, electrical components, circuit simulator]
@@ -38,7 +39,7 @@ Live (L) → RCD (L-in → L-out) → Load
 Neutral (N) → RCD (N-in → N-out) → Load
 ```
 
-> 💡 **Key difference from MCB:** An MCB protects against overload and short circuit. An RCD protects against earth faults and electrocution risk. In modern installations they're often combined into a single device called an **RCBO**. In ElectraSim you can model this by using both an MCB and an RCD in series.
+> 💡 **Key difference from MCB:** An MCB protects against overload and short circuit. An RCD protects against earth faults and electrocution risk. In modern installations they're often combined into a single device called an **RCBO**. ElectraSim now includes a dedicated [RCBO component](/blog/what-is-an-rcbo-difference-between-rcd-mcb-rcbo/) (added in v1.6), so you can place one directly — or still model the same protection the classic way with an MCB and an RCD in series.
 
 ---
 

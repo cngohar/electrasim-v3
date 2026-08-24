@@ -15,11 +15,13 @@ import {
   Info,
   type LucideIcon,
   Play,
+  Sparkles,
   X,
   Zap,
 } from 'lucide-react';
 import { useRef } from 'react';
 import { useUiStore } from '../../store';
+import { APP_VERSION } from '../../version';
 import { useDialogFocus } from '../hooks/useDialogFocus';
 
 const STEPS = [
@@ -84,7 +86,12 @@ export function WelcomeModal() {
               <Zap aria-hidden="true" className="size-6" />
             </div>
             <div>
-              <h2 className="text-lg font-bold">Welcome to ElectraSim</h2>
+              <h2 className="text-lg font-bold">
+                Welcome to ElectraSim
+                <span className="ml-2 inline-flex items-center rounded-full bg-white/15 px-2 py-0.5 align-middle font-mono text-[10px] font-semibold tracking-wide text-blue-50 ring-1 ring-white/25">
+                  v{APP_VERSION}
+                </span>
+              </h2>
               <div className="text-sm text-blue-100">Build your first circuit</div>
             </div>
           </div>
@@ -130,7 +137,17 @@ export function WelcomeModal() {
         </div>
 
         {/* Footer */}
-        <div className="grid gap-2 border-t border-slate-100 bg-slate-50 px-5 py-3 sm:grid-cols-[auto_1fr_auto] dark:border-slate-700/60 dark:bg-slate-800/60">
+        <div className="grid gap-2 border-t border-slate-100 bg-slate-50 px-5 py-3 sm:grid-cols-[auto_auto_1fr_auto] dark:border-slate-700/60 dark:bg-slate-800/60">
+          <button
+            type="button"
+            onClick={() => {
+              useUiStore.getState().startTour('student');
+            }}
+            className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-sky-200 bg-sky-50 px-4 text-xs font-semibold text-sky-700 transition hover:bg-sky-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-300 dark:hover:bg-sky-900/60"
+          >
+            <Sparkles aria-hidden="true" className="size-3.5" />
+            Take the tour
+          </button>
           <button
             type="button"
             onClick={() => {

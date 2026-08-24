@@ -15,7 +15,9 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { COMPONENT_DEFS, type ComponentInstance, type WireInstance } from '../domain';
 import { validateCircuit } from '../domain/circuitValidation';
+import { primarySocketForPlug } from '../domain/standards';
 import { useCircuitStore } from './circuitStore';
+import { buildSeedCircuit } from './seed';
 import { useSettingsStore } from './settingsStore';
 import {
   createComponent,
@@ -102,7 +104,7 @@ function canStartSimulation(state: UiState): boolean {
 }
 
 export const useUiStore = create<UiState>()(
-  immer<UiState>((set) => ({
+  immer<UiState>((set, get) => ({
     simRunning: false,
     simResult: null,
     faultAlert: null,
@@ -152,6 +154,8 @@ export const useUiStore = create<UiState>()(
     commandPaletteOpen: false,
     faultLabOpen: false,
     shortcutsOpen: false,
+    tourId: null,
+    tourStep: 0,
     undoToast: null,
 
     setSimRunning: (running) =>
@@ -613,6 +617,46 @@ export const useUiStore = create<UiState>()(
     toggleShortcuts: () =>
       set((s) => {
         s.shortcutsOpen = !s.shortcutsOpen;
+      }),
+    startTour: (id) => {
+      set((s) => {
+        // A tour needs the canvas: close blocking first-run dialogs first.
+        if (s.welcomeOpen) markWelcomed();
+        s.welcomeOpen = false;
+        s.commandPaletteOpen = false;
+        s.simRunning = false;
+        s.tourId = id;
+        s.tourStep = 0;
+      });
+      // The Student tour teaches place → wire → run from scratch, so it
+      // starts on an empty canvas. Clearing goes through the normal
+      // (undoable) store action — Ctrl+Z after the tour restores whatever
+      // was there, including the first-run demo circuit.
+      if (id === 'student' && useCircuitStore.getState().components.length > 0) {
+        useCircuitStore.getState().clearAllComponents();
+        get().addLog(
+          'Canvas cleared for the tutorial — press Ctrl+Z afterwards to restore your circuit.',
+          'info',
+        );
+      }
+      // The Pro tour exercises Validate, the diagnostics overlay and the
+      // Fault Lab — all of which need a circuit to chew on. If the canvas
+      // is empty (e.g. straight after the Student tour), load the demo
+      // bench for the region's plug system. Undoable like any other edit.
+      if (id === 'pro' && useCircuitStore.getState().components.length === 0) {
+        const plug = useSettingsStore.getState().plugSystem;
+        useCircuitStore.getState().setCircuit(buildSeedCircuit(primarySocketForPlug(plug)));
+        get().addLog('Demo circuit loaded for the Pro tour — Ctrl+Z removes it.', 'info');
+      }
+    },
+    endTour: () =>
+      set((s) => {
+        s.tourId = null;
+        s.tourStep = 0;
+      }),
+    setTourStep: (step) =>
+      set((s) => {
+        s.tourStep = step;
       }),
     showUndoToast: (message) =>
       set((s) => {

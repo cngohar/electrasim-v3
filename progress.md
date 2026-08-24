@@ -3468,3 +3468,29 @@ files / **878** unit tests ✓ (was 863), all four stress harnesses ✓,
 
 **Next:** F4 `misleadingSymptom`; F5 retire the rage-2 `remoteFault`
 substitution; F6 optional `timeLimit`.
+
+## Session 2026-08-22 — Marketing ↔ Simulator content sync
+
+- Cross-scanned astro-site against the simulator; fixed guided-template count (6→8), test-count stat (833→850), and three stale "RCBO = MCB+RCD in series" blog claims.
+- Added learnMoreSlug deep-links from the component info modal to matching blog guides (15 components, RCBO included) and a live APP_VERSION badge on the welcome modal.
+- Verified: tsc clean, 850/850 vitest, biome clean, live dev-server checks on both surfaces. Playwright browser download is blocked in this sandbox; visual QA via live previews.
+
+## Session 2026-08-22 — Interactive onboarding tours + standard-selector fix
+
+- Built src/ui/tour/: spotlight tutorial engine (no deps, lazy-loaded, +1.2KB gzip initial), Student tour (10 steps) and Pro standards/compliance tour (9 steps) with real-action advancement observed via store subscriptions.
+- Fixed Student-mode StandardSelector click-trap: read-only pill is now a button with a lock explainer popover and one-click Switch to Pro.
+- Entry points: welcome modal, menu, command palette (2 commands), one-time offer chip. data-tour anchors across toolbar/palette/inspector/phone dock.
+- Verified: tsc clean, 861/861 vitest, biome clean on touched files, production build OK. NOTE: check:perf initial JS/CSS budgets were already failing on the base commit (238.8KB vs 115KB budget) — pre-existing, my delta is +1.2KB; flagged for a future bundle-diet session.
+
+## Session 2026-08-22 — Tour flow fixes + celebration
+- Student tour now starts on an empty canvas (undoable clear; demo circuit remains the non-tour default); added add-supply step and two-wire requirement so the wiring step is physically completable; run step lights the bulb.
+- TourCelebration.tsx: full-screen electrical pulses/sparks/lightning Easter egg on completion (reduced-motion safe). Tours restartable from Settings > About. scrollIntoView for palette targets.
+- 867/867 tests, tsc + biome clean. Dev-server restart flushed stale zustand HMR state that likely caused the "does not work" report.
+
+## Session 2026-08-22 (cont.) — Pro tour circuit seeding + fault-surface clarity
+- startTour('pro') loads the demo bench when the canvas is empty (undoable, region-correct socket) so Validate/diagnostics/Fault Lab steps operate on a real circuit.
+- Tour copy now explains Fault Lab vs Inspector Manual Fault Simulation vs context menu = one engine, three surfaces.
+
+## Session 2026-08-23 — Validation blind spot fix (conductor bypass)
+- Reproduced user report: FCU with unwired N pair scored 100. Root cause: no per-device port-connectivity check existed; sim running is correct physics.
+- Added check 10 (conductor bypass + unwired components) with RCD/RCBO imbalance wording; demo seed + all guided templates verified clean; 6 new tests; 874/874.

@@ -504,6 +504,7 @@ export function Palette({ open, isPhone }: Props) {
           <button
             type="button"
             onClick={() => setPaletteOpen(true)}
+            data-tour="open-palette"
             className="flex size-8 items-center justify-center rounded-xl bg-blue-50 text-blue-600 shadow-xs hover:bg-blue-100 dark:bg-blue-950/80 dark:text-blue-400 dark:hover:bg-blue-900"
             title="Expand Component Library"
             aria-label="Expand Component Library"
@@ -522,7 +523,10 @@ export function Palette({ open, isPhone }: Props) {
   }
 
   return (
-    <aside className="fixed left-0 top-[84px] bottom-0 z-20 flex w-[260px] flex-col overflow-hidden border-r border-slate-200/80 bg-white/90 shadow-2xl backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/90">
+    <aside
+      data-tour="palette"
+      className="fixed left-0 top-[84px] bottom-0 z-20 flex w-[260px] flex-col overflow-hidden border-r border-slate-200/80 bg-white/90 shadow-2xl backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/90"
+    >
       {/* Header */}
       <div className="flex items-center justify-between border-b border-slate-100 px-3.5 py-3 select-none dark:border-slate-700/60">
         <div className="flex items-center gap-2 min-w-0">

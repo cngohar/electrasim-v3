@@ -36,6 +36,7 @@ export const SWITCH_AND_CONTROL_HELP: Record<string, ComponentHelpData> = {
   },
 
   'two-way-switch': {
+    learnMoreSlug: 'how-to-wire-a-two-way-switch-complete-guide',
     title: 'Two-Way Changeover Switch (SPDT 10AX)',
     category: 'switch',
     voltage: '230V AC (50Hz)',
@@ -62,6 +63,7 @@ export const SWITCH_AND_CONTROL_HELP: Record<string, ComponentHelpData> = {
   },
 
   'intermediate-switch': {
+    learnMoreSlug: 'intermediate-switch-wiring-three-way-light-switch',
     title: 'Intermediate Crossover Switch (4-Terminal)',
     category: 'switch',
     voltage: '230V AC (50Hz)',
@@ -76,10 +78,7 @@ export const SWITCH_AND_CONTROL_HELP: Record<string, ComponentHelpData> = {
       'A 4-terminal crossover switch inserted between two 2-way switches. Enables seamless lighting control from 3, 4, or more separate locations (e.g. multi-landing stairwells, large corridors, open-plan rooms).',
     circuitBehavior:
       'In Position 1, connects L1-in to L1-out and L2-in to L2-out. In Position 2, crosses them over (L1-in to L2-out and L2-in to L1-out), reversing the strapper pair status.',
-    keySpecs: [
-      'Terminals: L1-in, L2-in, L1-out, L2-out',
-      'Rating: 10AX 250V AC',
-    ],
+    keySpecs: ['Terminals: L1-in, L2-in, L1-out, L2-out', 'Rating: 10AX 250V AC'],
     quickTips: [
       'Position intermediate switches strictly between two 2-way switches on the strapper line.',
       'You can add as many intermediate switches as needed for N-point lighting control.',
@@ -113,6 +112,7 @@ export const SWITCH_AND_CONTROL_HELP: Record<string, ComponentHelpData> = {
   },
 
   'dimmer-switch': {
+    learnMoreSlug: 'how-a-dimmer-switch-works-trailing-edge-leading-edge',
     title: 'Rotary Phase-Cut LED Dimmer Switch',
     category: 'switch',
     voltage: '230V AC (50Hz)',
@@ -139,6 +139,7 @@ export const SWITCH_AND_CONTROL_HELP: Record<string, ComponentHelpData> = {
   },
 
   'pir-sensor': {
+    learnMoreSlug: 'how-to-wire-a-pir-motion-sensor-light-switch',
     title: 'PIR Infrared Motion Sensor (360° Ceiling Mount)',
     category: 'switch',
     voltage: '220V – 240V AC',
@@ -165,6 +166,7 @@ export const SWITCH_AND_CONTROL_HELP: Record<string, ComponentHelpData> = {
   },
 
   'cooker-unit': {
+    learnMoreSlug: 'how-to-wire-a-cooker-electric-oven-uk',
     title: 'Cooker Control Unit (45A DP + 13A Socket)',
     category: 'switch',
     voltage: '230V AC (50Hz)',

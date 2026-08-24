@@ -45,6 +45,7 @@ export function PhoneDock() {
         icon={Plus}
         label="Add"
         accent
+        data-tour="open-palette"
         onClick={() => {
           const ui = useUiStore.getState();
           if (!ui.paletteOpen) ui.togglePalette();
@@ -94,12 +95,23 @@ interface PhoneBtnProps {
   active?: boolean;
   disabled?: boolean;
   onClick?: () => void;
+  /** Optional tutorial anchor forwarded to the underlying button. */
+  'data-tour'?: string;
 }
 
-function PhoneBtn({ icon: Icon, label, accent, active, disabled, onClick }: PhoneBtnProps) {
+function PhoneBtn({
+  icon: Icon,
+  label,
+  accent,
+  active,
+  disabled,
+  onClick,
+  'data-tour': dataTour,
+}: PhoneBtnProps) {
   return (
     <button
       type="button"
+      data-tour={dataTour}
       onClick={onClick}
       disabled={disabled}
       aria-label={label}

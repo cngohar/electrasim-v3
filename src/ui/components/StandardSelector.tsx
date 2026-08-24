@@ -12,7 +12,7 @@
  *      then their regional plug.
  */
 
-import { ChevronDown, Globe, Plug, ShieldCheck } from 'lucide-react';
+import { ChevronDown, Globe, Lock, Plug, ShieldCheck, Wrench } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import {
   PLUG_SYSTEMS,
@@ -89,19 +89,57 @@ export function StandardSelector({ compact = false }: Props) {
 
   if (appMode === 'basic') {
     return (
-      <div
-        data-standard-selector
-        data-standard-readonly
-        aria-label={`Active standard: ${current.shortLabel}, ${current.citation} (read-only in Student mode)`}
-        title={`${current.label} · ${current.citation}. Switch to Pro mode to change standards.`}
-        className="flex max-w-52 items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-semibold text-slate-700 shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-      >
-        <Globe className="size-3.5 shrink-0 text-indigo-500" />
-        <span className="font-mono">{current.flag}</span>
-        <span className="shrink-0 font-bold">{current.shortLabel}</span>
-        <span className="truncate text-slate-500 dark:text-slate-400" data-standard-citation>
-          {current.citation}
-        </span>
+      <div className="relative" ref={rootRef}>
+        <button
+          type="button"
+          data-standard-selector
+          data-standard-readonly
+          onClick={() => setOpen((v) => !v)}
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          aria-label={`Active standard: ${current.shortLabel}, ${current.citation} (read-only in Student mode)`}
+          title={`${current.label} · ${current.citation}. Locked in Student mode — click to learn why.`}
+          className="flex max-w-52 items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+        >
+          <Globe className="size-3.5 shrink-0 text-indigo-500" />
+          <span className="font-mono">{current.flag}</span>
+          <span className="shrink-0 font-bold">{current.shortLabel}</span>
+          <span className="truncate text-slate-500 dark:text-slate-400" data-standard-citation>
+            {current.citation}
+          </span>
+          <Lock aria-hidden="true" className="size-3 shrink-0 text-slate-400" />
+        </button>
+
+        {open && (
+          <div
+            // biome-ignore lint/a11y/useSemanticElements: matches the existing non-modal popover pattern; native <dialog> would change dismissal semantics
+            role="dialog"
+            aria-label="Standards are locked in Student mode"
+            className="absolute left-0 top-9 z-50 w-72 rounded-xl border border-slate-200 bg-white p-3 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
+          >
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-800 dark:text-slate-100">
+              <Lock className="size-3.5 text-slate-400" />
+              Locked in Student mode
+            </div>
+            <p className="mt-1.5 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+              Student mode keeps every learner on one consistent rule set ({current.label},{' '}
+              {current.nominalVoltage} V / {current.frequencyHz} Hz). Pro mode unlocks the full
+              country / standard and plug-type selector.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setSetting('appMode', 'pro');
+                setOpen(false);
+                addLog('Switched to Pro Electrician Mode — standard selector unlocked.', 'info');
+              }}
+              className="mt-2.5 flex w-full items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-[11px] font-bold text-white shadow-sm transition hover:bg-indigo-700"
+            >
+              <Wrench className="size-3.5" />
+              Switch to Pro mode
+            </button>
+          </div>
+        )}
       </div>
     );
   }
@@ -133,6 +171,7 @@ export function StandardSelector({ compact = false }: Props) {
       {open && (
         <div
           tabIndex={-1}
+          data-tour="standard-popover"
           className="absolute left-0 top-9 z-50 w-80 rounded-xl border border-slate-200 bg-white p-2 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
         >
           {/* ── Electrical standard ── */}
