@@ -1,3 +1,4 @@
+import { GraduationCap, Sparkles, Wrench } from 'lucide-react';
 import { useUiStore } from '../../../store';
 import { APP_VERSION } from '../../../version';
 
@@ -35,6 +36,41 @@ export function AboutTab() {
           <span className="rounded-full border border-blue-400/50 bg-white/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider">
             v{APP_VERSION}
           </span>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-slate-200 bg-white/80 p-3 dark:border-slate-700 dark:bg-slate-800/60">
+        <div className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+          <Sparkles className="size-3 text-sky-500" /> Interactive Tutorials
+        </div>
+        <p className="mb-2 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+          Guided walkthroughs you can restart any time — arrows point, you do the real actions.
+        </p>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              const ui = useUiStore.getState();
+              ui.setSettingsOpen(false);
+              ui.startTour('student');
+            }}
+            className="flex items-center justify-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-2 text-[11px] font-semibold text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
+          >
+            <GraduationCap className="size-3.5" />
+            Student: first circuit
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const ui = useUiStore.getState();
+              ui.setSettingsOpen(false);
+              ui.startTour('pro');
+            }}
+            className="flex items-center justify-center gap-1.5 rounded-lg border border-purple-200 bg-purple-50 px-2 py-2 text-[11px] font-semibold text-purple-700 transition hover:bg-purple-100 dark:border-purple-800 dark:bg-purple-950/50 dark:text-purple-300 dark:hover:bg-purple-900/60"
+          >
+            <Wrench className="size-3.5" />
+            Pro: standards tour
+          </button>
         </div>
       </div>
 

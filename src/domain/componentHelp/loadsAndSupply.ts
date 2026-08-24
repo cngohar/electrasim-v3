@@ -10,6 +10,7 @@ import type { ComponentHelpData } from './types';
 
 export const LOAD_AND_SUPPLY_HELP: Record<string, ComponentHelpData> = {
   'electric-shower': {
+    learnMoreSlug: 'how-to-wire-an-electric-shower-cable-size-mcb-guide',
     title: 'Instantaneous Electric Shower (8.5kW)',
     category: 'load',
     voltage: '230V AC Single-Phase',
@@ -36,6 +37,7 @@ export const LOAD_AND_SUPPLY_HELP: Record<string, ComponentHelpData> = {
     ],
   },
   'immersion-heater': {
+    learnMoreSlug: 'how-to-wire-an-immersion-heater-cylinder',
     title: 'Hot-Water Immersion Heater (3kW)',
     category: 'load',
     voltage: '230V AC Single-Phase',
@@ -107,6 +109,7 @@ export const LOAD_AND_SUPPLY_HELP: Record<string, ComponentHelpData> = {
   },
 
   'ev-charger': {
+    learnMoreSlug: 'how-to-install-an-ev-charger-dedicated-circuit-guide',
     title: 'Electric Vehicle Wallbox Charger (7.4kW Mode 3)',
     category: 'load',
     voltage: '230V AC Single-Phase (50Hz)',
@@ -185,6 +188,7 @@ export const LOAD_AND_SUPPLY_HELP: Record<string, ComponentHelpData> = {
   },
 
   'distribution-board-3phase': {
+    learnMoreSlug: 'distribution-board-explained-how-a-consumer-unit-is-wired',
     title: '3-Phase TPN Distribution Board (125A 8-Way)',
     category: 'distribution',
     voltage: '400V 3-Phase AC (230V Phase-to-Neutral)',

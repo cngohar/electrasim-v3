@@ -52,6 +52,8 @@ export interface CircuitState {
 
   // Mutators ──────────────────────────────────────────────────────────────
   setCircuit: (circuit: Circuit) => void;
+  /** Swap the untouched demo bench to the given app mode's variant. */
+  swapDemoForMode: (mode: 'basic' | 'pro') => void;
   /** If the current circuit is still the unmodified demo seed, rebuild it with
    *  the given regional socket type so the demo reflects the selected plug. */
   swapDemoSocketForPlug: (socketType: string) => void;

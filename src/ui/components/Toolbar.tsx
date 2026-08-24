@@ -30,7 +30,8 @@ import {
   Wrench,
   Zap,
 } from 'lucide-react';
-import { redo, undo, useUiStore } from '../../store';
+import { COMPONENT_DEFS } from '../../domain';
+import { redo, undo, useCircuitStore, useUiStore } from '../../store';
 import { useSettingsStore } from '../../store/settingsStore';
 import { useResolvedTheme } from '../hooks/useResolvedTheme';
 import { IconBtn } from './IconBtn';
@@ -129,6 +130,7 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
         type="button"
         onClick={() => useUiStore.getState().setTemplatesOpen(true)}
         title="Guided circuits"
+        data-tour="guided-circuits"
         className="flex items-center gap-1.5 rounded-lg border border-blue-100 bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-100 dark:border-blue-900 dark:bg-blue-950/60 dark:text-blue-300 dark:hover:bg-blue-900/70"
       >
         <BookOpen className="size-3.5" />
@@ -141,6 +143,23 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
         onClick={() => {
           const nextMode = appMode === 'basic' ? 'pro' : 'basic';
           setSetting('appMode', nextMode);
+          // Untouched demo benches follow the mode (no-op on user circuits).
+          useCircuitStore.getState().swapDemoForMode(nextMode);
+          if (nextMode === 'basic') {
+            // Pro components on a user circuit stay fully functional in
+            // Student mode — the palette just stops offering new ones.
+            // Make that explicit instead of leaving users to wonder.
+            const proCount = useCircuitStore
+              .getState()
+              .components.filter((c) => COMPONENT_DEFS[c.type]?.tier === 'pro').length;
+            if (proCount > 0) {
+              useUiStore
+                .getState()
+                .showNoticeToast(
+                  `${proCount} Pro component${proCount === 1 ? '' : 's'} stay${proCount === 1 ? 's' : ''} active on the canvas — Student mode only hides them from the palette.`,
+                );
+            }
+          }
           if (nextMode === 'basic' && dashboardOpen) {
             onToggleDashboard?.();
           }
@@ -158,6 +177,7 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
             ? 'Basic Student Mode active — click to switch to Pro Electrician Mode'
             : 'Pro Electrician Mode active — click to switch to Basic Student Mode'
         }
+        data-tour="mode-toggle"
         className={[
           'flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold shadow-sm transition',
           appMode === 'basic'
@@ -180,6 +200,7 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
         type="button"
         onClick={() => useUiStore.getState().runCircuitValidation()}
         title="Validate circuit for design flaws & BS 7671 compliance"
+        data-tour="validate"
         className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm transition hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-900/70"
       >
         <ShieldCheck className="size-3.5 text-emerald-600 dark:text-emerald-400" />
@@ -191,6 +212,7 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
         type="button"
         onClick={() => !isBlocked && useUiStore.getState().toggleSim()}
         disabled={isBlocked}
+        data-tour="run"
         className={[
           'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm transition',
           isBlocked
@@ -251,6 +273,7 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
           title={`Diagnostic overlay: ${overlayLabel}. Click to cycle Off, Heat only, and Heat + V-drop.`}
           aria-label={`Diagnostic overlay: ${overlayLabel}`}
           data-diagnostic-overlay-mode={diagnosticOverlayMode}
+          data-tour="diagnostics"
           className={[
             'flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold shadow-sm transition',
             diagnosticOverlayMode !== 'off'
@@ -269,6 +292,7 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
           type="button"
           onClick={toggleFaultLab}
           title="Toggle the Fault Lab — manual fault controls"
+          data-tour="fault-lab"
           aria-pressed={faultLabOpen}
           className={[
             'flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold shadow-sm transition',
@@ -345,6 +369,7 @@ function MenuTrigger() {
     <button
       type="button"
       aria-label="Menu"
+      data-tour="menu"
       onClick={() => useUiStore.getState().setMenuOpen(!menuOpen)}
       className="group relative grid size-8 place-items-center rounded-lg border border-slate-200/80 bg-white/80 shadow-sm transition hover:border-blue-300 dark:border-slate-700/80 dark:bg-slate-800/80 dark:hover:border-blue-500"
       title="Menu (Esc to close)"

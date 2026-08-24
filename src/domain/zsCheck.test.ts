@@ -95,7 +95,10 @@ describe('zsCheck — circuit disconnection check', () => {
           W({ c: device, p: 1 }, { c: bulb, p: 0 }, runMeters / 2),
           W({ c: n, p: 0 }, { c: bulb, p: 1 }, runMeters),
         ];
-    return { device, result: checkDeviceDisconnection(device, circuit([l, n, device, bulb], wires)) };
+    return {
+      device,
+      result: checkDeviceDisconnection(device, circuit([l, n, device, bulb], wires)),
+    };
   };
 
   it('passes a healthy 20 m run on a 32 A Type B RCBO and reports the numbers', () => {

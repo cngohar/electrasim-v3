@@ -18,7 +18,12 @@ export { useUiStore, type ContextMenuState, type PendingCustomPath } from './uiS
 export { useViewportStore } from './viewportStore';
 export { useSimulation } from './useSimulation';
 export { useClipboardStore } from './clipboardStore';
-export { buildSeedCircuit } from './seed';
+export {
+  buildSeedCircuit,
+  buildSeedCircuitForMode,
+  buildProSeedCircuit,
+  buildStudentSeedCircuit,
+} from './seed';
 export {
   clearPersistedSettings,
   startSettingsPersistence,

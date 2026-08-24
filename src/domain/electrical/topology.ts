@@ -50,7 +50,9 @@ export function isBypassingProtection(
   // If source is a raw supply rail and target is a load or socket
   if (sourceDef?.isSource && (targetDef?.isLoad || targetDef?.isSocket)) {
     // Check if there are protection devices placed on canvas that were bypassed
-    const hasProtectionOnCanvas = circuit.components.some((c) => COMPONENT_DEFS[c.type]?.isProtection);
+    const hasProtectionOnCanvas = circuit.components.some(
+      (c) => COMPONENT_DEFS[c.type]?.isProtection,
+    );
     return hasProtectionOnCanvas;
   }
 

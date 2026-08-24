@@ -32,7 +32,7 @@ import {
 import { createFaultActions } from './circuitStore.faultActions';
 import { componentsForHistory } from './circuitStore.history';
 import type { CircuitState } from './circuitStore.types';
-import { buildSeedCircuit } from './seed';
+import { buildProSeedCircuit, buildSeedCircuit, buildStudentSeedCircuit } from './seed';
 import { useUiStore } from './uiStore';
 
 const seed = buildSeedCircuit();
@@ -98,18 +98,47 @@ export const useCircuitStore = create<CircuitState>()(
 
       swapDemoSocketForPlug: (socketType) =>
         set((s) => {
-          // Only swap when the circuit is still the untouched demo seed, so a
-          // user who has built their own circuit is never silently rewritten.
-          // The reference is built with the circuit's current socket so that
-          // repeated plug changes keep working (the socket may already differ
-          // from the UK default after a previous swap).
+          // Only swap when the circuit is still an untouched demo seed
+          // (either the Student or the Pro variant), so a user who has
+          // built their own circuit is never silently rewritten. The
+          // reference is built with the circuit's current socket so that
+          // repeated plug changes keep working.
           const currentSocket =
             s.components.find((c) => REGIONAL_SOCKET_TYPES.has(c.type))?.type ?? 'socket-3pin';
-          const ref = buildSeedCircuit(currentSocket);
-          if (!sameCircuitShape({ components: s.components, wires: s.wires }, ref)) return;
-          const next = buildSeedCircuit(socketType);
+          const current = { components: s.components, wires: s.wires };
+          const builder = sameCircuitShape(current, buildStudentSeedCircuit(currentSocket))
+            ? buildStudentSeedCircuit
+            : sameCircuitShape(current, buildProSeedCircuit(currentSocket))
+              ? buildProSeedCircuit
+              : null;
+          if (!builder) return;
+          const next = builder(socketType);
           s.components = next.components;
           s.wires = next.wires;
+        }),
+
+      swapDemoForMode: (mode) =>
+        set((s) => {
+          // Mode switch keeps each audience on its own demo bench — but only
+          // while the canvas is still an untouched demo seed. A user's own
+          // circuit is never rewritten.
+          const currentSocket =
+            s.components.find((c) => REGIONAL_SOCKET_TYPES.has(c.type))?.type ?? 'socket-3pin';
+          const current = { components: s.components, wires: s.wires };
+          const isStudentDemo = sameCircuitShape(current, buildStudentSeedCircuit(currentSocket));
+          const isProDemo =
+            !isStudentDemo && sameCircuitShape(current, buildProSeedCircuit(currentSocket));
+          if (!isStudentDemo && !isProDemo) return;
+          const next =
+            mode === 'pro'
+              ? buildProSeedCircuit(currentSocket)
+              : buildStudentSeedCircuit(currentSocket);
+          s.components = next.components;
+          s.wires = next.wires;
+          s.faults = [];
+          s.selectedComponentId = null;
+          s.selectedComponentIds = [];
+          s.selectedWireIds = [];
         }),
 
       setGlobalSupplyVoltage: (voltage) =>

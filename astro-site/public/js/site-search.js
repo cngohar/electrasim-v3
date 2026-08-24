@@ -72,13 +72,101 @@
       .replace(/"/g, '&quot;');
   }
 
+  /* ── Typo tolerance ──────────────────────────────────────────────────────
+     Bounded Damerau-Levenshtein (optimal string alignment) so "voltge drop",
+     "brekaer" or "socet" still land on the right result. Tolerance scales
+     with token length: 0 edits under 4 chars, 1 edit for 4–7, 2 for 8+.
+     The index is tiny (~160 items) and every call bails out early once the
+     bound is exceeded, so a worst-case keystroke stays comfortably under a
+     millisecond behind the existing 50 ms input debounce. */
+
+  function editTolerance(length) {
+    if (length >= 8) return 2;
+    if (length >= 4) return 1;
+    return 0;
+  }
+
+  function editDistanceWithin(a, b, max) {
+    if (a === b) return true;
+    const la = a.length;
+    const lb = b.length;
+    if (Math.abs(la - lb) > max) return false;
+
+    let prevPrev = null;
+    let prev = new Array(lb + 1);
+    for (let j = 0; j <= lb; j++) prev[j] = j;
+
+    for (let i = 1; i <= la; i++) {
+      const cur = new Array(lb + 1);
+      cur[0] = i;
+      let rowMin = i;
+      for (let j = 1; j <= lb; j++) {
+        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+        let value = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost);
+        // Adjacent transposition ("brekaer" → "breaker") counts as one edit.
+        if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+          value = Math.min(value, prevPrev[j - 2] + 1);
+        }
+        cur[j] = value;
+        if (value < rowMin) rowMin = value;
+      }
+      if (rowMin > max) return false; // no path back under the bound
+      prevPrev = prev;
+      prev = cur;
+    }
+    return prev[lb] <= max;
+  }
+
+  /** Does `token` fuzzily match `word` (whole word or its leading stem)? */
+  function fuzzyWordMatch(token, word) {
+    const max = editTolerance(token.length);
+    if (max === 0) return false;
+    if (word.length < 3) return false;
+    if (editDistanceWithin(token, word, max)) return true;
+    // Compare against the word's stem so "brekaer" matches "breakers".
+    if (word.length > token.length + max) {
+      return editDistanceWithin(token, word.slice(0, token.length), max);
+    }
+    return false;
+  }
+
+  const itemWordsCache = new WeakMap();
+
+  function getItemWords(item) {
+    let words = itemWordsCache.get(item);
+    if (!words) {
+      const split = (value) =>
+        String(value || '')
+          .toLowerCase()
+          .split(/[^a-z0-9]+/)
+          .filter((w) => w.length >= 3);
+      words = {
+        title: split(item.title),
+        tags: item.tags ? item.tags.flatMap((t) => split(t)) : [],
+        desc: split(item.description),
+      };
+      itemWordsCache.set(item, words);
+    }
+    return words;
+  }
+
   function highlightMatches(text, query) {
-    if (!query) return escapeHtml(text);
     const escaped = escapeHtml(text);
-    const cleanQuery = query.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const cleanQuery = query.trim().toLowerCase();
     if (!cleanQuery) return escaped;
-    const regex = new RegExp(`(${cleanQuery})`, 'gi');
-    return escaped.replace(regex, '<mark class="search-highlight">$1</mark>');
+    const tokens = cleanQuery.split(/\s+/).filter(Boolean);
+    if (tokens.length === 0) return escaped;
+
+    // Mark whole words that contain a token or fuzzily match one, skipping
+    // the entity names produced by escapeHtml (e.g. the "amp" in "&amp;").
+    return escaped.replace(/[A-Za-z0-9][A-Za-z0-9'-]*/g, (word, offset) => {
+      if (offset > 0 && escaped[offset - 1] === '&') return word;
+      const wordLower = word.toLowerCase();
+      const hit = tokens.some(
+        (token) => wordLower.includes(token) || fuzzyWordMatch(token, wordLower),
+      );
+      return hit ? `<mark class="search-highlight">${word}</mark>` : word;
+    });
   }
 
   function scoreItem(item, queryTokens, fullQuery) {
@@ -95,9 +183,28 @@
     if (descLower.includes(fullQuery)) score += 30;
 
     for (const token of queryTokens) {
-      if (titleLower.includes(token)) score += 40;
-      if (descLower.includes(token)) score += 15;
-      if (tagsLower.some((t) => t.includes(token))) score += 25;
+      let matched = false;
+      if (titleLower.includes(token)) {
+        score += 40;
+        matched = true;
+      }
+      if (descLower.includes(token)) {
+        score += 15;
+        matched = true;
+      }
+      if (tagsLower.some((t) => t.includes(token))) {
+        score += 25;
+        matched = true;
+      }
+
+      // Typo-tolerant fallback, only when the token matched nothing exactly.
+      // Fuzzy hits score below exact ones so clean matches always rank first.
+      if (!matched && editTolerance(token.length) > 0) {
+        const words = getItemWords(item);
+        if (words.title.some((w) => fuzzyWordMatch(token, w))) score += 24;
+        else if (words.tags.some((w) => fuzzyWordMatch(token, w))) score += 15;
+        else if (words.desc.some((w) => fuzzyWordMatch(token, w))) score += 9;
+      }
     }
 
     // Boost calculators slightly as high-utility tools

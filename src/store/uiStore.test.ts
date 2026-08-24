@@ -232,3 +232,63 @@ describe('uiStore — panel layout & undo toast', () => {
     expect(useUiStore.getState().shortcutsOpen).toBe(false);
   });
 });
+
+describe('validation report staleness (issue: ghost issues after deleting components)', () => {
+  const comp = (id: string) => ({
+    id,
+    type: 'bulb',
+    x: 0,
+    y: 0,
+    rotation: 0,
+    state: {},
+  });
+  const fakeReport = {
+    timestamp: Date.now(),
+    score: 70,
+    status: 'warning',
+    summary: { errorsCount: 0, warningsCount: 1, infoCount: 0, passedCount: 2 },
+    issues: [
+      {
+        id: 'x',
+        severity: 'warning',
+        title: 't',
+        description: 'd',
+        recommendation: 'r',
+        category: 'continuity',
+      },
+    ],
+    passedChecks: [],
+  };
+
+  it('flags the report stale when the circuit changes after it ran', () => {
+    useCircuitStore.setState({ components: [comp('a')] as never, wires: [] });
+    useUiStore.setState({ validationReport: fakeReport as never, validationStale: false });
+
+    useCircuitStore.setState({ components: [comp('a'), comp('b')] as never });
+    expect(useUiStore.getState().validationStale).toBe(true);
+    expect(useUiStore.getState().validationReport).not.toBeNull();
+  });
+
+  it('drops the report entirely when the canvas is emptied', () => {
+    useCircuitStore.setState({ components: [comp('a')] as never, wires: [] });
+    useUiStore.setState({
+      validationReport: fakeReport as never,
+      validationStale: false,
+      complianceGateBlocked: true,
+    });
+
+    useCircuitStore.setState({ components: [] as never, wires: [] });
+    const s = useUiStore.getState();
+    expect(s.validationReport).toBeNull();
+    expect(s.validationStale).toBe(false);
+    expect(s.complianceGateBlocked).toBe(false);
+  });
+
+  it('notice toasts render without an Undo affordance', () => {
+    useUiStore.getState().showNoticeToast('3 Pro components stay active on the canvas');
+    expect(useUiStore.getState().undoToast?.showUndo).toBe(false);
+    useUiStore.getState().showUndoToast('Wire deleted');
+    expect(useUiStore.getState().undoToast?.showUndo).toBe(true);
+    useUiStore.getState().clearUndoToast();
+  });
+});

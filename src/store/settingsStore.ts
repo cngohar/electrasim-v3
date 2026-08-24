@@ -159,6 +159,8 @@ export interface UserSettings {
   logOpen: boolean;
   /** Recently placed component types (max ~6) — shown at the top of the palette. */
   recentComponents: string[];
+  /** Show the "Recent" quick-access row at the top of the palette. */
+  showRecentComponents: boolean;
 }
 
 const DEFAULTS: UserSettings = {
@@ -178,7 +180,11 @@ const DEFAULTS: UserSettings = {
   wireColorStandard: 'uk_eu',
   automaticComponentLabels: true,
   diagnosticOverlayMode: 'off',
-  regulationStandard: 'uk',
+  // International 230 V / 50 Hz is the neutral default: it fits the widest
+  // audience out of the box. An explicit region choice made in Pro mode is
+  // user data and persists across mode switches — Student mode locks the
+  // selector but never resets a chosen region.
+  regulationStandard: 'int',
   manualFaultInjection: true,
   autoWireJoints: false,
   plugSystem: 'bs1363',
@@ -188,6 +194,7 @@ const DEFAULTS: UserSettings = {
   inspectorCollapsed: true,
   logOpen: false,
   recentComponents: [],
+  showRecentComponents: true,
 };
 
 interface SettingsState extends UserSettings {
@@ -295,6 +302,10 @@ function parsePersistedSettings(value: unknown): UserSettings | null {
     recentComponents: Array.isArray(stored.recentComponents)
       ? stored.recentComponents.filter((t) => typeof t === 'string').slice(0, 6)
       : DEFAULTS.recentComponents,
+    showRecentComponents: booleanOrDefault(
+      stored.showRecentComponents,
+      DEFAULTS.showRecentComponents,
+    ),
   };
 }
 
@@ -378,6 +389,7 @@ function snapshot(state: SettingsState): UserSettings {
     inspectorCollapsed: state.inspectorCollapsed,
     logOpen: state.logOpen,
     recentComponents: state.recentComponents,
+    showRecentComponents: state.showRecentComponents,
   };
 }
 
@@ -426,6 +438,7 @@ export async function startSettingsPersistence(): Promise<void> {
       state.paletteOpen === prev.paletteOpen &&
       state.inspectorCollapsed === prev.inspectorCollapsed &&
       state.logOpen === prev.logOpen &&
+      state.showRecentComponents === prev.showRecentComponents &&
       state.recentComponents.length === prev.recentComponents.length &&
       state.recentComponents.every((t, i) => t === prev.recentComponents[i])
     ) {

@@ -104,12 +104,9 @@ describe('CircuitCanvas keyboard and screen-reader interaction', () => {
     });
     expect(useUiStore.getState().mode).toBe('wiring');
 
-    fireEvent.keyDown(
-      screen.getByRole('button', { name: /L-in port on Cartridge Fuse/ }),
-      {
-        key: 'Enter',
-      },
-    );
+    fireEvent.keyDown(screen.getByRole('button', { name: /L-in port on Cartridge Fuse/ }), {
+      key: 'Enter',
+    });
 
     expect(useCircuitStore.getState().wires[0]).toMatchObject({
       toComponentId: 'fuse-target',

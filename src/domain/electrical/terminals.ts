@@ -81,13 +81,31 @@ export function resolveTerminal(componentType: string, portIndex: number): Termi
   // 1. Power Supply Sources
   if (compDef?.isSource) {
     if (componentType === 'live-terminal') {
-      return { conductor: 'live', direction: 'out', role: 'SUPPLY_L', voltageDomain: 'mains_ac_230v', label };
+      return {
+        conductor: 'live',
+        direction: 'out',
+        role: 'SUPPLY_L',
+        voltageDomain: 'mains_ac_230v',
+        label,
+      };
     }
     if (componentType === 'neutral-terminal') {
-      return { conductor: 'neutral', direction: 'out', role: 'SUPPLY_N', voltageDomain: 'mains_ac_230v', label };
+      return {
+        conductor: 'neutral',
+        direction: 'out',
+        role: 'SUPPLY_N',
+        voltageDomain: 'mains_ac_230v',
+        label,
+      };
     }
     if (componentType === 'earth-terminal') {
-      return { conductor: 'earth', direction: 'out', role: 'SUPPLY_PE', voltageDomain: 'universal', label };
+      return {
+        conductor: 'earth',
+        direction: 'out',
+        role: 'SUPPLY_PE',
+        voltageDomain: 'universal',
+        label,
+      };
     }
     if (componentType === 'dc-battery-12v') {
       return {
@@ -108,27 +126,71 @@ export function resolveTerminal(componentType: string, portIndex: number): Termi
       };
     }
     if (conductor === 'live') {
-      return { conductor: 'live', direction: 'out', role: 'SUPPLY_L', voltageDomain: 'mains_ac_230v', label };
+      return {
+        conductor: 'live',
+        direction: 'out',
+        role: 'SUPPLY_L',
+        voltageDomain: 'mains_ac_230v',
+        label,
+      };
     }
     if (conductor === 'neutral') {
-      return { conductor: 'neutral', direction: 'out', role: 'SUPPLY_N', voltageDomain: 'mains_ac_230v', label };
+      return {
+        conductor: 'neutral',
+        direction: 'out',
+        role: 'SUPPLY_N',
+        voltageDomain: 'mains_ac_230v',
+        label,
+      };
     }
-    return { conductor: 'earth', direction: 'out', role: 'SUPPLY_PE', voltageDomain: 'universal', label };
+    return {
+      conductor: 'earth',
+      direction: 'out',
+      role: 'SUPPLY_PE',
+      voltageDomain: 'universal',
+      label,
+    };
   }
 
   // 2. Fan Regulator & Light Dimmer Controllers
   if (componentType === 'fan-dimmer') {
     if (portIndex === 0) {
-      return { conductor: 'live', direction: 'in', role: 'LINE_IN_L', voltageDomain: 'mains_ac_230v', label };
+      return {
+        conductor: 'live',
+        direction: 'in',
+        role: 'LINE_IN_L',
+        voltageDomain: 'mains_ac_230v',
+        label,
+      };
     }
-    return { conductor: 'live', direction: 'out', role: 'CONTROL_L', voltageDomain: 'mains_ac_230v', label, capabilities: ['fan-speed-control'] };
+    return {
+      conductor: 'live',
+      direction: 'out',
+      role: 'CONTROL_L',
+      voltageDomain: 'mains_ac_230v',
+      label,
+      capabilities: ['fan-speed-control'],
+    };
   }
 
   if (componentType === 'dimmer-switch') {
     if (portIndex === 0) {
-      return { conductor: 'live', direction: 'in', role: 'LINE_IN_L', voltageDomain: 'mains_ac_230v', label };
+      return {
+        conductor: 'live',
+        direction: 'in',
+        role: 'LINE_IN_L',
+        voltageDomain: 'mains_ac_230v',
+        label,
+      };
     }
-    return { conductor: 'live', direction: 'out', role: 'CONTROL_L', voltageDomain: 'mains_ac_230v', label, capabilities: ['lighting-dimming'] };
+    return {
+      conductor: 'live',
+      direction: 'out',
+      role: 'CONTROL_L',
+      voltageDomain: 'mains_ac_230v',
+      label,
+      capabilities: ['lighting-dimming'],
+    };
   }
 
   // 3. Protection Devices (MCBs, Fuses, RCDs, RCBOs)
@@ -174,23 +236,59 @@ export function resolveTerminal(componentType: string, portIndex: number): Termi
   // 5. Electrical Loads (Bulbs, Fans, Motors, Heaters, Bells)
   if (compDef?.isLoad) {
     if (conductor === 'live') {
-      return { conductor: 'live', direction: 'in', role: 'LOAD_L', voltageDomain: 'mains_ac_230v', label };
+      return {
+        conductor: 'live',
+        direction: 'in',
+        role: 'LOAD_L',
+        voltageDomain: 'mains_ac_230v',
+        label,
+      };
     }
     if (conductor === 'neutral') {
-      return { conductor: 'neutral', direction: 'out', role: 'LOAD_N', voltageDomain: 'mains_ac_230v', label };
+      return {
+        conductor: 'neutral',
+        direction: 'out',
+        role: 'LOAD_N',
+        voltageDomain: 'mains_ac_230v',
+        label,
+      };
     }
-    return { conductor: 'earth', direction: 'in', role: 'LOAD_PE', voltageDomain: 'universal', label };
+    return {
+      conductor: 'earth',
+      direction: 'in',
+      role: 'LOAD_PE',
+      voltageDomain: 'universal',
+      label,
+    };
   }
 
   // 6. Sockets / Convenience Outlets
   if (compDef?.isSocket) {
     if (conductor === 'live') {
-      return { conductor: 'live', direction: 'in', role: 'LOAD_L', voltageDomain: 'mains_ac_230v', label };
+      return {
+        conductor: 'live',
+        direction: 'in',
+        role: 'LOAD_L',
+        voltageDomain: 'mains_ac_230v',
+        label,
+      };
     }
     if (conductor === 'neutral') {
-      return { conductor: 'neutral', direction: 'in', role: 'LOAD_N', voltageDomain: 'mains_ac_230v', label };
+      return {
+        conductor: 'neutral',
+        direction: 'in',
+        role: 'LOAD_N',
+        voltageDomain: 'mains_ac_230v',
+        label,
+      };
     }
-    return { conductor: 'earth', direction: 'in', role: 'LOAD_PE', voltageDomain: 'universal', label };
+    return {
+      conductor: 'earth',
+      direction: 'in',
+      role: 'LOAD_PE',
+      voltageDomain: 'universal',
+      label,
+    };
   }
 
   // 7. Junctions / Distribution
@@ -198,7 +296,12 @@ export function resolveTerminal(componentType: string, portIndex: number): Termi
     return {
       conductor,
       direction: 'bidirectional',
-      role: conductor === 'live' ? 'JUNCTION_L' : conductor === 'neutral' ? 'JUNCTION_N' : 'JUNCTION_PE',
+      role:
+        conductor === 'live'
+          ? 'JUNCTION_L'
+          : conductor === 'neutral'
+            ? 'JUNCTION_N'
+            : 'JUNCTION_PE',
       voltageDomain: 'mains_ac_230v',
       label,
     };
@@ -207,28 +310,65 @@ export function resolveTerminal(componentType: string, portIndex: number): Termi
   // 8. Step-down Transformers
   if (componentType === 'transformer-8v') {
     if (portIndex < 2) {
-      return { conductor, direction: 'in', role: conductor === 'live' ? 'LINE_IN_L' : 'LINE_IN_N', voltageDomain: 'mains_ac_230v', label };
+      return {
+        conductor,
+        direction: 'in',
+        role: conductor === 'live' ? 'LINE_IN_L' : 'LINE_IN_N',
+        voltageDomain: 'mains_ac_230v',
+        label,
+      };
     }
-    return { conductor, direction: 'out', role: conductor === 'live' ? 'LV_AC_L' : 'LV_AC_N', voltageDomain: 'lv_ac_8v', label };
+    return {
+      conductor,
+      direction: 'out',
+      role: conductor === 'live' ? 'LV_AC_L' : 'LV_AC_N',
+      voltageDomain: 'lv_ac_8v',
+      label,
+    };
   }
   if (componentType === 'transformer-12v') {
     if (portIndex < 2) {
-      return { conductor, direction: 'in', role: conductor === 'live' ? 'LINE_IN_L' : 'LINE_IN_N', voltageDomain: 'mains_ac_230v', label };
+      return {
+        conductor,
+        direction: 'in',
+        role: conductor === 'live' ? 'LINE_IN_L' : 'LINE_IN_N',
+        voltageDomain: 'mains_ac_230v',
+        label,
+      };
     }
-    return { conductor, direction: 'out', role: conductor === 'live' ? 'LV_AC_L' : 'LV_AC_N', voltageDomain: 'lv_ac_12v', label };
+    return {
+      conductor,
+      direction: 'out',
+      role: conductor === 'live' ? 'LV_AC_L' : 'LV_AC_N',
+      voltageDomain: 'lv_ac_12v',
+      label,
+    };
   }
   if (componentType === 'transformer-24v') {
     if (portIndex < 2) {
-      return { conductor, direction: 'in', role: conductor === 'live' ? 'LINE_IN_L' : 'LINE_IN_N', voltageDomain: 'mains_ac_230v', label };
+      return {
+        conductor,
+        direction: 'in',
+        role: conductor === 'live' ? 'LINE_IN_L' : 'LINE_IN_N',
+        voltageDomain: 'mains_ac_230v',
+        label,
+      };
     }
-    return { conductor, direction: 'out', role: conductor === 'live' ? 'LV_AC_L' : 'LV_AC_N', voltageDomain: 'lv_ac_24v', label };
+    return {
+      conductor,
+      direction: 'out',
+      role: conductor === 'live' ? 'LV_AC_L' : 'LV_AC_N',
+      voltageDomain: 'lv_ac_24v',
+      label,
+    };
   }
 
   // Default fallback
   return {
     conductor,
     direction: 'bidirectional',
-    role: conductor === 'live' ? 'PASS_THROUGH' : conductor === 'neutral' ? 'PASS_THROUGH' : 'LOAD_PE',
+    role:
+      conductor === 'live' ? 'PASS_THROUGH' : conductor === 'neutral' ? 'PASS_THROUGH' : 'LOAD_PE',
     voltageDomain: 'mains_ac_230v',
     label,
   };

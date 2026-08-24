@@ -4,6 +4,32 @@ interface Props {
 }
 
 const { assetVersion } = Astro.props;
+
+/* Active-section detection: `page` on the section root, `true` anywhere
+   inside it (e.g. a blog article lights up “Blog”). Both states share the
+   energised-lever styling in global.css via `[aria-current]`. */
+const rawPath = Astro.url.pathname;
+const pathname = rawPath.endsWith('/') ? rawPath : `${rawPath}/`;
+const current = (prefix: string): 'page' | 'true' | undefined =>
+  pathname === prefix ? 'page' : pathname.startsWith(prefix) ? 'true' : undefined;
+
+/* The bar carries only the three content hubs — everything else lives in
+   the burger menu and the footer. `/#features` and `/#how-it-works` are
+   homepage scroll anchors, not destinations, so they are footer-only. */
+const NAV_LINKS = [
+  { href: '/tools/', label: 'Tools' },
+  { href: '/guide/', label: 'Guide' },
+  { href: '/blog/', label: 'Blog' },
+];
+
+/* The burger is a deliberate “show me everything” gesture, so it stays
+   complete: hubs first, secondary destinations after. */
+const MENU_LINKS = [
+  ...NAV_LINKS,
+  { href: '/compare/', label: 'Compare' },
+  { href: '/about/', label: 'About' },
+  { href: '/contact/', label: 'Contact' },
+];
 ---
 
 <nav class="nav" aria-label="Main navigation">
@@ -17,13 +43,9 @@ const { assetVersion } = Astro.props;
       <span class="logo-text">Electra<span class="logo-accent">Sim</span></span>
     </a>
     <div class="nav-links">
-      <a href="/#features" class="hide-m">Features</a>
-      <a href="/#how-it-works" class="hide-m">How it works</a>
-      <a href="/tools/" class="hide-m">Tools</a>
-      <a href="/guide/" class="hide-m">Guide</a>
-      <a href="/blog/" class="hide-m">Blog</a>
-      <a href="/compare/" class="hide-m">Compare</a>
-      <a href="/about/" class="hide-m">About</a>
+      {NAV_LINKS.map((link) => (
+        <a href={link.href} class="hide-m" aria-current={current(link.href)}>{link.label}</a>
+      ))}
       <button
         type="button"
         class="search-toggle-btn hide-m"
@@ -79,14 +101,9 @@ const { assetVersion } = Astro.props;
       </svg>
       <span>Search</span>
     </button>
-    <a href="/#features">Features</a>
-    <a href="/#how-it-works">How it works</a>
-    <a href="/tools/">Tools</a>
-    <a href="/guide/">Guide</a>
-    <a href="/blog/">Blog</a>
-    <a href="/compare/">Compare</a>
-    <a href="/about/">About</a>
-    <a href="/contact/">Contact</a>
+    {MENU_LINKS.map((link) => (
+      <a href={link.href} aria-current={current(link.href)}>{link.label}</a>
+    ))}
     <button
       type="button"
       class="theme-toggle-mobile"

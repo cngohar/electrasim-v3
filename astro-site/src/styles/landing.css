@@ -90,21 +90,49 @@
       900-1099 gutters 16-20%                          -> 2 lamps per gutter, tighter
       721-899  gutters 10-16%, bands 25-28%            -> corners in the bands
       <=720    gutters 3-5%, bands 11-18%              -> corners only
-   /js/landing-hero.js re-binds each lamp to its nearest circuit junction on
-   load and resize, so the glow lands on a real node at every size. */
-.lamp-3 { left: 11%; top: 26%; }   /* LED     — upper left  */
-.lamp-1 { left: 9%;  top: 68%; }   /* halogen — lower left  */
-.lamp-0 { left: 89%; top: 24%; }   /* A19     — upper right */
-.lamp-2 { left: 91%; top: 66%; }   /* CFL     — lower right */
+   At >=900px /js/landing-hero.js OVERRIDES these positions inline: it
+   shuffles each lamp onto a random real junction in its gutter quadrant on
+   every page load. The values below are the no-JS fallback there, and the
+   live positions below 900px. The script also re-binds each lamp to its
+   nearest circuit junction on load and resize, so the glow lands on a real
+   node at every size. */
+.lamp-3 {
+  left: 11%;
+  top: 26%;
+} /* LED     — upper left  */
+.lamp-1 {
+  left: 9%;
+  top: 68%;
+} /* halogen — lower left  */
+.lamp-0 {
+  left: 89%;
+  top: 24%;
+} /* A19     — upper right */
+.lamp-2 {
+  left: 91%;
+  top: 66%;
+} /* CFL     — lower right */
 
 @media (min-width: 900px) and (max-width: 1099px) {
   .lamp-img {
     height: 74px;
   }
-  .lamp-3 { left: 8%;  top: 26%; }
-  .lamp-1 { left: 9%;  top: 70%; }
-  .lamp-0 { left: 92%; top: 24%; }
-  .lamp-2 { left: 93%; top: 68%; }
+  .lamp-3 {
+    left: 8%;
+    top: 26%;
+  }
+  .lamp-1 {
+    left: 9%;
+    top: 70%;
+  }
+  .lamp-0 {
+    left: 92%;
+    top: 24%;
+  }
+  .lamp-2 {
+    left: 93%;
+    top: 68%;
+  }
 }
 
 /* Gutters are too narrow to hold a lamp — use the top and bottom bands. */
@@ -112,10 +140,21 @@
   .lamp-img {
     height: 66px;
   }
-  .lamp-3 { left: 12%; top: 9%; }    /* top-left     */
-  .lamp-0 { left: 88%; top: 9%; }    /* top-right    */
-  .lamp-2 { left: 12%; top: 90%; }   /* bottom-left  */
-  .lamp-1 { display: none; }         /* too slim to read at this size */
+  .lamp-3 {
+    left: 12%;
+    top: 9%;
+  } /* top-left     */
+  .lamp-0 {
+    left: 88%;
+    top: 9%;
+  } /* top-right    */
+  .lamp-2 {
+    left: 12%;
+    top: 90%;
+  } /* bottom-left  */
+  .lamp-1 {
+    display: none;
+  } /* too slim to read at this size */
 }
 
 @media (max-width: 720px) {
@@ -125,10 +164,21 @@
   .lamp-tag {
     display: none;
   }
-  .lamp-3 { left: 13%; top: 5.5%; }  /* top-left     */
-  .lamp-0 { left: 87%; top: 5.5%; }  /* top-right    */
-  .lamp-2 { left: 14%; top: 93%; }   /* bottom-left  */
-  .lamp-1 { display: none; }
+  .lamp-3 {
+    left: 13%;
+    top: 5.5%;
+  } /* top-left     */
+  .lamp-0 {
+    left: 87%;
+    top: 5.5%;
+  } /* top-right    */
+  .lamp-2 {
+    left: 14%;
+    top: 93%;
+  } /* bottom-left  */
+  .lamp-1 {
+    display: none;
+  }
 }
 
 /* ── Main breaker ───────────────────────────────────────────────────────── */
@@ -695,8 +745,12 @@
   box-shadow: 0 0 14px var(--rail-glow);
 }
 @keyframes reclose {
-  0% { transform: translateY(18px); }
-  100% { transform: translateY(0); }
+  0% {
+    transform: translateY(18px);
+  }
+  100% {
+    transform: translateY(0);
+  }
 }
 .way-id {
   display: flex;
@@ -1009,10 +1063,18 @@
 .is-live .steps-grid .step-no {
   animation-play-state: running;
 }
-.steps-grid > :nth-child(1) .step-no { animation-delay: 0s; }
-.steps-grid > :nth-child(2) .step-no { animation-delay: 0.28s; }
-.steps-grid > :nth-child(3) .step-no { animation-delay: 0.56s; }
-.steps-grid > :nth-child(4) .step-no { animation-delay: 0.84s; }
+.steps-grid > :nth-child(1) .step-no {
+  animation-delay: 0s;
+}
+.steps-grid > :nth-child(2) .step-no {
+  animation-delay: 0.28s;
+}
+.steps-grid > :nth-child(3) .step-no {
+  animation-delay: 0.56s;
+}
+.steps-grid > :nth-child(4) .step-no {
+  animation-delay: 0.84s;
+}
 @keyframes numCharge {
   0%,
   22%,
@@ -1040,10 +1102,22 @@
 .usecase-card {
   position: relative;
 }
-.usecase-grid > :nth-child(1) .pulse-y { animation-duration: 3.4s; animation-delay: 0s; }
-.usecase-grid > :nth-child(2) .pulse-y { animation-duration: 3.4s; animation-delay: -0.85s; }
-.usecase-grid > :nth-child(3) .pulse-y { animation-duration: 3.4s; animation-delay: -1.7s; }
-.usecase-grid > :nth-child(4) .pulse-y { animation-duration: 3.4s; animation-delay: -2.55s; }
+.usecase-grid > :nth-child(1) .pulse-y {
+  animation-duration: 3.4s;
+  animation-delay: 0s;
+}
+.usecase-grid > :nth-child(2) .pulse-y {
+  animation-duration: 3.4s;
+  animation-delay: -0.85s;
+}
+.usecase-grid > :nth-child(3) .pulse-y {
+  animation-duration: 3.4s;
+  animation-delay: -1.7s;
+}
+.usecase-grid > :nth-child(4) .pulse-y {
+  animation-duration: 3.4s;
+  animation-delay: -2.55s;
+}
 .uc-drop .pulse-y {
   background-size: 100% 22px;
 }

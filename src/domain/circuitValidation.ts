@@ -828,6 +828,147 @@ export function validateCircuit(
     });
   }
 
+  // 10. PARTIALLY-WIRED DEVICES & CONDUCTOR BYPASS
+  // Two real-world wiring defects the earlier checks cannot see because the
+  // circuit still forms a complete loop:
+  //   (a) a component sits on the canvas with no wires at all;
+  //   (b) a pass-through / protection device (FCU, RCD, RCBO, DP switch…)
+  //       carries one conductor while its other conductor pair is left
+  //       completely unwired — e.g. Live routed through an FCU while the
+  //       load's Neutral returns straight to the supply, bypassing the
+  //       device. The simulation legitimately runs (the loop is closed),
+  //       so validation must be the layer that flags it.
+  const unwiredComponents: ComponentInstance[] = [];
+  let bypassIssueCount = 0;
+  let inUseRoutedDevices = 0;
+
+  for (const c of components) {
+    const def = COMPONENT_DEFS[c.type];
+    if (!def) continue;
+
+    const attached = compWiresMap.get(c.id);
+    if (!attached || attached.size === 0) {
+      unwiredComponents.push(c);
+      continue;
+    }
+
+    // Conductor-bypass check only where in/out routing is the device's job.
+    if (!def.isPassThrough && !def.isProtection) continue;
+
+    let deviceFlagged = false;
+    for (const conductor of ['live', 'neutral'] as const) {
+      const portIndexes = def.ports
+        .map((p, idx) => ({ p, idx }))
+        .filter(({ p }) => p.type === conductor);
+      // Needs an in/out pair for "routing through" to be meaningful.
+      if (portIndexes.length < 2) continue;
+
+      const anyWired = portIndexes.some(
+        ({ idx }) => (portToWiresMap.get(`${c.id}:${idx}`) || []).length > 0,
+      );
+      if (anyWired) continue;
+
+      // The device is wired on another conductor but this conductor pair is
+      // fully bypassed.
+      deviceFlagged = true;
+      bypassIssueCount++;
+      const isResidual = c.type === 'rcd' || c.type === 'rcbo';
+      const conductorLabel = conductor === 'live' ? 'Live' : 'Neutral';
+      const portNames = portIndexes.map(({ p }) => p.label).join(' / ');
+
+      issues.push({
+        id: `device_conductor_bypass_${c.id}_${conductor}`,
+        severity: 'warning',
+        title: `${conductorLabel} Bypasses ${def.label}`,
+        description: isResidual
+          ? `${def.label} carries only one conductor: its ${conductorLabel} terminals (${portNames}) are unwired. A residual device compares Live and Neutral current — with the ${conductorLabel} routed around it, a real ${def.label} would sense a permanent imbalance and trip the moment the circuit is energised.`
+          : `${def.label} carries only one conductor: its ${conductorLabel} terminals (${portNames}) are unwired, so the ${conductorLabel} path bypasses the device. The circuit still works electrically, but the device cannot fully isolate or protect the load it feeds.`,
+        recommendation: `Route the load's ${conductorLabel} through the device: wire into ${portNames} instead of connecting the load's ${conductorLabel} directly to the supply.`,
+        componentId: c.id,
+        category: 'configuration',
+        detailedBreakdown: {
+          bs7671Regulation: isResidual
+            ? 'BS 7671 Regulation 531.3.2 (all live conductors routed through the RCD)'
+            : 'BS 7671 Regulation 132.14 / 537.2 (isolation and switching arrangements)',
+          physicsExplanation: isResidual
+            ? 'Residual devices sum the currents in Line and Neutral through a toroidal transformer. A conductor routed outside the toroid registers as leakage: IΔ equals the full load current, far above the 30 mA threshold.'
+            : 'Current follows every closed path presented to it. A conductor wired around a protective or switching device keeps the loop closed, so the device only interrupts the conductors that actually pass through it.',
+          steps: [
+            {
+              stepNumber: 1,
+              title: 'Port Connectivity Scan',
+              description: `${def.label}: ${conductorLabel} terminals (${portNames}) have zero attached conductors while other terminals are wired.`,
+            },
+            {
+              stepNumber: 2,
+              title: 'Loop Analysis',
+              description: `The circuit closes through a ${conductorLabel} path that does not traverse the device.`,
+            },
+            {
+              stepNumber: 3,
+              title: 'Remediation',
+              description: `Break the direct ${conductorLabel} connection and re-route it through ${portNames}.`,
+            },
+          ],
+          practicalTip: isResidual
+            ? 'On a real installation this is found instantly: the RCD/RCBO trips on first energisation because the return current never passes back through its sensing coil.'
+            : 'Double-pole devices (FCUs, DP switches) only provide full isolation when both Live and Neutral are routed through their terminals.',
+        },
+      });
+    }
+    if (!deviceFlagged) inUseRoutedDevices++;
+  }
+
+  if (unwiredComponents.length > 0) {
+    const names = unwiredComponents
+      .slice(0, 4)
+      .map((c) => COMPONENT_DEFS[c.type]?.label ?? c.type)
+      .join(', ');
+    const extra = unwiredComponents.length > 4 ? ` and ${unwiredComponents.length - 4} more` : '';
+    issues.push({
+      id: 'components_unwired',
+      severity: 'warning',
+      title: `${unwiredComponents.length} Component${unwiredComponents.length === 1 ? ' Is' : 's Are'} Not Wired`,
+      description: `${names}${extra} ${unwiredComponents.length === 1 ? 'is' : 'are'} placed on the canvas but not connected to anything, so ${unwiredComponents.length === 1 ? 'it plays' : 'they play'} no part in the circuit.`,
+      recommendation:
+        'Wire the component into the circuit, or delete it to keep the diagram honest.',
+      componentId: unwiredComponents[0].id,
+      category: 'continuity',
+      detailedBreakdown: {
+        bs7671Regulation: 'BS 7671 Regulation 132.14 (Electrical Connections)',
+        physicsExplanation:
+          'A component with no conductive path to the rest of the circuit carries no current and provides no function or protection.',
+        steps: [
+          {
+            stepNumber: 1,
+            title: 'Connectivity Scan',
+            description: `${unwiredComponents.length} component(s) found with zero attached wires.`,
+          },
+          {
+            stepNumber: 2,
+            title: 'Impact Assessment',
+            description: 'Disconnected components cannot conduct, switch, or protect.',
+          },
+          {
+            stepNumber: 3,
+            title: 'Remediation',
+            description: 'Connect matching ports (L→L, N→N, E→E) or remove the component.',
+          },
+        ],
+        practicalTip:
+          'On real jobs, abandoned accessories left in an installation must be disconnected AND removed or blanked off — a diagram should hold itself to the same standard.',
+      },
+    });
+  }
+
+  if (bypassIssueCount === 0 && inUseRoutedDevices > 0) {
+    passedChecks.push({
+      id: 'conductor_routing_ok',
+      title: 'Conductor Routing Through Devices',
+      description: `${inUseRoutedDevices} pass-through / protection device(s) carry every conductor pair they are designed to route — no Live or Neutral bypasses detected.`,
+    });
+  }
+
   // CALCULATE SCORE & SUMMARY
   const errorsCount = issues.filter((i) => i.severity === 'error').length;
   const warningsCount = issues.filter((i) => i.severity === 'warning').length;

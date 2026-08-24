@@ -1,7 +1,6 @@
 {
   "seo_title": "ElectraSim — Free Online Electrical Wiring Simulator & Circuit Trainer",
   "seo_description": "Build, energise and fault-find real domestic wiring in your browser. 115 components, live simulation, Challenge Mode and a seeded Diagnosis Lab. Free, offline-capable, no sign-up.",
-
   "hero_badge": "Free · No sign-up · Works offline",
   "hero_heading": "Real electrical wiring,",
   "hero_heading_highlight": "in your browser",
@@ -15,15 +14,29 @@
     "Data stays on device",
     "Installable PWA"
   ],
-
   "stats_label": "Rated capacity",
   "stats": [
-    { "value": "115", "unit": "components", "note": "Switchgear to 3-phase" },
-    { "value": "60", "unit": "fps", "note": "Off-thread solver" },
-    { "value": "833", "unit": "tests", "note": "On the circuit engine" },
-    { "value": "0", "unit": "accounts", "note": "Nothing leaves the device" }
+    {
+      "value": "115",
+      "unit": "components",
+      "note": "Switchgear to 3-phase"
+    },
+    {
+      "value": "60",
+      "unit": "fps",
+      "note": "Off-thread solver"
+    },
+    {
+      "value": "850",
+      "unit": "tests",
+      "note": "On the circuit engine"
+    },
+    {
+      "value": "0",
+      "unit": "accounts",
+      "note": "Nothing leaves the device"
+    }
   ],
-
   "features_label": "Way 01 · The workbench",
   "features_heading": "A wiring bench that answers back",
   "features_description": "Every component is modelled — ports, poles, ratings and behaviour. Close a switch and the engine re-solves the Live, Neutral and Earth paths, then shows you what that means.",
@@ -59,7 +72,6 @@
       "body": "Schema-versioned JSON, animated SVG, 2× PNG, a printable title block, or a share URL that carries the whole circuit in the fragment. No backend, ever."
     }
   ],
-
   "modes_label": "Way 02 · Learning modes",
   "modes_heading": "Three ways to actually practise",
   "modes_description": "Free-build is where most simulators stop. These are the modes that tell you whether you got it right.",
@@ -98,7 +110,6 @@
       ]
     }
   ],
-
   "how_label": "Way 03 · First circuit",
   "how_heading": "Energised in four steps",
   "how_description": "No account, no download, no setup. Open it and start wiring.",
@@ -120,7 +131,6 @@
       "body": "Run the simulation, flip switches, then inject a fault and watch the protective device do its job. Undo is bounded to the last 100 states."
     }
   ],
-
   "usecases_label": "Way 04 · On the bench",
   "usecases_heading": "Who has it open",
   "usecases_description": "Anyone who needs to understand a circuit before touching one.",
@@ -146,11 +156,9 @@
       "body": "Understand what is behind the faceplate. Relays, contactors, timers and PIR sensors, all safe to get wrong."
     }
   ],
-
   "blog_label": "Way 05 · Reference",
   "blog_heading": "Wiring guides, written properly",
   "blog_description": "Regulations, circuit theory and step-by-step installs — the same material the simulator is built on.",
-
   "cta_heading": "Open the bench",
   "cta_description": "Free, instant, and everything stays on your device. No account, no download, no risk.",
   "cta_button": "Launch ElectraSim"

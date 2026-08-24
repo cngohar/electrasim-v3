@@ -8,11 +8,11 @@
 
 import type { ComponentHelpData } from './types';
 
-import { PROTECTION_HELP } from './protection';
-import { SWITCH_AND_CONTROL_HELP } from './switchesAndControls';
-import { SOCKET_HELP } from './sockets';
 import { LIGHTING_HELP } from './lighting';
 import { LOAD_AND_SUPPLY_HELP } from './loadsAndSupply';
+import { PROTECTION_HELP } from './protection';
+import { SOCKET_HELP } from './sockets';
+import { SWITCH_AND_CONTROL_HELP } from './switchesAndControls';
 
 export const COMPONENT_HELP_REGISTRY: Record<string, ComponentHelpData> = {
   ...PROTECTION_HELP,
@@ -21,7 +21,6 @@ export const COMPONENT_HELP_REGISTRY: Record<string, ComponentHelpData> = {
   ...LIGHTING_HELP,
   ...LOAD_AND_SUPPLY_HELP,
 };
-
 
 /** Get context-specific learning & tips data with rich defaults */
 export function getComponentHelp(type: string, category?: string): ComponentHelpData {
@@ -74,7 +73,10 @@ export function getComponentHelp(type: string, category?: string): ComponentHelp
         'Converts electrical energy into lumen illumination for interior or outdoor lighting.',
       circuitBehavior:
         'Draws active power from Live and Neutral supply rails. May exhibit inrush or dimming characteristics.',
-      keySpecs: ['Efficiency: LED high efficacy (> 80 lm/W)', 'Power Factor: 0.50–0.98 depending on driver'],
+      keySpecs: [
+        'Efficiency: LED high efficacy (> 80 lm/W)',
+        'Power Factor: 0.50–0.98 depending on driver',
+      ],
       quickTips: [
         'Connect Live from switch output and Neutral from supply Neutral bar.',
         'Always bond earth to metallic fitting enclosures.',
@@ -148,4 +150,3 @@ export function getComponentHelp(type: string, category?: string): ComponentHelp
     ],
   };
 }
-

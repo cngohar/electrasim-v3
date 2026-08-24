@@ -2,6 +2,7 @@
 title: "RCD Protection Zones Explained: How to Design a Modern Consumer Unit"
 description: "Split-load, fully RCBO, whole-board RCD — which layout gives the best protection without constant nuisance trips? This guide explains how RCD protection zones work, how to plan circuit allocation, and what BS 7671 actually requires for new and upgraded consumer units."
 pubDate: 2026-06-19
+updatedDate: 2026-08-22
 author: ElectraSim
 category: Intermediate Guide
 tags: [RCD protection zones, consumer unit design, split-load consumer unit, RCBO, RCD discrimination, BS 7671, 18th edition wiring regulations, nuisance tripping, electrical installation, circuit protection planning, consumer unit layout, RCD selectivity]
@@ -332,9 +333,11 @@ If every high-consumption circuit (shower, cooker, EV charger, immersion) sits b
 ### Building a Fully RCBO Layout
 
 1. Place a **Distribution Board**
-2. Place individual **MCB** and **RCD** pairs in series for each circuit (ElectraSim RCBO = MCB + RCD in series per circuit)
+2. Place an individual **RCBO** component for each circuit — ElectraSim's RCBO is a two-pole device that switches Live and Neutral together, exactly like the single-module devices in a real all-RCBO board
 3. Apply an earth fault to any single circuit
-4. Only that circuit's RCD trips — all others remain live
+4. Only that circuit's RCBO trips — all others remain live
+
+You can also load the **RCBO-Protected Socket** guided circuit from the Guided Circuits menu to inspect a ready-made example with protective earth and a test load.
 
 This makes the fault isolation advantage of the RCBO layout immediately visible without touching any live equipment.
 

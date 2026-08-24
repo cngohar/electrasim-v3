@@ -94,7 +94,8 @@ export const NeutralEarthRule: ElectricalRule = {
     message: 'Neutral and Protective Earth must not be joined in domestic subcircuits.',
     explanation:
       'Neutral and Earth are separate conductors downstream of the consumer unit. Joining them creates circulating return currents in the earthing system and trips RCD protection.',
-    suggestedFix: 'Connect Neutral to the designated Neutral return rail, and Earth to the grounding terminal.',
+    suggestedFix:
+      'Connect Neutral to the designated Neutral return rail, and Earth to the grounding terminal.',
     canOverride: true,
   }),
 };
@@ -140,7 +141,10 @@ export const VoltageDomainMismatchRule: ElectricalRule = {
   category: 'terminal',
   severity: 'error',
   appliesTo: ({ sourceTerminal, targetTerminal }) => {
-    if (sourceTerminal.voltageDomain === 'universal' || targetTerminal.voltageDomain === 'universal') {
+    if (
+      sourceTerminal.voltageDomain === 'universal' ||
+      targetTerminal.voltageDomain === 'universal'
+    ) {
       return false;
     }
     return sourceTerminal.voltageDomain !== targetTerminal.voltageDomain;
@@ -277,12 +281,14 @@ export const DimmerFanRule: ElectricalRule = {
     const isDimmerSource =
       sourceComponent.type === 'dimmer-switch' && sourceTerminal.role === 'CONTROL_L';
     const targetCat = getComponentCapability(targetComponent.type).category;
-    const isFanOrMotorTarget = (targetCat === 'FanLoad' || targetCat === 'MotorLoad') && targetTerminal.conductor === 'live';
+    const isFanOrMotorTarget =
+      (targetCat === 'FanLoad' || targetCat === 'MotorLoad') && targetTerminal.conductor === 'live';
 
     const isDimmerTarget =
       targetComponent.type === 'dimmer-switch' && targetTerminal.role === 'CONTROL_L';
     const sourceCat = getComponentCapability(sourceComponent.type).category;
-    const isFanOrMotorSource = (sourceCat === 'FanLoad' || sourceCat === 'MotorLoad') && sourceTerminal.conductor === 'live';
+    const isFanOrMotorSource =
+      (sourceCat === 'FanLoad' || sourceCat === 'MotorLoad') && sourceTerminal.conductor === 'live';
 
     return (isDimmerSource && isFanOrMotorTarget) || (isDimmerTarget && isFanOrMotorSource);
   },
@@ -347,14 +353,20 @@ export const ControlLoadCompatibilityRule: ElectricalRule = {
     if (sourceTerminal.role === 'CONTROL_L' && targetTerminal.conductor === 'live') {
       const srcCap = getComponentCapability(sourceComponent.type);
       const tgtCap = getComponentCapability(targetComponent.type);
-      if (srcCap.allowedControlledLoads && !srcCap.allowedControlledLoads.includes(tgtCap.category)) {
+      if (
+        srcCap.allowedControlledLoads &&
+        !srcCap.allowedControlledLoads.includes(tgtCap.category)
+      ) {
         return true;
       }
     }
     if (targetTerminal.role === 'CONTROL_L' && sourceTerminal.conductor === 'live') {
       const tgtCap = getComponentCapability(targetComponent.type);
       const srcCap = getComponentCapability(sourceComponent.type);
-      if (tgtCap.allowedControlledLoads && !tgtCap.allowedControlledLoads.includes(srcCap.category)) {
+      if (
+        tgtCap.allowedControlledLoads &&
+        !tgtCap.allowedControlledLoads.includes(srcCap.category)
+      ) {
         return true;
       }
     }
@@ -368,7 +380,8 @@ export const ControlLoadCompatibilityRule: ElectricalRule = {
     targetComponentId: targetComponent.id,
     targetTerminalIndex: targetIndex,
     message: 'Incompatible controller and load pairing.',
-    explanation: 'The selected control device is not designed to control this category of electrical load.',
+    explanation:
+      'The selected control device is not designed to control this category of electrical load.',
     suggestedFix: 'Use a compatible controller suited for this specific load.',
     canOverride: true,
   }),
@@ -399,7 +412,14 @@ export const ConductorMismatchRule: ElectricalRule = {
     // Direct source Live + Neutral short handled by LiveNeutralDirectShortRule
     return true;
   },
-  validate: ({ sourceComponent, targetComponent, sourceIndex, targetIndex, sourceTerminal, targetTerminal }) => ({
+  validate: ({
+    sourceComponent,
+    targetComponent,
+    sourceIndex,
+    targetIndex,
+    sourceTerminal,
+    targetTerminal,
+  }) => ({
     code: DIAGNOSTIC_CODES.TERM_VOLTAGE_DOMAIN_MISMATCH,
     severity: 'error',
     sourceComponentId: sourceComponent.id,

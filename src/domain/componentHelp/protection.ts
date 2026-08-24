@@ -10,6 +10,7 @@ import type { ComponentHelpData } from './types';
 
 export const PROTECTION_HELP: Record<string, ComponentHelpData> = {
   mcb: {
+    learnMoreSlug: 'what-is-an-mcb-breaker',
     title: 'Miniature Circuit Breaker (MCB) - Type B',
     category: 'protection',
     voltage: '230V / 400V AC (50/60Hz)',
@@ -39,6 +40,7 @@ export const PROTECTION_HELP: Record<string, ComponentHelpData> = {
   },
 
   'mcb-type-c': {
+    learnMoreSlug: 'what-is-an-mcb-breaker',
     title: 'Miniature Circuit Breaker (MCB) - Type C',
     category: 'protection',
     voltage: '230V / 400V AC (50/60Hz)',
@@ -67,6 +69,7 @@ export const PROTECTION_HELP: Record<string, ComponentHelpData> = {
   },
 
   'mcb-type-d': {
+    learnMoreSlug: 'what-is-an-mcb-breaker',
     title: 'Miniature Circuit Breaker (MCB) - Type D',
     category: 'protection',
     voltage: '230V / 400V AC (50/60Hz)',
@@ -121,6 +124,7 @@ export const PROTECTION_HELP: Record<string, ComponentHelpData> = {
   },
 
   rcd: {
+    learnMoreSlug: 'what-is-an-rcd-and-why-do-you-need-one',
     title: 'Residual Current Device (RCD) - Double Pole',
     category: 'protection',
     voltage: '230V AC Single-Phase',
@@ -148,6 +152,7 @@ export const PROTECTION_HELP: Record<string, ComponentHelpData> = {
   },
 
   rcbo: {
+    learnMoreSlug: 'what-is-an-rcbo-difference-between-rcd-mcb-rcbo',
     title: 'Residual Current Breaker with Overcurrent (RCBO)',
     category: 'protection',
     voltage: '230V AC Single-Phase',
@@ -175,6 +180,7 @@ export const PROTECTION_HELP: Record<string, ComponentHelpData> = {
   },
 
   spd: {
+    learnMoreSlug: 'surge-protection-devices-spd-explained',
     title: 'Surge Protection Device (SPD) - Type 2',
     category: 'protection',
     voltage: '230V / 275V AC continuous (Uc)',

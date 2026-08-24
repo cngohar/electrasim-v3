@@ -1,13 +1,30 @@
 /**
- * Seed circuit — initial state for the editor on first load.
+ * Seed circuits — initial state for the editor on first load.
  *
- * Built using real domain primitives (`ComponentInstance`, `WireInstance`)
- * so the simulation engine and the renderer see the exact same shapes that
- * a user-drawn circuit would produce. Replaces the legacy `sampleCircuit.ts`
- * mockup format.
+ * Two demos, one per application mode, both engineered to pass every
+ * validation check at 100:
  *
- * The layout is tuned for the 1200×720 logical canvas used by `CircuitCanvas`
- * with the domain `COMP_W=100` / `COMP_H=70` boxes.
+ * - **Student demo** (`buildStudentSeedCircuit`): a friendly two-branch
+ *   bench — protected lighting (MCB → switch → bulb) and an RCBO-protected
+ *   socket with earth. Small enough to read at a glance.
+ * - **Pro demo** (`buildProSeedCircuit`): a compliant three-branch bench —
+ *   two-way staircase lighting, an RCBO socket circuit, and a C-curve
+ *   breaker + contactor motor starter. Exercises Validate, the diagnostics
+ *   overlay, Zs checks and the Fault Lab without triggering compliance
+ *   findings out of the box.
+ *
+ * Compliance recipe (see `circuitValidation.ts`):
+ * - Breaker rating = `state.customAmps ?? def.maxAmps`; default cable is
+ *   1.5 mm² (≈20 A clipped direct), so every breaker here declares a
+ *   realistic rating ≤ its cable's ampacity.
+ * - The socket load declares `customCableMm2: 2.5` per its recommended
+ *   conductor, and sits behind an RCBO (RCD-on-sockets rule).
+ * - The motor sits behind a **D-curve** breaker (inrush rule) and both its
+ *   conductors route through the contactor (conductor-bypass rule).
+ *
+ * Built using real domain primitives so the simulation engine and the
+ * renderer see the exact shapes a user-drawn circuit would produce. The
+ * layout targets the 1200×720 logical canvas with COMP_W=100 / COMP_H=70.
  */
 
 import type { Circuit, ComponentInstance, WireInstance } from '../domain';
@@ -38,168 +55,129 @@ const W = (
   controlPoints: [],
 });
 
-export function buildSeedCircuit(socketTypeArg = 'socket-3pin'): Circuit {
-  const socketType = COMPONENT_DEFS[socketTypeArg] ? socketTypeArg : 'socket-3pin';
-  // Deterministic ids: reset the module counter so every call produces the
-  // same component/wire ids. This lets callers rebuild an identical seed
-  // (e.g. swapping the demo socket for a region) and compare by id.
+const resolveSocket = (socketTypeArg: string) =>
+  COMPONENT_DEFS[socketTypeArg] ? socketTypeArg : 'socket-3pin';
+
+/** Simple, fully-valid Student bench: protected light + RCBO socket. */
+export function buildStudentSeedCircuit(socketTypeArg = 'socket-3pin'): Circuit {
+  const socketType = resolveSocket(socketTypeArg);
+  // Deterministic ids: reset the counter so every call produces the same
+  // component/wire ids — callers rebuild an identical seed to detect the
+  // "untouched demo" state (see circuitStore.swapDemoSocketForPlug).
   nextId = 0;
+
   // ── Supply rail (left column) ─────────────────────────────────────────
   const live = C('live-terminal', 110, 150);
-  const neutral = C('neutral-terminal', 110, 380);
-  const earth = C('earth-terminal', 110, 610);
+  const neutral = C('neutral-terminal', 110, 420);
+  const earth = C('earth-terminal', 110, 640);
 
-  // ── Protection ───────────────────────────────────────────────────────
-  const mcb = C('mcb', 290, 150, { on: true });
-  const fuse = C('fuse', 290, 610, { on: true });
+  // ── Branch 1: protected lighting — MCB 6 A → switch → bulb ────────────
+  const mcb = C('mcb', 330, 150, { on: true, customMaxAmps: 6 });
+  const sw = C('single-way-switch', 560, 150, { on: true });
+  const bulb = C('bulb', 790, 150);
 
-  // ── Junction split ───────────────────────────────────────────────────
-  const jb = C('junction-box', 470, 150);
+  // ── Branch 2: RCBO-protected socket with earth ────────────────────────
+  const rcbo = C('rcbo', 330, 420, { on: true, customMaxAmps: 20 });
+  const socket = C(socketType, 560, 420, { customCableMm2: 2.5 });
 
-  // ── Branch 1: staircase (two 2-way switches → bulb) ──────────────────
-  const sw1 = C('two-way-switch', 670, 90, { on: true });
-  const sw2 = C('two-way-switch', 850, 90, { on: true });
-  const bulb1 = C('bulb', 1030, 90);
+  const components = [live, neutral, earth, mcb, sw, bulb, rcbo, socket];
+  const wires = [
+    // Lighting: L → MCB → switch → bulb → N
+    W({ c: live, p: 0 }, { c: mcb, p: 0 }),
+    W({ c: mcb, p: 1 }, { c: sw, p: 0 }),
+    W({ c: sw, p: 1 }, { c: bulb, p: 0 }),
+    W({ c: bulb, p: 1 }, { c: neutral, p: 0 }),
+    // Socket: both conductors route through the RCBO (two-pole)
+    W({ c: live, p: 0 }, { c: rcbo, p: 0 }), // L → RCBO L-in
+    W({ c: rcbo, p: 2 }, { c: socket, p: 0 }), // RCBO L-out → socket L
+    W({ c: socket, p: 1 }, { c: rcbo, p: 3 }), // socket N → RCBO N-out
+    W({ c: rcbo, p: 1 }, { c: neutral, p: 0 }), // RCBO N-in → N
+    W({ c: earth, p: 0 }, { c: socket, p: 2 }), // PE → socket E
+  ];
 
-  // ── Branch 2: switched fan with dimmer ───────────────────────────────
-  const sw3 = C('single-way-switch', 670, 250, { on: true });
-  const dim = C('fan-dimmer', 850, 250, { on: true });
-  const fan = C('ceiling-fan', 1030, 250);
+  return { components, wires };
+}
 
-  // ── Branch 3: socket (region-aware) + push-button bell ───────────────
-  const socket = C(socketType, 670, 410);
-  const pb = C('push-button', 850, 410, { on: false });
-  const bulb2 = C('bulb', 1030, 410);
+/** Richer, fully-compliant Pro bench: staircase light, RCBO socket, motor. */
+export function buildProSeedCircuit(socketTypeArg = 'socket-3pin'): Circuit {
+  const socketType = resolveSocket(socketTypeArg);
+  nextId = 0;
 
-  // ── Branch 4 (motor on its own with fuse) ────────────────────────────
-  const motor = C('motor', 470, 610);
+  // ── Supply rail ───────────────────────────────────────────────────────
+  const live = C('live-terminal', 110, 110);
+  const neutral = C('neutral-terminal', 110, 400);
+  const earth = C('earth-terminal', 110, 650);
 
-  // ── Second supply row (y=800) for new components ─────────────────────
-  const live2 = C('live-terminal', 110, 820);
-  const neutral2 = C('neutral-terminal', 110, 1010);
+  // ── Branch 1: two-way staircase lighting — MCB 6 A ────────────────────
+  const mcb = C('mcb', 330, 110, { on: true, customMaxAmps: 6 });
+  const sw1 = C('two-way-switch', 560, 60, { on: true });
+  const sw2 = C('two-way-switch', 790, 60, { on: true });
+  const bulb = C('bulb', 1010, 110);
 
-  // ── Branch 5: RCD protecting a distribution board → dimmer → bulb ───
-  //   L2 → RCD(L-in) → DB(L-in) → DB(L1) → dimmer-switch → bulb3
-  //   N2 → RCD(N-in) → DB(N-in) → DB(N1) → bulb3(N)
-  const rcd = C('rcd', 290, 820, { on: true });
-  const db = C('distribution-board', 470, 820);
-  const dimSw = C('dimmer-switch', 670, 820, { on: true });
-  const bulb3 = C('bulb', 850, 820);
+  // ── Branch 2: RCBO-protected socket with earth ────────────────────────
+  const rcbo = C('rcbo', 330, 400, { on: true, customMaxAmps: 20 });
+  const socket = C(socketType, 560, 400, { customCableMm2: 2.5 });
 
-  // ── Branch 6: contactor switching a motor (heavy-load) ───────────────
-  //   DB(L2) → contactor(L-in) → motor2(L)
-  //   DB(N2) → contactor(N-in) → motor2(N)
-  const contactor = C('contactor', 670, 980, { on: true });
-  const motor2 = C('motor', 850, 980);
+  // ── Branch 3: motor starter — D-curve breaker → contactor → motor ─────
+  // Type D satisfies the motor-inrush curve rule under every preset the
+  // app ships (UK/EU require ≥ C, the US preset requires D).
+  const mcbC = C('mcb-type-d', 330, 580, { on: true, customMaxAmps: 10 });
+  const contactor = C('contactor', 560, 610, { on: true });
+  const motor = C('motor', 790, 610);
 
-  // ── Branch 7: timer switch → bell (doorbell-style) ───────────────────
-  //   DB(L3) → timer-switch → bell(L)
-  //   neutral2 → bell(N)  [direct neutral — no separate branch needed]
-  const timer = C('timer-switch', 670, 1130, { on: true });
-  const bellComp = C('bell', 850, 1130);
-
-  const components: ComponentInstance[] = [
+  const components = [
     live,
     neutral,
     earth,
     mcb,
-    fuse,
-    jb,
     sw1,
     sw2,
-    bulb1,
-    sw3,
-    dim,
-    fan,
+    bulb,
+    rcbo,
     socket,
-    pb,
-    bulb2,
-    motor,
-    // new
-    live2,
-    neutral2,
-    rcd,
-    db,
-    dimSw,
-    bulb3,
+    mcbC,
     contactor,
-    motor2,
-    timer,
-    bellComp,
+    motor,
   ];
-
-  // ── Wires ─────────────────────────────────────────────────────────────
-  // Component port indices follow COMPONENT_DEFS order:
-  //   live-terminal:       0 = L-out
-  //   neutral-terminal:    0 = N-out
-  //   earth-terminal:      0 = E-out
-  //   mcb / fuse / single-way-switch / push-button / fan-dimmer:
-  //                        0 = L-in,  1 = L-out
-  //   two-way-switch:      0 = COM,   1 = L1, 2 = L2
-  //   junction-box:        0 = L-in,  1 = L-out1, 2 = L-out2, 3 = L-out3
-  //   bulb / fan / motor:  0 = L,     1 = N
-  //   socket-3pin:         0 = L,     1 = N, 2 = E
-  //   rcd:                 0 = L-in,  1 = N-in, 2 = L-out, 3 = N-out
-  //   contactor:           0 = L-in,  1 = N-in, 2 = L-out, 3 = N-out
-  //   timer-switch:        0 = L-in,  1 = L-out
-  //   dimmer-switch:       0 = L-in,  1 = L-out
-  //   distribution-board:  0 = L-in,  1 = N-in, 2 = L1, 3 = L2, 4 = L3, 5 = N1, 6 = N2
-  //   bell:                0 = L,     1 = N
-  const wires: WireInstance[] = [
-    // Live trunk: L → MCB → JB
+  const wires = [
+    // Staircase: L → MCB → SW1 COM, travellers L1/L2, SW2 COM → bulb → N
     W({ c: live, p: 0 }, { c: mcb, p: 0 }),
-    W({ c: mcb, p: 1 }, { c: jb, p: 0 }),
-
-    // Branch 1: JB → SW1 → SW2 → bulb1
-    W({ c: jb, p: 1 }, { c: sw1, p: 0 }),
+    W({ c: mcb, p: 1 }, { c: sw1, p: 0 }),
     W({ c: sw1, p: 1 }, { c: sw2, p: 1 }),
     W({ c: sw1, p: 2 }, { c: sw2, p: 2 }),
-    W({ c: sw2, p: 0 }, { c: bulb1, p: 0 }),
-
-    // Branch 2: JB → SW3 → DIM → fan
-    W({ c: jb, p: 2 }, { c: sw3, p: 0 }),
-    W({ c: sw3, p: 1 }, { c: dim, p: 0 }),
-    W({ c: dim, p: 1 }, { c: fan, p: 0 }),
-
-    // Branch 3: JB → socket; JB → PB → bulb2
-    W({ c: jb, p: 3 }, { c: socket, p: 0 }),
-    W({ c: jb, p: 2 }, { c: pb, p: 0 }),
-    W({ c: pb, p: 1 }, { c: bulb2, p: 0 }),
-
-    // Neutral returns (upper half)
-    W({ c: neutral, p: 0 }, { c: bulb1, p: 1 }),
-    W({ c: neutral, p: 0 }, { c: fan, p: 1 }),
-    W({ c: neutral, p: 0 }, { c: socket, p: 1 }),
-    W({ c: neutral, p: 0 }, { c: bulb2, p: 1 }),
-    W({ c: neutral, p: 0 }, { c: motor, p: 1 }),
-
-    // Earth → socket
+    W({ c: sw2, p: 0 }, { c: bulb, p: 0 }),
+    W({ c: bulb, p: 1 }, { c: neutral, p: 0 }),
+    // Socket: both conductors through the RCBO
+    W({ c: live, p: 0 }, { c: rcbo, p: 0 }),
+    W({ c: rcbo, p: 2 }, { c: socket, p: 0 }),
+    W({ c: socket, p: 1 }, { c: rcbo, p: 3 }),
+    W({ c: rcbo, p: 1 }, { c: neutral, p: 0 }),
     W({ c: earth, p: 0 }, { c: socket, p: 2 }),
-
-    // Motor branch: L → fuse → motor
-    W({ c: live, p: 0 }, { c: fuse, p: 0 }),
-    W({ c: fuse, p: 1 }, { c: motor, p: 0 }),
-
-    // ── Branch 5: L2 → RCD → DB → dimmer-switch → bulb3 ─────────────
-    W({ c: live2, p: 0 }, { c: rcd, p: 0 }),
-    W({ c: neutral2, p: 0 }, { c: rcd, p: 1 }),
-    W({ c: rcd, p: 2 }, { c: db, p: 0 }),
-    W({ c: rcd, p: 3 }, { c: db, p: 1 }),
-    W({ c: db, p: 2 }, { c: dimSw, p: 0 }),
-    W({ c: dimSw, p: 1 }, { c: bulb3, p: 0 }),
-    W({ c: db, p: 5 }, { c: bulb3, p: 1 }),
-
-    // ── Branch 6: DB → contactor → motor2 ────────────────────────────
-    W({ c: db, p: 3 }, { c: contactor, p: 0 }),
-    W({ c: db, p: 6 }, { c: contactor, p: 1 }),
-    W({ c: contactor, p: 2 }, { c: motor2, p: 0 }),
-    W({ c: contactor, p: 3 }, { c: motor2, p: 1 }),
-
-    // ── Branch 7: DB → timer-switch → bell ───────────────────────────
-    W({ c: db, p: 4 }, { c: timer, p: 0 }),
-    W({ c: timer, p: 1 }, { c: bellComp, p: 0 }),
-    W({ c: neutral2, p: 0 }, { c: bellComp, p: 1 }),
+    // Motor: L → C-curve MCB → contactor (both conductors) → motor
+    W({ c: live, p: 0 }, { c: mcbC, p: 0 }),
+    W({ c: mcbC, p: 1 }, { c: contactor, p: 0 }),
+    W({ c: contactor, p: 2 }, { c: motor, p: 0 }),
+    W({ c: motor, p: 1 }, { c: contactor, p: 3 }),
+    W({ c: contactor, p: 1 }, { c: neutral, p: 0 }),
   ];
 
   return { components, wires };
+}
+
+/** Demo circuit for an application mode. */
+export function buildSeedCircuitForMode(
+  mode: 'basic' | 'pro',
+  socketTypeArg = 'socket-3pin',
+): Circuit {
+  return mode === 'pro'
+    ? buildProSeedCircuit(socketTypeArg)
+    : buildStudentSeedCircuit(socketTypeArg);
+}
+
+/**
+ * Legacy entry point — the app boots in Student mode, so the default seed
+ * is the Student bench. Prefer `buildSeedCircuitForMode` in new code.
+ */
+export function buildSeedCircuit(socketTypeArg = 'socket-3pin'): Circuit {
+  return buildStudentSeedCircuit(socketTypeArg);
 }

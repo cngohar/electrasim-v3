@@ -28,6 +28,7 @@ function EditingSettings() {
   const customWiringMode = useSettingsStore((state) => state.customWiringMode);
   const routingStyle = useSettingsStore((state) => state.routingStyle);
   const autoWireJoints = useSettingsStore((state) => state.autoWireJoints);
+  const showRecentComponents = useSettingsStore((state) => state.showRecentComponents);
   const setSetting = useSettingsStore((state) => state.setSetting);
 
   return (
@@ -73,6 +74,17 @@ function EditingSettings() {
         }
         checked={autoWireJoints}
         onChange={(value) => setSetting('autoWireJoints', value)}
+      />
+      <ElectricToggle
+        label="Recent components in palette"
+        description="Show a quick-access row of your six most recently placed components at the top of the palette. Disable for a cleaner, category-only palette."
+        preview={
+          showRecentComponents
+            ? '🕘 The palette opens with your recently placed components on top.'
+            : '📂 The palette shows regional essentials and categories only.'
+        }
+        checked={showRecentComponents}
+        onChange={(value) => setSetting('showRecentComponents', value)}
       />
     </>
   );

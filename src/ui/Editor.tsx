@@ -44,6 +44,9 @@ const MobileSuitabilityModal = lazy(() =>
 const WelcomeModal = lazy(() =>
   import('./components/WelcomeModal').then((m) => ({ default: m.WelcomeModal })),
 );
+const TourOverlay = lazy(() =>
+  import('./tour/TourOverlay').then((m) => ({ default: m.TourOverlay })),
+);
 /**
  * Deferred surfaces (docs/PERFORMANCE.md).
  *
@@ -96,6 +99,7 @@ import {
   labGlassLight,
 } from './theme';
 import { applyDocumentTheme } from './themePreference';
+import { TourOfferChip } from './tour/TourOfferChip';
 
 function confirmTitle(d: PendingDeletion | null): string {
   switch (d?.kind) {
@@ -210,6 +214,7 @@ export function Editor() {
   const diagnosisOpen = useUiStore((s) => s.diagnosisOpen);
   const mobileSuitabilityOpen = useUiStore((s) => s.mobileSuitabilityOpen);
   const welcomeOpen = useUiStore((s) => s.welcomeOpen);
+  const tourId = useUiStore((s) => s.tourId);
   // Gates for the deferred surfaces above — each mirrors the flag the modal
   // already checks internally, so mounting behaviour is unchanged.
   const whatHappenedOpen = useUiStore((s) => s.whatHappenedOpen);
@@ -395,6 +400,12 @@ export function Editor() {
           <WelcomeModal />
         </Suspense>
       )}
+      {tourId && (
+        <Suspense fallback={null}>
+          <TourOverlay isPhone={isPhone} />
+        </Suspense>
+      )}
+      <TourOfferChip isPhone={isPhone} />
       <FaultAlertModal />
       <CommandPalette />
       <FaultLabPanel />

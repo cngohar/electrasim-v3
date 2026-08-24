@@ -14,10 +14,10 @@
 
 import type { Circuit } from '../../domain/types';
 import {
-  runZsChecks,
   ZE_DEFAULT_OHMS,
   type ZsCheckResult,
   type ZsEarthArrangement,
+  runZsChecks,
 } from '../../domain/zsCheck';
 
 export interface EicCircuitRow {
@@ -49,8 +49,7 @@ export interface EicReportData {
   anyEstimatedLength: boolean;
 }
 
-const fmt = (n: number, digits = 2) =>
-  Number.isFinite(n) ? n.toFixed(digits) : '—';
+const fmt = (n: number, digits = 2) => (Number.isFinite(n) ? n.toFixed(digits) : '—');
 
 function rowFromZs(result: ZsCheckResult, index: number): EicCircuitRow {
   return {

@@ -13,7 +13,7 @@
     {
       "icon": "🧭",
       "title": "Guided Circuit Templates",
-      "body": "Open ready-made circuits inside the app for lamps, two-way switching, RCD fault checks, contactor motor starters, and timer-controlled bells."
+      "body": "Open eight ready-made circuits inside the app: lamps, one-way and two-way switching, RCD fault checks, contactor motor starters, timer-controlled bells, a push-button doorbell, and an RCBO-protected socket."
     },
     {
       "icon": "⚠️",
@@ -71,6 +71,16 @@
       "title": "Timer-Controlled Bell",
       "level": "Beginner",
       "body": "Use a timer switch as a controlled live path feeding a bell or buzzer."
+    },
+    {
+      "title": "Push-Button Doorbell",
+      "level": "Beginner",
+      "body": "Hold a normally-open push button to energise a protected bell, then release it and watch the circuit open again."
+    },
+    {
+      "title": "RCBO-Protected Socket",
+      "level": "Intermediate",
+      "body": "Supply a socket outlet through an RCBO with switched live and neutral, protective earth, and a plugged-in test load."
     }
   ],
   "circuits": [

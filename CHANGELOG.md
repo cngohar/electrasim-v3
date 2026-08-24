@@ -11,6 +11,82 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Notes — Session 2026-08-23: Architecture Regression Analysis (read-only, no code changes)
+
+A full read-only audit of the architecture identified the most likely regressions. Nothing was modified; findings are logged here as the pre-release checklist for this branch.
+
+**Verified-broken today (must be addressed before/at release):**
+1. **Release gate blocked (pre-existing):** `check:perf` fails — initial app JS is ~238.8 KB gzip vs the 115 KB budget (CSS 22.3 vs 15 KB). The breach predates this branch (tour added ~1.2 KB); `npm run verify`/`deploy` cannot pass until the bundle is dieted or budgets are consciously revised.
+2. **Marketing cache keys not bumped:** `site-search.js`, `site-nav.js`, `landing-hero.js` changed but still ship as `?v=1.6.1` — returning visitors would receive stale cached scripts after deploy. Bump the release version (→ 1.7.0) with this branch.
+3. **`e2e/smoke.spec.ts` keyboard-reroute test targets `[data-component-id^="fuse-"]`** — the new demo benches contain no fuse; the test will fail on the next E2E run.
+4. **Tour-offer chip appears in every E2E session** (specs seed `electrasim:welcomed` but not the chip-dismissal key) and shares coordinates with `UndoToast` (`bottom-16`); expect click-interception/visual flakes until specs seed `electrasim:tour:offer:v1:dismissed` (or the chip hides during scenario modes).
+
+**High-likelihood latent issues:** `startTour` clears/seeds the canvas without guarding active Challenge/Diagnosis sessions (canvas-ownership conflict); the stale-validation watcher triggers on any component-state change (switch toggles/drags), not just topology; "Fix All" applies quick fixes from the pre-fix report snapshot (additive fixes can over-apply); upgraders keep the old persisted showcase demo, which no longer matches demo-swap detection and scores poorly; US palette essentials (`afdd`, `socket-gfci`) are pro-tier and invisible to Student mode; `swapDemoForMode` is wired per call-site rather than to the `appMode` setting itself.
+
+**Chronic fragilities to watch:** cyclic store imports with module-level side effects (TDZ/HMR hazards); the untyped `component.state` bag (`customMaxAmps` vs `customAmps`; `wire.lengthMeters` silently forcing 1.5 mm² in ampacity checks); byte-exact `sameCircuitShape` demo detection with no round-trip test; hand-synced app↔marketing numbers; `validateCircuit`'s `standard = 'uk'` default vs the app's new `'int'` runtime default; E2E suite not runnable in the development sandbox — run the full Playwright suite locally before deploying this branch.
+
+### Changed — Session 2026-08-23: International Default Standard & Three Conditional-Logic Fixes
+
+- **International 230 V is the default standard** (`settingsStore.ts`): fresh installs start on the neutral IEC 60364 · 230 V/50 Hz preset instead of UK/BS 7671. An explicit region choice made in Pro mode is user data — it **persists across mode switches** (shown read-only in Student mode) and is never reset back to International; "International" is only the never-chosen default. Unit/E2E expectations and tour copy updated.
+- **Pro components surviving a switch to Student mode** (`Toolbar.tsx`, `UndoToast.tsx`, `uiStore.ts`): placed Pro-tier components intentionally stay fully functional (Student mode simplifies the palette, it does not corrupt circuits) — but the app now says so: switching to Student with Pro components on a user circuit shows a notice toast ("N Pro components stay active on the canvas — Student mode only hides them from the palette"). Toast infrastructure gains an Undo-free notice variant.
+- **Stale validation reports** (`uiStore.ts`, `ValidationReportView.tsx`): reports no longer outlive the circuit they describe. Any graph change after a report flags it stale (amber "circuit changed — results may be outdated" banner with a Re-validate button); emptying the canvas drops the report, the issue modal and the compliance gate entirely; clicking an issue whose component/wire no longer exists logs a gentle hint instead of silently selecting nothing. Registration is cyclic-import-safe (retried across event-loop turns).
+- 3 new tests (staleness flag, report drop on empty canvas, notice-toast variant); 877 total passing.
+
+### Changed — Session 2026-08-23: Seven UX Fixes — Mode-Specific Demo Benches, Themed Specs Modal, Regional Essentials
+
+- **Mode-specific demo circuits** (`seed.ts`, `circuitStore.ts`): the single showcase seed (which scored 0 under Pro compliance) is replaced by two purpose-built benches — a Student demo (MCB→switch→bulb + RCBO socket, 8 components) and a Pro demo (two-way staircase lighting, RCBO socket, D-curve breaker + contactor motor, 12 components). **Both validate 100/100 under every standard × plug pairing (12 combos verified) and simulate fully energised.** Switching Student↔Pro swaps an *untouched* demo to the mode's bench (user circuits are never rewritten); Reset-to-Defaults and the Pro tour are mode-aware; plug swaps work on both variants.
+- **Latent compliance bug fixed** (`compliance.ts`): under US/INT standards (default curve C) the motor-curve check swept **every** component — terminals, bulbs, sockets — into "B-curve breaker on motor load" errors. The check now targets only motor-class loads (recommended curve > standard default) and compares curve order (B<C<D) instead of hard-coding 'B'.
+- **Regional essentials differentiated** (`Palette.tsx`): UK/EU/INT no longer share one list. UK: RCBO/MCB/RCD; US: breaker + GFCI + AFCI (NEC 210.8/210.12 — the old list recommended `mcb-type-c`, an IEC curve concept); EU: MCB/RCD/SPD (IEC 60364-4-44); INT: MCB/RCD/fuse. E2E expectation updated.
+- **Component specs modal themed** (`ComponentInfoModal.tsx`): the hard-coded dark palette is now light-first with `dark:` variants across all ~40 surfaces (header, tabs, spec matrix, wiring/standards panels, blog-link card, footer).
+- **Double-close animation fixed** (`ComponentInfoModal.tsx`): the close handler and the store-watching effect both owned `isClosing`, so closing played exit → entrance → exit. The store's `activeType` is now the single animation trigger; one 200 ms exit.
+- **Placement ghost uses the redesigned art** (`OverlayLayer.tsx`): the drag/placement ghost and the variant preview ghost now render the same near-realistic SVG art as placed components, falling back to the legacy emoji only when no art exists.
+- **Fix All button** (`ValidationReportView.tsx`): when two or more validation issues carry quick fixes, a single "Fix All (N)" button applies them in report order.
+- **Recent-components toggle** (`settingsStore.ts`, `SettingsTabContent.tsx`, `Palette.tsx`): new persisted `showRecentComponents` setting (default on) with an Editing-tab toggle controlling the palette's Recent row.
+- Tests updated for the new benches (simulation, circuitStore momentary controls via injected push button, reroute, settings whitelist); 874 total passing; biome clean repo-wide.
+
+### Fixed — Session 2026-08-23: Validation Blind Spot — Conductor Bypass & Unwired Components
+
+User-reported defect: Live → MCB → FCU (Live only) → bulb → Neutral, with the FCU's N-in/N-out deliberately unwired, simulated successfully **and** validated at a perfect 100 in both Student and Pro modes.
+
+- **Diagnosis**: the simulation is correct physics (the loop closes through the direct neutral), but none of the validator's nine check families examined per-device port connectivity, so the bypass scored 100.
+- **New validation check 10 — Partially-Wired Devices & Conductor Bypass** (`circuitValidation.ts`): any pass-through / protection device (FCU, RCD, RCBO, DP switch…) that carries one conductor while a full Live or Neutral in/out pair is left unwired now raises a warning with port-labelled remediation. RCD/RCBO get residual-specific wording (a real device would trip instantly on the permanent imbalance). Components placed with **no wires at all** are also flagged (aggregated warning). A `conductor_routing_ok` passed-check records the healthy case.
+- **False-positive safety**: single-pole devices (MCB has only Live ports) and single-port accessories (radial sockets) are structurally exempt; verified the demo seed and all 8 guided templates stay clean under the new check.
+- **Tests**: 6 new regression tests including the reporter's exact circuit (now warns, score < 100, sim still runs by design) — 874 total passing.
+
+### Added — Session 2026-08-22: Interactive Onboarding Tours & Standard-Selector Click-Trap Fix
+
+A zero-dependency interactive tutorial engine with two tours, plus a fix for the Student-mode regional selector silently ignoring clicks.
+
+- **Tour engine** (`src/ui/tour/`): spotlight overlay (SVG mask, pointer-transparent so the app stays fully usable), auto-placed arrow cards, and real-action "do" steps that advance only when the observed store state changes (component placed, wire drawn, sim running, mode switched, standard changed, validation run, overlay cycled, Fault Lab opened) — no synthetic clicks. Steps with missing targets (breakpoints/modes) auto-skip; `prefers-reduced-motion` respected; keyboard drivable (Enter/→/←, Esc); non-modal `role="dialog"` cards with live step announcements. Overlay and step copy load lazily; the always-mounted surface adds ~1.2 KB gzip.
+- **Student tour — "Your first circuit" (10 steps)**: orientation, Student/Pro badge, the read-only standards pill (explained instead of mysterious), open palette → place a component → wire ports → run the simulation, live-canvas interaction, Fault Lab and Guided Circuits pointers.
+- **Pro tour — "Standards & compliance" (9 steps)**: switch to Pro, open the now-unlocked regional selector, pick a standard (voltage / conductor colours / RCD threshold / drop ceilings explained), plug-type independence, Validate against the chosen rule set, diagnostics overlay cycling, Inspector/Zs, export handover.
+- **Entry points**: "Take the tour" in the welcome modal, Menu → Interactive Tutorial, two command-palette commands, and a dismissible one-time offer chip after first-run welcome (desktop/tablet only). Completion and dismissal persist per device (`electrasim:tour:*`).
+- **Anchors**: stable `data-tour` attributes on the toolbar (mode toggle, run, validate, diagnostics, Fault Lab, guides, menu), palette (open button + panel), Inspector (expanded + collapsed), PhoneDock Add, and the standard-selector popover.
+- **Tests**: 11 new tests cover script well-formedness, every advance/skip predicate, card-placement geometry (side selection + viewport clamping), persistence round-trips, and the uiStore tour actions (861 total passing).
+
+### Changed — Session 2026-08-22: Tour Flow Fixes, Empty-Canvas Start & Completion Celebration
+
+- **Student tour starts on an empty canvas** (`uiStore.startTour`): the tutorial teaches place → power → wire → run from scratch, so starting it clears the canvas through the normal undoable action (Ctrl+Z restores the previous circuit, including the first-run demo, which is still what non-tour users see).
+- **Wiring step is now actually completable**: new `add-supply` step places Live and Neutral terminals after the bulb, and the wiring step requires both the feed and the return wire (advance at entry + 2 wires) — previously the tour asked users to wire a lone bulb to nothing.
+- **Completion celebration Easter egg** (`TourCelebration.tsx`): finishing a tour fires a full-screen canvas show — repeating electrical ring pulses, glowing spark bursts and jagged lightning in the brand palette — with click/Esc/auto dismissal and a calm static card under `prefers-reduced-motion`.
+- **Tours restartable from Settings** (`AboutTab`): a new Interactive Tutorials block launches either tour any time; targets inside scroll containers now `scrollIntoView` once per step so palette tiles are visible when spotlighted.
+- **Pro tour seeds a demo circuit when the canvas is empty** so Validate, the diagnostics overlay and the Fault Lab always have a real circuit to work on (region-correct socket via `primarySocketForPlug`; undoable). Fault Lab step copy now clarifies that the Fault Lab, the Inspector's Manual Fault Simulation section and the right-click menu all drive the same `setComponentFault` engine.
+- 7 more tests (18 tour tests total, 868 suite-wide): overlay integration in jsdom (look-step walking, real-action do-step advancement, satisfied-step skipping, Esc without completion, celebration + persistence) and startTour canvas semantics for both tours.
+
+### Fixed — Session 2026-08-22: Student-Mode Standard Selector Affordance
+
+- **Regional selector click-trap** (`StandardSelector.tsx`): in Student mode the standards pill looked clickable but was a static `<div>` that silently ignored clicks. It is now a real button (with a lock icon) that opens an explainer popover — why standards are locked in Student mode — with a one-click **Switch to Pro mode** action. Existing `data-standard-selector`/`data-standard-readonly` attributes, citation span, and accessible naming are preserved for the production E2E suite.
+
+### Changed — Session 2026-08-22: Marketing ↔ Simulator Content Sync & Component Deep-Links
+
+Deep cross-scan of the Astro marketing site against the simulator codebase; every mismatch found was fixed on both surfaces.
+
+- **Component info deep-links** (`componentHelp/*`, `ComponentInfoModal.tsx`): `ComponentHelpData` gains an optional `learnMoreSlug`; 15 components (MCB Type B/C/D, RCD, RCBO, SPD, two-way / intermediate / dimmer switches, PIR sensor, cooker unit, EV charger, electric shower, immersion heater, 3-phase distribution board) now render a "Read the full guide" link from the info modal's specifications view to the matching blog article, opening in a new tab so canvas work is preserved.
+- **Versioned welcome modal** (`WelcomeModal.tsx`): the header now shows a `v{APP_VERSION}` badge sourced from the root manifest, so the first-run dialog always reflects the released version.
+- **Guide page catch-up** (`astro-site/src/content/pages/guide.json`): the guided-templates list grows from six to the app's actual eight (adds Push-Button Doorbell and RCBO-Protected Socket from v1.6.1) and the feature blurb names all eight.
+- **Honest stats** (`astro-site/src/content/pages/landing.json`): engine test count corrected 833 → 850 (verified with a full `vitest run`).
+- **Stale RCBO workarounds corrected** (blog): three articles still told readers to "model an RCBO as MCB + RCD in series" although the dedicated RCBO component shipped in v1.6.0 — the RCBO explainer's simulator section now features the RCBO component and the RCBO-Protected Socket guided circuit, the RCD-zones guide's fully-RCBO layout uses real RCBOs, and the six-new-components post points at the dedicated component. The Guided Circuits announcement gains a v1.6.1 update note (six → eight templates). All four posts carry `updatedDate: 2026-08-22`; device facts were spot-verified against BS EN 61009-1 / IEC 61009 sources.
+
 ### Fixed — Session 2026-08-22: Site-Wide Accessibility & Voltage Drop Calculator UX Overhaul
 
 Audit-driven accessibility and UX hardening across the Astro marketing site and the Voltage Drop Calculator. Verified with a 27-check Playwright probe plus the full production E2E suite (20/20 passing).

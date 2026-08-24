@@ -145,7 +145,8 @@ export const FAULT_REGISTRY: Record<FaultType, FaultDefinition> = {
     category: 'polarity',
     targetType: 'component',
     severity: 'critical',
-    standardReference: 'BS 7671 Reg 132.14 & 537.1.2 (Single-pole switching in line conductor only)',
+    standardReference:
+      'BS 7671 Reg 132.14 & 537.1.2 (Single-pole switching in line conductor only)',
     icon: 'AlertOctagon',
     description:
       'A single-pole control switch is wired into the Neutral conductor instead of the Live line. Turning the switch OFF stops the load, but the appliance remains energized at 230 V lethal potential!',
@@ -153,8 +154,7 @@ export const FAULT_REGISTRY: Record<FaultType, FaultDefinition> = {
       'Switch cuts the neutral return path. The load turns off, but the load terminals remain connected to Live voltage.',
     detectionBehavior:
       'Voltage tester detects 230 V to Earth at the lamp holder or load terminal even when the wall switch is in the OFF position.',
-    repairBehavior:
-      'Rewire switch into the Line (Phase) conductor feed before the load.',
+    repairBehavior: 'Rewire switch into the Line (Phase) conductor feed before the load.',
   },
 
   // ── 3. Earth & Insulation Faults ──────────────────────────────────────────
@@ -190,8 +190,7 @@ export const FAULT_REGISTRY: Record<FaultType, FaultDefinition> = {
       'Simulates >35 mA earth leakage current, instantly tripping any 30mA RCD/RCBO protective device upstream.',
     detectionBehavior:
       'Insulation resistance (500V DC test) reads < 1 MΩ (BS 7671 minimum). Clamp meter detects differential earth leakage current.',
-    repairBehavior:
-      'Replace moisture-damaged, degraded, or pinched cable run.',
+    repairBehavior: 'Replace moisture-damaged, degraded, or pinched cable run.',
   },
 
   'smooth-dc-residual': {
@@ -241,12 +240,10 @@ export const FAULT_REGISTRY: Record<FaultType, FaultDefinition> = {
     icon: 'Lock',
     description:
       'Circuit breaker or switch mechanism is mechanically jammed or locked in the open position and will not conduct.',
-    simulationEffect:
-      'Device remains non-conductive regardless of the user toggle switch state.',
+    simulationEffect: 'Device remains non-conductive regardless of the user toggle switch state.',
     detectionBehavior:
       'No continuity across input and output terminals when switch toggle is placed in ON position.',
-    repairBehavior:
-      'Replace defective mechanical breaker/switch module.',
+    repairBehavior: 'Replace defective mechanical breaker/switch module.',
   },
 
   'protection-bypass': {
@@ -261,8 +258,7 @@ export const FAULT_REGISTRY: Record<FaultType, FaultDefinition> = {
       'Protective fuse or breaker has been bridged/shorted (e.g. copper wire over a fuse carrier). Fails to trip during overloads or short circuits!',
     simulationEffect:
       'Breaker or fuse conducts continuously without ever tripping or blowing, allowing cables to overheat and melt in overload conditions.',
-    detectionBehavior:
-      'Inspection reveals unauthorized jumper or bridged fuse link.',
+    detectionBehavior: 'Inspection reveals unauthorized jumper or bridged fuse link.',
     repairBehavior:
       'Remove bypass wire and install genuine, correctly-rated fuse cartridge or MCB.',
   },
@@ -460,7 +456,8 @@ export function validateFaultCoexistence(
     ) {
       return {
         valid: false,
-        reason: 'A single wire cannot simultaneously have an open break and a direct short circuit.',
+        reason:
+          'A single wire cannot simultaneously have an open break and a direct short circuit.',
       };
     }
   }

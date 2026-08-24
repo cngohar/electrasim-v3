@@ -15,7 +15,9 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { COMPONENT_DEFS, type ComponentInstance, type WireInstance } from '../domain';
 import { validateCircuit } from '../domain/circuitValidation';
+import { primarySocketForPlug } from '../domain/standards';
 import { useCircuitStore } from './circuitStore';
+import { buildProSeedCircuit } from './seed';
 import { useSettingsStore } from './settingsStore';
 import {
   createComponent,
@@ -89,6 +91,7 @@ function canStartSimulation(state: UiState): boolean {
       state.simRunning = false;
       state.faultAlert = null;
       state.validationReport = report;
+      state.validationStale = false;
       state.complianceGateBlocked = true;
       state.inspectorOpen = true;
       state.inspectorCollapsed = false;
@@ -102,7 +105,7 @@ function canStartSimulation(state: UiState): boolean {
 }
 
 export const useUiStore = create<UiState>()(
-  immer<UiState>((set) => ({
+  immer<UiState>((set, get) => ({
     simRunning: false,
     simResult: null,
     faultAlert: null,
@@ -139,6 +142,7 @@ export const useUiStore = create<UiState>()(
     previewComponentId: null,
     activeComponentInfoType: null,
     validationReport: null,
+    validationStale: false,
     isValidatingCircuit: false,
     activeValidationIssueModal: null,
     activeInspectorTab: 'properties',
@@ -152,6 +156,8 @@ export const useUiStore = create<UiState>()(
     commandPaletteOpen: false,
     faultLabOpen: false,
     shortcutsOpen: false,
+    tourId: null,
+    tourStep: 0,
     undoToast: null,
 
     setSimRunning: (running) =>
@@ -203,6 +209,7 @@ export const useUiStore = create<UiState>()(
         const blockingCount = report.blockingErrorsCount ?? 0;
         if (blockingCount === 0) {
           s.validationReport = report;
+          s.validationStale = false;
           s.complianceGateBlocked = false;
           s.simRunning = true;
           return;
@@ -232,6 +239,7 @@ export const useUiStore = create<UiState>()(
         });
         if (s.logs.length > MAX_LOGS) s.logs.length = MAX_LOGS;
         s.validationReport = report;
+        s.validationStale = false;
         s.complianceGateBlocked = false;
         s.simRunning = true;
       }),
@@ -340,6 +348,7 @@ export const useUiStore = create<UiState>()(
         useUiStore.setState((s) => {
           if (revision !== validationRevision) return;
           s.validationReport = report;
+          s.validationStale = false;
           s.isValidatingCircuit = false;
           if ((report.blockingErrorsCount ?? 0) === 0) s.complianceGateBlocked = false;
           s.logs.unshift({
@@ -614,15 +623,65 @@ export const useUiStore = create<UiState>()(
       set((s) => {
         s.shortcutsOpen = !s.shortcutsOpen;
       }),
+    startTour: (id) => {
+      set((s) => {
+        // A tour needs the canvas: close blocking first-run dialogs first.
+        if (s.welcomeOpen) markWelcomed();
+        s.welcomeOpen = false;
+        s.commandPaletteOpen = false;
+        s.simRunning = false;
+        s.tourId = id;
+        s.tourStep = 0;
+      });
+      // The Student tour teaches place → wire → run from scratch, so it
+      // starts on an empty canvas. Clearing goes through the normal
+      // (undoable) store action — Ctrl+Z after the tour restores whatever
+      // was there, including the first-run demo circuit.
+      if (id === 'student' && useCircuitStore.getState().components.length > 0) {
+        useCircuitStore.getState().clearAllComponents();
+        get().addLog(
+          'Canvas cleared for the tutorial — press Ctrl+Z afterwards to restore your circuit.',
+          'info',
+        );
+      }
+      // The Pro tour exercises Validate, the diagnostics overlay and the
+      // Fault Lab — all of which need a circuit to chew on. If the canvas
+      // is empty (e.g. straight after the Student tour), load the demo
+      // bench for the region's plug system. Undoable like any other edit.
+      if (id === 'pro' && useCircuitStore.getState().components.length === 0) {
+        const plug = useSettingsStore.getState().plugSystem;
+        useCircuitStore.getState().setCircuit(buildProSeedCircuit(primarySocketForPlug(plug)));
+        get().addLog('Demo circuit loaded for the Pro tour — Ctrl+Z removes it.', 'info');
+      }
+    },
+    endTour: () =>
+      set((s) => {
+        s.tourId = null;
+        s.tourStep = 0;
+      }),
+    setTourStep: (step) =>
+      set((s) => {
+        s.tourStep = step;
+      }),
     showUndoToast: (message) =>
       set((s) => {
-        s.undoToast = { message, id: ++nextToastId };
+        s.undoToast = { message, id: ++nextToastId, showUndo: true };
         if (toastTimer) clearTimeout(toastTimer);
         toastTimer = setTimeout(() => {
           useUiStore.setState((st) => {
             st.undoToast = null;
           });
         }, 4000);
+      }),
+    showNoticeToast: (message) =>
+      set((s) => {
+        s.undoToast = { message, id: ++nextToastId, showUndo: false };
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          useUiStore.setState((st) => {
+            st.undoToast = null;
+          });
+        }, 5000);
       }),
     clearUndoToast: () =>
       set((s) => {
@@ -772,3 +831,38 @@ export const useUiStore = create<UiState>()(
       }),
   })),
 );
+
+/* ── Stale-report invalidation ────────────────────────────────────────────
+ * A validation report describes the circuit AT THE MOMENT it ran. When the
+ * graph changes afterwards the report is flagged stale (banner + guarded
+ * issue clicks in the report view), and when the canvas is emptied the
+ * report is dropped entirely — issues must never outlive the components
+ * they point at.
+ * Registration is retried across event-loop turns: uiStore and circuitStore
+ * import each other, so either binding may still be in its temporal dead
+ * zone while this module body (or an early microtask) runs. */
+const registerValidationStaleWatcher = () => {
+  try {
+    useCircuitStore.subscribe((state, prev) => {
+      if (state.components === prev.components && state.wires === prev.wires) return;
+      const ui = useUiStore.getState();
+      if (!ui.validationReport) return;
+      if (state.components.length === 0) {
+        useUiStore.setState((s) => {
+          s.validationReport = null;
+          s.validationStale = false;
+          s.activeValidationIssueModal = null;
+          s.complianceGateBlocked = false;
+        });
+      } else if (!ui.validationStale) {
+        useUiStore.setState((s) => {
+          s.validationStale = true;
+        });
+      }
+    });
+  } catch {
+    // Cyclic-import race: the other store has not finished initialising.
+    setTimeout(registerValidationStaleWatcher, 0);
+  }
+};
+registerValidationStaleWatcher();

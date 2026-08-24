@@ -78,6 +78,7 @@ export function Inspector({
   if (isCollapsed) {
     return (
       <aside
+        data-tour="inspector"
         className="fixed right-0 top-[84px] bottom-0 z-20 flex w-12 flex-col items-center justify-between border-l border-slate-200/80 bg-white/90 p-2 shadow-xl backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/90 select-none"
         title="Inspector (Collapsed)"
       >
@@ -229,7 +230,10 @@ export function Inspector({
   // Inset below the floating header toolbar (top-4 pill ≈ 64 px tall) so it
   // can never cover — and swallow clicks for — the Menu / theme controls.
   return (
-    <aside className="fixed right-0 top-[84px] bottom-0 z-20 flex shadow-2xl border-l border-t rounded-tl-2xl border-slate-200/80 bg-white/95 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/95">
+    <aside
+      data-tour="inspector"
+      className="fixed right-0 top-[84px] bottom-0 z-20 flex shadow-2xl border-l border-t rounded-tl-2xl border-slate-200/80 bg-white/95 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/95"
+    >
       {/* Main Drawer Body Area */}
       <div className="flex-1 flex flex-col h-full overflow-hidden w-64 md:w-72 lg:w-80">
         {/* Header Bar */}

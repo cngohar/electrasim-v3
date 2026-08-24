@@ -151,8 +151,9 @@ test.describe('Dual standard & pro features', () => {
 
     const standard = page.locator('[data-standard-selector][data-standard-readonly]');
     await expect(standard).toBeVisible();
-    await expect(standard).toContainText('UK');
-    await expect(standard.locator('[data-standard-citation]')).toContainText('BS 7671');
+    // Fresh installs default to the neutral International 230 V preset.
+    await expect(standard).toContainText('Intl');
+    await expect(standard.locator('[data-standard-citation]')).toContainText('IEC 60364');
     // Student can see the governing rules, but cannot open either selector.
     await expect(page.getByRole('button', { name: /Standard: .* Plug: / })).toHaveCount(0);
   });
@@ -179,7 +180,11 @@ test.describe('Dual standard & pro features', () => {
 
     const essentials = page.locator('[data-standard-recommendations="us"]');
     await expect(essentials).toBeVisible();
-    await expect(essentials.locator('[data-palette-type="mcb-type-c"]')).toBeVisible();
+    // US essentials are NEC-flavoured: plain breaker (no IEC curve types),
+    // GFCI receptacle (210.8), AFCI protection (210.12) — plus the chosen
+    // regional socket.
+    await expect(essentials.locator('[data-palette-type="mcb"]')).toBeVisible();
+    await expect(essentials.locator('[data-palette-type="afdd"]')).toBeVisible();
     await expect(essentials.locator('[data-palette-type="socket-gfci"]')).toBeVisible();
     await expect(essentials.locator('[data-palette-type="socket-schuko"]')).toBeVisible();
   });

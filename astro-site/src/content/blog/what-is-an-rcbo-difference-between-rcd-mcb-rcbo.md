@@ -2,6 +2,7 @@
 title: "What Is an RCBO? The Difference Between RCD, MCB and RCBO Explained"
 description: "An RCBO combines overcurrent protection with earth leakage detection in one device. This guide explains how it works, how it compares to MCBs and RCDs, and when you should use one."
 pubDate: 2026-05-17
+updatedDate: 2026-08-22
 author: ElectraSim
 category: Beginner Guide
 tags: [RCBO, RCD, MCB, circuit breaker, earth leakage, overcurrent protection, consumer unit, electrical protection, BS 7671, wiring regulations, residual current]
@@ -163,16 +164,18 @@ While individual RCBO tripping is better than a shared RCD tripping (because onl
 
 ## Simulating Protection in ElectraSim
 
-[ElectraSim](/app/) includes both **MCB** and **RCD** components that you can wire into circuits to explore how protection devices interact with faults.
+[ElectraSim](/app/) includes **MCB**, **RCD**, and **RCBO** components that you can wire into circuits to explore how protection devices interact with faults. The RCBO component (added in v1.6) is a two-pole device that switches Live and Neutral together, just like the single-module RCBOs in a modern consumer unit.
 
-To see the difference between overcurrent protection and earth leakage protection:
+The fastest way to see an RCBO in context is the **RCBO-Protected Socket** guided circuit: open ElectraSim, choose Guided Circuits, and load it to inspect a socket outlet supplied through an RCBO with a protective-earth connection and a plugged-in test load.
 
-1. Build a circuit: **Power Supply → MCB → Load**
+To compare overcurrent protection with earth leakage protection yourself:
+
+1. Build a circuit: **Power Supply → RCBO → Socket → Load**
 2. Run the simulation — the load energises normally
-3. Add a **short circuit** fault (wire the load's output directly back to the supply's neutral port) — the MCB detects the fault and the circuit is flagged as a short circuit error
-4. Now add an **RCD** in series between the MCB and the load
-5. Enable **Fault Simulation Mode** (⚠ button) and apply an **Earth Fault** to the load component
-6. The simulation flags the earth fault warning, representing what an RCD would detect in a real installation
+3. Add a **short circuit** fault (wire the load's output directly back to the supply's neutral port) — the overcurrent side of the protection detects the fault and the circuit is flagged as a short circuit error
+4. Now enable **Fault Simulation Mode** (⚠ button) and apply an **Earth Fault** to the load component
+5. The residual side of the protection responds, representing what the earth-leakage detection in an RCBO or RCD picks up in a real installation
+6. Rebuild the same circuit with a separate **MCB + RCD in series** to see how the older two-device layout provides the same two protections in two enclosures
 
 > Try it now: [Open ElectraSim →](/app/)
 

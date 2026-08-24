@@ -125,7 +125,9 @@ export const ComponentVoltageSparkline: React.FC<Props> = ({
   const linePath = useMemo(() => {
     if (points.length < 2) return '';
     return points.reduce((acc, curr, idx) => {
-      return idx === 0 ? `M ${curr.x.toFixed(1)} ${curr.y.toFixed(1)}` : `${acc} L ${curr.x.toFixed(1)} ${curr.y.toFixed(1)}`;
+      return idx === 0
+        ? `M ${curr.x.toFixed(1)} ${curr.y.toFixed(1)}`
+        : `${acc} L ${curr.x.toFixed(1)} ${curr.y.toFixed(1)}`;
     }, '');
   }, [points]);
 
@@ -137,7 +139,8 @@ export const ComponentVoltageSparkline: React.FC<Props> = ({
     return `${linePath} L ${last.x.toFixed(1)} ${baselineY} L ${first.x.toFixed(1)} ${baselineY} Z`;
   }, [linePath, points]);
 
-  const activePoint = hoverIndex !== null && points[hoverIndex] ? points[hoverIndex] : points[points.length - 1];
+  const activePoint =
+    hoverIndex !== null && points[hoverIndex] ? points[hoverIndex] : points[points.length - 1];
 
   const handlePointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
     if (!containerRef.current || points.length === 0) return;
@@ -174,19 +177,29 @@ export const ComponentVoltageSparkline: React.FC<Props> = ({
       {/* Real-time Metric Badges */}
       <div className="grid grid-cols-4 gap-1.5 py-0.5">
         <div className="rounded-lg bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 p-1.5 text-center">
-          <div className="text-[8px] uppercase tracking-wider text-slate-400 font-medium">Live Head</div>
+          <div className="text-[8px] uppercase tracking-wider text-slate-400 font-medium">
+            Live Head
+          </div>
           <div className="font-mono text-xs font-bold text-cyan-500 dark:text-cyan-400">
-            <AnimatedNumber value={simRunning && isEnergized ? liveVoltage : 0} decimals={1} suffix="V" />
+            <AnimatedNumber
+              value={simRunning && isEnergized ? liveVoltage : 0}
+              decimals={1}
+              suffix="V"
+            />
           </div>
         </div>
         <div className="rounded-lg bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 p-1.5 text-center">
-          <div className="text-[8px] uppercase tracking-wider text-slate-400 font-medium">30s Min</div>
+          <div className="text-[8px] uppercase tracking-wider text-slate-400 font-medium">
+            30s Min
+          </div>
           <div className="font-mono text-xs font-semibold text-slate-700 dark:text-slate-300">
             {minV.toFixed(1)}V
           </div>
         </div>
         <div className="rounded-lg bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 p-1.5 text-center">
-          <div className="text-[8px] uppercase tracking-wider text-slate-400 font-medium">30s Max</div>
+          <div className="text-[8px] uppercase tracking-wider text-slate-400 font-medium">
+            30s Max
+          </div>
           <div className="font-mono text-xs font-semibold text-slate-700 dark:text-slate-300">
             {maxV.toFixed(1)}V
           </div>
@@ -364,7 +377,8 @@ export const ComponentVoltageSparkline: React.FC<Props> = ({
         {hoverIndex !== null && activePoint && (
           <div className="absolute top-1 right-2 bg-slate-900/90 border border-slate-700 px-2 py-0.5 rounded text-[9px] font-mono text-cyan-300 shadow-md">
             <span>
-              {((activePoint.pt.time - now) / 1000).toFixed(1)}s: {activePoint.pt.voltage.toFixed(2)}V
+              {((activePoint.pt.time - now) / 1000).toFixed(1)}s:{' '}
+              {activePoint.pt.voltage.toFixed(2)}V
             </span>
           </div>
         )}

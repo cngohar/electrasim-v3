@@ -24,19 +24,19 @@ describe('rerouteWire — Phase 6.1', () => {
     // Find any live-to-live wire from the seed (live → MCB).
     const live = cs.components.find((c) => c.type === 'live-terminal');
     const mcb = cs.components.find((c) => c.type === 'mcb');
-    const fuse = cs.components.find((c) => c.type === 'fuse');
-    if (!live || !mcb || !fuse) throw new Error('seed missing components');
+    const rcbo = cs.components.find((c) => c.type === 'rcbo');
+    if (!live || !mcb || !rcbo) throw new Error('seed missing components');
 
     const wire = cs.wires.find((w) => w.fromComponentId === live.id && w.toComponentId === mcb.id);
     if (!wire) throw new Error('seed missing live→mcb wire');
 
     const ok = useCircuitStore
       .getState()
-      .rerouteWire(wire.id, 'to', { componentId: fuse.id, portIndex: 0 });
+      .rerouteWire(wire.id, 'to', { componentId: rcbo.id, portIndex: 0 });
 
     expect(ok).toBe(true);
     const updated = useCircuitStore.getState().wires.find((w) => w.id === wire.id);
-    expect(updated?.toComponentId).toBe(fuse.id);
+    expect(updated?.toComponentId).toBe(rcbo.id);
     expect(updated?.toPortIndex).toBe(0);
   });
 

@@ -2,6 +2,7 @@
 title: "Guided Circuits in ElectraSim: Learn Wiring by Loading Real Circuit Templates"
 description: "ElectraSim now includes Guided Circuits: ready-made circuit templates with in-app checklists for lamps, switches, RCD fault checks, contactors, timer bells, and more."
 pubDate: 2026-07-02
+updatedDate: 2026-08-22
 author: ElectraSim
 category: App Update
 tags: [guided circuits, circuit templates, wiring simulator, electrical simulator, electrical training, RCD, two-way switch, contactor, timer switch]
@@ -36,6 +37,8 @@ The goal is not to hide the wiring. The goal is to give you a working circuit yo
 ## What Is Included in This Release
 
 The first Guided Circuits release includes six templates, covering beginner and intermediate wiring concepts.
+
+> **Update (v1.6.1):** two more guided circuits have since been added — a **Push-Button Doorbell** that demonstrates momentary press-and-hold control, and an **RCBO-Protected Socket** with switched Live and Neutral paths, a protective-earth connection, and a test load. That brings the current total to **eight templates**.
 
 ### 1. Simple Protected Lamp
 
