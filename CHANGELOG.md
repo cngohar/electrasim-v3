@@ -11,6 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — Session 2026-08-23: International Default Standard & Three Conditional-Logic Fixes
+
+- **International 230 V is the default standard** (`settingsStore.ts`): fresh installs start on the neutral IEC 60364 · 230 V/50 Hz preset instead of UK/BS 7671. An explicit region choice made in Pro mode is user data — it **persists across mode switches** (shown read-only in Student mode) and is never reset back to International; "International" is only the never-chosen default. Unit/E2E expectations and tour copy updated.
+- **Pro components surviving a switch to Student mode** (`Toolbar.tsx`, `UndoToast.tsx`, `uiStore.ts`): placed Pro-tier components intentionally stay fully functional (Student mode simplifies the palette, it does not corrupt circuits) — but the app now says so: switching to Student with Pro components on a user circuit shows a notice toast ("N Pro components stay active on the canvas — Student mode only hides them from the palette"). Toast infrastructure gains an Undo-free notice variant.
+- **Stale validation reports** (`uiStore.ts`, `ValidationReportView.tsx`): reports no longer outlive the circuit they describe. Any graph change after a report flags it stale (amber "circuit changed — results may be outdated" banner with a Re-validate button); emptying the canvas drops the report, the issue modal and the compliance gate entirely; clicking an issue whose component/wire no longer exists logs a gentle hint instead of silently selecting nothing. Registration is cyclic-import-safe (retried across event-loop turns).
+- 3 new tests (staleness flag, report drop on empty canvas, notice-toast variant); 877 total passing.
+
 ### Changed — Session 2026-08-23: Seven UX Fixes — Mode-Specific Demo Benches, Themed Specs Modal, Regional Essentials
 
 - **Mode-specific demo circuits** (`seed.ts`, `circuitStore.ts`): the single showcase seed (which scored 0 under Pro compliance) is replaced by two purpose-built benches — a Student demo (MCB→switch→bulb + RCBO socket, 8 components) and a Pro demo (two-way staircase lighting, RCBO socket, D-curve breaker + contactor motor, 12 components). **Both validate 100/100 under every standard × plug pairing (12 combos verified) and simulate fully energised.** Switching Student↔Pro swaps an *untouched* demo to the mode's bench (user circuits are never rewritten); Reset-to-Defaults and the Pro tour are mode-aware; plug swaps work on both variants.

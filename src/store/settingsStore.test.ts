@@ -83,7 +83,7 @@ describe('settingsStore — Phase 6.1', () => {
       wireColorStandard: 'uk_eu',
       automaticComponentLabels: true,
       diagnosticOverlayMode: 'off',
-      regulationStandard: 'uk',
+      regulationStandard: 'int',
       manualFaultInjection: true,
       autoWireJoints: false,
       plugSystem: 'bs1363',

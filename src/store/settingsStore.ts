@@ -180,7 +180,11 @@ const DEFAULTS: UserSettings = {
   wireColorStandard: 'uk_eu',
   automaticComponentLabels: true,
   diagnosticOverlayMode: 'off',
-  regulationStandard: 'uk',
+  // International 230 V / 50 Hz is the neutral default: it fits the widest
+  // audience out of the box. An explicit region choice made in Pro mode is
+  // user data and persists across mode switches — Student mode locks the
+  // selector but never resets a chosen region.
+  regulationStandard: 'int',
   manualFaultInjection: true,
   autoWireJoints: false,
   plugSystem: 'bs1363',

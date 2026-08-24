@@ -27,6 +27,7 @@ export function ValidationReportView({ report, onRunValidation }: Props) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   const isValidatingCircuit = useUiStore((s) => s.isValidatingCircuit);
+  const validationStale = useUiStore((s) => s.validationStale);
   const complianceGateBlocked = useUiStore((s) => s.complianceGateBlocked);
   const applyQuickFix = useUiStore((s) => s.applyQuickFix);
   const runWithComplianceOverride = useUiStore((s) => s.runWithComplianceOverride);
@@ -183,10 +184,26 @@ export function ValidationReportView({ report, onRunValidation }: Props) {
   const fixableIssues = issues.filter((i) => i.quickFix);
 
   const handleSelectTarget = (issue: ValidationIssue) => {
+    const cs = useCircuitStore.getState();
     if (issue.componentId) {
-      useCircuitStore.getState().selectComponent(issue.componentId);
+      if (cs.components.some((c) => c.id === issue.componentId)) {
+        cs.selectComponent(issue.componentId);
+      } else {
+        useUiStore
+          .getState()
+          .addLog(
+            'That component no longer exists — re-run validation for a fresh report.',
+            'info',
+          );
+      }
     } else if (issue.wireId) {
-      useCircuitStore.getState().selectWire(issue.wireId);
+      if (cs.wires.some((w) => w.id === issue.wireId)) {
+        cs.selectWire(issue.wireId);
+      } else {
+        useUiStore
+          .getState()
+          .addLog('That wire no longer exists — re-run validation for a fresh report.', 'info');
+      }
     }
   };
   const firstBlockingIssue = issues.find((issue) => issue.blocking && issue.severity === 'error');
@@ -194,6 +211,26 @@ export function ValidationReportView({ report, onRunValidation }: Props) {
 
   return (
     <div className="flex flex-col gap-3 p-3.5 text-xs">
+      {validationStale && (
+        <div
+          // biome-ignore lint/a11y/useSemanticElements: transient advisory banner needs role=status; <output> implies a calculation result
+          role="status"
+          data-validation-stale-banner
+          className="flex items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-amber-900 shadow-sm dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200"
+        >
+          <span className="flex items-center gap-2 text-[11px] font-semibold leading-snug">
+            <AlertTriangle className="size-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+            The circuit changed after this report ran — results may be outdated.
+          </span>
+          <button
+            type="button"
+            onClick={onRunValidation}
+            className="shrink-0 rounded-lg bg-amber-600 px-2.5 py-1 text-[10px] font-bold text-white shadow-xs transition hover:bg-amber-500"
+          >
+            Re-validate
+          </button>
+        </div>
+      )}
       {complianceGateBlocked && blockingCount > 0 && (
         <div
           role="alert"

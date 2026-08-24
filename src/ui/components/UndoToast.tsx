@@ -22,17 +22,19 @@ export function UndoToast() {
       role="status"
     >
       <span>{toast.message}</span>
-      <button
-        type="button"
-        onClick={() => {
-          undo();
-          clear();
-        }}
-        className="flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-bold text-white transition hover:bg-white/25"
-      >
-        <Undo2 className="size-3" />
-        Undo
-      </button>
+      {toast.showUndo !== false && (
+        <button
+          type="button"
+          onClick={() => {
+            undo();
+            clear();
+          }}
+          className="flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-bold text-white transition hover:bg-white/25"
+        >
+          <Undo2 className="size-3" />
+          Undo
+        </button>
+      )}
       <button
         type="button"
         onClick={clear}

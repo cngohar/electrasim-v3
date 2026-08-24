@@ -30,6 +30,7 @@ import {
   Wrench,
   Zap,
 } from 'lucide-react';
+import { COMPONENT_DEFS } from '../../domain';
 import { redo, undo, useCircuitStore, useUiStore } from '../../store';
 import { useSettingsStore } from '../../store/settingsStore';
 import { useResolvedTheme } from '../hooks/useResolvedTheme';
@@ -144,6 +145,21 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
           setSetting('appMode', nextMode);
           // Untouched demo benches follow the mode (no-op on user circuits).
           useCircuitStore.getState().swapDemoForMode(nextMode);
+          if (nextMode === 'basic') {
+            // Pro components on a user circuit stay fully functional in
+            // Student mode — the palette just stops offering new ones.
+            // Make that explicit instead of leaving users to wonder.
+            const proCount = useCircuitStore
+              .getState()
+              .components.filter((c) => COMPONENT_DEFS[c.type]?.tier === 'pro').length;
+            if (proCount > 0) {
+              useUiStore
+                .getState()
+                .showNoticeToast(
+                  `${proCount} Pro component${proCount === 1 ? '' : 's'} stay${proCount === 1 ? 's' : ''} active on the canvas — Student mode only hides them from the palette.`,
+                );
+            }
+          }
           if (nextMode === 'basic' && dashboardOpen) {
             onToggleDashboard?.();
           }

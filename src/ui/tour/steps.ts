@@ -81,7 +81,7 @@ const STUDENT_STEPS: TourStep[] = [
     target: '[data-standard-selector]',
     kind: 'look',
     title: 'Your region’s electrical rules',
-    body: 'This shows the active standard (e.g. BS 7671 · 230 V). In Student mode it is locked so beginners learn against one consistent rule set — that is why clicking it does not open a menu here. Pro mode makes it fully selectable.',
+    body: 'This shows the active standard (International 230 V by default; BS 7671, NEC and IEC presets are available). In Student mode it is locked so beginners learn against one consistent rule set — that is why clicking it does not open a menu here. Pro mode makes it fully selectable.',
   },
   {
     id: 'open-palette',

@@ -151,8 +151,9 @@ test.describe('Dual standard & pro features', () => {
 
     const standard = page.locator('[data-standard-selector][data-standard-readonly]');
     await expect(standard).toBeVisible();
-    await expect(standard).toContainText('UK');
-    await expect(standard.locator('[data-standard-citation]')).toContainText('BS 7671');
+    // Fresh installs default to the neutral International 230 V preset.
+    await expect(standard).toContainText('Intl');
+    await expect(standard.locator('[data-standard-citation]')).toContainText('IEC 60364');
     // Student can see the governing rules, but cannot open either selector.
     await expect(page.getByRole('button', { name: /Standard: .* Plug: / })).toHaveCount(0);
   });

@@ -91,6 +91,7 @@ function canStartSimulation(state: UiState): boolean {
       state.simRunning = false;
       state.faultAlert = null;
       state.validationReport = report;
+      state.validationStale = false;
       state.complianceGateBlocked = true;
       state.inspectorOpen = true;
       state.inspectorCollapsed = false;
@@ -141,6 +142,7 @@ export const useUiStore = create<UiState>()(
     previewComponentId: null,
     activeComponentInfoType: null,
     validationReport: null,
+    validationStale: false,
     isValidatingCircuit: false,
     activeValidationIssueModal: null,
     activeInspectorTab: 'properties',
@@ -207,6 +209,7 @@ export const useUiStore = create<UiState>()(
         const blockingCount = report.blockingErrorsCount ?? 0;
         if (blockingCount === 0) {
           s.validationReport = report;
+          s.validationStale = false;
           s.complianceGateBlocked = false;
           s.simRunning = true;
           return;
@@ -236,6 +239,7 @@ export const useUiStore = create<UiState>()(
         });
         if (s.logs.length > MAX_LOGS) s.logs.length = MAX_LOGS;
         s.validationReport = report;
+        s.validationStale = false;
         s.complianceGateBlocked = false;
         s.simRunning = true;
       }),
@@ -344,6 +348,7 @@ export const useUiStore = create<UiState>()(
         useUiStore.setState((s) => {
           if (revision !== validationRevision) return;
           s.validationReport = report;
+          s.validationStale = false;
           s.isValidatingCircuit = false;
           if ((report.blockingErrorsCount ?? 0) === 0) s.complianceGateBlocked = false;
           s.logs.unshift({
@@ -660,13 +665,23 @@ export const useUiStore = create<UiState>()(
       }),
     showUndoToast: (message) =>
       set((s) => {
-        s.undoToast = { message, id: ++nextToastId };
+        s.undoToast = { message, id: ++nextToastId, showUndo: true };
         if (toastTimer) clearTimeout(toastTimer);
         toastTimer = setTimeout(() => {
           useUiStore.setState((st) => {
             st.undoToast = null;
           });
         }, 4000);
+      }),
+    showNoticeToast: (message) =>
+      set((s) => {
+        s.undoToast = { message, id: ++nextToastId, showUndo: false };
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          useUiStore.setState((st) => {
+            st.undoToast = null;
+          });
+        }, 5000);
       }),
     clearUndoToast: () =>
       set((s) => {
@@ -816,3 +831,38 @@ export const useUiStore = create<UiState>()(
       }),
   })),
 );
+
+/* ── Stale-report invalidation ────────────────────────────────────────────
+ * A validation report describes the circuit AT THE MOMENT it ran. When the
+ * graph changes afterwards the report is flagged stale (banner + guarded
+ * issue clicks in the report view), and when the canvas is emptied the
+ * report is dropped entirely — issues must never outlive the components
+ * they point at.
+ * Registration is retried across event-loop turns: uiStore and circuitStore
+ * import each other, so either binding may still be in its temporal dead
+ * zone while this module body (or an early microtask) runs. */
+const registerValidationStaleWatcher = () => {
+  try {
+    useCircuitStore.subscribe((state, prev) => {
+      if (state.components === prev.components && state.wires === prev.wires) return;
+      const ui = useUiStore.getState();
+      if (!ui.validationReport) return;
+      if (state.components.length === 0) {
+        useUiStore.setState((s) => {
+          s.validationReport = null;
+          s.validationStale = false;
+          s.activeValidationIssueModal = null;
+          s.complianceGateBlocked = false;
+        });
+      } else if (!ui.validationStale) {
+        useUiStore.setState((s) => {
+          s.validationStale = true;
+        });
+      }
+    });
+  } catch {
+    // Cyclic-import race: the other store has not finished initialising.
+    setTimeout(registerValidationStaleWatcher, 0);
+  }
+};
+registerValidationStaleWatcher();

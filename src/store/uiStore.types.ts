@@ -204,6 +204,9 @@ export interface UiState {
   /** Circuit validation report. */
   validationReport: ValidationReport | null;
 
+  /** True when the circuit changed after the current report was generated. */
+  validationStale: boolean;
+
   /** Circuit validation loading spinner state. */
   isValidatingCircuit: boolean;
 
@@ -242,7 +245,7 @@ export interface UiState {
   /** Interactive tutorial: zero-based index into the active tour's steps. */
   tourStep: number;
   /** A transient undo toast, e.g. after a delete. { message, id }. */
-  undoToast: { message: string; id: number } | null;
+  undoToast: { message: string; id: number; showUndo?: boolean } | null;
 
   // Actions ───────────────────────────────────────────────────────────────
   setSimRunning: (v: boolean) => void;
@@ -293,6 +296,8 @@ export interface UiState {
   endTour: () => void;
   setTourStep: (step: number) => void;
   showUndoToast: (message: string) => void;
+  /** Toast without an Undo button — informational notices. */
+  showNoticeToast: (message: string) => void;
   clearUndoToast: () => void;
   setInspectorOpen: (open: boolean) => void;
   setInspectorCollapsed: (collapsed: boolean) => void;

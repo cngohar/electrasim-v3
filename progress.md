@@ -3499,3 +3499,8 @@ substitution; F6 optional `timeLimit`.
 - Student/Pro demo circuits (both 100/100 across 12 standard-plug combos), untouched-demo mode swapping, mode-aware reset & pro tour.
 - Fixed latent US/INT motorcurve sweep bug; differentiated regional essentials (NEC/IEC-accurate); themed ComponentInfoModal (light+dark); fixed double-close animation; ghost previews use redesigned art; Fix All quick-fix button; recent-palette toggle.
 - 874/874 tests, tsc + biome clean.
+
+## Session 2026-08-23 (cont.) — INT default + conditional-logic fixes
+- Default standard now 'int'; explicit Pro region choices persist across mode switches (never auto-reset — user data).
+- Student-switch notice toast for surviving Pro components (new Undo-free toast variant).
+- Validation reports invalidate on circuit change (stale banner + re-validate), clear on empty canvas, and guard clicks on deleted targets. 877/877 tests.
