@@ -4,10 +4,9 @@ import { type Page, expect, test } from '@playwright/test';
  * Challenge Mode end-to-end (plan §38).
  *
  * The declarative challenges are covered exhaustively by unit suites; this
- * spec proves what only a browser can: the Learn hub mounts, a challenge
- * starts from a blank canvas, Check Circuit gives real feedback, completion
- * works end to end, the normal circuit is restored exactly on exit, and a
- * reload offers Continue vs Return.
+ * spec proves what only a browser can: the first-time Mission 0 offer, the
+ * Learn hub, a challenge starting from a blank canvas, Check Circuit feedback,
+ * completion, safe exit, and reload resume.
  */
 
 const panel = (page: Page) => page.locator('section[aria-label="Challenge Mode"]');
@@ -17,6 +16,14 @@ async function openChallengeMode(page: Page) {
   await page.goto('/');
   await page.getByRole('button', { name: 'Menu' }).click();
   await page.getByText('Challenge Mode', { exact: false }).first().click();
+  await expect(page.getByRole('heading', { name: 'How Challenge Mode works' })).toBeVisible();
+  await page.getByRole('button', { name: 'Start Challenge Mode' }).click();
+  await expect(page.getByRole('heading', { name: 'How Challenge Mode works' })).toBeHidden();
+  const missionOffer = page.getByRole('heading', { name: 'Start with a quick mission?' });
+  if (await missionOffer.isVisible().catch(() => false)) {
+    await page.getByRole('button', { name: 'Skip to Challenges' }).click();
+    await expect(missionOffer).toBeHidden();
+  }
   await expect(panel(page)).toBeVisible();
   // The menu item's action closes the overlay; assert the overlay panel is
   // inert before moving on (phones: z-[70] above every docked panel).
@@ -32,7 +39,7 @@ async function startChallenge(page: Page, title: string) {
   // Each card contains the title and one Start/Retry button; locate the
   // button inside the same card container.
   const card = panel(page).locator('div.rounded-xl').filter({ hasText: title }).first();
-  await card.getByRole('button', { name: /^(Start|Retry)$/ }).click();
+  await card.getByRole('button', { name: /^(Start|Retry Challenge|Retry)$/ }).click();
   await expect(panel(page).getByRole('heading', { name: title })).toBeVisible();
 }
 
@@ -146,6 +153,15 @@ test.describe('Challenge Mode', () => {
     page.on('dialog', (dialog) => dialog.accept());
   });
 
+  test('offers Mission 0 after the Challenge Mode explainer', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Menu' }).click();
+    await page.getByText('Challenge Mode', { exact: false }).first().click();
+    await page.getByRole('button', { name: 'Start Challenge Mode' }).click();
+    await expect(page.getByRole('heading', { name: 'Start with a quick mission?' })).toBeVisible();
+    await expect(page.getByText(/Mission 0: Light Your First Lamp/)).toBeVisible();
+  });
+
   test('shows the Learn hub with three challenge cards', async ({ page }) => {
     await openChallengeMode(page);
 
@@ -158,6 +174,19 @@ test.describe('Challenge Mode', () => {
     }
     // No game mechanics (plan §17).
     await expect(panel(page).getByText(/XP|coins|stars/i)).toBeHidden();
+  });
+
+  test('pauses and resumes a live challenge without losing its timer segment', async ({ page }) => {
+    await startChallenge(page, 'Build a Protected Lamp');
+
+    await page.getByRole('button', { name: 'Pause challenge' }).click();
+    await expect(page.locator('[data-challenge-paused]')).toBeVisible();
+    await expect(page.locator('[data-circuit-canvas]')).toHaveAttribute('aria-disabled', 'true');
+    await expect(page.getByRole('button', { name: 'Resume challenge' }).first()).toBeVisible();
+
+    await page.getByRole('button', { name: 'Resume challenge' }).first().click();
+    await expect(page.locator('[data-challenge-paused]')).toBeHidden();
+    await expect(page.locator('[data-circuit-canvas]')).toHaveAttribute('aria-disabled', 'false');
   });
 
   test('Protected Lamp: starts blank, gives feedback, completes (plan §23, §38-1)', async ({
@@ -234,10 +263,10 @@ test.describe('Challenge Mode', () => {
     await panel(page)
       .getByRole('button', { name: /Exit challenge/ })
       .click();
-    await expect(page.getByRole('heading', { name: /Leave Challenge/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /End Challenge Mode/i })).toBeVisible();
     // WebKit's stability check can stall on the modal's exit animation;
     // force-click past the transient state (the store action is synchronous).
-    await page.getByRole('button', { name: 'Return to My Circuit' }).click({ force: true });
+    await page.getByRole('button', { name: 'Restore Saved Circuit' }).click({ force: true });
 
     // The normal circuit is back, byte-for-byte.
     await expect.poll(() => page.locator('[data-component-id]').count()).toBe(normalCount);

@@ -33,6 +33,7 @@ import {
 import { COMPONENT_DEFS } from '../../domain';
 import { redo, undo, useCircuitStore, useUiStore } from '../../store';
 import { useSettingsStore } from '../../store/settingsStore';
+import { preloadSettings } from '../deferredSurfacePreloads';
 import { useResolvedTheme } from '../hooks/useResolvedTheme';
 import { IconBtn } from './IconBtn';
 import { StandardSelector } from './StandardSelector';
@@ -347,6 +348,8 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
       <button
         type="button"
         title="Settings"
+        onPointerEnter={preloadSettings}
+        onFocus={preloadSettings}
         onClick={() => useUiStore.getState().setSettingsOpen(true)}
         className="flex size-8 items-center justify-center rounded-lg border border-slate-200/80 bg-white/80 text-slate-600 shadow-sm transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
       >

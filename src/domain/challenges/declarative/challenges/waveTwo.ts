@@ -35,6 +35,7 @@ const protectedLamp: ChallengeDefinition = {
   version: 1,
   title: 'Build a Protected Lamp',
   difficulty: 'beginner',
+  audience: 'student',
   estimatedMinutes: 5,
 
   objective: 'Build a lamp circuit with protection, switching and a Neutral return.',
@@ -91,9 +92,37 @@ const protectedLamp: ChallengeDefinition = {
     {
       level: 1,
       text: 'A load needs a complete return path — Live feeds it, Neutral brings current back.',
+      visual: {
+        label: 'Place the Live terminal first',
+        target: { kind: 'component', componentType: 'live-terminal', fallback: { x: 350, y: 170 } },
+      },
     },
-    { level: 2, text: 'The switch belongs in the Live conductor, between the MCB and the bulb.' },
-    { level: 3, text: 'Connect Bulb.N to Neutral, and make sure the MCB and switch are closed.' },
+    {
+      level: 2,
+      text: 'The switch belongs in the Live conductor, between the MCB and the bulb.',
+      visual: {
+        label: 'Connect the MCB to the switch',
+        target: {
+          kind: 'connection',
+          from: { componentType: 'mcb', portIndex: 1 },
+          to: { componentType: 'single-way-switch', portIndex: 0 },
+          fallback: { x: 520, y: 170 },
+        },
+      },
+    },
+    {
+      level: 3,
+      text: 'Connect Bulb.N to Neutral, and make sure the MCB and switch are closed.',
+      visual: {
+        label: 'Finish at the bulb Neutral terminal',
+        target: {
+          kind: 'port',
+          componentType: 'bulb',
+          portIndex: 1,
+          fallback: { x: 760, y: 300 },
+        },
+      },
+    },
   ],
   completionMessage:
     'You built a complete lighting circuit with protection, switching, and a Neutral return.',
@@ -106,6 +135,7 @@ const pushButtonDoorbell: ChallengeDefinition = {
   version: 1,
   title: 'Wire a Push-Button Doorbell',
   difficulty: 'beginner',
+  audience: 'student',
   estimatedMinutes: 5,
 
   objective: 'Build a doorbell that only sounds while the button is held.',
@@ -162,14 +192,36 @@ const pushButtonDoorbell: ChallengeDefinition = {
     {
       level: 1,
       text: 'The button is a momentary contact: the live path only exists while it is held closed.',
+      visual: {
+        label: 'Find the momentary push button',
+        target: { kind: 'component', componentType: 'push-button', fallback: { x: 470, y: 170 } },
+      },
     },
     {
       level: 2,
       text: 'The live path must run MCB → Push Button → Bell. Check the button’s wiring.',
+      visual: {
+        label: 'Wire MCB output into the button',
+        target: {
+          kind: 'connection',
+          from: { componentType: 'mcb', portIndex: 1 },
+          to: { componentType: 'push-button', portIndex: 0 },
+          fallback: { x: 520, y: 170 },
+        },
+      },
     },
     {
       level: 3,
       text: 'Press and hold the button, then run the simulation. The bell must stop when released.',
+      visual: {
+        label: 'Press and hold before testing the bell',
+        target: {
+          kind: 'port',
+          componentType: 'bell',
+          portIndex: 0,
+          fallback: { x: 760, y: 300 },
+        },
+      },
     },
   ],
   completionMessage:
@@ -183,6 +235,7 @@ const rcboSocket: ChallengeDefinition = {
   version: 1,
   title: 'Protect a Socket with an RCBO',
   difficulty: 'intermediate',
+  audience: 'student',
   estimatedMinutes: 7,
 
   objective: 'Feed a socket through an RCBO, keeping the protective Earth path.',
@@ -259,14 +312,36 @@ const rcboSocket: ChallengeDefinition = {
     {
       level: 1,
       text: 'The RCBO must see BOTH conductors — current going out on Live must come back on Neutral.',
+      visual: {
+        label: 'Place the RCBO between supply and load',
+        target: { kind: 'component', componentType: 'rcbo', fallback: { x: 520, y: 170 } },
+      },
     },
     {
       level: 2,
       text: 'Check the RCBO: Live on L-in/L-out, Neutral on N-in/N-out. And the socket still needs its Earth.',
+      visual: {
+        label: 'Route both Live and Neutral through RCBO',
+        target: {
+          kind: 'connection',
+          from: { componentType: 'rcbo', portIndex: 2 },
+          to: { componentType: 'socket-3pin', portIndex: 0 },
+          fallback: { x: 710, y: 220 },
+        },
+      },
     },
     {
       level: 3,
       text: 'Wire Earth → Socket E and close the RCBO, then simulate. The socket must be live.',
+      visual: {
+        label: 'Connect the protective Earth to the socket',
+        target: {
+          kind: 'port',
+          componentType: 'socket-3pin',
+          portIndex: 2,
+          fallback: { x: 760, y: 330 },
+        },
+      },
     },
   ],
   completionMessage:

@@ -12,6 +12,7 @@ import type {
   PortRef,
   SimulationResult,
 } from '../domain';
+import type { RuleTarget } from '../domain/challenges/declarative/rules';
 import type {
   QuickFixAction,
   ValidationIssue,
@@ -23,6 +24,14 @@ export interface RerouteState {
   end: 'from' | 'to';
   /** `'drag'` = pointer is held; `'armed'` = waiting for next port click. */
   source: 'drag' | 'armed';
+}
+
+/** Focus request created when a learner clicks a failing challenge rule. */
+export interface ChallengeRuleFocus {
+  ruleId: string;
+  label: string;
+  targets: RuleTarget[];
+  paletteTypes: string[];
 }
 
 /**
@@ -160,6 +169,14 @@ export interface UiState {
   activeGuideId: string | null;
   /** Challenge Mode panel mounted (plan §32). Session state lives in challengeStore. */
   challengeOpen: boolean;
+  /** Intro explainer shown the first time Challenge Mode is selected. */
+  challengeIntroOpen: boolean;
+  /** True while an active or completed Challenge Mode session should be visible. */
+  challengeModeActive: boolean;
+  /** True while Challenge Mode is paused and the editor is temporarily locked. */
+  challengePaused: boolean;
+  /** Selected failing rule and its concrete canvas targets. */
+  challengeRuleFocus: ChallengeRuleFocus | null;
   /** Diagnosis Lab panel mounted (plan §32). Session state lives in diagnosisStore. */
   diagnosisOpen: boolean;
   /**
@@ -313,6 +330,14 @@ export interface UiState {
   setContactOpen: (open: boolean) => void;
   setTemplatesOpen: (open: boolean) => void;
   setChallengeOpen: (open: boolean) => void;
+  /** Open Challenge Mode from the menu and show its explainer first. */
+  openChallengeMode: () => void;
+  setChallengeIntroOpen: (open: boolean) => void;
+  /** Mirrored by declarativeChallengeStore so hidden sessions stay identifiable. */
+  setChallengeModeActive: (active: boolean) => void;
+  /** Mirrored by declarativeChallengeStore so the eager editor can lock itself. */
+  setChallengePaused: (paused: boolean) => void;
+  setChallengeRuleFocus: (focus: ChallengeRuleFocus | null) => void;
   setDiagnosisOpen: (open: boolean) => void;
   /** Set by `diagnosisStore` only — see {@link UiState.diagnosisActive}. */
   setDiagnosisActive: (active: boolean) => void;

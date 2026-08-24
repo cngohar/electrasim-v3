@@ -30,8 +30,8 @@ const TemplatesModal = lazy(() =>
 const GuidedCircuitPanel = lazy(() =>
   import('./components/GuidedCircuitPanel').then((m) => ({ default: m.GuidedCircuitPanel })),
 );
-const ChallengePanel = lazy(() =>
-  import('./components/ChallengePanel').then((m) => ({ default: m.ChallengePanel })),
+const ChallengeModeRuntime = lazy(() =>
+  import('./components/ChallengeModeRuntime').then((m) => ({ default: m.ChallengeModeRuntime })),
 );
 const DiagnosisPanel = lazy(() =>
   import('./components/DiagnosisPanel').then((m) => ({ default: m.DiagnosisPanel })),
@@ -211,6 +211,7 @@ export function Editor() {
   const templatesOpen = useUiStore((s) => s.templatesOpen);
   const activeGuideId = useUiStore((s) => s.activeGuideId);
   const challengeOpen = useUiStore((s) => s.challengeOpen);
+  const challengeModeActive = useUiStore((s) => s.challengeModeActive);
   const diagnosisOpen = useUiStore((s) => s.diagnosisOpen);
   const mobileSuitabilityOpen = useUiStore((s) => s.mobileSuitabilityOpen);
   const welcomeOpen = useUiStore((s) => s.welcomeOpen);
@@ -286,6 +287,14 @@ export function Editor() {
         onSetSwitchState={setMomentarySwitchState}
         externalSvgRef={canvasSvgRef}
       />
+      {(challengeOpen || challengeModeActive) && (
+        <LazySurface
+          label="Challenge Mode"
+          onClose={() => useUiStore.getState().setChallengeOpen(false)}
+        >
+          <ChallengeModeRuntime isPhone={isPhone} panelOpen={challengeOpen} />
+        </LazySurface>
+      )}
 
       <Toolbar
         isPhone={isPhone}
@@ -314,11 +323,7 @@ export function Editor() {
           <GuidedCircuitPanel isPhone={isPhone} />
         </Suspense>
       )}
-      {challengeOpen && (
-        <Suspense fallback={null}>
-          <ChallengePanel isPhone={isPhone} />
-        </Suspense>
-      )}
+
       {diagnosisOpen && (
         <Suspense fallback={null}>
           <DiagnosisPanel isPhone={isPhone} />

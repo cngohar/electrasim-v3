@@ -29,6 +29,8 @@ export interface ModalProps {
   widthClass?: string;
   /** Accessible name for callers that render a custom header instead of `title`. */
   ariaLabel?: string;
+  /** Keep the dimmed backdrop without blurring the editor behind it. */
+  backdropBlur?: boolean;
 }
 
 export function Modal({
@@ -40,6 +42,7 @@ export function Modal({
   children,
   widthClass = 'max-w-md',
   ariaLabel,
+  backdropBlur = true,
 }: ModalProps) {
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement | null>(null);
@@ -94,9 +97,9 @@ export function Modal({
       <button
         type="button"
         aria-label="Close"
-        className={`absolute inset-0 cursor-default bg-slate-950/60 backdrop-blur-md transition-all ${
-          isClosing ? 'animate-modal-backdrop-out' : 'animate-modal-backdrop-in'
-        }`}
+        className={`absolute inset-0 cursor-default bg-slate-950/60 ${
+          backdropBlur ? 'backdrop-blur-md' : ''
+        } transition-all ${isClosing ? 'animate-modal-backdrop-out' : 'animate-modal-backdrop-in'}`}
         onClick={handleRequestClose}
       />
       <div

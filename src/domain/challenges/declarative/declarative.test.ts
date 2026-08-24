@@ -133,6 +133,7 @@ describe('validateChallenge — incomplete topology', () => {
     const verdict = validateChallenge(challenge('protected-lamp'), incomplete);
     expect(verdict.state).toBe('in-progress');
     expect(verdict.nextRule).not.toBeNull();
+    expect(verdict.nextRule?.targets?.length).toBeGreaterThan(0);
     expect(verdict.completedRules).toBeLessThan(verdict.totalRules);
   });
 
@@ -144,6 +145,7 @@ describe('validateChallenge — incomplete topology', () => {
     });
     expect(verdict.state).toBe('in-progress');
     expect(verdict.nextRule?.reason).toMatch(/Live supply terminal/i);
+    expect(verdict.nextRule?.paletteTypes).toEqual(['live-terminal']);
   });
 });
 
