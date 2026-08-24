@@ -39,6 +39,40 @@ const twoWayStaircase: ChallengeDefinition = {
     { no: 5, text: 'Set both switches to a matching traveller and verify the lamp energises.' },
   ],
 
+  // UX correction plan: learner sees outcomes, not the traveller recipe.
+  requirements: [
+    {
+      id: 'req-supply',
+      label: 'Protected supply',
+      check: 'The staircase circuit is not yet supplied and protected.',
+      ruleIds: [
+        'required-live-terminal',
+        'required-neutral-terminal',
+        'required-mcb',
+        'path-live-live-terminal-mcb',
+        'state-mcb-on=true',
+      ],
+    },
+    {
+      id: 'req-switching',
+      label: 'Controlled from both ends',
+      check: 'The lamp is not yet controllable from both ends.',
+      ruleIds: [
+        'required-two-way-switch',
+        'path-live-mcb-two-way-switch',
+        'direct-live-two-way-switch-two-way-switch',
+        'path-live-two-way-switch-bulb',
+        'state-two-way-switch-on=true',
+      ],
+    },
+    {
+      id: 'req-operates',
+      label: 'Lamp operates correctly',
+      check: 'The lamp is not yet operating.',
+      ruleIds: ['required-bulb', 'path-neutral-bulb-neutral-terminal', 'energised-bulb-rest'],
+    },
+  ],
+
   starter: blankStarter(),
   allowedComponents: ['live-terminal', 'neutral-terminal', 'mcb', 'two-way-switch', 'bulb'],
   rules: [
@@ -145,6 +179,44 @@ const smartLighting: ChallengeDefinition = {
     { no: 2, text: 'Connect Live through the MCB to the relay L-in.' },
     { no: 3, text: 'Connect Neutral to relay N-in and directly to the bulb Neutral.' },
     { no: 4, text: 'Connect relay L-out to the bulb Live, close the MCB and verify operation.' },
+  ],
+
+  // UX correction plan: learner sees outcomes, never the relay wiring recipe.
+  requirements: [
+    {
+      id: 'req-supply',
+      label: 'Protected supply',
+      check: 'The relay is not yet supplied and protected.',
+      ruleIds: [
+        'required-live-terminal',
+        'required-neutral-terminal',
+        'required-mcb',
+        'path-live-live-terminal-mcb',
+        'state-mcb-on=true',
+      ],
+    },
+    {
+      id: 'req-relay',
+      label: 'Relay powered and switching',
+      check: 'The relay is not yet powered or not yet switching the lamp.',
+      ruleIds: [
+        'required-smart-relay',
+        'path-live-mcb-smart-relay',
+        'path-neutral-neutral-terminal-smart-relay',
+        'path-live-smart-relay-bulb-smart-rgb',
+        'state-smart-relay-on=true',
+      ],
+    },
+    {
+      id: 'req-operates',
+      label: 'Lamp operates correctly',
+      check: 'The lamp is not yet operating.',
+      ruleIds: [
+        'required-bulb-smart-rgb',
+        'path-neutral-bulb-smart-rgb-neutral-terminal',
+        'energised-bulb-smart-rgb-rest',
+      ],
+    },
   ],
 
   starter: blankStarter(),
@@ -256,6 +328,46 @@ const pumpFeeder: ChallengeDefinition = {
       text: 'Connect both RCBO outputs to the pump and connect PE directly to the pump Earth.',
     },
     { no: 5, text: 'Close both protective devices and verify the pump energises without faults.' },
+  ],
+
+  // UX correction plan: learner sees outcomes, never the feeder recipe.
+  requirements: [
+    {
+      id: 'req-supply',
+      label: 'Protected supply and PE',
+      check: 'The pump feeder is not yet supplied and protected.',
+      ruleIds: [
+        'required-live-terminal',
+        'required-neutral-terminal',
+        'required-earth-terminal',
+        'required-mcb-type-c',
+        'path-live-live-terminal-mcb-type-c',
+        'state-mcb-type-c-on=true',
+      ],
+    },
+    {
+      id: 'req-rcbo',
+      label: 'RCBO residual protection',
+      check: 'The pump is not yet protected by the RCBO.',
+      ruleIds: [
+        'required-rcbo',
+        'path-live-mcb-type-c-rcbo',
+        'path-neutral-neutral-terminal-rcbo',
+        'path-live-rcbo-water-pump',
+        'path-neutral-rcbo-water-pump',
+        'state-rcbo-on=true',
+      ],
+    },
+    {
+      id: 'req-operates',
+      label: 'Pump operates correctly',
+      check: 'The pump is not yet operating.',
+      ruleIds: [
+        'required-water-pump',
+        'path-earth-earth-terminal-water-pump',
+        'energised-water-pump-rest',
+      ],
+    },
   ],
 
   starter: blankStarter(),

@@ -11,6 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — Session 2026-08-24: Challenge Mode is now a genuine Build Challenge (UX correction)
+
+Challenge Mode no longer reads like a step-by-step tutorial. The learner is given the **goal** and the validator judges the result — the internal construction recipe is no longer exposed in the normal learner view.
+
+- **Separated data layers** (`declarative/types.ts`, `declarative/validator.ts`): each `ChallengeDefinition` now carries a learner-facing `requirements` list (high-level outcomes such as "Protected by an MCB", "Complete return path") alongside the internal `rules`. `validateChallenge` derives a `RequirementStatus[]` from the rules, so the panel can report progress and next actions without ever exposing the recipe. Boot-time registry coherence now also verifies every requirement maps to a real rule id.
+- **Hidden construction checklist** (`ChallengePanel.tsx`): the "All steps" list and the internal rule checklist are removed from ordinary Challenge Mode. Learners see a **Mission**, outcome-based **Requirements**, and a progress meter driven by met outcomes (tutorial-only Mission 0 keeps its guided step list).
+- **Problem-oriented Next Action**: the Next Action card describes the current unmet outcome ("The lamp does not have a complete return path") instead of telling the learner which component to place. "Focus this step" is preserved and highlights the relevant existing components.
+- **Non-recipe Check Circuit feedback**: feedback is high-level ("Your circuit is not ready to operate yet.") with the unmet outcome called out — raw component ids and internal rule names are no longer surfaced.
+- **Validation unchanged**: the internal rules, validator, persistence, snapshot/restore, reset, hints, timer and Pause all behave exactly as before — only the learner-facing information architecture changed.
+- **Tests**: 3 new domain tests prove outcome requirements are derived without weakening validation; Challenge Mode E2E assertions updated to the high-level feedback strings.
+
 ### Notes — Session 2026-08-23: Architecture Regression Analysis (read-only, no code changes)
 
 A full read-only audit of the architecture identified the most likely regressions. Nothing was modified; findings are logged here as the pre-release checklist for this branch.

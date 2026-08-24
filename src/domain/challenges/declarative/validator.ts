@@ -22,13 +22,60 @@ import type { Circuit } from '../../types';
 import { getChallengeDefinition } from './definitions';
 import { indexGraph, structuralIssues } from './graph';
 import type { RuleResult, RuleVerdict } from './rules';
-import type { ChallengeDefinition, ChallengeId, ChallengeState } from './types';
+import type {
+  ChallengeDefinition,
+  ChallengeId,
+  ChallengeRequirement,
+  ChallengeState,
+} from './types';
 
 export interface ChallengeIssue {
   /** Plain-English message (plan §9). */
   message: string;
   /** Component ids the UI may highlight, when meaningful. */
   targetIds?: string[];
+}
+
+/**
+ * Outcome-based status for a learner-facing requirement (UX correction plan
+ * §6). Kept separate from the internal `rules` so the panel never has to
+ * expose the construction recipe to report progress or next action.
+ */
+export interface RequirementStatus {
+  id: string;
+  /** Short outcome name, e.g. "Protected by an MCB". */
+  label: string;
+  /** Problem sentence shown when not met. */
+  check: string;
+  /** True when every mapped internal rule passes. */
+  met: boolean;
+  /** First non-passing mapped rule — drives "Focus this step" + palette. */
+  firstRule: RuleResult | null;
+}
+
+/**
+ * Derive learner-facing requirement statuses from the internal rule results.
+ * A requirement is met only when ALL of its mapped rules pass, so hiding the
+ * rules never weakens validation — it only hides *why* from the learner.
+ */
+function evaluateRequirements(
+  definition: ChallengeDefinition,
+  rules: RuleResult[],
+): RequirementStatus[] {
+  const byId = new Map(rules.map((rule) => [rule.id, rule]));
+  return (definition.requirements ?? []).map((requirement: ChallengeRequirement) => {
+    const matching = requirement.ruleIds
+      .map((id) => byId.get(id))
+      .filter((rule): rule is RuleResult => Boolean(rule));
+    const firstRule = matching.find((rule) => rule.verdict !== 'pass') ?? null;
+    return {
+      id: requirement.id,
+      label: requirement.label,
+      check: requirement.check,
+      met: firstRule === null && matching.length > 0,
+      firstRule,
+    };
+  });
 }
 
 export interface ChallengeVerdict {
@@ -41,6 +88,11 @@ export interface ChallengeVerdict {
   rules: RuleResult[];
   /** First non-passing rule — the recommended next step (plan §6). */
   nextRule: RuleResult | null;
+  /**
+   * Learner-facing outcome statuses (UX correction plan §6). This is what the
+   * panel renders; `rules` stays internal to the validator.
+   */
+  requirements: RequirementStatus[];
   /** True when the circuit simulates cleanly with the real engine. */
   electricallySound: boolean;
   /** Extra component types outside `allowedComponents` (plan §20: warn only). */
@@ -94,6 +146,7 @@ export function validateChallenge(
       completedRules: 0,
       totalRules: rules.length,
       rules,
+      requirements: evaluateRequirements(definition, rules),
       nextRule: {
         id: 'structure',
         label: 'Every wire is properly connected',
@@ -132,6 +185,7 @@ export function validateChallenge(
       completedRules: 0,
       totalRules: rules.length,
       rules,
+      requirements: evaluateRequirements(definition, rules),
       nextRule: {
         id: 'electrical-rules',
         label: 'The wiring breaks an electrical rule',
@@ -198,6 +252,7 @@ export function validateChallenge(
     totalRules: rules.length,
     rules,
     nextRule,
+    requirements: evaluateRequirements(definition, rules),
     electricallySound,
     extraComponents,
     simulationErrors,

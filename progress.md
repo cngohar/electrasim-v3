@@ -7,6 +7,19 @@ A running, append-only log of work on the ElectraSim rewrite. Every coding sessi
 
 ---
 
+## Session 2026-08-24 — Challenge Mode UX Correction: Build Challenge, not a Tutorial
+
+**Done:** Reworked the learner-facing Challenge Mode so it behaves as a genuine **Build Challenge** instead of a step-by-step tutorial (per `ElectraSim-Challenge-Mode-UX-Correction-Plan.md`). The internal validator, persistence, workspace isolation, hints, completion and tests are untouched — only the information exposed to the learner changed.
+
+- **Separated data layers** (`src/domain/challenges/declarative/types.ts`, `validator.ts`): added `ChallengeDefinition.requirements` (outcome-based, learner-facing) alongside the internal `rules`; `validateChallenge` now derives a `RequirementStatus[]` so the UI never needs the recipe. `assertRegistryCoherent()` now validates that every requirement maps to a real rule id.
+- **Panel** (`src/ui/components/ChallengePanel.tsx`): removed the "All steps" list and the internal rule checklist from ordinary Challenge Mode. Learners now see a **Mission**, outcome **Requirements** (e.g. "Protected by an MCB", "Complete return path"), a problem-oriented **Next Action** card (never "Place a Live supply terminal"), and a progress meter driven by met outcomes. "Focus this step" is preserved. Tutorial-only Mission 0 keeps its guided step list.
+- **Feedback**: Check Circuit returns high-level, non-spoiling feedback ("Your circuit is not ready to operate yet." + the unmet outcome); raw component ids and rule names are no longer surfaced.
+- **Added requirements** to all definitions: Protected Lamp, Doorbell, RCBO Socket (Wave 2); Mission 0 tutorial; Two-Way, Smart Relay, Pump Feeder (Pro).
+- **Verification:** `npm run check` green — typecheck, biome lint, and **886 unit tests** pass, including 3 new domain tests proving requirements are derived without weakening validation. Challenge Mode E2E assertions updated to the high-level strings. (Playwright browsers are not installable in this sandbox, so the full E2E suite should be run locally before deploy.)
+- **Docs:** updated in-app docs, `README.md`, `CHANGELOG.md`, and this log to state explicitly that Challenge Mode gives a goal and validates the result rather than providing a construction recipe.
+
+---
+
 ## Session 2026-08-22 — Site-Wide A11y Pass & Voltage Drop Calculator UX Overhaul
 
 **Done:** Audit-driven accessibility and UX hardening across the Astro marketing site and the Voltage Drop Calculator, in three passes (site-wide a11y batch, calculator audit, 18-item calculator fix batch).

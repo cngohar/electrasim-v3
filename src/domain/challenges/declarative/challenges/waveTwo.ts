@@ -50,6 +50,45 @@ const protectedLamp: ChallengeDefinition = {
     { no: 4, text: 'Close the MCB and the switch, then check your circuit.' },
   ],
 
+  // UX correction plan §4: learner sees the OUTCOMES, never the recipe.
+  // The internal rules below keep judging the circuit exactly as before.
+  requirements: [
+    {
+      id: 'req-protection',
+      label: 'Protected by an MCB',
+      check: 'The lighting circuit is not yet protected by an MCB.',
+      ruleIds: [
+        'required-live-terminal',
+        'required-mcb',
+        'path-live-live-terminal-mcb',
+        'path-live-mcb-single-way-switch',
+        'state-mcb-on=true',
+      ],
+    },
+    {
+      id: 'req-switch',
+      label: 'Switch controls the lamp',
+      check: 'The switch does not yet control the lamp.',
+      ruleIds: [
+        'required-single-way-switch',
+        'path-live-single-way-switch-bulb',
+        'state-single-way-switch-on=true',
+      ],
+    },
+    {
+      id: 'req-return',
+      label: 'Complete return path',
+      check: 'The lamp does not have a complete return path.',
+      ruleIds: ['required-neutral-terminal', 'path-neutral-bulb-neutral-terminal'],
+    },
+    {
+      id: 'req-operates',
+      label: 'Lamp operates correctly',
+      check: 'The lamp is not yet operating.',
+      ruleIds: ['required-bulb', 'energised-bulb-rest'],
+    },
+  ],
+
   starter: blankStarter(),
   allowedComponents: ['live-terminal', 'neutral-terminal', 'mcb', 'single-way-switch', 'bulb'],
 
@@ -148,6 +187,35 @@ const pushButtonDoorbell: ChallengeDefinition = {
     { no: 2, text: 'Add an MCB, a push button and a bell.' },
     { no: 3, text: 'Wire Live → MCB → Push Button → Bell, and Bell → Neutral.' },
     { no: 4, text: 'Close the MCB, then press and hold the button to test the bell.' },
+  ],
+
+  // UX correction plan §23: the learner sees the outcome, not the recipe.
+  requirements: [
+    {
+      id: 'req-supply',
+      label: 'Supply connected',
+      check: 'The doorbell circuit is not yet supplied.',
+      ruleIds: ['required-live-terminal', 'path-live-live-terminal-mcb', 'state-mcb-on=true'],
+    },
+    {
+      id: 'req-momentary',
+      label: 'Rings only while pressed',
+      check: 'The bell does not ring only while the button is pressed.',
+      ruleIds: [
+        'required-push-button',
+        'required-bell',
+        'path-live-mcb-push-button',
+        'path-live-push-button-bell',
+        'energised-bell-push-button',
+        'energised-bell-rest',
+      ],
+    },
+    {
+      id: 'req-return',
+      label: 'Complete return path',
+      check: 'The bell does not have a complete return path.',
+      ruleIds: ['required-neutral-terminal', 'path-neutral-bell-neutral-terminal'],
+    },
   ],
 
   starter: blankStarter(),
@@ -249,6 +317,42 @@ const rcboSocket: ChallengeDefinition = {
     { no: 3, text: 'Wire Live → RCBO L-in, RCBO L-out → Socket L.' },
     { no: 4, text: 'Wire Neutral → RCBO N-in, RCBO N-out → Socket N.' },
     { no: 5, text: 'Wire Earth → Socket E, and make sure the RCBO is closed.' },
+  ],
+
+  // UX correction plan §24: learner sees the outcomes, never the recipe.
+  requirements: [
+    {
+      id: 'req-supply',
+      label: 'Live, Neutral and Earth connected',
+      check: 'The socket is not fully supplied — check the Live, Neutral and Earth connections.',
+      ruleIds: [
+        'required-live-terminal',
+        'required-neutral-terminal',
+        'required-earth-terminal',
+        'path-live-live-terminal-rcbo',
+        'path-neutral-neutral-terminal-rcbo',
+        'path-earth-earth-terminal-socket-3pin',
+      ],
+    },
+    {
+      id: 'req-protection',
+      label: 'Protected by the RCBO',
+      check: 'The socket is not fully protected by the RCBO.',
+      ruleIds: [
+        'required-rcbo',
+        'exclusive-live-live-terminal-rcbo-socket-3pin',
+        'exclusive-neutral-neutral-terminal-rcbo-socket-3pin',
+        'path-live-rcbo-socket-3pin',
+        'path-neutral-rcbo-socket-3pin',
+        'state-rcbo-on=true',
+      ],
+    },
+    {
+      id: 'req-operates',
+      label: 'Socket operates normally',
+      check: 'The socket is not yet operating.',
+      ruleIds: ['required-socket-3pin', 'energised-socket-3pin-rest'],
+    },
   ],
 
   starter: blankStarter(),

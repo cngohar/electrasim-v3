@@ -3,8 +3,13 @@
  *
  * Views in one lazy component:
  *   1. Learn hub    — first-run Mission 0 offer + challenge cards.
- *   2. Active       — objective, steps, rule checklist, Check / Hint / Reset.
+ *   2. Active       — Mission, outcome Requirements, Next Action, Check / Hint / Reset.
  *   3. Complete     — the educational celebration (time + hints, never coins).
+ *
+ * Challenge Mode is a genuine build challenge (UX correction plan §1): the
+ * learner sees the MISSION and high-level REQUIREMENTS, not the internal
+ * construction recipe. The validator keeps every internal rule; this panel
+ * never exposes them as a step-by-step checklist (plan §3, §18, §36).
  *
  * Mission 0 is action-led by `ChallengeTutorialOverlay`; its progress is
  * derived from the same declarative rules rather than manual click counts.
@@ -42,7 +47,11 @@ import {
   getChallengeStepProgress,
   validateChallenge,
 } from '../../domain/challenges/declarative';
-import type { ChallengeVerdict, RuleResult } from '../../domain/challenges/declarative';
+import type {
+  ChallengeVerdict,
+  RequirementStatus,
+  RuleResult,
+} from '../../domain/challenges/declarative';
 import {
   hasSeenFirstChallengeTutorialOffer,
   markFirstChallengeTutorialOfferSeen,
@@ -109,24 +118,6 @@ function difficultyBadge(difficulty: ChallengeDefinition['difficulty']): string 
     case 'advanced':
       return 'Advanced';
   }
-}
-
-/** Convert rule feedback into a short, human-facing next action. */
-function nextActionCopy(rule: RuleResult): string {
-  if (rule.id === 'structure') return 'Reconnect the highlighted wire at both ends.';
-  if (rule.id === 'electrical-rules') return 'Correct the highlighted electrical safety issue.';
-  if (rule.id.startsWith('required-')) return rule.reason ?? rule.label;
-  if (rule.id.startsWith('path-') || rule.id.startsWith('direct-')) {
-    return 'Connect the highlighted terminals to complete this path.';
-  }
-  if (rule.id.startsWith('exclusive-'))
-    return 'Remove the bypass from the highlighted protective path.';
-  if (rule.id.startsWith('state-')) return `Configure the highlighted device: ${rule.label}.`;
-  if (rule.id.startsWith('energised-'))
-    return 'Check the highlighted Live and Neutral path, then test again.';
-  if (rule.id.startsWith('fault-'))
-    return rule.reason ?? 'Clear the highlighted fault and check again.';
-  return rule.reason ?? rule.label;
 }
 
 export function ChallengePanel({ isPhone }: Props) {
@@ -807,15 +798,23 @@ export function ChallengePanel({ isPhone }: Props) {
   }
 
   // ── Active (§19) ────────────────────────────────────────────────────────
-  const completionPct = Math.round((displayedVerdict?.completion ?? 0) * 100);
-  const currentRule = displayedVerdict?.nextRule ?? null;
+  // Learner-facing progress comes from the OUTCOME requirements, not the
+  // hidden construction recipe (UX correction plan §6). The tutorial mission
+  // keeps its guided rule-based progress because it is a step-by-step lesson.
+  const requirementStatuses = displayedVerdict?.requirements ?? [];
+  const unmetRequirement = requirementStatuses.find((requirement) => !requirement.met) ?? null;
+  const metRequirements = requirementStatuses.filter((requirement) => requirement.met).length;
+  const completionPct = isTutorial
+    ? Math.round((displayedVerdict?.completion ?? 0) * 100)
+    : requirementStatuses.length > 0
+      ? Math.round((metRequirements / requirementStatuses.length) * 100)
+      : 0;
   const tutorialCurrentStep =
     isTutorial && tutorialStepProgress ? definition.steps[tutorialStepProgress.currentIndex] : null;
-  const currentAction = isTutorial
-    ? (tutorialCurrentStep?.text ?? 'Complete the mission steps shown on the canvas.')
-    : currentRule
-      ? nextActionCopy(currentRule)
-      : (definition.steps[0]?.text ?? 'Start building this circuit.');
+
+  const focusRequirement = (requirement: RequirementStatus) => {
+    if (requirement.firstRule) focusRule(requirement.firstRule);
+  };
 
   return (
     <>
@@ -890,12 +889,19 @@ export function ChallengePanel({ isPhone }: Props) {
             paused ? 'pointer-events-none select-none opacity-50 blur-[1px]' : '',
           ].join(' ')}
         >
-          <p className="text-[11px] font-medium leading-relaxed text-slate-700 dark:text-slate-200">
-            {definition.objective}
-          </p>
-          <p className="text-[10px] leading-relaxed text-slate-500 dark:text-slate-400">
-            {definition.brief}
-          </p>
+          {/* Mission (UX correction plan §4, §17) */}
+          <div>
+            <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.14em] text-blue-600 dark:text-blue-400">
+              <Target className="size-3.5" aria-hidden="true" />
+              Mission
+            </div>
+            <p className="mt-1 text-[11px] font-semibold leading-relaxed text-slate-800 dark:text-slate-100">
+              {definition.objective}
+            </p>
+            <p className="mt-0.5 text-[10px] leading-relaxed text-slate-500 dark:text-slate-400">
+              {definition.brief}
+            </p>
+          </div>
           {isTutorial && (
             <p className="rounded-lg border border-blue-100 bg-blue-50 px-2 py-1.5 text-[10px] leading-relaxed text-blue-800 dark:border-blue-900/70 dark:bg-blue-950/40 dark:text-blue-200">
               Follow the coach card on the canvas. Mission steps update automatically; there is no
@@ -903,98 +909,157 @@ export function ChallengePanel({ isPhone }: Props) {
             </p>
           )}
 
+          {/* Next Action / guided step (UX correction plan §7, §8) */}
           <div
             data-challenge-current-step
             aria-live="polite"
             className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-3 shadow-sm dark:border-blue-900/70 dark:from-blue-950/50 dark:to-slate-900"
           >
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-blue-600 dark:text-blue-300">
-                {isTutorial && tutorialCurrentStep
-                  ? `Step ${tutorialCurrentStep.no} of ${definition.steps.length}`
-                  : currentRule
-                    ? 'Next action'
-                    : 'Start here'}
-              </span>
-              {currentRule && (
-                <span
-                  className={[
-                    'rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide',
-                    currentRule.verdict === 'fail'
-                      ? 'bg-red-100 text-red-700 dark:bg-red-950/70 dark:text-red-300'
-                      : 'bg-amber-100 text-amber-700 dark:bg-amber-950/70 dark:text-amber-300',
-                  ].join(' ')}
-                >
-                  {currentRule.verdict === 'fail' ? 'Needs repair' : 'Incomplete'}
-                </span>
-              )}
-            </div>
-            <p className="mt-1 text-[12px] font-semibold leading-relaxed text-slate-800 dark:text-slate-100">
-              {currentAction}
-            </p>
-            {currentRule && !isTutorial && (
-              <p className="mt-1 text-[10px] leading-relaxed text-slate-500 dark:text-slate-400">
-                Check: {currentRule.label}
-              </p>
-            )}
-            {currentRule && (
-              <button
-                type="button"
-                onClick={() => focusRule(currentRule)}
-                className="mt-2 inline-flex items-center gap-1 rounded-lg bg-white/80 px-2 py-1.5 text-[10px] font-bold text-indigo-700 shadow-sm transition hover:bg-white dark:bg-slate-900/60 dark:text-indigo-300 dark:hover:bg-slate-900"
-              >
-                <Focus className="size-3" /> Focus this step
-              </button>
+            {isTutorial && tutorialCurrentStep ? (
+              <>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-blue-600 dark:text-blue-300">
+                    Step {tutorialCurrentStep.no} of {definition.steps.length}
+                  </span>
+                </div>
+                <p className="mt-1 text-[12px] font-semibold leading-relaxed text-slate-800 dark:text-slate-100">
+                  {tutorialCurrentStep.text}
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-blue-600 dark:text-blue-300">
+                    Next action
+                  </span>
+                  {unmetRequirement && (
+                    <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-700 dark:bg-amber-950/70 dark:text-amber-300">
+                      Not complete
+                    </span>
+                  )}
+                </div>
+                {unmetRequirement ? (
+                  <>
+                    <p className="mt-1 text-[12px] font-semibold leading-relaxed text-slate-800 dark:text-slate-100">
+                      Your circuit is not complete yet.
+                    </p>
+                    <p className="mt-1 text-[11px] leading-relaxed text-slate-600 dark:text-slate-300">
+                      {unmetRequirement.check}
+                    </p>
+                    {unmetRequirement.firstRule && (
+                      <button
+                        type="button"
+                        onClick={() => focusRequirement(unmetRequirement)}
+                        className="mt-2 inline-flex items-center gap-1 rounded-lg bg-white/80 px-2 py-1.5 text-[10px] font-bold text-indigo-700 shadow-sm transition hover:bg-white dark:bg-slate-900/60 dark:text-indigo-300 dark:hover:bg-slate-900"
+                      >
+                        <Focus className="size-3" /> Focus this step
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <p className="mt-1 text-[12px] font-semibold leading-relaxed text-slate-800 dark:text-slate-100">
+                    Build your circuit, then use Check Circuit to see how it is doing.
+                  </p>
+                )}
+              </>
             )}
           </div>
 
-          {/* Steps (§5) */}
-          <div>
-            <button
-              type="button"
-              onClick={() => setShowSteps((open) => !open)}
-              aria-expanded={showSteps}
-              className="flex w-full items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-            >
-              <ListChecks className="size-3" aria-hidden="true" />
-              {isTutorial ? 'Mission steps' : 'All steps'} ({definition.steps.length})
-            </button>
-            {showSteps && (
-              <ol className="mt-1 space-y-0.5">
-                {definition.steps.map((step, index) => {
-                  const stepDone = tutorialStepProgress?.completed[index] ?? false;
-                  const stepCurrent = tutorialStepProgress?.currentIndex === index;
-                  return (
-                    <li
-                      key={step.id ?? step.no}
-                      aria-current={stepCurrent ? 'step' : undefined}
-                      className={[
-                        'flex items-start gap-1.5 rounded-lg px-1.5 py-1 text-[11px]',
-                        stepDone
-                          ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/35 dark:text-emerald-300'
-                          : stepCurrent
-                            ? 'bg-blue-50 text-blue-800 dark:bg-blue-950/35 dark:text-blue-200'
-                            : 'text-slate-600 dark:text-slate-300',
-                      ].join(' ')}
-                    >
-                      <span className="mt-px shrink-0">
-                        {isTutorial && stepDone ? (
-                          <Check className="size-3.5 text-emerald-600 dark:text-emerald-400" />
-                        ) : isTutorial && stepCurrent ? (
-                          <ChevronRight className="size-3.5 text-blue-600 dark:text-blue-400" />
-                        ) : (
-                          <span className="text-[10px] font-bold tabular-nums text-slate-400">
-                            {step.no}.
-                          </span>
-                        )}
-                      </span>
-                      <span>{step.text}</span>
-                    </li>
-                  );
-                })}
-              </ol>
-            )}
-          </div>
+          {/* Requirements (UX correction plan §6, §17) — the learner sees these
+              outcome-based goals, never the internal construction recipe. */}
+          {requirementStatuses.length > 0 && (
+            <div>
+              <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
+                <ListChecks className="size-3.5" aria-hidden="true" />
+                Requirements
+              </div>
+              <ul className="mt-1 space-y-0.5" aria-label="Requirements">
+                {requirementStatuses.map((requirement) => (
+                  <li key={requirement.id} className="flex items-start text-[11px]">
+                    {requirement.met ? (
+                      <div className="flex items-start gap-1.5 text-slate-600 dark:text-slate-300">
+                        <Check
+                          className="mt-px size-3 shrink-0 text-emerald-600 dark:text-emerald-400"
+                          aria-hidden="true"
+                        />
+                        <span>{requirement.label}</span>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => focusRequirement(requirement)}
+                        title={requirement.check}
+                        aria-label={`Focus requirement: ${requirement.label}`}
+                        className="group flex min-w-0 flex-1 items-start gap-1.5 rounded-lg px-1.5 py-1 text-left transition hover:bg-indigo-50 dark:hover:bg-indigo-950/40"
+                      >
+                        <CircleAlert
+                          className="mt-px size-3 shrink-0 text-amber-500"
+                          aria-hidden="true"
+                        />
+                        <span className="min-w-0 flex-1 text-slate-600 dark:text-slate-300">
+                          {requirement.label}
+                        </span>
+                        <span className="shrink-0 text-[9px] font-bold uppercase tracking-wide text-indigo-600 opacity-0 transition group-hover:opacity-100 dark:text-indigo-300">
+                          Focus
+                        </span>
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Mission steps — tutorial only. Ordinary challenges do NOT expose
+              their construction checklist (UX correction plan §3, §18). */}
+          {isTutorial && (
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowSteps((open) => !open)}
+                aria-expanded={showSteps}
+                className="flex w-full items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+              >
+                <ListChecks className="size-3" aria-hidden="true" />
+                Mission steps ({definition.steps.length})
+              </button>
+              {showSteps && (
+                <ol className="mt-1 space-y-0.5">
+                  {definition.steps.map((step, index) => {
+                    const stepDone = tutorialStepProgress?.completed[index] ?? false;
+                    const stepCurrent = tutorialStepProgress?.currentIndex === index;
+                    return (
+                      <li
+                        key={step.id ?? step.no}
+                        aria-current={stepCurrent ? 'step' : undefined}
+                        className={[
+                          'flex items-start gap-1.5 rounded-lg px-1.5 py-1 text-[11px]',
+                          stepDone
+                            ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/35 dark:text-emerald-300'
+                            : stepCurrent
+                              ? 'bg-blue-50 text-blue-800 dark:bg-blue-950/35 dark:text-blue-200'
+                              : 'text-slate-600 dark:text-slate-300',
+                        ].join(' ')}
+                      >
+                        <span className="mt-px shrink-0">
+                          {stepDone ? (
+                            <Check className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                          ) : stepCurrent ? (
+                            <ChevronRight className="size-3.5 text-blue-600 dark:text-blue-400" />
+                          ) : (
+                            <span className="text-[10px] font-bold tabular-nums text-slate-400">
+                              {step.no}.
+                            </span>
+                          )}
+                        </span>
+                        <span>{step.text}</span>
+                      </li>
+                    );
+                  })}
+                </ol>
+              )}
+            </div>
+          )}
 
           {/* Progress meter (§19) */}
           <div>
@@ -1012,64 +1077,24 @@ export function ChallengePanel({ isPhone }: Props) {
             </progress>
           </div>
 
-          {/* Rule checklist (plan §6, §9) */}
-          {displayedVerdict && (
-            <ul className="space-y-0.5" aria-label="Rule checklist">
-              {displayedVerdict.rules.map((rule) => (
-                <li key={rule.id} className="flex items-start text-[11px]">
-                  {rule.verdict === 'pass' ? (
-                    <div className="flex items-start gap-1.5 text-slate-600 dark:text-slate-300">
-                      <Check
-                        className="mt-px size-3 shrink-0 text-emerald-600 dark:text-emerald-400"
-                        aria-hidden="true"
-                      />
-                      <span>{rule.label}</span>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => focusRule(rule)}
-                      title={rule.reason ?? `Focus ${rule.label}`}
-                      aria-label={`Focus rule: ${rule.label}`}
-                      className="group flex min-w-0 flex-1 items-start gap-1.5 rounded-lg px-1.5 py-1 text-left transition hover:bg-indigo-50 dark:hover:bg-indigo-950/40"
-                    >
-                      <CircleAlert
-                        className={[
-                          'mt-px size-3 shrink-0',
-                          rule.verdict === 'fail' ? 'text-red-500' : 'text-amber-500',
-                        ].join(' ')}
-                        aria-hidden="true"
-                      />
-                      <span className="min-w-0 flex-1 text-slate-600 dark:text-slate-300">
-                        {rule.label}
-                      </span>
-                      <span className="shrink-0 text-[9px] font-bold uppercase tracking-wide text-indigo-600 opacity-0 transition group-hover:opacity-100 dark:text-indigo-300">
-                        Focus
-                      </span>
-                    </button>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-
-          {/* Verdict (live region — plan §35) */}
+          {/* Verdict (live region — plan §35). High-level, non-recipe feedback:
+              which outcome is met/unmet, never a raw rule id or recipe. */}
           <div aria-live="polite" className="space-y-1.5">
             {displayedVerdict && displayedVerdict.state !== 'complete' && (
               <div className="rounded-lg bg-amber-50 p-2 dark:bg-amber-950/50">
                 <p className="flex items-start gap-1.5 text-[11px] font-semibold text-amber-800 dark:text-amber-200">
                   <CircleAlert className="mt-px size-3 shrink-0" aria-hidden="true" />
-                  {displayedVerdict.summary}
+                  Your circuit is not ready to operate yet.
                 </p>
-                {displayedVerdict.nextRule?.reason && (
+                {unmetRequirement && (
                   <p className="mt-1 text-[10px] leading-relaxed text-amber-700 dark:text-amber-300">
-                    Next: {displayedVerdict.nextRule.reason}
+                    {unmetRequirement.check}
                   </p>
                 )}
-                {displayedVerdict.nextRule && (
+                {unmetRequirement?.firstRule && (
                   <button
                     type="button"
-                    onClick={() => focusRule(displayedVerdict.nextRule!)}
+                    onClick={() => focusRequirement(unmetRequirement)}
                     className="mt-2 rounded-lg bg-white/75 px-2 py-1 text-[10px] font-bold text-indigo-700 transition hover:bg-white dark:bg-slate-900/50 dark:text-indigo-300 dark:hover:bg-slate-900/80"
                   >
                     Focus next issue

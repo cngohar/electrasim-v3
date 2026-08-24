@@ -251,6 +251,53 @@ describe('fault rules', () => {
   });
 });
 
+// ── Learner-facing requirements (UX correction plan §2, §6) ────────────────
+
+describe('outcome requirements (UX correction plan)', () => {
+  it('marks every requirement met on the correct Protected Lamp answer', () => {
+    const verdict = validateChallenge(challenge('protected-lamp'), correctProtectedLamp());
+    expect(verdict.state).toBe('complete');
+    expect(verdict.requirements.map((r) => r.label)).toEqual([
+      'Protected by an MCB',
+      'Switch controls the lamp',
+      'Complete return path',
+      'Lamp operates correctly',
+    ]);
+    expect(verdict.requirements.every((r) => r.met)).toBe(true);
+    expect(verdict.requirements.every((r) => r.firstRule === null)).toBe(true);
+  });
+
+  it('still rejects a broken circuit even though the rule list is hidden', () => {
+    const definition = challenge('protected-lamp');
+    const circuit = correctProtectedLamp();
+    // Drop the bulb → Neutral wire (missing return path).
+    const broken: Circuit = { ...circuit, wires: circuit.wires.slice(0, -1) };
+    const verdict = validateChallenge(definition, broken);
+    expect(verdict.state).not.toBe('complete');
+    const returnPath = verdict.requirements.find((r) => r.id === 'req-return');
+    expect(returnPath?.met).toBe(false);
+    expect(returnPath?.check).toContain('return path');
+    expect(returnPath?.firstRule).not.toBeNull();
+    // The underlying validator still evaluates every internal rule.
+    expect(
+      verdict.rules.some(
+        (r) => r.id === 'path-neutral-bulb-neutral-terminal' && r.verdict !== 'pass',
+      ),
+    ).toBe(true);
+  });
+
+  it('maps an empty canvas to all unmet requirements', () => {
+    const verdict = validateChallenge(challenge('protected-lamp'), {
+      components: [],
+      wires: [],
+      globalVoltage: 230,
+    });
+    expect(verdict.requirements.length).toBeGreaterThan(0);
+    expect(verdict.requirements.every((r) => !r.met)).toBe(true);
+    expect(verdict.requirements[0]?.firstRule?.paletteTypes).toContain('live-terminal');
+  });
+});
+
 // ── Stable ordering ────────────────────────────────────────────────────────
 
 describe('stable ordering (plan §6)', () => {

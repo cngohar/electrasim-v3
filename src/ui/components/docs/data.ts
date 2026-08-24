@@ -56,7 +56,7 @@ export const LEARNING_MODES: Array<{
   {
     name: 'Challenge Mode',
     tagline: 'Build this',
-    body: 'Structured challenges walk you through real wiring skills — build a protected lamp, wire a momentary doorbell, protect a socket with an RCBO. Each challenge has a clear objective, ordered steps, a rule checklist and three progressive hints. Checking your circuit gives plain-English feedback on what to fix next; extra components are warned about, never deleted. Your normal circuit is snapshotted the moment a challenge starts and restored exactly when you leave — challenges can never destroy it.',
+    body: 'Challenge Mode gives you a goal and validates the result — it does not hand you a step-by-step construction recipe. Build a protected lamp, wire a momentary doorbell, protect a socket with an RCBO. Each challenge presents a clear mission and high-level outcome requirements (e.g. "Protected by an MCB", "Complete return path"); how you arrange and wire the components is up to you. Check Circuit gives plain-English, non-spoiling feedback on which outcome is not yet met, and three progressive hints reveal more only if you want them. Extra components are warned about, never deleted. Your normal circuit is snapshotted the moment a challenge starts and restored exactly when you leave — challenges can never destroy it.',
   },
   {
     name: 'Diagnosis Lab',
