@@ -14,7 +14,6 @@ import {
   primarySocketForPlug,
 } from '../../domain/standards';
 import { useUiStore } from '../../store';
-import { useDeclarativeChallengeStore } from '../../store/declarativeChallengeStore';
 import { useSettingsStore } from '../../store/settingsStore';
 import { getDefaultArt } from '../canvas/componentArt';
 import { getComponentImage } from './componentImages';
@@ -294,12 +293,18 @@ export function Palette({ open, isPhone }: Props) {
   const recentComponents = useSettingsStore((s) => s.recentComponents);
   const showRecentComponents = useSettingsStore((s) => s.showRecentComponents);
   // Plan §20: during an active challenge the palette exposes only the
-  // allowed component types; everything else is dimmed (not deleted).
-  const challengeDefinition = useDeclarativeChallengeStore((s) =>
-    s.status === 'active' ? s.definition : null,
-  );
+  // allowed component types; everything else is dimmed (not deleted). The
+  // mirror comes from uiStore so opening the normal palette does not eagerly
+  // import the Challenge Mode validator/store.
+  const challengeAllowedComponents = useUiStore((s) => s.challengeAllowedComponents);
+  const challengeRuleFocus = useUiStore((s) => s.challengeRuleFocus);
   const setPaletteOpen = useUiStore((s) => s.setPaletteOpen);
   const [query, setQuery] = useState('');
+
+  const isChallengeFocusTarget = useCallback(
+    (type: string) => challengeRuleFocus?.paletteTypes.includes(type) ?? false,
+    [challengeRuleFocus],
+  );
 
   // Regional socket set — only show the selected plug type's sockets (plus
   // universal components). Keeps the palette relevant, not bloated.
@@ -320,10 +325,10 @@ export function Palette({ open, isPhone }: Props) {
   // learner can still search for nothing else. Extra components already on
   // the canvas are never deleted — the validator warns instead.
   const challengeAllows = useMemo(() => {
-    if (!challengeDefinition?.allowedComponents) return null;
-    const allowed = new Set(challengeDefinition.allowedComponents);
+    if (!challengeAllowedComponents) return null;
+    const allowed = new Set(challengeAllowedComponents);
     return (type: string): boolean => allowed.has(type);
-  }, [challengeDefinition]);
+  }, [challengeAllowedComponents]);
   const recommended = useMemo(
     () =>
       recommendedTypeOrder
@@ -443,10 +448,18 @@ export function Palette({ open, isPhone }: Props) {
                         type="button"
                         key={`recommended-${item.type}`}
                         data-palette-type={item.type}
+                        data-challenge-focused={
+                          isChallengeFocusTarget(item.type) ? 'true' : undefined
+                        }
                         onClick={() =>
                           useUiStore.getState().setPlacingType(active ? null : item.type)
                         }
-                        className="flex flex-col items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50/60 px-2 py-3 text-[11px] font-medium text-indigo-800 shadow-sm transition active:scale-95 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-200"
+                        className={[
+                          'flex flex-col items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50/60 px-2 py-3 text-[11px] font-medium text-indigo-800 shadow-sm transition active:scale-95 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-200',
+                          isChallengeFocusTarget(item.type)
+                            ? 'ring-2 ring-indigo-400 shadow-indigo-400/30 animate-pulse'
+                            : '',
+                        ].join(' ')}
                       >
                         <TileIcon
                           type={item.type}
@@ -479,11 +492,17 @@ export function Palette({ open, isPhone }: Props) {
                         type="button"
                         key={it.type}
                         data-palette-type={it.type}
+                        data-challenge-focused={
+                          isChallengeFocusTarget(it.type) ? 'true' : undefined
+                        }
                         onClick={() =>
                           useUiStore.getState().setPlacingType(active ? null : it.type)
                         }
                         className={[
                           'flex flex-col items-center gap-1.5 rounded-xl border px-2 py-3 text-[11px] font-medium shadow-sm transition active:scale-95',
+                          isChallengeFocusTarget(it.type)
+                            ? 'ring-2 ring-indigo-400 shadow-indigo-400/30 animate-pulse'
+                            : '',
                           active
                             ? 'border-blue-400 bg-blue-50 text-blue-700 ring-2 ring-blue-200 dark:bg-blue-950/60 dark:text-blue-400 dark:border-blue-600'
                             : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300',
@@ -607,10 +626,14 @@ export function Palette({ open, isPhone }: Props) {
                   key={type}
                   type="button"
                   data-palette-type={type}
+                  data-challenge-focused={isChallengeFocusTarget(type) ? 'true' : undefined}
                   title={`Click to place ${def.label} on canvas`}
                   onClick={() => useUiStore.getState().setPlacingType(active ? null : type)}
                   className={[
                     'flex flex-col items-center gap-1 rounded-xl border px-2 py-2.5 text-[10px] font-medium shadow-sm transition hover:scale-[1.02]',
+                    isChallengeFocusTarget(type)
+                      ? 'ring-2 ring-indigo-400 shadow-indigo-400/30 animate-pulse'
+                      : '',
                     active
                       ? 'border-blue-400 bg-blue-50 text-blue-700 ring-2 ring-blue-200 dark:bg-blue-950/60 dark:text-blue-400 dark:border-blue-600 dark:ring-blue-900'
                       : 'border-indigo-200/70 bg-indigo-50/40 text-slate-700 hover:border-indigo-300 hover:bg-white hover:text-blue-700 dark:border-indigo-900/60 dark:bg-indigo-950/20 dark:text-slate-300 dark:hover:border-indigo-600 dark:hover:bg-slate-800/60 dark:hover:text-blue-400',
@@ -645,10 +668,14 @@ export function Palette({ open, isPhone }: Props) {
                     type="button"
                     key={`recommended-${item.type}`}
                     data-palette-type={item.type}
+                    data-challenge-focused={isChallengeFocusTarget(item.type) ? 'true' : undefined}
                     title={`Recommended for ${getStandard(regulationStandard).shortLabel}: ${item.label}`}
                     onClick={() => useUiStore.getState().setPlacingType(active ? null : item.type)}
                     className={[
                       'flex flex-col items-center gap-1 rounded-lg border px-2 py-2 text-[10px] font-medium shadow-sm transition hover:scale-[1.02]',
+                      isChallengeFocusTarget(item.type)
+                        ? 'ring-2 ring-indigo-400 shadow-indigo-400/30 animate-pulse'
+                        : '',
                       active
                         ? 'border-blue-400 bg-blue-50 text-blue-700 ring-2 ring-blue-200 dark:border-blue-600 dark:bg-blue-950/60 dark:text-blue-300'
                         : 'border-indigo-200 bg-white/80 text-slate-700 hover:border-indigo-400 hover:text-indigo-700 dark:border-indigo-800 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-indigo-600',
@@ -691,10 +718,14 @@ export function Palette({ open, isPhone }: Props) {
                     <button
                       type="button"
                       data-palette-type={it.type}
+                      data-challenge-focused={isChallengeFocusTarget(it.type) ? 'true' : undefined}
                       title={`Click to place ${it.label} on canvas${isProItem ? ' (Pro Component)' : ''}`}
                       onClick={() => useUiStore.getState().setPlacingType(active ? null : it.type)}
                       className={[
                         'w-full flex flex-col items-center gap-1 rounded-xl border px-2 py-2.5 text-[10px] font-medium shadow-sm transition hover:scale-[1.02]',
+                        isChallengeFocusTarget(it.type)
+                          ? 'ring-2 ring-indigo-400 shadow-indigo-400/30 animate-pulse'
+                          : '',
                         active
                           ? 'border-blue-400 bg-blue-50 text-blue-700 ring-2 ring-blue-200 dark:bg-blue-950/60 dark:text-blue-400 dark:border-blue-600 dark:ring-blue-900'
                           : 'border-slate-200/80 bg-white/80 text-slate-700 hover:border-blue-300 hover:bg-white hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:bg-slate-700/80 dark:hover:text-blue-400',

@@ -23,14 +23,29 @@ import {
 
 export type RuleVerdict = 'pass' | 'incomplete' | 'fail';
 
-export interface RuleResult {
+/** A concrete canvas target attached to a validation result. */
+export interface RuleTarget {
+  kind: 'component' | 'wire';
+  id: string;
+  /** Optional terminal on a component target. */
+  portIndex?: number;
+}
+
+export interface RuleEvaluation {
+  verdict: RuleVerdict;
+  /** Human reason when not passing. */
+  reason?: string;
+  /** Components/wires the UI can focus when this rule is selected. */
+  targets?: RuleTarget[];
+  /** Component types the learner should pick from the palette when missing. */
+  paletteTypes?: string[];
+}
+
+export interface RuleResult extends RuleEvaluation {
   /** Stable rule key — never a raw component id (plan §9). */
   id: string;
   /** The concrete question, answered in plain English. */
   label: string;
-  verdict: RuleVerdict;
-  /** Human reason when not passing. */
-  reason?: string;
 }
 
 export interface RuleContext {
@@ -45,11 +60,7 @@ export interface Rule {
   evaluate: (ctx: RuleContext) => RuleResult;
 }
 
-function rule(
-  id: string,
-  label: string,
-  evaluate: (ctx: RuleContext) => { verdict: RuleVerdict; reason?: string },
-): Rule {
+function rule(id: string, label: string, evaluate: (ctx: RuleContext) => RuleEvaluation): Rule {
   return { id, label, evaluate: (ctx) => ({ id, label, ...evaluate(ctx) }) };
 }
 
@@ -79,6 +90,39 @@ function energisedCount(
   ).length;
 }
 
+function componentTargets(ctx: RuleContext, type: string): RuleTarget[] {
+  return componentsOfType(ctx.graph, type).map((component) => ({
+    kind: 'component',
+    id: component.id,
+  }));
+}
+
+function portIndexForRail(
+  type: string,
+  rail: ConnectionRuleOptions['rail'],
+  side: 'from' | 'to',
+): number | undefined {
+  const ports = COMPONENT_DEFS[type]?.ports ?? [];
+  const matches = ports
+    .map((port, index) => (port.type === rail ? index : -1))
+    .filter((index) => index >= 0);
+  if (matches.length === 0) return undefined;
+  return side === 'from' ? matches[matches.length - 1] : matches[0];
+}
+
+function connectionTargets(ctx: RuleContext, options: ConnectionRuleOptions): RuleTarget[] {
+  const targets: RuleTarget[] = [];
+  const fromPort = portIndexForRail(options.fromType, options.rail, 'from');
+  const toPort = portIndexForRail(options.toType, options.rail, 'to');
+  for (const component of componentsOfType(ctx.graph, options.fromType)) {
+    targets.push({ kind: 'component', id: component.id, portIndex: fromPort });
+  }
+  for (const component of componentsOfType(ctx.graph, options.toType)) {
+    targets.push({ kind: 'component', id: component.id, portIndex: toPort });
+  }
+  return targets;
+}
+
 // ── Component rules ────────────────────────────────────────────────────────
 
 /** `count` instances of a type must exist (plan §8 requiredComponent). */
@@ -88,13 +132,16 @@ export function requiredComponent(type: string, name: string, count = 1): Rule {
     `Place ${count === 1 ? 'a' : count} ${name}${count === 1 ? '' : 's'}`,
     (ctx) => {
       const present = componentsOfType(ctx.graph, type).length;
-      if (present >= count) return { verdict: 'pass' };
+      const targets = componentTargets(ctx, type);
+      if (present >= count) return { verdict: 'pass', targets };
       return {
         verdict: 'incomplete',
         reason:
           present === 0
             ? `No ${name} on the canvas yet.`
             : `Need ${count} ${name}s — you have ${present}.`,
+        targets,
+        paletteTypes: [type],
       };
     },
   );
@@ -103,11 +150,13 @@ export function requiredComponent(type: string, name: string, count = 1): Rule {
 /** A component type that must NOT appear (plan §20 extra components). */
 export function forbiddenComponent(type: string, name: string): Rule {
   return rule(`forbidden-${type}`, `No ${name} in the circuit`, (ctx) => {
-    const present = componentsOfType(ctx.graph, type).length;
+    const targets = componentTargets(ctx, type);
+    const present = targets.length;
     if (present === 0) return { verdict: 'pass' };
     return {
       verdict: 'fail',
       reason: `Remove ${present} ${name}${present === 1 ? '' : 's'} — they are not part of this circuit.`,
+      targets,
     };
   });
 }
@@ -124,16 +173,26 @@ export function componentState(
     .join('&');
   return rule(`state-${type}-${key}`, `${name} is ${stateDescription}`, (ctx) => {
     const instances = componentsOfType(ctx.graph, type);
+    const targets = componentTargets(ctx, type);
     if (instances.length === 0) {
-      return { verdict: 'incomplete', reason: `No ${name} on the canvas yet.` };
+      return {
+        verdict: 'incomplete',
+        reason: `No ${name} on the canvas yet.`,
+        targets,
+        paletteTypes: [type],
+      };
     }
     const ok = instances.every((instance) =>
       Object.entries(state).every(
         ([stateKey, value]) => instance.state[stateKey as keyof typeof instance.state] === value,
       ),
     );
-    if (ok) return { verdict: 'pass' };
-    return { verdict: 'incomplete', reason: `Set the ${name} to ${stateDescription}.` };
+    if (ok) return { verdict: 'pass', targets };
+    return {
+      verdict: 'incomplete',
+      reason: `Set the ${name} to ${stateDescription}.`,
+      targets,
+    };
   });
 }
 
@@ -156,10 +215,16 @@ export function connectionRule(options: ConnectionRuleOptions): Rule {
     const found = options.direct
       ? hasDirectConnection(ctx.graph, options.rail, options.fromType, options.toType)
       : hasRailPath(ctx.graph, options.rail, options.fromType, options.toType);
-    if (found) return { verdict: 'pass' };
+    const targets = connectionTargets(ctx, options);
+    if (found) return { verdict: 'pass', targets };
     return {
       verdict: 'incomplete',
       reason: `No ${options.rail} path from ${options.fromType} to ${options.toType} yet.`,
+      targets,
+      paletteTypes: [options.fromType, options.toType].filter(
+        (type, index, all) =>
+          !componentsOfType(ctx.graph, type).length && all.indexOf(type) === index,
+      ),
     };
   });
 }
@@ -174,12 +239,22 @@ export function pathExclusivelyThrough(
 ): Rule {
   const id = `exclusive-${rail}-${fromType}-${throughType}-${toType}`;
   return rule(id, label, (ctx) => {
+    const targets = [
+      ...componentTargets(ctx, fromType),
+      ...componentTargets(ctx, throughType),
+      ...componentTargets(ctx, toType),
+    ];
     if (hasRailPathExclusivelyThrough(ctx.graph, rail, fromType, toType, throughType)) {
-      return { verdict: 'pass' };
+      return { verdict: 'pass', targets };
     }
     return {
       verdict: 'fail',
       reason: `The ${rail} path to the ${toType} must run through the ${throughType} — a bypass exists.`,
+      targets,
+      paletteTypes: [fromType, throughType, toType].filter(
+        (type, index, all) =>
+          !componentsOfType(ctx.graph, type).length && all.indexOf(type) === index,
+      ),
     };
   });
 }
@@ -209,23 +284,31 @@ export function energisedWhile(
       ? `${loadName} stays off when nothing is pressed`
       : `${loadName} energises while ${[...pressed].join(' + ') || 'the circuit is closed'}`;
   return rule(`energised-${loadType}${suffix}`, label, (ctx) => {
-    const total = componentsOfType(ctx.graph, loadType).length;
+    const targets = componentTargets(ctx, loadType);
+    const total = targets.length;
     if (total === 0) {
-      return { verdict: 'incomplete', reason: `No ${loadName} on the canvas yet.` };
+      return {
+        verdict: 'incomplete',
+        reason: `No ${loadName} on the canvas yet.`,
+        targets,
+        paletteTypes: [loadType],
+      };
     }
     const live = energisedCount(ctx.circuit, loadType, pressed);
     const needed = expected === 'all' ? total : Math.min(expected, total);
     if (options.count === 0) {
-      if (live === 0) return { verdict: 'pass' };
+      if (live === 0) return { verdict: 'pass', targets };
       return {
         verdict: 'fail',
         reason: `${loadName} stays on when nothing is pressed — the live path must run through a momentary switch.`,
+        targets,
       };
     }
-    if (live >= needed) return { verdict: 'pass' };
+    if (live >= needed) return { verdict: 'pass', targets };
     return {
       verdict: 'incomplete',
       reason: `${loadName} is not energised — check the live and neutral paths.`,
+      targets,
     };
   });
 }
@@ -236,9 +319,32 @@ export function energisedWhile(
 export function faultAbsent(kind: FaultType, description: string): Rule {
   return rule(`fault-absent-${kind}`, description, (ctx) => {
     if (!activeFaultKinds(ctx.circuit).has(kind)) return { verdict: 'pass' };
+    const targets: RuleTarget[] = [];
+    for (const component of ctx.circuit.components) {
+      if (component.state.fault === kind) {
+        targets.push({ kind: 'component', id: component.id });
+      }
+    }
+    for (const wire of ctx.circuit.wires) {
+      if (wire.fault === kind) targets.push({ kind: 'wire', id: wire.id });
+    }
+    for (const fault of ctx.circuit.faults ?? []) {
+      if (fault.type !== kind) continue;
+      if (fault.target.type === 'wire') targets.push({ kind: 'wire', id: fault.target.id });
+      else if (fault.target.type === 'component') {
+        targets.push({ kind: 'component', id: fault.target.id });
+      } else {
+        targets.push({
+          kind: 'component',
+          id: fault.target.componentId,
+          portIndex: fault.target.portIndex,
+        });
+      }
+    }
     return {
       verdict: 'fail',
       reason: 'The fault is still present — clear it and check again.',
+      targets,
     };
   });
 }

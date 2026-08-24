@@ -13,8 +13,8 @@
  */
 
 import * as Comlink from 'comlink';
-import type { Circuit, SimulateOptions, SimulationResult } from '../domain';
-import { simulate as simulateMainThread } from '../domain';
+import type { SimulateOptions } from '../domain/simulation/simulate';
+import type { Circuit, SimulationResult } from '../domain/types';
 import type { SimWorkerApi } from './sim.worker';
 import SimWorker from './sim.worker?worker';
 
@@ -23,6 +23,18 @@ import SimWorker from './sim.worker?worker';
 let proxy: Comlink.Remote<SimWorkerApi> | null = null;
 let workerInstance: Worker | null = null;
 let initFailed = false;
+let mainThreadSimulationPromise: Promise<typeof import('../domain/simulation/simulate')> | null =
+  null;
+
+/** Load the synchronous engine only when a worker fallback is actually needed. */
+async function simulateOnMainThread(
+  circuit: Circuit,
+  options?: SimulateOptions,
+): Promise<SimulationResult> {
+  mainThreadSimulationPromise ??= import('../domain/simulation/simulate');
+  const { simulate } = await mainThreadSimulationPromise;
+  return simulate(circuit, options);
+}
 
 function workersAvailable(): boolean {
   return typeof Worker !== 'undefined' && typeof URL !== 'undefined';
@@ -63,7 +75,7 @@ export async function simulateAsync(
   options?: SimulateOptions,
 ): Promise<SimulationResult> {
   const p = await getProxy();
-  if (!p) return simulateMainThread(circuit, options);
+  if (!p) return simulateOnMainThread(circuit, options);
   try {
     return await p.simulate(circuit, options);
   } catch (err) {
@@ -74,7 +86,7 @@ export async function simulateAsync(
     proxy = null;
     workerInstance?.terminate();
     workerInstance = null;
-    return simulateMainThread(circuit, options);
+    return simulateOnMainThread(circuit, options);
   }
 }
 

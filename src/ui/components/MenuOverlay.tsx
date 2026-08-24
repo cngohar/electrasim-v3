@@ -23,9 +23,11 @@ import {
   Unlink,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { useEffect } from 'react';
 import { useUiStore } from '../../store';
 import { APP_VERSION } from '../../version';
 import { requestClearAll, requestClearWires, requestReset } from '../canvas-actions';
+import { preloadChallengeMode, preloadSettings } from '../deferredSurfacePreloads';
 
 interface MenuItem {
   icon: LucideIcon;
@@ -34,6 +36,7 @@ interface MenuItem {
   portColor: string;
   shortcut?: string;
   action: () => void;
+  prefetch?: () => void;
   hoverClass?: string;
 }
 
@@ -43,14 +46,24 @@ interface Props {
 }
 
 export function MenuOverlay({ open, onClose }: Props) {
+  // Fetch the two most likely deferred surfaces while the menu is visible so
+  // selecting them feels immediate. The click path still has a visible
+  // fallback if the network is slow or the prefetch has not finished.
+  useEffect(() => {
+    if (!open) return;
+    preloadChallengeMode();
+    preloadSettings();
+  }, [open]);
+
   const items: MenuItem[] = [
     {
       icon: Target,
       label: 'Challenge Mode',
       description: 'Build circuits from structured challenges',
       portColor: 'bg-amber-500',
+      prefetch: preloadChallengeMode,
       action: () => {
-        useUiStore.getState().setChallengeOpen(true);
+        useUiStore.getState().openChallengeMode();
       },
     },
     {
@@ -113,6 +126,7 @@ export function MenuOverlay({ open, onClose }: Props) {
       label: 'Settings',
       description: 'Preferences & display options',
       portColor: 'bg-slate-500',
+      prefetch: preloadSettings,
       action: () => {
         useUiStore.getState().setSettingsOpen(true);
       },
@@ -219,6 +233,8 @@ export function MenuOverlay({ open, onClose }: Props) {
                   item.action();
                   onClose();
                 }}
+                onPointerEnter={item.prefetch}
+                onFocus={item.prefetch}
                 tabIndex={open ? 0 : -1}
                 className={[
                   'group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors duration-150',

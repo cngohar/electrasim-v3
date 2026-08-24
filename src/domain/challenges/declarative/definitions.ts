@@ -15,16 +15,22 @@
 
 import { COMPONENT_DEFS } from '../../components';
 import type { Circuit } from '../../types';
+import { PRO_CHALLENGES } from './challenges/pro';
+import { FIRST_LAMP_TUTORIAL } from './challenges/tutorial';
 import { WAVE_TWO_CHALLENGES } from './challenges/waveTwo';
-import type { ChallengeDefinition, ChallengeId } from './types';
+import type { ChallengeDefinition, ChallengeId, ChallengeVisualTarget } from './types';
 
 /**
  * Every shipped challenge, in recommended order (plan §17/§18).
  *
- * Per plan §26 this registry STOPS at three challenges — real user testing
- * must happen before any more are added.
+ * The first three entries are the Student Mode foundation. Pro Mode adds a
+ * separate, explicitly gated set of commissioning exercises.
  */
-export const CHALLENGE_DEFINITIONS: readonly ChallengeDefinition[] = [...WAVE_TWO_CHALLENGES];
+export const CHALLENGE_DEFINITIONS: readonly ChallengeDefinition[] = [
+  FIRST_LAMP_TUTORIAL,
+  ...WAVE_TWO_CHALLENGES,
+  ...PRO_CHALLENGES,
+];
 
 /** Look up a definition by id. */
 export function getChallengeDefinition(id: ChallengeId): ChallengeDefinition | undefined {
@@ -43,7 +49,40 @@ export function cloneStarter(circuit: Circuit): Circuit {
   return JSON.parse(JSON.stringify(circuit)) as Circuit;
 }
 
-/** Boot-time registry guard: every referenced type and port must exist. */
+/** Check visual guidance references as strictly as electrical references. */
+function collectVisualTargetProblems(
+  challengeId: ChallengeId,
+  location: string,
+  target: ChallengeVisualTarget,
+): string[] {
+  const problems: string[] = [];
+  const checkPort = (componentType: string, portIndex: number, label: string) => {
+    const definition = COMPONENT_DEFS[componentType];
+    if (!definition) {
+      problems.push(`${challengeId}: ${location} references unknown component "${componentType}"`);
+      return;
+    }
+    if (!definition.ports[portIndex]) {
+      problems.push(`${challengeId}: ${location} references unknown ${label} port ${portIndex}`);
+    }
+  };
+
+  if (target.kind === 'component') {
+    if (!COMPONENT_DEFS[target.componentType]) {
+      problems.push(
+        `${challengeId}: ${location} references unknown component "${target.componentType}"`,
+      );
+    }
+  } else if (target.kind === 'port') {
+    checkPort(target.componentType, target.portIndex, 'visual');
+  } else {
+    checkPort(target.from.componentType, target.from.portIndex, 'source visual');
+    checkPort(target.to.componentType, target.to.portIndex, 'destination visual');
+  }
+  return problems;
+}
+
+/** Boot-time registry guard: every referenced type, port, and visual target must exist. */
 export function assertRegistryCoherent(): string[] {
   const problems: string[] = [];
   for (const definition of CHALLENGE_DEFINITIONS) {
@@ -67,6 +106,28 @@ export function assertRegistryCoherent(): string[] {
       const toPort = COMPONENT_DEFS[to.type]?.ports[wire.toPortIndex];
       if (!fromPort || !toPort) {
         problems.push(`${definition.id}: starter wire ${wire.id} uses an unknown port`);
+      }
+    }
+    for (const step of definition.steps) {
+      if (step.visualTarget) {
+        problems.push(
+          ...collectVisualTargetProblems(
+            definition.id,
+            `step ${step.id ?? step.no} visual target`,
+            step.visualTarget,
+          ),
+        );
+      }
+    }
+    for (const hint of definition.hints) {
+      if (hint.visual) {
+        problems.push(
+          ...collectVisualTargetProblems(
+            definition.id,
+            `hint ${hint.level} visual target`,
+            hint.visual.target,
+          ),
+        );
       }
     }
   }

@@ -8,7 +8,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { simulate } from '../domain';
+import { simulate } from '../domain/simulation/simulate';
 import { buildSeedCircuit } from '../store/seed';
 import { simWorkerActive, simulateAsync, terminateSimWorker } from './client';
 

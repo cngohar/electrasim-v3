@@ -99,6 +99,18 @@ export function validateChallenge(
         label: 'Every wire is properly connected',
         verdict: 'fail',
         reason: structural[0],
+        targets: graph.wires
+          .filter((wire) => {
+            const from = graph.byId.get(wire.fromComponentId);
+            const to = graph.byId.get(wire.toComponentId);
+            return (
+              !from ||
+              !to ||
+              !COMPONENT_DEFS[from.type]?.ports[wire.fromPortIndex] ||
+              !COMPONENT_DEFS[to.type]?.ports[wire.toPortIndex]
+            );
+          })
+          .map((wire) => ({ kind: 'wire' as const, id: wire.id })),
       },
       electricallySound: false,
       extraComponents,
@@ -125,6 +137,18 @@ export function validateChallenge(
         label: 'The wiring breaks an electrical rule',
         verdict: 'fail',
         reason: ruleDiagnostics[0]!.message,
+        targets: [
+          {
+            kind: 'component',
+            id: ruleDiagnostics[0]!.sourceComponentId,
+            portIndex: ruleDiagnostics[0]!.sourceTerminalIndex,
+          },
+          {
+            kind: 'component',
+            id: ruleDiagnostics[0]!.targetComponentId,
+            portIndex: ruleDiagnostics[0]!.targetTerminalIndex,
+          },
+        ],
       },
       electricallySound: false,
       extraComponents,

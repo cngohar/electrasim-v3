@@ -10,5 +10,6 @@ export * from './types';
 export * from './definitions';
 export * from './graph';
 export * from './rules';
+export * from './stepProgress';
 export * from './validator';
 export { formatElapsed as formatElapsedDeclarative } from '../format';

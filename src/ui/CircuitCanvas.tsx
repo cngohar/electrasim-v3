@@ -112,6 +112,7 @@ export function CircuitCanvas({
   const customWiringMode = useSettingsStore((s) => s.customWiringMode);
   const autoWireJoints = useSettingsStore((s) => s.autoWireJoints);
   const tracePathMode = useUiStore((s) => s.tracePathMode);
+  const challengePaused = useUiStore((s) => s.challengePaused);
 
   // The custom-path cursor uses a ref + rAF so we
   // don't trigger a React re-render on every pointermove — only a lightweight
@@ -351,7 +352,9 @@ export function CircuitCanvas({
         ref={svgRef}
         viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
         preserveAspectRatio="xMidYMid meet"
-        className="block h-full w-full"
+        className={['block h-full w-full', challengePaused ? 'pointer-events-none' : ''].join(' ')}
+        data-challenge-paused={challengePaused ? 'true' : undefined}
+        aria-disabled={challengePaused}
         style={{
           background: theme.bg,
           fontFamily: theme.font,

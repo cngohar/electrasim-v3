@@ -31,6 +31,7 @@ import type { EventHistoryEntry, UiState } from './uiStore.types';
 
 // Re-export the moved public surface so existing imports keep working.
 export type {
+  ChallengeRuleFocus,
   ContextMenuState,
   PendingCustomPath,
   PendingDeletion,
@@ -130,6 +131,12 @@ export const useUiStore = create<UiState>()(
     templatesOpen: false,
     activeGuideId: null,
     challengeOpen: false,
+    challengeIntroOpen: false,
+    challengeModeActive: false,
+    challengePaused: false,
+    challengeAllowedComponents: null,
+    challengeAttemptId: null,
+    challengeRuleFocus: null,
     diagnosisOpen: false,
     diagnosisActive: false,
     guideHidden: false,
@@ -758,14 +765,59 @@ export const useUiStore = create<UiState>()(
     setChallengeOpen: (open) =>
       set((s) => {
         s.challengeOpen = open;
-        // Challenge Mode and the Diagnosis Lab both dock to the same edge and
-        // both drive the editor's circuit, so only one may be live at a time.
+        if (!open) s.challengeIntroOpen = false;
+        // Challenge Mode and the Diagnosis Lab both drive the editor's circuit,
+        // so only one may be live at a time.
         if (open) s.diagnosisOpen = false;
+      }),
+    openChallengeMode: () =>
+      set((s) => {
+        s.challengeOpen = true;
+        s.challengeIntroOpen = true;
+        s.diagnosisOpen = false;
+      }),
+    setChallengeIntroOpen: (open) =>
+      set((s) => {
+        s.challengeIntroOpen = open;
+        if (open) {
+          s.challengeOpen = true;
+          s.diagnosisOpen = false;
+        }
+      }),
+    setChallengeModeActive: (active) =>
+      set((s) => {
+        s.challengeModeActive = active;
+        if (!active) {
+          s.challengePaused = false;
+          s.challengeAllowedComponents = null;
+          s.challengeAttemptId = null;
+          s.challengeRuleFocus = null;
+        }
+      }),
+    setChallengePaused: (paused) =>
+      set((s) => {
+        s.challengePaused = paused;
+        if (paused) s.challengeRuleFocus = null;
+      }),
+    setChallengeAllowedComponents: (types) =>
+      set((s) => {
+        s.challengeAllowedComponents = types ? [...types] : null;
+      }),
+    setChallengeAttemptId: (attemptId) =>
+      set((s) => {
+        s.challengeAttemptId = attemptId;
+      }),
+    setChallengeRuleFocus: (focus) =>
+      set((s) => {
+        s.challengeRuleFocus = focus;
       }),
     setDiagnosisOpen: (open) =>
       set((s) => {
         s.diagnosisOpen = open;
-        if (open) s.challengeOpen = false;
+        if (open) {
+          s.challengeOpen = false;
+          s.challengeIntroOpen = false;
+        }
       }),
     setDiagnosisActive: (active) =>
       set((s) => {

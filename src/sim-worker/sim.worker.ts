@@ -10,8 +10,9 @@
  */
 
 import * as Comlink from 'comlink';
-import { simulate } from '../domain';
-import type { Circuit, SimulateOptions, SimulationResult } from '../domain';
+import { simulate } from '../domain/simulation/simulate';
+import type { SimulateOptions } from '../domain/simulation/simulate';
+import type { Circuit, SimulationResult } from '../domain/types';
 
 const api = {
   simulate(circuit: Circuit, options?: SimulateOptions): SimulationResult {

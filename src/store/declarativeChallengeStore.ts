@@ -4,7 +4,8 @@
  * Owns the safe practice workspace:
  *   - starting snapshots the normal circuit (§12),
  *   - the editor is loaded with the challenge's STARTER circuit,
- *   - exiting restores the snapshot EXACTLY (§13),
+ *   - End Challenge keeps the built circuit; the explicit Return-to-My-Circuit
+ *     escape hatch still restores the snapshot EXACTLY (§13),
  *   - a reload offers Continue vs Return-to-My-Circuit (§14),
  *   - Reset restores this challenge's starter (§15), never the global default.
  *
@@ -42,6 +43,7 @@ import {
   saveChallengeCircuit,
   saveReturnWorkspace,
 } from './declarativeChallengePersistence';
+import { useSettingsStore } from './settingsStore';
 import { useUiStore } from './uiStore';
 
 /** Create a fresh attempt id (plan §12). Not security-sensitive. */
@@ -63,15 +65,28 @@ export interface DeclarativeChallengeState {
   elapsedMs: number;
   /** True while the exit confirmation is open (§13). */
   confirmingExit: boolean;
+  /** True while the learner has paused the active mission/challenge. */
+  paused: boolean;
   /** True while the reload choice is offered (§14). */
   resumePrompt: { active: boolean; record: { challengeId: ChallengeId } } | null;
+  /** The independently toggled on-canvas visual hint. */
+  visualHintVisible: boolean;
+  /** Which progressive hint level the visual guide is showing. */
+  visualHintLevel: 1 | 2 | 3 | null;
 
   start: (challengeId: ChallengeId) => Promise<void>;
   check: () => ChallengeVerdict | null;
   revealHint: () => void;
+  showVisualHint: () => void;
+  hideVisualHint: () => void;
+  pauseChallenge: () => void;
+  resumeChallenge: () => void;
   resetChallenge: () => void;
   requestExit: () => void;
   cancelExit: () => void;
+  /** End the challenge while keeping the current challenge circuit on canvas. */
+  endChallenge: () => Promise<void>;
+  /** Legacy safe-exit path: restore the saved normal circuit. */
   exitToMyCircuit: () => Promise<void>;
   keepCopy: () => void;
   resumeActive: () => Promise<boolean>;
@@ -93,17 +108,26 @@ export const useDeclarativeChallengeStore = create<DeclarativeChallengeState>((s
   startedAt: null,
   elapsedMs: 0,
   confirmingExit: false,
+  paused: false,
   resumePrompt: null,
+  visualHintVisible: false,
+  visualHintLevel: null,
 
   totalElapsedMs: () => {
-    const { startedAt, elapsedMs, status } = get();
-    if (startedAt === null || status !== 'active') return elapsedMs;
+    const { startedAt, elapsedMs, status, paused } = get();
+    if (paused || startedAt === null || status !== 'active') return elapsedMs;
     return elapsedMs + Math.max(0, Date.now() - startedAt);
   },
 
   start: async (challengeId) => {
     const definition = getChallengeDefinition(challengeId);
     if (!definition) return;
+    if (definition.audience === 'pro' && useSettingsStore.getState().appMode !== 'pro') {
+      useUiStore
+        .getState()
+        .showNoticeToast('This challenge is for Pro Electrician Mode. Switch to Pro to start it.');
+      return;
+    }
 
     // §12: flush the normal autosave (happens via persistCircuit below),
     // snapshot the normal circuit, then load the starter.
@@ -132,8 +156,16 @@ export const useDeclarativeChallengeStore = create<DeclarativeChallengeState>((s
       startedAt,
       elapsedMs: 0,
       confirmingExit: false,
+      paused: false,
       resumePrompt: null,
+      visualHintVisible: false,
+      visualHintLevel: null,
     });
+    useUiStore.getState().setChallengeModeActive(true);
+    useUiStore.getState().setChallengePaused(false);
+    useUiStore.getState().setChallengeAllowedComponents(definition.allowedComponents);
+    useUiStore.getState().setChallengeAttemptId(attemptId);
+    useUiStore.getState().setChallengeRuleFocus(null);
     await saveActiveDeclarativeChallenge({
       challengeId,
       attemptId,
@@ -141,12 +173,13 @@ export const useDeclarativeChallengeStore = create<DeclarativeChallengeState>((s
       elapsedMs: 0,
       hintsUsed: 0,
       attempts: 0,
+      paused: false,
     });
   },
 
   check: () => {
-    const { definition, status } = get();
-    if (!definition || status !== 'active') return null;
+    const { definition, status, paused } = get();
+    if (!definition || status !== 'active' || paused) return null;
     const { components, wires, globalVoltage } = useCircuitStore.getState();
     const verdict = validateChallenge(definition, { components, wires, globalVoltage });
     const attempts = get().attempts + 1;
@@ -154,14 +187,17 @@ export const useDeclarativeChallengeStore = create<DeclarativeChallengeState>((s
     void saveActiveDeclarativeChallenge({
       challengeId: definition.id,
       attemptId: get().attemptId ?? newAttemptId(),
-      startedAt: get().startedAt ?? Date.now(),
+      startedAt: get().startedAt ?? 0,
       elapsedMs: get().elapsedMs,
       hintsUsed: get().hintsUsed,
       attempts,
+      paused: get().paused,
     });
     if (verdict.state === 'complete') {
       const elapsedMs = get().totalElapsedMs();
       set({ status: 'completed', elapsedMs, startedAt: null });
+      useUiStore.getState().setChallengeAllowedComponents(null);
+      useUiStore.getState().setChallengeAttemptId(null);
       void clearActiveDeclarativeChallenge();
       const attemptId = get().attemptId;
       if (attemptId) void clearChallengeCircuit(attemptId);
@@ -175,19 +211,99 @@ export const useDeclarativeChallengeStore = create<DeclarativeChallengeState>((s
   },
 
   revealHint: () => {
-    const { definition, hintsUsed, status } = get();
-    if (!definition || status !== 'active') return;
+    const { definition, hintsUsed, status, paused } = get();
+    if (!definition || status !== 'active' || paused) return;
     if (hintsUsed >= definition.hints.length) return;
-    set({ hintsUsed: hintsUsed + 1 });
+    const nextHintsUsed = hintsUsed + 1;
+    set({ hintsUsed: nextHintsUsed });
+    void saveActiveDeclarativeChallenge({
+      challengeId: definition.id,
+      attemptId: get().attemptId ?? newAttemptId(),
+      startedAt: get().startedAt ?? 0,
+      elapsedMs: get().elapsedMs,
+      hintsUsed: nextHintsUsed,
+      attempts: get().attempts,
+      paused: get().paused,
+    });
+  },
+
+  showVisualHint: () => {
+    const { definition, hintsUsed, status, paused } = get();
+    if (!definition || status !== 'active' || paused || definition.hints.length === 0) return;
+
+    // Visual hints follow the same progressive order as textual hints, but do
+    // not consume a textual hint. This lets a learner choose the teaching
+    // style that works best without being penalised for exploring the overlay.
+    const preferredIndex = Math.min(hintsUsed, definition.hints.length - 1);
+    const visualIndex = definition.hints[preferredIndex]?.visual
+      ? preferredIndex
+      : definition.hints.findIndex((hint) => Boolean(hint.visual));
+    if (visualIndex < 0) return;
+    set({
+      visualHintVisible: true,
+      visualHintLevel: (visualIndex + 1) as 1 | 2 | 3,
+    });
+  },
+
+  hideVisualHint: () =>
+    set({
+      visualHintVisible: false,
+      visualHintLevel: null,
+    }),
+
+  /** Freeze elapsed time and lock the editor while leaving the session resumable. */
+  pauseChallenge: () => {
+    const { definition, status, paused, attemptId } = get();
+    if (!definition || status !== 'active' || paused) return;
+    const elapsedMs = get().totalElapsedMs();
+    set({ paused: true, elapsedMs, startedAt: null });
+    useUiStore.getState().setChallengePaused(true);
+    if (attemptId) {
+      void saveActiveDeclarativeChallenge({
+        challengeId: definition.id,
+        attemptId,
+        startedAt: 0,
+        elapsedMs,
+        hintsUsed: get().hintsUsed,
+        attempts: get().attempts,
+        paused: true,
+      });
+    }
+  },
+
+  /** Resume the same session and restart the elapsed-time segment. */
+  resumeChallenge: () => {
+    const { definition, status, paused, attemptId } = get();
+    if (!definition || status !== 'active' || !paused) return;
+    const startedAt = Date.now();
+    set({ paused: false, startedAt });
+    useUiStore.getState().setChallengePaused(false);
+    if (attemptId) {
+      void saveActiveDeclarativeChallenge({
+        challengeId: definition.id,
+        attemptId,
+        startedAt,
+        elapsedMs: get().elapsedMs,
+        hintsUsed: get().hintsUsed,
+        attempts: get().attempts,
+        paused: false,
+      });
+    }
   },
 
   /** §15: restore THIS challenge's starter, keeping the learner inside. */
   resetChallenge: () => {
-    const { definition, status } = get();
-    if (!definition || status !== 'active') return;
+    const { definition, status, paused } = get();
+    if (!definition || status !== 'active' || paused) return;
     useCircuitStore.getState().setCircuit(cloneStarter(definition.starter));
     useCircuitStore.temporal.getState().clear();
-    set({ verdict: null, attempts: 0, hintsUsed: 0 });
+    set({
+      verdict: null,
+      attempts: 0,
+      hintsUsed: 0,
+      visualHintVisible: false,
+      visualHintLevel: null,
+    });
     const attemptId = get().attemptId;
     if (attemptId) void clearChallengeCircuit(attemptId);
   },
@@ -195,24 +311,29 @@ export const useDeclarativeChallengeStore = create<DeclarativeChallengeState>((s
   /** §13: show the leave dialog, never silently overwrite. */
   requestExit: () => {
     const { status } = get();
-    if (status !== 'active') return;
+    if (status !== 'active' && status !== 'completed') return;
     set({ confirmingExit: true });
   },
   cancelExit: () => set({ confirmingExit: false }),
 
-  /** §13 "Return to My Circuit": restore the snapshot EXACTLY. */
-  exitToMyCircuit: async () => {
-    const { returnCircuit, attemptId } = get();
-    if (returnCircuit) {
-      useCircuitStore.getState().setCircuit(returnCircuit);
-      useCircuitStore.temporal.getState().clear();
-    }
-    await clearReturnWorkspace();
-    await clearActiveDeclarativeChallenge();
-    if (attemptId) await clearChallengeCircuit(attemptId);
-    // Plan §13: leaving a challenge lands the learner back in the normal
-    // editor — the panel closes with the workspace.
-    useUiStore.getState().setChallengeOpen(false);
+  /**
+   * End Challenge Mode without discarding the learner's work. The current
+   * circuit becomes an ordinary circuit, so the challenge palette restriction
+   * and the active-mode indicator are lifted together.
+   */
+  endChallenge: async () => {
+    const { attemptId } = get();
+    const current = useCircuitStore.getState();
+    const challengeCircuit = cloneStarter({
+      components: current.components,
+      wires: current.wires,
+      globalVoltage: current.globalVoltage,
+      faults: current.faults,
+    });
+
+    // Flip the lifecycle before re-setting the circuit. The autosave
+    // subscription therefore routes this preserved build to the normal
+    // workspace instead of writing it back to the challenge key.
     set({
       status: 'exited',
       definition: null,
@@ -224,7 +345,52 @@ export const useDeclarativeChallengeStore = create<DeclarativeChallengeState>((s
       startedAt: null,
       elapsedMs: 0,
       confirmingExit: false,
+      paused: false,
+      visualHintVisible: false,
+      visualHintLevel: null,
     });
+    useUiStore.getState().setChallengeModeActive(false);
+    useUiStore.getState().setChallengeOpen(false);
+    useCircuitStore.getState().setCircuit(challengeCircuit);
+    useCircuitStore.temporal.getState().clear();
+    await clearReturnWorkspace();
+    await clearActiveDeclarativeChallenge();
+    if (attemptId) await clearChallengeCircuit(attemptId);
+  },
+
+  /** §13 "Return to My Circuit": restore the snapshot EXACTLY. */
+  exitToMyCircuit: async () => {
+    const { returnCircuit, attemptId } = get();
+    const savedCircuit = returnCircuit ? cloneStarter(returnCircuit) : null;
+
+    // Flip the lifecycle before restoring the snapshot so the autosave
+    // subscription treats the restored circuit as the normal workspace.
+    set({
+      status: 'exited',
+      definition: null,
+      verdict: null,
+      returnCircuit: null,
+      attemptId: null,
+      attempts: 0,
+      hintsUsed: 0,
+      startedAt: null,
+      elapsedMs: 0,
+      confirmingExit: false,
+      paused: false,
+      visualHintVisible: false,
+      visualHintLevel: null,
+    });
+    // Plan §13: leaving a challenge lands the learner back in the normal
+    // editor — the panel closes with the workspace.
+    useUiStore.getState().setChallengeModeActive(false);
+    useUiStore.getState().setChallengeOpen(false);
+    if (savedCircuit) {
+      useCircuitStore.getState().setCircuit(savedCircuit);
+      useCircuitStore.temporal.getState().clear();
+    }
+    await clearReturnWorkspace();
+    await clearActiveDeclarativeChallenge();
+    if (attemptId) await clearChallengeCircuit(attemptId);
   },
 
   /** §13 "Keep a Copy": export the challenge circuit as normal JSON. */
@@ -259,11 +425,19 @@ export const useDeclarativeChallengeStore = create<DeclarativeChallengeState>((s
       attemptId: record.attemptId,
       attempts: record.attempts,
       hintsUsed: record.hintsUsed,
-      startedAt: Date.now(),
+      startedAt: record.paused ? null : Date.now(),
       elapsedMs: record.elapsedMs,
       confirmingExit: false,
+      paused: record.paused === true,
       resumePrompt: null,
+      visualHintVisible: false,
+      visualHintLevel: null,
     });
+    useUiStore.getState().setChallengeModeActive(true);
+    useUiStore.getState().setChallengePaused(record.paused === true);
+    useUiStore.getState().setChallengeAllowedComponents(definition.allowedComponents);
+    useUiStore.getState().setChallengeAttemptId(record.attemptId);
+    useUiStore.getState().setChallengeRuleFocus(null);
     return true;
   },
 
@@ -276,6 +450,7 @@ export const useDeclarativeChallengeStore = create<DeclarativeChallengeState>((s
     }
     await clearReturnWorkspace();
     await clearActiveDeclarativeChallenge();
+    useUiStore.getState().setChallengeModeActive(false);
     useUiStore.getState().setChallengeOpen(false);
     set({
       status: 'idle',
@@ -284,6 +459,9 @@ export const useDeclarativeChallengeStore = create<DeclarativeChallengeState>((s
       returnCircuit: null,
       resumePrompt: null,
       confirmingExit: false,
+      paused: false,
+      visualHintVisible: false,
+      visualHintLevel: null,
     });
   },
 

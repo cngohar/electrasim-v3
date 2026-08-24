@@ -25,7 +25,7 @@ import type { Circuit } from '../domain';
 import { normalizeCircuit, validateCircuitJSON } from '../lib/exportImport';
 import { useCircuitStore } from './circuitStore';
 import { saveChallengeCircuit } from './declarativeChallengePersistence';
-import { useDeclarativeChallengeStore } from './declarativeChallengeStore';
+import { useUiStore } from './uiStore';
 
 // Bump when the persisted shape changes incompatibly.
 const SCHEMA_VERSION = 1 as const;
@@ -116,9 +116,11 @@ export function startAutosave(): () => void {
     pending = null;
     // Plan §12: during an active challenge, autosave routes to the challenge
     // workspace — the normal circuit (already snapshotted) stays untouched.
-    const challenge = useDeclarativeChallengeStore.getState();
-    if (challenge.status === 'active' && challenge.attemptId) {
-      void saveChallengeCircuit(challenge.attemptId, circuit);
+    // This eager UI mirror keeps persistence synchronous on pagehide without
+    // importing the entire Challenge Mode store into the first-paint bundle.
+    const ui = useUiStore.getState();
+    if (ui.challengeAttemptId) {
+      void saveChallengeCircuit(ui.challengeAttemptId, circuit);
       return;
     }
     void persistCircuit(circuit);

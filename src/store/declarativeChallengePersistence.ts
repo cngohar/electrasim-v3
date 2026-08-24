@@ -41,6 +41,8 @@ export interface ActiveDeclarativeChallengeRecord {
   elapsedMs: number;
   hintsUsed: number;
   attempts: number;
+  /** Whether the learner intentionally paused the session. Optional for v1 records. */
+  paused?: boolean;
   savedAt: number;
 }
 
@@ -66,6 +68,7 @@ export interface ReturnWorkspaceRecord {
 // ── Guards ─────────────────────────────────────────────────────────────────
 
 const CHALLENGE_IDS: readonly ChallengeId[] = [
+  'first-lamp-tutorial',
   'protected-lamp',
   'push-button-doorbell',
   'rcbo-socket',
@@ -74,6 +77,8 @@ const CHALLENGE_IDS: readonly ChallengeId[] = [
   'reverse-polarity',
   'missing-earth',
   'distribution-board',
+  'smart-lighting-relay',
+  'rcbo-pump-feeder',
 ];
 
 function isChallengeId(value: unknown): value is ChallengeId {

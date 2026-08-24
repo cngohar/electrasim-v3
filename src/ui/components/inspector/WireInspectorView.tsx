@@ -5,7 +5,7 @@
 
 import { Trash2 } from 'lucide-react';
 import type { InstallationMethod, SimulationResult, WireInstance } from '../../../domain';
-import { getCableAmpacity } from '../../../domain/simulation';
+import { getCableAmpacity } from '../../../domain/simulation/tripCurves';
 import { useCircuitStore } from '../../../store';
 import { requestDeleteWire } from '../../canvas-actions';
 

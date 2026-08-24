@@ -15,6 +15,7 @@ export type ChallengeState = 'not-started' | 'in-progress' | 'has-errors' | 'com
 
 /** Stable, human-facing challenge id (plan §34: never stored in circuit JSON). */
 export type ChallengeId =
+  | 'first-lamp-tutorial'
   | 'protected-lamp'
   | 'push-button-doorbell'
   | 'rcbo-socket'
@@ -22,20 +23,62 @@ export type ChallengeId =
   | 'open-neutral-repair'
   | 'reverse-polarity'
   | 'missing-earth'
-  | 'distribution-board';
+  | 'distribution-board'
+  | 'smart-lighting-relay'
+  | 'rcbo-pump-feeder';
+
+/** Distinguish the no-score first mission from regular Challenge Mode tasks. */
+export type ChallengeKind = 'tutorial' | 'challenge';
 
 /** One structured step shown in the objective panel (plan §5 `steps`). */
 export interface ChallengeStep {
+  /** Stable step key for tutorial progress and analytics. */
+  id?: string;
   /** 1-based step number. */
   no: number;
   /** Plain-English instruction. */
   text: string;
+  /** Rule ids that must pass before a guided/tutorial step advances. */
+  completionRuleIds?: readonly string[];
+  /** Optional on-canvas target shown by a tutorial coach. */
+  visualTarget?: ChallengeVisualTarget;
+}
+
+/** A target the visual hint overlay can point at without coupling validation to coordinates. */
+export type ChallengeVisualTarget =
+  | {
+      kind: 'component';
+      componentType: string;
+      /** Used only as a visual fallback before the component is placed. */
+      fallback?: { x: number; y: number };
+    }
+  | {
+      kind: 'port';
+      componentType: string;
+      portIndex: number;
+      /** Used only as a visual fallback before the component is placed. */
+      fallback?: { x: number; y: number };
+    }
+  | {
+      kind: 'connection';
+      from: { componentType: string; portIndex: number; occurrence?: number };
+      to: { componentType: string; portIndex: number; occurrence?: number };
+      /** Used only as a visual fallback before both endpoints are placed. */
+      fallback?: { x: number; y: number };
+    };
+
+export interface ChallengeVisualHint {
+  /** Short label shown next to the arrow. */
+  label: string;
+  target: ChallengeVisualTarget;
 }
 
 /** One progressive hint level (plan §10: concept → component → connection). */
 export interface ChallengeHint {
   level: 1 | 2 | 3;
   text: string;
+  /** Optional second hint type: an on-canvas arrow/target guide. */
+  visual?: ChallengeVisualHint;
 }
 
 /**
@@ -51,6 +94,10 @@ export interface ChallengeDefinition {
   version: number;
   title: string;
   difficulty: ChallengeDifficulty;
+  /** Tutorial missions are guided step-by-step and do not use challenge scoring. */
+  kind?: ChallengeKind;
+  /** Audience gate for advanced exercises; omitted means Student Mode. */
+  audience?: 'student' | 'pro';
   /** Estimated completion time in minutes (plan §23–§25). */
   estimatedMinutes: number;
 

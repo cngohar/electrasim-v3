@@ -12,7 +12,6 @@ import {
   loadActiveDeclarativeChallenge,
   loadChallengeProgress,
 } from './store/declarativeChallengePersistence';
-import { useDeclarativeChallengeStore } from './store/declarativeChallengeStore';
 import { startEventHistoryPersistence } from './store/eventHistoryPersistence';
 import { hydrateCircuit, persistCircuit, startAutosave } from './store/persistence';
 import { startSettingsPersistence, useSettingsStore } from './store/settingsStore';
@@ -62,20 +61,20 @@ void (async () => {
 
   startAutosave();
 
-  // Plan §14: if a challenge was active when the page closed, offer the
-  // learner the choice instead of silently choosing for them. The prompt
-  // renders through the (lazily loaded) Challenge panel, which is opened
-  // only when a resumable record exists.
+  // Plan §14: defer the optional Challenge Mode recovery check until after
+  // the editor has mounted. This keeps the first frame independent of the
+  // challenge store and makes its first use a visible, lazy transition.
   void (async () => {
     const active = await loadActiveDeclarativeChallenge();
+    if (!active) return;
+
+    const { useDeclarativeChallengeStore } = await import('./store/declarativeChallengeStore');
     const progress = await loadChallengeProgress();
     useDeclarativeChallengeStore.setState({ progress });
-    if (active) {
-      useDeclarativeChallengeStore.setState({
-        resumePrompt: { active: true, record: { challengeId: active.challengeId } },
-      });
-      useUiStore.getState().setChallengeOpen(true);
-    }
+    useDeclarativeChallengeStore.setState({
+      resumePrompt: { active: true, record: { challengeId: active.challengeId } },
+    });
+    useUiStore.getState().setChallengeOpen(true);
   })();
 
   createRoot(document.getElementById('root')!).render(

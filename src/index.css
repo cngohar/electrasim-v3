@@ -612,7 +612,343 @@
   will-change: opacity;
 }
 
+/* ─── Challenge Mode feedback ───────────────────────────────────────────── */
+.challenge-hint-line {
+  animation: challenge-hint-dash 1s linear infinite;
+}
+
+.challenge-hint-target {
+  animation: challenge-hint-pulse 1.35s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes challenge-hint-dash {
+  to {
+    stroke-dashoffset: -36;
+  }
+}
+
+@keyframes challenge-hint-pulse {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+.challenge-celebration-wash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 22%, rgb(255 255 255 / 0.16), transparent 45%);
+  animation: challenge-celebration-fade 5.2s ease-out forwards;
+}
+
+.challenge-confetti-piece {
+  position: absolute;
+  top: -8vh;
+  display: block;
+  border-radius: 2px;
+  animation-name: challenge-confetti-fall;
+  animation-timing-function: cubic-bezier(0.2, 0.7, 0.35, 1);
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  transform: rotate(var(--confetti-rotate));
+}
+
+.challenge-firework {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  animation: challenge-firework-pop 1.25s ease-out forwards;
+}
+
+.challenge-firework-ray {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 3px;
+  height: 38px;
+  border-radius: 999px;
+  transform: rotate(var(--firework-angle)) scaleY(0.1);
+  transform-origin: 50% 100%;
+  animation: challenge-firework-ray 1.25s ease-out forwards;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.challenge-firework-core {
+  position: absolute;
+  left: -5px;
+  bottom: -5px;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  opacity: 0.9;
+  box-shadow: 0 0 18px 5px currentColor;
+}
+
+@keyframes challenge-confetti-fall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -5vh, 0) rotate(0deg);
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.95;
+    transform: translate3d(var(--confetti-drift), 112vh, 0) rotate(720deg);
+  }
+}
+
+@keyframes challenge-firework-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  22% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.15);
+  }
+}
+
+@keyframes challenge-firework-ray {
+  0% {
+    opacity: 0;
+    height: 4px;
+    transform: rotate(var(--firework-angle)) scaleY(0.1);
+  }
+  22% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    height: 48px;
+    transform: rotate(var(--firework-angle)) translateY(-13px) scaleY(1);
+  }
+}
+
+@keyframes challenge-celebration-fade {
+  0%,
+  72% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Mission 0 uses a warm first-spark celebration instead of the regular
+   challenge confetti/fireworks so the learner gets a distinct milestone. */
+.mission-celebration-wash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 48%, rgb(250 204 21 / 0.24), transparent 22%),
+    radial-gradient(circle at 50% 48%, rgb(37 99 235 / 0.17), transparent 55%);
+  animation: mission-wash 4.2s ease-out forwards;
+}
+
+.mission-celebration-ring {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  width: min(32vw, 300px);
+  aspect-ratio: 1;
+  border: 2px solid rgb(250 204 21 / 0.8);
+  border-radius: 999px;
+  box-shadow: 0 0 0 14px rgb(250 204 21 / 0.08), 0 0 45px 12px rgb(59 130 246 / 0.22), inset 0 0
+    28px rgb(250 204 21 / 0.18);
+  transform: translate(-50%, -50%) scale(0.2);
+  animation: mission-ring 3.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.mission-celebration-trace {
+  --mission-angle: -8deg;
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #38bdf8 20%,
+    #facc15 50%,
+    #38bdf8 80%,
+    transparent
+  );
+  box-shadow: 0 0 16px 3px rgb(56 189 248 / 0.35);
+  opacity: 0;
+  animation: mission-trace 3.8s ease-out forwards;
+}
+
+.mission-celebration-trace-one {
+  top: 43%;
+}
+
+.mission-celebration-trace-two {
+  --mission-angle: 8deg;
+  top: 54%;
+  animation-delay: 0.18s;
+}
+
+.mission-celebration-banner {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  display: flex;
+  min-width: min(300px, calc(100vw - 2rem));
+  transform: translate(-50%, -50%) scale(0.8);
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  border: 1px solid rgb(250 204 21 / 0.65);
+  border-radius: 1.25rem;
+  background: rgb(15 23 42 / 0.86);
+  padding: 1.15rem 1.5rem;
+  color: white;
+  text-align: center;
+  box-shadow: 0 20px 60px rgb(15 23 42 / 0.28), 0 0 36px rgb(250 204 21 / 0.2);
+  animation: mission-banner 0.8s 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.mission-celebration-banner strong {
+  font-size: clamp(1.1rem, 3vw, 1.55rem);
+  letter-spacing: 0.12em;
+}
+
+.mission-celebration-banner > span:last-child {
+  color: #bfdbfe;
+  font-size: 0.75rem;
+}
+
+.mission-celebration-kicker {
+  color: #fde68a;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+}
+
+.mission-celebration-spark {
+  position: absolute;
+  bottom: 28%;
+  display: block;
+  border-radius: 999px;
+  background: #fde68a;
+  box-shadow: 0 0 10px 3px rgb(250 204 21 / 0.55);
+  animation: mission-spark-rise 3.5s ease-out forwards;
+}
+
+@keyframes mission-wash {
+  0%,
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes mission-ring {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2);
+  }
+  24% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.35);
+  }
+}
+
+@keyframes mission-trace {
+  0%,
+  18% {
+    opacity: 0;
+    transform: scaleX(0.1) rotate(var(--mission-angle));
+  }
+  40% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: scaleX(1) rotate(var(--mission-angle));
+  }
+}
+
+@keyframes mission-banner {
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes mission-spark-rise {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0.4);
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--mission-drift), -58vh, 0) scale(1.15);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .challenge-hint-line,
+  .challenge-hint-target,
+  .challenge-celebration-wash,
+  .challenge-confetti-piece,
+  .challenge-firework,
+  .challenge-firework-ray,
+  .mission-celebration-wash,
+  .mission-celebration-ring,
+  .mission-celebration-trace,
+  .mission-celebration-banner,
+  .mission-celebration-spark {
+    animation: none !important;
+  }
+
+  .challenge-confetti-piece {
+    top: 16vh;
+    opacity: 0.9;
+  }
+
+  .challenge-firework {
+    opacity: 0.9;
+  }
+
+  .mission-celebration-ring {
+    opacity: 0.35;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  .mission-celebration-trace {
+    opacity: 0.65;
+  }
+
+  .mission-celebration-banner {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  .mission-celebration-spark {
+    opacity: 0.9;
+  }
+
   .electrasim-wire-flow,
   .electrasim-fan-spin,
   .electrasim-bulb-pulse,

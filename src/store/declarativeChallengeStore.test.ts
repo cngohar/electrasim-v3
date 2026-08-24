@@ -4,7 +4,8 @@
  * The non-negotiable invariants:
  *   - starting snapshots the normal circuit, never destroys it
  *   - challenge edits autosave to the challenge workspace, not the normal one
- *   - exiting restores the snapshot EXACTLY
+ *   - the explicit safe-exit path restores the snapshot EXACTLY
+ *   - End Challenge keeps the learner's built circuit
  *   - reset restores THIS challenge's starter, never the global default
  *   - completion marks progress without touching the normal circuit
  */
@@ -31,6 +32,7 @@ import {
 } from './declarativeChallengePersistence';
 import { useDeclarativeChallengeStore } from './declarativeChallengeStore';
 import { startAutosave } from './persistence';
+import { useUiStore } from './uiStore';
 
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -75,7 +77,18 @@ beforeEach(async () => {
     startedAt: null,
     elapsedMs: 0,
     confirmingExit: false,
+    paused: false,
     resumePrompt: null,
+    visualHintVisible: false,
+    visualHintLevel: null,
+  });
+  useUiStore.setState({
+    challengeOpen: false,
+    challengeIntroOpen: false,
+    challengeModeActive: false,
+    challengePaused: false,
+    challengeAllowedComponents: null,
+    challengeAttemptId: null,
   });
   useCircuitStore.getState().setCircuit(myCircuit());
   useCircuitStore.temporal.getState().clear();
@@ -155,6 +168,48 @@ describe('exit — exact restoration (plan §13)', () => {
     expect(useDeclarativeChallengeStore.getState().definition).toBeNull();
     expect(mem.get(__CHALLENGE2_RETURN_KEY)).toBeUndefined();
     expect(mem.get(__CHALLENGE2_ACTIVE_KEY)).toBeUndefined();
+  });
+});
+
+describe('end challenge — keep the built circuit', () => {
+  it('lifts challenge conditions without restoring the saved circuit', async () => {
+    await useDeclarativeChallengeStore.getState().start('protected-lamp');
+    useCircuitStore.getState().addComponent({
+      id: 'kept-bulb',
+      type: 'bulb',
+      x: 450,
+      y: 220,
+      state: {},
+    });
+
+    await useDeclarativeChallengeStore.getState().endChallenge();
+
+    expect(useCircuitStore.getState().components.map((component) => component.id)).toEqual([
+      'kept-bulb',
+    ]);
+    expect(useDeclarativeChallengeStore.getState().status).toBe('exited');
+    expect(useDeclarativeChallengeStore.getState().definition).toBeNull();
+    expect(useUiStore.getState().challengeModeActive).toBe(false);
+  });
+});
+
+describe('pause and resume', () => {
+  it('freezes elapsed time and keeps the session resumable', async () => {
+    await useDeclarativeChallengeStore.getState().start('first-lamp-tutorial');
+    useDeclarativeChallengeStore.setState({ startedAt: Date.now() - 1_000 });
+
+    useDeclarativeChallengeStore.getState().pauseChallenge();
+    const paused = useDeclarativeChallengeStore.getState();
+    const elapsedWhilePaused = paused.totalElapsedMs();
+
+    expect(paused.paused).toBe(true);
+    expect(elapsedWhilePaused).toBe(paused.elapsedMs);
+    expect(useUiStore.getState().challengePaused).toBe(true);
+    expect(paused.check()).toBeNull();
+
+    useDeclarativeChallengeStore.getState().resumeChallenge();
+    expect(useDeclarativeChallengeStore.getState().paused).toBe(false);
+    expect(useUiStore.getState().challengePaused).toBe(false);
   });
 });
 
