@@ -134,6 +134,8 @@ export const useUiStore = create<UiState>()(
     challengeIntroOpen: false,
     challengeModeActive: false,
     challengePaused: false,
+    challengeAllowedComponents: null,
+    challengeAttemptId: null,
     challengeRuleFocus: null,
     diagnosisOpen: false,
     diagnosisActive: false,
@@ -787,6 +789,8 @@ export const useUiStore = create<UiState>()(
         s.challengeModeActive = active;
         if (!active) {
           s.challengePaused = false;
+          s.challengeAllowedComponents = null;
+          s.challengeAttemptId = null;
           s.challengeRuleFocus = null;
         }
       }),
@@ -794,6 +798,14 @@ export const useUiStore = create<UiState>()(
       set((s) => {
         s.challengePaused = paused;
         if (paused) s.challengeRuleFocus = null;
+      }),
+    setChallengeAllowedComponents: (types) =>
+      set((s) => {
+        s.challengeAllowedComponents = types ? [...types] : null;
+      }),
+    setChallengeAttemptId: (attemptId) =>
+      set((s) => {
+        s.challengeAttemptId = attemptId;
       }),
     setChallengeRuleFocus: (focus) =>
       set((s) => {

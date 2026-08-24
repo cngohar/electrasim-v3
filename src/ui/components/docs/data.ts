@@ -11,7 +11,7 @@ import {
 import { COMPONENT_DEFS, type ComponentDef } from '../../../domain';
 
 export const SHORTCUTS: Array<[key: string, action: string]> = [
-  ['V', 'Select tool — pick and move components'],
+  ['V', 'Select tool — pick and move components (visual hint in Challenge Mode)'],
   ['W', 'Wire tool — click two ports to connect them'],
   ['R', 'Reroute — cycle TO → FROM → cancel on selected wire'],
   ['F', 'Zoom-to-fit — frame all components in the viewport'],
@@ -20,10 +20,13 @@ export const SHORTCUTS: Array<[key: string, action: string]> = [
   ['Ctrl+C', 'Copy selected component(s) to the in-memory clipboard'],
   ['Ctrl+V', 'Paste clipboard — each paste offsets by 24 px so copies stack visibly'],
   ['Delete', 'Delete selected component(s) or wire — multi-select deletes all at once'],
-  ['Escape', 'Cancel placement / wire / close modal / deselect'],
+  ['Escape', 'Dismiss challenge focus / cancel placement / close modal / deselect'],
   ['Ctrl+Z', 'Undo'],
   ['Ctrl+Shift+Z', 'Redo (or Ctrl+Y)'],
   ['Ctrl+K', 'Open the command palette'],
+  ['P', 'Challenge Mode — pause or resume the active challenge'],
+  ['C', 'Challenge Mode — check progress'],
+  ['H', 'Challenge Mode — reveal the next text hint'],
   ['?', 'Open the keyboard shortcuts overlay'],
 ];
 

@@ -175,6 +175,10 @@ export interface UiState {
   challengeModeActive: boolean;
   /** True while Challenge Mode is paused and the editor is temporarily locked. */
   challengePaused: boolean;
+  /** Allowed palette types for the active challenge; null when unrestricted/normal. */
+  challengeAllowedComponents: string[] | null;
+  /** Attempt id used by autosave to keep challenge edits out of the normal key. */
+  challengeAttemptId: string | null;
   /** Selected failing rule and its concrete canvas targets. */
   challengeRuleFocus: ChallengeRuleFocus | null;
   /** Diagnosis Lab panel mounted (plan §32). Session state lives in diagnosisStore. */
@@ -337,6 +341,9 @@ export interface UiState {
   setChallengeModeActive: (active: boolean) => void;
   /** Mirrored by declarativeChallengeStore so the eager editor can lock itself. */
   setChallengePaused: (paused: boolean) => void;
+  /** Mirrored by declarativeChallengeStore so the eager palette can stay lean. */
+  setChallengeAllowedComponents: (types: readonly string[] | null) => void;
+  setChallengeAttemptId: (attemptId: string | null) => void;
   setChallengeRuleFocus: (focus: ChallengeRuleFocus | null) => void;
   setDiagnosisOpen: (open: boolean) => void;
   /** Set by `diagnosisStore` only — see {@link UiState.diagnosisActive}. */

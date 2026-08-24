@@ -87,6 +87,8 @@ beforeEach(async () => {
     challengeIntroOpen: false,
     challengeModeActive: false,
     challengePaused: false,
+    challengeAllowedComponents: null,
+    challengeAttemptId: null,
   });
   useCircuitStore.getState().setCircuit(myCircuit());
   useCircuitStore.temporal.getState().clear();

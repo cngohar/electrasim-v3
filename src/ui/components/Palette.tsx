@@ -14,7 +14,6 @@ import {
   primarySocketForPlug,
 } from '../../domain/standards';
 import { useUiStore } from '../../store';
-import { useDeclarativeChallengeStore } from '../../store/declarativeChallengeStore';
 import { useSettingsStore } from '../../store/settingsStore';
 import { getDefaultArt } from '../canvas/componentArt';
 import { getComponentImage } from './componentImages';
@@ -294,10 +293,10 @@ export function Palette({ open, isPhone }: Props) {
   const recentComponents = useSettingsStore((s) => s.recentComponents);
   const showRecentComponents = useSettingsStore((s) => s.showRecentComponents);
   // Plan §20: during an active challenge the palette exposes only the
-  // allowed component types; everything else is dimmed (not deleted).
-  const challengeDefinition = useDeclarativeChallengeStore((s) =>
-    s.status === 'active' ? s.definition : null,
-  );
+  // allowed component types; everything else is dimmed (not deleted). The
+  // mirror comes from uiStore so opening the normal palette does not eagerly
+  // import the Challenge Mode validator/store.
+  const challengeAllowedComponents = useUiStore((s) => s.challengeAllowedComponents);
   const challengeRuleFocus = useUiStore((s) => s.challengeRuleFocus);
   const setPaletteOpen = useUiStore((s) => s.setPaletteOpen);
   const [query, setQuery] = useState('');
@@ -326,10 +325,10 @@ export function Palette({ open, isPhone }: Props) {
   // learner can still search for nothing else. Extra components already on
   // the canvas are never deleted — the validator warns instead.
   const challengeAllows = useMemo(() => {
-    if (!challengeDefinition?.allowedComponents) return null;
-    const allowed = new Set(challengeDefinition.allowedComponents);
+    if (!challengeAllowedComponents) return null;
+    const allowed = new Set(challengeAllowedComponents);
     return (type: string): boolean => allowed.has(type);
-  }, [challengeDefinition]);
+  }, [challengeAllowedComponents]);
   const recommended = useMemo(
     () =>
       recommendedTypeOrder

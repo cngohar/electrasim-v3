@@ -15,6 +15,10 @@
  *   Ctrl/Cmd+V          paste clipboard components with +24 px stacked offset (Phase 6.2.4)
  *   Ctrl/Cmd+E          open Import / Export modal (Phase 6.4)
  *   Ctrl/Cmd+S          quick-export circuit as JSON (Phase 6.4)
+ *   P                   pause/resume active Challenge Mode session
+ *   C                   check Challenge Mode progress
+ *   H                   reveal the next Challenge Mode text hint
+ *   V                   show the next Challenge Mode visual hint (Select otherwise)
  *
  * Bindings are skipped while the user is focused on a text input/textarea
  * so typing in the palette search bar (Phase 3.5) doesn't trigger them.
@@ -31,6 +35,24 @@ import {
   useViewportStore,
 } from '../../store';
 import { requestDeleteSelection, requestRotateSelection } from '../canvas-actions';
+
+function runChallengeShortcut(key: string): void {
+  void import('../../store/declarativeChallengeStore')
+    .then(({ useDeclarativeChallengeStore }) => {
+      const challenge = useDeclarativeChallengeStore.getState();
+      if (key === 'p') {
+        if (challenge.paused) challenge.resumeChallenge();
+        else challenge.pauseChallenge();
+      } else if (key === 'c') {
+        challenge.check();
+      } else if (key === 'h') {
+        challenge.revealHint();
+      } else if (key === 'v') {
+        challenge.showVisualHint();
+      }
+    })
+    .catch(() => undefined);
+}
 
 export function useKeyboardShortcuts() {
   useEffect(() => {
@@ -125,6 +147,11 @@ export function useKeyboardShortcuts() {
           ui.setSettingsOpen(false);
           return;
         }
+        if (ui.challengeRuleFocus) {
+          e.preventDefault();
+          ui.setChallengeRuleFocus(null);
+          return;
+        }
         if (ui.pendingCustomPath) {
           e.preventDefault();
           ui.cancelCustomPath();
@@ -154,12 +181,40 @@ export function useKeyboardShortcuts() {
         return;
       }
 
-      // Skip all other shortcuts when focused on text input fields.
-      if (inTextInput) return;
+      // Skip all other shortcuts when focused on text input fields or inside
+      // a modal. The modal's own focus/Enter/Escape handling should win.
+      const inDialog =
+        target != null && typeof target.closest === 'function' && target.closest('dialog') !== null;
+      if (inTextInput || inDialog) return;
+
+      const ui = useUiStore.getState();
+      const meta = e.ctrlKey || e.metaKey;
+      const challengeKey = e.key.toLowerCase();
+
+      // Challenge Mode bindings run before the generic pause guard so P can
+      // resume a paused session. The dynamic import preserves the lazy
+      // Challenge Mode boundary for users who never enter an exercise.
+      if (
+        ui.challengeModeActive &&
+        !meta &&
+        !e.shiftKey &&
+        !e.repeat &&
+        (challengeKey === 'p' ||
+          challengeKey === 'c' ||
+          challengeKey === 'h' ||
+          challengeKey === 'v')
+      ) {
+        e.preventDefault();
+        runChallengeShortcut(challengeKey);
+        return;
+      }
+
+      // A paused challenge locks every editor shortcut except the Challenge
+      // Mode header/indicator controls and the P resume binding above.
+      if (ui.challengePaused) return;
 
       // Blocking overlays own the keyboard while open. This prevents edits,
       // undo/redo, or a second dialog from being triggered behind them.
-      const ui = useUiStore.getState();
       if (
         ui.pendingDeletion ||
         ui.activeValidationIssueModal ||
@@ -167,6 +222,7 @@ export function useKeyboardShortcuts() {
         ui.faultAlert ||
         ui.mobileSuitabilityOpen ||
         ui.welcomeOpen ||
+        ui.challengeIntroOpen ||
         ui.templatesOpen ||
         ui.contactOpen ||
         ui.docsOpen ||
@@ -176,8 +232,6 @@ export function useKeyboardShortcuts() {
       ) {
         return;
       }
-
-      const meta = e.ctrlKey || e.metaKey;
 
       // Workbench experiment — command palette (Ctrl/Cmd+K).
       if (meta && (e.key === 'k' || e.key === 'K')) {

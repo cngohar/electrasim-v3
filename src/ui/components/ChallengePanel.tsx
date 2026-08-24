@@ -21,6 +21,7 @@ import {
   ChevronRight,
   CircleAlert,
   Download,
+  Focus,
   Lightbulb,
   ListChecks,
   MapPinned,
@@ -54,6 +55,25 @@ import { Modal } from './Modal';
 interface Props {
   isPhone: boolean;
 }
+
+type ChallengeFilter =
+  | 'all'
+  | 'student'
+  | 'pro'
+  | 'beginner'
+  | 'intermediate'
+  | 'advanced'
+  | 'completed';
+
+const CHALLENGE_FILTERS: Array<{ id: ChallengeFilter; label: string }> = [
+  { id: 'all', label: 'All' },
+  { id: 'student', label: 'Student' },
+  { id: 'pro', label: 'Pro' },
+  { id: 'beginner', label: 'Beginner' },
+  { id: 'intermediate', label: 'Intermediate' },
+  { id: 'advanced', label: 'Advanced' },
+  { id: 'completed', label: 'Completed' },
+];
 
 function usePrefersReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
@@ -89,6 +109,24 @@ function difficultyBadge(difficulty: ChallengeDefinition['difficulty']): string 
     case 'advanced':
       return 'Advanced';
   }
+}
+
+/** Convert rule feedback into a short, human-facing next action. */
+function nextActionCopy(rule: RuleResult): string {
+  if (rule.id === 'structure') return 'Reconnect the highlighted wire at both ends.';
+  if (rule.id === 'electrical-rules') return 'Correct the highlighted electrical safety issue.';
+  if (rule.id.startsWith('required-')) return rule.reason ?? rule.label;
+  if (rule.id.startsWith('path-') || rule.id.startsWith('direct-')) {
+    return 'Connect the highlighted terminals to complete this path.';
+  }
+  if (rule.id.startsWith('exclusive-'))
+    return 'Remove the bypass from the highlighted protective path.';
+  if (rule.id.startsWith('state-')) return `Configure the highlighted device: ${rule.label}.`;
+  if (rule.id.startsWith('energised-'))
+    return 'Check the highlighted Live and Neutral path, then test again.';
+  if (rule.id.startsWith('fault-'))
+    return rule.reason ?? 'Clear the highlighted fault and check again.';
+  return rule.reason ?? rule.label;
 }
 
 export function ChallengePanel({ isPhone }: Props) {
@@ -208,7 +246,7 @@ export function ChallengePanel({ isPhone }: Props) {
   }, [challengeRuleFocus, displayedVerdict, setChallengeRuleFocus]);
 
   const elapsedLabel = useElapsedLabel(status === 'active' && !paused);
-  const [showSteps, setShowSteps] = useState(true);
+  const [showSteps, setShowSteps] = useState(false);
   // All hooks must run unconditionally — the conditional returns below are
   // view switches only (React rules of hooks).
   const visibleHints = useMemo(
@@ -219,6 +257,31 @@ export function ChallengePanel({ isPhone }: Props) {
   // collapse it to a floating pill and bring it back, exactly like the
   // guided panel's hide affordance.
   const [panelHidden, setPanelHidden] = useState(false);
+  const [challengeFilter, setChallengeFilter] = useState<ChallengeFilter>('all');
+  const filteredChallenges = useMemo(
+    () =>
+      CHALLENGE_DEFINITIONS.filter((challenge) => {
+        switch (challengeFilter) {
+          case 'student':
+            return challenge.audience !== 'pro';
+          case 'pro':
+            return challenge.audience === 'pro';
+          case 'beginner':
+          case 'intermediate':
+          case 'advanced':
+            return challenge.difficulty === challengeFilter;
+          case 'completed':
+            return progress[challenge.id]?.completed === true;
+          default:
+            return true;
+        }
+      }),
+    [challengeFilter, progress],
+  );
+  const recommendedChallengeId = CHALLENGE_DEFINITIONS.find(
+    (challenge) =>
+      !progress[challenge.id]?.completed && (challenge.audience !== 'pro' || appMode === 'pro'),
+  )?.id;
 
   if (isPhone && panelHidden && status === 'active') {
     return (
@@ -521,17 +584,46 @@ export function ChallengePanel({ isPhone }: Props) {
                 ? 'Advanced commissioning challenges are unlocked below.'
                 : 'Switch to Pro mode to unlock advanced commissioning challenges.'}
             </div>
+            <fieldset aria-label="Challenge filters" className="flex flex-wrap gap-1">
+              <legend className="sr-only">Challenge filters</legend>
+              {CHALLENGE_FILTERS.map((filter) => (
+                <button
+                  key={filter.id}
+                  type="button"
+                  aria-pressed={challengeFilter === filter.id}
+                  onClick={() => setChallengeFilter(filter.id)}
+                  className={[
+                    'rounded-full border px-2 py-1 text-[9px] font-semibold transition',
+                    challengeFilter === filter.id
+                      ? 'border-blue-500 bg-blue-600 text-white'
+                      : 'border-slate-200 bg-white text-slate-500 hover:border-blue-300 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-blue-700 dark:hover:text-blue-300',
+                  ].join(' ')}
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </fieldset>
 
-            {CHALLENGE_DEFINITIONS.map((challenge) => {
+            {filteredChallenges.length === 0 && (
+              <p className="rounded-xl border border-dashed border-slate-200 px-3 py-4 text-center text-[11px] text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                No challenges match this filter yet.
+              </p>
+            )}
+            {filteredChallenges.map((challenge) => {
               const isTutorial = challenge.kind === 'tutorial';
               const isProChallenge = challenge.audience === 'pro';
               const locked = isProChallenge && appMode !== 'pro';
               const done = progress[challenge.id]?.completed === true;
+              const recommended = challenge.id === recommendedChallengeId && !locked;
               return (
                 <div
                   key={challenge.id}
+                  data-challenge-card={challenge.id}
                   className={[
                     'rounded-xl border p-3',
+                    recommended
+                      ? 'border-blue-300 shadow-sm shadow-blue-500/10 dark:border-blue-700'
+                      : '',
                     isTutorial
                       ? 'border-amber-200 bg-amber-50/45 dark:border-amber-900/70 dark:bg-amber-950/20'
                       : 'border-slate-200 dark:border-slate-700',
@@ -543,10 +635,32 @@ export function ChallengePanel({ isPhone }: Props) {
                         Mission 0
                       </span>
                     )}
-                    <span className="text-[12px] font-bold text-slate-800 dark:text-slate-100">
+                    <span className="min-w-0 flex-1 text-[12px] font-bold text-slate-800 dark:text-slate-100">
                       {challenge.title}
                     </span>
-                    {done && <Check className="size-3.5 text-emerald-600" aria-label="Completed" />}
+                    {done && (
+                      <Check
+                        className="size-3.5 shrink-0 text-emerald-600"
+                        aria-label="Completed"
+                      />
+                    )}
+                    {recommended && (
+                      <span className="shrink-0 rounded-full bg-blue-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-blue-700 dark:bg-blue-950/70 dark:text-blue-300">
+                        Recommended
+                      </span>
+                    )}
+                    <span
+                      className={[
+                        'shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide',
+                        done
+                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300'
+                          : locked
+                            ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/70 dark:text-purple-300'
+                            : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400',
+                      ].join(' ')}
+                    >
+                      {done ? 'Completed' : locked ? 'Pro only' : 'Not started'}
+                    </span>
                   </div>
                   <p className="mt-0.5 text-[10px] text-slate-500 dark:text-slate-400">
                     {difficultyBadge(challenge.difficulty)} · ~{challenge.estimatedMinutes} minutes
@@ -628,6 +742,19 @@ export function ChallengePanel({ isPhone }: Props) {
               </div>
             ))}
           </dl>
+          <section
+            data-challenge-takeaway
+            aria-label="What you learned"
+            className="border-b border-slate-200/80 bg-slate-50/70 px-3 py-2.5 dark:border-slate-700/80 dark:bg-slate-800/45"
+          >
+            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              <Lightbulb className="size-3.5 text-amber-500" />
+              What you learned
+            </div>
+            <p className="mt-1 text-[11px] leading-relaxed text-slate-700 dark:text-slate-200">
+              {definition.teaches}
+            </p>
+          </section>
           <div className="flex flex-col gap-2 p-3">
             {isTutorial && next && (
               <div className="flex items-center justify-between rounded-xl border border-blue-100 bg-blue-50/70 px-3 py-2 text-[10px] dark:border-blue-900/70 dark:bg-blue-950/35">
@@ -681,6 +808,14 @@ export function ChallengePanel({ isPhone }: Props) {
 
   // ── Active (§19) ────────────────────────────────────────────────────────
   const completionPct = Math.round((displayedVerdict?.completion ?? 0) * 100);
+  const currentRule = displayedVerdict?.nextRule ?? null;
+  const tutorialCurrentStep =
+    isTutorial && tutorialStepProgress ? definition.steps[tutorialStepProgress.currentIndex] : null;
+  const currentAction = isTutorial
+    ? (tutorialCurrentStep?.text ?? 'Complete the mission steps shown on the canvas.')
+    : currentRule
+      ? nextActionCopy(currentRule)
+      : (definition.steps[0]?.text ?? 'Start building this circuit.');
 
   return (
     <>
@@ -768,6 +903,51 @@ export function ChallengePanel({ isPhone }: Props) {
             </p>
           )}
 
+          <div
+            data-challenge-current-step
+            aria-live="polite"
+            className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-3 shadow-sm dark:border-blue-900/70 dark:from-blue-950/50 dark:to-slate-900"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-blue-600 dark:text-blue-300">
+                {isTutorial && tutorialCurrentStep
+                  ? `Step ${tutorialCurrentStep.no} of ${definition.steps.length}`
+                  : currentRule
+                    ? 'Next action'
+                    : 'Start here'}
+              </span>
+              {currentRule && (
+                <span
+                  className={[
+                    'rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide',
+                    currentRule.verdict === 'fail'
+                      ? 'bg-red-100 text-red-700 dark:bg-red-950/70 dark:text-red-300'
+                      : 'bg-amber-100 text-amber-700 dark:bg-amber-950/70 dark:text-amber-300',
+                  ].join(' ')}
+                >
+                  {currentRule.verdict === 'fail' ? 'Needs repair' : 'Incomplete'}
+                </span>
+              )}
+            </div>
+            <p className="mt-1 text-[12px] font-semibold leading-relaxed text-slate-800 dark:text-slate-100">
+              {currentAction}
+            </p>
+            {currentRule && !isTutorial && (
+              <p className="mt-1 text-[10px] leading-relaxed text-slate-500 dark:text-slate-400">
+                Check: {currentRule.label}
+              </p>
+            )}
+            {currentRule && (
+              <button
+                type="button"
+                onClick={() => focusRule(currentRule)}
+                className="mt-2 inline-flex items-center gap-1 rounded-lg bg-white/80 px-2 py-1.5 text-[10px] font-bold text-indigo-700 shadow-sm transition hover:bg-white dark:bg-slate-900/60 dark:text-indigo-300 dark:hover:bg-slate-900"
+              >
+                <Focus className="size-3" /> Focus this step
+              </button>
+            )}
+          </div>
+
           {/* Steps (§5) */}
           <div>
             <button
@@ -777,7 +957,7 @@ export function ChallengePanel({ isPhone }: Props) {
               className="flex w-full items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
             >
               <ListChecks className="size-3" aria-hidden="true" />
-              Steps ({definition.steps.length})
+              {isTutorial ? 'Mission steps' : 'All steps'} ({definition.steps.length})
             </button>
             {showSteps && (
               <ol className="mt-1 space-y-0.5">

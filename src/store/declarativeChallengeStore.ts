@@ -163,6 +163,8 @@ export const useDeclarativeChallengeStore = create<DeclarativeChallengeState>((s
     });
     useUiStore.getState().setChallengeModeActive(true);
     useUiStore.getState().setChallengePaused(false);
+    useUiStore.getState().setChallengeAllowedComponents(definition.allowedComponents);
+    useUiStore.getState().setChallengeAttemptId(attemptId);
     useUiStore.getState().setChallengeRuleFocus(null);
     await saveActiveDeclarativeChallenge({
       challengeId,
@@ -194,6 +196,8 @@ export const useDeclarativeChallengeStore = create<DeclarativeChallengeState>((s
     if (verdict.state === 'complete') {
       const elapsedMs = get().totalElapsedMs();
       set({ status: 'completed', elapsedMs, startedAt: null });
+      useUiStore.getState().setChallengeAllowedComponents(null);
+      useUiStore.getState().setChallengeAttemptId(null);
       void clearActiveDeclarativeChallenge();
       const attemptId = get().attemptId;
       if (attemptId) void clearChallengeCircuit(attemptId);
@@ -431,6 +435,8 @@ export const useDeclarativeChallengeStore = create<DeclarativeChallengeState>((s
     });
     useUiStore.getState().setChallengeModeActive(true);
     useUiStore.getState().setChallengePaused(record.paused === true);
+    useUiStore.getState().setChallengeAllowedComponents(definition.allowedComponents);
+    useUiStore.getState().setChallengeAttemptId(record.attemptId);
     useUiStore.getState().setChallengeRuleFocus(null);
     return true;
   },
