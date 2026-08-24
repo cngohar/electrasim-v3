@@ -3504,3 +3504,10 @@ substitution; F6 optional `timeLimit`.
 - Default standard now 'int'; explicit Pro region choices persist across mode switches (never auto-reset — user data).
 - Student-switch notice toast for surviving Pro components (new Undo-free toast variant).
 - Validation reports invalidate on circuit change (stale banner + re-validate), clear on empty canvas, and guard clicks on deleted targets. 877/877 tests.
+
+## Session 2026-08-23 (final) — Read-only regression analysis + branch handoff
+- Full architecture audit, no code changes. Verified-broken: perf-budget release gate (pre-existing, ~238.8KB vs 115KB), unbumped ?v=1.6.1 marketing cache keys, smoke.spec fuse- selector vs new demo benches, tour-offer chip visible in all e2e sessions (UndoToast overlap).
+- Latent: startTour vs challenge/diagnosis canvas ownership; stale-watcher fires on non-topological changes; Fix All uses stale report snapshot; upgraders stranded on old showcase demo; US essentials pro-tier-hidden in Student mode; swapDemoForMode call-site wiring.
+- Fragilities: cyclic store imports + module side effects (TDZ/HMR), untyped component.state keys, byte-exact demo-shape detection, hand-synced marketing numbers, validateCircuit uk default vs int runtime default.
+- Pre-PR checklist: bump version to 1.7.0, run full Playwright e2e locally (fix smoke fuse target + seed chip dismissal), resolve or re-baseline perf budgets before deploy.
+- Branch arena/01a0287b-electrasim-ai3 ready for PR: marketing sync, onboarding tours + celebration, standard-selector fix, validation check 10, 7 UX fixes + dual demo benches, INT default + 3 conditional-logic fixes, plus astro-site search/hero/nav work. 877/877 unit tests, tsc + biome clean.

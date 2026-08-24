@@ -6,6 +6,13 @@ production build for both ElectraSim surfaces.
 > **Production release reference:** v1.6.1, 2026-07-21, verified at
 > `https://63e4c5d6.electrasim.pages.dev` and `https://electrasim.com/`. Keep this document
 > aligned with the app, marketing site, privacy page, CSP, and Wrangler deployment artifact.
+>
+> **Pending branch (2026-08-23):** `arena/01a0287b-electrasim-ai3` — onboarding tours,
+> dual demo benches, validation check 10, International default standard, marketing↔app
+> content sync, and site search/nav/hero upgrades. Before merging/deploying: bump the
+> release version (marketing `?v=` cache keys must change), run the full Playwright suite
+> locally (see CHANGELOG "Architecture Regression Analysis" notes), and resolve the
+> pre-existing `check:perf` bundle-budget failure.
 
 ## Repository Ownership
 

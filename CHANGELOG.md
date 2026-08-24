@@ -11,6 +11,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Notes — Session 2026-08-23: Architecture Regression Analysis (read-only, no code changes)
+
+A full read-only audit of the architecture identified the most likely regressions. Nothing was modified; findings are logged here as the pre-release checklist for this branch.
+
+**Verified-broken today (must be addressed before/at release):**
+1. **Release gate blocked (pre-existing):** `check:perf` fails — initial app JS is ~238.8 KB gzip vs the 115 KB budget (CSS 22.3 vs 15 KB). The breach predates this branch (tour added ~1.2 KB); `npm run verify`/`deploy` cannot pass until the bundle is dieted or budgets are consciously revised.
+2. **Marketing cache keys not bumped:** `site-search.js`, `site-nav.js`, `landing-hero.js` changed but still ship as `?v=1.6.1` — returning visitors would receive stale cached scripts after deploy. Bump the release version (→ 1.7.0) with this branch.
+3. **`e2e/smoke.spec.ts` keyboard-reroute test targets `[data-component-id^="fuse-"]`** — the new demo benches contain no fuse; the test will fail on the next E2E run.
+4. **Tour-offer chip appears in every E2E session** (specs seed `electrasim:welcomed` but not the chip-dismissal key) and shares coordinates with `UndoToast` (`bottom-16`); expect click-interception/visual flakes until specs seed `electrasim:tour:offer:v1:dismissed` (or the chip hides during scenario modes).
+
+**High-likelihood latent issues:** `startTour` clears/seeds the canvas without guarding active Challenge/Diagnosis sessions (canvas-ownership conflict); the stale-validation watcher triggers on any component-state change (switch toggles/drags), not just topology; "Fix All" applies quick fixes from the pre-fix report snapshot (additive fixes can over-apply); upgraders keep the old persisted showcase demo, which no longer matches demo-swap detection and scores poorly; US palette essentials (`afdd`, `socket-gfci`) are pro-tier and invisible to Student mode; `swapDemoForMode` is wired per call-site rather than to the `appMode` setting itself.
+
+**Chronic fragilities to watch:** cyclic store imports with module-level side effects (TDZ/HMR hazards); the untyped `component.state` bag (`customMaxAmps` vs `customAmps`; `wire.lengthMeters` silently forcing 1.5 mm² in ampacity checks); byte-exact `sameCircuitShape` demo detection with no round-trip test; hand-synced app↔marketing numbers; `validateCircuit`'s `standard = 'uk'` default vs the app's new `'int'` runtime default; E2E suite not runnable in the development sandbox — run the full Playwright suite locally before deploying this branch.
+
 ### Changed — Session 2026-08-23: International Default Standard & Three Conditional-Logic Fixes
 
 - **International 230 V is the default standard** (`settingsStore.ts`): fresh installs start on the neutral IEC 60364 · 230 V/50 Hz preset instead of UK/BS 7671. An explicit region choice made in Pro mode is user data — it **persists across mode switches** (shown read-only in Student mode) and is never reset back to International; "International" is only the never-chosen default. Unit/E2E expectations and tour copy updated.
