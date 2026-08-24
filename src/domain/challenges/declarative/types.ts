@@ -82,12 +82,43 @@ export interface ChallengeHint {
 }
 
 /**
+ * A learner-facing, outcome-based requirement (UX correction plan §4, §17).
+ *
+ * This is the ONLY construction guidance shown to the learner: a high-level
+ * goal such as "Protected by an MCB" or "Complete return path". It deliberately
+ * says WHAT must be true, never HOW to build it. The internal recipe lives in
+ * `ChallengeDefinition.rules`; each requirement simply points at the rule ids
+ * that must all pass for the outcome to be met.
+ *
+ * Separating `requirements` (what the learner sees) from `rules` (what the
+ * validator checks) is the core design rule of Challenge Mode: *the validator
+ * knows the answer, the learner does not* (UX correction plan §2, §36).
+ */
+export interface ChallengeRequirement {
+  /** Stable key (analytics / focus targeting). */
+  id: string;
+  /** Short outcome name shown in the requirements list, e.g. "Protected by an MCB". */
+  label: string;
+  /**
+   * Problem sentence shown when this outcome is NOT yet met (the ✗ feedback
+   * line and the Next Action card). Problem-oriented, never a construction
+   * instruction (plan §7, §10).
+   */
+  check: string;
+  /** Internal rule ids that must ALL pass before this requirement is met. */
+  ruleIds: readonly string[];
+}
+
+/**
  * A declarative challenge definition (plan §5).
  *
  * `starter` is the circuit loaded into the editor on start (possibly with a
  * deliberate fault for repair challenges). `rules` is the ordered checklist
  * the validator evaluates — including functional (interaction-evidence)
  * rules, which run the real simulator with evidence states (plan §8).
+ * `requirements` is the high-level, learner-facing outcome list (UX correction
+ * plan §2): it hides the construction recipe from the learner while `rules`
+ * keeps judging their circuit exactly as before.
  */
 export interface ChallengeDefinition {
   id: ChallengeId;
@@ -109,6 +140,13 @@ export interface ChallengeDefinition {
   teaches: string;
   /** Ordered build/repair steps shown in the panel. */
   steps: ChallengeStep[];
+
+  /**
+   * High-level learner-facing outcomes (UX correction plan §2, §4). These are
+   * shown in the panel INSTEAD of the internal rule checklist so the learner
+   * sees the goal, not the solution recipe.
+   */
+  requirements: readonly ChallengeRequirement[];
 
   /** The circuit the learner starts from (repair challenges carry the fault). */
   starter: Circuit;

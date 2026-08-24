@@ -197,13 +197,27 @@ test.describe('Challenge Mode', () => {
     // The starter is a blank canvas (plan §23).
     await expect.poll(() => page.locator('[data-component-id]').count()).toBe(0);
 
-    // Check on an empty canvas gives guidance, never a crash.
+    // Check on an empty canvas gives HIGH-LEVEL, outcome-based guidance —
+    // never the construction recipe (UX correction plan §6, §9).
     await panel(page)
       .getByRole('button', { name: /Check circuit/ })
       .click();
+    await expect(panel(page).getByText('Your circuit is not ready to operate yet.')).toBeVisible();
     await expect(
-      panel(page).getByText('No Live supply terminal on the canvas yet.').first(),
+      panel(page).getByText('The lighting circuit is not yet protected by an MCB.').first(),
     ).toBeVisible();
+    // The outcome requirements are shown, not a "Place a Live supply terminal"
+    // style construction checklist.
+    for (const requirement of [
+      'Protected by an MCB',
+      'Switch controls the lamp',
+      'Complete return path',
+      'Lamp operates correctly',
+    ]) {
+      await expect(panel(page).getByText(requirement)).toBeVisible();
+    }
+    await expect(panel(page).getByText(/All steps/i)).toBeHidden();
+    await expect(panel(page).getByText(/Place a Live supply terminal/i)).toBeHidden();
 
     // §19: hide the sheet so the canvas is reachable, then build the answer.
     await hidePanel(page);
@@ -342,11 +356,15 @@ test.describe('Challenge Mode', () => {
     await panel(page)
       .getByRole('button', { name: /Check circuit/ })
       .click();
+    // High-level, non-recipe feedback about the missing Earth (UX plan §9, §10).
     await expect(
       panel(page)
-        .getByText(/No Earth terminal on the canvas yet./)
+        .getByText(
+          'The socket is not fully supplied — check the Live, Neutral and Earth connections.',
+        )
         .first(),
     ).toBeVisible();
+    await expect(panel(page).getByText(/No Earth terminal on the canvas yet./i)).toBeHidden();
     await expect(panel(page).getByText(/COMPLETE!/i)).toBeHidden();
   });
 });

@@ -103,6 +103,39 @@ export const FIRST_LAMP_TUTORIAL: ChallengeDefinition = {
     },
   ],
 
+  // UX correction plan §21: even the guided mission frames outcomes, not a
+  // scoring recipe — but its coach card still shows the build steps.
+  requirements: [
+    {
+      id: 'req-supply',
+      label: 'Supply connected',
+      check: 'The lamp is not yet supplied from Live and Neutral.',
+      ruleIds: [
+        'required-live-terminal',
+        'required-neutral-terminal',
+        'path-live-live-terminal-mcb',
+      ],
+    },
+    {
+      id: 'req-protection',
+      label: 'Protected by an MCB',
+      check: 'The circuit is not yet protected by an MCB.',
+      ruleIds: ['required-mcb', 'state-mcb-on=true'],
+    },
+    {
+      id: 'req-return',
+      label: 'Complete return path',
+      check: 'The bulb does not have a complete return path.',
+      ruleIds: ['path-neutral-bulb-neutral-terminal'],
+    },
+    {
+      id: 'req-operates',
+      label: 'Lamp operates correctly',
+      check: 'The lamp is not yet operating.',
+      ruleIds: ['required-bulb', 'path-live-mcb-bulb', 'energised-bulb-rest'],
+    },
+  ],
+
   starter: blankStarter(),
   allowedComponents: ['live-terminal', 'neutral-terminal', 'mcb', 'bulb'],
   rules: [

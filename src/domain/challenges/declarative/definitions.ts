@@ -119,6 +119,16 @@ export function assertRegistryCoherent(): string[] {
         );
       }
     }
+    const ruleIds = new Set(definition.rules.map((rule) => rule.id));
+    for (const requirement of definition.requirements ?? []) {
+      for (const ruleId of requirement.ruleIds) {
+        if (!ruleIds.has(ruleId)) {
+          problems.push(
+            `${definition.id}: requirement "${requirement.id}" maps to unknown rule "${ruleId}"`,
+          );
+        }
+      }
+    }
     for (const hint of definition.hints) {
       if (hint.visual) {
         problems.push(
