@@ -21,17 +21,17 @@ export const COMP_W = 100;
 export const COMP_H = 70;
 export const PORT_RADIUS = 7;
 
-// ─── Registry zones (merged in original order) ─────────────────────────────
-import { SWITCH_DEFS } from './switches';
+import { CONTROL_DEFS } from './controls';
+import { FAN_AND_LOAD_DEFS } from './fansAndLoads';
+import { HVAC_SOUNDER_AND_DISTRIBUTION_DEFS } from './hvacSoundersAndDistribution';
+import { INDUSTRIAL_CONTROL_DEFS } from './industrialControl';
 import { LIGHTING_DEFS } from './lighting';
 import { PROTECTION_DEFS } from './protection';
 import { SOCKET_DEFS } from './sockets';
-import { FAN_AND_LOAD_DEFS } from './fansAndLoads';
-import { CONTROL_DEFS } from './controls';
 import { SUPPLY_AND_JUNCTION_DEFS } from './suppliesAndJunctions';
+// ─── Registry zones (merged in original order) ─────────────────────────────
+import { SWITCH_DEFS } from './switches';
 import { TIMER_DEFS } from './timers';
-import { INDUSTRIAL_CONTROL_DEFS } from './industrialControl';
-import { HVAC_SOUNDER_AND_DISTRIBUTION_DEFS } from './hvacSoundersAndDistribution';
 
 // ─── The registry ──────────────────────────────────────────────────────────
 
@@ -47,7 +47,6 @@ export const COMPONENT_DEFS: Record<string, ComponentDef> = {
   ...INDUSTRIAL_CONTROL_DEFS,
   ...HVAC_SOUNDER_AND_DISTRIBUTION_DEFS,
 };
-
 
 /** Convenience: get a def or throw a descriptive error. */
 export const getDef = (

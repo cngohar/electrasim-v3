@@ -3494,3 +3494,8 @@ substitution; F6 optional `timeLimit`.
 ## Session 2026-08-23 — Validation blind spot fix (conductor bypass)
 - Reproduced user report: FCU with unwired N pair scored 100. Root cause: no per-device port-connectivity check existed; sim running is correct physics.
 - Added check 10 (conductor bypass + unwired components) with RCD/RCBO imbalance wording; demo seed + all guided templates verified clean; 6 new tests; 874/874.
+
+## Session 2026-08-23 — Seven UX fixes + mode-specific demo benches
+- Student/Pro demo circuits (both 100/100 across 12 standard-plug combos), untouched-demo mode swapping, mode-aware reset & pro tour.
+- Fixed latent US/INT motorcurve sweep bug; differentiated regional essentials (NEC/IEC-accurate); themed ComponentInfoModal (light+dark); fixed double-close animation; ghost previews use redesigned art; Fix All quick-fix button; recent-palette toggle.
+- 874/874 tests, tsc + biome clean.

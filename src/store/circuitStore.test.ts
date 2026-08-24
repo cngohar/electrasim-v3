@@ -19,6 +19,24 @@ const reset = () => {
   useCircuitStore.temporal.getState().clear();
 };
 
+/**
+ * The demo benches no longer ship a push button, so momentary-control tests
+ * inject one directly (setState, not the undoable action) and clear history
+ * so `pastStates` assertions start from a clean slate.
+ */
+const addTestPushButton = () => {
+  const button = {
+    id: 'test-push-button',
+    type: 'push-button',
+    x: 900,
+    y: 300,
+    state: { on: false },
+  };
+  useCircuitStore.setState((s) => ({ components: [...s.components, button] }));
+  useCircuitStore.temporal.getState().clear();
+  return button;
+};
+
 beforeEach(reset);
 afterEach(reset);
 
@@ -108,7 +126,7 @@ describe('circuitStore — mutations', () => {
       false,
     );
 
-    const button = useCircuitStore.getState().components.find((c) => c.type === 'push-button')!;
+    const button = addTestPushButton();
     expect(button.state.on).toBe(false);
     useCircuitStore.getState().toggleSwitch(button.id);
     expect(useCircuitStore.getState().components.find((c) => c.id === button.id)?.state.on).toBe(
@@ -117,7 +135,7 @@ describe('circuitStore — mutations', () => {
   });
 
   it('keeps momentary press and release out of undo history', () => {
-    const button = useCircuitStore.getState().components.find((c) => c.type === 'push-button')!;
+    const button = addTestPushButton();
 
     expect(setMomentarySwitchState(button.id, true)).toBe(true);
     expect(useCircuitStore.getState().components.find((c) => c.id === button.id)?.state.on).toBe(
@@ -133,7 +151,7 @@ describe('circuitStore — mutations', () => {
   });
 
   it('never restores a held momentary state from an undo snapshot', () => {
-    const button = useCircuitStore.getState().components.find((c) => c.type === 'push-button')!;
+    const button = addTestPushButton();
 
     setMomentarySwitchState(button.id, true);
     useCircuitStore.getState().selectComponent(button.id);

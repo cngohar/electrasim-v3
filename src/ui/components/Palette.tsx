@@ -214,13 +214,27 @@ function buildGroups(): Group[] {
   }));
 }
 
-/** High-value starting components promoted for the active rule set. */
+/** High-value starting components promoted for the active rule set.
+ *  Each region's list reflects its own regulatory identity:
+ *  - UK (BS 7671 18th Ed): all-RCBO boards are modern best practice, with
+ *    MCB + RCD as the classic split-load pairing.
+ *  - US (NEC): plain thermal-magnetic breakers (B/C/D curves are an IEC
+ *    concept), GFCI receptacles (NEC 210.8) and AFCI protection (NEC 210.12).
+ *  - EU (IEC 60364): MCB + 30 mA RCD plus SPD (IEC 60364-4-44 §443).
+ *  - International 230 V: MCB + RCD with HRC fuses still common in
+ *    fuse-board installations across 230 V/50 Hz countries. */
 export function recommendedPaletteTypes(
   standard: StandardId,
   plugSystem: keyof typeof PLUG_SYSTEMS,
 ) {
   const standardProtection =
-    standard === 'us' ? ['mcb-type-c', 'socket-gfci'] : ['rcbo', 'mcb', 'rcd'];
+    standard === 'us'
+      ? ['mcb', 'socket-gfci', 'afdd']
+      : standard === 'eu'
+        ? ['mcb', 'rcd', 'spd']
+        : standard === 'int'
+          ? ['mcb', 'rcd', 'fuse']
+          : ['rcbo', 'mcb', 'rcd']; // uk
   return ['ac-mains-supply', ...standardProtection, primarySocketForPlug(plugSystem), 'bulb'];
 }
 
@@ -278,6 +292,7 @@ export function Palette({ open, isPhone }: Props) {
   const regulationStandard = useSettingsStore((s) => s.regulationStandard);
   const plugSystem = useSettingsStore((s) => s.plugSystem);
   const recentComponents = useSettingsStore((s) => s.recentComponents);
+  const showRecentComponents = useSettingsStore((s) => s.showRecentComponents);
   // Plan §20: during an active challenge the palette exposes only the
   // allowed component types; everything else is dimmed (not deleted).
   const challengeDefinition = useDeclarativeChallengeStore((s) =>
@@ -571,8 +586,8 @@ export function Palette({ open, isPhone }: Props) {
         </div>
       </div>
 
-      {/* Recent components */}
-      {!query && visibleRecentComponents.length > 0 && (
+      {/* Recent components (toggleable in Settings → Editing) */}
+      {!query && showRecentComponents && visibleRecentComponents.length > 0 && (
         <div className="border-b border-slate-100 px-2.5 pb-2 pt-2 dark:border-slate-700/60">
           <div className="px-1 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
             Recent

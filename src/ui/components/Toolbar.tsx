@@ -30,7 +30,7 @@ import {
   Wrench,
   Zap,
 } from 'lucide-react';
-import { redo, undo, useUiStore } from '../../store';
+import { redo, undo, useCircuitStore, useUiStore } from '../../store';
 import { useSettingsStore } from '../../store/settingsStore';
 import { useResolvedTheme } from '../hooks/useResolvedTheme';
 import { IconBtn } from './IconBtn';
@@ -142,6 +142,8 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
         onClick={() => {
           const nextMode = appMode === 'basic' ? 'pro' : 'basic';
           setSetting('appMode', nextMode);
+          // Untouched demo benches follow the mode (no-op on user circuits).
+          useCircuitStore.getState().swapDemoForMode(nextMode);
           if (nextMode === 'basic' && dashboardOpen) {
             onToggleDashboard?.();
           }

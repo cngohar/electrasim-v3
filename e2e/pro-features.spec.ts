@@ -179,7 +179,11 @@ test.describe('Dual standard & pro features', () => {
 
     const essentials = page.locator('[data-standard-recommendations="us"]');
     await expect(essentials).toBeVisible();
-    await expect(essentials.locator('[data-palette-type="mcb-type-c"]')).toBeVisible();
+    // US essentials are NEC-flavoured: plain breaker (no IEC curve types),
+    // GFCI receptacle (210.8), AFCI protection (210.12) — plus the chosen
+    // regional socket.
+    await expect(essentials.locator('[data-palette-type="mcb"]')).toBeVisible();
+    await expect(essentials.locator('[data-palette-type="afdd"]')).toBeVisible();
     await expect(essentials.locator('[data-palette-type="socket-gfci"]')).toBeVisible();
     await expect(essentials.locator('[data-palette-type="socket-schuko"]')).toBeVisible();
   });

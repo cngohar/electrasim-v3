@@ -130,6 +130,7 @@ export function StandardSelector({ compact = false }: Props) {
               type="button"
               onClick={() => {
                 setSetting('appMode', 'pro');
+                useCircuitStore.getState().swapDemoForMode('pro');
                 setOpen(false);
                 addLog('Switched to Pro Electrician Mode — standard selector unlocked.', 'info');
               }}

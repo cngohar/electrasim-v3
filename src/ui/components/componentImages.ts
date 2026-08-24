@@ -1,4 +1,10 @@
+import imgVariantCflBulb from '../../assets/images/bulb_cfl_spiral_1786782245054.jpg';
+import imgVariantBulbHalogen from '../../assets/images/bulb_halogen_gu10_1786782231855.jpg';
+import imgVariantBulbIncandescent from '../../assets/images/bulb_incandescent_edison_1786782216775.jpg';
 import imgLightBulb from '../../assets/images/bulb_led_a60_1786782205960.jpg';
+import imgVariantLedDownlight from '../../assets/images/bulb_led_downlight_1786782271149.jpg';
+import imgVariantSmartRgb from '../../assets/images/bulb_smart_rgb_1786782258296.jpg';
+import imgVariantTubeLight from '../../assets/images/bulb_tube_light_1786782285212.jpg';
 import imgLightSwitch from '../../assets/images/component_light_switch_1786249016724.jpg';
 import imgMcbBreaker from '../../assets/images/component_mcb_breaker_1786248947812.jpg';
 import imgRcdSwitch from '../../assets/images/component_rcd_switch_1786249000503.jpg';
@@ -10,27 +16,21 @@ import imgEvCharger from '../../assets/images/ev_charger_station_1786333648320.j
 import imgRelayModule from '../../assets/images/relay_module_1786522047102.jpg';
 import imgSolarPanel from '../../assets/images/solar_panel_pv_1786333628876.jpg';
 import imgTransformer24v from '../../assets/images/transformer_24v_1786522030718.jpg';
-import imgVariantBulbHalogen from '../../assets/images/bulb_halogen_gu10_1786782231855.jpg';
-import imgVariantBulbIncandescent from '../../assets/images/bulb_incandescent_edison_1786782216775.jpg';
 import imgVariantCeilingFan from '../../assets/images/variant_ceiling_fan.png';
-import imgVariantExtractorFan from '../../assets/images/variant_extractor_fan.png';
-import imgVariantIndustrialExhaustFan from '../../assets/images/variant_industrial_exhaust_fan.png';
-import imgVariantLedDownlight from '../../assets/images/bulb_led_downlight_1786782271149.jpg';
-import imgVariantMotor from '../../assets/images/variant_motor.png';
-import imgVariantTableFan from '../../assets/images/variant_table_fan.png';
-import imgVariantTubeLight from '../../assets/images/bulb_tube_light_1786782285212.jpg';
-import imgVariantCflBulb from '../../assets/images/bulb_cfl_spiral_1786782245054.jpg';
-import imgVariantSmartRgb from '../../assets/images/bulb_smart_rgb_1786782258296.jpg';
-import imgVariantRcbo from '../../assets/images/variant_rcbo_breaker_1786780527368.jpg';
-import imgVariantMcbTypeC from '../../assets/images/variant_mcb_type_c_1786780544186.jpg';
-import imgVariantMccb from '../../assets/images/variant_mccb_industrial_1786780558864.jpg';
-import imgVariantSpd from '../../assets/images/variant_spd_surge_1786780572651.jpg';
-import imgVariantSocketUsb from '../../assets/images/variant_socket_usb_1786780587870.jpg';
-import imgVariantSocketGfci from '../../assets/images/variant_socket_gfci_1786780599469.jpg';
 import imgVariantCookerSwitch from '../../assets/images/variant_cooker_switch_1786780613299.jpg';
 import imgVariantDimmer from '../../assets/images/variant_dimmer_switch_1786780625706.jpg';
-import imgVariantPirSensor from '../../assets/images/variant_pir_sensor_1786780637436.jpg';
+import imgVariantExtractorFan from '../../assets/images/variant_extractor_fan.png';
+import imgVariantIndustrialExhaustFan from '../../assets/images/variant_industrial_exhaust_fan.png';
+import imgVariantMcbTypeC from '../../assets/images/variant_mcb_type_c_1786780544186.jpg';
 import imgVariantMcbTypeD from '../../assets/images/variant_mcb_type_d_1786780651637.jpg';
+import imgVariantMccb from '../../assets/images/variant_mccb_industrial_1786780558864.jpg';
+import imgVariantMotor from '../../assets/images/variant_motor.png';
+import imgVariantPirSensor from '../../assets/images/variant_pir_sensor_1786780637436.jpg';
+import imgVariantRcbo from '../../assets/images/variant_rcbo_breaker_1786780527368.jpg';
+import imgVariantSocketGfci from '../../assets/images/variant_socket_gfci_1786780599469.jpg';
+import imgVariantSocketUsb from '../../assets/images/variant_socket_usb_1786780587870.jpg';
+import imgVariantSpd from '../../assets/images/variant_spd_surge_1786780572651.jpg';
+import imgVariantTableFan from '../../assets/images/variant_table_fan.png';
 
 /** Photorealistic component images registry with real photography assets */
 export const COMPONENT_IMAGES: Record<string, string> = {
@@ -143,12 +143,21 @@ export function getComponentImage(type: string, category?: string): string {
   const registered = COMPONENT_IMAGES[type];
   if (registered) return registered;
 
-  if (category === 'lighting' || type.includes('bulb') || type.includes('light')) return imgLightBulb;
-  if (category === 'protection' || type.includes('mcb') || type.includes('rcd') || type.includes('breaker')) return imgMcbBreaker;
-  if (category === 'socket' || type.includes('socket') || type.includes('plug')) return imgSocketOutlet;
+  if (category === 'lighting' || type.includes('bulb') || type.includes('light'))
+    return imgLightBulb;
+  if (
+    category === 'protection' ||
+    type.includes('mcb') ||
+    type.includes('rcd') ||
+    type.includes('breaker')
+  )
+    return imgMcbBreaker;
+  if (category === 'socket' || type.includes('socket') || type.includes('plug'))
+    return imgSocketOutlet;
   if (category === 'switch' || type.includes('switch')) return imgLightSwitch;
   if (category === 'fan' || type.includes('fan')) return imgVariantCeilingFan;
-  if (category === 'motor' || type.includes('motor') || type.includes('pump')) return imgVariantMotor;
+  if (category === 'motor' || type.includes('motor') || type.includes('pump'))
+    return imgVariantMotor;
   if (category === 'transformer' || type.includes('transformer')) return imgTransformer24v;
   if (category === 'relay' || type.includes('relay')) return imgRelayModule;
   if (category === 'contactor' || type.includes('contactor')) return imgContactor3p;

@@ -11,6 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — Session 2026-08-23: Seven UX Fixes — Mode-Specific Demo Benches, Themed Specs Modal, Regional Essentials
+
+- **Mode-specific demo circuits** (`seed.ts`, `circuitStore.ts`): the single showcase seed (which scored 0 under Pro compliance) is replaced by two purpose-built benches — a Student demo (MCB→switch→bulb + RCBO socket, 8 components) and a Pro demo (two-way staircase lighting, RCBO socket, D-curve breaker + contactor motor, 12 components). **Both validate 100/100 under every standard × plug pairing (12 combos verified) and simulate fully energised.** Switching Student↔Pro swaps an *untouched* demo to the mode's bench (user circuits are never rewritten); Reset-to-Defaults and the Pro tour are mode-aware; plug swaps work on both variants.
+- **Latent compliance bug fixed** (`compliance.ts`): under US/INT standards (default curve C) the motor-curve check swept **every** component — terminals, bulbs, sockets — into "B-curve breaker on motor load" errors. The check now targets only motor-class loads (recommended curve > standard default) and compares curve order (B<C<D) instead of hard-coding 'B'.
+- **Regional essentials differentiated** (`Palette.tsx`): UK/EU/INT no longer share one list. UK: RCBO/MCB/RCD; US: breaker + GFCI + AFCI (NEC 210.8/210.12 — the old list recommended `mcb-type-c`, an IEC curve concept); EU: MCB/RCD/SPD (IEC 60364-4-44); INT: MCB/RCD/fuse. E2E expectation updated.
+- **Component specs modal themed** (`ComponentInfoModal.tsx`): the hard-coded dark palette is now light-first with `dark:` variants across all ~40 surfaces (header, tabs, spec matrix, wiring/standards panels, blog-link card, footer).
+- **Double-close animation fixed** (`ComponentInfoModal.tsx`): the close handler and the store-watching effect both owned `isClosing`, so closing played exit → entrance → exit. The store's `activeType` is now the single animation trigger; one 200 ms exit.
+- **Placement ghost uses the redesigned art** (`OverlayLayer.tsx`): the drag/placement ghost and the variant preview ghost now render the same near-realistic SVG art as placed components, falling back to the legacy emoji only when no art exists.
+- **Fix All button** (`ValidationReportView.tsx`): when two or more validation issues carry quick fixes, a single "Fix All (N)" button applies them in report order.
+- **Recent-components toggle** (`settingsStore.ts`, `SettingsTabContent.tsx`, `Palette.tsx`): new persisted `showRecentComponents` setting (default on) with an Editing-tab toggle controlling the palette's Recent row.
+- Tests updated for the new benches (simulation, circuitStore momentary controls via injected push button, reroute, settings whitelist); 874 total passing; biome clean repo-wide.
+
 ### Fixed — Session 2026-08-23: Validation Blind Spot — Conductor Bypass & Unwired Components
 
 User-reported defect: Live → MCB → FCU (Live only) → bulb → Neutral, with the FCU's N-in/N-out deliberately unwired, simulated successfully **and** validated at a perfect 100 in both Student and Pro modes.

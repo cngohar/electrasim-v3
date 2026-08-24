@@ -11,6 +11,7 @@ import {
 } from '../../domain';
 import type { PendingCustomPath } from '../../store';
 import { WireEndpointHandles } from './WireLayer';
+import { getDefaultArt } from './componentArt';
 import { buildBezierPath, pointsToLinePath } from './geometry';
 import type { CanvasTheme, PortLoc } from './types';
 
@@ -283,6 +284,10 @@ function GhostComponent({
   if (!definition) return null;
   const x = snapToGrid(cursor.x, gridSize) - COMP_W / 2;
   const y = snapToGrid(cursor.y, gridSize) - COMP_H / 2;
+  // Match the placed component's visual: near-realistic SVG art when the
+  // component has it, legacy emoji glyph otherwise. Keeps the drag/placement
+  // preview consistent with what actually lands on the canvas.
+  const art = getDefaultArt(type);
   return (
     <g transform={`translate(${x} ${y})`} pointerEvents="none" opacity={0.55}>
       <rect
@@ -295,9 +300,20 @@ function GhostComponent({
         strokeWidth={1.5}
         strokeDasharray="4 4"
       />
-      <text x={COMP_W / 2} y={28} textAnchor="middle" fontSize="20">
-        {definition.icon}
-      </text>
+      {art ? (
+        <image
+          href={art}
+          x={COMP_W / 2 - 19}
+          y={4}
+          width={38}
+          height={34}
+          preserveAspectRatio="xMidYMid meet"
+        />
+      ) : (
+        <text x={COMP_W / 2} y={28} textAnchor="middle" fontSize="20">
+          {definition.icon}
+        </text>
+      )}
       <text
         x={COMP_W / 2}
         y={50}
@@ -378,10 +394,21 @@ function VariantPreviewGhost({ type, component, theme }: VariantPreviewGhostProp
         </text>
       </g>
 
-      {/* Visual Glyph Icon */}
-      <text x={COMP_W / 2} y={32} textAnchor="middle" fontSize="22">
-        {definition.icon}
-      </text>
+      {/* Visual: near-realistic art when available, legacy glyph otherwise */}
+      {getDefaultArt(type) ? (
+        <image
+          href={getDefaultArt(type) ?? undefined}
+          x={COMP_W / 2 - 20}
+          y={8}
+          width={40}
+          height={34}
+          preserveAspectRatio="xMidYMid meet"
+        />
+      ) : (
+        <text x={COMP_W / 2} y={32} textAnchor="middle" fontSize="22">
+          {definition.icon}
+        </text>
+      )}
 
       {/* Variant Label */}
       <text

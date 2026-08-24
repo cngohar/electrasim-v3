@@ -61,7 +61,8 @@ const CPC_MM2: Record<number, number> = {
 };
 
 /** 20 °C copper fallback for sizes outside the tables (ρ = 0.0172 Ω·mm²/m). */
-const cuMOhmPerM = (mm2: number) => CU_MOHM_PER_M[mm2] ?? (mm2 > 0 ? 17.2 / mm2 : Number.POSITIVE_INFINITY);
+const cuMOhmPerM = (mm2: number) =>
+  CU_MOHM_PER_M[mm2] ?? (mm2 > 0 ? 17.2 / mm2 : Number.POSITIVE_INFINITY);
 
 export function getR1R2MilliOhmPerMetre(lineMm2: number): {
   r1: number;
@@ -211,7 +212,9 @@ export function checkDeviceDisconnection(
 
   const furthestComp = byId.get(furthestId);
   const furthestLabel = furthestComp
-    ? (furthestComp.state.autoLabel ?? COMPONENT_DEFS[furthestComp.type]?.label ?? furthestComp.type)
+    ? (furthestComp.state.autoLabel ??
+      COMPONENT_DEFS[furthestComp.type]?.label ??
+      furthestComp.type)
     : null;
 
   return {

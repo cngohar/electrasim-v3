@@ -258,11 +258,19 @@ function checkMotorBreakerCurve(circuit: Circuit, standardId: StandardId): Compl
   const issues: ComplianceIssue[] = [];
   const byId = new Map(components.map((c) => [c.id, c]));
 
+  const standard = getStandard(standardId);
+  const CURVE_ORDER: Record<'B' | 'C' | 'D', number> = { B: 0, C: 1, D: 2 };
+
   for (const comp of components) {
     const def = COMPONENT_DEFS[comp.type];
     if (!def) continue;
-    const recommended = recommendCurveForLoad(comp.type, getStandard(standardId));
-    if (recommended === 'B') continue; // B is fine for resistive/electronic loads
+    const recommended = recommendCurveForLoad(comp.type, standard);
+    // Only motor-class loads need the inrush check: they are exactly the
+    // components whose recommended curve EXCEEDS the standard's default.
+    // (Comparing against 'B' swept in every component under standards whose
+    // default curve is already C — US/INT — flagging terminals and bulbs
+    // as "motor loads".)
+    if (CURVE_ORDER[recommended] <= CURVE_ORDER[standard.defaultMcbCurve]) continue;
 
     // Walk upstream to find the nearest breaker and inspect its curve.
     const visited = new Set<string>([comp.id]);
@@ -297,12 +305,12 @@ function checkMotorBreakerCurve(circuit: Circuit, standardId: StandardId): Compl
         ? null
         : (COMPONENT_DEFS[breaker.type]?.mcbType ?? 'B');
 
-    if (breakerCurve === 'B') {
+    if (breakerCurve && CURVE_ORDER[breakerCurve] < CURVE_ORDER[recommended]) {
       issues.push({
         id: `motorcurve_${comp.id}_${breakerId}`,
         severity: 'error',
-        title: `B-curve breaker on motor load ${def.label}`,
-        description: `${def.label} draws a high inrush current on startup (5–10× running). A B-curve MCB (magnetic trip 3–5×In) will nuisance-trip. A ${recommended}-curve breaker is required under ${getStandard(standardId).citation}.`,
+        title: `${breakerCurve}-curve breaker on motor load ${def.label}`,
+        description: `${def.label} draws a high inrush current on startup (5–10× running). A ${breakerCurve}-curve MCB will nuisance-trip on that inrush. A ${recommended}-curve breaker is required under ${getStandard(standardId).citation}.`,
         recommendation: `Replace the upstream breaker with a Type ${recommended} MCB/RCBO rated for motor inrush.`,
         componentId: breakerId,
         category: 'protection',

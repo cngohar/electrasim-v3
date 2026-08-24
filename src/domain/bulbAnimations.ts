@@ -82,7 +82,7 @@ export const BULB_ANIMATION_PROFILES: Record<string, BulbAnimationProfile> = {
 export function getBulbAnimationProfile(componentType: string): BulbAnimationProfile {
   // Map component types to animation profiles
   const typeMap: Record<string, string> = {
-    'bulb': 'led',
+    bulb: 'led',
     'bulb-smart-rgb': 'led',
     'led-downlight': 'led',
     'bulb-cfl': 'cfl',

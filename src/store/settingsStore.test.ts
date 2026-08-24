@@ -77,6 +77,7 @@ describe('settingsStore — Phase 6.1', () => {
       showGrid: false,
       snapToGrid: true,
       showMiniMap: false,
+      showRecentComponents: true,
       appMode: 'basic',
       canvasPreset: 'high-contrast',
       wireColorStandard: 'uk_eu',

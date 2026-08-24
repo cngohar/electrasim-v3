@@ -12,11 +12,7 @@
  *   1×IΔn, 150 ms at 2×IΔn, 40 ms at 5×IΔn, must-not-trip below 0.5×IΔn.
  */
 import { describe, expect, it } from 'vitest';
-import {
-  calculateMCBTrip,
-  calculateRCDTrip,
-  getCableAmpacity,
-} from './tripCurves';
+import { calculateMCBTrip, calculateRCDTrip, getCableAmpacity } from './tripCurves';
 
 describe('getCableAmpacity (BS 7671 Table 4D5, Method C)', () => {
   it.each([
@@ -115,10 +111,13 @@ describe('calculateMCBTrip (IEC 60898-1)', () => {
     ['B', 4.99],
     ['C', 9.99],
     ['D', 19.99],
-  ] as const)('Type %s does NOT trip instantaneously at %i×In (lower band region)', (type, mult) => {
-    const r = calculateMCBTrip(16 * mult, 16, type);
-    expect(r.tripReason).not.toBe('magnetic');
-  });
+  ] as const)(
+    'Type %s does NOT trip instantaneously at %i×In (lower band region)',
+    (type, mult) => {
+      const r = calculateMCBTrip(16 * mult, 16, type);
+      expect(r.tripReason).not.toBe('magnetic');
+    },
+  );
 
   it('guards non-positive ratings', () => {
     expect(calculateMCBTrip(100, 0).shouldTrip).toBe(false);

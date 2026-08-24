@@ -11,10 +11,10 @@ import { Activity } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { COMPONENT_DEFS } from '../../../domain';
 import {
-  runZsChecks,
   ZE_DEFAULT_OHMS,
   type ZsCheckResult,
   type ZsEarthArrangement,
+  runZsChecks,
 } from '../../../domain/zsCheck';
 import { useCircuitStore } from '../../../store';
 
@@ -70,10 +70,7 @@ export function ZsCheckPanel() {
   const [earthing, setEarthing] = useState<ZsEarthArrangement>('TN-C-S');
 
   const circuit = useMemo(() => ({ components, wires }), [components, wires]);
-  const rows = useMemo(
-    () => runZsChecks(circuit, ZE_DEFAULT_OHMS[earthing]),
-    [circuit, earthing],
-  );
+  const rows = useMemo(() => runZsChecks(circuit, ZE_DEFAULT_OHMS[earthing]), [circuit, earthing]);
   const curveFreeCount = useMemo(
     () =>
       components.filter((c) => {

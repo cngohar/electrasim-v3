@@ -103,9 +103,7 @@ describe('eicReport — HTML rendering', () => {
   });
 
   it('escapes user-controlled labels (no markup injection into the report)', () => {
-    expect(escapeHtml('<img src=x onerror=alert(1)>')).toBe(
-      '&lt;img src=x onerror=alert(1)&gt;',
-    );
+    expect(escapeHtml('<img src=x onerror=alert(1)>')).toBe('&lt;img src=x onerror=alert(1)&gt;');
     expect(escapeHtml('a"b\'c&d')).toBe('a&quot;b&#39;c&amp;d');
 
     const circuit = rcboCircuit();

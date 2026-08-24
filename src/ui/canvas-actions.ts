@@ -16,7 +16,7 @@ import {
   validateConnection,
 } from '../domain';
 import {
-  buildSeedCircuit,
+  buildSeedCircuitForMode,
   clearHistory,
   useCircuitStore,
   useSettingsStore,
@@ -450,7 +450,7 @@ export function confirmPendingDeletion(): void {
       ui.showUndoToast('All components and wires cleared');
       break;
     case 'reset':
-      cs.setCircuit(buildSeedCircuit());
+      cs.setCircuit(buildSeedCircuitForMode(useSettingsStore.getState().appMode));
       clearHistory();
       void clearPersistedCircuit();
       void clearPersistedSettings();

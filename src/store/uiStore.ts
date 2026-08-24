@@ -17,7 +17,7 @@ import { COMPONENT_DEFS, type ComponentInstance, type WireInstance } from '../do
 import { validateCircuit } from '../domain/circuitValidation';
 import { primarySocketForPlug } from '../domain/standards';
 import { useCircuitStore } from './circuitStore';
-import { buildSeedCircuit } from './seed';
+import { buildProSeedCircuit } from './seed';
 import { useSettingsStore } from './settingsStore';
 import {
   createComponent,
@@ -645,7 +645,7 @@ export const useUiStore = create<UiState>()(
       // bench for the region's plug system. Undoable like any other edit.
       if (id === 'pro' && useCircuitStore.getState().components.length === 0) {
         const plug = useSettingsStore.getState().plugSystem;
-        useCircuitStore.getState().setCircuit(buildSeedCircuit(primarySocketForPlug(plug)));
+        useCircuitStore.getState().setCircuit(buildProSeedCircuit(primarySocketForPlug(plug)));
         get().addLog('Demo circuit loaded for the Pro tour — Ctrl+Z removes it.', 'info');
       }
     },

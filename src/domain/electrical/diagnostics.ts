@@ -67,7 +67,8 @@ export const DIAGNOSTIC_TEMPLATES: Record<string, DiagnosticTemplate> = {
     message: 'Direct Live to Earth connection is a dangerous short-circuit fault.',
     explanation:
       'The Protective Earth (PE) conductor is designed exclusively for fault current protection and casing bonding. Connecting Live directly to Earth causes an immediate dead short or trip.',
-    suggestedFix: 'Connect the Live conductor to a load input or switch terminal instead of the Earth terminal.',
+    suggestedFix:
+      'Connect the Live conductor to a load input or switch terminal instead of the Earth terminal.',
     canOverride: false,
   },
   [DIAGNOSTIC_CODES.TERM_LIVE_NEUTRAL_SHORT]: {
@@ -76,16 +77,19 @@ export const DIAGNOSTIC_TEMPLATES: Record<string, DiagnosticTemplate> = {
     message: 'Direct Live to Neutral connection causes a dead short circuit.',
     explanation:
       'Connecting Live directly to Neutral with zero load impedance creates high fault current that blows fuses or trips circuit breakers immediately.',
-    suggestedFix: 'Insert an electrical load (such as a lamp, fan, or motor) or a switch between the Live supply and Neutral return.',
+    suggestedFix:
+      'Insert an electrical load (such as a lamp, fan, or motor) or a switch between the Live supply and Neutral return.',
     canOverride: false,
   },
   [DIAGNOSTIC_CODES.COMPAT_REGULATOR_BULB]: {
     code: DIAGNOSTIC_CODES.COMPAT_REGULATOR_BULB,
     severity: 'error',
-    message: 'A fan regulator is designed to control a compatible fan load; a bulb cannot be used as its controlled load.',
+    message:
+      'A fan regulator is designed to control a compatible fan load; a bulb cannot be used as its controlled load.',
     explanation:
       'Fan speed regulators use capacitive or inductive phase control tailored to single-phase AC induction fan motors. Connecting a lighting bulb can cause flickering, triac overheating, or bulb damage.',
-    suggestedFix: 'Use a standard Single-Way Switch or a dedicated Light Dimmer Switch to control lighting loads.',
+    suggestedFix:
+      'Use a standard Single-Way Switch or a dedicated Light Dimmer Switch to control lighting loads.',
     canOverride: true,
   },
   [DIAGNOSTIC_CODES.COMPAT_REGULATOR_SOCKET]: {
@@ -94,7 +98,8 @@ export const DIAGNOSTIC_TEMPLATES: Record<string, DiagnosticTemplate> = {
     message: 'A fan regulator must not be connected to supply a general-purpose socket outlet.',
     explanation:
       'Wall sockets and convenience outlets must provide full unfiltered nominal mains voltage (230V). Powering a socket through a fan regulator can damage connected appliances.',
-    suggestedFix: 'Feed the socket directly from an MCB or standard switch with appropriate 2.5mm² wiring.',
+    suggestedFix:
+      'Feed the socket directly from an MCB or standard switch with appropriate 2.5mm² wiring.',
     canOverride: true,
   },
   [DIAGNOSTIC_CODES.COMPAT_REGULATOR_APPLIANCE]: {
@@ -112,7 +117,8 @@ export const DIAGNOSTIC_TEMPLATES: Record<string, DiagnosticTemplate> = {
     message: 'A standard light dimmer switch is not rated to control inductive fan motors.',
     explanation:
       'Light dimmers are designed for resistive or leading/trailing edge LED lighting. Driving inductive motor loads with a light dimmer produces high voltage spikes that destroy the dimmer circuitry.',
-    suggestedFix: 'Use a Rotary Fan Speed Regulator designed specifically for ceiling and ventilation fans.',
+    suggestedFix:
+      'Use a Rotary Fan Speed Regulator designed specifically for ceiling and ventilation fans.',
     canOverride: true,
   },
   [DIAGNOSTIC_CODES.COMPAT_DIMMER_SOCKET]: {

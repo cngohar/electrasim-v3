@@ -179,6 +179,8 @@ export function ValidationReportView({ report, onRunValidation }: Props) {
 
   const filteredIssues =
     selectedCategory === 'all' ? issues : issues.filter((i) => i.severity === selectedCategory);
+  /** Every issue in the full report that carries an automatic quick fix. */
+  const fixableIssues = issues.filter((i) => i.quickFix);
 
   const handleSelectTarget = (issue: ValidationIssue) => {
     if (issue.componentId) {
@@ -306,9 +308,29 @@ export function ValidationReportView({ report, onRunValidation }: Props) {
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between text-[11px] font-bold text-slate-700 dark:text-slate-300">
           <span>Design Issues & Findings</span>
-          <span className="text-[10px] text-slate-400 font-normal">
-            {filteredIssues.length} item(s)
-          </span>
+          <div className="flex items-center gap-2">
+            {fixableIssues.length > 1 && (
+              <button
+                type="button"
+                onClick={() => {
+                  // Apply every available quick fix in report order; each
+                  // application re-runs validation, so the final report
+                  // reflects the combined result.
+                  for (const issue of fixableIssues) {
+                    if (issue.quickFix) applyQuickFix(issue.quickFix);
+                  }
+                }}
+                title={`Apply all ${fixableIssues.length} available quick fixes`}
+                className="flex items-center gap-1 rounded-lg bg-emerald-600 dark:bg-emerald-500 px-2 py-1 text-[10px] font-bold text-white hover:bg-emerald-500 transition shadow-xs"
+              >
+                <Wrench className="size-3" />
+                Fix All ({fixableIssues.length})
+              </button>
+            )}
+            <span className="text-[10px] text-slate-400 font-normal">
+              {filteredIssues.length} item(s)
+            </span>
+          </div>
         </div>
 
         {filteredIssues.length === 0 ? (
