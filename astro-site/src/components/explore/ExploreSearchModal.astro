@@ -1,0 +1,489 @@
+---
+---
+
+<dialog id="explore-search-dialog" class="exp-search-dialog" aria-label="Explore 3D Command Palette">
+  <div class="exp-search-box">
+    <!-- Search Input Header -->
+    <header class="exp-search-header">
+      <div class="exp-input-wrap">
+        <span class="exp-search-icon">⚡</span>
+        <input
+          type="search"
+          id="explore-search-input"
+          class="exp-search-input"
+          placeholder="Search 3D models, modes, components, historical timeline (e.g. Filament, Patent 1880)..."
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+          role="combobox"
+          aria-expanded="true"
+          aria-autocomplete="list"
+          aria-controls="explore-search-results"
+        />
+      </div>
+      <button type="button" id="explore-search-close" class="exp-close-btn" aria-label="Close search (Escape)">
+        ✕
+      </button>
+    </header>
+
+    <!-- Quick Category Filter Pills -->
+    <div class="exp-search-filters">
+      <button type="button" class="exp-filter-pill active" data-filter="all">All 3D Items</button>
+      <button type="button" class="exp-filter-pill" data-filter="model">💡 3D Models</button>
+      <button type="button" class="exp-filter-pill" data-filter="mode">⚙️ 3D Modes</button>
+      <button type="button" class="exp-filter-pill" data-filter="component">🧩 Components</button>
+      <button type="button" class="exp-filter-pill" data-filter="history">📜 History</button>
+    </div>
+
+    <!-- Results List -->
+    <div class="exp-results-wrap">
+      <ul id="explore-search-results" class="exp-results-list" role="listbox">
+        <!-- Dynamically populated by JS -->
+      </ul>
+
+      <div id="explore-search-empty" class="exp-empty-state" hidden>
+        <span class="empty-icon">🔍</span>
+        <p class="empty-title">No 3D results found for "<span id="exp-empty-query"></span>"</p>
+        <p class="empty-desc">Try searching for "Filament", "Exploded", "Cutaway", "1879", or "Patent".</p>
+      </div>
+    </div>
+
+    <!-- Footer Hints -->
+    <footer class="exp-search-footer">
+      <div class="exp-footer-keys">
+        <span><kbd>↑</kbd><kbd>↓</kbd> Navigate</span>
+        <span><kbd>↵</kbd> Select</span>
+        <span><kbd>Esc</kbd> Close</span>
+      </div>
+      <div class="exp-footer-brand">ElectraSim Explore 3D Command Palette</div>
+    </footer>
+  </div>
+</dialog>
+
+<script>
+  interface ExploreSearchItem {
+    id: string;
+    title: string;
+    category: 'model' | 'mode' | 'component' | 'history';
+    desc: string;
+    url: string;
+    badge?: string;
+  }
+
+  const EXPLORE_SEARCH_INDEX: ExploreSearchItem[] = [
+    {
+      id: 'm1',
+      title: 'Edison Carbon-Filament Incandescent Lamp (1879)',
+      category: 'model',
+      desc: 'Foundational 3D model of Thomas Edison’s historical carbonized cotton filament bulb.',
+      url: '/explore/edison-bulb/',
+      badge: 'FOUNDATION',
+    },
+    {
+      id: 'mode-assembly',
+      title: '3D Assembly Mode',
+      category: 'mode',
+      desc: 'Full 3D rotation, zoom, and raycast hover inspection of the complete Edison bulb.',
+      url: '/explore/edison-bulb/#assembly',
+      badge: 'MODE 1',
+    },
+    {
+      id: 'mode-cutaway',
+      title: '3D Cutaway Mode',
+      category: 'mode',
+      desc: 'Wireframe glass envelope shader exposing inner stem, lead wires, and carbon filament.',
+      url: '/explore/edison-bulb/#cutaway',
+      badge: 'MODE 2',
+    },
+    {
+      id: 'mode-exploded',
+      title: '3D Exploded Component Mode',
+      category: 'mode',
+      desc: 'Smooth vertical disassembly of parts with 3D leader line annotations.',
+      url: '/explore/edison-bulb/#exploded',
+      badge: 'MODE 3',
+    },
+    {
+      id: 'mode-isolate',
+      title: '3D Isolate / Inspect Mode',
+      category: 'mode',
+      desc: 'Isolate individual components with dedicated technical metadata cards.',
+      url: '/explore/edison-bulb/#isolate',
+      badge: 'MODE 4',
+    },
+    {
+      id: 'mode-experiment',
+      title: 'Physics Experiment Laboratory Mode',
+      category: 'mode',
+      desc: '0V - 130V supply voltage slider with resistance, power, temperature, and burnout simulation.',
+      url: '/explore/edison-bulb/#experiment',
+      badge: 'MODE 5',
+    },
+    {
+      id: 'c-filament',
+      title: 'Carbon Filament (~0.33 mm Cotton Thread)',
+      category: 'component',
+      desc: 'Incandescing element operating at ~2200 K with ~113 Ω cold / ~140 Ω hot resistance.',
+      url: '/explore/edison-bulb/',
+      badge: 'CARBON',
+    },
+    {
+      id: 'c-glass',
+      title: 'Clear Soda-Lime Glass Envelope',
+      category: 'component',
+      desc: 'A19 pear shape glass chamber sealing high vacuum to prevent carbon oxidation.',
+      url: '/explore/edison-bulb/',
+      badge: 'GLASS',
+    },
+    {
+      id: 'c-stem',
+      title: 'Glass Stem & Inner Seal',
+      category: 'component',
+      desc: 'Inner glass pigtail stem sealed through envelope bottom anchoring lead wires.',
+      url: '/explore/edison-bulb/',
+      badge: 'MOUNT',
+    },
+    {
+      id: 'c-base',
+      title: 'Brass Screw Base (Edison E26)',
+      category: 'component',
+      desc: 'Threaded metal socket shell inventing standard electrical socket mounting.',
+      url: '/explore/edison-bulb/',
+      badge: 'SOCKET',
+    },
+    {
+      id: 'h-1879',
+      title: 'Oct 21, 1879 — Edison 14.5-Hour Breakthrough',
+      category: 'history',
+      desc: 'Edison’s Menlo Park team achieved a ~14.5 h continuous burn using carbonized cotton thread.',
+      url: '/explore/edison-bulb/#tab-timeline-content',
+      badge: '1879',
+    },
+    {
+      id: 'h-1880',
+      title: 'Jan 27, 1880 — U.S. Patent No. 223,898 Granted',
+      category: 'history',
+      desc: 'Edison granted fundamental patent for "Improvement in Electric Lamps".',
+      url: '/explore/edison-bulb/#tab-timeline-content',
+      badge: 'PATENT',
+    },
+  ];
+
+  function initExploreSearch() {
+    const dialog = document.getElementById('explore-search-dialog') as HTMLDialogElement | null;
+    const input = document.getElementById('explore-search-input') as HTMLInputElement | null;
+    const closeBtn = document.getElementById('explore-search-close');
+    const resultsList = document.getElementById('explore-search-results');
+    const emptyState = document.getElementById('explore-search-empty');
+    const emptyQuery = document.getElementById('exp-empty-query');
+    const filterPills = document.querySelectorAll('.exp-filter-pill');
+
+    let activeFilter = 'all';
+
+    function openSearch() {
+      if (!dialog) return;
+      dialog.showModal();
+      if (input) {
+        input.value = '';
+        input.focus();
+      }
+      renderResults(EXPLORE_SEARCH_INDEX);
+    }
+
+    function closeSearch() {
+      if (dialog) dialog.close();
+    }
+
+    // Trigger Search Modal on button clicks with [data-exp-search]
+    document.querySelectorAll('[data-exp-search]').forEach((btn) => {
+      btn.addEventListener('click', openSearch);
+    });
+
+    // Hotkey: Ctrl+K or ⌘K
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        if (dialog?.open) {
+          closeSearch();
+        } else {
+          openSearch();
+        }
+      } else if (e.key === 'Escape' && dialog?.open) {
+        closeSearch();
+      }
+    });
+
+    if (closeBtn) closeBtn.addEventListener('click', closeSearch);
+    if (dialog) {
+      dialog.addEventListener('click', (e) => {
+        if (e.target === dialog) closeSearch();
+      });
+    }
+
+    // Filter Pills
+    filterPills.forEach((pill) => {
+      btnToPill(pill);
+    });
+
+    function btnToPill(pill: Element) {
+      pill.addEventListener('click', () => {
+        filterPills.forEach((p) => p.classList.remove('active'));
+        pill.classList.add('active');
+        activeFilter = pill.getAttribute('data-filter') || 'all';
+        filterResults();
+      });
+    }
+
+    if (input) {
+      input.addEventListener('input', filterResults);
+    }
+
+    function filterResults() {
+      const q = input?.value.toLowerCase().trim() || '';
+      const filtered = EXPLORE_SEARCH_INDEX.filter((item) => {
+        const matchesFilter = activeFilter === 'all' || item.category === activeFilter;
+        const matchesQuery =
+          !q ||
+          item.title.toLowerCase().includes(q) ||
+          item.desc.toLowerCase().includes(q) ||
+          item.badge?.toLowerCase().includes(q);
+        return matchesFilter && matchesQuery;
+      });
+
+      if (filtered.length === 0) {
+        if (resultsList) resultsList.innerHTML = '';
+        if (emptyState) emptyState.hidden = false;
+        if (emptyQuery) emptyQuery.textContent = q;
+      } else {
+        if (emptyState) emptyState.hidden = true;
+        renderResults(filtered);
+      }
+    }
+
+    function renderResults(items: ExploreSearchItem[]) {
+      if (!resultsList) return;
+      resultsList.innerHTML = items
+        .map(
+          (item) => `
+        <li class="exp-res-item">
+          <a href="${item.url}" class="exp-res-link">
+            <div class="exp-res-top">
+              <span class="exp-res-title">${item.title}</span>
+              ${item.badge ? `<span class="exp-res-badge">${item.badge}</span>` : ''}
+            </div>
+            <p class="exp-res-desc">${item.desc}</p>
+          </a>
+        </li>
+      `,
+        )
+        .join('');
+    }
+  }
+
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    initExploreSearch();
+  } else {
+    document.addEventListener('DOMContentLoaded', initExploreSearch);
+  }
+</script>
+
+<style>
+  .exp-search-dialog {
+    border: none;
+    background: transparent;
+    padding: 0;
+    margin: auto;
+    max-width: 640px;
+    width: 92vw;
+    border-radius: 1rem;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+    overflow: hidden;
+  }
+  .exp-search-dialog::backdrop {
+    background: rgba(5, 8, 17, 0.85);
+    backdrop-filter: blur(12px);
+  }
+  .exp-search-box {
+    background: #0b1120;
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    border-radius: 1rem;
+    display: flex;
+    flex-direction: column;
+    color: #f8fafc;
+    overflow: hidden;
+  }
+
+  /* Header */
+  .exp-search-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+    background: #0f172a;
+  }
+  .exp-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+  }
+  .exp-search-icon {
+    font-size: 1.1rem;
+    color: #06b6d4;
+  }
+  .exp-search-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    color: #ffffff;
+    font-family: var(--font-display);
+    font-size: 0.98rem;
+    outline: none;
+  }
+  .exp-search-input::placeholder {
+    color: #64748b;
+  }
+  .exp-close-btn {
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 0.2rem 0.5rem;
+  }
+  .exp-close-btn:hover {
+    color: #ffffff;
+  }
+
+  /* Filters */
+  .exp-search-filters {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.6rem 1.25rem;
+    background: #050811;
+    border-bottom: 1px solid rgba(56, 189, 248, 0.15);
+    overflow-x: auto;
+  }
+  .exp-filter-pill {
+    padding: 0.3rem 0.65rem;
+    border-radius: 0.4rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #0f172a;
+    color: #94a3b8;
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .exp-filter-pill.active {
+    background: #0284c7;
+    border-color: #38bdf8;
+    color: #ffffff;
+    font-weight: 700;
+  }
+
+  /* Results */
+  .exp-results-wrap {
+    max-height: 360px;
+    overflow-y: auto;
+    padding: 0.5rem;
+  }
+  .exp-results-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .exp-res-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.65rem 0.85rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    color: #f8fafc;
+    transition: background 0.15s ease;
+  }
+  .exp-res-link:hover {
+    background: #1e293b;
+  }
+  .exp-res-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .exp-res-title {
+    font-family: var(--font-display);
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #38bdf8;
+  }
+  .exp-res-badge {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.6rem;
+    font-weight: 800;
+    padding: 0.12rem 0.4rem;
+    border-radius: 3px;
+    background: rgba(6, 182, 212, 0.2);
+    color: #38bdf8;
+    border: 1px solid rgba(6, 182, 212, 0.3);
+  }
+  .exp-res-desc {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    line-height: 1.4;
+  }
+
+  /* Empty State */
+  .exp-empty-state {
+    padding: 2.5rem 1rem;
+    text-align: center;
+    color: #64748b;
+  }
+  .empty-icon {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  .empty-title {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #cbd5e1;
+  }
+  .empty-desc {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-top: 0.25rem;
+  }
+
+  /* Footer */
+  .exp-search-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 1.25rem;
+    background: #050811;
+    border-top: 1px solid rgba(56, 189, 248, 0.15);
+    font-size: 0.72rem;
+    color: #64748b;
+  }
+  .exp-footer-keys {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+  .exp-footer-keys kbd {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.65rem;
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #94a3b8;
+  }
+</style>

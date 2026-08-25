@@ -1,0 +1,1523 @@
+---
+import ExploreLayout from '../../layouts/ExploreLayout.astro';
+
+const title = 'Edison Carbon-Filament Lamp (1879) — 3D Interactive Explorer | ElectraSim';
+const description =
+  'Interactive 3D historical explorer for Thomas Edison’s 1879 carbonized cotton filament incandescent light bulb. Features 5 viewing modes, cutaway view, exploded assembly, technical specs, timeline, and live physics experiment lab.';
+const canonical = 'https://electrasim.com/explore/edison-bulb/';
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: 'Edison Bulb (1879) 3D Explorer',
+  url: canonical,
+  description: description,
+  applicationCategory: 'EducationalApplication',
+  operatingSystem: 'All',
+  browserRequirements: 'Requires JavaScript and HTML5 Canvas WebGL.',
+  isAccessibleForFree: true,
+  publisher: {
+    '@type': 'Organization',
+    name: 'ElectraSim',
+    url: 'https://electrasim.com/',
+  },
+};
+---
+
+<ExploreLayout
+  title={title}
+  description={description}
+  canonical={canonical}
+  structuredData={structuredData}
+>
+  <div class="explore-app-shell" id="explore-app-shell">
+    <h1 class="sr-only">Edison Carbon-Filament Lamp (1879) — 3D Interactive Explorer</h1>
+
+    <!-- Sub-Header Bar (Mode Switcher & Controls) -->
+    <header class="explore-sub-header" role="region" aria-label="3D Controls">
+      <div class="sub-header-left">
+        <div class="current-item-badge">
+          <span class="item-icon">💡</span>
+          <span class="item-name">Edison Bulb (1879)</span>
+          <span class="item-tag">3D MODEL</span>
+        </div>
+      </div>
+
+      <!-- Mode Selector Bar -->
+      <div class="sub-header-center">
+        <nav class="mode-bar-dark" aria-label="3D Exploration Modes">
+          <button type="button" class="mode-btn-dark active" data-mode="assembly" title="Full 3D Assembly Mode (Key: 1)">
+            <span class="mode-icon">🔄</span>
+            <span>1. Assembly</span>
+          </button>
+          <button type="button" class="mode-btn-dark" data-mode="cutaway" title="Glass Envelope Cutaway View (Key: 2)">
+            <span class="mode-icon">✂️</span>
+            <span>2. Cutaway</span>
+          </button>
+          <button type="button" class="mode-btn-dark" data-mode="exploded" title="Vertical Exploded Component View (Key: 3)">
+            <span class="mode-icon">💥</span>
+            <span>3. Exploded</span>
+          </button>
+          <button type="button" class="mode-btn-dark" data-mode="isolate" title="Isolate and Inspect Components (Key: 4)">
+            <span class="mode-icon">🔍</span>
+            <span>4. Isolate</span>
+          </button>
+          <button type="button" class="mode-btn-dark" data-mode="experiment" title="Physics Experiment Laboratory (Key: 5)">
+            <span class="mode-icon">🧪</span>
+            <span>5. Experiment</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Right Header Actions -->
+      <div class="sub-header-right">
+        <button type="button" id="toggle-power-btn" class="power-toggle-btn-dark" title="Toggle Filament Power (Spacebar)">
+          <span class="power-icon">⚡</span>
+          <span class="power-text">Power: <strong id="power-state-label" style="color: #f59e0b;">ON</strong></span>
+        </button>
+
+        <button type="button" id="sidebar-toggle-btn" class="hdr-btn-dark" title="Toggle Guide Sidebar">
+          <span>📜 Guide & Specs</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main 3D Interactive Viewport & Control Overlay -->
+    <div class="explore-main-stage">
+      <!-- 3D Canvas Stage -->
+      <div class="stage-3d-wrapper" id="stage-3d-wrapper">
+        <canvas id="edison-3d-canvas" class="edison-canvas"></canvas>
+
+        <!-- On-Canvas Instructions & Mode Indicator -->
+        <div class="canvas-top-overlay">
+          <div class="mode-indicator">
+            <span class="ind-dot"></span>
+            <span id="active-mode-title">Assembly Mode</span>
+          </div>
+          <div class="canvas-hint hide-mobile">
+            <span>🖱️ Left-Click + Drag: Rotate · Scroll: Zoom · Keys 1-5: Modes · Space: Power</span>
+          </div>
+        </div>
+
+        <!-- Part Inspection Tooltip (Hover / Selection) -->
+        <div id="part-inspection-tooltip" class="part-tooltip" hidden>
+          <div id="tooltip-part-name" class="tooltip-name">Part Name</div>
+          <div id="tooltip-part-mat" class="tooltip-mat">Material</div>
+          <div id="tooltip-part-desc" class="tooltip-desc">Description</div>
+        </div>
+
+        <!-- Component Selector Bar for Isolate Mode -->
+        <div id="isolate-controls-bar" class="isolate-bar" hidden>
+          <label for="part-select-dropdown" class="isolate-label">Select Component to Isolate:</label>
+          <select id="part-select-dropdown" class="part-dropdown">
+            <option value="envelope">Glass Envelope (Bulb)</option>
+            <option value="filament">Carbon Filament</option>
+            <option value="supports">Support Wires</option>
+            <option value="stem">Glass Stem (Mount)</option>
+            <option value="leads">Lead Wires</option>
+            <option value="base">Brass Screw Base</option>
+            <option value="contact">Copper Foot Contact</option>
+            <option value="insulator">Base Insulator</option>
+            <option value="vacuum">Vacuum Atmosphere</option>
+          </select>
+        </div>
+
+        <!-- Physics Experiment Controls Panel (Experiment Mode) -->
+        <div id="experiment-controls-panel" class="experiment-panel" hidden>
+          <div class="exp-head">
+            <span class="exp-icon">🧪</span>
+            <span>Edison 110V Physics Laboratory</span>
+          </div>
+
+          <div class="exp-slider-row">
+            <label for="voltage-slider" class="slider-label">Supply Voltage: <strong id="voltage-val-display" style="color: #38bdf8;">110 V</strong></label>
+            <input type="range" id="voltage-slider" min="0" max="130" step="1" value="110" class="volts-range" />
+            <div class="range-marks">
+              <span>0V (OFF)</span>
+              <span>110V (Nominal)</span>
+              <span>130V (Overdrive Burnout)</span>
+            </div>
+          </div>
+
+          <!-- Calculated Electrical Physics Readouts -->
+          <div class="exp-readouts-grid">
+            <div class="readout-card">
+              <span class="rd-lbl">Cold / Hot Resistance</span>
+              <span class="rd-val" id="rd-resistance">113 Ω → 140 Ω</span>
+            </div>
+            <div class="readout-card">
+              <span class="rd-lbl">Operating Current</span>
+              <span class="rd-val" id="rd-current">0.78 A</span>
+            </div>
+            <div class="readout-card">
+              <span class="rd-lbl">Power Draw</span>
+              <span class="rd-val" id="rd-power">86 W</span>
+            </div>
+            <div class="readout-card">
+              <span class="rd-lbl">Filament Temp</span>
+              <span class="rd-val" id="rd-temp">2200 K</span>
+            </div>
+            <div class="readout-card">
+              <span class="rd-lbl">Luminous Flux</span>
+              <span class="rd-val" id="rd-lumens">16 cd (~200 lm)</span>
+            </div>
+            <div class="readout-card">
+              <span class="rd-lbl">Filament Status</span>
+              <span class="rd-val status-ok" id="rd-status">Optimal Glow</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Collapsible Historical Guide & Technical Specs Sidebar -->
+      <aside class="explore-sidebar" id="explore-sidebar">
+        <div class="sidebar-tabs">
+          <button type="button" class="tab-btn active" data-tab="timeline">📜 Timeline Guide</button>
+          <button type="button" class="tab-btn" data-tab="specs">📋 Tech Specs</button>
+          <button type="button" class="tab-btn" data-tab="parts">🧩 Audit</button>
+        </div>
+
+        <!-- Tab 1: Historical Timeline -->
+        <div id="tab-timeline-content" class="sidebar-tab-content active">
+          <div class="tab-header">
+            <h3>Incandescent Lighting Historical Timeline</h3>
+            <p>Authoritative milestones leading to Edison's commercialization of electric lighting (1870s–1890s).</p>
+          </div>
+
+          <div class="timeline-tree">
+            <div class="timeline-event">
+              <div class="tl-node"></div>
+              <div class="tl-year">1761</div>
+              <div class="tl-title">Kinnersley Wire Glowing</div>
+              <div class="tl-desc">Ebenezer Kinnersley demonstrated wire glowing in Philadelphia, establishing early incandescent principles.</div>
+            </div>
+
+            <div class="timeline-event">
+              <div class="tl-node"></div>
+              <div class="tl-year">1840</div>
+              <div class="tl-title">De la Rue Platinum Vacuum Tube</div>
+              <div class="tl-desc">Warren de la Rue enclosed a coiled platinum filament inside an evacuated glass tube—the precursor vacuum concept.</div>
+            </div>
+
+            <div class="timeline-event">
+              <div class="tl-node"></div>
+              <div class="tl-year">1859</div>
+              <div class="tl-title">Farmer Platinum Bulb</div>
+              <div class="tl-desc">Moses G. Farmer built platinum-filament lamps; Thomas Edison later purchased and studied Farmer's apparatus.</div>
+            </div>
+
+            <div class="timeline-event">
+              <div class="tl-node"></div>
+              <div class="tl-year">1872</div>
+              <div class="tl-title">Lodygin Carbon Rod Lamp</div>
+              <div class="tl-desc">Alexander Lodygin invented a nitrogen-filled lamp with a carbon rod element in St. Petersburg, Russia.</div>
+            </div>
+
+            <div class="timeline-event highlighted">
+              <div class="tl-node gold"></div>
+              <div class="tl-year">Oct 21, 1879</div>
+              <div class="tl-title">Edison 14.5-Hour Breakthrough</div>
+              <div class="tl-desc">Edison's Menlo Park team achieved a ~14.5 hour continuous burn using a carbonized cotton thread filament (~0.33 mm thick) in a high vacuum.</div>
+              <div class="tl-cite">Source: Rutgers Edison Papers [14†L113-L119]</div>
+            </div>
+
+            <div class="timeline-event highlighted">
+              <div class="tl-node gold"></div>
+              <div class="tl-year">Dec 31, 1879</div>
+              <div class="tl-title">First Public Menlo Park Demonstration</div>
+              <div class="tl-desc">Edison held the world's first public demonstration of incandescent electric lighting, illuminating his Menlo Park laboratory and surrounding streets.</div>
+              <div class="tl-cite">Source: Smithsonian Archives [11†L269-L272]</div>
+            </div>
+
+            <div class="timeline-event highlighted">
+              <div class="tl-node gold"></div>
+              <div class="tl-year">Jan 27, 1880</div>
+              <div class="tl-title">U.S. Patent No. 223,898 Granted</div>
+              <div class="tl-desc">Edison was granted U.S. Patent No. 223,898 for "Improvement in Electric Lamps", establishing commercial carbon-filament lamp design.</div>
+              <div class="tl-cite">Source: U.S. Patent Office [4†L47-L51]</div>
+            </div>
+
+            <div class="timeline-event">
+              <div class="tl-node"></div>
+              <div class="tl-year">1881–1883</div>
+              <div class="tl-title">Edison & Swan Commercial Expansion</div>
+              <div class="tl-desc">Joseph Swan lit London homes while Edison founded Edison Electric Light Co. In 1883, their British operations merged into "Ediswan".</div>
+            </div>
+
+            <div class="timeline-event">
+              <div class="tl-node"></div>
+              <div class="tl-year">1892</div>
+              <div class="tl-title">General Electric Merger</div>
+              <div class="tl-desc">Edison General Electric merged with Thomson-Houston Electric Co. to form General Electric (GE).</div>
+            </div>
+
+            <div class="timeline-event">
+              <div class="tl-node"></div>
+              <div class="tl-year">1904</div>
+              <div class="tl-title">Tungsten Filament Invention</div>
+              <div class="tl-desc">Just & Hanaman invented the tungsten filament, which eventually replaced carbon filaments worldwide.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Technical Specifications -->
+        <div id="tab-specs-content" class="sidebar-tab-content" hidden>
+          <div class="tab-header">
+            <h3>Verified Technical Specifications</h3>
+            <p>Archival parameters of the 1879 Edison carbon-filament lamp.</p>
+          </div>
+
+          <div class="specs-table">
+            <div class="spec-row">
+              <span class="spec-label">System Voltage</span>
+              <span class="spec-val">110 V (DC) Distribution</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Cold Resistance</span>
+              <span class="spec-val">~100 – 120 Ω (113 Ω start)</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Hot Resistance</span>
+              <span class="spec-val">~140 Ω (at 110V operating temp)</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Operating Current</span>
+              <span class="spec-val">0.8 – 1.0 A</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Power Consumption</span>
+              <span class="spec-val">86 – 110 W</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Operating Temperature</span>
+              <span class="spec-val">1500 – 2500 K (Nominal ~2200 K)</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Luminous Intensity</span>
+              <span class="spec-val">10 – 30 Candela (~120 – 300 lm)</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Filament Material</span>
+              <span class="spec-val">Carbonized Cotton Thread / Bamboo</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Filament Thickness</span>
+              <span class="spec-val">~0.33 mm Diameter</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Envelope Material</span>
+              <span class="spec-val">Clear Soda-Lime Glass (Vacuum Seal)</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Base Socket Type</span>
+              <span class="spec-val">E26 Brass Screw Shell + Copper Foot</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Primary Failure Modes</span>
+              <span class="spec-val">Overdrive Burnout, Mechanical Shock, Air Leak</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Component Audit -->
+        <div id="tab-parts-content" class="sidebar-tab-content" hidden>
+          <div class="tab-header">
+            <h3>Component Audit & Material Schema</h3>
+            <p>Detailed breakdown of the 9 physical components of the Edison lamp.</p>
+          </div>
+
+          <div class="parts-audit-list">
+            <div class="audit-item">
+              <div class="audit-head">
+                <span class="audit-num">01</span>
+                <span class="audit-name">Glass Envelope (Bulb)</span>
+              </div>
+              <p class="audit-text">Clear soda-lime glass A19 pear shape (~60-70 mm dia). Provides an airtight vacuum chamber to prevent filament carbon oxidation.</p>
+            </div>
+
+            <div class="audit-item">
+              <div class="audit-head">
+                <span class="audit-num">02</span>
+                <span class="audit-name">Carbon Filament</span>
+              </div>
+              <p class="audit-text">Carbonized cotton thread (~0.33 mm dia) or bamboo fiber. Incandesces orange-white at ~2200 K when energized.</p>
+            </div>
+
+            <div class="audit-item">
+              <div class="audit-head">
+                <span class="audit-num">03</span>
+                <span class="audit-name">Support Wires</span>
+              </div>
+              <p class="audit-text">Fine platinum or nickel-steel wires holding filament ends in place and conducting current from the glass stem.</p>
+            </div>
+
+            <div class="audit-item">
+              <div class="audit-head">
+                <span class="audit-num">04</span>
+                <span class="audit-name">Glass Stem (Mount)</span>
+              </div>
+              <p class="audit-text">Inner glass pigtail stem sealed through the bottom of the envelope to anchor lead wires while maintaining vacuum tight integrity.</p>
+            </div>
+
+            <div class="audit-item">
+              <div class="audit-head">
+                <span class="audit-num">05</span>
+                <span class="audit-name">Lead Wires</span>
+              </div>
+              <p class="audit-text">Heavy copper/platinum conductor wires passing through the glass stem to transfer electrical current from the base socket.</p>
+            </div>
+
+            <div class="audit-item">
+              <div class="audit-head">
+                <span class="audit-num">06</span>
+                <span class="audit-name">Brass Screw Base</span>
+              </div>
+              <p class="audit-text">Edison screw (E26) brass shell providing mechanical mounting and neutral return electrical connection.</p>
+            </div>
+
+            <div class="audit-item">
+              <div class="audit-head">
+                <span class="audit-num">07</span>
+                <span class="audit-name">Copper Foot Contact</span>
+              </div>
+              <p class="audit-text">Central bottom copper contact pin connecting the live terminal to one leg of the filament lead wires.</p>
+            </div>
+
+            <div class="audit-item">
+              <div class="audit-head">
+                <span class="audit-num">08</span>
+                <span class="audit-name">Base Insulator</span>
+              </div>
+              <p class="audit-text">Porcelain or cork wafer electrically insulating the threaded brass shell from the copper foot contact.</p>
+            </div>
+
+            <div class="audit-item">
+              <div class="audit-head">
+                <span class="audit-num">09</span>
+                <span class="audit-name">Vacuum Atmosphere</span>
+              </div>
+              <p class="audit-text">Interior evacuated space under high vacuum (~10⁻⁴ atm) created using Sprengel mercury pumps to eliminate oxygen.</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</ExploreLayout>
+
+<script>
+  import * as THREE from 'three';
+
+  function initEdison3DExplorer() {
+    const canvas = document.getElementById('edison-3d-canvas') as HTMLCanvasElement | null;
+    const container = document.getElementById('stage-3d-wrapper');
+    const powerBtn = document.getElementById('toggle-power-btn');
+    const powerStateLabel = document.getElementById('power-state-label');
+    const activeModeTitle = document.getElementById('active-mode-title');
+    const modeBtns = document.querySelectorAll('.mode-btn-dark');
+
+    // Controls Overlay Elements
+    const tooltip = document.getElementById('part-inspection-tooltip');
+    const tooltipName = document.getElementById('tooltip-part-name');
+    const tooltipMat = document.getElementById('tooltip-part-mat');
+    const tooltipDesc = document.getElementById('tooltip-part-desc');
+
+    const isolateBar = document.getElementById('isolate-controls-bar');
+    const partSelectDropdown = document.getElementById('part-select-dropdown') as HTMLSelectElement | null;
+
+    const experimentPanel = document.getElementById('experiment-controls-panel');
+    const voltageSlider = document.getElementById('voltage-slider') as HTMLInputElement | null;
+    const voltageValDisplay = document.getElementById('voltage-val-display');
+
+    // Readout Displays
+    const rdResistance = document.getElementById('rd-resistance');
+    const rdCurrent = document.getElementById('rd-current');
+    const rdPower = document.getElementById('rd-power');
+    const rdTemp = document.getElementById('rd-temp');
+    const rdLumens = document.getElementById('rd-lumens');
+    const rdStatus = document.getElementById('rd-status');
+
+    const sidebar = document.getElementById('explore-sidebar');
+    const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
+
+    if (!canvas || !container) return;
+
+    // Dimensions with robust fallback
+    function getContainerWidth() {
+      return container?.clientWidth && container.clientWidth > 0 ? container.clientWidth : (window.innerWidth - (window.innerWidth > 1024 ? 360 : 0));
+    }
+    function getContainerHeight() {
+      return container?.clientHeight && container.clientHeight > 0 ? container.clientHeight : (window.innerHeight - 110);
+    }
+
+    let width = getContainerWidth();
+    let height = getContainerHeight();
+
+    type Mode = 'assembly' | 'cutaway' | 'exploded' | 'isolate' | 'experiment';
+    let currentMode: Mode = 'assembly';
+    let isPowerOn = true;
+    let currentVoltage = 110;
+    let isBurnedOut = false;
+
+    // Three.js Core
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 1000);
+    camera.position.set(0, 0, 7.0);
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      alpha: true,
+      powerPreference: 'high-performance',
+    });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const bulbGroup = new THREE.Group();
+    scene.add(bulbGroup);
+
+    const meshes: Record<string, THREE.Object3D> = {};
+
+    // --- High-Visibility Bulletproof Materials ---
+    const glassNormalMat = new THREE.MeshStandardMaterial({
+      color: 0x38bdf8,
+      transparent: true,
+      opacity: 0.3,
+      roughness: 0.1,
+      metalness: 0.1,
+      depthWrite: false, // CRITICAL: Allows inner filament & stem to draw through glass!
+      side: THREE.DoubleSide,
+    });
+
+    const glassCutawayMat = new THREE.MeshStandardMaterial({
+      color: 0x06b6d4,
+      transparent: true,
+      opacity: 0.2,
+      roughness: 0.2,
+      wireframe: true,
+      side: THREE.DoubleSide,
+    });
+
+    const filamentMat = new THREE.MeshStandardMaterial({
+      color: 0xffaa33,
+      emissive: 0xff8800,
+      emissiveIntensity: 3.5,
+      roughness: 0.2,
+      metalness: 0.8,
+    });
+
+    const wireMat = new THREE.MeshStandardMaterial({
+      color: 0xf1f5f9,
+      metalness: 0.9,
+      roughness: 0.2,
+    });
+
+    const brassMat = new THREE.MeshStandardMaterial({
+      color: 0xeab308,
+      metalness: 0.85,
+      roughness: 0.25,
+    });
+
+    const copperMat = new THREE.MeshStandardMaterial({
+      color: 0xd97706,
+      metalness: 0.9,
+      roughness: 0.2,
+    });
+
+    const insulatorMat = new THREE.MeshStandardMaterial({
+      color: 0x1e293b,
+      roughness: 0.85,
+    });
+
+    // --- Build 3D Mesh Components ---
+
+    // 1. Glass Envelope
+    const glassGeo = new THREE.SphereGeometry(1.6, 32, 32);
+    const pos = glassGeo.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      let y = pos.getY(i);
+      if (y < 0) {
+        let factor = 1 + y * 0.22;
+        pos.setX(i, pos.getX(i) * factor);
+        pos.setZ(i, pos.getZ(i) * factor);
+      }
+    }
+    glassGeo.computeVertexNormals();
+    const glassEnvelopeMesh = new THREE.Mesh(glassGeo, glassNormalMat);
+    glassEnvelopeMesh.position.y = 0.6;
+    glassEnvelopeMesh.userData = {
+      name: 'Glass Envelope (Bulb)',
+      material: 'Clear Soda-Lime Glass',
+      desc: 'Provides an airtight vacuum chamber to prevent filament carbon oxidation.',
+      key: 'envelope',
+    };
+    bulbGroup.add(glassEnvelopeMesh);
+    meshes.envelope = glassEnvelopeMesh;
+
+    // 2. Glass Stem
+    const stemGeo = new THREE.CylinderGeometry(0.35, 0.45, 1.4, 24);
+    const stemMesh = new THREE.Mesh(stemGeo, glassNormalMat);
+    stemMesh.position.y = -0.4;
+    stemMesh.userData = {
+      name: 'Glass Stem (Mount)',
+      material: 'Glass Stem & Inner Seal',
+      desc: 'Inner glass pigtail stem sealed through the bottom of the envelope.',
+      key: 'stem',
+    };
+    bulbGroup.add(stemMesh);
+    meshes.stem = stemMesh;
+
+    // 3. Lead Wires
+    const leadGroup = new THREE.Group();
+    const leadGeo = new THREE.CylinderGeometry(0.035, 0.035, 1.8, 12);
+    const leadL = new THREE.Mesh(leadGeo, wireMat);
+    leadL.position.set(-0.22, 0.1, 0);
+    const leadR = new THREE.Mesh(leadGeo, wireMat);
+    leadR.position.set(0.22, 0.1, 0);
+    leadGroup.add(leadL, leadR);
+    leadGroup.userData = {
+      name: 'Lead Wires',
+      material: 'Platinum / Copper Leads',
+      desc: 'Heavy conductor wires passing through the glass stem.',
+      key: 'leads',
+    };
+    bulbGroup.add(leadGroup);
+    meshes.leads = leadGroup;
+
+    // 4. Support Wires
+    const supportGroup = new THREE.Group();
+    const curveL = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-0.22, 0.9, 0),
+      new THREE.Vector3(-0.35, 1.2, 0),
+      new THREE.Vector3(-0.15, 1.35, 0),
+    ]);
+    const suppL = new THREE.Mesh(new THREE.TubeGeometry(curveL, 20, 0.025, 8, false), wireMat);
+    const curveR = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0.22, 0.9, 0),
+      new THREE.Vector3(0.35, 1.2, 0),
+      new THREE.Vector3(0.15, 1.35, 0),
+    ]);
+    const suppR = new THREE.Mesh(new THREE.TubeGeometry(curveR, 20, 0.025, 8, false), wireMat);
+    supportGroup.add(suppL, suppR);
+    supportGroup.userData = {
+      name: 'Support Wires',
+      material: 'Fine Platinum Wire Hooks',
+      desc: 'Fine platinum wire loops holding filament ends in place.',
+      key: 'supports',
+    };
+    bulbGroup.add(supportGroup);
+    meshes.supports = supportGroup;
+
+    // 5. Carbon Filament
+    const filPoints: THREE.Vector3[] = [];
+    for (let i = 0; i <= 32; i++) {
+      const t = (i / 32) * Math.PI;
+      const x = -Math.cos(t) * 0.28;
+      const y = 1.35 + Math.sin(t) * 0.55;
+      const z = Math.sin(t * 4) * 0.04;
+      filPoints.push(new THREE.Vector3(x, y, z));
+    }
+    const filCurve = new THREE.CatmullRomCurve3(filPoints);
+    const filamentMesh = new THREE.Mesh(new THREE.TubeGeometry(filCurve, 40, 0.04, 12, false), filamentMat);
+    filamentMesh.userData = {
+      name: 'Carbon Filament',
+      material: 'Carbonized Cotton Thread (~0.33 mm dia)',
+      desc: 'High-resistance incandescing carbon element (~2200 K operating temp).',
+      key: 'filament',
+    };
+    bulbGroup.add(filamentMesh);
+    meshes.filament = filamentMesh;
+
+    // 6. Base Shell
+    const baseGroup = new THREE.Group();
+    const baseMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.72, 1.1, 32), brassMat);
+    baseGroup.add(baseMesh);
+    for (let i = 0; i < 4; i++) {
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.74, 0.06, 12, 32), brassMat);
+      ring.rotation.x = Math.PI / 2;
+      ring.position.y = 0.35 - i * 0.22;
+      baseGroup.add(ring);
+    }
+    baseGroup.position.y = -1.55;
+    baseGroup.userData = {
+      name: 'Brass Screw Base',
+      material: 'Edison E26 Threaded Brass',
+      desc: 'Threaded metal socket shell connecting to neutral terminal.',
+      key: 'base',
+    };
+    bulbGroup.add(baseGroup);
+    meshes.base = baseGroup;
+
+    // 7. Base Insulator
+    const insMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.68, 0.68, 0.15, 32), insulatorMat);
+    insMesh.position.y = -2.15;
+    insMesh.userData = {
+      name: 'Base Insulator',
+      material: 'Porcelain / Cork Wafer',
+      desc: 'Insulates threaded brass shell from central copper contact pin.',
+      key: 'insulator',
+    };
+    bulbGroup.add(insMesh);
+    meshes.insulator = insMesh;
+
+    // 8. Copper Contact Foot
+    const contactMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.1, 0.25, 24), copperMat);
+    contactMesh.position.y = -2.3;
+    contactMesh.userData = {
+      name: 'Copper Foot Contact',
+      material: 'Copper Contact Pin',
+      desc: 'Central bottom contact pin connecting live terminal.',
+      key: 'contact',
+    };
+    bulbGroup.add(contactMesh);
+    meshes.contact = contactMesh;
+
+    // --- Bright Illumination ---
+    const ambLight = new THREE.AmbientLight(0xffffff, 1.2);
+    scene.add(ambLight);
+
+    const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.5);
+    dirLight1.position.set(5, 8, 5);
+    scene.add(dirLight1);
+
+    const dirLight2 = new THREE.DirectionalLight(0x38bdf8, 0.8);
+    dirLight2.position.set(-5, -5, -3);
+    scene.add(dirLight2);
+
+    const pointLight = new THREE.PointLight(0xffaa00, 5.0, 15);
+    pointLight.position.set(0, 1.4, 0);
+    scene.add(pointLight);
+
+    // Glow Halo Sprite
+    const canvasGlow = document.createElement('canvas');
+    canvasGlow.width = 128;
+    canvasGlow.height = 128;
+    const ctxG = canvasGlow.getContext('2d');
+    if (ctxG) {
+      const grad = ctxG.createRadialGradient(64, 64, 0, 64, 64, 64);
+      grad.addColorStop(0, 'rgba(255, 180, 50, 0.95)');
+      grad.addColorStop(0.35, 'rgba(255, 120, 0, 0.45)');
+      grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctxG.fillStyle = grad;
+      ctxG.fillRect(0, 0, 128, 128);
+    }
+    const glowTex = new THREE.CanvasTexture(canvasGlow);
+    const glowMat = new THREE.SpriteMaterial({
+      map: glowTex,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      opacity: 0.85,
+    });
+    const glowSprite = new THREE.Sprite(glowMat);
+    glowSprite.position.set(0, 1.4, 0);
+    glowSprite.scale.set(3.5, 3.5, 1);
+    bulbGroup.add(glowSprite);
+
+    // Raycaster & Tooltips
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    window.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(bulbGroup.children, true);
+
+      if (intersects.length > 0 && tooltip && tooltipName && tooltipMat && tooltipDesc) {
+        let obj: THREE.Object3D | null = intersects[0].object;
+        while (obj && !obj.userData?.name && obj.parent !== bulbGroup) {
+          obj = obj.parent;
+        }
+
+        if (obj && obj.userData?.name) {
+          tooltip.hidden = false;
+          tooltip.style.left = `${e.clientX + 15}px`;
+          tooltip.style.top = `${e.clientY + 15}px`;
+          tooltipName.textContent = obj.userData.name;
+          tooltipMat.textContent = obj.userData.material;
+          tooltipDesc.textContent = obj.userData.desc;
+          return;
+        }
+      }
+
+      if (tooltip) tooltip.hidden = true;
+    });
+
+    // Mode Switcher
+    function setMode(mode: Mode) {
+      currentMode = mode;
+
+      modeBtns.forEach((btn) => {
+        const m = btn.getAttribute('data-mode');
+        btn.classList.toggle('active', m === mode);
+      });
+
+      if (activeModeTitle) {
+        activeModeTitle.textContent = `${mode.charAt(0).toUpperCase() + mode.slice(1)} Mode`;
+      }
+
+      if (isolateBar) isolateBar.hidden = mode !== 'isolate';
+      if (experimentPanel) experimentPanel.hidden = mode !== 'experiment';
+
+      Object.values(meshes).forEach((m) => (m.visible = true));
+      glassEnvelopeMesh.material = glassNormalMat;
+
+      glassEnvelopeMesh.position.y = 0.6;
+      meshes.stem.position.y = -0.4;
+      meshes.leads.position.y = 0;
+      meshes.supports.position.y = 0;
+      meshes.filament.position.y = 0;
+      meshes.base.position.y = -1.55;
+      meshes.insulator.position.y = -2.15;
+      meshes.contact.position.y = -2.3;
+
+      if (mode === 'cutaway') {
+        glassEnvelopeMesh.material = glassCutawayMat;
+      } else if (mode === 'exploded') {
+        glassEnvelopeMesh.position.y = 3.2;
+        meshes.filament.position.y = 1.4;
+        meshes.supports.position.y = 0.8;
+        meshes.stem.position.y = 0.1;
+        meshes.leads.position.y = -0.4;
+        meshes.base.position.y = -2.2;
+        meshes.insulator.position.y = -3.2;
+        meshes.contact.position.y = -3.8;
+      } else if (mode === 'isolate') {
+        updateIsolateSelection();
+      }
+    }
+
+    modeBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const m = btn.getAttribute('data-mode') as Mode;
+        if (m) setMode(m);
+      });
+    });
+
+    // Keyboard Shortcuts (1-5 for modes, Space for Power Toggle)
+    window.addEventListener('keydown', (e) => {
+      if (['1', '2', '3', '4', '5'].includes(e.key)) {
+        const modeMap: Record<string, Mode> = {
+          '1': 'assembly',
+          '2': 'cutaway',
+          '3': 'exploded',
+          '4': 'isolate',
+          '5': 'experiment',
+        };
+        setMode(modeMap[e.key]);
+      } else if (e.code === 'Space' && e.target === document.body) {
+        e.preventDefault();
+        isPowerOn = !isPowerOn;
+        if (powerStateLabel) {
+          powerStateLabel.textContent = isPowerOn ? 'ON' : 'OFF';
+          powerStateLabel.style.color = isPowerOn ? '#f59e0b' : '#64748b';
+        }
+        updatePhysics();
+      }
+    });
+
+    function updateIsolateSelection() {
+      if (!partSelectDropdown) return;
+      const key = partSelectDropdown.value;
+      Object.entries(meshes).forEach(([k, m]) => {
+        m.visible = k === key;
+      });
+      bulbGroup.position.set(0, 0, 0);
+    }
+
+    if (partSelectDropdown) {
+      partSelectDropdown.addEventListener('change', updateIsolateSelection);
+    }
+
+    // Physics Engine
+    function updatePhysics() {
+      if (currentVoltage === 0 || !isPowerOn || isBurnedOut) {
+        pointLight.intensity = 0;
+        glowMat.opacity = 0;
+        filamentMat.color.setHex(0x222222);
+        filamentMat.emissive.setHex(0x000000);
+
+        if (rdCurrent) rdCurrent.textContent = '0.00 A';
+        if (rdPower) rdPower.textContent = '0 W';
+        if (rdTemp) rdTemp.textContent = '293 K (Room Temp)';
+        if (rdLumens) rdLumens.textContent = '0 lm';
+        if (rdStatus) {
+          rdStatus.textContent = isBurnedOut ? 'Filament Ruptured (Burnout)' : 'Power OFF';
+          rdStatus.className = isBurnedOut ? 'rd-val status-err' : 'rd-val';
+        }
+        return;
+      }
+
+      if (currentVoltage > 120) {
+        isBurnedOut = true;
+        updatePhysics();
+        return;
+      }
+
+      const coldR = 113;
+      const hotR = 113 + (currentVoltage / 110) * 27;
+      const current = currentVoltage / hotR;
+      const power = currentVoltage * current;
+      const tempK = Math.round(1500 + (currentVoltage / 110) * 700);
+      const lumens = Math.round((power / 86) * 200);
+
+      const brightness = currentVoltage / 110;
+      pointLight.intensity = brightness * 5.0;
+      glowMat.opacity = Math.min(1.0, brightness * 0.85);
+
+      filamentMat.color.setHex(0xffaa33);
+      filamentMat.emissive.setHex(0xff8800);
+      filamentMat.emissiveIntensity = brightness * 3.5;
+
+      if (rdResistance) rdResistance.textContent = `${Math.round(coldR)} Ω → ${Math.round(hotR)} Ω`;
+      if (rdCurrent) rdCurrent.textContent = `${current.toFixed(2)} A`;
+      if (rdPower) rdPower.textContent = `${Math.round(power)} W`;
+      if (rdTemp) rdTemp.textContent = `${tempK} K`;
+      if (rdLumens) rdLumens.textContent = `${Math.round(lumens / 12.6)} cd (~${lumens} lm)`;
+      if (rdStatus) {
+        rdStatus.textContent = 'Optimal Glow';
+        rdStatus.className = 'rd-val status-ok';
+      }
+    }
+
+    if (voltageSlider) {
+      voltageSlider.addEventListener('input', (e) => {
+        const val = parseInt((e.target as HTMLInputElement).value, 10);
+        currentVoltage = val;
+        if (voltageValDisplay) voltageValDisplay.textContent = `${val} V`;
+        if (val <= 120) isBurnedOut = false;
+        updatePhysics();
+      });
+    }
+
+    if (powerBtn) {
+      powerBtn.addEventListener('click', () => {
+        isPowerOn = !isPowerOn;
+        if (powerStateLabel) {
+          powerStateLabel.textContent = isPowerOn ? 'ON' : 'OFF';
+          powerStateLabel.style.color = isPowerOn ? '#f59e0b' : '#64748b';
+        }
+        updatePhysics();
+      });
+    }
+
+    // Controls
+    let isDragging = false;
+    let prevMousePos = { x: 0, y: 0 };
+
+    canvas.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      prevMousePos = { x: e.clientX, y: e.clientY };
+    });
+    window.addEventListener('mouseup', () => (isDragging = false));
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      const deltaX = e.clientX - prevMousePos.x;
+      const deltaY = e.clientY - prevMousePos.y;
+
+      bulbGroup.rotation.y += deltaX * 0.008;
+      bulbGroup.rotation.x += deltaY * 0.008;
+
+      prevMousePos = { x: e.clientX, y: e.clientY };
+    });
+
+    canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      camera.position.z += e.deltaY * 0.005;
+      camera.position.z = Math.max(4.0, Math.min(camera.position.z, 15));
+    }, { passive: false });
+
+    // Sidebar
+    if (sidebarToggleBtn && sidebar) {
+      sidebarToggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+      });
+    }
+
+    const tabBtns = document.querySelectorAll('.sidebar-tabs .tab-btn');
+    const tabContents = document.querySelectorAll('.sidebar-tab-content');
+
+    tabBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const targetTab = btn.getAttribute('data-tab');
+        tabBtns.forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        tabContents.forEach((content) => {
+          if (content.id === `tab-${targetTab}-content`) {
+            (content as HTMLElement).hidden = false;
+            content.classList.add('active');
+          } else {
+            (content as HTMLElement).hidden = true;
+            content.classList.remove('active');
+          }
+        });
+      });
+    });
+
+    function handleResize() {
+      width = getContainerWidth();
+      height = getContainerHeight();
+      if (width > 0 && height > 0) {
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, height);
+      }
+    }
+
+    // ResizeObserver for reliable canvas sizing
+    const resizeObserver = new ResizeObserver(() => {
+      handleResize();
+    });
+    resizeObserver.observe(container);
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      if (!isDragging && currentMode === 'assembly') {
+        bulbGroup.rotation.y += 0.004;
+      }
+
+      renderer.render(scene, camera);
+    }
+    
+    // Initial size update and start animation loop
+    handleResize();
+    animate();
+  }
+
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    initEdison3DExplorer();
+  } else {
+    document.addEventListener('DOMContentLoaded', initEdison3DExplorer);
+  }
+</script>
+
+<style>
+  .explore-app-shell {
+    display: flex;
+    flex-direction: column;
+    width: 100vw;
+    height: calc(100vh - 3.8rem);
+    height: calc(100dvh - 3.8rem);
+    background: #050811;
+    overflow: hidden;
+    position: relative;
+    color: #f8fafc;
+  }
+
+  /* Sub-Header */
+  .explore-sub-header {
+    height: 3.25rem;
+    background: rgba(15, 23, 42, 0.95);
+    border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.25rem;
+    z-index: 30;
+    user-select: none;
+  }
+  .sub-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .current-item-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-family: var(--font-display);
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #ffffff;
+  }
+  .item-tag {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.6rem;
+    font-weight: 800;
+    color: #38bdf8;
+    background: rgba(6, 182, 212, 0.15);
+    padding: 0.12rem 0.4rem;
+    border-radius: 4px;
+    border: 1px solid rgba(6, 182, 212, 0.3);
+  }
+
+  /* Mode Bar Dark */
+  .mode-bar-dark {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: #0b1120;
+    padding: 0.25rem;
+    border-radius: 0.65rem;
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    overflow-x: auto;
+    max-width: 100%;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .mode-bar-dark::-webkit-scrollbar {
+    display: none;
+  }
+  .mode-btn-dark {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 0.5rem;
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    font-family: var(--font-display);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+  .mode-btn-dark:hover {
+    color: #ffffff;
+    background: #1e293b;
+  }
+  .mode-btn-dark.active {
+    background: linear-gradient(135deg, #06b6d4 0%, #0284c7 100%);
+    color: #ffffff;
+    font-weight: 700;
+    box-shadow: 0 2px 10px rgba(6, 182, 212, 0.35);
+  }
+
+  /* Sub-Header Right */
+  .sub-header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .power-toggle-btn-dark {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.35rem 0.8rem;
+    border-radius: 0.55rem;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    background: #0f172a;
+    color: #ffffff;
+    font-family: var(--font-display);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .power-toggle-btn-dark:hover {
+    background: #1e293b;
+    border-color: #38bdf8;
+  }
+  .hdr-btn-dark {
+    padding: 0.35rem 0.75rem;
+    border-radius: 0.55rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: #0f172a;
+    color: #f8fafc;
+    font-family: var(--font-display);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* Main Stage & Sidebar Layout */
+  .explore-main-stage {
+    display: flex;
+    flex: 1;
+    width: 100vw;
+    height: calc(100% - 3.25rem);
+    overflow: hidden;
+    position: relative;
+  }
+  .stage-3d-wrapper {
+    flex: 1;
+    height: 100%;
+    min-height: 400px;
+    position: relative;
+    background: radial-gradient(circle at 50% 45%, rgba(6, 182, 212, 0.1) 0%, rgba(5, 8, 17, 0.98) 75%);
+  }
+  .edison-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    cursor: grab;
+  }
+  .edison-canvas:active {
+    cursor: grabbing;
+  }
+
+  /* Canvas Top Overlay */
+  .canvas-top-overlay {
+    position: absolute;
+    top: 1rem;
+    left: 1.25rem;
+    right: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    pointer-events: none;
+  }
+  .mode-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 0.35rem 0.75rem;
+    border-radius: 0.5rem;
+    background: rgba(5, 8, 17, 0.85);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    color: #38bdf8;
+    backdrop-filter: blur(8px);
+  }
+  .ind-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #38bdf8;
+    box-shadow: 0 0 8px #38bdf8;
+  }
+  .canvas-hint {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #94a3b8;
+    background: rgba(15, 23, 42, 0.85);
+    padding: 0.35rem 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* Tooltip */
+  .part-tooltip {
+    position: fixed;
+    z-index: 100;
+    pointer-events: none;
+    background: rgba(11, 17, 32, 0.95);
+    color: #ffffff;
+    padding: 0.65rem 0.95rem;
+    border-radius: 0.65rem;
+    border: 1px solid #38bdf8;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    max-width: 270px;
+    backdrop-filter: blur(12px);
+  }
+  .tooltip-name {
+    font-family: var(--font-display);
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: #38bdf8;
+  }
+  .tooltip-mat {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #f59e0b;
+    margin-bottom: 0.25rem;
+  }
+  .tooltip-desc {
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: #cbd5e1;
+  }
+
+  /* Isolate Bar */
+  .isolate-bar {
+    position: absolute;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 1.25rem;
+    border-radius: 0.75rem;
+    background: rgba(15, 23, 42, 0.92);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(16px);
+  }
+  .isolate-label {
+    font-family: var(--font-display);
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #ffffff;
+  }
+  .part-dropdown {
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    background: #050811;
+    color: #ffffff;
+    font-family: var(--font-display);
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+
+  /* Experiment Panel */
+  .experiment-panel {
+    position: absolute;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(640px, 92vw);
+    padding: 1.25rem;
+    border-radius: 1rem;
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+    backdrop-filter: blur(20px);
+  }
+  .exp-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 0.75rem;
+  }
+  .exp-slider-row {
+    margin-bottom: 1rem;
+  }
+  .slider-label {
+    display: block;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #f8fafc;
+    margin-bottom: 0.4rem;
+  }
+  .volts-range {
+    width: 100%;
+    accent-color: #06b6d4;
+  }
+  .range-marks {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    color: #64748b;
+    font-weight: 600;
+    margin-top: 0.2rem;
+  }
+  .exp-readouts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.6rem;
+  }
+  .readout-card {
+    background: #0b1120;
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    padding: 0.5rem 0.65rem;
+    border-radius: 0.5rem;
+    display: flex;
+    flex-direction: column;
+  }
+  .rd-lbl {
+    font-size: 0.68rem;
+    color: #64748b;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .rd-val {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: #ffffff;
+  }
+  .rd-val.status-ok {
+    color: #10b981;
+  }
+  .rd-val.status-err {
+    color: #ef4444;
+  }
+
+  /* Sidebar */
+  .explore-sidebar {
+    width: 360px;
+    height: 100%;
+    background: #0b1120;
+    border-left: 1px solid rgba(56, 189, 248, 0.2);
+    display: flex;
+    flex-direction: column;
+    z-index: 20;
+  }
+  .sidebar-tabs {
+    display: flex;
+    border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+    background: #050811;
+  }
+  .sidebar-tabs .tab-btn {
+    flex: 1;
+    padding: 0.75rem 0.5rem;
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+  }
+  .sidebar-tabs .tab-btn.active {
+    color: #38bdf8;
+    border-bottom-color: #38bdf8;
+    background: #0b1120;
+  }
+  .sidebar-tab-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.25rem;
+  }
+  .tab-header h3 {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 0.35rem;
+  }
+  .tab-header p {
+    font-size: 0.82rem;
+    color: #94a3b8;
+    margin-bottom: 1.25rem;
+  }
+
+  /* Timeline */
+  .timeline-tree {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: relative;
+    padding-left: 1.25rem;
+    border-left: 2px solid rgba(56, 189, 248, 0.25);
+  }
+  .timeline-event {
+    position: relative;
+  }
+  .tl-node {
+    position: absolute;
+    left: -1.65rem;
+    top: 0.2rem;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #64748b;
+  }
+  .tl-node.gold {
+    background: #f59e0b;
+    box-shadow: 0 0 10px #f59e0b;
+  }
+  .tl-year {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #38bdf8;
+  }
+  .tl-title {
+    font-family: var(--font-display);
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0.15rem 0;
+  }
+  .tl-desc {
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: #cbd5e1;
+  }
+  .tl-cite {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-top: 0.25rem;
+    font-style: italic;
+  }
+
+  /* Specs Table */
+  .specs-table {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .spec-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.55rem 0.75rem;
+    border-radius: 0.5rem;
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.82rem;
+  }
+  .spec-label {
+    font-weight: 600;
+    color: #94a3b8;
+  }
+  .spec-val {
+    font-weight: 700;
+    color: #ffffff;
+    text-align: right;
+  }
+
+  /* Parts Audit */
+  .parts-audit-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+  .audit-item {
+    padding: 0.75rem;
+    border-radius: 0.6rem;
+    background: #0f172a;
+    border: 1px solid rgba(56, 189, 248, 0.2);
+  }
+  .audit-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+  }
+  .audit-num {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #38bdf8;
+  }
+  .audit-name {
+    font-family: var(--font-display);
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #ffffff;
+  }
+  .audit-text {
+    font-size: 0.8rem;
+    line-height: 1.45;
+    color: #cbd5e1;
+  }
+
+  @media (max-width: 1024px) {
+    .explore-sidebar {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+    }
+    .explore-sidebar.open {
+      transform: translateX(0);
+    }
+  }
+  @media (max-width: 768px) {
+    .hide-mobile {
+      display: none !important;
+    }
+    .exp-readouts-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>

@@ -37,9 +37,10 @@
     "e2e:install": "playwright install --with-deps",
     "e2e:ui": "playwright test --ui",
     "check": "npm run typecheck && npm run lint && npm run test",
-    "prepare": "lefthook install || echo '(skipped: no .git yet \u2014 run \"git init && npm run prepare\" later)'"
+    "prepare": "lefthook install || echo '(skipped: no .git yet — run \"git init && npm run prepare\" later)'"
   },
   "dependencies": {
+    "@types/three": "^0.185.4",
     "comlink": "^4.4.2",
     "idb-keyval": "^6.2.2",
     "immer": "^11.1.4",
@@ -47,6 +48,7 @@
     "motion": "^13.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "three": "^0.185.1",
     "workbox-window": "^7.4.1",
     "zundo": "^2.3.0",
     "zustand": "^5.0.12"
