@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — Session 2026-08-25: Explore 3D Historical Feature — Immersive Edison Bulb Laboratory
+
+- **New "Explore" 3D Historical Feature (`/explore/`)**: Introduced an experimental 3D historical laboratory application showcasing revolutionary electrical inventions in interactive 3D, starting with Thomas Edison's 1879 carbon-filament light bulb foundation.
+- **Bespoke Laboratory Theme & Shell (`ExploreLayout.astro`, `ExploreHeader.astro`, `ExploreFooter.astro`)**: Custom dark space theme (`#050811`) with animated electric blueprint grid lines, travelling plasma arcs, diagonal corner ribbon banners (`EXPERIMENTAL`, `FOUNDATION 01`), and dedicated archival source citations (Smithsonian, Rutgers Edison Papers, IEEE GHN, U.S. Patent Office).
+- **Interactive 3D Edison Bulb Explorer (`/explore/edison-bulb/`)**: Built a WebGL 3D model with Three.js rendering all 9 verified physical components (Glass Envelope, Carbon Filament, Support Wires, Glass Stem, Lead Wires, Brass Base, Copper Foot Contact, Base Insulator, Vacuum Atmosphere) with 5 viewing modes: Assembly, Cutaway, Exploded Assembly with Leader Lines, Isolate / Inspect, and Physics Experiment Laboratory ($0\text{ V}-130\text{ V}$ slider with resistance, power, temperature, lumens, and overdrive burnout simulation).
+- **Explore 3D Command Palette (`ExploreSearchModal.astro`)**: Migrated search on Explore pages to a dark 3D command palette searching 3D models, modes, components, and historical timeline milestones (`Ctrl+K` / `⌘K`).
+- **Responsiveness & WebGL Hardening**: Full mobile drawer navigation, touch-action gesture preservation, `IntersectionObserver` & `visibilitychange` animation loop pausing when off-screen, and zero-error Astro static compilation (`npx astro check` 84 files clean).
+
 ### Added — Session 2026-08-25: Fault Lab UX round — active-faults command centre, wire targets, shortcuts
 
 Follow-up UX pass on the Inspector Fault Lab tab.

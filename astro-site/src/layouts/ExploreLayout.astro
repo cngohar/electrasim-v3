@@ -1,0 +1,79 @@
+---
+import ExploreHeader from '../components/explore/ExploreHeader.astro';
+import ExploreFooter from '../components/explore/ExploreFooter.astro';
+import ExploreSearchModal from '../components/explore/ExploreSearchModal.astro';
+import '../styles/global.css';
+import '../styles/explore.css';
+import packageMetadata from '../../../package.json';
+
+export interface Props {
+  title: string;
+  description: string;
+  canonical: string;
+  currentModel?: string;
+  ogImage?: string;
+  structuredData?: Record<string, unknown>;
+}
+
+const {
+  title,
+  description,
+  canonical,
+  currentModel = 'Edison Bulb (1879)',
+  ogImage = 'https://electrasim.com/og-image.png',
+  structuredData,
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en" data-resolved-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#050811" />
+  <script is:inline src={`/js/theme.js?v=${packageMetadata.version}`}></script>
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <meta name="author" content="ElectraSim" />
+  <link rel="canonical" href={canonical} />
+  <meta name="robots" content="index, follow" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="ElectraSim Explore 3D" />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:image" content={ogImage} />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={ogImage} />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/pwa-192.svg" />
+
+  <!-- Self-hosted display + body fonts -->
+  <link rel="preload" as="font" type="font/woff2" href="/fonts/plus-jakarta-sans-latin.woff2" crossorigin />
+  <link rel="preload" as="font" type="font/woff2" href="/fonts/space-grotesk-latin.woff2" crossorigin />
+
+  {structuredData && <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />}
+  <slot name="head" />
+</head>
+<body class="explore-theme-page">
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- Custom Bespoke Explore Header -->
+  <ExploreHeader currentModel={currentModel} />
+
+  <slot />
+
+  <!-- Custom Bespoke Explore Laboratory Footer -->
+  <ExploreFooter />
+
+  <ExploreSearchModal />
+</body>
+</html>

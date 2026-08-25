@@ -29,6 +29,26 @@ export interface RawGuideCircuit {
 
 export const CORE_PAGES: SearchItem[] = [
   {
+    id: 'page-explore',
+    title: 'Explore — Immersive 3D Historical Electrical Explorer (Experimental)',
+    description:
+      'Explore historical electrical inventions in interactive 3D. Step inside Edison’s 1879 carbon-filament bulb with cutaway, exploded view, component specs, and physics experiment lab.',
+    url: '/explore/',
+    type: 'page',
+    category: 'Explore 3D',
+    tags: ['explore', '3d', 'historical', 'edison bulb', 'experimental', 'physics'],
+  },
+  {
+    id: 'explore-edison-bulb',
+    title: 'Edison Carbon-Filament Lamp (1879) — 3D Interactive Explorer',
+    description:
+      '3D interactive historical exploration of Thomas Edison’s 1879 carbonized cotton filament light bulb with technical specs, timeline, exploded assembly, and live physics laboratory.',
+    url: '/explore/edison-bulb/',
+    type: 'page',
+    category: 'Explore 3D',
+    tags: ['edison bulb', '3d', 'incandescent', 'carbon filament', 'history', 'experiment'],
+  },
+  {
     id: 'page-home',
     title: 'ElectraSim Simulator & Circuit Lab',
     description:

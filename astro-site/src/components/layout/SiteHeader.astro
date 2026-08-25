@@ -17,6 +17,7 @@ const current = (prefix: string): 'page' | 'true' | undefined =>
    the burger menu and the footer. `/#features` and `/#how-it-works` are
    homepage scroll anchors, not destinations, so they are footer-only. */
 const NAV_LINKS = [
+  { href: '/explore/', label: 'Explore', experimental: true },
   { href: '/tools/', label: 'Tools' },
   { href: '/guide/', label: 'Guide' },
   { href: '/blog/', label: 'Blog' },
@@ -44,7 +45,10 @@ const MENU_LINKS = [
     </a>
     <div class="nav-links">
       {NAV_LINKS.map((link) => (
-        <a href={link.href} class="hide-m" aria-current={current(link.href)}>{link.label}</a>
+        <a href={link.href} class="hide-m nav-link-item" aria-current={current(link.href)}>
+          <span>{link.label}</span>
+          {link.experimental && <span class="nav-ribbon-badge">Experimental</span>}
+        </a>
       ))}
       <button
         type="button"
@@ -102,7 +106,10 @@ const MENU_LINKS = [
       <span>Search</span>
     </button>
     {MENU_LINKS.map((link) => (
-      <a href={link.href} aria-current={current(link.href)}>{link.label}</a>
+      <a href={link.href} aria-current={current(link.href)} class="nav-mobile-item">
+        <span>{link.label}</span>
+        {link.experimental && <span class="nav-ribbon-badge">Experimental</span>}
+      </a>
     ))}
     <button
       type="button"

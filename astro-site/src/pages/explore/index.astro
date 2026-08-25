@@ -1,0 +1,489 @@
+---
+import ExploreLayout from '../../layouts/ExploreLayout.astro';
+import Explore3DHero from '../../components/explore/Explore3DHero.astro';
+
+const title = 'Explore Historical Electrical Inventions in Immersive 3D (Experimental) | ElectraSim';
+const description =
+  'Step inside history’s most revolutionary electrical inventions in interactive 3D. Examine Edison’s 1879 carbon-filament light bulb with cutaway views, exploded assemblies, technical specs, and live physics laboratory.';
+const canonical = 'https://electrasim.com/explore/';
+
+const exploreSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: title,
+  description: description,
+  url: canonical,
+  publisher: {
+    '@type': 'Organization',
+    name: 'ElectraSim',
+    url: 'https://electrasim.com/',
+  },
+  mainEntity: {
+    '@type': 'ItemList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Edison Carbon-Filament Incandescent Lamp (1879) — 3D Interactive Explorer',
+        description: 'Interactive 3D model of Thomas Edison’s historical carbonized cotton filament bulb.',
+        url: 'https://electrasim.com/explore/edison-bulb/',
+      },
+    ],
+  },
+};
+---
+
+<ExploreLayout
+  title={title}
+  description={description}
+  canonical={canonical}
+  structuredData={exploreSchema}
+>
+  <main id="main-content" class="explore-landing-page explore-theme-page">
+    <div class="electric-arc-line"></div>
+
+    <!-- Interactive 3D Hero Section -->
+    <Explore3DHero />
+
+    <!-- Historical Foundation Section -->
+    <section class="sec explore-foundation-sec" id="historical-foundation">
+      <div class="wrap">
+        <div class="sec-head">
+          <div class="head-tag-cyan">
+            <span class="tag-icon">⚡</span>
+            <span>FOUNDATIONAL HISTORICAL ITEM · 1879</span>
+          </div>
+          <h2 class="sec-title-light">Edison Carbon-Filament Incandescent Lamp</h2>
+          <p class="sec-desc-light">
+            The foundation of modern electric lighting. Commercialized in late 1879 at Edison’s Menlo Park laboratory, this high-resistance carbonized thread bulb made centralized electrical distribution practical.
+          </p>
+        </div>
+
+        <!-- Main Featured Foundational Card with Corner Ribbon -->
+        <div class="foundation-card-dark ribbon-wrapper glowing-electric-border">
+          <div class="exp-ribbon">FOUNDATION 01</div>
+          <div class="foundation-grid">
+            <div class="foundation-info">
+              <div class="found-meta-row">
+                <span class="found-year-cyan">1879</span>
+                <span class="found-patent-dark">U.S. Patent No. 223,898</span>
+                <span class="found-status-green">3D Model Available</span>
+              </div>
+              <h3 class="found-title-light">Edison Carbon-Filament Bulb (1879)</h3>
+              <p class="found-text-light">
+                Featuring a carbonized cotton thread filament (~0.33 mm diameter), high vacuum glass envelope, platinum lead wires, and the original Edison screw socket base. Operates on 110 V DC with cold resistance of ~113 Ω and hot resistance of ~140 Ω.
+              </p>
+
+              <div class="found-features-dark">
+                <div class="feat-pill-dark">🔍 5 Interactive 3D Modes</div>
+                <div class="feat-pill-dark">✂️ Glass Cutaway View</div>
+                <div class="feat-pill-dark">💥 Vertical Exploded Assembly</div>
+                <div class="feat-pill-dark">🔬 Live Physics Laboratory</div>
+                <div class="feat-pill-dark">📜 Historical Timeline with Citations</div>
+              </div>
+
+              <div class="found-cta">
+                <a href="/explore/edison-bulb/" class="btn-launch-explore-cyan">
+                  <span>Start 3D Exploration</span>
+                  <span class="arrow">→</span>
+                </a>
+              </div>
+            </div>
+
+            <div class="foundation-visual">
+              <div class="visual-preview-box-dark">
+                <div class="bulb-art-preview">
+                  <svg viewBox="0 0 200 280" class="bulb-svg" aria-hidden="true">
+                    <circle cx="100" cy="100" r="75" fill="rgba(245, 158, 11, 0.2)" filter="blur(12px)"></circle>
+                    <path d="M 50 100 C 50 45, 150 45, 150 100 C 150 135, 125 155, 125 185 L 75 155 C 75 155, 50 135, 50 100 Z" fill="none" stroke="#38bdf8" stroke-width="3"></path>
+                    <rect x="85" y="150" width="30" height="40" rx="4" fill="rgba(56, 189, 248, 0.2)" stroke="#0284c7" stroke-width="2"></rect>
+                    <line x1="88" y1="120" x2="88" y2="170" stroke="#cbd5e1" stroke-width="2"></line>
+                    <line x1="112" y1="120" x2="112" y2="170" stroke="#cbd5e1" stroke-width="2"></line>
+                    <path d="M 88 120 C 88 80, 112 80, 112 120" fill="none" stroke="#f59e0b" stroke-width="3.5" stroke-linecap="round"></path>
+                    <rect x="75" y="185" width="50" height="40" rx="2" fill="#d4af37" stroke="#b45309" stroke-width="2"></rect>
+                    <line x1="75" y1="195" x2="125" y2="195" stroke="#b45309" stroke-width="2"></line>
+                    <line x1="75" y1="205" x2="125" y2="205" stroke="#b45309" stroke-width="2"></line>
+                    <line x1="75" y1="215" x2="125" y2="215" stroke="#b45309" stroke-width="2"></line>
+                    <rect x="80" y="225" width="40" height="8" fill="#1e293b"></rect>
+                    <path d="M 88 233 L 112 233 L 100 248 Z" fill="#b87333"></path>
+                  </svg>
+                </div>
+                <div class="visual-tag-cyan">EDISON 1879 BULB · 3D MODEL READY</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3D Interactive Modes Breakdown -->
+    <section class="sec modes-overview-sec">
+      <div class="wrap">
+        <div class="sec-head center">
+          <h2 class="sec-title-light">Immersive 3D Exploration Features</h2>
+          <p class="sec-desc-light">Designed for students, historians, engineers, and curious minds to inspect, disassemble, and test historical electrical hardware.</p>
+        </div>
+
+        <div class="modes-grid">
+          <div class="mode-card-dark explore-card-glow">
+            <div class="mode-icon">🔄</div>
+            <h3>1. Assembly Mode</h3>
+            <p>Full 3D rotation, zoom, and panning of the complete Edison bulb. Inspect glass reflections, socket threading, and internal construction from any angle.</p>
+          </div>
+
+          <div class="mode-card-dark explore-card-glow">
+            <div class="mode-icon">✂️</div>
+            <h3>2. Cutaway Mode</h3>
+            <p>Removes a section of the glass envelope or applies semi-transparent X-ray glass shaders to expose the internal stem, lead wires, support loops, and carbon filament.</p>
+          </div>
+
+          <div class="mode-card-dark explore-card-glow">
+            <div class="mode-icon">💥</div>
+            <h3>3. Exploded Mode</h3>
+            <p>Smoothly pulls components apart along the vertical axis (Glass envelope, filament, support wires, glass stem, lead wires, brass base, copper foot contact) with Leader Line annotations.</p>
+          </div>
+
+          <div class="mode-card-dark explore-card-glow">
+            <div class="mode-icon">🔍</div>
+            <h3>4. Isolate / Inspect Mode</h3>
+            <p>Pick any component to isolate it in 3D view with dedicated technical specs, material properties, historical citations, and dimensions metadata.</p>
+          </div>
+
+          <div class="mode-card-dark explore-card-glow full-width">
+            <div class="mode-icon">⚡</div>
+            <h3>5. Physics Experiment Laboratory Mode</h3>
+            <p>Interactive voltage slider (0 V to 130 V) with real physical calculations: cold vs hot resistance (113 Ω → 140 Ω), current, wattage, filament temperature (1500 K – 2500 K), luminous flux, and overdrive burnout simulation!</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Historical Electrical Roadmap Grid -->
+    <section class="sec roadmap-sec">
+      <div class="wrap">
+        <div class="sec-head">
+          <div class="head-tag-cyan">HISTORICAL ROADMAP</div>
+          <h2 class="sec-title-light">Historical Electrical Inventions Roadmap</h2>
+          <p class="sec-desc-light">The Edison Carbon-Filament Lamp is our foundation. Future 3D models will expand the timeline of electrical innovation.</p>
+        </div>
+
+        <div class="roadmap-grid">
+          <!-- Item 1 (Available Now) -->
+          <div class="roadmap-card-dark active ribbon-wrapper">
+            <div class="exp-ribbon cyan">AVAILABLE</div>
+            <div class="item-year-cyan">1879</div>
+            <h4>Edison Carbon-Filament Lamp</h4>
+            <p>Edison’s Menlo Park carbonized cotton thread lamp that commercialized practical electric lighting.</p>
+            <a href="/explore/edison-bulb/" class="item-link-cyan">Explore in 3D →</a>
+          </div>
+
+          <!-- Item 2 -->
+          <div class="roadmap-card-dark soon">
+            <div class="item-status-dark">ROADMAP</div>
+            <div class="item-year-cyan">1878</div>
+            <h4>Swan Carbon Rod Lamp</h4>
+            <p>Joseph Swan’s low-resistance thick carbon rod lamp demonstrated in Newcastle, England.</p>
+          </div>
+
+          <!-- Item 3 -->
+          <div class="roadmap-card-dark soon">
+            <div class="item-status-dark">ROADMAP</div>
+            <div class="item-year-cyan">1840</div>
+            <h4>De la Rue Platinum Vacuum Coil</h4>
+            <p>Warren de la Rue’s enclosed platinum coil in a glass vacuum tube—the early precursor concept.</p>
+          </div>
+
+          <!-- Item 4 -->
+          <div class="roadmap-card-dark soon">
+            <div class="item-status-dark">ROADMAP</div>
+            <div class="item-year-cyan">1800</div>
+            <h4>Voltaic Pile Battery</h4>
+            <p>Alessandro Volta’s alternating copper and zinc discs producing the world’s first continuous DC electric current.</p>
+          </div>
+
+          <!-- Item 5 -->
+          <div class="roadmap-card-dark soon">
+            <div class="item-status-dark">ROADMAP</div>
+            <div class="item-year-cyan">1904</div>
+            <h4>Tungsten Filament Lamp</h4>
+            <p>Just & Hanaman’s sintered tungsten filament lamp that replaced carbon filaments worldwide.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</ExploreLayout>
+
+<style>
+  .explore-landing-page {
+    background: #050811;
+    color: #f8fafc;
+  }
+  .sec {
+    padding: 4.5rem 0;
+    border-bottom: 1px solid rgba(56, 189, 248, 0.15);
+    position: relative;
+    z-index: 2;
+  }
+  .sec-head {
+    margin-bottom: 2.5rem;
+    max-width: 680px;
+  }
+  .sec-head.center {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .head-tag-cyan {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: #38bdf8;
+    background: rgba(6, 182, 212, 0.12);
+    border: 1px solid rgba(6, 182, 212, 0.35);
+    padding: 0.25rem 0.65rem;
+    border-radius: 0.4rem;
+    margin-bottom: 0.75rem;
+  }
+  .sec-title-light {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+  }
+  .sec-desc-light {
+    font-size: 1.02rem;
+    line-height: 1.6;
+    color: #94a3b8;
+    margin-top: 0.75rem;
+  }
+
+  /* Foundation Card */
+  .foundation-card-dark {
+    background: #0f172a;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 1.25rem;
+    padding: 2.5rem;
+    position: relative;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+  }
+  .foundation-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 2.5rem;
+    align-items: center;
+  }
+  .found-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+  }
+  .found-year-cyan {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #38bdf8;
+  }
+  .found-patent-dark {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #94a3b8;
+    background: #1e293b;
+    padding: 0.2rem 0.55rem;
+    border-radius: 0.35rem;
+  }
+  .found-status-green {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.15);
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+  }
+  .found-title-light {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 0.75rem;
+  }
+  .found-text-light {
+    font-size: 0.98rem;
+    line-height: 1.6;
+    color: #cbd5e1;
+    margin-bottom: 1.25rem;
+  }
+  .found-features-dark {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.75rem;
+  }
+  .feat-pill-dark {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #f1f5f9;
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.35rem 0.7rem;
+    border-radius: 0.5rem;
+  }
+  .btn-launch-explore-cyan {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.85rem 1.75rem;
+    border-radius: 0.75rem;
+    background: linear-gradient(135deg, #06b6d4 0%, #0284c7 100%);
+    color: #ffffff;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 4px 20px rgba(6, 182, 212, 0.4);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .btn-launch-explore-cyan:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(6, 182, 212, 0.55);
+  }
+
+  .visual-preview-box-dark {
+    background: radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.15) 0%, rgba(5, 8, 17, 0.95) 70%);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 1rem;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .bulb-svg {
+    width: 140px;
+    height: 190px;
+    filter: drop-shadow(0 8px 24px rgba(245, 158, 11, 0.35));
+  }
+  .visual-tag-cyan {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: #38bdf8;
+    letter-spacing: 0.05em;
+    margin-top: 1rem;
+  }
+
+  /* Modes Grid */
+  .modes-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+  .mode-card-dark {
+    background: #0f172a;
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 1rem;
+    padding: 1.75rem;
+  }
+  .mode-card-dark.full-width {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, #0f172a 0%, rgba(6, 182, 212, 0.1) 100%);
+    border-color: rgba(6, 182, 212, 0.4);
+  }
+  .mode-icon {
+    font-size: 1.8rem;
+    margin-bottom: 0.75rem;
+  }
+  .mode-card-dark h3 {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+  }
+  .mode-card-dark p {
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: #94a3b8;
+  }
+
+  /* Roadmap Grid */
+  .roadmap-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+  }
+  .roadmap-card-dark {
+    background: #0f172a;
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 0.85rem;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+  }
+  .roadmap-card-dark.active {
+    border-color: #38bdf8;
+    box-shadow: 0 4px 20px rgba(6, 182, 212, 0.2);
+  }
+  .roadmap-card-dark.soon {
+    opacity: 0.75;
+  }
+  .item-status-dark {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    width: fit-content;
+    margin-bottom: 0.75rem;
+    background: #1e293b;
+    color: #64748b;
+  }
+  .item-year-cyan {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #38bdf8;
+  }
+  .roadmap-card-dark h4 {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0.3rem 0 0.5rem;
+  }
+  .roadmap-card-dark p {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: #94a3b8;
+    margin-bottom: 1rem;
+    flex: 1;
+  }
+  .item-link-cyan {
+    font-family: var(--font-display);
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #38bdf8;
+    text-decoration: none;
+  }
+  .item-link-cyan:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 860px) {
+    .foundation-grid {
+      grid-template-columns: 1fr;
+    }
+    .modes-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
