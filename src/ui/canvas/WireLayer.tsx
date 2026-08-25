@@ -23,6 +23,9 @@ interface WireLayerProps {
   orthogonalPaths: ReadonlyMap<string, string>;
   flaggedWireIds?: Set<string>;
   traceWireIds?: Set<string> | null;
+  /** Conductor runs visually severed by an open fault (FaultFxLayer draws
+      the cut zone on top); rendered faded so the "wire is gone" reads. */
+  severedWireIds?: ReadonlySet<string>;
   onSelectWire: (id: string) => void;
   onArmReroute: (id: string) => void;
   onContextMenu: (id: string, event: MouseEvent<SVGGElement>) => void;
@@ -41,6 +44,7 @@ export function WireLayer({
   orthogonalPaths,
   flaggedWireIds,
   traceWireIds,
+  severedWireIds,
   onSelectWire,
   onArmReroute,
   onContextMenu,
@@ -77,6 +81,7 @@ export function WireLayer({
           overloaded={simulation?.overloadedWires?.has(wire.id) ?? false}
           selected={selectedWireId === wire.id}
           flagged={flaggedWireIds?.has(wire.id)}
+          severed={severedWireIds?.has(wire.id) ?? false}
           currentFlowOn={currentFlowOn}
           wireGlowOn={wireGlowOn}
           precomputedPath={orthogonalPaths.get(wire.id)}
@@ -101,6 +106,7 @@ interface WirePathProps {
   overloaded?: boolean;
   selected: boolean;
   flagged?: boolean;
+  severed?: boolean;
   currentFlowOn: boolean;
   wireGlowOn: boolean;
   precomputedPath?: string;
@@ -121,6 +127,7 @@ function WirePath({
   overloaded = false,
   selected,
   flagged,
+  severed = false,
   currentFlowOn,
   wireGlowOn,
   precomputedPath,
@@ -163,8 +170,9 @@ function WirePath({
     color = '#f59e0b';
   }
 
-  const dashed = !energized && theme.wireDashIdle && !error && !broken && !isBusted;
-  const animateFlow = energized && currentFlowOn && !error && !isOverloaded && !isBusted;
+  const dashed = !energized && theme.wireDashIdle && !error && !broken && !isBusted && !severed;
+  const animateFlow =
+    energized && currentFlowOn && !error && !isOverloaded && !isBusted && !severed;
   const midpoint = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
 
   let wireClassName: string | undefined;
@@ -175,6 +183,24 @@ function WirePath({
   } else if (animateFlow) {
     wireClassName = 'electrasim-wire-flow';
   }
+
+  // A severed conductor (open fault) fades out instead of showing state —
+  // FaultFxLayer draws the cut zone on top. The fade itself animates via
+  // the CSS transition on `stroke-opacity` (see `electrasim-wire-fade`).
+  const baseStrokeOpacity = severed
+    ? 0.1
+    : energized || error || isOverloaded || isBusted
+      ? 1
+      : 0.45;
+  const baseDash = severed
+    ? '4 6'
+    : isBusted
+      ? '10 4'
+      : animateFlow
+        ? '8 6'
+        : dashed
+          ? '6 6'
+          : undefined;
 
   return (
     <g data-wire-group opacity={isDimmedByTrace ? 0.15 : 1}>
@@ -255,7 +281,7 @@ function WirePath({
             pointerEvents="none"
           />
         )}
-        {wireGlowOn && (energized || isOverloaded || isBusted) && !error && (
+        {wireGlowOn && (energized || isOverloaded || isBusted) && !error && !severed && (
           <path
             d={path}
             fill="none"
@@ -280,9 +306,11 @@ function WirePath({
           }
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeOpacity={energized || error || isOverloaded || isBusted ? 1 : 0.45}
-          strokeDasharray={isBusted ? '10 4' : animateFlow ? '8 6' : dashed ? '6 6' : undefined}
-          className={wireClassName}
+          strokeDasharray={baseDash}
+          className={
+            wireClassName ? `${wireClassName} electrasim-wire-fade` : 'electrasim-wire-fade'
+          }
+          style={{ strokeOpacity: baseStrokeOpacity }}
         />
         {/* Busted / Melted Wire Animation Marker */}
         {isBusted && (

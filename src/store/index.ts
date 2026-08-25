@@ -14,7 +14,12 @@ export {
   undo,
   useCircuitStore,
 } from './circuitStore';
-export { useUiStore, type ContextMenuState, type PendingCustomPath } from './uiStore';
+export {
+  focusFaultTarget,
+  useUiStore,
+  type ContextMenuState,
+  type PendingCustomPath,
+} from './uiStore';
 export { useViewportStore } from './viewportStore';
 export { useSimulation } from './useSimulation';
 export { useClipboardStore } from './clipboardStore';

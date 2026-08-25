@@ -11,6 +11,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — Session 2026-08-25: Fault Lab UX round — active-faults command centre, wire targets, shortcuts
+
+Follow-up UX pass on the Inspector Fault Lab tab.
+
+- **Active faults command centre**: the tab now lists every injected fault (with its target) and provides one-tap **Focus** (centres the canvas on it), **Replay** (replays that fault's canvas animation — handy for demos), and **Clear** controls; the pending "arming…" injection appears as a cancellable live entry. The canvas auto-reveal math was refactored into a shared `focusFaultTarget` helper that works for component and wire anchors.
+- **Wire targets**: selecting a wire now targets it from the Fault Lab (previously wire faults were context-menu-only). Wire faults use the same choreographed injection (`beginFaultInjection` now accepts component or wire targets; non-conductor fault kinds are rejected for wires) and the arming animation anchors at the wire midpoint.
+- **Grouped injection grid**: the ten fault buttons are grouped into Conductor / Polarity & Wiring / Leakage & Residual / Protection Device categories.
+- **Shift+F**: toggles fault mode (Pro only; plain F remains zoom-to-fit); documented in the shortcuts overlay.
+
+### Changed — Session 2026-08-25: Fault Lab moves into the Inspector and comes alive on the canvas
+
+The Fault Lab is no longer a separate floating window — it is a first-class **Inspector tab**, and every fault now plays a **distinct, visible canvas animation** with a persistent per-fault indicator.
+
+- **Inspector Fault Lab tab** (`InspectorFaultLabView.tsx`): selecting fault mode (toolbar button, command palette, or the new tab) snaps the Inspector open onto the Fault Lab tab; closing fault mode returns to Properties. The old "Manual Fault Simulation" block — injection buttons **and** threshold overrides — moved out of the Component Properties tab into the tab (a one-tap pointer remains in Properties). The floating `FaultLabPanel` is deleted. Pro-only, hidden on phones where the Inspector never renders.
+- **Canvas fault effects** (`ui/canvas/FaultFxLayer.tsx` + `ui/canvas/faultFx.ts`): a dedicated world-space layer renders the physical consequence of each fault, non-destructively (the circuit model is never re-wired or deleted — clearing a fault restores everything):
+  - **Open circuit / open neutral** — the affected conductor *fades out* (`electrasim-wire-fade` transition on WireLayer) and a cut zone opens with sparking exposed ends; open-neutral severs only the neutral run.
+  - **Short circuit** — fire: a spark burst plays, then a flickering flame with radiating heat halos.
+  - **Reverse polarity / switched neutral** — conductor **identity swap**, not re-wiring: attached runs cross-fade to the opposite colour while a crossover arc spins above the device. Ports never change mates (the connection solver still forbids L→N), so the model stays legal and undoable.
+  - **Earth fault** — leakage bolt with rings sinking to an earth symbol; **smooth DC** — purple waveform drifting off the component; **arc fault** — white-hot strobe; **protection bypass** — bridge arc draws itself across the device; **jammed protection** — shaking padlock. Every fault kind also carries a unique pulsing badge code.
+- **Choreographed manual injection** (`uiStore.beginFaultInjection`): for Fault Lab clicks the fault's animation plays *first* (sparks before the short lands), then the circuit-store commit arrives ('arming' lead time per kind, `FAULT_ARM_MS`). Auto-injected faults (Diagnosis Lab, challenges, context menu, undo) commit immediately and get the same entrance + persistent treatment via the layer. Manual injections auto-pan the viewport when the target is off-screen so the animation is always seen.
+- **Reduced motion respected twice**: `prefers-reduced-motion` skips the arming delay (faults commit instantly) and every `electrasim-fx-*` animation is neutralised in CSS, leaving static indicators.
+- **Tests**: 23 new unit/render tests (faultFx model, injection choreography, FX layer output); e2e specs updated to the tab-based Fault Lab and the choreographed commit.
+
 ### Changed — Session 2026-08-24: Challenge Mode is now a genuine Build Challenge (UX correction)
 
 Challenge Mode no longer reads like a step-by-step tutorial. The learner is given the **goal** and the validator judges the result — the internal construction recipe is no longer exposed in the normal learner view.

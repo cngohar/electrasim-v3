@@ -80,10 +80,18 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
   };
 
   const toggleFaultLab = () => {
-    // Arm manual fault injection and open the dedicated Fault Lab panel.
-    setSetting('manualFaultInjection', true);
+    // Toggling fault mode arms manual fault injection and snaps the
+    // Inspector onto the dedicated Fault Lab tab (no more floating window).
     useUiStore.getState().toggleFaultLab();
-    useUiStore.getState().addLog('Fault Lab toggled — manual fault controls armed.', 'info');
+    const nowOpen = useUiStore.getState().faultLabOpen;
+    useUiStore
+      .getState()
+      .addLog(
+        nowOpen
+          ? 'Fault Lab opened in the Inspector — select a component, then inject.'
+          : 'Fault Lab closed — manual fault controls disarmed.',
+        'info',
+      );
   };
 
   return (
@@ -287,8 +295,9 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
         </button>
       )}
 
-      {/* FAULT LAB — Pro-only manual fault panel; visually distinct but calm when inactive */}
-      {appMode === 'pro' && (
+      {/* FAULT LAB — Pro-only manual fault mode; owns an Inspector tab, so
+          it is hidden on phones where the Inspector never renders. */}
+      {appMode === 'pro' && !isPhone && (
         <button
           type="button"
           onClick={toggleFaultLab}

@@ -5,7 +5,7 @@
 
 import {
   Activity,
-  AlertTriangle,
+  FlaskConical,
   HelpCircle,
   Lock,
   RotateCcw,
@@ -394,289 +394,30 @@ export function ComponentPropertiesView({
         </div>
       )}
 
-      {/* Manual Fault Simulation Panel — Pro Mode only, and only while the
-          master "Faults" toggle in the SubHeaderBar is armed. In Student
-          Mode the panel is removed entirely to keep the UI focused. */}
+      {/* Manual fault controls moved to the dedicated Fault Lab tab
+          (Pro). Keep a one-tap pointer here so the old location stays
+          discoverable. */}
       {faultsArmed && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50/80 p-3 dark:border-amber-800 dark:bg-amber-950/40 space-y-2.5">
-          <div className="font-bold text-amber-900 dark:text-amber-200 text-[11px] uppercase tracking-wider flex items-center gap-1.5">
-            <AlertTriangle className="size-3.5 text-amber-600" />
-            Manual Fault Simulation
-          </div>
-
-          {/* Fault Type Injection Buttons */}
-          <div className="grid grid-cols-3 gap-1.5">
-            <button
-              type="button"
-              onClick={() =>
-                useCircuitStore.getState().setComponentFault(selectedComp.id, 'open-circuit')
-              }
-              className={`rounded border py-1.5 text-[10px] font-bold transition ${
-                selectedComp.state.fault === 'open-circuit'
-                  ? 'border-red-500 bg-red-600 text-white'
-                  : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
-              }`}
-            >
-              Open Circuit
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                useCircuitStore.getState().setComponentFault(selectedComp.id, 'short-circuit')
-              }
-              className={`rounded border py-1.5 text-[10px] font-bold transition ${
-                selectedComp.state.fault === 'short-circuit'
-                  ? 'border-red-500 bg-red-600 text-white'
-                  : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
-              }`}
-            >
-              Short Circuit
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                useCircuitStore.getState().setComponentFault(selectedComp.id, 'reverse-polarity')
-              }
-              className={`rounded border py-1.5 text-[10px] font-bold transition ${
-                selectedComp.state.fault === 'reverse-polarity'
-                  ? 'border-red-500 bg-red-600 text-white'
-                  : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
-              }`}
-            >
-              Reverse Polarity
-            </button>
-            {def.isSwitch && (
-              <button
-                type="button"
-                onClick={() =>
-                  useCircuitStore.getState().setComponentFault(selectedComp.id, 'switched-neutral')
-                }
-                className={`col-span-2 rounded border py-1.5 text-[10px] font-bold transition ${
-                  selectedComp.state.fault === 'switched-neutral'
-                    ? 'border-red-500 bg-red-600 text-white'
-                    : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
-                }`}
-              >
-                Switched Neutral (Reg 132.14)
-              </button>
-            )}
-            {def.isProtection && (
-              <>
-                <button
-                  type="button"
-                  onClick={() =>
-                    useCircuitStore
-                      .getState()
-                      .setComponentFault(selectedComp.id, 'protection-bypass')
-                  }
-                  className={`rounded border py-1.5 text-[10px] font-bold transition ${
-                    selectedComp.state.fault === 'protection-bypass'
-                      ? 'border-red-500 bg-red-600 text-white'
-                      : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
-                  }`}
-                >
-                  Bypass Breaker
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    useCircuitStore
-                      .getState()
-                      .setComponentFault(selectedComp.id, 'protection-forced-open')
-                  }
-                  className={`rounded border py-1.5 text-[10px] font-bold transition ${
-                    selectedComp.state.fault === 'protection-forced-open'
-                      ? 'border-red-500 bg-red-600 text-white'
-                      : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
-                  }`}
-                >
-                  Jam Breaker Open
-                </button>
-              </>
-            )}
-            <button
-              type="button"
-              onClick={() =>
-                useCircuitStore.getState().setComponentFault(selectedComp.id, 'earth-fault')
-              }
-              className={`rounded border py-1.5 text-[10px] font-bold transition ${
-                selectedComp.state.fault === 'earth-fault'
-                  ? 'border-red-500 bg-red-600 text-white'
-                  : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
-              }`}
-            >
-              Earth Fault
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                useCircuitStore.getState().setComponentFault(selectedComp.id, undefined)
-              }
-              className="col-span-3 rounded border border-emerald-300 bg-emerald-50 py-1.5 text-[10px] font-bold text-emerald-800 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 transition"
-            >
-              Clear Faults
-            </button>
-          </div>
-
-          {/* Threshold Adjustment Sliders */}
-          <div className="space-y-2 pt-1">
-            <div className="text-[10px] font-semibold text-amber-800 dark:text-amber-300">
-              Threshold Overrides
-            </div>
-
-            {/* Voltage Threshold */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <label
-                  className={`text-[10px] ${isOvervoltage ? 'text-red-600 font-semibold' : 'text-amber-700 dark:text-amber-400'}`}
-                >
-                  Max Voltage: {selectedComp.state.customMaxVolts ?? def.maxVolts ?? 250}V
-                </label>
-                <span
-                  className={`text-[9px] font-mono ${isOvervoltage ? 'text-red-600' : 'text-slate-500 dark:text-slate-400'}`}
-                >
-                  Live: {simRunning ? liveVoltage.toFixed(1) : '0.0'}V
-                </span>
-              </div>
-              <input
-                type="range"
-                min="50"
-                max="500"
-                step="5"
-                value={selectedComp.state.customMaxVolts ?? def.maxVolts ?? 250}
-                onChange={(e) =>
-                  useCircuitStore.getState().updateComponentState(selectedComp.id, {
-                    customMaxVolts: Number(e.target.value),
-                  })
-                }
-                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700 accent-amber-500"
-              />
-              <div className="flex justify-between text-[9px] text-slate-400">
-                <span>50V</span>
-                <span>500V</span>
-              </div>
-            </div>
-
-            {/* Current Threshold */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <label
-                  className={`text-[10px] ${isOvercurrent ? 'text-red-600 font-semibold' : 'text-amber-700 dark:text-amber-400'}`}
-                >
-                  Max Current: {selectedComp.state.customMaxAmps ?? def.maxAmps ?? 16}A
-                </label>
-                <span
-                  className={`text-[9px] font-mono ${isOvercurrent ? 'text-red-600' : 'text-slate-500 dark:text-slate-400'}`}
-                >
-                  Live: {simRunning ? liveCurrent.toFixed(2) : '0.00'}A
-                </span>
-              </div>
-              <input
-                type="range"
-                min="0.1"
-                max="100"
-                step="0.1"
-                value={selectedComp.state.customMaxAmps ?? def.maxAmps ?? 16}
-                onChange={(e) =>
-                  useCircuitStore.getState().updateComponentState(selectedComp.id, {
-                    customMaxAmps: Number(e.target.value),
-                  })
-                }
-                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700 accent-amber-500"
-              />
-              <div className="flex justify-between text-[9px] text-slate-400">
-                <span>0.1A</span>
-                <span>100A</span>
-              </div>
-            </div>
-
-            {/* Power Threshold */}
-            {def.powerWatts !== undefined && (
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <label
-                    className={`text-[10px] ${isOverload ? 'text-red-600 font-semibold' : 'text-amber-700 dark:text-amber-400'}`}
-                  >
-                    Max Power: {selectedComp.state.customPowerWatts ?? def.powerWatts}W
-                  </label>
-                  <span
-                    className={`text-[9px] font-mono ${isOverload ? 'text-red-600' : 'text-slate-500 dark:text-slate-400'}`}
-                  >
-                    Live: {simRunning ? livePower.toFixed(0) : '0'}W
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="1"
-                  max="5000"
-                  step="1"
-                  value={selectedComp.state.customPowerWatts ?? def.powerWatts}
-                  onChange={(e) =>
-                    useCircuitStore.getState().updateComponentState(selectedComp.id, {
-                      customPowerWatts: Number(e.target.value),
-                    })
-                  }
-                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700 accent-amber-500"
-                />
-                <div className="flex justify-between text-[9px] text-slate-400">
-                  <span>1W</span>
-                  <span>5000W</span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Numerical Input Fields */}
-          <div className="grid grid-cols-2 gap-2 pt-1">
-            <div>
-              <label
-                className={`block text-[9px] mb-0.5 ${isOvervoltage ? 'text-red-600' : 'text-slate-500 dark:text-slate-400'}`}
-              >
-                Max Voltage (V)
-              </label>
-              <input
-                type="number"
-                min="0"
-                max="1000"
-                value={selectedComp.state.customMaxVolts ?? def.maxVolts ?? 250}
-                onChange={(e) =>
-                  useCircuitStore.getState().updateComponentState(selectedComp.id, {
-                    customMaxVolts: Number(e.target.value),
-                  })
-                }
-                className={`w-full rounded border px-2 py-1 font-mono text-xs dark:bg-slate-900 dark:text-slate-100 ${
-                  isOvervoltage
-                    ? 'border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300'
-                    : 'border-slate-200 dark:border-slate-700'
-                }`}
-              />
-            </div>
-            <div>
-              <label
-                className={`block text-[9px] mb-0.5 ${isOvercurrent ? 'text-red-600' : 'text-slate-500 dark:text-slate-400'}`}
-              >
-                Max Current (A)
-              </label>
-              <input
-                type="number"
-                min="0.1"
-                max="200"
-                step="0.1"
-                value={selectedComp.state.customMaxAmps ?? def.maxAmps ?? 16}
-                onChange={(e) =>
-                  useCircuitStore.getState().updateComponentState(selectedComp.id, {
-                    customMaxAmps: Number(e.target.value),
-                  })
-                }
-                className={`w-full rounded border px-2 py-1 font-mono text-xs dark:bg-slate-900 dark:text-slate-100 ${
-                  isOvercurrent
-                    ? 'border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300'
-                    : 'border-slate-200 dark:border-slate-700'
-                }`}
-              />
-            </div>
-          </div>
-        </div>
+        <button
+          type="button"
+          onClick={() => useUiStore.getState().setFaultLabOpen(true)}
+          className="flex w-full items-center gap-2 rounded-xl border border-amber-200 bg-amber-50/80 px-3 py-2.5 text-left shadow-sm transition hover:bg-amber-100/80 dark:border-amber-800 dark:bg-amber-950/40 dark:hover:bg-amber-950/70"
+        >
+          <FlaskConical className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+          <span className="min-w-0 flex-1">
+            <span className="block text-[11px] font-bold text-amber-900 dark:text-amber-200">
+              Fault Lab
+            </span>
+            <span className="block text-[10px] leading-snug text-amber-800/90 dark:text-amber-300/70">
+              Inject faults & tune blow thresholds — now with canvas animations
+            </span>
+          </span>
+          {selectedComp.state.fault && (
+            <span className="shrink-0 rounded-md bg-red-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-red-700 dark:bg-red-950/60 dark:text-red-300">
+              {selectedComp.state.fault}
+            </span>
+          )}
+        </button>
       )}
 
       {/* Switch Control Toggle */}

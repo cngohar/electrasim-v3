@@ -541,6 +541,348 @@
   transform-box: fill-box;
 }
 
+/* ─── Fault Lab canvas effects (electrasim-fx-*) ─────────────────────────
+   One distinct animation per fault kind, played by FaultFxLayer on the
+   canvas. Two families:
+     • entrance ("arming" + one-shot impact) — plays when the fault is
+       injected, manual or auto (element mounts → CSS plays);
+     • persistent (looping) — keeps every active fault visibly animated.
+   Every class is neutralised under `prefers-reduced-motion: reduce` (see
+   the media query at the bottom of this section); the store additionally
+   skips the pre-commit choreography delay, so reduced-motion users get the
+   fault instantly with static indicators. */
+
+/* Conductor fade: applied to every wire's base stroke so an open fault can
+   animate the wire away with a real fade (see WireLayer `severed`). */
+.electrasim-wire-fade {
+  transition: stroke-opacity 0.55s ease;
+}
+
+/* Entrance: conductor fade-out gap opening (open circuit / open neutral). */
+@keyframes electrasim-fx-gap-in {
+  0% {
+    opacity: 0;
+    transform: scaleX(0.12);
+  }
+  100% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+.electrasim-fx-gap-in {
+  animation: electrasim-fx-gap-in 0.55s ease-out both;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+/* Persistent: dashed cut-zone outline breathing. */
+@keyframes electrasim-fx-cut-pulse {
+  0%,
+  100% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.electrasim-fx-cut-pulse {
+  animation: electrasim-fx-cut-pulse 1.4s ease-in-out infinite;
+}
+
+/* Persistent: sparking exposed conductor tips. */
+@keyframes electrasim-fx-spark-flicker {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scale(0.6);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.5);
+  }
+  60% {
+    opacity: 0.4;
+    transform: scale(0.8);
+  }
+}
+
+.electrasim-fx-spark-flicker {
+  animation: electrasim-fx-spark-flicker 0.6s steps(3, end) infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+/* Persistent: radiating heat halo (short circuit). */
+@keyframes electrasim-fx-halo {
+  0% {
+    opacity: 0.45;
+    transform: scale(0.55);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.65);
+  }
+}
+
+.electrasim-fx-halo {
+  animation: electrasim-fx-halo 1.6s ease-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+/* Entrance: indicator pops into existence. */
+@keyframes electrasim-fx-pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.25);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.electrasim-fx-pop-in {
+  animation: electrasim-fx-pop-in 0.45s ease-out both;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+/* Entrance: one-shot spark burst that fades as the fault lands. */
+@keyframes electrasim-fx-sparkburst {
+  0% {
+    opacity: 1;
+    transform: scale(0.2);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.45);
+  }
+}
+
+.electrasim-fx-sparkburst {
+  animation: electrasim-fx-sparkburst 0.9s ease-out both;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+/* Identity swap: recolour cross-fade + marching identity dashes. */
+@keyframes electrasim-fx-recolor {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0.95;
+  }
+}
+
+@keyframes electrasim-fx-swap-flow {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+.electrasim-fx-swap-stroke {
+  animation: electrasim-fx-recolor 0.7s ease-out both, electrasim-fx-swap-flow 1.2s linear 0.1s
+    infinite;
+  will-change: stroke-dashoffset;
+}
+
+/* Identity swap: crossover arc spins once into place / loops while arming. */
+@keyframes electrasim-fx-xover-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(180deg);
+  }
+}
+
+.electrasim-fx-xover-spin {
+  animation: electrasim-fx-xover-spin 0.85s ease-in-out both;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+@keyframes electrasim-fx-rotate-360 {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.electrasim-fx-rotate-loop {
+  animation: electrasim-fx-rotate-360 1.1s linear infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+/* Earth fault: expanding leakage rings running to ground. */
+@keyframes electrasim-fx-earth-ring {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.3);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+}
+
+.electrasim-fx-earth-ring {
+  animation: electrasim-fx-earth-ring 1.5s ease-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+/* Smooth DC residual: waveform drifting off the component. */
+@keyframes electrasim-fx-dc-drift {
+  0% {
+    opacity: 0.2;
+    transform: translate3d(0, 5px, 0);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, -7px, 0);
+  }
+}
+
+.electrasim-fx-dc-drift {
+  animation: electrasim-fx-dc-drift 1.7s linear infinite;
+}
+
+/* Arc fault: irregular white-hot series-arc strobe. */
+@keyframes electrasim-fx-arc-strobe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  20% {
+    opacity: 0.08;
+  }
+  35% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 0.15;
+  }
+  70% {
+    opacity: 1;
+  }
+  82% {
+    opacity: 0.3;
+  }
+}
+
+.electrasim-fx-arc-strobe {
+  animation: electrasim-fx-arc-strobe 0.8s steps(6, end) infinite;
+}
+
+/* Protection bypass: bridge arc draws itself across the device. */
+@keyframes electrasim-fx-bridge-draw {
+  from {
+    stroke-dashoffset: 140;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.electrasim-fx-bridge-draw {
+  animation: electrasim-fx-bridge-draw 0.75s ease-out both;
+}
+
+/* Jammed protection: lever/lock shake. */
+@keyframes electrasim-fx-jam-shake {
+  0%,
+  100% {
+    transform: rotate(-4deg);
+  }
+  50% {
+    transform: rotate(4deg);
+  }
+}
+
+.electrasim-fx-jam-shake {
+  animation: electrasim-fx-jam-shake 0.45s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+/* Arming (pre-commit): target ring pulsing while the fault "charges". */
+@keyframes electrasim-fx-arm-ring {
+  0% {
+    opacity: 0.85;
+    transform: scale(0.55);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.8);
+  }
+}
+
+@keyframes electrasim-fx-arm-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* Fault badge chip: persistent gentle pulse, pops in on injection. */
+@keyframes electrasim-fx-chip-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.65;
+  }
+}
+
+.electrasim-fx-chip-pulse {
+  animation: electrasim-fx-chip-pulse 2.4s ease-in-out infinite;
+}
+
+/* Reduced motion honours the OS setting for every fault animation: the
+   indicators still render (static), only motion is removed. The store
+   mirrors this by skipping the animation lead time on injection. */
+@media (prefers-reduced-motion: reduce) {
+  .electrasim-fx-gap-in,
+  .electrasim-fx-cut-pulse,
+  .electrasim-fx-spark-flicker,
+  .electrasim-fx-halo,
+  .electrasim-fx-pop-in,
+  .electrasim-fx-sparkburst,
+  .electrasim-fx-swap-stroke,
+  .electrasim-fx-xover-spin,
+  .electrasim-fx-rotate-loop,
+  .electrasim-fx-earth-ring,
+  .electrasim-fx-dc-drift,
+  .electrasim-fx-arc-strobe,
+  .electrasim-fx-bridge-draw,
+  .electrasim-fx-jam-shake,
+  .electrasim-fx-arm-ring,
+  .electrasim-fx-arm-blink,
+  .electrasim-fx-chip-pulse {
+    animation: none !important;
+  }
+
+  .electrasim-wire-fade {
+    transition: none !important;
+  }
+}
+
 /* ─── Dialog / Modal Appearance & Exit Animations ─── */
 @keyframes electrasim-dialog-fade-in {
   0% {
