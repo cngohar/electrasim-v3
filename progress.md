@@ -7,6 +7,17 @@ A running, append-only log of work on the ElectraSim rewrite. Every coding sessi
 
 ---
 
+## Session 2026-08-25 — Explore 3D Historical Educational Feature
+
+**Done:** Implemented the **Explore 3D** experimental feature (`/explore/` and `/explore/edison-bulb/`) featuring an interactive 3D model of Thomas Edison's 1879 carbon-filament incandescent light bulb with a custom dark laboratory visual shell, 5 viewing modes, physics experimentation lab, and cited historical guide timeline.
+
+- **Bespoke Theme & Shell**: Built `ExploreLayout.astro`, `ExploreHeader.astro`, `ExploreFooter.astro`, and `explore.css` providing a dark space laboratory theme (`#050811`) with animated electric blueprint grid lines, travelling plasma arcs, diagonal corner ribbon banners (`EXPERIMENTAL`, `FOUNDATION 01`), and archival citations (Smithsonian, Rutgers Edison Papers, IEEE GHN, U.S. Patent Office).
+- **Interactive 3D Edison Bulb Explorer (`/explore/edison-bulb/`)**: Built WebGL 3D rendering with Three.js depicting all 9 verified physical components (Glass Envelope, Carbon Filament, Support Wires, Glass Stem, Lead Wires, Brass Screw Base, Copper Foot Contact, Base Insulator, Vacuum Chamber) with 5 modes: Assembly, Cutaway, Exploded Assembly, Isolate / Inspect, and Physics Laboratory ($0\text{ V}-130\text{ V}$ slider with resistance, power, temperature, lumens, and overdrive burnout simulation).
+- **Explore 3D Command Palette (`ExploreSearchModal.astro`)**: Built a dark command palette searching 3D models, modes, components, and historical timeline milestones (`Ctrl+K` / `⌘K`).
+- **Responsiveness & WebGL Hardening**: Full mobile drawer navigation, touch-action gesture preservation, `IntersectionObserver` & `visibilitychange` animation loop pausing when off-screen, and zero-error Astro static compilation (`npx astro check` 84 files clean).
+
+---
+
 ## Session 2026-08-24 — Challenge Mode UX Correction: Build Challenge, not a Tutorial
 
 **Done:** Reworked the learner-facing Challenge Mode so it behaves as a genuine **Build Challenge** instead of a step-by-step tutorial (per `ElectraSim-Challenge-Mode-UX-Correction-Plan.md`). The internal validator, persistence, workspace isolation, hints, completion and tests are untouched — only the information exposed to the learner changed.
