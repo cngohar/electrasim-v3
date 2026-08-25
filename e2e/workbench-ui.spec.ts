@@ -170,9 +170,12 @@ test.describe('workbench shell', () => {
     const shortBtn = page.getByRole('button', { name: /Short Circuit/ });
     await expect(shortBtn).toBeEnabled();
     await shortBtn.click();
-    await page.waitForTimeout(300);
-    // The active-fault badge reflects the injected fault.
-    await expect(page.getByText('short-circuit', { exact: true })).toBeVisible();
+    // Injection is choreographed on the canvas (sparks first, then the fault
+    // lands) — the active-fault badge appears right after the short lead-in.
+    await expect(page.getByText('short-circuit', { exact: true })).toBeVisible({ timeout: 5000 });
+    // The Active faults command centre lists it with focus/replay/clear.
+    await expect(page.getByText('Active faults (1)')).toBeVisible();
+    await expect(page.getByLabel('Replay Short circuit animation')).toBeVisible();
     // Clear all faults removes it.
     await page.getByTitle('Clear all injected faults').click();
     await expect(page.getByText('short-circuit', { exact: true })).toHaveCount(0);

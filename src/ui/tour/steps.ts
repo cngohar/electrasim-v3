@@ -209,7 +209,7 @@ const PRO_STEPS: TourStep[] = [
     target: '[data-tour="fault-lab"]',
     kind: 'do',
     title: 'The Fault Lab',
-    body: 'The full fault catalogue — open circuits, shorts, reverse polarity, earth faults, arc faults, jammed breakers — injected onto the selected component. The Inspector\u2019s Manual Fault Simulation section and the right-click menu drive the same engine; this panel is just the complete, scannable view.',
+    body: 'The full fault catalogue — open circuits, shorts, reverse polarity, earth faults, arc faults, jammed breakers — injected onto the selected component. It lives in its own Inspector tab: each fault plays a distinct animation on the canvas (severed conductors, fire, conductor swaps) with a persistent indicator. The right-click menu drives the same engine.',
     action: 'Open the Fault Lab',
     advanceWhen: (snap) => snap.faultLabOpen,
   },

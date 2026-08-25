@@ -31,6 +31,7 @@ import {
   undo,
   useCircuitStore,
   useClipboardStore,
+  useSettingsStore,
   useUiStore,
   useViewportStore,
 } from '../../store';
@@ -337,6 +338,14 @@ export function useKeyboardShortcuts() {
         const ui = useUiStore.getState();
         ui.setMode(ui.mode === 'wiring' ? 'idle' : 'wiring');
         ui.setPendingWireFrom(null);
+        return;
+      }
+      // Shift+F — toggle the Fault Lab (Pro only; F alone stays zoom-to-fit).
+      if (!meta && e.shiftKey && (e.key === 'f' || e.key === 'F')) {
+        e.preventDefault();
+        if (useSettingsStore.getState().appMode === 'pro') {
+          useUiStore.getState().toggleFaultLab();
+        }
         return;
       }
       if (e.key === 'f' || e.key === 'F') {

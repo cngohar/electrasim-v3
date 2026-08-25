@@ -5,6 +5,7 @@
  */
 
 import type {
+  FaultType,
   InteractionMode,
   LogEntry,
   LogLevel,
@@ -234,7 +235,7 @@ export interface UiState {
   /** Selected validation issue for the 'View Details' modal. */
   activeValidationIssueModal: ValidationIssue | null;
 
-  /** Active tab in Inspector panel ('properties' | 'connections' | 'simulation' | 'analytics' | 'validation' | 'logs' | 'history'). */
+  /** Active tab in Inspector panel ('properties' | 'connections' | 'simulation' | 'analytics' | 'validation' | 'logs' | 'history' | 'faultlab'). */
   activeInspectorTab:
     | 'properties'
     | 'connections'
@@ -242,7 +243,8 @@ export interface UiState {
     | 'analytics'
     | 'validation'
     | 'logs'
-    | 'history';
+    | 'history'
+    | 'faultlab';
 
   /** Visual feedback mode: when true and a wire/component is selected, dims all unselected parts and highlights the traced path. */
   tracePathMode: boolean;
@@ -259,6 +261,17 @@ export interface UiState {
   commandPaletteOpen: boolean;
   /** Workbench experiment: dedicated Fault Lab panel open flag. */
   faultLabOpen: boolean;
+  /**
+   * Fault-injection choreography: while a manual injection animation is
+   * playing on the canvas this holds the *pending* fault; the circuit store
+   * commit happens when the animation's lead time expires. `nonce` makes
+   * each injection distinguishable so stale timers never commit.
+   */
+  pendingFaultFx: {
+    target: { componentId: string } | { wireId: string };
+    type: FaultType;
+    nonce: number;
+  } | null;
   /** Keyboard shortcuts overlay (? key). */
   shortcutsOpen: boolean;
   /** Interactive tutorial: active tour id (null = no tour running). */
@@ -295,7 +308,8 @@ export interface UiState {
       | 'analytics'
       | 'validation'
       | 'logs'
-      | 'history',
+      | 'history'
+      | 'faultlab',
   ) => void;
   setTracePathMode: (active: boolean) => void;
   toggleTracePathMode: () => void;
@@ -310,6 +324,19 @@ export interface UiState {
   toggleCommandPalette: () => void;
   setFaultLabOpen: (open: boolean) => void;
   toggleFaultLab: () => void;
+  /**
+   * Choreographed manual fault injection: arms the canvas pre-commit
+   * animation (e.g. fire sparks before a short circuit lands), then commits
+   * the fault to the circuit store once the lead time elapses. Under
+   * `prefers-reduced-motion` the fault commits immediately. Works for both
+   * component and wire targets.
+   */
+  beginFaultInjection: (
+    type: FaultType,
+    target: { componentId: string } | { wireId: string },
+  ) => void;
+  /** Abandon a pending (not yet committed) injection animation. */
+  clearPendingFaultFx: () => void;
   setShortcutsOpen: (open: boolean) => void;
   toggleShortcuts: () => void;
   /** Interactive tutorial controls. */

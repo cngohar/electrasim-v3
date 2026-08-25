@@ -16,10 +16,12 @@ import {
   handlePortClick as runPortClickFsm,
 } from './canvas-actions';
 import { ComponentLayer, ComponentTooltip } from './canvas/ComponentLayer';
+import { FaultFxLayer } from './canvas/FaultFxLayer';
 import { CanvasOverlayLayer } from './canvas/OverlayLayer';
 import { StressZoneOverlay } from './canvas/StressZoneOverlay';
 import { WireJointsLayer } from './canvas/WireJointsLayer';
 import { WireLayer } from './canvas/WireLayer';
+import { collectFaultFx, severedWireIdSet } from './canvas/faultFx';
 import { buildOrthogonalPath, screenToSvg, svgToWorld } from './canvas/geometry';
 import type { CanvasTheme, PortLoc } from './canvas/types';
 import { useCanvasGestureStart } from './canvas/useCanvasGestureStart';
@@ -204,6 +206,13 @@ export function CircuitCanvas({
     for (const c of circuit.components) m.set(c.id, c);
     return m;
   }, [circuit.components]);
+
+  // ── Fault Lab canvas effects ─────────────────────────────────────────
+  // Descriptors are linear in circuit size (cheap) and identity-stable per
+  // fault key, so the layer's entrance animations only play on real fault
+  // transitions, never on re-renders.
+  const faultFxItems = useMemo(() => collectFaultFx(circuit, byId), [circuit, byId]);
+  const severedWireIds = useMemo(() => severedWireIdSet(faultFxItems), [faultFxItems]);
 
   // Orthogonal path computation is O(components) per wire,
   // so re-running it on every parent render (selection click, hover, sim
@@ -489,6 +498,7 @@ export function CircuitCanvas({
             orthogonalPaths={orthogonalPathD}
             flaggedWireIds={flaggedWireIds}
             traceWireIds={traceWireIds}
+            severedWireIds={severedWireIds}
             onSelectWire={(id) => {
               useCircuitStore.getState().selectWire(id);
               useUiStore.getState().setInspectorCollapsed(false);
@@ -570,6 +580,17 @@ export function CircuitCanvas({
             circuit={circuit}
             simulation={simResult ?? null}
             componentsById={byId}
+            orthogonalPaths={orthogonalPathD}
+          />
+
+          {/* Fault Lab effects: per-fault canvas animations + persistent
+              indicators; topmost world-space layer, pointer-transparent. */}
+          <FaultFxLayer
+            items={faultFxItems}
+            wires={circuit.wires}
+            componentsById={byId}
+            theme={theme}
+            wireWidth={wireWidth}
             orthogonalPaths={orthogonalPathD}
           />
         </g>

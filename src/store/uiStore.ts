@@ -13,9 +13,17 @@
 
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import { COMPONENT_DEFS, type ComponentInstance, type WireInstance } from '../domain';
+import {
+  COMPONENT_DEFS,
+  type ComponentInstance,
+  type FaultType,
+  type WireInstance,
+  getPortPos,
+  isWireFaultType,
+} from '../domain';
 import { validateCircuit } from '../domain/circuitValidation';
 import { primarySocketForPlug } from '../domain/standards';
+import { prefersReducedMotionNow } from '../lib/reducedMotion';
 import { useCircuitStore } from './circuitStore';
 import { buildProSeedCircuit } from './seed';
 import { useSettingsStore } from './settingsStore';
@@ -28,6 +36,7 @@ import {
   mobileSuitabilityInitiallyOpen,
 } from './uiStore.helpers';
 import type { EventHistoryEntry, UiState } from './uiStore.types';
+import { useViewportStore } from './viewportStore';
 
 // Re-export the moved public surface so existing imports keep working.
 export type {
@@ -49,6 +58,102 @@ let nextToastId = 0;
 let toastTimer: ReturnType<typeof setTimeout> | null = null;
 let validationTimer: ReturnType<typeof setTimeout> | null = null;
 let validationRevision = 0;
+let faultInjectionTimer: ReturnType<typeof setTimeout> | null = null;
+let faultInjectionNonce = 0;
+
+/**
+ * Pre-commit animation lead time (ms) per fault kind — the "sparks fly
+ * first, then the fault lands" choreography played by the canvas
+ * FaultFxLayer for *manual* Fault Lab injections. Each fault kind has its
+ * own distinct animation and its own beat. Kept in sync with the CSS
+ * keyframes in `index.css` (`electrasim-fx-*` classes).
+ */
+export const FAULT_ARM_MS: Partial<Record<FaultType, number>> = {
+  'short-circuit': 1100,
+  'open-circuit': 550,
+  'open-neutral': 550,
+  'reverse-polarity': 700,
+  'switched-neutral': 850,
+  'earth-fault': 750,
+  'smooth-dc-residual': 650,
+  'arc-fault': 950,
+  'protection-bypass': 750,
+  'protection-forced-open': 700,
+};
+const FAULT_ARM_DEFAULT_MS = 600;
+
+/**
+ * Canvas viewBox centre (matches CircuitCanvas VIEW_W/VIEW_H) — used to
+ * re-centre the viewport on a fault target so the injection animation is
+ * never played off-screen.
+ */
+const VIEW_CENTER = { x: 600, y: 360 };
+
+/**
+ * If the fault target sits outside the visible world rect, snap the viewport
+ * so the injection animation is actually seen. Deliberately only used for
+ * manual Fault Lab injections — auto-injected faults (Diagnosis Lab,
+ * challenges) must never yank the learner's view.
+ */
+/**
+ * Centre the viewport on a world point, keeping the current zoom. Used by
+ * the Fault Lab (auto-reveal on injection; the per-fault Focus buttons).
+ */
+function centreOnWorldPoint(x: number, y: number): void {
+  const { zoom, setPan } = useViewportStore.getState();
+  setPan({ x: VIEW_CENTER.x - x * zoom, y: VIEW_CENTER.y - y * zoom });
+}
+
+/** Anchor point of a fault target in world coordinates (null if it vanished). */
+function faultTargetPoint(
+  target: { componentId: string } | { wireId: string },
+): { x: number; y: number } | null {
+  const circuit = useCircuitStore.getState();
+  if ('componentId' in target) {
+    const comp = circuit.components.find((c) => c.id === target.componentId);
+    return comp ? { x: comp.x, y: comp.y } : null;
+  }
+  const wire = circuit.wires.find((w) => w.id === target.wireId);
+  if (!wire) return null;
+  const from = circuit.components.find((c) => c.id === wire.fromComponentId);
+  const to = circuit.components.find((c) => c.id === wire.toComponentId);
+  if (!from || !to) return null;
+  const start = getPortPos(from, wire.fromPortIndex, COMPONENT_DEFS);
+  const end = getPortPos(to, wire.toPortIndex, COMPONENT_DEFS);
+  return { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
+}
+
+/**
+ * If the fault target sits outside the visible world rect, snap the viewport
+ * so the injection animation is actually seen. Deliberately only used for
+ * manual Fault Lab injections — auto-injected faults (Diagnosis Lab,
+ * challenges) must never yank the learner's view.
+ */
+function ensureTargetOnCanvas(target: { componentId: string } | { wireId: string }): void {
+  const point = faultTargetPoint(target);
+  if (!point) return;
+  const { pan, zoom } = useViewportStore.getState();
+  const margin = 90;
+  const minX = -pan.x / zoom;
+  const maxX = (VIEW_CENTER.x * 2 - pan.x) / zoom;
+  const minY = -pan.y / zoom;
+  const maxY = (VIEW_CENTER.y * 2 - pan.y) / zoom;
+  const offScreen =
+    point.x < minX + margin ||
+    point.x > maxX - margin ||
+    point.y < minY + margin ||
+    point.y > maxY - margin;
+  if (offScreen) centreOnWorldPoint(point.x, point.y);
+}
+
+/**
+ * Fault Lab "Focus" action: centre the canvas on a fault target (always —
+ * an explicit user click, unlike the injection-time auto-reveal).
+ */
+export function focusFaultTarget(target: { componentId: string } | { wireId: string }): void {
+  const point = faultTargetPoint(target);
+  if (point) centreOnWorldPoint(point.x, point.y);
+}
 
 /**
  * Apply the non-bypassable physical-safety check and the Pro compliance gate
@@ -162,6 +267,7 @@ export const useUiStore = create<UiState>()(
     inspectorCollapsed: true,
     commandPaletteOpen: false,
     faultLabOpen: false,
+    pendingFaultFx: null,
     shortcutsOpen: false,
     tourId: null,
     tourStep: 0,
@@ -614,14 +720,84 @@ export const useUiStore = create<UiState>()(
       set((s) => {
         s.commandPaletteOpen = !s.commandPaletteOpen;
       }),
-    setFaultLabOpen: (open) =>
+    setFaultLabOpen: (open) => {
+      if (open) {
+        // Opening fault mode arms the manual fault-injection master switch
+        // (context menus etc. gate on it) — single arm point.
+        useSettingsStore.getState().setSetting('manualFaultInjection', true);
+      }
       set((s) => {
         s.faultLabOpen = open;
-      }),
-    toggleFaultLab: () =>
+        if (open) {
+          // Fault mode now owns a dedicated Inspector tab (the old floating
+          // window is gone): snap the Inspector open straight onto it.
+          s.inspectorCollapsed = false;
+          s.activeInspectorTab = 'faultlab';
+        } else if (s.activeInspectorTab === 'faultlab') {
+          // Leaving fault mode while the tab is focused falls back to the
+          // component properties view so the drawer never shows a dead tab.
+          s.activeInspectorTab = 'properties';
+        }
+        if (!open && s.pendingFaultFx) {
+          s.pendingFaultFx = null;
+          if (faultInjectionTimer) {
+            clearTimeout(faultInjectionTimer);
+            faultInjectionTimer = null;
+          }
+        }
+      });
+    },
+    toggleFaultLab: () => get().setFaultLabOpen(!get().faultLabOpen),
+    beginFaultInjection: (type, target) => {
+      // Wire targets accept only conductor-level fault kinds.
+      if ('wireId' in target && !isWireFaultType(type)) return;
+      const nonce = ++faultInjectionNonce;
+      if (faultInjectionTimer) {
+        clearTimeout(faultInjectionTimer);
+        faultInjectionTimer = null;
+      }
+
+      const commit = () => {
+        if (nonce !== faultInjectionNonce) return; // superseded mid-animation
+        faultInjectionTimer = null;
+        if ('componentId' in target) {
+          useCircuitStore.getState().setComponentFault(target.componentId, type);
+        } else if (isWireFaultType(type)) {
+          useCircuitStore.getState().setWireFault(target.wireId, type);
+        }
+        ensureTargetOnCanvas(target);
+        set((s) => {
+          if (s.pendingFaultFx?.nonce === nonce) s.pendingFaultFx = null;
+        });
+      };
+
+      // Reduced-motion users get the fault instantly with static indicators —
+      // no pre-commit animation, no artificial delay.
+      const armMs = prefersReducedMotionNow() ? 0 : (FAULT_ARM_MS[type] ?? FAULT_ARM_DEFAULT_MS);
+      if (armMs <= 0) {
+        set((s) => {
+          s.pendingFaultFx = null;
+        });
+        commit();
+        return;
+      }
       set((s) => {
-        s.faultLabOpen = !s.faultLabOpen;
-      }),
+        s.pendingFaultFx = { target, type, nonce };
+      });
+      // Re-centre immediately so the *arming* animation is visible too.
+      ensureTargetOnCanvas(target);
+      faultInjectionTimer = setTimeout(commit, armMs);
+    },
+    clearPendingFaultFx: () => {
+      faultInjectionNonce += 1;
+      if (faultInjectionTimer) {
+        clearTimeout(faultInjectionTimer);
+        faultInjectionTimer = null;
+      }
+      set((s) => {
+        s.pendingFaultFx = null;
+      });
+    },
     setShortcutsOpen: (open) =>
       set((s) => {
         s.shortcutsOpen = open;

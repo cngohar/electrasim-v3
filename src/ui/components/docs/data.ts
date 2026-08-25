@@ -15,6 +15,7 @@ export const SHORTCUTS: Array<[key: string, action: string]> = [
   ['W', 'Wire tool — click two ports to connect them'],
   ['R', 'Reroute — cycle TO → FROM → cancel on selected wire'],
   ['F', 'Zoom-to-fit — frame all components in the viewport'],
+  ['Shift+F', 'Fault Lab — toggle fault mode; the Inspector snaps to its tab (Pro only)'],
   ['Ctrl+E', 'Open Import / Export modal'],
   ['Ctrl+S', 'Quick-export circuit as JSON'],
   ['Ctrl+C', 'Copy selected component(s) to the in-memory clipboard'],

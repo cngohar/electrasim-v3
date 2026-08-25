@@ -76,13 +76,13 @@ export function CommandPalette() {
       {
         id: 'fault-lab',
         label: 'Open Fault Lab',
-        hint: 'Manual fault injection panel (Pro)',
+        hint: 'Manual fault injection — Inspector tab with canvas animations (Pro)',
         icon: FlaskConical,
-        keywords: 'fault short open circuit injection',
+        keywords: 'fault short open circuit injection sparks',
         run: () => {
           const s = useUiStore.getState();
           s.setFaultLabOpen(true);
-          s.addLog('Fault Lab opened — manual fault controls armed.', 'info');
+          s.addLog('Fault Lab opened in the Inspector — manual fault controls armed.', 'info');
           setOpen(false);
         },
       },

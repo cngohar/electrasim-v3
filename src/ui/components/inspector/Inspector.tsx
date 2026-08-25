@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
+  FlaskConical,
   Layers,
   Route,
   ShieldCheck,
@@ -29,6 +30,7 @@ import { useCircuitStore, useSettingsStore, useUiStore } from '../../../store';
 import { ValidationReportView } from '../ValidationReportView';
 import { InspectorAnalyticsView } from './InspectorAnalyticsView';
 import { InspectorConnectionsContent } from './InspectorConnectionsContent';
+import { InspectorFaultLabView } from './InspectorFaultLabView';
 import { InspectorHistoryView } from './InspectorHistoryView';
 import { InspectorLogsView } from './InspectorLogsView';
 import { InspectorPropertiesContent } from './InspectorPropertiesContent';
@@ -63,8 +65,11 @@ export function Inspector({
   const setActiveInspectorTab = useUiStore((s) => s.setActiveInspectorTab);
   const activeGuideId = useUiStore((s) => s.activeGuideId);
   const eventHistory = useUiStore((s) => s.eventHistory);
+  const faultLabOpen = useUiStore((s) => s.faultLabOpen);
   const appMode = useSettingsStore((s) => s.appMode);
   const isPro = appMode === 'pro';
+  // Any injected fault shows as an amber dot on the Fault Lab tab button.
+  const injectedFaultCount = useCircuitStore((s) => s.faults.length);
 
   const validationReport = useUiStore((s) => s.validationReport);
   const runCircuitValidation = useUiStore((s) => s.runCircuitValidation);
@@ -141,6 +146,31 @@ export function Inspector({
             >
               <Zap className="size-4" />
             </button>
+
+            {isPro && (
+              <button
+                type="button"
+                onClick={() => {
+                  // Opening fault mode expands the drawer and snaps to the
+                  // Fault Lab tab in one store action.
+                  useUiStore.getState().setFaultLabOpen(true);
+                }}
+                className={`relative p-2 rounded-xl transition ${
+                  activeInspectorTab === 'faultlab' && faultLabOpen
+                    ? 'bg-amber-600 text-white shadow-xs'
+                    : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                }`}
+                aria-label="Fault Lab (manual fault injection)"
+                title="Fault Lab (manual fault injection)"
+              >
+                <FlaskConical className="size-4" />
+                {injectedFaultCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex size-3.5 items-center justify-center rounded-full bg-amber-500 text-[8px] font-bold text-white">
+                    {injectedFaultCount > 9 ? '9+' : injectedFaultCount}
+                  </span>
+                )}
+              </button>
+            )}
 
             <div className="my-1 h-px w-6 bg-slate-200 dark:bg-slate-800" />
 
@@ -248,7 +278,8 @@ export function Inspector({
             )}
             <div className="min-w-0">
               <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                {activeInspectorTab.toUpperCase()} PANEL
+                {activeInspectorTab === 'faultlab' ? 'FAULT LAB' : activeInspectorTab.toUpperCase()}{' '}
+                PANEL
               </div>
               <div className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
                 {selectionState.kind === 'wire'
@@ -317,6 +348,20 @@ export function Inspector({
           {activeInspectorTab === 'simulation' && (
             <InspectorSimulationContent selectionState={selectionState} simResult={simResult} />
           )}
+
+          {/* Fault Lab tab — Pro fault mode. Falls back to Properties when
+              the tab is somehow active without fault mode armed. */}
+          {activeInspectorTab === 'faultlab' &&
+            (isPro && faultLabOpen ? (
+              <InspectorFaultLabView />
+            ) : (
+              <InspectorPropertiesContent
+                selectionState={selectionState}
+                simResult={simResult}
+                setIsCollapsed={setIsCollapsed}
+                runCircuitValidation={runCircuitValidation}
+              />
+            ))}
 
           {activeInspectorTab === 'analytics' && (
             <InspectorAnalyticsView
@@ -415,6 +460,31 @@ export function Inspector({
               <span className="absolute -left-1 top-1/2 -translate-y-1/2 w-1 h-3 bg-amber-500 rounded-r" />
             )}
           </button>
+
+          {/* Fault Lab Tab (Pro) — arms fault mode as a side effect. */}
+          {isPro && (
+            <button
+              type="button"
+              onClick={() => useUiStore.getState().setFaultLabOpen(true)}
+              className={`p-2 rounded-xl transition relative ${
+                activeInspectorTab === 'faultlab' && faultLabOpen
+                  ? 'bg-amber-600 text-white shadow-md'
+                  : 'text-slate-500 hover:bg-slate-200/60 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800'
+              }`}
+              aria-label="Fault Lab (manual fault injection)"
+              title="Fault Lab — manual fault injection"
+            >
+              <FlaskConical className="size-4" />
+              {activeInspectorTab === 'faultlab' && faultLabOpen && (
+                <span className="absolute -left-1 top-1/2 -translate-y-1/2 w-1 h-3 bg-amber-600 rounded-r" />
+              )}
+              {injectedFaultCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex size-3.5 items-center justify-center rounded-full bg-amber-500 text-[8px] font-bold text-white">
+                  {injectedFaultCount > 9 ? '9+' : injectedFaultCount}
+                </span>
+              )}
+            </button>
+          )}
 
           <div className="my-1.5 h-px w-6 bg-slate-200 dark:bg-slate-800" />
 
