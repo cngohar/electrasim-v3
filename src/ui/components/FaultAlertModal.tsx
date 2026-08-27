@@ -2,6 +2,7 @@ import { AlertTriangle, Flame, HelpCircle, RefreshCw, X, Zap } from 'lucide-reac
 import { useEffect, useRef, useState } from 'react';
 import { useCircuitStore, useUiStore } from '../../store';
 import { useDialogFocus } from '../hooks/useDialogFocus';
+import { COMPONENT_DEFS } from '../../../domain';
 
 export function FaultAlertModal() {
   const faultAlert = useUiStore((s) => s.faultAlert);
@@ -42,6 +43,26 @@ export function FaultAlertModal() {
   if (!currentAlert) return null;
 
   const handleRepair = () => {
+    // In Pro Mode, warn if voltage still exceeds component ratings
+    if (appMode === 'pro') {
+      const blownComponents = useCircuitStore.getState().components.filter(
+        (c) => c.state?.isBlown,
+      );
+      const hasVoltageExceeded = blownComponents.some((comp) => {
+        const def = COMPONENT_DEFS[comp.type];
+        const maxVolts = comp.state.customMaxVolts ?? def?.maxVolts ?? 250;
+        return (comp.state.customVoltage ?? 0) > maxVolts;
+      };
+      if (hasVoltageExceeded) {
+        if (
+          !window.confirm(
+            'The supply voltage still exceeds some component ratings. Repairing will reset the blown state, but the components may blow again when the simulation runs. Continue?'
+          )
+        ) {
+          return;
+        }
+      }
+    }
     repairAllFaults();
     handleClose();
   };

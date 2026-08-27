@@ -256,6 +256,18 @@ export function Inspector({
     );
   }
 
+
+  // Mode Badge
+  const appMode = useSettingsStore.getState().appMode
+  const modeBadge = appMode === "pro" ? (
+    <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-md shadow-md">
+      Pro Mode
+    </div>
+  ) : (
+    <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-xs font-bold px-2 py-1 rounded-md shadow-md">
+      Student Mode
+    </div>
+  )
   // Expanded Inspector Layout with Vertical Navigation Tab Bar on Right.
   // Inset below the floating header toolbar (top-4 pill ≈ 64 px tall) so it
   // can never cover — and swallow clicks for — the Menu / theme controls.
@@ -264,6 +276,8 @@ export function Inspector({
       data-tour="inspector"
       className="fixed right-0 top-[84px] bottom-0 z-20 flex shadow-2xl border-l border-t rounded-tl-2xl border-slate-200/80 bg-white/95 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/95"
     >
+      {/* Mode Badge */}
+      {modeBadge}
       {/* Main Drawer Body Area */}
       <div className="flex-1 flex flex-col h-full overflow-hidden w-64 md:w-72 lg:w-80">
         {/* Header Bar */}
@@ -582,6 +596,46 @@ export function Inspector({
     </aside>
   );
 }
+
+/* =========================================================================
+   PROPERTIES TAB CONTENT
+   ========================================================================= */
+
+/* Simulation State Bar – always visible at bottom of expanded inspector */
+/* Simulation State Bar – persistent at bottom of expanded inspector */
+  const simRunning = useUiStore.getState().simRunning
+  const appMode = useSettingsStore.getState().appMode
+  const runtimeRef = useRef(0)
+  useEffect(() => {
+    if (simRunning) {
+      simRuntimeRef.current = (simRuntimeRef.current ?? 0) + 0.035
+    }
+  }, [simRunning])
+  const blownComponents = useCircuitStore.getState().components.filter(
+    (c) => c.state?.isBlown,
+  )
+  const simulationFrequency = appMode === 'pro' ? 60 : 0
+  return (
+    <div className="p-2 border-t border-slate-200/50 bg-slate-50/80 dark:bg-slate-950/60 text-xs font-medium text-slate-400 dark:text-slate-300">
+      <span className="flex items-center gap-2">
+        {simRunning ? (
+          <span>
+            <Triangle className="size-1.5" /> {appMode === 'pro' ? 'Pro' : 'Student'} Mode
+          </span>
+        ) : ('Paused')}
+      </span>
+      <span className="ml-2">
+        {simRunning ? (
+          <span>
+            <Clock className="size-1" /> {simRuntimeRef.current?.toFixed(1) ?? '0'}s runtime
+          </span>
+        ) : ('')}
+      </span>
+      {blownComponents?.length > 0 && (
+        <span className="text-red-300 ml-2">⚠️ {blownComponents.length} blown</span>
+      )}
+    </div>
+  )
 
 /* =========================================================================
    PROPERTIES TAB CONTENT
