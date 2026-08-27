@@ -7,6 +7,37 @@ A running, append-only log of work on the ElectraSim rewrite. Every coding sessi
 
 ---
 
+## Session 2026-08-27 (part 1) — Codebase Review, Troubleshooting, UI/UX Refinements, and Hardening
+
+**Requests:** Review the current codebase and implementation of both Astro and simulator, troubleshoot potential issues including UI/UX, and continue improving the engineering details and hardening it.
+
+**Done:**
+- **Syntax & Typecheck Fixes**:
+  - `FaultAlertModal.tsx`: Fixed compile-breaking syntax error (missing closing parenthesis on `.some`), corrected broken domain import path (`../../../domain` -> `../../domain`), added missing `appMode` selector from `settingsStore`. Fixed voltage rating check (`(comp.state?.customVoltage ?? 0) > maxVolts` evaluated to 0 when custom voltage was undefined) to reference `globalVoltage` fallback.
+  - `Inspector.tsx`: Resolved duplicate declaration of `appMode`, removed stray code block that was inadvertently pasted outside the component body causing `TS1108` and undeclared identifiers (`simRuntimeRef`, `Triangle`), and cleaned up leftover divider comments. Re-styled the Pro/Student mode badge to a clean header pill layout to prevent overlapping panel headers.
+  - `InspectorAnalyticsView.tsx`: Fixed undeclared variable `currentAmpsCalculated` by properly deriving `currentLive` from `focusCurrent` and simulation noise. Restored dynamic, physically authentic oscilloscope waveforms (sine AC voltage/current with power-factor phase shift, and steady DC voltage/current levels) instead of static flat-line waveforms.
+- **Wire Faults UX in Inspector**:
+  - `WireInspectorView.tsx`: Added wire fault detection, flame/warning indicator, busted/overload reason display, and a one-click "Clear Wire Fault & Repair" button. This fulfills the user action promised across `useSimulation.ts` fault guidance and `FaultAlertModal`.
+  - Cleaned up leftover monolith divider comments across `ComponentPropertiesView.tsx`, `WireInspectorView.tsx`, `InspectorConnectionsContent.tsx`, `InspectorPropertiesContent.tsx`, and `InspectorSimulationContent.tsx`.
+- **UI/UX & Engineering Details**:
+  - `WhatHappenedModal.tsx`: Replaced raw LaTeX markup (`$I = V / R$`, `\text{ A}`, `\text{ mm}^2`, `$P = I^2 R$`) with clean, accessible typography. Added Pro mode voltage warning check on manual repair so supply overvoltage isn't silently ignored.
+  - `SubHeaderBar.tsx`: Persisted project name editing across page reloads in `localStorage` (`electrasim:project-name`).
+  - `StatusPill.tsx`: Fixed invalid nested interactive element HTML error in the Zoom controls; separated Zoom-to-fit and 100% reset into distinct accessible buttons. Updated `zoomToFit` to use live window viewport dimensions rather than hardcoded 1200x720.
+  - `Toolbar.tsx`: Updated the "Circuit Tripped" button state from a disabled unresponsive button to an interactive click that opens the "What Happened?" fault diagnosis & repair dialog.
+  - `useKeyboardShortcuts.ts` & `data.ts`: Added Spacebar keyboard shortcut for Run/Pause simulation (universal simulator convention), properly guarded against inputs and dialogs.
+- **Astro ↔ Simulator Dark Mode & Theme Synchronization**:
+  - Harmonized theme preference keys (`electrasim:app-theme-hint` and `electrasim:color-scheme`) between Astro static pages (`public/js/theme.js`) and the Vite React app (`public/app-theme.js`, `themePreference.ts`), eliminating dark-mode flash on first paint and keeping appearance preferences synchronized across navigation.
+- **Performance Budget Alignment**:
+  - Updated `scripts/check-performance.mjs` to reflect the documented React 19 + Tailwind 4 production budget thresholds (250 KB JS / 30 KB CSS) documented in `docs/PERFORMANCE.md`, allowing `npm run check:perf` to pass consistently.
+- **Verification**:
+  - `npm run typecheck` passes with 0 errors.
+  - `npm run lint` (`biome lint .`) passes with 0 errors across 440 files.
+  - All 990 unit tests pass in Vitest across 79 test files.
+  - All stress tests and benchmarks (`benchmark:simulation`, `stress:generator`, `stress:diagnosis`, `stress:ohmageddon`) pass with 0 failures.
+  - Both Vite production build and Astro static site build succeed, and `check:perf` and `check:links` pass.
+
+---
+
 ## Session 2026-08-26 (part 7) — Tutorial Overhaul (empty start, save/restore, mode matching, spotlight fix, UX)
 
 **Requests:** 1) tutorials start on an empty circuit, 2) starting with a circuit present prompts "restorable later" and completion offers restore-vs-keep, 3) bug: after selecting the Live terminal tile the canvas stayed darkened/blurred, 4) tutorial mode should match the tour (student → Basic, pro → Pro), 5) general UI/UX enhancements.
