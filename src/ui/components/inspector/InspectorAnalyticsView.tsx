@@ -25,13 +25,17 @@ export function InspectorAnalyticsView({ simResult, selectedComp }: Props) {
   const diagnosticOverlayMode = useSettingsStore((s) => s.diagnosticOverlayMode);
   const setSetting = useSettingsStore((s) => s.setSetting);
 
-  const [time, setTime] = useState(0);
+  const [runtimeSeconds, setRuntimeSeconds] = useState(0);
   useEffect(() => {
-    if (!simRunning) return;
-    const interval = setInterval(() => {
-      setTime((t) => (t + 0.08) % (Math.PI * 200));
-    }, 35);
-    return () => clearInterval(interval);
+    let timeoutId: NodeJS.Timeout;
+    if (simRunning) {
+      timeoutId = setInterval(() => {
+        setRuntimeSeconds((r) => r + 0.035); // 35ms interval
+      }, 35);
+    }
+    return () => {
+      if (timeoutId) clearInterval(timeoutId);
+    };
   }, [simRunning]);
 
   const liveSupplyVoltage = simResult?.supplyVoltage ?? globalVoltage;
@@ -73,18 +77,30 @@ export function InspectorAnalyticsView({ simResult, selectedComp }: Props) {
     focusCalc?.currentAmps ??
     (activePowerW > 0 ? activePowerW / Math.max(1, liveSupplyVoltage) : 0);
 
-  // Realistic dynamic calculations for Live Measurements
-  const voltageLive = simRunning ? focusVoltage - 0.4 + 0.3 * Math.sin(time * 1.8) : focusVoltage;
+  // Realistic dynamic calculations for Calculated Live Measurements
+  // Use actual calculation data from the simulation, with minor realistic noise
+  // to represent measurement uncertainty and component variations
+  const voltageNoise =
+    simRunning && focusCalc
+      ? 0.1 * (Math.random() - 0.5) // ±0.05V random noise
+      : 0;
+  const voltageLive = simRunning ? focusVoltage + voltageNoise : focusVoltage;
 
-  const currentAmpsCalculated = focusCurrent;
+  const currentNoise =
+    simRunning && activePowerW > 0 && focusCalc
+      ? 0.02 * (Math.random() - 0.5) // ±0.01A random noise
+      : 0;
   const currentLive =
     simRunning && activePowerW > 0
-      ? currentAmpsCalculated + 0.05 * Math.sin(time * 2.3)
+      ? focusCalc?.currentAmps ?? currentAmpsCalculated + currentNoise
       : currentAmpsCalculated;
 
-  const powerLive =
-    simRunning && activePowerW > 0 ? activePowerW + 2.5 * Math.sin(time * 2.8) : activePowerW;
+  const powerNoise =
+    simRunning && activePowerW > 0 ? 0.5 * (Math.random() - 0.5) : 0;
+  const powerLive = simRunning && activePowerW > 0 ? activePowerW + powerNoise : activePowerW;
 
+  // Power factor based on actual load mix, not a sine wave
+  // Calculate from components connected: inductive loads lower power factor
   const hasInductive =
     (focusComp ? /motor|transformer|fan|pump/.test(focusComp.type) : false) ||
     components.some(
@@ -94,23 +110,55 @@ export function InspectorAnalyticsView({ simResult, selectedComp }: Props) {
         c.type.includes('fan') ||
         c.type.includes('pump'),
     );
-  const powerFactorLive = simRunning
-    ? hasInductive
-      ? 0.94 + 0.02 * Math.sin(time * 1.2)
-      : 0.98 + 0.01 * Math.sin(time * 0.9)
-    : 0.98;
+  // Weighted power factor based on total power from inductive vs resistive loads
+  let totalInductivePower = 0;
+  let totalResistivePower = 0;
+  const powerComponents =
+    focusComp || simRunning
+      ? simRunning && simResult && simResult.energizedComponents.size > 0
+        ? [...simResult.energizedComponents].filter(
+            (id) => {
+              const comp = components.find((c) => c.id === id);
+              return comp && !comp.state?.isBlown;
+            },
+          )
+        : []
+      : components;
+  for (const id of powerComponents) {
+    const comp = components.find((c) => c.id === id);
+    if (!comp || comp.state?.isBlown) continue;
+    const def = COMPONENT_DEFS[comp.type];
+    const powerWatts = comp.state?.customPowerWatts ?? def?.powerWatts ?? 0;
+    if (powerWatts <= 0) continue;
+    // Check if this component type is typically inductive
+    const isInductive =
+      /motor|transformer|fan|pump/.test(comp.type) ||
+      /bulb-(cfl|fluorescent|incandescent|halogen)/.test(comp.type);
+    if (isInductive) {
+      totalInductivePower += powerWatts;
+    } else {
+      totalResistivePower += powerWatts;
+    }
+  }
+  const totalPower = totalInductivePower + totalResistivePower;
+  // Typical power factor: inductive loads ~0.9, resistive ~1.0, mixed in between
+  const powerFactorLive =
+    totalPower > 0
+      ? 1.0 - 0.1 * (totalInductivePower / totalPower)
+      : hasInductive
+        ? 0.94
+        : 0.98;
 
+// Frequency is stable based on supply, not modulated by time
   const frequencyLive = hasAcSupply
-    ? simRunning
-      ? (liveSupplyVoltage === 110 || liveSupplyVoltage === 120 ? 60.0 : 50.0) +
-        0.012 * Math.sin(time * 1.5) +
-        0.008 * Math.cos(time * 3.4)
-      : liveSupplyVoltage === 110 || liveSupplyVoltage === 120
-        ? 60.0
-        : 50.0
+    ? liveSupplyVoltage === 110 || liveSupplyVoltage === 120
+      ? 60.0
+      : 50.0
     : 0.0;
 
-  // Real-time mini sparklines for Live Measurements cards
+// Real-time mini sparklines for Calculated Live Measurements cards
+  // Use actual measurement values to show live display status
+  // The sparklines show a flat line - the numeric value next to it shows the real data
   const generateSineSparkline = (
     color: string,
     omega = 0.12,
@@ -124,9 +172,9 @@ export function InspectorAnalyticsView({ simResult, selectedComp }: Props) {
     const amplitude = height * 0.38;
 
     for (let x = 0; x <= width; x += 2) {
-      const y = simRunning
-        ? midY - Math.sin(x * omega + time * speed + phase) * amplitude
-        : midY - Math.sin(x * omega + phase) * (amplitude * 0.4);
+      // Flat line at midY - the numeric value (voltageLive, currentLive, powerFactorLive)
+      // next to it shows the actual measured value with real circuit data
+      const y = midY - Math.sin(x * omega + phase) * amplitude * 0.1; // Reduced amplitude
       points.push(`${x.toFixed(1)},${y.toFixed(1)}`);
     }
     return `M ${points.join(' L ')}`;
@@ -138,12 +186,8 @@ export function InspectorAnalyticsView({ simResult, selectedComp }: Props) {
     const amplitude = height * 0.36;
 
     for (let x = 0; x <= width; x += 2) {
-      const y = simRunning
-        ? midY -
-          (Math.sin(2 * (x * 0.12 + time * 3)) * 0.7 + 0.15 * Math.sin(x * 0.36 + time * 6)) *
-            amplitude
-        : midY - Math.sin(2 * (x * 0.12)) * (amplitude * 0.4);
-      points.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+      // Flat line at midY - the numeric value (powerLive) shows the actual measured power
+      points.push(`${x.toFixed(1)},${midY.toFixed(1)}`);
     }
     return `M ${points.join(' L ')}`;
   };
@@ -152,15 +196,12 @@ export function InspectorAnalyticsView({ simResult, selectedComp }: Props) {
     const midY = height / 2;
     const points: string[] = [];
     const amplitude = height * 0.42;
+    // Use stable frequency value - no time modulation
+    // frequencyLive is already 60.0, 50.0, or 0.0 based on supply
 
     for (let x = 0; x <= width; x += 1.5) {
-      const progress = x / width;
-      const t = simRunning ? time * 2.8 : 0;
-      // Multi-harmonic envelope packet mimicking the frequency resonance visual
-      const burst = Math.exp(-(((progress - 0.6) * 4.2) ** 2));
-      const baseWave = 0.22 * Math.sin(x * 0.14 + t);
-      const ringing = burst * 0.88 * Math.sin(x * 0.38 + t * 1.9);
-      const y = midY - (baseWave + ringing) * amplitude;
+      // Flat line showing frequency is stable - the numeric value shows the actual frequency
+      const y = midY; // Flat line
       points.push(`${x.toFixed(1)},${y.toFixed(1)}`);
     }
     return `M ${points.join(' L ')}`;
@@ -176,18 +217,10 @@ export function InspectorAnalyticsView({ simResult, selectedComp }: Props) {
       ? height * 0.36
       : Math.min(height * 0.35, Math.max(10, (liveSupplyVoltage / 240) * (height * 0.35)));
 
+    // Use actual voltage value - show flat line since numeric value next to it
+    // shows the real voltage (liveSupplyVoltage)
     for (let x = 0; x <= width; x += 1.5) {
-      let y = midY;
-      if (hasAcSupply) {
-        const omega = 0.07;
-        const fundamental = Math.sin(x * omega + time * 3);
-        const harmonic3 = 0.04 * Math.sin(3 * (x * omega + time * 3));
-        y = midY - (fundamental + harmonic3) * amplitude;
-      } else {
-        const ripple = Math.sin(x * 0.4 + time * 10) * 1.5;
-        y = midY - amplitude + ripple;
-      }
-      points.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+      points.push(`${x.toFixed(1)},${midY.toFixed(1)}`);
     }
     return `M ${points.join(' L ')}`;
   };
@@ -198,28 +231,17 @@ export function InspectorAnalyticsView({ simResult, selectedComp }: Props) {
       return `M 0,${midY} L ${width},${midY}`;
     }
     const points: string[] = [];
-    const currentAmps = activePowerW / Math.max(1, liveSupplyVoltage);
-    const amplitude = Math.min(height * 0.32, Math.max(6, currentAmps * 3));
-
+    // Use actual current value - show flat line since numeric value next to it
+    // shows the actual current (activePowerW / liveSupplyVoltage)
     for (let x = 0; x <= width; x += 1.5) {
-      let y = midY;
-      if (hasAcSupply) {
-        const omega = 0.07;
-        const phaseLag = 0.35;
-        const fundamental = Math.sin(x * omega + time * 3 - phaseLag);
-        y = midY - fundamental * amplitude;
-      } else {
-        const ripple = Math.sin(x * 0.4 + time * 10 + 1) * 1.0;
-        y = midY - amplitude + ripple;
-      }
-      points.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+      points.push(`${x.toFixed(1)},${midY.toFixed(1)}`);
     }
     return `M ${points.join(' L ')}`;
   };
 
   // Statistics data
   const stats = {
-    runtime: simRunning ? time : 0,
+    runtime: simRunning ? runtimeSeconds : 0,
     activeNodes: simResult?.energizedComponents.size ?? 0,
     tickRate: simRunning ? 60 : 0,
     totalComponents: components.length,
@@ -234,7 +256,7 @@ export function InspectorAnalyticsView({ simResult, selectedComp }: Props) {
         <div className="flex items-center justify-between">
           <div className="font-semibold text-sm tracking-tight text-white flex items-center gap-2">
             <span className="size-2 rounded-full bg-emerald-500 shadow-[0_0_8px] shadow-emerald-400 animate-pulse" />
-            Live Measurements
+            Calculated Live Measurements
           </div>
           <span className="flex items-center gap-1.5">
             {focusComp && (
