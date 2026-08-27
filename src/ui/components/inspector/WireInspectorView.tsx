@@ -3,10 +3,10 @@
  * from the previous monolithic `Inspector.tsx`.
  */
 
-import { Trash2 } from 'lucide-react';
+import { AlertTriangle, Flame, RefreshCw, Trash2 } from 'lucide-react';
 import type { InstallationMethod, SimulationResult, WireInstance } from '../../../domain';
 import { getCableAmpacity } from '../../../domain/simulation/tripCurves';
-import { useCircuitStore } from '../../../store';
+import { useCircuitStore, useUiStore } from '../../../store';
 import { requestDeleteWire } from '../../canvas-actions';
 
 export function WireInspectorView({
@@ -22,6 +22,19 @@ export function WireInspectorView({
   const currentPathKind = wire.pathKind ?? 'orthogonal';
   const currentDerating = wire.deratingFactor ?? 1.0;
   const currentMethod: InstallationMethod = wire.installationMethod ?? 'C';
+  const hasWireFault = Boolean(wire.fault || wire.isBusted);
+
+  const handleClearFault = () => {
+    const faultEntry = useCircuitStore
+      .getState()
+      .faults.find((f) => f.target.type === 'wire' && f.target.id === wire.id);
+    if (faultEntry) {
+      useCircuitStore.getState().removeFault(faultEntry.id);
+    }
+    useCircuitStore.getState().setWireFault(wire.id, undefined);
+    useCircuitStore.getState().setWireBusted(wire.id, false, undefined);
+    useUiStore.getState().addLog('Cleared fault from wire', 'success');
+  };
 
   const handleLengthChange = (m: number) => {
     useCircuitStore.getState().updateWireProperties(wire.id, { lengthMeters: m });
@@ -58,12 +71,20 @@ export function WireInspectorView({
             className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase font-mono ${
               isEnergized
                 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300'
-                : wire.fault
+                : wire.isBusted
                   ? 'bg-red-100 text-red-800 dark:bg-red-950/80 dark:text-red-300'
-                  : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                  : wire.fault
+                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300'
+                    : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
             }`}
           >
-            {isEnergized ? 'ENERGIZED' : wire.fault ? `FAULT: ${wire.fault}` : 'IDLE'}
+            {isEnergized
+              ? 'ENERGIZED'
+              : wire.isBusted
+                ? 'BUSTED (MELTED)'
+                : wire.fault
+                  ? `FAULT: ${wire.fault}`
+                  : 'IDLE'}
           </span>
         </div>
 
@@ -71,6 +92,35 @@ export function WireInspectorView({
           ID: {wire.id}
         </div>
       </div>
+
+      {/* Wire Fault Alert & Action Card */}
+      {hasWireFault && (
+        <div className="rounded-xl border border-red-300 bg-red-50/90 p-3 dark:border-red-900/60 dark:bg-red-950/40 space-y-2">
+          <div className="flex items-center gap-2 text-red-800 dark:text-red-300 font-bold">
+            {wire.isBusted ? (
+              <Flame className="size-4 text-red-600 dark:text-red-400" />
+            ) : (
+              <AlertTriangle className="size-4 text-amber-600 dark:text-amber-400" />
+            )}
+            <span>
+              {wire.isBusted ? 'Cable Melted / Thermal Overload' : `Wire Fault: ${wire.fault}`}
+            </span>
+          </div>
+          {wire.bustedReason && (
+            <p className="text-[11px] text-red-700 dark:text-red-300 leading-snug">
+              {wire.bustedReason}
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={handleClearFault}
+            className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-red-600 hover:bg-red-700 py-1.5 px-3 text-xs font-bold text-white shadow-xs transition cursor-pointer"
+          >
+            <RefreshCw className="size-3.5" />
+            <span>Clear Wire Fault & Repair</span>
+          </button>
+        </div>
+      )}
 
       {/* Length Setting */}
       <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-3 dark:border-slate-800 dark:bg-slate-950/60 space-y-2">
@@ -353,7 +403,3 @@ export function WireInspectorView({
     </div>
   );
 }
-
-/* =========================================================================
-   COMPONENT PROPERTIES VIEW
-   ========================================================================= */

@@ -241,6 +241,23 @@ export function useKeyboardShortcuts() {
         return;
       }
 
+      // Spacebar — Run / Pause simulation (or open fault repair when tripped)
+      if (e.key === ' ' || e.code === 'Space') {
+        e.preventDefault();
+        const simRunning = useUiStore.getState().simRunning;
+        const simResult = useUiStore.getState().simResult;
+        const hasTripped = (simResult?.trippedComponents?.length ?? 0) > 0;
+        const hasBlown = (simResult?.blownComponents?.length ?? 0) > 0;
+        const hasBusted = (simResult?.bustedWires?.size ?? 0) > 0;
+        const isBlocked = !simRunning && (hasTripped || hasBlown || hasBusted);
+        if (isBlocked) {
+          useUiStore.getState().setWhatHappenedOpen(true);
+        } else {
+          useUiStore.getState().toggleSim();
+        }
+        return;
+      }
+
       // Keyboard shortcuts overlay (? key). Must not fire inside an input.
       if (e.key === '?') {
         e.preventDefault();

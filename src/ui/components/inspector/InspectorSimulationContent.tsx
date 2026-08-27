@@ -274,7 +274,3 @@ export function InspectorSimulationContent({
     </div>
   );
 }
-
-/* =========================================================================
-   WAVEFORM SCOPE, LIVE MEASUREMENTS & LOGS VIEWS
-   ========================================================================= */

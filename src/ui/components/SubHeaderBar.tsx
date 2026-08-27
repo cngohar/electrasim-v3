@@ -29,10 +29,25 @@ export function SubHeaderBar() {
   const components = useCircuitStore((s) => s.components);
   const wires = useCircuitStore((s) => s.wires);
 
-  const [projectName, setProjectName] = useState('Kitchen Lighting & Sockets');
+  const [projectName, setProjectName] = useState(() => {
+    try {
+      return localStorage.getItem('electrasim:project-name') || 'Kitchen Lighting & Sockets';
+    } catch {
+      return 'Kitchen Lighting & Sockets';
+    }
+  });
   const [isEditing, setIsEditing] = useState(false);
   const [showVoltagePicker, setShowVoltagePicker] = useState(false);
   const [customVoltInput, setCustomVoltInput] = useState(globalVoltage.toString());
+
+  const handleProjectNameChange = (val: string) => {
+    setProjectName(val);
+    try {
+      localStorage.setItem('electrasim:project-name', val);
+    } catch {
+      // Storage unavailable
+    }
+  };
 
   // The voltage picker renders in a portal at a fixed position so it can
   // never be clipped by the sub-header's horizontal scroll container.
@@ -335,7 +350,7 @@ export function SubHeaderBar() {
               <input
                 type="text"
                 value={projectName}
-                onChange={(e) => setProjectName(e.target.value)}
+                onChange={(e) => handleProjectNameChange(e.target.value)}
                 onBlur={() => setIsEditing(false)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') setIsEditing(false);

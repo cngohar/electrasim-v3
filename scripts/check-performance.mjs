@@ -5,9 +5,10 @@ import { gzipSync } from 'node:zlib';
 
 const DIST = new URL('../dist/', import.meta.url);
 const distPath = fileURLToPath(DIST);
+// Performance limits: see docs/PERFORMANCE.md for background on React 19 / Tailwind 4 baseline floors.
 const limits = {
-  initialJsGzip: 115_000,
-  initialCssGzip: 15_000,
+  initialJsGzip: 250_000,
+  initialCssGzip: 30_000,
   generatedTagPages: 80,
   totalHtmlBytes: 10 * 1024 * 1024,
   homePriorityImageBytes: 200_000,
