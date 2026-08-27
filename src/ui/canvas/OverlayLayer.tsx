@@ -9,7 +9,7 @@ import {
   getPortPos,
   snapToGrid,
 } from '../../domain';
-import type { PendingCustomPath } from '../../store';
+import { type PendingCustomPath, useSettingsStore, useUiStore } from '../../store';
 import { WireEndpointHandles } from './WireLayer';
 import { getDefaultArt } from './componentArt';
 import { buildBezierPath, pointsToLinePath } from './geometry';
@@ -60,9 +60,98 @@ export function CanvasOverlayLayer({
 }: CanvasOverlayLayerProps) {
   const previewComponent =
     previewVariantType && previewComponentId ? componentsById.get(previewComponentId) : null;
+  const alignmentGuides = useUiStore((s) => s.alignmentGuides);
+  const spatialIndicator = useUiStore((s) => s.spatialIndicator);
+  const smartAlignmentGuides = useSettingsStore((s) => s.smartAlignmentGuides);
 
   return (
     <>
+      {/* Smart Alignment Guidelines */}
+      {smartAlignmentGuides && alignmentGuides && (
+        <g pointerEvents="none" data-alignment-guides>
+          {typeof alignmentGuides.x === 'number' && (
+            <g data-alignment-guide-x>
+              <line
+                x1={alignmentGuides.x}
+                y1={-5000}
+                x2={alignmentGuides.x}
+                y2={5000}
+                stroke="#ec4899"
+                strokeWidth={1.5}
+                strokeDasharray="4 4"
+                opacity={0.85}
+              />
+            </g>
+          )}
+          {typeof alignmentGuides.y === 'number' && (
+            <g data-alignment-guide-y>
+              <line
+                x1={-5000}
+                y1={alignmentGuides.y}
+                x2={5000}
+                y2={alignmentGuides.y}
+                stroke="#ec4899"
+                strokeWidth={1.5}
+                strokeDasharray="4 4"
+                opacity={0.85}
+              />
+            </g>
+          )}
+        </g>
+      )}
+
+      {/* Spatial Undo / Redo Pulse Indicator */}
+      {spatialIndicator && (
+        <g
+          pointerEvents="none"
+          transform={`translate(${spatialIndicator.x} ${spatialIndicator.y})`}
+          data-spatial-indicator={spatialIndicator.kind}
+        >
+          <circle
+            r={38}
+            fill="none"
+            stroke={spatialIndicator.kind === 'undo' ? '#3b82f6' : '#8b5cf6'}
+            strokeWidth={2.5}
+            strokeDasharray="5 3"
+            className="animate-ping"
+            opacity={0.8}
+          />
+          <circle
+            r={24}
+            fill={
+              spatialIndicator.kind === 'undo'
+                ? 'rgba(59, 130, 246, 0.15)'
+                : 'rgba(139, 92, 246, 0.15)'
+            }
+            stroke={spatialIndicator.kind === 'undo' ? '#2563eb' : '#7c3aed'}
+            strokeWidth={2}
+            opacity={0.9}
+          />
+          <g transform="translate(0, -32)">
+            <rect
+              x={-28}
+              y={-10}
+              width={56}
+              height={20}
+              rx={10}
+              fill="#0f172a"
+              stroke={spatialIndicator.kind === 'undo' ? '#3b82f6' : '#8b5cf6'}
+              strokeWidth={1.5}
+            />
+            <text
+              textAnchor="middle"
+              y={4}
+              fontSize={10}
+              fontWeight="bold"
+              fill="#ffffff"
+              fontFamily="system-ui, sans-serif"
+            >
+              {spatialIndicator.kind === 'undo' ? '↩ Undo' : '↪ Redo'}
+            </text>
+          </g>
+        </g>
+      )}
+
       {previewVariantType && previewComponent && (
         <VariantPreviewGhost type={previewVariantType} component={previewComponent} theme={theme} />
       )}

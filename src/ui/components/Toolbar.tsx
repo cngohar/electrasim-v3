@@ -215,19 +215,28 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
   const runBtn = (
     <button
       type="button"
-      onClick={() => !isBlocked && useUiStore.getState().toggleSim()}
-      disabled={isBlocked}
+      onClick={() => {
+        if (isBlocked) {
+          useUiStore.getState().setWhatHappenedOpen(true);
+        } else {
+          useUiStore.getState().toggleSim();
+        }
+      }}
       data-tour="run"
       className={[
-        'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm transition',
+        'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm transition cursor-pointer',
         isBlocked
-          ? 'cursor-not-allowed bg-red-600 text-white animate-pulse'
+          ? 'bg-red-600 hover:bg-red-700 text-white animate-pulse'
           : simRunning
             ? 'bg-emerald-600 text-white shadow-emerald-600/20 hover:bg-emerald-700'
             : 'bg-blue-600 text-white shadow-blue-600/20 hover:bg-blue-700',
       ].join(' ')}
       title={
-        isBlocked ? 'Circuit tripped or damaged - fix faults before resuming simulation' : undefined
+        isBlocked
+          ? 'Circuit tripped or damaged — click to view fault details and repair'
+          : simRunning
+            ? 'Stop simulation'
+            : 'Run simulation'
       }
     >
       {isBlocked ? (

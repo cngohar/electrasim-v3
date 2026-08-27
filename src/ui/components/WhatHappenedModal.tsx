@@ -9,6 +9,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { COMPONENT_DEFS } from '../../domain';
 import { useCircuitStore, useUiStore } from '../../store';
 import { useSettingsStore } from '../../store/settingsStore';
 import { useDialogFocus } from '../hooks/useDialogFocus';
@@ -60,6 +61,25 @@ export function WhatHappenedModal() {
   const hasBustedWires = wires.some((w) => w.isBusted);
 
   const handleRepair = () => {
+    if (appMode === 'pro') {
+      const supplyVoltage = useCircuitStore.getState().globalVoltage;
+      const blownComponents = useCircuitStore.getState().components.filter((c) => c.state?.isBlown);
+      const hasVoltageExceeded = blownComponents.some((comp) => {
+        const def = COMPONENT_DEFS[comp.type];
+        const maxVolts = comp.state?.customMaxVolts ?? def?.maxVolts ?? 250;
+        const effectiveVoltage = comp.state?.customVoltage ?? supplyVoltage;
+        return effectiveVoltage > maxVolts;
+      });
+      if (hasVoltageExceeded) {
+        if (
+          !window.confirm(
+            'The supply voltage still exceeds some component ratings. Repairing will reset the blown state, but the components may blow again when the simulation runs. Continue?',
+          )
+        ) {
+          return;
+        }
+      }
+    }
     repairAllFaults();
     useUiStore.getState().clearFaultAlert();
     useUiStore
@@ -183,25 +203,27 @@ export function WhatHappenedModal() {
                   <p>
                     <strong>Short Circuit (Direct Live-Neutral Contact):</strong> When Live wire is
                     connected directly to Neutral without passing through an electrical load (bulb,
-                    heater, motor), circuit impedance drops to near $0\ \Omega$.
+                    heater, motor), circuit impedance drops to near 0 Ω.
                   </p>
                   <p>
-                    By Ohm's Law ($I = V / R$), dividing 230V supply voltage by negligible
-                    resistance generates an extreme current spike ({'$> 100\text{ A}$'}), instantly
-                    tripping breakers or burning components.
+                    By Ohm's Law (<em>I = V / R</em>), dividing supply voltage by negligible
+                    resistance generates an extreme current spike (&gt; 100 A), instantly tripping
+                    breakers or burning components.
                   </p>
                 </>
               ) : isMelt ? (
                 <>
                   <p>
-                    <strong>Cable Thermal Overload ($I^2 R$ Heating):</strong> Electric current
-                    flowing through a copper wire encounters internal electrical resistance. High
-                    current generates thermal power loss ($P = I^2 R$).
+                    <strong>
+                      Cable Thermal Overload (<em>I²R</em> Heating):
+                    </strong>{' '}
+                    Electric current flowing through a copper wire encounters internal electrical
+                    resistance. High current generates thermal power loss (<em>P = I²R</em>).
                   </p>
                   <p>
-                    When current exceeds the thermal capacity of thin cables (e.g.,{' '}
-                    {'$1.0\\text{ mm}^2$'} rated at 11A carrying 25A) without an MCB breaker to
-                    trip, the copper core overheats and melts the insulation.
+                    When current exceeds the thermal capacity of thin cables (e.g., 1.0 mm² rated at
+                    11A carrying 25A) without an MCB breaker to trip, the copper core overheats and
+                    melts the insulation.
                   </p>
                 </>
               ) : (
@@ -245,8 +267,8 @@ export function WhatHappenedModal() {
                 <CheckCircle2 className="size-4 shrink-0 text-emerald-500 mt-0.5" />
                 <div>
                   <strong>Upgrade Protection or Cable Gauge:</strong> In Pro mode, increase cable
-                  cross-sectional area ({'$2.5\\text{ mm}^2$'} or {'$4.0\\text{ mm}^2$'}) or select
-                  a higher-rated MCB breaker (e.g. 32A Type B).
+                  cross-sectional area (2.5 mm² or 4.0 mm²) or select a higher-rated MCB breaker
+                  (e.g. 32A Type B).
                 </div>
               </li>
             </ul>

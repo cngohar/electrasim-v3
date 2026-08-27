@@ -21,11 +21,20 @@ const step = async (name, fn) => {
   }
 };
 const dialogText = async () =>
-  (await page.locator('dialog[open]').innerText().catch(() => '')).slice(0, 140);
+  (
+    await page
+      .locator('dialog[open]')
+      .innerText()
+      .catch(() => '')
+  ).slice(0, 140);
 const closeDialog = async () => {
   const d = page.locator('dialog[open]');
   if (await d.count()) {
-    await d.getByRole('button', { name: /Close|Cancel/ }).first().click().catch(() => {});
+    await d
+      .getByRole('button', { name: /Close|Cancel/ })
+      .first()
+      .click()
+      .catch(() => {});
     await page.keyboard.press('Escape');
   }
 };
@@ -50,7 +59,11 @@ await step('injectShortCircuit', async () => {
   await page.waitForTimeout(900);
   return {
     menuItems: items,
-    health: await page.getByText('Faults Active').first().innerText().catch(() => '(no Faults Active)'),
+    health: await page
+      .getByText('Faults Active')
+      .first()
+      .innerText()
+      .catch(() => '(no Faults Active)'),
     mcbAria: await mcb.getAttribute('aria-label'),
     lampGlow: await page
       .locator('[data-component-id="two-way-staircase-light-bulb"]')
@@ -74,7 +87,10 @@ await step('deleteWithConfirm', async () => {
   // confirm deletion in the modal (destructive action button)
   const dlgEl = page.locator('dialog[open]');
   if (await dlgEl.count()) {
-    await dlgEl.getByRole('button', { name: /Delete|Remove|Confirm/ }).first().click();
+    await dlgEl
+      .getByRole('button', { name: /Delete|Remove|Confirm/ })
+      .first()
+      .click();
     await page.waitForTimeout(300);
   }
   return {
@@ -86,7 +102,9 @@ await step('deleteWithConfirm', async () => {
 await step('deleteUndo', async () => {
   await page.keyboard.press('Control+z');
   await page.waitForTimeout(400);
-  return { bulbCount: await page.locator('[data-component-id="two-way-staircase-light-bulb"]').count() };
+  return {
+    bulbCount: await page.locator('[data-component-id="two-way-staircase-light-bulb"]').count(),
+  };
 });
 
 await step('copyPaste', async () => {
@@ -105,12 +123,19 @@ await step('exportImport', async () => {
   await page.waitForTimeout(300);
   const menuTexts = await page.locator('dialog[open] button, [role="menu"] button').allInnerTexts();
   const dlPromise = page.waitForEvent('download', { timeout: 4000 }).catch(() => null);
-  await page.getByText(/Import \/ Export|Export/).first().click();
+  await page
+    .getByText(/Import \/ Export|Export/)
+    .first()
+    .click();
   await page.waitForTimeout(400);
   const dlg = page.locator('dialog[open]');
   const dlgText2 = await dialogText();
   // try clicking an export action inside whatever surfaced
-  await page.getByRole('button', { name: /^Export|Export JSON|Download/ }).first().click().catch(() => {});
+  await page
+    .getByRole('button', { name: /^Export|Export JSON|Download/ })
+    .first()
+    .click()
+    .catch(() => {});
   const dl = await dlPromise;
   await closeDialog();
   return {
@@ -123,13 +148,21 @@ await step('exportImport', async () => {
 await step('stressAndDashboard', async () => {
   await page.getByRole('button', { name: /STRESS/ }).click();
   await page.waitForTimeout(1200);
-  const afterStress = await page.getByText(/Stress|stress/).first().innerText().catch(() => '(none)');
+  const afterStress = await page
+    .getByText(/Stress|stress/)
+    .first()
+    .innerText()
+    .catch(() => '(none)');
   const modeBtn = page.getByRole('button', { name: /Student|Pro/ }).first();
   const modeLabel = await modeBtn.innerText();
   await modeBtn.click();
   await page.waitForTimeout(700);
   const dashTexts = (await page.locator('aside').allInnerTexts()).join(' | ').slice(0, 200);
-  return { afterStress: afterStress.slice(0, 80), modeWas: modeLabel, asidesAfterModeToggle: dashTexts };
+  return {
+    afterStress: afterStress.slice(0, 80),
+    modeWas: modeLabel,
+    asidesAfterModeToggle: dashTexts,
+  };
 });
 
 await page.screenshot({ path: 'test-results/probe3-final.png' });

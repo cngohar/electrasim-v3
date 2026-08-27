@@ -229,7 +229,3 @@ export function InspectorConnectionsContent({
     </div>
   );
 }
-
-/* =========================================================================
-   SIMULATION TELEMETRY & FAULTS TAB CONTENT
-   ========================================================================= */

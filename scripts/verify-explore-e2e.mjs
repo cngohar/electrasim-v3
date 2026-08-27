@@ -55,7 +55,10 @@ async function run() {
   ]);
 
   // 3. Verify CSS Responsiveness in explore.css
-  const exploreCss = readFileSync(join(process.cwd(), 'astro-site/src/styles/explore.css'), 'utf-8');
+  const exploreCss = readFileSync(
+    join(process.cwd(), 'astro-site/src/styles/explore.css'),
+    'utf-8',
+  );
   if (!exploreCss.includes('.explore-theme-page')) {
     throw new Error('explore.css missing .explore-theme-page');
   }

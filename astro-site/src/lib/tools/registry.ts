@@ -173,19 +173,190 @@ export const TOOLBOX_REGISTRY: ToolEntry[] = [
     slug: 'cable-size-calculator',
     route: '/tools/cable-size-calculator/',
     category: 'calculator',
-    status: 'coming-soon',
+    status: 'available',
     description:
-      'Find the minimum required conductor cross-sectional area (mm²) based on load current, run length, and permissible voltage drop.',
+      'Find the minimum required conductor cross-sectional area (mm²) based on design current, installation method, derating factors, and voltage drop limits.',
+    badge: 'Essential',
     icon: 'cable',
-    metaTitle: 'Cable Size Calculator — Electrical Conductor Sizing | ElectraSim',
+    metaTitle: 'Cable Size Calculator — BS 7671 Conductor Sizing | ElectraSim',
     metaDescription:
-      'Find the correct cable size (mm²) for domestic and industrial circuits based on current carrying capacity and voltage drop limits.',
+      'Calculate the correct electrical cable size (mm²) per BS 7671 and IEC standards. Accounts for installation methods, ambient temperature, grouping, insulation, and voltage drop.',
     keywords: [
       'cable size calculator',
       'wire gauge calculator',
       'electrical conductor sizing',
       'BS 7671 cable selection',
       'mm2 cable calculator',
+      'cable current carrying capacity',
+      'installation method derating',
+    ],
+    ogImage: 'https://electrasim.com/og-image.png',
+    equations: [
+      {
+        title: 'Design Current (Ib)',
+        formula: 'I_b = P / (V × cos φ)  [1-Φ]   or   P / (√3 × V × cos φ)  [3-Φ]',
+        description: 'Calculates the full continuous load current drawn by the connected circuit.',
+      },
+      {
+        title: 'Required Tabulated Current Capacity (It)',
+        formula: 'I_t ≥ I_n / (C_a × C_g × C_i × C_c)',
+        description:
+          'Derates the protective device rating (In) by ambient temperature (Ca), grouping (Cg), thermal insulation (Ci), and semi-enclosed fuse factor (Cc).',
+      },
+      {
+        title: 'Voltage Drop Verification',
+        formula: 'ΔV = (mV/A/m × I_b × L) / 1000 ≤ ΔV_max',
+        description:
+          'Ensures the chosen conductor does not exceed 3% (lighting) or 5% (power) voltage drop over the total run length.',
+      },
+    ],
+    steps: [
+      {
+        step: 'Specify Electrical Load & Circuit Voltage',
+        instruction:
+          'Enter design power in Watts (or current in Amperes), system voltage, and power factor.',
+      },
+      {
+        step: 'Choose Installation Method',
+        instruction:
+          'Select how the cable is installed (Method A: in thermal insulation; Method B: in conduit/trunking; Method C: clipped direct; Method D: in ground).',
+      },
+      {
+        step: 'Set Environmental Derating Factors',
+        instruction:
+          'Specify ambient temperature, number of grouped circuits, and thermal insulation thickness.',
+      },
+      {
+        step: 'Review Sized Conductor & Compliance Margin',
+        instruction:
+          'The engine selects the smallest metric cross-section (mm²) that satisfies both thermal capacity (Iz ≥ It) and voltage drop limits.',
+      },
+    ],
+    faqs: [
+      {
+        question: 'How do you choose the right cable size under BS 7671?',
+        answer:
+          'Cable selection follows the golden rule: Ib ≤ In ≤ Iz, where Ib is design current, In is the nominal protective device rating, and Iz is the effective current-carrying capacity of the cable under installed conditions. The cable must also satisfy maximum permissible voltage drop (3% for lighting, 5% for other uses).',
+      },
+      {
+        question: 'What is the difference between installation methods A, B, and C?',
+        answer:
+          'Method A covers cables enclosed in thermal insulation inside a wall (lowest heat dissipation). Method B covers cables enclosed in conduit or trunking on a wall. Method C covers cables clipped directly to a non-metallic surface in free air, which dissipates heat faster and carries higher current.',
+      },
+      {
+        question: 'Why does grouping cables reduce their capacity?',
+        answer:
+          'When multiple loaded cables run close together in a conduit, trunking, or tray, mutual thermal heating prevents them from shedding heat effectively. A grouping factor (Cg) reduces permissible current capacity—for example, 4 grouped circuits reduce capacity to 65%.',
+      },
+    ],
+    relatedGuides: [
+      {
+        title: 'Electrical Cable Sizes Explained (1.5mm² to 25mm²)',
+        url: '/blog/electrical-cable-sizes-explained/',
+        description: 'Comprehensive guide to standard metric cable sizes and applications.',
+      },
+      {
+        title: 'Voltage Drop Explained: How to Calculate It',
+        url: '/blog/voltage-drop-explained-how-to-calculate-it/',
+        description: 'How to calculate millivolt-per-amp-per-meter voltage drop in cables.',
+      },
+    ],
+  },
+  {
+    id: 'max-zs',
+    name: 'Max Zs Calculator (Disconnection Times)',
+    shortName: 'Max Zs',
+    slug: 'max-zs-calculator',
+    route: '/tools/max-zs-calculator/',
+    category: 'calculator',
+    status: 'available',
+    description:
+      'Verify earth fault loop impedance (Zs) and 0.4s / 5s automatic disconnection times against BS 7671:2018+A4:2026 Tables 41.2–41.4.',
+    badge: 'BS 7671',
+    icon: 'shield',
+    metaTitle: 'Max Zs Calculator — BS 7671 Loop Impedance & Disconnection | ElectraSim',
+    metaDescription:
+      'Calculate maximum permitted Zs and verify earth fault loop impedance per BS 7671 Amendment 4. Includes MCB Types B/C/D, fuses, and the 80% test rule.',
+    keywords: [
+      'max zs calculator',
+      'earth fault loop impedance',
+      'BS 7671 Table 41.3 Zs values',
+      'disconnection time calculator',
+      '80 percent rule GN3',
+      'R1 plus R2 calculator',
+      'prospective fault current calculator',
+    ],
+    ogImage: 'https://electrasim.com/og-image.png',
+    equations: [
+      {
+        title: 'Maximum Zs Formula (Cmin-corrected)',
+        formula: 'Zs_max = (U_0 × C_min) / I_a',
+        description:
+          'Where U0 is nominal line-to-earth voltage (230 V), Cmin is the minimum voltage factor (0.95), and Ia is the trip threshold current.',
+      },
+      {
+        title: 'Circuit Loop Impedance (Zs)',
+        formula: 'Z_s = Z_e + (R_1 + R_2)',
+        description:
+          'Total loop impedance equals external earth impedance (Ze) plus line (R1) and protective conductor (R2) resistance.',
+      },
+      {
+        title: 'The 80% Rule for Cold Testing (IET GN3)',
+        formula: 'Z_s(measured at 20°C) ≤ 0.8 × Zs_max',
+        description:
+          'Leaves a 20% thermal margin so that when conductors reach full 70°C operating temperature, Zs does not exceed the statutory ceiling.',
+      },
+    ],
+    steps: [
+      {
+        step: 'Select Protective Device & Curve',
+        instruction:
+          'Choose device type (Type B, C, or D MCB/RCBO, or BS 88 fuse) and rated current (In).',
+      },
+      {
+        step: 'Select Earthing System (TN-C-S, TN-S, or TT)',
+        instruction:
+          'Sets typical external impedance Ze (0.35 Ω for TN-C-S, 0.80 Ω for TN-S) or custom measured Ze.',
+      },
+      {
+        step: 'Enter Conductor Run Length & Cross-Sections',
+        instruction:
+          'Input length in meters and select line cable (mm²) and protective earth CPC (mm²).',
+      },
+      {
+        step: 'Compare Against Max Disconnection Threshold',
+        instruction:
+          'Verify calculated Zs against the statutory 0.4s disconnection limit and the IET GN3 80% cold test rule.',
+      },
+    ],
+    faqs: [
+      {
+        question: 'What is the 80% rule in electrical testing (IET Guidance Note 3)?',
+        answer:
+          'Published BS 7671 Table 41.2–41.4 Zs values are calculated for conductors at their maximum operating temperature of 70°C. When testing cold circuits at ambient temperature (around 20°C), measured Zs will be lower. The 80% rule (multiplying max Zs by 0.8) ensures that when the circuit is fully loaded and conductors warm up, Zs will not drift past the safety limit.',
+      },
+      {
+        question: 'What is the maximum Zs for a 32A Type B MCB in the UK?',
+        answer:
+          'Under BS 7671:2018+A4:2026, the Cmin-corrected maximum Zs for a 32A Type B MCB (5×In = 160A instantaneous trip) is 1.37 Ω (calculated as 230V × 0.95 / 160A). The 80% cold test ceiling is 1.10 Ω.',
+      },
+      {
+        question: 'How does Ze affect total earth fault loop impedance Zs?',
+        answer:
+          'Ze is the external impedance of the supply network up to the consumer unit terminals. Typical maximum values are 0.35 Ω for TN-C-S (PME) and 0.80 Ω for TN-S. Because Zs = Ze + (R1 + R2), a higher Ze leaves less allowable resistance for the circuit cable run before exceeding the maximum Zs.',
+      },
+    ],
+    relatedGuides: [
+      {
+        title: 'How to Trace an Electrical Fault Safely',
+        url: '/blog/how-to-trace-an-electrical-fault-safely/',
+        description: 'Step-by-step continuity, insulation resistance and loop impedance testing.',
+      },
+      {
+        title: 'Types of Earthing Systems Explained (TN-S, TN-C-S, TT)',
+        url: '/blog/types-of-earthing-systems-tn-s-tn-c-s-tt-explained/',
+        description: 'Complete breakdown of UK earthing arrangements and their typical Ze values.',
+      },
     ],
   },
   {

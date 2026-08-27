@@ -10,6 +10,7 @@
 import { COMPONENT_DEFS, type Circuit } from '../domain';
 import { useCircuitStore } from './circuitStore';
 import type { CircuitState } from './circuitStore.types';
+import { useUiStore } from './uiStore';
 
 function reconcileSelection(): void {
   const state = useCircuitStore.getState();
@@ -31,13 +32,69 @@ function reconcileSelection(): void {
   }
 }
 
+function notifySpatialChange(
+  beforeComps: Map<string, { x: number; y: number }>,
+  kind: 'undo' | 'redo',
+): void {
+  try {
+    const after = useCircuitStore.getState();
+    const afterMap = new Map(after.components.map((c) => [c.id, c]));
+
+    // 1. Moved component
+    for (const [id, beforePos] of beforeComps) {
+      const afterComp = afterMap.get(id);
+      if (
+        afterComp &&
+        (Math.abs(afterComp.x - beforePos.x) > 1 || Math.abs(afterComp.y - beforePos.y) > 1)
+      ) {
+        useUiStore.getState().triggerSpatialIndicator(afterComp.x, afterComp.y, kind);
+        return;
+      }
+    }
+
+    // 2. Added/restored component
+    for (const [id, afterComp] of afterMap) {
+      if (!beforeComps.has(id)) {
+        useUiStore.getState().triggerSpatialIndicator(afterComp.x, afterComp.y, kind);
+        return;
+      }
+    }
+
+    // 3. Removed component
+    for (const [id, beforePos] of beforeComps) {
+      if (!afterMap.has(id)) {
+        useUiStore.getState().triggerSpatialIndicator(beforePos.x, beforePos.y, kind);
+        return;
+      }
+    }
+
+    // 4. Selected item
+    if (after.selectedComponentId) {
+      const c = afterMap.get(after.selectedComponentId);
+      if (c) {
+        useUiStore.getState().triggerSpatialIndicator(c.x, c.y, kind);
+      }
+    }
+  } catch {
+    // Non-fatal UI enhancement
+  }
+}
+
 export const undo = () => {
+  const before = new Map(
+    useCircuitStore.getState().components.map((c) => [c.id, { x: c.x, y: c.y }]),
+  );
   useCircuitStore.temporal.getState().undo();
   reconcileSelection();
+  notifySpatialChange(before, 'undo');
 };
 export const redo = () => {
+  const before = new Map(
+    useCircuitStore.getState().components.map((c) => [c.id, { x: c.x, y: c.y }]),
+  );
   useCircuitStore.temporal.getState().redo();
   reconcileSelection();
+  notifySpatialChange(before, 'redo');
 };
 export const clearHistory = () => useCircuitStore.temporal.getState().clear();
 

@@ -1,5 +1,6 @@
 (() => {
   const STORAGE_KEY = 'electrasim:color-scheme';
+  const APP_HINT_KEY = 'electrasim:app-theme-hint';
   const DARK_QUERY = '(prefers-color-scheme: dark)';
   const LIGHT_THEME_COLOR = '#3b82f6';
   const DARK_THEME_COLOR = '#11161a';
@@ -8,7 +9,8 @@
 
   const readPreference = () => {
     try {
-      const stored = window.localStorage.getItem(STORAGE_KEY);
+      const stored =
+        window.localStorage.getItem(STORAGE_KEY) || window.localStorage.getItem(APP_HINT_KEY);
       return stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
     } catch {
       return 'system';
@@ -49,6 +51,7 @@
         preference = next;
         try {
           window.localStorage.setItem(STORAGE_KEY, next);
+          window.localStorage.setItem(APP_HINT_KEY, next);
         } catch {
           // The selected theme still applies for this page when storage is unavailable.
         }
@@ -68,7 +71,7 @@
   });
 
   window.addEventListener('storage', (event) => {
-    if (event.key !== STORAGE_KEY) return;
+    if (event.key !== STORAGE_KEY && event.key !== APP_HINT_KEY) return;
     preference = readPreference();
     applyPreference(preference);
   });

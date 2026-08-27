@@ -19,7 +19,9 @@ await page.getByRole('button', { name: 'Hide guide' }).click();
 
 // Wires are canvas buttons named "Wire <id>"; straight SVG wire groups have a
 // zero-area bbox, so force-click centers on the visible line itself.
-out.wireCount = await page.getByRole('button', { name: /^Wire two-way-staircase-light-w-/ }).count();
+out.wireCount = await page
+  .getByRole('button', { name: /^Wire two-way-staircase-light-w-/ })
+  .count();
 await page
   .getByRole('button', { name: 'Wire two-way-staircase-light-w-traveller-l1' })
   .click({ force: true });

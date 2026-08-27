@@ -31,6 +31,7 @@ function EditingSettings() {
   const customWiringMode = useSettingsStore((state) => state.customWiringMode);
   const routingStyle = useSettingsStore((state) => state.routingStyle);
   const autoWireJoints = useSettingsStore((state) => state.autoWireJoints);
+  const smartAlignmentGuides = useSettingsStore((state) => state.smartAlignmentGuides);
   const showRecentComponents = useSettingsStore((state) => state.showRecentComponents);
   const setSetting = useSettingsStore((state) => state.setSetting);
 
@@ -77,6 +78,17 @@ function EditingSettings() {
         }
         checked={autoWireJoints}
         onChange={(value) => setSetting('autoWireJoints', value)}
+      />
+      <ElectricToggle
+        label="Smart alignment guidelines"
+        description="Magnetically align components to neighboring components when dragging, displaying horizontal and vertical alignment guide lines across the canvas. Preserved across profile backup exports and imports."
+        preview={
+          smartAlignmentGuides
+            ? '📏 Alignment guidelines and magnetic snapping active while dragging.'
+            : '🔓 Free dragging without neighbor alignment guide lines.'
+        }
+        checked={smartAlignmentGuides}
+        onChange={(value) => setSetting('smartAlignmentGuides', value)}
       />
       <ElectricToggle
         label="Recent components in palette"

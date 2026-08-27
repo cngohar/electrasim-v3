@@ -1,14 +1,15 @@
 import { AlertTriangle, Flame, HelpCircle, RefreshCw, X, Zap } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { useCircuitStore, useUiStore } from '../../store';
+import { COMPONENT_DEFS } from '../../domain';
+import { useCircuitStore, useSettingsStore, useUiStore } from '../../store';
 import { useDialogFocus } from '../hooks/useDialogFocus';
-import { COMPONENT_DEFS } from '../../../domain';
 
 export function FaultAlertModal() {
   const faultAlert = useUiStore((s) => s.faultAlert);
   const clearFaultAlert = useUiStore((s) => s.clearFaultAlert);
   const setWhatHappenedOpen = useUiStore((s) => s.setWhatHappenedOpen);
   const repairAllFaults = useCircuitStore((s) => s.repairAllFaults);
+  const appMode = useSettingsStore((s) => s.appMode);
 
   const [currentAlert, setCurrentAlert] = useState(faultAlert);
   const [isClosing, setIsClosing] = useState(false);
@@ -45,18 +46,18 @@ export function FaultAlertModal() {
   const handleRepair = () => {
     // In Pro Mode, warn if voltage still exceeds component ratings
     if (appMode === 'pro') {
-      const blownComponents = useCircuitStore.getState().components.filter(
-        (c) => c.state?.isBlown,
-      );
+      const supplyVoltage = useCircuitStore.getState().globalVoltage;
+      const blownComponents = useCircuitStore.getState().components.filter((c) => c.state?.isBlown);
       const hasVoltageExceeded = blownComponents.some((comp) => {
         const def = COMPONENT_DEFS[comp.type];
-        const maxVolts = comp.state.customMaxVolts ?? def?.maxVolts ?? 250;
-        return (comp.state.customVoltage ?? 0) > maxVolts;
-      };
+        const maxVolts = comp.state?.customMaxVolts ?? def?.maxVolts ?? 250;
+        const effectiveVoltage = comp.state?.customVoltage ?? supplyVoltage;
+        return effectiveVoltage > maxVolts;
+      });
       if (hasVoltageExceeded) {
         if (
           !window.confirm(
-            'The supply voltage still exceeds some component ratings. Repairing will reset the blown state, but the components may blow again when the simulation runs. Continue?'
+            'The supply voltage still exceeds some component ratings. Repairing will reset the blown state, but the components may blow again when the simulation runs. Continue?',
           )
         ) {
           return;

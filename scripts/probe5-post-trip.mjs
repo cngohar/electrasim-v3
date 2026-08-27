@@ -51,7 +51,12 @@ await page.waitForTimeout(1500);
 out.afterTrip = await snapshot('after-trip');
 const alertDialog = page.getByRole('dialog');
 out.alertVisible = await alertDialog.isVisible();
-out.alertTitle = (await page.locator('#fault-alert-title').innerText().catch(() => 'NO-TITLE'))
+out.alertTitle = (
+  await page
+    .locator('#fault-alert-title')
+    .innerText()
+    .catch(() => 'NO-TITLE')
+)
   .replace(/\s+/g, ' ')
   .slice(0, 80);
 await page.screenshot({ path: 'test-results/probe5-tripped.png' });
@@ -102,7 +107,10 @@ if (await clearItem.count()) {
 } else {
   await page.keyboard.press('Escape');
 }
-await page.getByRole('button', { name: /RESET Breaker/ }).click().catch(() => {});
+await page
+  .getByRole('button', { name: /RESET Breaker/ })
+  .click()
+  .catch(() => {});
 await page.waitForTimeout(300);
 out.afterFaultCleared = await snapshot('after-fault-cleared');
 await page.getByRole('button', { name: runBtn }).first().click();

@@ -187,30 +187,32 @@ export function StatusPill({
 
         <div className="h-3 w-px bg-slate-200 dark:bg-slate-700" />
 
-        <button
-          type="button"
-          onClick={() =>
-            useViewportStore
-              .getState()
-              .zoomToFit({ width: 1200, height: 720 }, useCircuitStore.getState().components)
-          }
-          className="flex items-center gap-1 rounded px-1.5 py-0.5 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
-          title="Zoom to fit (F)"
-        >
-          <ScanSearch className="size-3 text-slate-400" />
-          <span className="text-slate-500 dark:text-slate-400">Zoom:</span>
-          <span
-            className="font-mono font-bold text-slate-700 hover:text-blue-600 dark:text-slate-200 dark:hover:text-blue-400"
-            onClick={(e) => {
-              // Clicking the % value resets to 1:1.
-              e.stopPropagation();
-              useViewportStore.getState().resetView();
-            }}
-            title="Click to reset to 100%"
+        <div className="flex items-center gap-0.5">
+          <button
+            type="button"
+            onClick={() =>
+              useViewportStore
+                .getState()
+                .zoomToFit(
+                  { width: window.innerWidth, height: window.innerHeight },
+                  useCircuitStore.getState().components,
+                )
+            }
+            className="flex items-center gap-1 rounded px-1.5 py-0.5 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+            title="Zoom to fit (F)"
+          >
+            <ScanSearch className="size-3 text-slate-400" />
+            <span className="text-slate-500 dark:text-slate-400">Fit</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => useViewportStore.getState().resetView()}
+            className="font-mono font-bold text-slate-700 hover:text-blue-600 dark:text-slate-200 dark:hover:text-blue-400 rounded px-1.5 py-0.5 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+            title="Click to reset zoom to 100%"
           >
             {Math.round(zoom * 100)}%
-          </span>
-        </button>
+          </button>
+        </div>
       </div>
     </div>
   );

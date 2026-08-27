@@ -8,14 +8,17 @@ import {
   CheckCircle2,
   Copy,
   Cpu,
+  FileText,
   Info,
   Layers,
+  MapPin,
   Shield,
   Sparkles,
   X,
   Zap,
 } from 'lucide-react';
 import { type FC, useEffect, useRef, useState } from 'react';
+import { COMPONENT_DEFS } from '../../domain';
 import { getComponentHelp } from '../../domain/componentHelp';
 import { useUiStore } from '../../store/uiStore';
 import { useDialogFocus } from '../hooks/useDialogFocus';
@@ -33,13 +36,8 @@ export const ComponentInfoModal: FC = () => {
 
   // Single owner of the open/close animation. The store's `activeType` is
   // the only trigger: set → mount + entrance; cleared → one 200 ms exit,
-  // then unmount. (The old version also flipped `isClosing` from the close
-  // handler while keeping `isClosing` in these deps, so the effect fought
-  // it — cancelling the exit, replaying the entrance, then running a second
-  // exit: the "closes twice" animation bug.) `currentType` is intentionally
-  // not a dependency: adding it would cancel/restart the exit timer when it
-  // clears itself at the end of the animation.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: single-trigger animation owner — see comment above
+  // then unmount.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: single-trigger animation owner
   useEffect(() => {
     if (activeType) {
       setCurrentType(activeType);
@@ -56,7 +54,6 @@ export const ComponentInfoModal: FC = () => {
   }, [activeType]);
 
   const handleClose = () => {
-    // Just clear the store — the effect above owns the exit animation.
     setActiveType(null);
   };
 
@@ -65,7 +62,43 @@ export const ComponentInfoModal: FC = () => {
   if (!currentType) return null;
 
   const data = getComponentHelp(currentType);
+  const def = COMPONENT_DEFS[currentType];
   const imageUrl = getComponentImage(currentType, data.category);
+
+  // Derived or explicit terminal pinouts
+  const terminalPinouts =
+    data.terminalPinout ??
+    def?.ports.map((p, idx) => ({
+      terminal: p.label || `Terminal ${idx + 1}`,
+      role: p.type,
+      description:
+        p.type === 'live'
+          ? 'Phase / Line conductor connection'
+          : p.type === 'neutral'
+            ? 'Neutral return path connection'
+            : p.type === 'earth'
+              ? 'Protective Earth / CPC safety bonding'
+              : 'Switched line / control connection',
+    })) ??
+    [];
+
+  // Real-world regulation clauses (with generic BS 7671 fallback if not explicitly authored)
+  const regulationClauses = data.regulationClauses ?? [
+    {
+      standard: 'BS 7671:2018+A3:2024 / IEC 60364',
+      clause: 'Chapter 13 & Part 4',
+      title: 'Fundamental Protection Principles',
+      requirement:
+        'All conductors and electrical equipment must be coordinated so that Ib ≤ In ≤ Iz, preventing thermal overload of cables.',
+    },
+    {
+      standard: 'BS 7671 Reg 411.3.2',
+      clause: 'Regulation 411.3.2.2',
+      title: 'Automatic Disconnection of Supply (ADS)',
+      requirement:
+        'Final circuits not exceeding 63A must disconnect automatically within 0.4 seconds on TN systems in the event of an earth fault.',
+    },
+  ];
 
   const handleCopySpecs = () => {
     const text = [
@@ -381,6 +414,26 @@ export const ComponentInfoModal: FC = () => {
                 </div>
               </div>
 
+              {/* Real-World Applications */}
+              {data.realWorldApplications && data.realWorldApplications.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 flex items-center gap-1.5 dark:text-slate-400">
+                    <MapPin className="w-3.5 h-3.5 text-blue-500" /> Typical Real-World Applications
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {data.realWorldApplications.map((app, idx) => (
+                      <div
+                        key={idx}
+                        className="text-xs text-slate-700 bg-slate-50 border border-slate-200 p-2.5 rounded-lg flex items-center gap-2 dark:bg-slate-800/40 dark:border-slate-800 dark:text-slate-300"
+                      >
+                        <span className="size-1.5 rounded-full bg-blue-500 shrink-0" />
+                        <span>{app}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Deep-dive article on the ElectraSim blog */}
               {data.learnMoreSlug && (
                 <a
@@ -411,6 +464,45 @@ export const ComponentInfoModal: FC = () => {
 
           {activeTab === 'wiring' && (
             <div className="space-y-4">
+              {/* Terminal Pinouts & Markings */}
+              {terminalPinouts.length > 0 && (
+                <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl dark:bg-slate-800/40 dark:border-slate-800">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 mb-3 flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-blue-500" /> Terminal Pinout & Physical Markings
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {terminalPinouts.map((pin, idx) => (
+                      <div
+                        key={idx}
+                        className="p-2.5 bg-white border border-slate-200 rounded-lg flex items-start gap-2.5 dark:bg-slate-900/60 dark:border-slate-800"
+                      >
+                        <span
+                          className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded uppercase shrink-0 ${
+                            pin.role === 'live'
+                              ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/70 dark:text-rose-300'
+                              : pin.role === 'neutral'
+                                ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/70 dark:text-blue-300'
+                                : pin.role === 'earth'
+                                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300'
+                                  : 'bg-purple-100 text-purple-800 dark:bg-purple-950/70 dark:text-purple-300'
+                          }`}
+                        >
+                          {pin.terminal}
+                        </span>
+                        <div className="min-w-0">
+                          <span className="text-[11px] font-semibold text-slate-900 dark:text-slate-100 block capitalize">
+                            {pin.role} Terminal
+                          </span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 block leading-tight">
+                            {pin.description}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl dark:bg-slate-800/50 dark:border-slate-700/80">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-2.5 flex items-center gap-2">
                   <Cable className="w-4 h-4 text-emerald-400" /> Terminal & Conductor Guidelines
@@ -458,6 +550,39 @@ export const ComponentInfoModal: FC = () => {
 
           {activeTab === 'standards' && (
             <div className="space-y-4">
+              {/* Statutory Regulation Clauses */}
+              {regulationClauses.length > 0 && (
+                <div className="space-y-2.5">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-amber-500" /> Statutory Regulation Clauses &
+                    Code Requirements
+                  </h4>
+                  <div className="space-y-2">
+                    {regulationClauses.map((clause, idx) => (
+                      <div
+                        key={idx}
+                        className="p-3 bg-amber-50/60 border border-amber-200 rounded-xl dark:bg-amber-950/20 dark:border-amber-900/40 space-y-1"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-bold text-amber-900 dark:text-amber-200 text-xs">
+                            {clause.title}
+                          </span>
+                          <span className="font-mono text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-950 px-2 py-0.5 rounded">
+                            {clause.clause}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-amber-800 dark:text-amber-300/90 leading-relaxed">
+                          {clause.requirement}
+                        </p>
+                        <div className="text-[9px] text-amber-600 dark:text-amber-400 font-mono">
+                          Standard: {clause.standard}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl dark:bg-emerald-950/20 dark:border-emerald-500/25">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-2 flex items-center gap-2">
                   <BookOpen className="w-4 h-4 text-emerald-400" /> Regulatory Compliance Standard

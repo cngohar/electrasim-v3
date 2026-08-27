@@ -81,6 +81,12 @@ export interface UserSettings {
    */
   snapToGrid: boolean;
   /**
+   * Smart alignment guidelines: show magnetic alignment rays when dragging components
+   * that line up with other components on the canvas.
+   * Default true.
+   */
+  smartAlignmentGuides: boolean;
+  /**
    * Phase 6.3-slim: show the mini-map thumbnail overlay.
    * Default true.
    */
@@ -174,6 +180,7 @@ const DEFAULTS: UserSettings = {
   customWiringMode: false,
   showGrid: true,
   snapToGrid: true,
+  smartAlignmentGuides: true,
   showMiniMap: true,
   appMode: 'basic',
   canvasPreset: 'default',
@@ -260,6 +267,10 @@ function parsePersistedSettings(value: unknown): UserSettings | null {
     customWiringMode: booleanOrDefault(stored.customWiringMode, DEFAULTS.customWiringMode),
     showGrid: booleanOrDefault(stored.showGrid, DEFAULTS.showGrid),
     snapToGrid: booleanOrDefault(stored.snapToGrid, DEFAULTS.snapToGrid),
+    smartAlignmentGuides: booleanOrDefault(
+      stored.smartAlignmentGuides,
+      DEFAULTS.smartAlignmentGuides,
+    ),
     showMiniMap: booleanOrDefault(stored.showMiniMap, DEFAULTS.showMiniMap),
     appMode: enumOrDefault(stored.appMode, APP_MODES, DEFAULTS.appMode),
     canvasPreset: enumOrDefault(stored.canvasPreset, CANVAS_PRESETS, DEFAULTS.canvasPreset),
@@ -383,6 +394,7 @@ function snapshot(state: SettingsState): UserSettings {
     customWiringMode: state.customWiringMode,
     showGrid: state.showGrid,
     snapToGrid: state.snapToGrid,
+    smartAlignmentGuides: state.smartAlignmentGuides,
     showMiniMap: state.showMiniMap,
     appMode: state.appMode,
     canvasPreset: state.canvasPreset,
@@ -433,6 +445,7 @@ export async function startSettingsPersistence(): Promise<void> {
       state.customWiringMode === prev.customWiringMode &&
       state.showGrid === prev.showGrid &&
       state.snapToGrid === prev.snapToGrid &&
+      state.smartAlignmentGuides === prev.smartAlignmentGuides &&
       state.showMiniMap === prev.showMiniMap &&
       state.appMode === prev.appMode &&
       state.canvasPreset === prev.canvasPreset &&

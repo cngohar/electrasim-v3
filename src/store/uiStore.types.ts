@@ -210,6 +210,10 @@ export interface UiState {
   contextMenu: ContextMenuState | null;
   /** Phase 6.2.3: rubber-band drag-rect for multi-select (world-space coords). */
   dragRect: { x1: number; y1: number; x2: number; y2: number } | null;
+  /** Smart alignment guidelines active during component drag (world X and/or Y). */
+  alignmentGuides: { x?: number; y?: number } | null;
+  /** Spatial undo/redo indicator at canvas coordinates. */
+  spatialIndicator: { x: number; y: number; kind: 'undo' | 'redo'; timestamp: number } | null;
   /** Phase 7: custom-path wire being drawn (null when idle). */
   pendingCustomPath: PendingCustomPath | null;
 
@@ -394,6 +398,11 @@ export interface UiState {
   dismissMobileSuitability: () => void;
   setContextMenu: (menu: ContextMenuState | null) => void;
   setDragRect: (rect: { x1: number; y1: number; x2: number; y2: number } | null) => void;
+  setAlignmentGuides: (guides: { x?: number; y?: number } | null) => void;
+  setSpatialIndicator: (
+    indicator: { x: number; y: number; kind: 'undo' | 'redo'; timestamp: number } | null,
+  ) => void;
+  triggerSpatialIndicator: (x: number, y: number, kind: 'undo' | 'redo') => void;
   /** Phase 7: start a new custom path from the given port. */
   startCustomPath: (from: PortRef) => void;
   /** Phase 7: append a canvas-space checkpoint to the in-flight path. */

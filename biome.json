@@ -80,8 +80,7 @@
     "linter": {
       "enabled": false
     }
-  }
-,
+  },
   "overrides": [
     {
       "include": ["src/ui/canvas/ComponentNode.tsx", "src/ui/canvas/ComponentLayer.tsx"],

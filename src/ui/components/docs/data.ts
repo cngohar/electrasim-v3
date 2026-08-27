@@ -13,6 +13,7 @@ import {
 import { COMPONENT_DEFS, type ComponentDef } from '../../../domain';
 
 export const SHORTCUTS: Array<[key: string, action: string]> = [
+  ['Space', 'Toggle simulation (Run / Pause)'],
   ['V', 'Select tool — pick and move components (visual hint in Challenge Mode)'],
   ['W', 'Wire tool — click two ports to connect them'],
   ['R', 'Reroute — cycle TO → FROM → cancel on selected wire'],

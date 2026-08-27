@@ -92,11 +92,10 @@ export function InspectorAnalyticsView({ simResult, selectedComp }: Props) {
       : 0;
   const currentLive =
     simRunning && activePowerW > 0
-      ? focusCalc?.currentAmps ?? currentAmpsCalculated + currentNoise
-      : currentAmpsCalculated;
+      ? (focusCalc?.currentAmps ?? focusCurrent) + currentNoise
+      : (focusCalc?.currentAmps ?? focusCurrent);
 
-  const powerNoise =
-    simRunning && activePowerW > 0 ? 0.5 * (Math.random() - 0.5) : 0;
+  const powerNoise = simRunning && activePowerW > 0 ? 0.5 * (Math.random() - 0.5) : 0;
   const powerLive = simRunning && activePowerW > 0 ? activePowerW + powerNoise : activePowerW;
 
   // Power factor based on actual load mix, not a sine wave
@@ -116,12 +115,10 @@ export function InspectorAnalyticsView({ simResult, selectedComp }: Props) {
   const powerComponents =
     focusComp || simRunning
       ? simRunning && simResult && simResult.energizedComponents.size > 0
-        ? [...simResult.energizedComponents].filter(
-            (id) => {
-              const comp = components.find((c) => c.id === id);
-              return comp && !comp.state?.isBlown;
-            },
-          )
+        ? [...simResult.energizedComponents].filter((id) => {
+            const comp = components.find((c) => c.id === id);
+            return comp && !comp.state?.isBlown;
+          })
         : []
       : components;
   for (const id of powerComponents) {
@@ -143,38 +140,34 @@ export function InspectorAnalyticsView({ simResult, selectedComp }: Props) {
   const totalPower = totalInductivePower + totalResistivePower;
   // Typical power factor: inductive loads ~0.9, resistive ~1.0, mixed in between
   const powerFactorLive =
-    totalPower > 0
-      ? 1.0 - 0.1 * (totalInductivePower / totalPower)
-      : hasInductive
-        ? 0.94
-        : 0.98;
+    totalPower > 0 ? 1.0 - 0.1 * (totalInductivePower / totalPower) : hasInductive ? 0.94 : 0.98;
 
-// Frequency is stable based on supply, not modulated by time
+  // Frequency is stable based on supply, not modulated by time
   const frequencyLive = hasAcSupply
     ? liveSupplyVoltage === 110 || liveSupplyVoltage === 120
       ? 60.0
       : 50.0
     : 0.0;
 
-// Real-time mini sparklines for Calculated Live Measurements cards
-  // Use actual measurement values to show live display status
-  // The sparklines show a flat line - the numeric value next to it shows the real data
+  // Real-time sparklines for Calculated Live Measurements cards
   const generateSineSparkline = (
     color: string,
     omega = 0.12,
-    speed = 3,
-    phase = 0,
+    speed = 4,
+    phaseOffset = 0,
     width = 120,
     height = 24,
   ) => {
     const midY = height / 2;
+    if (!simRunning) {
+      return `M 0,${midY} L ${width},${midY}`;
+    }
     const points: string[] = [];
-    const amplitude = height * 0.38;
+    const amplitude = height * 0.36;
+    const phase = runtimeSeconds * speed + phaseOffset;
 
     for (let x = 0; x <= width; x += 2) {
-      // Flat line at midY - the numeric value (voltageLive, currentLive, powerFactorLive)
-      // next to it shows the actual measured value with real circuit data
-      const y = midY - Math.sin(x * omega + phase) * amplitude * 0.1; // Reduced amplitude
+      const y = midY - Math.sin(x * omega - phase) * amplitude;
       points.push(`${x.toFixed(1)},${y.toFixed(1)}`);
     }
     return `M ${points.join(' L ')}`;
@@ -182,26 +175,35 @@ export function InspectorAnalyticsView({ simResult, selectedComp }: Props) {
 
   const generatePowerSparkline = (width = 120, height = 24) => {
     const midY = height / 2;
+    if (!simRunning || activePowerW === 0) {
+      return `M 0,${midY} L ${width},${midY}`;
+    }
     const points: string[] = [];
-    const amplitude = height * 0.36;
+    const amplitude = height * 0.32;
+    const phase = runtimeSeconds * 8;
 
     for (let x = 0; x <= width; x += 2) {
-      // Flat line at midY - the numeric value (powerLive) shows the actual measured power
-      points.push(`${x.toFixed(1)},${midY.toFixed(1)}`);
+      const y = hasAcSupply
+        ? height - 4 - (1 - Math.cos(x * 0.24 - phase)) * amplitude
+        : midY - Math.min(amplitude, (powerLive / 3000) * amplitude);
+      points.push(`${x.toFixed(1)},${y.toFixed(1)}`);
     }
     return `M ${points.join(' L ')}`;
   };
 
   const generateFrequencyTransientSparkline = (width = 180, height = 36) => {
     const midY = height / 2;
+    if (!simRunning || !hasAcSupply) {
+      return `M 0,${midY} L ${width},${midY}`;
+    }
     const points: string[] = [];
-    const amplitude = height * 0.42;
-    // Use stable frequency value - no time modulation
-    // frequencyLive is already 60.0, 50.0, or 0.0 based on supply
+    const amplitude = height * 0.38;
+    const phase = runtimeSeconds * 10;
 
     for (let x = 0; x <= width; x += 1.5) {
-      // Flat line showing frequency is stable - the numeric value shows the actual frequency
-      const y = midY; // Flat line
+      const y =
+        midY -
+        (Math.sin(x * 0.1 - phase) * 0.85 + Math.sin(x * 0.3 - phase * 3) * 0.15) * amplitude;
       points.push(`${x.toFixed(1)},${y.toFixed(1)}`);
     }
     return `M ${points.join(' L ')}`;
@@ -209,32 +211,50 @@ export function InspectorAnalyticsView({ simResult, selectedComp }: Props) {
 
   const generateWaveformPath = (width = 280, height = 80) => {
     const midY = height / 2;
-    if (!simRunning) {
+    if (!simRunning || liveSupplyVoltage === 0) {
       return `M 0,${midY} L ${width},${midY}`;
     }
     const points: string[] = [];
-    const amplitude = hasAcSupply
-      ? height * 0.36
-      : Math.min(height * 0.35, Math.max(10, (liveSupplyVoltage / 240) * (height * 0.35)));
-
-    // Use actual voltage value - show flat line since numeric value next to it
-    // shows the real voltage (liveSupplyVoltage)
-    for (let x = 0; x <= width; x += 1.5) {
-      points.push(`${x.toFixed(1)},${midY.toFixed(1)}`);
+    if (hasAcSupply) {
+      const amplitude = Math.min(
+        height * 0.4,
+        Math.max(12, (liveSupplyVoltage / 240) * (height * 0.38)),
+      );
+      const omega = (4 * Math.PI) / width;
+      const phase = runtimeSeconds * 8;
+      for (let x = 0; x <= width; x += 1.5) {
+        const y = midY - Math.sin(x * omega - phase) * amplitude;
+        points.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+      }
+    } else {
+      const dcOffset = Math.min(height * 0.38, (liveSupplyVoltage / 240) * (height * 0.35));
+      const y = midY - dcOffset;
+      return `M 0,${y.toFixed(1)} L ${width},${y.toFixed(1)}`;
     }
     return `M ${points.join(' L ')}`;
   };
 
   const generateCurrentWaveformPath = (width = 280, height = 80) => {
     const midY = height / 2;
-    if (!simRunning || activePowerW === 0) {
+    if (!simRunning || activePowerW === 0 || currentLive === 0) {
       return `M 0,${midY} L ${width},${midY}`;
     }
     const points: string[] = [];
-    // Use actual current value - show flat line since numeric value next to it
-    // shows the actual current (activePowerW / liveSupplyVoltage)
-    for (let x = 0; x <= width; x += 1.5) {
-      points.push(`${x.toFixed(1)},${midY.toFixed(1)}`);
+    if (hasAcSupply) {
+      const normalizedCurrent = Math.min(1, currentLive / 20);
+      const amplitude = Math.min(height * 0.36, Math.max(8, normalizedCurrent * (height * 0.34)));
+      const omega = (4 * Math.PI) / width;
+      const phaseLag = Math.acos(Math.max(0, Math.min(1, powerFactorLive)));
+      const phase = runtimeSeconds * 8 - phaseLag;
+      for (let x = 0; x <= width; x += 1.5) {
+        const y = midY - Math.sin(x * omega - phase) * amplitude;
+        points.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+      }
+    } else {
+      const normalizedCurrent = Math.min(1, currentLive / 20);
+      const dcOffset = Math.max(4, normalizedCurrent * (height * 0.3));
+      const y = midY - dcOffset;
+      return `M 0,${y.toFixed(1)} L ${width},${y.toFixed(1)}`;
     }
     return `M ${points.join(' L ')}`;
   };

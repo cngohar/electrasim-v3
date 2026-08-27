@@ -18,7 +18,8 @@ export const ICON_PATHS: Record<string, string> = {
     '<path d="M12 3 4 6v5.5c0 4.4 3.4 8.5 8 9.5 4.6-1 8-5.1 8-9.5V6l-8-3z"></path><path d="m9 12 2 2 4-4"></path>',
   share:
     '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M17 8l-5-5-5 5M12 3v13"></path>',
-  monitor: '<rect x="2" y="3" width="20" height="14" rx="2"></rect><path d="M8 21h8M12 17v4"></path>',
+  monitor:
+    '<rect x="2" y="3" width="20" height="14" rx="2"></rect><path d="M8 21h8M12 17v4"></path>',
   grid: '<rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><path d="M14 17.5h7M17.5 14v7"></path>',
   cable:
     '<path d="M17 12H7M7 12l4-4M7 12l4 4"></path><circle cx="19" cy="12" r="2"></circle><circle cx="5" cy="12" r="2"></circle>',
