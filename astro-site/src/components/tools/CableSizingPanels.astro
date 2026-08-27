@@ -1,5 +1,6 @@
 ---
 // CableSizingPanels.astro — Interactive panels for Cable Sizing Tool
+import StandardSelector from './StandardSelector.astro';
 ---
 
 <div class="tool-panels-container">
@@ -25,6 +26,9 @@
     </div>
 
     <form class="calc-form" id="cable-sizing-form" novalidate>
+      <!-- Regional wiring standard (BS 7671 / IEC 60364) -->
+      <StandardSelector inputId="cs-standard" noteId="cs-standard-note" />
+
       <!-- Load Type & Supply -->
       <div class="form-row grid-2">
         <div class="form-group">
@@ -63,7 +67,7 @@
           <label for="cs-circuit-type">Circuit Function</label>
           <select id="cs-circuit-type" name="circuitType" class="calc-select">
             <option value="power" selected>Power / Sockets / Shower (5% max)</option>
-            <option value="lighting">Lighting Circuit (3% max)</option>
+            <option value="lighting" id="cs-lighting-option">Lighting Circuit (3% max — BS 7671)</option>
           </select>
         </div>
       </div>
@@ -183,11 +187,32 @@
       <div class="summary-text" id="cs-summary-text">
         Loading sizing calculation...
       </div>
+      <p class="standard-result-echo" id="cs-standard-echo">
+        Result verified against <strong>BS 7671:2018+A4:2026 (UK)</strong> — Appendix 4 Tables 4D5/4B1/4C1 and 3%/5% voltage-drop limits.
+      </p>
     </div>
   </section>
 </div>
 
 <style>
+  .standard-result-echo {
+    margin: 0.6rem 0 0;
+    font-size: 0.6875rem;
+    line-height: 1.45;
+    color: #475569;
+    border-top: 1px dashed rgba(100, 116, 139, 0.35);
+    padding-top: 0.55rem;
+  }
+  .standard-result-echo strong {
+    color: #1e293b;
+    white-space: nowrap;
+  }
+  :root[data-theme='dark'] .standard-result-echo {
+    color: #94a3b8;
+  }
+  :root[data-theme='dark'] .standard-result-echo strong {
+    color: #e2e8f0;
+  }
   .tool-panels-container {
     display: grid;
     grid-template-columns: 1fr 1.15fr;

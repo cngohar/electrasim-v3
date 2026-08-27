@@ -49,3 +49,54 @@ describe('Max Zs & Disconnection Time Engine', () => {
     expect(result.status).toBe('fail');
   });
 });
+
+describe('Max Zs — IEC 60364 Mode', () => {
+  const baseInputs = {
+    deviceType: 'mcb-b' as const,
+    ratingAmps: 32,
+    earthArrangement: 'TN-C-S' as const,
+    runLengthMeters: 20,
+    lineCableMm2: 2.5,
+    operatingTempAdjusted: true,
+  };
+
+  it('derives Zs limits from Zs × Ia ≤ U0 without the UK Cmin factor', () => {
+    const result = calculateMaxZs({ ...baseInputs, standard: 'iec-60364' });
+    // Tabulated UK value 1.37 Ω is Cmin (0.95)-corrected; IEC: 230/160 = 1.4375 ≈ table/0.95
+    expect(result.maxZsOhms).toBeCloseTo(1.37 / 0.95, 3);
+    expect(result.cMinFactor).toBe(1.0);
+    expect(result.standardLabel).toBe('IEC 60364');
+  });
+
+  it('applies the IEC 60364-6 ≈2/3 ambient-measurement rule instead of GN3 80%', () => {
+    const result = calculateMaxZs({ ...baseInputs, standard: 'iec-60364' });
+    expect(result.coldRuleLimitOhms).toBeCloseTo((1.37 / 0.95) * (2 / 3), 3);
+    expect(result.coldRuleLabel).toContain('IEC 60364-6');
+    // Zs ≈ 0.818 Ω stays within the 0.96 Ω ambient limit
+    expect(result.status).toBe('pass');
+  });
+
+  it('reports a higher prospective fault current without the Cmin reduction', () => {
+    const uk = calculateMaxZs({ ...baseInputs, standard: 'uk-bs7671' });
+    const iec = calculateMaxZs({ ...baseInputs, standard: 'iec-60364' });
+    expect(iec.prospectiveFaultCurrentAmps).toBeGreaterThan(uk.prospectiveFaultCurrentAmps);
+    expect(uk.calculatedZsOhms).toBeCloseTo(iec.calculatedZsOhms, 9);
+  });
+});
+
+describe('Max Zs — RCD touch-voltage derivation', () => {
+  it('keeps the 50 V / 30 mA ceiling identical across standards (no Cmin de-correction)', () => {
+    const inputs = {
+      deviceType: 'rcd-30ma' as const,
+      ratingAmps: 32,
+      earthArrangement: 'TT' as const,
+      runLengthMeters: 20,
+      lineCableMm2: 2.5,
+      operatingTempAdjusted: true,
+    };
+    const uk = calculateMaxZs({ ...inputs, standard: 'uk-bs7671' });
+    const iec = calculateMaxZs({ ...inputs, standard: 'iec-60364' });
+    expect(uk.maxZsOhms).toBe(1667);
+    expect(iec.maxZsOhms).toBe(1667);
+  });
+});

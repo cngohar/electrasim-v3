@@ -79,7 +79,7 @@ describe('Toolbox SEO & Structured Data Foundation', () => {
       expect(tool.id).toBeTruthy();
       expect(tool.name).toBeTruthy();
       expect(tool.slug).toBeTruthy();
-      expect(tool.route).toMatch(/^\/tools\/[a-z0-9-]+\/$/);
+      expect(tool.route).toMatch(/^\/tools\/(us\/)?[a-z0-9-]+\/$/);
       expect(tool.metaTitle).toContain('ElectraSim');
       expect(tool.metaDescription.length).toBeGreaterThan(30);
       expect(Array.isArray(tool.keywords)).toBe(true);

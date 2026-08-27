@@ -1,3 +1,5 @@
+import type { StandardId } from './standards';
+
 export interface ToolFaq {
   question: string;
   answer: string;
@@ -33,6 +35,8 @@ export interface ToolEntry {
   faqs?: ToolFaq[];
   steps?: ToolStep[];
   relatedGuides?: Array<{ title: string; url: string; description: string }>;
+  /** Regional wiring standards this tool supports (rendered as trust chips). */
+  standards?: StandardId[];
 }
 
 export const TOOLBOX_REGISTRY: ToolEntry[] = [
@@ -45,17 +49,20 @@ export const TOOLBOX_REGISTRY: ToolEntry[] = [
     category: 'calculator',
     status: 'available',
     description:
-      'Calculate voltage drop in single-phase, three-phase, and DC cables with interactive real-time visual simulation and BS 7671 limits.',
+      'Calculate voltage drop in single-phase, three-phase, and DC cables with interactive real-time visual simulation. Check BS 7671 (UK) or IEC 60364 (international) limit sets.',
     badge: 'Popular',
     icon: 'voltage',
-    metaTitle: 'Voltage Drop Calculator — Free Interactive Electrical Tool | ElectraSim',
+    standards: ['uk-bs7671', 'iec-60364'],
+    metaTitle: 'Voltage Drop Calculator — BS 7671 & IEC 60364 Limits | ElectraSim',
     metaDescription:
-      'Calculate voltage drop in single-phase, three-phase, and DC cable runs with interactive animated visual feedback. Compare against BS 7671 limits. Free in your browser.',
+      'Calculate voltage drop in single-phase, three-phase, and DC cable runs with interactive animated visual feedback. Compare against BS 7671 (UK) or IEC 60364 international limits. Free in your browser.',
     keywords: [
       'voltage drop calculator',
       'electrical voltage drop',
       'cable voltage drop formula',
       'BS 7671 voltage drop limits',
+      'IEC 60364 voltage drop',
+      'iec 60364-5-52 annex g',
       'single phase voltage drop',
       'three phase voltage drop calculator',
       'DC voltage drop calculation',
@@ -107,9 +114,9 @@ export const TOOLBOX_REGISTRY: ToolEntry[] = [
           'Select conductor cross-sectional area (e.g. 2.5 mm², 6 mm², 10 mm², 16 mm²) and material (Copper or Aluminum).',
       },
       {
-        step: 'Review Results Against BS 7671 Permissible Limits',
+        step: 'Review Results Against the Selected Standard',
         instruction:
-          'Verify that voltage drop is within 3% for lighting circuits or 5% for general power/socket circuits under standard public LV supply.',
+          'Verify voltage drop against BS 7671 limits (3% lighting / 5% power) or switch the standards selector to check IEC 60364 international guidance (4% / 5%).',
       },
     ],
     faqs: [
@@ -164,6 +171,12 @@ export const TOOLBOX_REGISTRY: ToolEntry[] = [
         description:
           'The fundamental relationship between voltage, current, and resistance in electrical circuits.',
       },
+      {
+        title: 'US Voltage Drop Calculator (AWG & NEC)',
+        url: '/tools/us/voltage-drop-calculator/',
+        description:
+          'Working to the US National Electrical Code? Use the AWG/kcmil edition with feet, 120–480 V systems and NEC 3%/5% advisory limits.',
+      },
     ],
   },
   {
@@ -175,17 +188,20 @@ export const TOOLBOX_REGISTRY: ToolEntry[] = [
     category: 'calculator',
     status: 'available',
     description:
-      'Find the minimum required conductor cross-sectional area (mm²) based on design current, installation method, derating factors, and voltage drop limits.',
+      'Find the minimum required conductor cross-sectional area (mm²) based on design current, installation method, derating factors, and BS 7671 or IEC 60364 voltage drop limits.',
     badge: 'Essential',
     icon: 'cable',
-    metaTitle: 'Cable Size Calculator — BS 7671 Conductor Sizing | ElectraSim',
+    standards: ['uk-bs7671', 'iec-60364'],
+    metaTitle: 'Cable Size Calculator (BS 7671 / IEC 60364, mm²) | ElectraSim',
     metaDescription:
-      'Calculate the correct electrical cable size (mm²) per BS 7671 and IEC standards. Accounts for installation methods, ambient temperature, grouping, insulation, and voltage drop.',
+      'Calculate the correct electrical cable size (mm²) per BS 7671 (UK) or IEC 60364 (international). Accounts for installation methods, ambient temperature, grouping, insulation, and voltage drop.',
     keywords: [
       'cable size calculator',
       'wire gauge calculator',
       'electrical conductor sizing',
       'BS 7671 cable selection',
+      'IEC 60364-5-52 cable sizing',
+      'international cable size calculator',
       'mm2 cable calculator',
       'cable current carrying capacity',
       'installation method derating',
@@ -271,16 +287,19 @@ export const TOOLBOX_REGISTRY: ToolEntry[] = [
     category: 'calculator',
     status: 'available',
     description:
-      'Verify earth fault loop impedance (Zs) and 0.4s / 5s automatic disconnection times against BS 7671:2018+A4:2026 Tables 41.2–41.4.',
-    badge: 'BS 7671',
+      'Verify earth fault loop impedance (Zs) and 0.4s / 5s automatic disconnection times against BS 7671:2018+A4:2026 Tables 41.2–41.4 or IEC 60364-4-41.',
+    badge: 'BS 7671 / IEC',
     icon: 'shield',
-    metaTitle: 'Max Zs Calculator — BS 7671 Loop Impedance & Disconnection | ElectraSim',
+    standards: ['uk-bs7671', 'iec-60364'],
+    metaTitle: 'Max Zs Calculator — BS 7671 & IEC 60364 Loop Impedance | ElectraSim',
     metaDescription:
-      'Calculate maximum permitted Zs and verify earth fault loop impedance per BS 7671 Amendment 4. Includes MCB Types B/C/D, fuses, and the 80% test rule.',
+      'Calculate maximum permitted Zs and verify earth fault loop impedance per BS 7671 Amendment 4 (UK) or IEC 60364-4-41 (international). Includes MCB Types B/C/D, fuses, and ambient-test rules.',
     keywords: [
       'max zs calculator',
       'earth fault loop impedance',
       'BS 7671 Table 41.3 Zs values',
+      'IEC 60364-4-41 disconnection time',
+      'iec 60364 fault loop impedance',
       'disconnection time calculator',
       '80 percent rule GN3',
       'R1 plus R2 calculator',
@@ -356,6 +375,137 @@ export const TOOLBOX_REGISTRY: ToolEntry[] = [
         title: 'Types of Earthing Systems Explained (TN-S, TN-C-S, TT)',
         url: '/blog/types-of-earthing-systems-tn-s-tn-c-s-tt-explained/',
         description: 'Complete breakdown of UK earthing arrangements and their typical Ze values.',
+      },
+    ],
+  },
+  {
+    id: 'us-voltage-drop',
+    name: 'US Voltage Drop Calculator (AWG / NEC)',
+    shortName: 'US Voltage Drop',
+    slug: 'us/voltage-drop-calculator',
+    route: '/tools/us/voltage-drop-calculator/',
+    category: 'calculator',
+    status: 'available',
+    description:
+      'Calculate voltage drop for US circuits in AWG/kcmil and feet using NEC Chapter 9 Table 8 conductor resistance. Checks the NEC 3% / 5% advisory limits for 120–480 V systems.',
+    badge: 'NEC · US',
+    icon: 'voltage',
+    standards: ['us-nec'],
+    metaTitle: 'Voltage Drop Calculator (AWG, NEC) — US Wire Sizing | ElectraSim',
+    metaDescription:
+      'Free NEC voltage drop calculator for US circuits. AWG/kcmil copper & aluminum conductors, feet, 120/208/240/277/480 V, NEC Chapter 9 Table 8 data and 3%/5% advisory checks.',
+    keywords: [
+      'voltage drop calculator awg',
+      'nec voltage drop calculator',
+      'wire size voltage drop calculator',
+      'voltage drop calculator feet',
+      'awg voltage drop chart',
+      'nec 210.19 voltage drop 3%',
+      'branch circuit voltage drop calculator',
+      '240v wire size calculator',
+      'copper vs aluminum voltage drop',
+      'nec chapter 9 table 8 resistance',
+      'voltage drop formula usa',
+    ],
+    ogImage: 'https://electrasim.com/og-image.png',
+    equations: [
+      {
+        title: 'Single-Phase & DC Branch Circuits (2-Wire)',
+        formula: 'V_drop = 2 × I × L × (R′ cos φ + X′ sin φ)   [R′, X′ in Ω/ft]',
+        description:
+          'Round-trip loop through the ungrounded and grounded conductors. R′ comes from NEC Chapter 9 Table 8 (DC resistance per 1000 ft, stranded) corrected for conductor operating temperature.',
+      },
+      {
+        title: 'Three-Phase Feeders (Balanced)',
+        formula: 'V_drop = √3 × I × L × (R′ cos φ + X′ sin φ)',
+        description:
+          'Line-to-line drop across three balanced 120° phase-shifted conductors, using the same NEC Table 8 per-conductor resistance.',
+      },
+      {
+        title: 'Conductor Temperature Correction',
+        formula: 'R(T) = R_75 × (K + T) / (K + 75)',
+        description:
+          'K = 234.5 for copper and 228.1 for aluminum (inferred absolute-zero constants). NEC Table 8 values are published at 75 °C.',
+      },
+      {
+        title: 'Circular-Mil Estimator (quick check)',
+        formula: 'CM = (2 × K_cm × I × L) / V_drop',
+        description:
+          'Classic sizing shortcut with K_cm = 12.9 Ω·CM/ft for copper (17.4 at 90 °C) and 21.2 for aluminum. Use the calculator above for Table 8-accurate results.',
+      },
+    ],
+    steps: [
+      {
+        step: 'Select System Type & Nominal Voltage',
+        instruction:
+          'Choose DC, single-phase (120 V, 240 V, 277 V) or balanced three-phase (208 V, 480 V), or type any custom system voltage.',
+      },
+      {
+        step: 'Enter Load Current and One-Way Run (feet)',
+        instruction:
+          'Input the design load in Amps and the one-way conductor length in feet — the engine builds the full round-trip loop automatically.',
+      },
+      {
+        step: 'Select Conductor (AWG / kcmil) & Material',
+        instruction:
+          'Pick from 14 AWG to 500 kcmil in copper or aluminum, with the exact mm² equivalent shown. Conductor temperature sets the Table 8 correction (default 75 °C).',
+      },
+      {
+        step: 'Check the NEC 3% / 5% Advisory Verdict',
+        instruction:
+          'Results cite NEC 210.19(A) Informational Note No. 4 and 215.2(A)(1) Informational Note No. 2: max 3% on any single feeder or branch circuit, 5% combined total.',
+      },
+    ],
+    faqs: [
+      {
+        question: 'Is voltage drop a requirement in the US National Electrical Code?',
+        answer:
+          'No — voltage drop in the NEC is advisory, not enforceable. NEC 210.19(A)(1) Informational Note No. 4 (branch circuits) and 215.2(A)(1) Informational Note No. 2 (feeders) recommend a maximum of 3% drop on any single feeder or branch circuit and 5% total from service to outlet. Some local codes and AHJs adopt them as mandatory, so check your jurisdiction.',
+      },
+      {
+        question: 'What conductor resistance data does this calculator use?',
+        answer:
+          'It uses NEC Chapter 9, Table 8 (Conductor Properties) DC resistance at 75 °C for stranded conductors, temperature-corrected with R(T) = R_75 × (K + T)/(K + 75), where K is 234.5 for copper and 228.1 for aluminum. Optional AC reactance uses ≈0.045 Ω/kFT, typical of NEC Chapter 9 Table 9 values for 600 V conductors in PVC conduit.',
+      },
+      {
+        question: 'How do I size a wire for a 240 V circuit with minimal voltage drop?',
+        answer:
+          'Enter 240 V, the load amps, and the one-way distance in feet, then step through AWG sizes. For example, a 30 A dryer run of 80 ft drops about 2.6% on 10 AWG copper, but only 0.9% on 6 AWG. Stay at or below 3% for the branch circuit to meet NEC advisory guidance.',
+      },
+      {
+        question: 'What is the AWG to mm² conversion used here?',
+        answer:
+          'Exact area equivalents: 14 AWG = 2.08 mm², 12 AWG = 3.31 mm², 10 AWG = 5.26 mm², 8 AWG = 8.37 mm², 6 AWG = 13.3 mm², 4 AWG = 21.2 mm², and kcmil sizes convert at 0.5067 mm² per kcmil. The calculator displays the metric equivalent next to every AWG selection.',
+      },
+      {
+        question: 'Why do aluminum conductors drop more voltage than copper?',
+        answer:
+          'Aluminum has roughly 61% higher resistivity than copper (NEC Table 8: 12 AWG Cu is 1.98 Ω/kFT vs 3.25 Ω/kFT for Al at 75 °C), so the same run needs about two AWG sizes larger aluminum to match copper performance. Modern AA-8000 alloy feeders are common above 6 AWG.',
+      },
+      {
+        question: 'Does this tool replace ampacity checks (NEC Table 310.16)?',
+        answer:
+          'No. This calculator checks voltage drop only. Conductors must separately satisfy ampacity per NEC 310.16 (and termination temperature limits per 110.14(C)), overcurrent protection per 240.4, and any applicable adjustment/correction factors per 310.15. Always verify the complete design.',
+      },
+    ],
+    relatedGuides: [
+      {
+        title: 'Voltage Drop Explained: How to Calculate It (with Examples)',
+        url: '/blog/voltage-drop-explained-how-to-calculate-it/',
+        description:
+          'The physics of conductor resistance and voltage drop, with formulas that apply on both sides of the Atlantic.',
+      },
+      {
+        title: 'Electrical Cable Sizes Explained (1.5mm² to 25mm²)',
+        url: '/blog/electrical-cable-sizes-explained/',
+        description:
+          'Metric conductor guide with AWG cross-references for readers switching between systems.',
+      },
+      {
+        title: 'UK Voltage Drop Calculator (mm² / BS 7671)',
+        url: '/tools/voltage-drop-calculator/',
+        description:
+          'Working to BS 7671 or IEC 60364 instead? Use the metric edition with mm² conductors and 230/400 V systems.',
       },
     ],
   },

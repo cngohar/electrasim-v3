@@ -2,10 +2,11 @@
 import Base from '../../layouts/Base.astro';
 import { TOOLBOX_REGISTRY } from '../../lib/tools/registry';
 import { generateToolboxHubStructuredData } from '../../lib/tools/seo';
+import { STANDARD_PROFILES } from '../../lib/tools/standards';
 
 const title = 'Electrical Toolbox — Free Interactive Calculators | ElectraSim';
 const description =
-  'Free interactive electrical calculators and engineering tools. Calculate voltage drop, cable sizes, electrical power, load diversity and running costs in real-time.';
+  'Free interactive electrical calculators and engineering tools compliant with BS 7671 (UK), IEC 60364 (international) and US NEC / AWG standards. Voltage drop, cable sizing, Zs and power calculations in real-time.';
 const canonical = 'https://electrasim.com/tools/';
 const toolboxSchema = generateToolboxHubStructuredData(TOOLBOX_REGISTRY);
 ---
@@ -99,6 +100,14 @@ const toolboxSchema = generateToolboxHubStructuredData(TOOLBOX_REGISTRY);
               </h2>
 
               <p class="tool-desc">{tool.description}</p>
+
+              {tool.standards && tool.standards.length > 0 && (
+                <div class="tool-std-chips" aria-label="Supported wiring standards">
+                  {tool.standards.map((sid) => (
+                    <span class="tool-std-chip">{STANDARD_PROFILES[sid].badge}</span>
+                  ))}
+                </div>
+              )}
 
               <div class="tool-card-footer">
                 {tool.status === 'available' ? (
@@ -310,8 +319,24 @@ const toolboxSchema = generateToolboxHubStructuredData(TOOLBOX_REGISTRY);
     font-size: 0.95rem;
     color: var(--text-mid);
     line-height: 1.55;
-    margin-bottom: 1.75rem;
+    margin-bottom: 1rem;
     flex-grow: 1;
+  }
+  .tool-std-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1.25rem;
+  }
+  .tool-std-chip {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: rgba(37, 99, 235, 0.08);
+    color: var(--blue);
+    border: 1px solid rgba(37, 99, 235, 0.25);
   }
   .tool-card-footer {
     padding-top: 1rem;

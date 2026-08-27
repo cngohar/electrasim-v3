@@ -1,7 +1,13 @@
 /**
- * calculation.ts — Cable Sizing Engine per BS 7671:2018+A3:2024
+ * calculation.ts — Cable Sizing Engine per BS 7671:2018+A3:2024 / IEC 60364-5-52
+ *
+ * The BS 7671 Appendix 4 tables used here are harmonized with IEC 60364-5-52
+ * (Table B.52.4 for 70 °C thermoplastic two-core copper). The selected
+ * `standard` therefore drives the voltage-drop limit banding (BS: 3%/5%,
+ * IEC Annex G: 4%/5%) and the citations shown alongside results.
  */
 
+import { type MetricStandardId, STANDARD_PROFILES } from '../standards';
 import type {
   CableSizingInputs,
   CableSizingResult,
@@ -180,6 +186,9 @@ export function selectProtectiveDeviceRating(ib: number): number {
 
 /** Main Cable Sizing Algorithm */
 export function calculateCableSizing(inputs: CableSizingInputs): CableSizingResult {
+  const standardId: MetricStandardId = inputs.standard === 'iec-60364' ? 'iec-60364' : 'uk-bs7671';
+  const standard = STANDARD_PROFILES[standardId];
+
   const ib = calculateDesignCurrent(inputs);
   const inRating = selectProtectiveDeviceRating(ib);
 
@@ -194,7 +203,10 @@ export function calculateCableSizing(inputs: CableSizingInputs): CableSizingResu
   // Tabulated capacity requirement: It >= In / (Ca * Cg * Ci * Cc)
   const itRequired = inRating / totalDerating;
 
-  const maxVdropPct = inputs.circuitFunction === 'lighting' ? 3.0 : 5.0;
+  // Voltage-drop limit banding follows the selected standard
+  // (BS 7671: 3% lighting / 5% power — IEC 60364-5-52 Annex G: 4% / 5%).
+  const maxVdropPct =
+    inputs.circuitFunction === 'lighting' ? standard.vdrop.lightingPct : standard.vdrop.powerPct;
   const maxVdropVolts = (inputs.voltageVolts * maxVdropPct) / 100;
 
   let selectedSize = STANDARD_METRIC_SIZES[STANDARD_METRIC_SIZES.length - 1];
@@ -250,15 +262,14 @@ export function calculateCableSizing(inputs: CableSizingInputs): CableSizingResu
   const cpcSize = STANDARD_CPC_SIZES[selectedSize] ?? selectedSize;
 
   let status: 'pass' | 'warning' | 'fail' = 'pass';
-  let summary = `Compliant: ${selectedSize} mm² cable satisfies both thermal capacity (${finalAmpacity} A ≥ ${itRequired.toFixed(1)} A required) and ${inputs.circuitFunction} voltage drop (${finalVdropPct.toFixed(2)}% ≤ ${maxVdropPct}%).`;
+  let summary = `Compliant: ${selectedSize} mm² cable satisfies both thermal capacity (${finalAmpacity} A ≥ ${itRequired.toFixed(1)} A required) and ${inputs.circuitFunction} voltage drop (${finalVdropPct.toFixed(2)}% ≤ ${maxVdropPct}%) per ${standard.label}.`;
 
   if (!thermalPass || !vdropPass) {
     status = 'fail';
-    summary =
-      'Non-compliant: Run exceeds standard conductor limits. Upsize cable route, reduce run length, or split circuit branches.';
+    summary = `Non-compliant: Run exceeds ${standard.label} conductor limits. Upsize cable route, reduce run length, or split circuit branches.`;
   } else if (finalVdropPct > maxVdropPct * 0.85) {
     status = 'warning';
-    summary = `Marginal: ${selectedSize} mm² meets BS 7671 limits, but voltage drop is close to the ${maxVdropPct}% ceiling (${finalVdropPct.toFixed(2)}%). Consider upsizing if future load expansion is expected.`;
+    summary = `Marginal: ${selectedSize} mm² meets ${standard.label} limits, but voltage drop is close to the ${maxVdropPct}% ceiling (${finalVdropPct.toFixed(2)}%). Consider upsizing if future load expansion is expected.`;
   }
 
   return {
@@ -277,5 +288,7 @@ export function calculateCableSizing(inputs: CableSizingInputs): CableSizingResu
     limitingConstraint,
     status,
     summary,
+    standardLabel: standard.label,
+    standardCitation: standard.citation,
   };
 }

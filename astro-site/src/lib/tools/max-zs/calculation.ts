@@ -1,13 +1,28 @@
 /**
  * calculation.ts — Max Zs & Disconnection Time Engine
- * Standards basis: BS 7671:2018+A4:2026 Tables 41.2–41.4 & IET Guidance Note 3
+ * Standards basis:
+ *  - uk-bs7671 (default): BS 7671:2018+A4:2026 Tables 41.2–41.4 (Cmin-corrected)
+ *    with the IET Guidance Note 3 "80% rule" for cold/ambient testing.
+ *  - iec-60364: IEC 60364-4-41 fault protection (Zs × Ia ≤ U0, no Cmin factor)
+ *    with IEC 60364-6 guidance that ambient-temperature measurements should stay
+ *    within ≈⅔ of the operating-temperature limit.
  */
 
+import { type MetricStandardId, STANDARD_PROFILES } from '../standards';
 import type { EarthArrangement, MaxZsInputs, MaxZsResult, ProtectiveDeviceType } from './types';
 
 export const ZS_U0 = 230;
 export const ZS_CMIN = 0.95;
 export const GN3_COLD_FACTOR = 0.8; // 80% rule
+
+/** Ambient/cold measurement limits per standard */
+export const COLD_RULE_FACTORS: Record<MetricStandardId, { factor: number; label: string }> = {
+  'uk-bs7671': { factor: 0.8, label: 'IET GN3 80% test rule' },
+  'iec-60364': {
+    factor: 2 / 3,
+    label: 'IEC 60364-6 ≈⅔ rule (ambient-temperature measurement)',
+  },
+};
 
 export const ZE_TYPICAL_MAX: Record<EarthArrangement, number> = {
   'TN-C-S': 0.35,
@@ -124,17 +139,44 @@ export function getDeviceLabel(type: ProtectiveDeviceType): string {
 }
 
 export function calculateMaxZs(inputs: MaxZsInputs): MaxZsResult {
-  const table = MAX_ZS_TABLE[inputs.deviceType] || MAX_ZS_TABLE['mcb-b'];
-  const maxZs =
-    table[inputs.ratingAmps] ??
-    (ZS_U0 * ZS_CMIN) /
-      (inputs.deviceType === 'mcb-d'
-        ? 20 * inputs.ratingAmps
-        : inputs.deviceType === 'mcb-c'
-          ? 10 * inputs.ratingAmps
-          : 5 * inputs.ratingAmps);
+  const standardId: MetricStandardId = inputs.standard === 'iec-60364' ? 'iec-60364' : 'uk-bs7671';
+  const standard = STANDARD_PROFILES[standardId];
 
-  const coldRuleLimit = maxZs * GN3_COLD_FACTOR;
+  const table = MAX_ZS_TABLE[inputs.deviceType] || MAX_ZS_TABLE['mcb-b'];
+
+  /** Ia — current causing automatic disconnection within the required time */
+  const tableValue = table[inputs.ratingAmps];
+  const resolveIa = (): number => {
+    if (inputs.deviceType === 'mcb-d') return 20 * inputs.ratingAmps;
+    if (inputs.deviceType === 'mcb-c') return 10 * inputs.ratingAmps;
+    if (inputs.deviceType === 'mcb-b') return 5 * inputs.ratingAmps;
+    // Fuses/RCDs: recover Ia from the tabulated Cmin-corrected value; fall
+    // back to the generic 5×In approximation for non-tabulated ratings.
+    if (typeof tableValue === 'number' && tableValue > 0) {
+      return (ZS_U0 * ZS_CMIN) / tableValue;
+    }
+    return 5 * inputs.ratingAmps;
+  };
+
+  let maxZs: number;
+  if (standardId === 'uk-bs7671') {
+    // Tabulated Cmin-corrected values (Tables 41.2–41.4); formula fallback for
+    // non-tabulated ratings.
+    maxZs = tableValue ?? (ZS_U0 * ZS_CMIN) / resolveIa();
+  } else {
+    // IEC 60364-4-41 publishes the relationship Zs × Ia ≤ U0 directly (no
+    // Cmin correction), so tabulated UK values are de-corrected by ÷0.95.
+    // Exception: RCD limits derive from the 50 V touch-voltage ceiling
+    // (50 V / IΔn), not from U0 × Cmin — identical under both standards.
+    if (inputs.deviceType === 'rcd-30ma') {
+      maxZs = tableValue ?? 50 / 0.03; // 50 V touch voltage ÷ 30 mA trip
+    } else {
+      maxZs = tableValue ? tableValue / ZS_CMIN : ZS_U0 / resolveIa();
+    }
+  }
+
+  const coldRule = COLD_RULE_FACTORS[standardId];
+  const coldRuleLimit = maxZs * coldRule.factor;
 
   const ze =
     typeof inputs.zeCustomOhms === 'number' && inputs.zeCustomOhms >= 0
@@ -151,10 +193,13 @@ export function calculateMaxZs(inputs: MaxZsInputs): MaxZsResult {
   const r1r2Total = r1r2PerMetreOhms * inputs.runLengthMeters;
 
   const calculatedZs = ze + r1r2Total;
-  const pfc = (ZS_U0 * ZS_CMIN) / Math.max(0.01, calculatedZs);
+  const cMinApplied = standardId === 'uk-bs7671' ? ZS_CMIN : 1.0;
+  const pfc = (ZS_U0 * cMinApplied) / Math.max(0.01, calculatedZs);
 
   const passHot = calculatedZs <= maxZs;
   const passCold = calculatedZs <= coldRuleLimit;
+
+  const coldPct = Math.round(coldRule.factor * 100);
 
   let status: 'pass' | 'warning' | 'fail' = 'pass';
   const recommendations: string[] = [];
@@ -170,28 +215,31 @@ export function calculateMaxZs(inputs: MaxZsInputs): MaxZsResult {
   } else if (!passCold) {
     status = 'warning';
     recommendations.push(
-      `Zs (${calculatedZs.toFixed(2)} Ω) meets hot limit (${maxZs.toFixed(2)} Ω) but exceeds the 80% Rule cold test limit (${coldRuleLimit.toFixed(2)} Ω per IET GN3).`,
+      `Zs (${calculatedZs.toFixed(2)} Ω) meets the operating-temperature limit (${maxZs.toFixed(2)} Ω) but exceeds the ambient-measurement limit (${coldRuleLimit.toFixed(2)} Ω — ${coldRule.label}).`,
     );
     recommendations.push(
       'When conductors heat up to 70°C operating temperature under full load, Zs may drift beyond compliance.',
     );
   } else {
     recommendations.push(
-      `Compliant: Measured/designed Zs (${calculatedZs.toFixed(2)} Ω) is within both the 80% test rule (${coldRuleLimit.toFixed(2)} Ω) and maximum disconnection limit (${maxZs.toFixed(2)} Ω).`,
+      `Compliant: Measured/designed Zs (${calculatedZs.toFixed(2)} Ω) is within both the ${coldRule.label} (${coldRuleLimit.toFixed(2)} Ω) and maximum disconnection limit (${maxZs.toFixed(2)} Ω).`,
     );
   }
 
   const summary =
     status === 'pass'
-      ? `Compliant: Zs of ${calculatedZs.toFixed(2)} Ω guarantees 0.4s disconnection for a ${inputs.ratingAmps}A ${inputs.deviceType.toUpperCase()} device.`
+      ? `Compliant: Zs of ${calculatedZs.toFixed(2)} Ω guarantees 0.4s disconnection for a ${inputs.ratingAmps}A ${inputs.deviceType.toUpperCase()} device per ${standard.label}.`
       : status === 'warning'
-        ? `Marginal: Zs (${calculatedZs.toFixed(2)} Ω) exceeds the cold 80% test limit (${coldRuleLimit.toFixed(2)} Ω). Check conductor operating temperature.`
+        ? `Marginal: Zs (${calculatedZs.toFixed(2)} Ω) exceeds the ambient measurement limit (${coldRuleLimit.toFixed(2)} Ω — ${coldPct}% rule). Check conductor operating temperature.`
         : `Fail: Zs (${calculatedZs.toFixed(2)} Ω) exceeds maximum limit (${maxZs.toFixed(2)} Ω). Automatic disconnection will not operate in 0.4s.`;
 
   return {
     nominalVoltageU0: ZS_U0,
-    cMinFactor: ZS_CMIN,
+    cMinFactor: cMinApplied,
     deviceLabel: getDeviceLabel(inputs.deviceType),
+    standardLabel: standard.label,
+    standardCitation: standard.citation,
+    coldRuleLabel: coldRule.label,
     ratingAmps: inputs.ratingAmps,
     disconnectionTimeSec: 0.4,
     maxZsOhms: maxZs,

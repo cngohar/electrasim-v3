@@ -3,10 +3,15 @@
  * Based on BS 7671:2018+A3:2024 / IEC 60364
  */
 
+import type { MetricStandardId } from '../standards';
+
 export type SupplyPhaseType = 'single-phase' | 'three-phase' | 'dc';
 export type CircuitFunction = 'lighting' | 'power';
 export type InstallationMethod = 'A' | 'B' | 'C' | 'D' | 'E';
 export type ConductorMaterial = 'copper' | 'aluminum';
+
+/** Re-exported for consumers: metric sizing supports BS 7671 and IEC 60364. */
+export type CableSizingStandard = MetricStandardId;
 
 export interface CableSizingInputs {
   systemType: SupplyPhaseType;
@@ -23,6 +28,13 @@ export interface CableSizingInputs {
   groupingCircuits: number;
   thermalInsulationMm: 0 | 50 | 100 | 200;
   fuseTypeCc: boolean; // Semi-enclosed rewireable fuse (BS 3036) factor 0.725
+  /**
+   * Compliance standard. Ampacity/drop tables are harmonized between
+   * BS 7671 Appendix 4 and IEC 60364-5-52; the standard selects the voltage
+   * drop limit banding (3%/5% vs 4%/5%) and result citations.
+   * Defaults to 'uk-bs7671'.
+   */
+  standard?: MetricStandardId;
 }
 
 export interface CorrectionFactors {
@@ -49,4 +61,8 @@ export interface CableSizingResult {
   limitingConstraint: 'thermal' | 'voltage-drop';
   status: 'pass' | 'warning' | 'fail';
   summary: string;
+  /** Standard used for limits/citations, e.g. "BS 7671:2018+A4:2026" */
+  standardLabel: string;
+  /** Full citation of the rules applied */
+  standardCitation: string;
 }

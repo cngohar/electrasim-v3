@@ -296,3 +296,39 @@ describe('Formatting Helpers', () => {
     expect(formatResistance(0.172)).toBe('0.1720 Ω');
   });
 });
+
+describe('Standard-aware Limit Banding (IEC 60364)', () => {
+  // 230V DC, 10A, 58.5m, 2.5 mm² copper at 20 °C:
+  //   VD = 2 × 10 × 58.5 × (0.0172/2.5) = 8.0496 V ≈ 3.4998% of 230 V
+  // Lands exactly in the 3% (BS 7671) vs 4% (IEC Annex G) divergence window.
+  const gapCase = {
+    systemType: 'dc' as const,
+    voltage: 230,
+    current: 10,
+    length: 58.5,
+    size: 2.5,
+    material: 'copper' as const,
+  };
+
+  it('flags 3.5% as marginal under BS 7671 (3% good ceiling)', () => {
+    const uk = calculateVoltageDrop({ ...gapCase, standard: 'uk-bs7671' });
+    expect(uk.voltageDropPercent).toBeCloseTo(3.4998, 3);
+    expect(uk.severity).toBe('warning');
+    expect(uk.standardLabel).toBe('BS 7671:2018+A4:2026');
+  });
+
+  it('rates the same 3.5% as good under IEC 60364-5-52 Annex G (4% ceiling)', () => {
+    const iec = calculateVoltageDrop({ ...gapCase, standard: 'iec-60364' });
+    expect(iec.voltageDropPercent).toBeCloseTo(3.4998, 3);
+    expect(iec.severity).toBe('good');
+    expect(iec.standardLabel).toBe('IEC 60364');
+    expect(iec.standardCitation).toContain('Annex G');
+  });
+
+  it('keeps identical physics between standards (only limits/copy change)', () => {
+    const uk = calculateVoltageDrop({ ...gapCase, standard: 'uk-bs7671' });
+    const iec = calculateVoltageDrop({ ...gapCase, standard: 'iec-60364' });
+    expect(uk.voltageDrop).toBeCloseTo(iec.voltageDrop, 9);
+    expect(uk.totalResistance).toBeCloseTo(iec.totalResistance, 9);
+  });
+});
