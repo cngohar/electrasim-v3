@@ -1,5 +1,5 @@
-import { createServer } from 'node:http';
 import { createReadStream, existsSync, statSync } from 'node:fs';
+import { createServer } from 'node:http';
 import { extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -61,7 +61,8 @@ const server = createServer((req, res) => {
         'Content-Type': 'text/html; charset=utf-8',
         'Cache-Control': 'public, max-age=0, must-revalidate, no-transform',
         'X-Content-Type-Options': 'nosniff',
-        'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+        'Content-Security-Policy':
+          "default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
       });
       createReadStream(notFoundPath).pipe(res);
       return;
@@ -75,7 +76,11 @@ const server = createServer((req, res) => {
   const contentType = MIME_TYPES[ext] || 'application/octet-stream';
 
   let cacheControl = 'public, max-age=0, must-revalidate, no-transform';
-  if (pathname.includes('/assets/') || pathname.startsWith('/_astro/') || pathname.includes('/workbox-')) {
+  if (
+    pathname.includes('/assets/') ||
+    pathname.startsWith('/_astro/') ||
+    pathname.includes('/workbox-')
+  ) {
     cacheControl = 'public, max-age=31536000, immutable';
   } else if (pathname.endsWith('sw.js') || pathname.startsWith('/admin')) {
     cacheControl = 'no-cache, no-store, must-revalidate';

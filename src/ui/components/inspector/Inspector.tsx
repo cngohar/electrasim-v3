@@ -20,6 +20,7 @@ import {
   Terminal,
   Zap,
 } from 'lucide-react';
+import { Suspense, lazy } from 'react';
 import {
   COMPONENT_DEFS,
   type ComponentInstance,
@@ -27,16 +28,39 @@ import {
   type WireInstance,
 } from '../../../domain';
 import { useCircuitStore, useSettingsStore, useUiStore } from '../../../store';
-import { ValidationReportView } from '../ValidationReportView';
-import { InspectorAnalyticsView } from './InspectorAnalyticsView';
 import { InspectorConnectionsContent } from './InspectorConnectionsContent';
-import { InspectorFaultLabView } from './InspectorFaultLabView';
-import { InspectorHistoryView } from './InspectorHistoryView';
-import { InspectorLogsView } from './InspectorLogsView';
 import { InspectorPropertiesContent } from './InspectorPropertiesContent';
 import { InspectorSimulationContent } from './InspectorSimulationContent';
-import { ZsCheckPanel } from './ZsCheckPanel';
 import { useInspectorSelectionState } from './useInspectorSelectionState';
+
+// Heavy Inspector tabs code-split with dynamic import (perf & initial bundle optimization)
+const ValidationReportView = lazy(() =>
+  import('../ValidationReportView').then((m) => ({ default: m.ValidationReportView })),
+);
+const InspectorAnalyticsView = lazy(() =>
+  import('./InspectorAnalyticsView').then((m) => ({ default: m.InspectorAnalyticsView })),
+);
+const InspectorFaultLabView = lazy(() =>
+  import('./InspectorFaultLabView').then((m) => ({ default: m.InspectorFaultLabView })),
+);
+const InspectorHistoryView = lazy(() =>
+  import('./InspectorHistoryView').then((m) => ({ default: m.InspectorHistoryView })),
+);
+const InspectorLogsView = lazy(() =>
+  import('./InspectorLogsView').then((m) => ({ default: m.InspectorLogsView })),
+);
+const ZsCheckPanel = lazy(() =>
+  import('./ZsCheckPanel').then((m) => ({ default: m.ZsCheckPanel })),
+);
+
+function TabLoadingFallback() {
+  return (
+    <div className="flex h-44 w-full flex-col items-center justify-center gap-2.5 p-6 text-slate-400">
+      <div className="size-5 animate-spin rounded-full border-2 border-slate-300 border-t-blue-600 dark:border-slate-700 dark:border-t-blue-400" />
+      <span className="text-[11px] font-medium tracking-wide">Loading tab...</span>
+    </div>
+  );
+}
 
 interface Props {
   selectedComp: ComponentInstance | null;
@@ -364,7 +388,9 @@ export function Inspector({
               the tab is somehow active without fault mode armed. */}
           {activeInspectorTab === 'faultlab' &&
             (isPro && faultLabOpen ? (
-              <InspectorFaultLabView />
+              <Suspense fallback={<TabLoadingFallback />}>
+                <InspectorFaultLabView />
+              </Suspense>
             ) : (
               <InspectorPropertiesContent
                 selectionState={selectionState}
@@ -375,46 +401,58 @@ export function Inspector({
             ))}
 
           {activeInspectorTab === 'analytics' && (
-            <InspectorAnalyticsView
-              simResult={simResult}
-              selectedComp={selectionState.kind === 'component' ? selectionState.component : null}
-            />
+            <Suspense fallback={<TabLoadingFallback />}>
+              <InspectorAnalyticsView
+                simResult={simResult}
+                selectedComp={selectionState.kind === 'component' ? selectionState.component : null}
+              />
+            </Suspense>
           )}
 
           {activeInspectorTab === 'validation' && (
-            <div className="h-full overflow-y-auto">
-              <div className="border-b border-slate-200/70 p-3 dark:border-slate-800/70">
-                <ZsCheckPanel />
-              </div>
-              {validationReport ? (
-                <ValidationReportView
-                  report={validationReport}
-                  onRunValidation={runCircuitValidation}
-                />
-              ) : (
-                <div className="p-5 text-center flex flex-col items-center justify-center h-full">
-                  <ShieldCheck className="size-10 text-emerald-500 mb-2" />
-                  <div className="font-bold text-slate-900 dark:text-slate-100 text-sm mb-1">
-                    Circuit Safety Check
-                  </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
-                    Run automated safety and code compliance checks.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={runCircuitValidation}
-                    className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-500 transition shadow-xs"
-                  >
-                    Run Validation Check
-                  </button>
+            <Suspense fallback={<TabLoadingFallback />}>
+              <div className="h-full overflow-y-auto">
+                <div className="border-b border-slate-200/70 p-3 dark:border-slate-800/70">
+                  <ZsCheckPanel />
                 </div>
-              )}
-            </div>
+                {validationReport ? (
+                  <ValidationReportView
+                    report={validationReport}
+                    onRunValidation={runCircuitValidation}
+                  />
+                ) : (
+                  <div className="p-5 text-center flex flex-col items-center justify-center h-full">
+                    <ShieldCheck className="size-10 text-emerald-500 mb-2" />
+                    <div className="font-bold text-slate-900 dark:text-slate-100 text-sm mb-1">
+                      Circuit Safety Check
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+                      Run automated safety and code compliance checks.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={runCircuitValidation}
+                      className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-500 transition shadow-xs cursor-pointer"
+                    >
+                      Run Validation Check
+                    </button>
+                  </div>
+                )}
+              </div>
+            </Suspense>
           )}
 
-          {activeInspectorTab === 'logs' && <InspectorLogsView />}
+          {activeInspectorTab === 'logs' && (
+            <Suspense fallback={<TabLoadingFallback />}>
+              <InspectorLogsView />
+            </Suspense>
+          )}
 
-          {activeInspectorTab === 'history' && isPro && <InspectorHistoryView />}
+          {activeInspectorTab === 'history' && isPro && (
+            <Suspense fallback={<TabLoadingFallback />}>
+              <InspectorHistoryView />
+            </Suspense>
+          )}
         </div>
       </div>
 

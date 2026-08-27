@@ -919,34 +919,46 @@ export function ComponentNode({
         }
 
         const portCircle = (
-          <circle
-            data-port-index={portIndex}
-            cx={port.relX * COMP_W}
-            cy={port.relY * COMP_H}
-            r={portRadius}
-            fill={portFill}
-            stroke={portStroke}
-            strokeWidth={portStrokeWidth}
-            tabIndex={0}
-            role="button"
-            aria-label={`${port.label ?? port.type} port on ${definition.label} ${component.id}${compat?.message ? ` (${compat.message})` : ''}`}
-            style={{ cursor: 'crosshair' }}
-            onPointerDown={(event) => {
-              if (event.button === 0) event.stopPropagation();
-            }}
-            onClick={(event) => {
-              event.stopPropagation();
-              onPortClick(component.id, portIndex);
-            }}
-            onKeyDown={(event) => {
-              if (event.key !== 'Enter' && event.key !== ' ') return;
-              event.preventDefault();
-              event.stopPropagation();
-              onPortClick(component.id, portIndex);
-            }}
-          >
-            {compat?.message && <title>{compat.message}</title>}
-          </circle>
+          <g data-port-group={portIndex}>
+            {/* Visual Port Pin Circle */}
+            <circle
+              data-port-index={portIndex}
+              cx={port.relX * COMP_W}
+              cy={port.relY * COMP_H}
+              r={portRadius}
+              fill={portFill}
+              stroke={portStroke}
+              strokeWidth={portStrokeWidth}
+              pointerEvents="none"
+            />
+            {/* Expanded Touchscreen Target Area (28px diameter target padding) */}
+            <circle
+              data-port-touch-target
+              cx={port.relX * COMP_W}
+              cy={port.relY * COMP_H}
+              r={14}
+              fill="transparent"
+              tabIndex={0}
+              role="button"
+              aria-label={`${port.label ?? port.type} port on ${definition.label} ${component.id}${compat?.message ? ` (${compat.message})` : ''}`}
+              style={{ cursor: 'crosshair', touchAction: 'none' }}
+              onPointerDown={(event) => {
+                if (event.button === 0) event.stopPropagation();
+              }}
+              onClick={(event) => {
+                event.stopPropagation();
+                onPortClick(component.id, portIndex);
+              }}
+              onKeyDown={(event) => {
+                if (event.key !== 'Enter' && event.key !== ' ') return;
+                event.preventDefault();
+                event.stopPropagation();
+                onPortClick(component.id, portIndex);
+              }}
+            >
+              {compat?.message && <title>{compat.message}</title>}
+            </circle>
+          </g>
         );
 
         return (

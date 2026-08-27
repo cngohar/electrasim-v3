@@ -7,6 +7,49 @@ A running, append-only log of work on the ElectraSim rewrite. Every coding sessi
 
 ---
 
+## Session 2026-08-27 (part 2) — The 8 Architecture & Workbench Enhancements
+
+**Requests:**
+1. Complete the Cable Sizing / Max Zs Tools in Astro
+2. Lazy-Load Heavy Inspector Views
+3. Real-World Component Specs
+4. Wire Current Heatmap (must be animated)
+5. Wire Overlaps vs. Junctions
+6. Smart Alignment Guidelines (setting + backup export/import)
+7. Touchscreen Target Padding
+8. Undo / Redo Spatial Indicator
+
+**Done:**
+1. **Cable Sizing & Max Zs Tools in Astro Toolbox**:
+   - Built the **Cable Sizing Calculator** (`/tools/cable-size-calculator/`) with BS 7671:2018+A3:2024 Table 4D5 ampacity tables, environmental derating factors ($C_a, C_g, C_i, C_c$), voltage drop verification, interactive client JS engine (`cable-size-tool.js`), Astro panels (`CableSizingPanels.astro`), and unit tests (`cable-sizing.test.ts`).
+   - Built the **Max Zs Disconnection Time Calculator** (`/tools/max-zs-calculator/`) with BS 7671:2018+A4:2026 Tables 41.2–41.4 Cmin-corrected maximum Zs, IET GN3 80% cold testing rule, $Z_e$ defaults, $R_1 + R_2$ conductor resistance calculations, prospective fault current (PFC), interactive client JS engine (`max-zs-tool.js`), Astro panels (`MaxZsPanels.astro`), and unit tests (`max-zs.test.ts`).
+   - Updated `TOOLBOX_REGISTRY` in `registry.ts` with complete metadata, formulas, equations, and FAQs for both calculators.
+2. **Lazy-Load Heavy Inspector Views**:
+   - Converted `ValidationReportView`, `InspectorAnalyticsView`, `InspectorFaultLabView`, `InspectorHistoryView`, `InspectorLogsView`, and `ZsCheckPanel` to `React.lazy` and `Suspense` in `Inspector.tsx`.
+   - Initial JS entry bundle dropped from 243.6 KB gzip to **231.2 KB gzip** (-12.4 KB gzip reduction), well below the 250 KB budget.
+3. **Real-World Component Specs**:
+   - Enhanced `ComponentHelpData` (`types.ts`) and `ComponentInfoModal.tsx` to include interactive terminal pinout tables (terminal markings, wire role badges for Live, Neutral, Earth, Switched), statutory regulation code clauses (BS 7671, NEC, IEC), and real-world installation applications.
+   - Enriched component help entries in `protection.ts` and `switchesAndControls.ts`.
+4. **Animated Wire Current Heatmap**:
+   - Added animated current heatmap flow in `StressZoneOverlay.tsx` (`electrasim-wire-flow`), where animation velocity and dash spacing dynamically scale with thermal current stress ratio ($I / I_z$).
+5. **Wire Overlaps vs. Junctions**:
+   - Refactored `WireJointsLayer.tsx` to distinguish between real electrical junctions (ports with $\ge 2$ connected wires, rendered with distinct solid solder junction dots) and non-connecting wire overlaps/crossings in mid-air (rendered with arc bridge jumpers and gap knockouts).
+6. **Smart Alignment Guidelines**:
+   - Added `smartAlignmentGuides` setting to `settingsStore.ts`, preserved in profile backups/exports and toggleable in Settings (`SettingsTabContent.tsx`).
+   - Implemented magnetic snap alignment in `useCanvasPointerWindow.ts` and dynamic horizontal/vertical dashed magenta guide rays in `OverlayLayer.tsx`.
+7. **Touchscreen Target Padding**:
+   - Expanded port hit-testing target padding to 28px diameter (`data-port-touch-target`) in `ComponentNode.tsx` with `touchAction: 'none'`, making port selection and wiring on mobile and tablets effortless while preserving 4px sharp visual pins.
+8. **Undo / Redo Spatial Indicator**:
+   - Added spatial mutation detection (`notifySpatialChange`) in `circuitActions.ts` and state tracking in `uiStore.ts`.
+   - Rendered an animated spatial ripple ring and "↩ Undo" / "↪ Redo" badge on canvas in `OverlayLayer.tsx` showing the location of undid/redid operations.
+
+**Verification:**
+- `npm run check` (typecheck + biome lint + vitest): PASSED. **999 / 999 tests pass** across 81 test suites.
+- `npx astro check`: 0 errors.
+- `npm run build && npm run check:perf && npm run check:links`: PASSED. Initial JS is 231.2 KB gzip (budget: 250 KB), CSS is 26.2 KB gzip, all 144 static HTML pages validated.
+
+---
+
 ## Session 2026-08-27 (part 1) — Codebase Review, Troubleshooting, UI/UX Refinements, and Hardening
 
 **Requests:** Review the current codebase and implementation of both Astro and simulator, troubleshoot potential issues including UI/UX, and continue improving the engineering details and hardening it.

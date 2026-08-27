@@ -37,6 +37,40 @@ export const PROTECTION_HELP: Record<string, ComponentHelpData> = {
       'Always ensure downstream cable current-carrying capacity (Iz) exceeds breaker nominal rating (In).',
       'If nuisance tripping occurs upon starting inductive appliances, upgrade to Type C curve.',
     ],
+    terminalPinout: [
+      {
+        terminal: '1 (Top)',
+        role: 'live',
+        description: 'Line input from consumer unit busbar / supply',
+      },
+      {
+        terminal: '2 (Bottom)',
+        role: 'live',
+        description: 'Protected circuit line conductor feed to downstream load',
+      },
+    ],
+    regulationClauses: [
+      {
+        standard: 'BS 7671:2018+A3:2024',
+        clause: 'Regulation 433.1.1',
+        title: 'Overload Protection Coordination',
+        requirement:
+          'The operating characteristics of the protective device must satisfy: Ib ≤ In ≤ Iz and I2 ≤ 1.45 × Iz.',
+      },
+      {
+        standard: 'BS 7671:2018+A4:2026',
+        clause: 'Table 41.3',
+        title: 'Maximum Earth Fault Loop Impedance (Zs)',
+        requirement:
+          'For a 32A Type B MCB, maximum permitted Zs is 1.37 Ω (Cmin corrected) for 0.4s disconnection.',
+      },
+    ],
+    realWorldApplications: [
+      'Domestic socket ring final circuits (32A)',
+      'Residential LED and incandescent lighting circuits (6A)',
+      'Immersion water heaters (16A / 20A)',
+      'Electric cooker and shower radial circuits (32A – 50A)',
+    ],
   },
 
   'mcb-type-c': {

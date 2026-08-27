@@ -171,14 +171,29 @@ export function StressZoneOverlay({ circuit, simulation, componentsById, orthogo
               strokeOpacity={0.2 + ratio * 0.28}
               className={ratio > 0.8 ? 'animate-pulse' : undefined}
             />
+            {/* Animated current flow heatmap along the conductor */}
             <path
               d={path}
               fill="none"
               stroke={color}
-              strokeWidth={2.5 + ratio * 2}
+              strokeWidth={3 + ratio * 2.5}
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeOpacity={0.75}
+              strokeDasharray="8 8"
+              className="electrasim-wire-flow"
+              style={{
+                strokeOpacity: 0.85,
+                animationDuration: `${Math.max(0.35, 1.6 - ratio * 1.1)}s`,
+              }}
+            />
+            <path
+              d={path}
+              fill="none"
+              stroke={color}
+              strokeWidth={1.5 + ratio * 1.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeOpacity={0.65}
               strokeDasharray={ratio > 0.8 ? '7 4' : undefined}
             />
             <g transform={`translate(${mx + 12}, ${my - 6})`}>

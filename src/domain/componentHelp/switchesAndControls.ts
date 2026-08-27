@@ -60,6 +60,45 @@ export const SWITCH_AND_CONTROL_HELP: Record<string, ComponentHelpData> = {
       'Connect permanent Live to COM on the first switch, and the switched Live to the lamp from COM on the second switch.',
       'Connect L1-to-L1 and L2-to-L2 using strapper conductors between both switch boxes.',
     ],
+    terminalPinout: [
+      {
+        terminal: 'COM (Common)',
+        role: 'live',
+        description: 'Feed in (Switch 1 permanent Live) or switch return to lamp (Switch 2)',
+      },
+      {
+        terminal: 'L1 (Strapper 1)',
+        role: 'switched',
+        description: 'Strapper 1 interconnecting line between both 2-way switches',
+      },
+      {
+        terminal: 'L2 (Strapper 2)',
+        role: 'switched',
+        description: 'Strapper 2 interconnecting line between both 2-way switches',
+      },
+    ],
+    regulationClauses: [
+      {
+        standard: 'BS 7671:2018+A3:2024',
+        clause: 'Regulation 514.4.2',
+        title: 'Identification of Conductors (Oversleeving)',
+        requirement:
+          'When using 3-core cable for strappers, black and grey cores used as switched line conductors must be identified with brown sleeving at all terminations.',
+      },
+      {
+        standard: 'BS 7671:2018+A3:2024',
+        clause: 'Regulation 132.14.1',
+        title: 'Neutral Switching Prohibition',
+        requirement:
+          'Single-pole switches must be inserted in the phase/line conductor only, never in the neutral conductor.',
+      },
+    ],
+    realWorldApplications: [
+      'Staircase lighting control (top and bottom of stairs)',
+      'Long corridors and hallways with entries at opposite ends',
+      'Bedside lighting control (entrance door switch and bedside switch)',
+      'Double-entry living rooms and through-lounges',
+    ],
   },
 
   'intermediate-switch': {

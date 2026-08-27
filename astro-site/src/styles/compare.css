@@ -754,7 +754,14 @@
   bottom: 0;
   height: 2px;
   background-color: var(--rail-ink);
-  background-image: linear-gradient(90deg, transparent 0 60%, var(--rail-glow) 70%, var(--live-2) 75%, var(--rail-glow) 80%, transparent 90% 100%);
+  background-image: linear-gradient(
+    90deg,
+    transparent 0 60%,
+    var(--rail-glow) 70%,
+    var(--live-2) 75%,
+    var(--rail-glow) 80%,
+    transparent 90% 100%
+  );
   background-size: 720px 100%;
   background-repeat: repeat-x;
   animation: scanX 5s linear infinite paused;
@@ -925,7 +932,14 @@
   right: 0;
   top: 0;
   height: 3px;
-  background-image: linear-gradient(90deg, transparent 0 60%, rgba(255, 184, 0, 0.55) 70%, #ffd76a 75%, rgba(255, 184, 0, 0.55) 80%, transparent 90% 100%);
+  background-image: linear-gradient(
+    90deg,
+    transparent 0 60%,
+    rgba(255, 184, 0, 0.55) 70%,
+    #ffd76a 75%,
+    rgba(255, 184, 0, 0.55) 80%,
+    transparent 90% 100%
+  );
   background-size: 620px 100%;
   background-repeat: repeat-x;
   animation: scanX 4.5s linear infinite paused;

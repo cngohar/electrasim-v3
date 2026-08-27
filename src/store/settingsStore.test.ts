@@ -78,6 +78,7 @@ describe('settingsStore — Phase 6.1', () => {
       customWiringMode: true,
       showGrid: false,
       snapToGrid: true,
+      smartAlignmentGuides: true,
       showMiniMap: false,
       showRecentComponents: true,
       appMode: 'basic',

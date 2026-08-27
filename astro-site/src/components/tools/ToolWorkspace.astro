@@ -1,13 +1,13 @@
 ---
-import type { ToolEntry } from '../../lib/tools/registry';
-import ToolHeader from './ToolHeader.astro';
-import ToolDrawer from './ToolDrawer.astro';
-import CommandPalette from './CommandPalette.astro';
-import ToolHelpModal from './ToolHelpModal.astro';
-import VoltageDropScene from './VoltageDropScene.astro';
-import VoltageDropPanels from './VoltageDropPanels.astro';
-import ToolSeoContent from './ToolSeoContent.astro';
 import packageMetadata from '../../../../package.json';
+import type { ToolEntry } from '../../lib/tools/registry';
+import CommandPalette from './CommandPalette.astro';
+import ToolDrawer from './ToolDrawer.astro';
+import ToolHeader from './ToolHeader.astro';
+import ToolHelpModal from './ToolHelpModal.astro';
+import ToolSeoContent from './ToolSeoContent.astro';
+import VoltageDropPanels from './VoltageDropPanels.astro';
+import VoltageDropScene from './VoltageDropScene.astro';
 
 interface Props {
   currentTool: ToolEntry;

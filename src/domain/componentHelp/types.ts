@@ -4,6 +4,19 @@
  * Split verbatim from the former monolithic `componentHelp.ts`.
  */
 
+export interface TerminalPinoutItem {
+  terminal: string;
+  role: 'live' | 'neutral' | 'earth' | 'control' | 'switched' | 'dc';
+  description: string;
+}
+
+export interface RegulationClauseItem {
+  standard: string;
+  clause: string;
+  title: string;
+  requirement: string;
+}
+
 export interface ComponentHelpData {
   title: string;
   category?: string;
@@ -22,11 +35,19 @@ export interface ComponentHelpData {
   keySpecs: string[];
   quickTips: string[];
   /**
-   * Slug of the matching ElectraSim blog article (e.g.
-   * `what-is-an-rcbo-difference-between-rcd-mcb-rcbo`). When present, the
-   * component info modal renders a "Read the full guide" link to
-   * `/blog/<slug>/` so learners can jump from the specs to the long-form
-   * article on the marketing site.
+   * Slug of the matching ElectraSim blog article.
    */
   learnMoreSlug?: string;
+  /**
+   * Hardware terminal markings, wiring roles, and terminal block details.
+   */
+  terminalPinout?: TerminalPinoutItem[];
+  /**
+   * Statutory regulations, code clauses, and standard rules (BS 7671, NEC, IEC).
+   */
+  regulationClauses?: RegulationClauseItem[];
+  /**
+   * Real-world commercial and domestic applications.
+   */
+  realWorldApplications?: string[];
 }

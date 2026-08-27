@@ -17,6 +17,7 @@ import {
   COMPONENT_DEFS,
   type ComponentInstance,
   type WireInstance,
+  getPortPos,
   sampleWire,
 } from '../../domain';
 import type { CanvasTheme } from './types';
@@ -69,16 +70,47 @@ function segIntersect(a: Point, b: Point, c: Point, d: Point): Point | null {
     const t = ((c.x - a.x) * (d.y - c.y) - (c.y - a.y) * (d.x - c.x)) / denom;
     return { x: a.x + t * (b.x - a.x), y: a.y + t * (b.y - a.y) };
   }
-  // Collinear cases (wires sharing a node) — treat as no joint to avoid
-  // spurious dots at shared endpoints.
   return null;
 }
 
 export function WireJointsLayer({ wires, componentsById, theme, enabled }: WireJointsLayerProps) {
-  const joints = useMemo<Joint[]>(() => {
+  // 1. Real Electrical Junctions: multiple wires connecting to the same terminal port
+  const realJunctions = useMemo<{ x: number; y: number; color: string; count: number }[]>(() => {
+    const portMap = new Map<string, { compId: string; portIndex: number; count: number }>();
+    for (const w of wires) {
+      const p1 = `${w.fromComponentId}:${w.fromPortIndex}`;
+      const p2 = `${w.toComponentId}:${w.toPortIndex}`;
+      const e1 = portMap.get(p1) ?? {
+        compId: w.fromComponentId,
+        portIndex: w.fromPortIndex,
+        count: 0,
+      };
+      e1.count += 1;
+      portMap.set(p1, e1);
+      const e2 = portMap.get(p2) ?? { compId: w.toComponentId, portIndex: w.toPortIndex, count: 0 };
+      e2.count += 1;
+      portMap.set(p2, e2);
+    }
+
+    const junctions: { x: number; y: number; color: string; count: number }[] = [];
+    for (const entry of portMap.values()) {
+      if (entry.count >= 2) {
+        const comp = componentsById.get(entry.compId);
+        if (!comp) continue;
+        const pos = getPortPos(comp, entry.portIndex, COMPONENT_DEFS);
+        const portDef = COMPONENT_DEFS[comp.type]?.ports[entry.portIndex];
+        const color = portDef ? (theme.wire[portDef.type] ?? '#2563eb') : '#2563eb';
+        junctions.push({ x: pos.x, y: pos.y, color, count: entry.count });
+      }
+    }
+    return junctions;
+  }, [wires, componentsById, theme]);
+
+  // 2. Wire Overlaps / Crossings in mid-air (non-connecting wires)
+  const crossings = useMemo<Joint[]>(() => {
     if (!enabled) return [];
 
-    // Sample bezier wires into polylines.
+    // Sample wires into polylines
     const sampled: { id: string; pts: Point[] }[] = [];
     for (const wire of wires) {
       const pts = sampleWire(wire, componentsById, COMPONENT_DEFS, SAMPLES) as unknown as Point[];
@@ -99,14 +131,15 @@ export function WireJointsLayer({ wires, componentsById, theme, enabled }: WireJ
         }
       }
     }
-    // Cluster near-identical intersections from dense polyline sampling into a
-    // single joint so overlapping samples don't paint a blob of dots.
-    const CLUSTER = 6;
+
+    const CLUSTER = 8;
     const found: Joint[] = [];
     for (const p of raw) {
-      const existing = found.find(
-        (j) => Math.abs(j.x - p.x) < CLUSTER && Math.abs(j.y - p.y) < CLUSTER,
-      );
+      // Exclude points that coincide with real terminal ports
+      const nearRealPort = realJunctions.some((rj) => Math.hypot(rj.x - p.x, rj.y - p.y) < CLUSTER);
+      if (nearRealPort) continue;
+
+      const existing = found.find((j) => Math.hypot(j.x - p.x, j.y - p.y) < CLUSTER);
       if (existing) {
         existing.x = (existing.x + p.x) / 2;
         existing.y = (existing.y + p.y) / 2;
@@ -115,19 +148,32 @@ export function WireJointsLayer({ wires, componentsById, theme, enabled }: WireJ
       }
     }
     return found;
-  }, [wires, componentsById, enabled]);
-
-  if (!enabled || joints.length === 0) return null;
+  }, [wires, componentsById, enabled, realJunctions]);
 
   const jointColor = theme.wire?.live ?? '#ef4444';
 
   return (
-    <g pointerEvents="none">
-      {joints.map((j, idx) => (
-        <g key={idx} transform={`translate(${j.x} ${j.y})`}>
-          {/* White halo so the joint reads clearly over crossing strokes */}
-          <circle r={3.4} fill="#ffffff" opacity={0.95} />
-          <circle r={2.1} fill={jointColor} />
+    <g pointerEvents="none" data-wire-junctions-layer>
+      {/* Real Electrical Junction Dots at shared ports */}
+      {realJunctions.map((j, idx) => (
+        <g key={`junction-${idx}`} transform={`translate(${j.x} ${j.y})`} data-real-junction-dot>
+          <circle r={5} fill="#ffffff" opacity={0.95} />
+          <circle r={3.2} fill={j.color} />
+          <circle r={1.2} fill="#ffffff" opacity={0.8} />
+        </g>
+      ))}
+
+      {/* Wire Crossover Arc Bridge Jumpers for mid-air overlaps */}
+      {crossings.map((c, idx) => (
+        <g key={`cross-${idx}`} transform={`translate(${c.x} ${c.y})`} data-wire-crossover-bridge>
+          <circle r={5.5} fill="#ffffff" opacity={0.9} />
+          <path
+            d="M -5 0 A 5 5 0 0 1 5 0"
+            fill="none"
+            stroke={jointColor}
+            strokeWidth={1.8}
+            strokeLinecap="round"
+          />
         </g>
       ))}
     </g>

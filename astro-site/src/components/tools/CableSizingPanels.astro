@@ -1,0 +1,443 @@
+---
+// CableSizingPanels.astro — Interactive panels for Cable Sizing Tool
+---
+
+<div class="tool-panels-container">
+  <!-- Left Inputs Panel -->
+  <section class="calc-panel input-panel" aria-label="Circuit Parameters">
+    <div class="panel-header">
+      <div class="panel-header-title">
+        <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="7" width="20" height="10" rx="2"></rect>
+          <line x1="6" y1="12" x2="6.01" y2="12"></line>
+          <line x1="10" y1="12" x2="10.01" y2="12"></line>
+          <line x1="14" y1="12" x2="14.01" y2="12"></line>
+          <line x1="18" y1="12" x2="18.01" y2="12"></line>
+        </svg>
+        <span>Circuit Specifications</span>
+      </div>
+      <div class="quick-presets-row">
+        <button type="button" class="preset-chip" data-preset="shower">8.5kW Shower</button>
+        <button type="button" class="preset-chip" data-preset="ev">7.4kW EV</button>
+        <button type="button" class="preset-chip" data-preset="cooker">32A Cooker</button>
+        <button type="button" class="preset-chip" data-preset="lighting">6A Lighting</button>
+      </div>
+    </div>
+
+    <form class="calc-form" id="cable-sizing-form" novalidate>
+      <!-- Load Type & Supply -->
+      <div class="form-row grid-2">
+        <div class="form-group">
+          <label for="cs-system-type">Supply System</label>
+          <select id="cs-system-type" name="systemType" class="calc-select">
+            <option value="single-phase" selected>Single-Phase AC (1-Φ)</option>
+            <option value="three-phase">Three-Phase AC (3-Φ)</option>
+            <option value="dc">Direct Current (DC)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="cs-voltage">Supply Voltage (V)</label>
+          <input type="number" id="cs-voltage" name="voltage" value="230" min="12" max="1000" class="calc-input" />
+        </div>
+      </div>
+
+      <!-- Power & Current -->
+      <div class="form-row grid-2">
+        <div class="form-group">
+          <label for="cs-power">Load Power (kW)</label>
+          <input type="number" id="cs-power" name="powerKw" value="7.2" step="0.1" min="0.1" max="500" class="calc-input" />
+        </div>
+        <div class="form-group">
+          <label for="cs-pf">Power Factor (cos φ)</label>
+          <input type="number" id="cs-pf" name="powerFactor" value="1.00" step="0.01" min="0.5" max="1.0" class="calc-input" />
+        </div>
+      </div>
+
+      <!-- Run Length & Circuit Function -->
+      <div class="form-row grid-2">
+        <div class="form-group">
+          <label for="cs-length">One-Way Run Length (m)</label>
+          <input type="number" id="cs-length" name="length" value="18" min="1" max="500" class="calc-input" />
+        </div>
+        <div class="form-group">
+          <label for="cs-circuit-type">Circuit Function</label>
+          <select id="cs-circuit-type" name="circuitType" class="calc-select">
+            <option value="power" selected>Power / Sockets / Shower (5% max)</option>
+            <option value="lighting">Lighting Circuit (3% max)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Installation Method & Material -->
+      <div class="form-row grid-2">
+        <div class="form-group">
+          <label for="cs-install-method">Installation Method (BS 7671)</label>
+          <select id="cs-install-method" name="installMethod" class="calc-select">
+            <option value="C" selected>Method C: Clipped direct to wall</option>
+            <option value="B">Method B: In conduit or trunking on wall</option>
+            <option value="A">Method A: Enclosed in thermal insulation</option>
+            <option value="D">Method D: In ground or direct underground</option>
+            <option value="E">Method E: In free air / cable tray</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="cs-material">Conductor Material</label>
+          <select id="cs-material" name="material" class="calc-select">
+            <option value="copper" selected>Copper (Cu)</option>
+            <option value="aluminum">Aluminum (Al)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Environmental Derating Factors -->
+      <div class="derating-box">
+        <div class="derating-title">Environmental Correction Factors</div>
+        <div class="form-row grid-3">
+          <div class="form-group">
+            <label for="cs-temp">Ambient Temp (°C)</label>
+            <input type="number" id="cs-temp" name="temp" value="30" min="10" max="60" class="calc-input" />
+          </div>
+          <div class="form-group">
+            <label for="cs-grouping">Grouped Circuits</label>
+            <input type="number" id="cs-grouping" name="grouping" value="1" min="1" max="20" class="calc-input" />
+          </div>
+          <div class="form-group">
+            <label for="cs-insulation">Thermal Insulation</label>
+            <select id="cs-insulation" name="insulation" class="calc-select">
+              <option value="0" selected>None (0 mm)</option>
+              <option value="50">50 mm contact</option>
+              <option value="100">100 mm contact</option>
+              <option value="200">Totally enclosed</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </form>
+  </section>
+
+  <!-- Right Results Panel -->
+  <section class="calc-panel result-panel" aria-label="Sizing Results">
+    <div class="panel-header">
+      <div class="panel-header-title">
+        <svg class="panel-icon text-emerald" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <span>Recommended Conductor Sizing</span>
+      </div>
+      <div class="status-badge-pill" id="cs-status-badge">Compliant</div>
+    </div>
+
+    <!-- Main Cable Size Hero Box -->
+    <div class="hero-size-card" id="cs-hero-card">
+      <div class="hero-size-label">RECOMMENDED MINIMUM CABLE SIZE</div>
+      <div class="hero-size-val">
+        <span id="cs-out-size">6.0</span> <span class="unit">mm²</span>
+      </div>
+      <div class="hero-cpc-val">
+        Matching CPC Earth Conductor: <strong id="cs-out-cpc">2.5 mm²</strong>
+      </div>
+    </div>
+
+    <!-- Key Engineering Telemetry Metrics -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-label">Design Current (Ib)</div>
+        <div class="metric-value" id="cs-out-ib">31.3 A</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Breaker Rating (In)</div>
+        <div class="metric-value" id="cs-out-in">32 A</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Required Capacity (It)</div>
+        <div class="metric-value" id="cs-out-it">32.0 A</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Cable Capacity (Iz)</div>
+        <div class="metric-value" id="cs-out-iz">47.0 A</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Voltage Drop (V)</div>
+        <div class="metric-value" id="cs-out-vdrop-v">4.1 V</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Voltage Drop (%)</div>
+        <div class="metric-value" id="cs-out-vdrop-pct">1.79%</div>
+      </div>
+    </div>
+
+    <!-- Derating Factor Breakdown -->
+    <div class="derating-breakdown-card">
+      <div class="derating-header">Derating Breakdown (Ca × Cg × Ci = Total Factor)</div>
+      <div class="derating-factors-row">
+        <span>Temp (Ca): <strong id="cs-factor-ca">1.00</strong></span>
+        <span>Grouping (Cg): <strong id="cs-factor-cg">1.00</strong></span>
+        <span>Insulation (Ci): <strong id="cs-factor-ci">1.00</strong></span>
+        <span>Total: <strong id="cs-factor-total">1.00</strong></span>
+      </div>
+    </div>
+
+    <!-- Summary Notice Box -->
+    <div class="compliance-summary-box" id="cs-summary-box">
+      <div class="summary-text" id="cs-summary-text">
+        Loading sizing calculation...
+      </div>
+    </div>
+  </section>
+</div>
+
+<style>
+  .tool-panels-container {
+    display: grid;
+    grid-template-columns: 1fr 1.15fr;
+    gap: 1.5rem;
+    max-width: 1240px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+  }
+  .calc-panel {
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: 1.25rem;
+    padding: 1.75rem;
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+  }
+  :root[data-theme="dark"] .calc-panel {
+    background: #0f172a;
+    border-color: #1e293b;
+  }
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border, #e2e8f0);
+    padding-bottom: 1rem;
+  }
+  :root[data-theme="dark"] .panel-header {
+    border-color: #1e293b;
+  }
+  .panel-header-title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .panel-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--blue, #2563eb);
+  }
+  .panel-icon.text-emerald {
+    color: #10b981;
+  }
+  .quick-presets-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .preset-chip {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    background: var(--bg-2, #f8fafc);
+    border: 1px solid var(--border, #cbd5e1);
+    color: var(--text-mid, #64748b);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .preset-chip:hover {
+    background: var(--blue-l, #eff6ff);
+    border-color: var(--blue, #2563eb);
+    color: var(--blue, #2563eb);
+  }
+  :root[data-theme="dark"] .preset-chip {
+    background: #1e293b;
+    border-color: #334155;
+    color: #94a3b8;
+  }
+  .form-row {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .grid-2 {
+    grid-template-columns: 1fr 1fr;
+  }
+  .grid-3 {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .form-group label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-mid, #64748b);
+  }
+  .calc-input, .calc-select {
+    padding: 0.65rem 0.85rem;
+    border-radius: 0.65rem;
+    border: 1px solid var(--border, #cbd5e1);
+    background: var(--bg, #ffffff);
+    color: var(--text, #0f172a);
+    font-family: var(--font-mono);
+    font-size: 0.92rem;
+    font-weight: 600;
+    transition: border-color 0.15s ease;
+  }
+  .calc-input:focus, .calc-select:focus {
+    outline: none;
+    border-color: var(--blue, #2563eb);
+  }
+  :root[data-theme="dark"] .calc-input,
+  :root[data-theme="dark"] .calc-select {
+    background: #090e17;
+    border-color: #334155;
+    color: #f1f5f9;
+  }
+  .derating-box {
+    background: var(--bg-2, #f8fafc);
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: 0.85rem;
+    padding: 1rem;
+    margin-top: 1rem;
+  }
+  :root[data-theme="dark"] .derating-box {
+    background: #090e17;
+    border-color: #1e293b;
+  }
+  .derating-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-mid, #64748b);
+    margin-bottom: 0.75rem;
+  }
+  /* Hero Size Card */
+  .hero-size-card {
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+    color: #ffffff;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    text-align: center;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.3);
+  }
+  .hero-size-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #bfdbfe;
+    margin-bottom: 0.25rem;
+  }
+  .hero-size-val {
+    font-family: var(--font-display);
+    font-size: 3.25rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .hero-size-val .unit {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #93c5fd;
+  }
+  .hero-cpc-val {
+    font-size: 0.85rem;
+    color: #dbeafe;
+    margin-top: 0.5rem;
+  }
+  /* Metrics Grid */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+  .metric-card {
+    background: var(--bg-2, #f8fafc);
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+    text-align: center;
+  }
+  :root[data-theme="dark"] .metric-card {
+    background: #1e293b;
+    border-color: #334155;
+  }
+  .metric-label {
+    font-size: 0.7rem;
+    color: var(--text-mid, #64748b);
+    margin-bottom: 0.2rem;
+  }
+  .metric-value {
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text, #0f172a);
+  }
+  /* Derating Breakdown */
+  .derating-breakdown-card {
+    background: var(--bg-2, #f8fafc);
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: 0.75rem;
+    padding: 0.85rem;
+    font-size: 0.78rem;
+    margin-bottom: 1.25rem;
+  }
+  :root[data-theme="dark"] .derating-breakdown-card {
+    background: #1e293b;
+    border-color: #334155;
+  }
+  .derating-header {
+    font-weight: 700;
+    color: var(--text-mid);
+    margin-bottom: 0.35rem;
+  }
+  .derating-factors-row {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  /* Compliance Summary Box */
+  .compliance-summary-box {
+    border-radius: 0.85rem;
+    padding: 1rem;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #065f46;
+  }
+  :root[data-theme="dark"] .compliance-summary-box {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.4);
+    color: #6ee7b7;
+  }
+  .status-badge-pill {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    background: #10b981;
+    color: #ffffff;
+  }
+
+  @media (max-width: 900px) {
+    .tool-panels-container {
+      grid-template-columns: 1fr;
+    }
+    .metrics-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>

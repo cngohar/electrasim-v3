@@ -248,6 +248,8 @@ export const useUiStore = create<UiState>()(
     mobileSuitabilityOpen: mobileSuitabilityInitiallyOpen,
     contextMenu: null,
     dragRect: null,
+    alignmentGuides: null,
+    spatialIndicator: null,
     pendingCustomPath: null,
     previewVariantType: null,
     previewComponentId: null,
@@ -1090,6 +1092,28 @@ export const useUiStore = create<UiState>()(
       set((s) => {
         s.dragRect = rect;
       }),
+    setAlignmentGuides: (guides) =>
+      set((s) => {
+        s.alignmentGuides = guides;
+      }),
+    setSpatialIndicator: (indicator) =>
+      set((s) => {
+        s.spatialIndicator = indicator;
+      }),
+    triggerSpatialIndicator: (x, y, kind) => {
+      const timestamp = Date.now();
+      set((s) => {
+        s.spatialIndicator = { x, y, kind, timestamp };
+      });
+      window.setTimeout(() => {
+        const current = get().spatialIndicator;
+        if (current && current.timestamp === timestamp) {
+          set((s) => {
+            s.spatialIndicator = null;
+          });
+        }
+      }, 1100);
+    },
     //phase 7 custom wiring function start here
     startCustomPath: (from) =>
       set((s) => {

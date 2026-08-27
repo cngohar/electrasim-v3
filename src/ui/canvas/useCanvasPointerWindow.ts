@@ -147,14 +147,47 @@ export function useCanvasPointerWindow({
       const worldPoint = svgToWorld(screenPoint, pan, zoom);
       const drag = dragRef.current;
       if (drag) {
-        const dx = worldPoint.x - drag.startMouse.x;
-        const dy = worldPoint.y - drag.startMouse.y;
+        let dx = worldPoint.x - drag.startMouse.x;
+        let dy = worldPoint.y - drag.startMouse.y;
         const clientDx = event.clientX - drag.startClient.x;
         const clientDy = event.clientY - drag.startClient.y;
         if (!drag.didMove) {
           if (clientDx * clientDx + clientDy * clientDy <= 16) return;
           drag.didMove = true;
         }
+
+        // Smart alignment guidelines & magnetic alignment
+        const smartAlignment = useSettingsStore.getState().smartAlignmentGuides;
+        if (smartAlignment && drag.starts.size === 1) {
+          const [[draggedId, start]] = drag.starts;
+          const targetX = start.x + dx;
+          const targetY = start.y + dy;
+          const allComps = useCircuitStore.getState().components;
+          const SNAP_DIST = 7;
+          let snapGuideX: number | undefined;
+          let snapGuideY: number | undefined;
+
+          for (const c of allComps) {
+            if (c.id === draggedId) continue;
+            if (Math.abs(targetX - c.x) <= SNAP_DIST && snapGuideX === undefined) {
+              dx = c.x - start.x;
+              snapGuideX = c.x;
+            }
+            if (Math.abs(targetY - c.y) <= SNAP_DIST && snapGuideY === undefined) {
+              dy = c.y - start.y;
+              snapGuideY = c.y;
+            }
+          }
+
+          useUiStore
+            .getState()
+            .setAlignmentGuides(
+              snapGuideX !== undefined || snapGuideY !== undefined
+                ? { x: snapGuideX, y: snapGuideY }
+                : null,
+            );
+        }
+
         drag.currentDelta = { x: dx, y: dy };
 
         for (const [id, start] of drag.starts) {
@@ -242,6 +275,7 @@ export function useCanvasPointerWindow({
         else element.style.removeProperty('opacity');
       }
       dragRef.current = null;
+      useUiStore.getState().setAlignmentGuides(null);
       if (moved) useCircuitStore.getState().setComponentPositions(updates);
     };
 
