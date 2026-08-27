@@ -131,6 +131,26 @@
 .template-card {
   padding: 1.25rem 1.35rem;
 }
+/* Template cards are now deep links into the app. */
+.template-card-link {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+}
+.template-card-link .template-top h3 {
+  margin-bottom: 0;
+}
+.template-cta {
+  margin-top: 1rem;
+  color: var(--blue);
+  font-size: .8rem;
+  font-weight: 700;
+  transition: transform .2s;
+}
+.template-card-link:hover .template-cta {
+  transform: translateX(4px);
+}
 .template-top {
   display: flex;
   align-items: center;
@@ -640,7 +660,14 @@
   bottom: 0;
   height: 2px;
   background-color: var(--rail-ink);
-  background-image: linear-gradient(90deg, transparent 0 60%, var(--rail-glow) 70%, var(--live-2) 75%, var(--rail-glow) 80%, transparent 90% 100%);
+  background-image: linear-gradient(
+    90deg,
+    transparent 0 60%,
+    var(--rail-glow) 70%,
+    var(--live-2) 75%,
+    var(--rail-glow) 80%,
+    transparent 90% 100%
+  );
   background-size: 720px 100%;
   background-repeat: repeat-x;
   animation: scanX 5s linear infinite paused;
@@ -864,7 +891,14 @@
   top: 1rem;
   height: 2px;
   background-color: var(--rail-ink);
-  background-image: linear-gradient(90deg, transparent 0 60%, rgba(255, 184, 0, 0.5) 70%, var(--energy) 75%, rgba(255, 184, 0, 0.5) 80%, transparent 90% 100%);
+  background-image: linear-gradient(
+    90deg,
+    transparent 0 60%,
+    rgba(255, 184, 0, 0.5) 70%,
+    var(--energy) 75%,
+    rgba(255, 184, 0, 0.5) 80%,
+    transparent 90% 100%
+  );
   background-size: 480px 100%;
   background-repeat: repeat-x;
   animation: scanX 3.4s linear infinite paused;
@@ -906,7 +940,14 @@
   right: 0;
   top: 0;
   height: 3px;
-  background-image: linear-gradient(90deg, transparent 0 60%, rgba(255, 184, 0, 0.55) 70%, #ffd76a 75%, rgba(255, 184, 0, 0.55) 80%, transparent 90% 100%);
+  background-image: linear-gradient(
+    90deg,
+    transparent 0 60%,
+    rgba(255, 184, 0, 0.55) 70%,
+    #ffd76a 75%,
+    rgba(255, 184, 0, 0.55) 80%,
+    transparent 90% 100%
+  );
   background-size: 620px 100%;
   background-repeat: repeat-x;
   animation: scanX 4.5s linear infinite paused;

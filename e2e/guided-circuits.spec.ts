@@ -51,6 +51,38 @@ test.describe('new Guided Circuits', () => {
     await expect(rcbo).toHaveAttribute('aria-pressed', 'false');
     await expect(lamp.locator('circle[fill="#facc15"]')).toHaveCount(0);
   });
+
+  test('the guided circuits window has a visible close control and closes', async ({ page }) => {
+    await page.goto('/?template=simple-lamp');
+
+    const dialog = page.getByRole('dialog', { name: 'Guided Circuits' });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole('button', { name: 'Close guided circuits' })).toBeVisible();
+
+    await dialog.getByRole('button', { name: 'Close guided circuits' }).click();
+    await expect(dialog).not.toBeVisible();
+  });
+
+  test('loads a Pro guide, switches to Pro mode, and can end the guide', async ({ page }) => {
+    await loadGuide(page, 'pro-ev-charger-circuit', 'EV Charger Dedicated Circuit');
+
+    // The guide checklist opens with the EV charger template.
+    await expect(page.getByText(/Advanced · Heavy fixed loads/)).toBeVisible();
+
+    // Guided circuits present as a guide checklist — not as Challenge Mode.
+    await expect(page.getByText('Checklist')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Next guide' })).toBeVisible();
+    await expect(page.getByText(/challenge/i)).toHaveCount(0);
+
+    // Loading a Pro guide promotes the workbench to Pro mode.
+    const studentToggle = page.getByRole('button', { name: /^student$/i });
+    await expect(studentToggle).toBeHidden({ timeout: 5000 });
+
+    // End guide closes the checklist but keeps the circuit on the canvas.
+    await page.getByRole('button', { name: 'End guide' }).click();
+    await expect(page.getByRole('heading', { name: 'EV Charger Dedicated Circuit' })).toBeHidden();
+    await expect(page.locator('[data-component-id="pro-ev-charger-circuit-ev"]')).toBeVisible();
+  });
 });
 
 async function loadGuide(page: Page, templateId: string, title: string): Promise<void> {

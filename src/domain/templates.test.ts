@@ -155,4 +155,65 @@ describe('guided circuit templates', () => {
     expect(template.circuit.components[0]!.state.on).toBeUndefined();
     expect(template.circuit.wires[0]!.controlPoints).toEqual([]);
   });
+
+  it('ships at least 8 Pro-tier guides alongside the basic set', () => {
+    const basic = GUIDED_CIRCUIT_TEMPLATES.filter((template) => template.tier === 'basic');
+    const pro = GUIDED_CIRCUIT_TEMPLATES.filter((template) => template.tier === 'pro');
+
+    expect(basic.length).toBe(8);
+    expect(pro.length).toBeGreaterThanOrEqual(8);
+    for (const template of basic) {
+      expect(template.difficulty).not.toBe('Advanced');
+      expect(template.circuit.globalVoltage).toBe(230);
+    }
+    for (const template of pro) {
+      expect(template.difficulty).toBe('Advanced');
+      expect(template.steps).toHaveLength(3);
+      // Every Pro guide uses at least one Pro-tier component.
+      const usesProComponent = template.circuit.components.some(
+        (component) => COMPONENT_DEFS[component.type]?.tier === 'pro',
+      );
+      expect(usesProComponent, `${template.id} should use Pro components`).toBe(true);
+    }
+  });
+
+  it('energises the three-phase motor from the live rails alone', () => {
+    const circuit = cloneTemplateCircuit(requireTemplate('pro-3phase-dol-starter'));
+    const motorId = 'pro-3phase-dol-starter-motor';
+    const contactor = requireComponent(circuit, 'pro-3phase-dol-starter-contactor');
+
+    const result = simulate(circuit);
+    expect(result.energizedComponents.has(motorId)).toBe(true);
+    expect(result.errors).toEqual([]);
+
+    // Opening the contactor interrupts all three phases.
+    contactor.state.on = false;
+    expect(simulate(circuit).energizedComponents.has(motorId)).toBe(false);
+  });
+
+  it('runs the solar DC system without voltage-mismatch errors', () => {
+    const circuit = cloneTemplateCircuit(requireTemplate('pro-solar-dc-system'));
+    const result = simulate(circuit);
+
+    expect(result.energizedComponents.has('pro-solar-dc-system-led')).toBe(true);
+    expect(result.errors).toEqual([]);
+    expect(result.supplyVoltage).toBe(12);
+  });
+
+  it('energises the generator backup loads through the generator earth path', () => {
+    const circuit = cloneTemplateCircuit(requireTemplate('pro-generator-backup'));
+    const result = simulate(circuit);
+
+    expect(result.energizedComponents.has('pro-generator-backup-light')).toBe(true);
+    expect(result.energizedComponents.has('pro-generator-backup-siren')).toBe(true);
+    expect(result.errors).toEqual([]);
+  });
+
+  it('keeps every Pro circuit fault-free at rest (except the deliberate RCD demo fault)', () => {
+    for (const template of GUIDED_CIRCUIT_TEMPLATES) {
+      if (template.tier !== 'pro') continue;
+      const result = simulate(cloneTemplateCircuit(template));
+      expect(result.errors, `${template.id} should simulate without errors`).toEqual([]);
+    }
+  });
 });

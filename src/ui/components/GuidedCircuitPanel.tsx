@@ -1,4 +1,5 @@
 import {
+  BookOpen,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -6,14 +7,13 @@ import {
   Lightbulb,
   MousePointerClick,
   RotateCcw,
-  Trophy,
   X,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { getChallengeProgress } from '../../domain/challengeProgress';
 import { COMPONENT_DEFS } from '../../domain/components';
+import { getGuideProgress } from '../../domain/guideProgress';
 import { cloneTemplateCircuit, getGuidedCircuitTemplate } from '../../domain/templates';
-import { markChallengeCompleted } from '../../lib/challengeProgressPersistence';
+import { markGuideCompleted } from '../../lib/guideProgressPersistence';
 import { useCircuitStore, useUiStore } from '../../store';
 
 interface Props {
@@ -40,21 +40,19 @@ export function GuidedCircuitPanel({ isPhone }: Props) {
   const template = activeGuideId ? getGuidedCircuitTemplate(activeGuideId) : undefined;
   const progress = useMemo(
     () =>
-      template
-        ? getChallengeProgress(template, { components, wires }, simRunning, simResult)
-        : null,
+      template ? getGuideProgress(template, { components, wires }, simRunning, simResult) : null,
     [template, components, wires, simRunning, simResult],
   );
 
   useEffect(() => {
-    if (template && progress?.completed) markChallengeCompleted(template.id);
+    if (template && progress?.completed) markGuideCompleted(template.id);
   }, [template, progress?.completed]);
 
   if (!template || !progress) return null;
 
   // Hidden guide: the panel/sheet always has a Hide affordance because it can
   // overlay canvas components (phone bottom-sheet always, tablet/desktop panel
-  // on narrower viewports). Hiding must NOT end the challenge — progress keeps
+  // on narrower viewports). Hiding must NOT end the guide — progress keeps
   // tracking and this floating pill is the way back.
   if (guideHidden) {
     return (
@@ -69,7 +67,7 @@ export function GuidedCircuitPanel({ isPhone }: Props) {
         ].join(' ')}
       >
         <span className="grid size-6 place-items-center rounded-lg bg-blue-600 text-white shadow-sm shadow-blue-600/30">
-          <Trophy className="size-3.5" />
+          <BookOpen className="size-3.5" />
         </span>
         <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-200">
           Guide steps
@@ -84,7 +82,7 @@ export function GuidedCircuitPanel({ isPhone }: Props) {
   // Guided hand-off (desktop/tablet): selecting a component hides the step
   // checklist so the Inspector can take over. Offer an explicit, discoverable
   // way back — previously the only return path was clicking empty canvas to
-  // deselect, which stranded users mid-challenge.
+  // deselect, which stranded users mid-guide.
   if (!isPhone && inspectorVisible && inspectorCollapsed) {
     const selected = components.find((c) => c.id === selectedComponentId);
     const selectedLabel = selected ? (COMPONENT_DEFS[selected.type]?.label ?? null) : null;
@@ -108,8 +106,8 @@ export function GuidedCircuitPanel({ isPhone }: Props) {
         <div className="space-y-3 px-4 py-3">
           <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-300">
             {selectedLabel
-              ? `${selectedLabel} is selected. The challenge steps are hidden while you inspect it.`
-              : 'A component is selected. The challenge steps are hidden while you inspect it.'}
+              ? `${selectedLabel} is selected. The guide steps are hidden while you inspect it.`
+              : 'A component is selected. The guide steps are hidden while you inspect it.'}
           </p>
           <button
             type="button"
@@ -150,7 +148,7 @@ export function GuidedCircuitPanel({ isPhone }: Props) {
     >
       <div className="flex items-start gap-3 border-b border-slate-100 px-4 py-3 dark:border-slate-700/60">
         <div className="mt-0.5 grid size-8 flex-shrink-0 place-items-center rounded-xl bg-blue-600 text-white shadow-sm shadow-blue-600/30">
-          <Trophy className="size-4" />
+          <BookOpen className="size-4" />
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
@@ -175,9 +173,9 @@ export function GuidedCircuitPanel({ isPhone }: Props) {
       </div>
       <div className="max-h-[inherit] space-y-3 overflow-y-auto px-4 py-3">
         <div className="flex items-center justify-between text-[11px] font-semibold text-slate-600 dark:text-slate-300">
-          <span>{progress.completed ? 'Challenge complete' : 'Challenge progress'}</span>
+          <span>{progress.completed ? 'Guide complete' : 'Checklist'}</span>
           <span>
-            {progress.completedIds.length}/{progress.objectives.length}
+            {progress.completedIds.length}/{progress.objectives.length} steps
           </span>
         </div>
         <div className="h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
@@ -242,20 +240,33 @@ export function GuidedCircuitPanel({ isPhone }: Props) {
           </div>
         )}
       </div>
-      <div className="flex items-center justify-between gap-2 border-t border-slate-100 bg-slate-50 px-4 py-3 dark:border-slate-700/60 dark:bg-slate-800/60">
-        <button
-          type="button"
-          onClick={restart}
-          className="flex items-center gap-1 text-[11px] font-semibold text-slate-600 dark:text-slate-300"
-        >
-          <RotateCcw className="size-3" /> Restart
-        </button>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 bg-slate-50 px-4 py-3 dark:border-slate-700/60 dark:bg-slate-800/60">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={restart}
+            className="flex items-center gap-1 text-[11px] font-semibold text-slate-600 dark:text-slate-300"
+          >
+            <RotateCcw className="size-3" /> Restart
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              useUiStore.getState().setActiveGuideId(null);
+              useUiStore.getState().addLog(`Ended guided circuit: ${template.title}`, 'info');
+            }}
+            className="flex items-center gap-1 text-[11px] font-semibold text-slate-400 transition hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+            title="Close the guide checklist and keep the circuit on the canvas"
+          >
+            <X className="size-3" /> End guide
+          </button>
+        </div>
         <button
           type="button"
           onClick={() => useUiStore.getState().setTemplatesOpen(true)}
           className="text-[11px] font-semibold text-blue-600 dark:text-blue-300"
         >
-          Next challenge
+          Next guide
         </button>
       </div>
     </aside>

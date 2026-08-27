@@ -61,17 +61,18 @@ const { features, templates } = Astro.props;
   <div class="guide-section-head">
     <span class="guide-kicker">In-app guided templates</span>
     <h2 id="templates-h">Start from these built-in circuits</h2>
-    <p>The app currently includes six guided templates with loaded components, wires, steps, and expected simulation outcomes.</p>
+    <p>The app includes 18 built-in guided circuits with loaded components, wires, steps, and expected simulation outcomes. Every card below opens its guide straight inside the editor.</p>
   </div>
   <div class="template-grid">
     {templates.map((template) => (
-      <article class="template-card">
+      <a class="template-card template-card-link" href={`/app/?template=${template.id}`}>
         <div class="template-top">
           <h3>{template.title}</h3>
           <span class:list={['template-level', levelClass(template.level)]}>{template.level}</span>
         </div>
         <p>{template.body}</p>
-      </article>
+        <span class="template-cta">Open in ElectraSim →</span>
+      </a>
     ))}
   </div>
 </section>

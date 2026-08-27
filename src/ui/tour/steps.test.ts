@@ -29,6 +29,7 @@ function snap(overrides: Partial<TourSnapshot> = {}): TourSnapshot {
     wireCount: 3,
     validationReport: null,
     standardPopoverOpen: false,
+    placingType: null,
     ...overrides,
   };
 }
@@ -89,11 +90,35 @@ describe('tour step scripts', () => {
     expect(byId('student', 'run-sim').advanceWhen?.(snap({ simRunning: true }), entry)).toBe(true);
   });
 
-  it('pro: mode step skips in pro and advances on the real switch', () => {
-    const step = byId('pro', 'switch-to-pro');
-    expect(step.skipIf?.(snap({ appMode: 'pro' }))).toBe(true);
-    expect(step.advanceWhen?.(snap({ appMode: 'pro' }), snap())).toBe(true);
-    expect(step.advanceWhen?.(snap(), snap())).toBe(false);
+  it('pro: opens in Pro mode and waits for a practice circuit to be loaded', () => {
+    // The tour now switches to Pro mode itself; the opening step explains it.
+    const modeStep = byId('pro', 'pro-mode-active');
+    expect(modeStep.kind).toBe('look');
+    expect(modeStep.advanceWhen).toBeUndefined();
+
+    // The canvas starts empty, so the second step asks for a practice circuit.
+    const loadStep = byId('pro', 'load-practice-circuit');
+    expect(loadStep.kind).toBe('do');
+    const entry = snap();
+    expect(loadStep.advanceWhen?.(snap({ componentCount: 8 }), entry)).toBe(true);
+    expect(loadStep.advanceWhen?.(snap({ componentCount: 7 }), entry)).toBe(false);
+  });
+
+  it('student: the spotlight moves to the canvas once a palette tile is selected', () => {
+    // Fixes the "canvas stays dark after selecting the Live terminal" bug —
+    // once a tile is armed for placement the spotlight follows to the canvas.
+    expect(byId('student', 'place-component').targetWhen?.(snap({ placingType: 'bulb' }))).toBe(
+      '[data-circuit-canvas]',
+    );
+    expect(byId('student', 'place-component').targetWhen?.(snap())).toBeNull();
+
+    expect(byId('student', 'add-supply').targetWhen?.(snap({ placingType: 'live-terminal' }))).toBe(
+      '[data-circuit-canvas]',
+    );
+    expect(
+      byId('student', 'add-supply').targetWhen?.(snap({ placingType: 'neutral-terminal' })),
+    ).toBe('[data-circuit-canvas]');
+    expect(byId('student', 'add-supply').targetWhen?.(snap({ placingType: 'bulb' }))).toBeNull();
   });
 
   it('pro: regional step advances on standard change, plug change, or popover close', () => {

@@ -85,7 +85,6 @@ import { PhoneDock } from './components/PhoneDock';
 import { ShortcutsOverlay } from './components/ShortcutsOverlay';
 import { StatusPill } from './components/StatusPill';
 import { SubHeaderBar } from './components/SubHeaderBar';
-import { ToolDock } from './components/ToolDock';
 import { Toolbar } from './components/Toolbar';
 import { UndoToast } from './components/UndoToast';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
@@ -203,7 +202,6 @@ export function Editor() {
   const logs = useUiStore((s) => s.logs);
   const paletteOpen = useUiStore((s) => s.paletteOpen);
   const logOpen = useUiStore((s) => s.logOpen);
-  const mode = useUiStore((s) => s.mode);
   const settingsOpen = useUiStore((s) => s.settingsOpen);
   const settingsTab = useUiStore((s) => s.settingsTab);
   const importExportOpen = useUiStore((s) => s.importExportOpen);
@@ -327,13 +325,6 @@ export function Editor() {
         <Suspense fallback={null}>
           <DiagnosisPanel isPhone={isPhone} />
         </Suspense>
-      )}
-      {!isPhone && (
-        <ToolDock
-          selectedId={selectedId}
-          mode={mode}
-          consoleOffset={dashboardOpen ? 'expanded' : tabletConsoleOffset}
-        />
       )}
       {showMiniMap && !isPhone && (
         <MiniMap consoleOffset={dashboardOpen ? 'expanded' : tabletConsoleOffset} />

@@ -13,7 +13,7 @@
     {
       "icon": "🧭",
       "title": "Guided Circuit Templates",
-      "body": "Open eight ready-made circuits inside the app: lamps, one-way and two-way switching, RCD fault checks, contactor motor starters, timer-controlled bells, a push-button doorbell, and an RCBO-protected socket."
+      "body": "Open 18 built-in guided circuits straight inside the app: eight starter circuits (lamps, one-way and two-way switching, RCD fault checks, contactors, timers, a push-button doorbell, an RCBO socket) and ten Pro scenarios — three-phase motor control, EV charging, solar with battery storage, underfloor heating, staircase timers, PIR floodlights, cooker supplies, surge-protected consumer units, generator backup and AFDD bedrooms."
     },
     {
       "icon": "⚠️",
@@ -45,42 +45,110 @@
     {
       "title": "Simple Protected Lamp",
       "level": "Beginner",
-      "body": "Trace live through an MCB to a bulb and follow neutral back to source."
+      "body": "Trace live through an MCB to a bulb and follow neutral back to source.",
+      "id": "simple-lamp"
     },
     {
       "title": "One-Way Light Switch",
       "level": "Beginner",
-      "body": "Learn why a switch belongs on the live conductor, not the neutral return."
+      "body": "Learn why a switch belongs on the live conductor, not the neutral return.",
+      "id": "one-way-light-switch"
     },
     {
       "title": "Two-Way Staircase Light",
       "level": "Intermediate",
-      "body": "Compare COM, L1, and L2 traveller paths as either switch changes state."
+      "body": "Compare COM, L1, and L2 traveller paths as either switch changes state.",
+      "id": "two-way-staircase-light"
     },
     {
       "title": "RCD and Earth Fault Check",
       "level": "Intermediate",
-      "body": "Inspect an RCD-protected socket branch with an intentional earth-fault warning."
+      "body": "Inspect an RCD-protected socket branch with an intentional earth-fault warning.",
+      "id": "rcd-earth-fault-demo"
     },
     {
       "title": "Contactor Motor Starter",
       "level": "Intermediate",
-      "body": "Switch a motor load through a contactor after MCB protection."
+      "body": "Switch a motor load through a contactor after MCB protection.",
+      "id": "contactor-motor"
     },
     {
       "title": "Timer-Controlled Bell",
       "level": "Beginner",
-      "body": "Use a timer switch as a controlled live path feeding a bell or buzzer."
+      "body": "Use a timer switch as a controlled live path feeding a bell or buzzer.",
+      "id": "timer-bell"
     },
     {
       "title": "Push-Button Doorbell",
       "level": "Beginner",
-      "body": "Hold a normally-open push button to energise a protected bell, then release it and watch the circuit open again."
+      "body": "Hold a normally-open push button to energise a protected bell, then release it and watch the circuit open again.",
+      "id": "push-button-doorbell"
     },
     {
       "title": "RCBO-Protected Socket",
       "level": "Intermediate",
-      "body": "Supply a socket outlet through an RCBO with switched live and neutral, protective earth, and a plugged-in test load."
+      "body": "Supply a socket outlet through an RCBO with switched live and neutral, protective earth, and a plugged-in test load.",
+      "id": "rcbo-protected-socket"
+    },
+    {
+      "id": "pro-3phase-dol-starter",
+      "title": "Three-Phase DOL Motor Starter",
+      "level": "Advanced",
+      "body": "Three phases through per-phase Type-D breakers and a three-pole contactor to a 3-phase motor with its own earth."
+    },
+    {
+      "id": "pro-ev-charger-circuit",
+      "title": "EV Charger Dedicated Circuit",
+      "level": "Advanced",
+      "body": "A 7.4 kW charge point behind a rotary isolator and an RCBO, with a direct protective earth."
+    },
+    {
+      "id": "pro-solar-dc-system",
+      "title": "Solar PV with Battery Storage",
+      "level": "Advanced",
+      "body": "A 12 V DC bus shared by a PV array and a battery through a lever connector, feeding a low-voltage LED."
+    },
+    {
+      "id": "pro-underfloor-heating",
+      "title": "Underfloor Heating Zone",
+      "level": "Advanced",
+      "body": "A Type-C MCB and a heating thermostat switching both poles to the underfloor heating mat."
+    },
+    {
+      "id": "pro-staircase-timer",
+      "title": "Staircase Time-Lag Lighting",
+      "level": "Advanced",
+      "body": "A staircase timer holds an LED light on for the preset time, then switches it off automatically."
+    },
+    {
+      "id": "pro-pir-floodlight",
+      "title": "Motion-Activated Floodlight",
+      "level": "Advanced",
+      "body": "A PIR sensor powered across live and neutral switches a halogen floodlight on detection."
+    },
+    {
+      "id": "pro-cooker-induction",
+      "title": "Cooker & Induction Hob Supply",
+      "level": "Advanced",
+      "body": "A dedicated circuit through a cooker control unit feeds an induction hob, isolatable at the unit."
+    },
+    {
+      "id": "pro-spd-consumer-unit",
+      "title": "Surge-Protected Consumer Unit",
+      "level": "Advanced",
+      "body": "The supply lands on a Type 2 SPD before the board; one way feeds an RCBO-protected socket branch with a test lamp."
+    },
+    {
+      "id": "pro-generator-backup",
+      "title": "Diesel Generator Backup Supply",
+      "level": "Advanced",
+      "body": "A standby generator with a dedicated earth rod feeds an MCB-protected emergency light and siren."
+    },
+    {
+      "id": "pro-afdd-bedroom",
+      "title": "AFDD-Protected Bedroom Circuit",
+      "level": "Advanced",
+      "body": "An AFDD-RCBO protects a bedroom final circuit feeding a socket and lighting point."
     }
   ],
   "circuits": [
@@ -100,7 +168,8 @@
         "Wire: Live → MCB → Switch → Bulb → Neutral.",
         "Press Run. Toggle the Switch to turn the bulb on and off."
       ],
-      "insight": "The MCB is always wired in series — it protects the entire circuit. The switch interrupts only the Live wire, keeping Neutral permanently connected back to supply."
+      "insight": "The MCB is always wired in series — it protects the entire circuit. The switch interrupts only the Live wire, keeping Neutral permanently connected back to supply.",
+      "app_template": "simple-lamp"
     },
     {
       "id": "circuit-2",
@@ -146,7 +215,8 @@
         "Wire Bulb Neutral → Neutral terminal.",
         "Press Run. Toggle either switch — the bulb responds from both locations."
       ],
-      "insight": "Two-way switching works because the two strapping wires always form exactly one complete path — toggling either switch swaps which wire is connected, turning the circuit on or off."
+      "insight": "Two-way switching works because the two strapping wires always form exactly one complete path — toggling either switch swaps which wire is connected, turning the circuit on or off.",
+      "app_template": "two-way-staircase-light"
     },
     {
       "id": "circuit-4",
@@ -166,7 +236,8 @@
         "Wire Earth terminal → Socket E.",
         "Press Run — the socket is live and protected by both the MCB and RCD."
       ],
-      "insight": "The RCD monitors the difference between Live and Neutral current. Any leakage (e.g. through a person to earth) causes an imbalance and trips the RCD in under 40ms — far faster than an MCB and before lethal harm can occur."
+      "insight": "The RCD monitors the difference between Live and Neutral current. Any leakage (e.g. through a person to earth) causes an imbalance and trips the RCD in under 40ms — far faster than an MCB and before lethal harm can occur.",
+      "app_template": "rcd-earth-fault-demo"
     },
     {
       "id": "circuit-5",
@@ -183,7 +254,8 @@
         "Click the Timer Switch to simulate it reaching its ON trigger time — the bulb activates.",
         "Click again to simulate the OFF time — the bulb goes dark."
       ],
-      "insight": "A Timer Switch is just a switch with an internal clock mechanism. In ElectraSim you toggle it manually to represent time events. In a real installation, the timer's ON/OFF schedule is programmed with physical pegs or a digital interface."
+      "insight": "A Timer Switch is just a switch with an internal clock mechanism. In ElectraSim you toggle it manually to represent time events. In a real installation, the timer's ON/OFF schedule is programmed with physical pegs or a digital interface.",
+      "app_template": "pro-staircase-timer"
     },
     {
       "id": "circuit-6",
@@ -216,7 +288,8 @@
         "Click and hold the Push Button — the Bell activates.",
         "Release the button — the Bell stops. That's a momentary circuit."
       ],
-      "insight": "Push Buttons are momentary — they close the circuit only while physically held. A standard switch latches open or closed. This distinction is critical: a latching switch would leave the bell ringing continuously."
+      "insight": "Push Buttons are momentary — they close the circuit only while physically held. A standard switch latches open or closed. This distinction is critical: a latching switch would leave the bell ringing continuously.",
+      "app_template": "push-button-doorbell"
     },
     {
       "id": "circuit-8",
@@ -244,7 +317,8 @@
         "Press Run — all three circuits operate independently.",
         "Trip MCB2 — only the socket goes dead. Lighting and motor stay running."
       ],
-      "insight": "The key principle of a consumer unit is circuit isolation: a fault on one circuit trips only that MCB, leaving all other circuits unaffected. This is why each circuit has its own dedicated breaker."
+      "insight": "The key principle of a consumer unit is circuit isolation: a fault on one circuit trips only that MCB, leaving all other circuits unaffected. This is why each circuit has its own dedicated breaker.",
+      "app_template": "pro-spd-consumer-unit"
     }
   ]
 }

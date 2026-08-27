@@ -72,6 +72,23 @@ function sameCircuitShape(
   return true;
 }
 
+/** True while the canvas still holds one of the untouched demo seed circuits
+ *  (default, Student or Pro variant) — used by flows like the tutorial that
+ *  only want to protect a circuit the user actually built. */
+export function isDemoSeedCircuit(state: {
+  components: readonly ComponentInstance[];
+  wires: readonly WireInstance[];
+}): boolean {
+  const currentSocket =
+    state.components.find((c) => REGIONAL_SOCKET_TYPES.has(c.type))?.type ?? 'socket-3pin';
+  const current = { components: state.components, wires: state.wires };
+  return (
+    sameCircuitShape(current, buildSeedCircuit(currentSocket)) ||
+    sameCircuitShape(current, buildStudentSeedCircuit(currentSocket)) ||
+    sameCircuitShape(current, buildProSeedCircuit(currentSocket))
+  );
+}
+
 export const useCircuitStore = create<CircuitState>()(
   temporal(
     immer<CircuitState>((set) => ({

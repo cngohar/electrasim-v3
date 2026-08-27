@@ -202,6 +202,8 @@ interface SettingsState extends UserSettings {
   hydrated: boolean;
   setSetting: <K extends keyof UserSettings>(key: K, value: UserSettings[K]) => void;
   resetSettings: () => void;
+  /** Replace every preference with a validated (whitelisted) settings object. */
+  applySettings: (settings: UserSettings) => void;
   /** Record a placed component type in the recents (dedup, cap at 6). */
   recordRecentComponent: (type: string) => void;
 }
@@ -323,6 +325,13 @@ export const useSettingsStore = create<SettingsState>()(
     resetSettings: () =>
       set((s) => {
         Object.assign(s, DEFAULTS);
+      }),
+    applySettings: (settings) =>
+      set((s) => {
+        // `settings` must already be whitelist-sanitised (see
+        // `sanitizeSettingsPayload` / the backup importer); every key it
+        // carries exists on UserSettings with a validated value.
+        Object.assign(s, settings);
       }),
     recordRecentComponent: (type) =>
       set((s) => {
@@ -462,6 +471,23 @@ export async function clearPersistedSettings(): Promise<void> {
   } catch (err) {
     console.warn('[settings] clear failed:', err);
   }
+}
+
+/**
+ * Sanitise an untrusted settings payload against the same whitelist the
+ * IndexedDB hydrate path uses. Returns a fresh, fully-typed UserSettings
+ * object (unknown keys dropped, wrong types replaced by defaults) or null
+ * when the payload is not an object at all. The backup importer feeds every
+ * file through this — a malicious settings file can therefore never inject
+ * values, types, or keys the app does not already support.
+ */
+export function sanitizeSettingsPayload(settings: unknown): UserSettings | null {
+  return parsePersistedSettings({ version: SCHEMA_VERSION, settings });
+}
+
+/** Snapshot of the live preferences — used by the backup exporter. */
+export function getSettingsSnapshot(): UserSettings {
+  return snapshot(useSettingsStore.getState());
 }
 
 export const __SETTINGS_STORAGE_KEY = STORAGE_KEY;

@@ -1,5 +1,7 @@
 import {
+  BookOpen,
   Cpu,
+  Globe,
   GraduationCap,
   Keyboard,
   Lightbulb,
@@ -33,13 +35,76 @@ export const SHORTCUTS: Array<[key: string, action: string]> = [
 
 export const DOCS_TOC: Array<{ id: string; label: string; icon: LucideIcon }> = [
   { id: 'getting-started', label: 'Getting Started', icon: MousePointerClick },
+  { id: 'guided-circuits', label: 'Guided Circuits', icon: BookOpen },
   { id: 'components', label: 'Components Reference', icon: Cpu },
   { id: 'wiring', label: 'Wiring Guide', icon: Zap },
   { id: 'shortcuts', label: 'Keyboard Shortcuts', icon: Keyboard },
   { id: 'simulation', label: 'Simulation & Faults', icon: Shield },
   { id: 'learning-modes', label: 'Learning Modes', icon: GraduationCap },
   { id: 'tips', label: 'Tips & Tricks', icon: Lightbulb },
+  { id: 'on-the-website', label: 'On the Website', icon: Globe },
 ];
+
+/**
+ * Deep links into the marketing site. The in-app docs stay quick-reference;
+ * the website hosts the long-form versions.
+ */
+export const SITE_DESTINATIONS: Array<{
+  label: string;
+  description: string;
+  href: string;
+  icon: LucideIcon;
+}> = [
+  {
+    label: 'The complete guide',
+    description: 'Step-by-step circuit walkthroughs, diagrams and the recommended workflow.',
+    href: 'https://electrasim.com/guide/',
+    icon: BookOpen,
+  },
+  {
+    label: 'Voltage drop calculator',
+    description: 'Work out conductor voltage drop against the active standard, on the web.',
+    href: 'https://electrasim.com/tools/voltage-drop-calculator/',
+    icon: Shield,
+  },
+  {
+    label: 'Explore 3D — Edison bulb',
+    description: 'An interactive 3D tear-down of the 1879 carbon-filament lamp.',
+    href: 'https://electrasim.com/explore/edison-bulb/',
+    icon: Lightbulb,
+  },
+  {
+    label: 'Blog & changelog',
+    description: 'Feature announcements, teaching notes and version history.',
+    href: 'https://electrasim.com/blog/',
+    icon: Globe,
+  },
+  {
+    label: 'Compare ElectraSim',
+    description: 'How the simulator compares with alternatives and real tooling.',
+    href: 'https://electrasim.com/compare/',
+    icon: Cpu,
+  },
+  {
+    label: 'About & contact',
+    description: 'The project, its roadmap, and how to report bugs or feedback.',
+    href: 'https://electrasim.com/about/',
+    icon: Zap,
+  },
+];
+
+/**
+ * Which in-app guided circuit matches which step-by-step walkthrough on the
+ * website's guide page (anchored by `#circuit-N`).
+ */
+export const GUIDE_WALKTHROUGH_ANCHORS: Record<string, string> = {
+  'simple-lamp': '#circuit-1',
+  'two-way-staircase-light': '#circuit-3',
+  'rcd-earth-fault-demo': '#circuit-4',
+  'pro-staircase-timer': '#circuit-5',
+  'push-button-doorbell': '#circuit-7',
+  'pro-spd-consumer-unit': '#circuit-8',
+};
 
 /**
  * The v2 learning modes (plan §49: "Document — seed system, difficulty levels,
@@ -54,6 +119,11 @@ export const LEARNING_MODES: Array<{
   tagline: string;
   body: string;
 }> = [
+  {
+    name: 'Guided Circuits',
+    tagline: 'Follow this',
+    body: 'Eighteen ready-made circuits load straight onto the canvas with a checklist: trace the wiring, run the simulation, then review the result. Starter circuits cover lamps, one-way and two-way switching, RCD/RCBO protection, contactors, timers and a momentary doorbell; the ten Pro guides cover three-phase motor control, EV charging, solar with battery storage, underfloor heating, staircase timers, PIR floodlights, cooker supplies, surge-protected consumer units, generator backup and AFDD bedrooms. Guided circuits are walkthroughs, not challenges — the checklist tracks what you have done and there is no score or timer.',
+  },
   {
     name: 'Challenge Mode',
     tagline: 'Build this',
@@ -122,6 +192,7 @@ export function buildComponentGroups(): ComponentGroup[] {
 }
 
 export const TIPS = [
+  'Take your work with you: Settings → Backup downloads one JSON file with all your preferences and your circuit; restore it on any computer from the same tab. Every imported file is validated before anything is applied.',
   'Use the search bar in the palette to quickly find components by name.',
   'Click the MCB breaker lever to access Settings, Import/Export, and bulk actions from one place.',
   'Ctrl+Z undoes almost everything — including wire creation, component placement, and deletion.',

@@ -5,6 +5,7 @@
  */
 
 import { Keyboard, X } from 'lucide-react';
+import { remapShortcutLabel } from '../../lib/platform';
 import { useUiStore } from '../../store';
 import { SHORTCUTS } from './docs/data';
 
@@ -44,19 +45,23 @@ export function ShortcutsOverlay() {
           </button>
         </div>
         <div className="max-h-80 overflow-y-auto p-3">
-          {SHORTCUTS.map(([key, action]) => (
-            <div
-              key={key}
-              className="flex items-center justify-between gap-3 border-b border-slate-50 py-2 last:border-0 dark:border-slate-800/60"
-            >
-              <kbd className="shrink-0 rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
-                {key}
-              </kbd>
-              <span className="text-right text-[11px] text-slate-500 dark:text-slate-400">
-                {action}
-              </span>
-            </div>
-          ))}
+          {SHORTCUTS.map(([rawKey, action]) => {
+            // System-aware key labels: ⌘ on macOS, Ctrl elsewhere.
+            const key = remapShortcutLabel(rawKey);
+            return (
+              <div
+                key={rawKey}
+                className="flex items-center justify-between gap-3 border-b border-slate-50 py-2 last:border-0 dark:border-slate-800/60"
+              >
+                <kbd className="shrink-0 rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                  {key}
+                </kbd>
+                <span className="text-right text-[11px] text-slate-500 dark:text-slate-400">
+                  {action}
+                </span>
+              </div>
+            );
+          })}
         </div>
         <div className="border-t border-slate-100 px-4 py-2 text-[10px] text-slate-400 dark:border-slate-800">
           Press <kbd className="rounded bg-slate-100 px-1 dark:bg-slate-800">?</kbd> anywhere to

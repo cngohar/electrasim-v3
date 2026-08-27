@@ -17,21 +17,29 @@ describe('Modal', () => {
       </Modal>,
     );
 
-    const first = screen.getByRole('button', { name: 'First' });
     const last = screen.getByRole('button', { name: 'Last' });
     const panel = screen.getByRole('dialog').querySelector<HTMLElement>('[tabindex="-1"]')!;
     await waitFor(() => expect(panel).toHaveFocus());
     expect(document.body.style.overflow).toBe('hidden');
 
-    first.focus();
+    // The first focusable control is the header close button; the trap wraps
+    // backward from it to the last control and forward again (jsdom performs
+    // no native tab traversal, so only boundary wrapping is observable).
+    const closeButton = screen.getByRole('button', { name: 'Close dialog' });
+    closeButton.focus();
+
     fireEvent.keyDown(window, { key: 'Tab', shiftKey: true });
     expect(last).toHaveFocus();
 
     fireEvent.keyDown(window, { key: 'Tab' });
-    expect(first).toHaveFocus();
+    expect(closeButton).toHaveFocus();
+
+    // The visible header close button also closes the dialog.
+    fireEvent.click(closeButton);
+    expect(onClose).toHaveBeenCalledOnce();
 
     fireEvent.keyDown(window, { key: 'Escape' });
-    expect(onClose).toHaveBeenCalledOnce();
+    expect(onClose).toHaveBeenCalledTimes(2);
 
     view.unmount();
     expect(trigger).toHaveFocus();

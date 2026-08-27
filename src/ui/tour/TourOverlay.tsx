@@ -13,14 +13,14 @@
  * announces steps via aria-live, and respects prefers-reduced-motion.
  */
 
-import { ArrowRight, Check, Sparkles, X } from 'lucide-react';
+import { ArrowRight, Check, History, RotateCcw, Sparkles, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useCircuitStore } from '../../store/circuitStore';
 import { useSettingsStore } from '../../store/settingsStore';
 import { useUiStore } from '../../store/uiStore';
 import { TourCelebration } from './TourCelebration';
 import { type CardPlacement, placeCard } from './placement';
-import { type TourSnapshot, type TourStep, getTourSteps } from './steps';
+import { TOURS, type TourSnapshot, type TourStep, getTourSteps } from './steps';
 import { markTourDone } from './storage';
 
 const CARD_W = 320;
@@ -29,6 +29,8 @@ const SPOT_PAD = 6;
 const MISSING_TARGET_GRACE_MS = 700;
 const SUCCESS_LINGER_MS = 550;
 const POLL_MS = 250;
+
+type Phase = 'tour' | 'celebration' | 'choice';
 
 function buildSnapshot(): TourSnapshot {
   const ui = useUiStore.getState();
@@ -46,9 +48,15 @@ function buildSnapshot(): TourSnapshot {
     componentCount: circuit.components.length,
     wireCount: circuit.wires.length,
     validationReport: ui.validationReport,
+    placingType: ui.placingType,
     standardPopoverOpen:
       typeof document !== 'undefined' && !!document.querySelector('[data-tour="standard-popover"]'),
   };
+}
+
+/** Resolve the spotlight selector for a step, honouring `targetWhen`. */
+function resolveTarget(step: TourStep): string | null {
+  return step.targetWhen ? (step.targetWhen(buildSnapshot()) ?? step.target) : step.target;
 }
 
 function usePrefersReducedMotion(): boolean {
@@ -76,19 +84,52 @@ export function TourOverlay({ isPhone }: Props) {
 
   const steps = useMemo(() => (tourId ? getTourSteps(tourId) : []), [tourId]);
   const step: TourStep | undefined = steps[tourStep];
+  const tourLabel = tourId ? TOURS[tourId].label : null;
 
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [succeeded, setSucceeded] = useState(false);
-  const [celebrating, setCelebrating] = useState(false);
+  const [phase, setPhase] = useState<Phase>('tour');
+  const [choiceCompleted, setChoiceCompleted] = useState(false);
   const cardRef = useRef<HTMLDivElement | null>(null);
   const entryRef = useRef<TourSnapshot | null>(null);
   const missingSinceRef = useRef<number | null>(null);
   const reducedMotion = usePrefersReducedMotion();
 
-  const end = useCallback((completed: boolean) => {
+  /* ── Ending the tour: restore prompt when a circuit was saved ── */
+  const finishTour = useCallback((completed: boolean) => {
     const state = useUiStore.getState();
     if (completed && state.tourId) markTourDone(state.tourId);
+    setChoiceCompleted(completed);
+    if (state.tourCircuitBackup) {
+      setPhase('choice');
+      return;
+    }
+    if (completed) {
+      setPhase('celebration');
+      return;
+    }
     state.endTour();
+  }, []);
+
+  const restoreBackup = useCallback(() => {
+    const backup = useUiStore.getState().tourCircuitBackup;
+    if (backup) {
+      useCircuitStore.getState().setCircuit(backup);
+      useUiStore
+        .getState()
+        .addLog(
+          `Previous circuit restored (${backup.components.length} components, ${backup.wires.length} wires).`,
+          'success',
+        );
+    }
+    useUiStore.getState().endTour();
+  }, []);
+
+  const keepTutorialCircuit = useCallback(() => {
+    useUiStore
+      .getState()
+      .addLog('Tutorial circuit kept — the previous circuit was discarded.', 'info');
+    useUiStore.getState().endTour();
   }, []);
 
   const goto = useCallback(
@@ -98,7 +139,7 @@ export function TourOverlay({ isPhone }: Props) {
         // Finished every step: record completion, then celebrate before
         // handing the bench back.
         if (state.tourId) markTourDone(state.tourId);
-        setCelebrating(true);
+        setPhase('celebration');
         return;
       }
       if (index < 0) return;
@@ -109,7 +150,7 @@ export function TourOverlay({ isPhone }: Props) {
 
   /* ── Per-step lifecycle: entry snapshot, skip resolution, advancement ── */
   useEffect(() => {
-    if (!tourId || !step || celebrating) return;
+    if (!tourId || !step || phase !== 'tour') return;
     setSucceeded(false);
     missingSinceRef.current = null;
     entryRef.current = buildSnapshot();
@@ -126,9 +167,10 @@ export function TourOverlay({ isPhone }: Props) {
     const evaluate = () => {
       if (done) return;
       const snap = buildSnapshot();
+      const target = resolveTarget(step);
 
       // Auto-skip when the target never appears (breakpoint / hidden mode).
-      if (step.target && !document.querySelector(step.target)) {
+      if (target && !document.querySelector(target)) {
         if (missingSinceRef.current === null) missingSinceRef.current = performance.now();
         else if (performance.now() - missingSinceRef.current > MISSING_TARGET_GRACE_MS) {
           done = true;
@@ -163,18 +205,19 @@ export function TourOverlay({ isPhone }: Props) {
       window.clearInterval(poll);
       window.clearTimeout(advanceTimer);
     };
-  }, [tourId, step, tourStep, goto, reducedMotion, celebrating]);
+  }, [tourId, step, tourStep, goto, reducedMotion, phase]);
 
   /* ── Target measurement (interval + resize/scroll, cheap while active) ── */
   useEffect(() => {
-    if (!tourId || !step) return;
+    if (!tourId || !step || phase !== 'tour') return;
     let scrolled = false;
     const measure = () => {
-      if (!step.target) {
+      const target = resolveTarget(step);
+      if (!target) {
         setTargetRect(null);
         return;
       }
-      const el = document.querySelector(step.target);
+      const el = document.querySelector(target);
       if (el && !scrolled && typeof el.scrollIntoView === 'function') {
         // Targets inside scroll containers (palette tiles) may start
         // off-screen — bring them into view once per step.
@@ -192,15 +235,15 @@ export function TourOverlay({ isPhone }: Props) {
       window.removeEventListener('resize', measure);
       window.removeEventListener('scroll', measure, { capture: true });
     };
-  }, [tourId, step]);
+  }, [tourId, step, phase]);
 
   /* ── Keyboard driving ── */
   useEffect(() => {
-    if (!tourId || !step || celebrating) return;
+    if (!tourId || !step || phase !== 'tour') return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.stopPropagation();
-        end(false);
+        finishTour(false);
       } else if (
         step.kind === 'look' &&
         (event.key === 'ArrowRight' || event.key === 'Enter') &&
@@ -216,7 +259,7 @@ export function TourOverlay({ isPhone }: Props) {
     // Capture phase so Esc ends the tour before app-level Esc handlers.
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
-  }, [tourId, step, tourStep, goto, end, celebrating]);
+  }, [tourId, step, tourStep, goto, finishTour, phase]);
 
   /* ── Focus the card on step change (no trap — the app must stay usable) ── */
   // biome-ignore lint/correctness/useExhaustiveDependencies: refocus per step
@@ -226,8 +269,26 @@ export function TourOverlay({ isPhone }: Props) {
 
   if (!tourId || !step) return null;
 
-  if (celebrating) {
-    return <TourCelebration onDone={() => useUiStore.getState().endTour()} />;
+  if (phase === 'celebration') {
+    return (
+      <TourCelebration
+        onDone={() => {
+          // A saved circuit gets its restore prompt before the bench returns.
+          if (useUiStore.getState().tourCircuitBackup) setPhase('choice');
+          else useUiStore.getState().endTour();
+        }}
+      />
+    );
+  }
+
+  if (phase === 'choice') {
+    return (
+      <RestoreChoiceCard
+        completed={choiceCompleted}
+        onRestore={restoreBackup}
+        onKeep={keepTutorialCircuit}
+      />
+    );
   }
 
   const vw = window.innerWidth;
@@ -350,18 +411,38 @@ export function TourOverlay({ isPhone }: Props) {
         )}
 
         <div className="mb-1.5 flex items-center justify-between gap-2">
-          <span className="inline-flex items-center gap-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400">
-            <Sparkles aria-hidden="true" className="size-3" />
-            Step {tourStep + 1} / {steps.length}
+          <span className="inline-flex items-center gap-1.5">
+            <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider text-sky-600 ring-1 ring-sky-100 dark:bg-sky-950/60 dark:text-sky-300 dark:ring-sky-900/60">
+              <Sparkles aria-hidden="true" className="size-3" />
+              {tourLabel}
+            </span>
+            <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400">
+              Step {tourStep + 1} / {steps.length}
+            </span>
           </span>
           <button
             type="button"
-            onClick={() => end(false)}
+            onClick={() => finishTour(false)}
             aria-label="End tutorial"
+            title="End the tutorial (Esc)"
             className="grid size-7 place-items-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
           >
             <X aria-hidden="true" className="size-3.5" />
           </button>
+        </div>
+
+        {/* Progress bar */}
+        <div
+          className="mb-2.5 h-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"
+          aria-hidden="true"
+        >
+          <div
+            className={[
+              'h-full rounded-full bg-sky-500',
+              reducedMotion ? '' : 'transition-all duration-300',
+            ].join(' ')}
+            style={{ width: `${Math.round(((tourStep + 1) / steps.length) * 100)}%` }}
+          />
         </div>
 
         <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">{step.title}</h2>
@@ -428,6 +509,112 @@ export function TourOverlay({ isPhone }: Props) {
             )}
           </div>
         </div>
+
+        {/* Keyboard hints */}
+        <div className="mt-2.5 flex items-center gap-1.5 border-t border-slate-100 pt-2 text-[9px] text-slate-400 dark:border-slate-800 dark:text-slate-500">
+          <kbd className="rounded border border-slate-200 bg-slate-50 px-1 font-mono dark:border-slate-700 dark:bg-slate-800">
+            Esc
+          </kbd>
+          exit
+          <span className="text-slate-200 dark:text-slate-700">·</span>
+          <kbd className="rounded border border-slate-200 bg-slate-50 px-1 font-mono dark:border-slate-700 dark:bg-slate-800">
+            ←
+          </kbd>
+          back
+          <span className="text-slate-200 dark:text-slate-700">·</span>
+          <kbd className="rounded border border-slate-200 bg-slate-50 px-1 font-mono dark:border-slate-700 dark:bg-slate-800">
+            Enter
+          </kbd>
+          next
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * RestoreChoiceCard — shown when a tour ends while the user's pre-tour
+ * circuit is saved: restore the previous circuit or keep the tutorial one.
+ * Esc restores (the safe default — the saved circuit is the user's work).
+ */
+function RestoreChoiceCard({
+  completed,
+  onRestore,
+  onKeep,
+}: {
+  completed: boolean;
+  onRestore: () => void;
+  onKeep: () => void;
+}) {
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const backup = useUiStore((s) => s.tourCircuitBackup);
+
+  // Modal-ish focus behaviour; Esc maps to restore (safe default).
+  useEffect(() => {
+    const panel = panelRef.current;
+    if (!panel) return;
+    panel.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.stopPropagation();
+        onRestore();
+      }
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [onRestore]);
+
+  return (
+    <div className="pointer-events-auto fixed inset-0 z-[80] grid place-items-center bg-slate-900/40 p-4 backdrop-blur-sm animate-backdrop-fade-in">
+      <div
+        ref={panelRef}
+        tabIndex={-1}
+        // biome-ignore lint/a11y/useSemanticElements: lightweight finishing prompt, intentionally non-modal-looking
+        role="dialog"
+        aria-label="Tutorial finished — restore your circuit?"
+        className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl outline-none animate-dialog-fade-in dark:border-slate-700 dark:bg-slate-900"
+      >
+        <div className="flex items-start gap-3">
+          <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-blue-600 text-white shadow-sm shadow-blue-600/30">
+            {completed ? (
+              <Check aria-hidden="true" className="size-5" />
+            ) : (
+              <History aria-hidden="true" className="size-5" />
+            )}
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+              {completed ? 'Tutorial complete 🎉' : 'Tutorial ended'}
+            </h2>
+            <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+              You had a circuit on the canvas before the tutorial
+              {backup
+                ? ` (${backup.components.length} components, ${backup.wires.length} wires)`
+                : ''}
+              . Restore it, or keep the tutorial circuit?
+            </p>
+          </div>
+        </div>
+        <div className="mt-4 flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={onRestore}
+            className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full bg-blue-600 px-4 text-xs font-semibold text-white shadow-sm shadow-blue-600/20 transition hover:bg-blue-700"
+          >
+            <RotateCcw aria-hidden="true" className="size-3.5" />
+            Restore previous circuit
+          </button>
+          <button
+            type="button"
+            onClick={onKeep}
+            className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+          >
+            Keep this circuit
+          </button>
+        </div>
+        <p className="mt-3 text-center text-[10px] text-slate-400 dark:text-slate-500">
+          Press Esc to restore your previous circuit
+        </p>
       </div>
     </div>
   );

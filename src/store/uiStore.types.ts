@@ -5,6 +5,7 @@
  */
 
 import type {
+  Circuit,
   FaultType,
   InteractionMode,
   LogEntry,
@@ -278,6 +279,18 @@ export interface UiState {
   tourId: 'student' | 'pro' | null;
   /** Interactive tutorial: zero-based index into the active tour's steps. */
   tourStep: number;
+  /**
+   * The circuit that was on the canvas when the active tour started, saved
+   * so the finish prompt can offer to restore it. Null when the canvas was
+   * empty (or held only the untouched demo seed) at tour start.
+   */
+  tourCircuitBackup: Circuit | null;
+  /**
+   * App mode captured when the active tour started. The tour switches the
+   * workbench to the mode it teaches (Student → basic, Pro → pro) and this
+   * is restored on `endTour` unless the user changed the mode themselves.
+   */
+  tourOriginalAppMode: 'basic' | 'pro' | null;
   /** A transient undo toast, e.g. after a delete. { message, id }. */
   undoToast: { message: string; id: number; showUndo?: boolean } | null;
 

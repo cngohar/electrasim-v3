@@ -1,7 +1,16 @@
+/**
+ * guideProgress — checklist tracking for Guided Circuits.
+ *
+ * Guided Circuits are learning walkthroughs, not Challenge Mode: the
+ * objectives below are a gentle checklist (identify → inspect → run →
+ * read the result) that tracks what the learner has done, with no score,
+ * timer, or fail state. Challenge Mode lives in `./challenges/` and keeps
+ * its own progress model entirely separate from this module.
+ */
 import type { GuidedCircuitObjective, GuidedCircuitTemplate } from './templates';
 import type { Circuit, SimulationResult } from './types';
 
-export interface ChallengeProgress {
+export interface GuideProgress {
   objectives: GuidedCircuitObjective[];
   completedIds: string[];
   percent: number;
@@ -35,19 +44,19 @@ function objectivesFor(template: GuidedCircuitTemplate): GuidedCircuitObjective[
     },
     {
       id: 'safe-result',
-      label: 'Read the result',
-      description: 'Finish with no error-level findings.',
+      label: 'Review the results',
+      description: 'Finish with no error-level findings on the canvas.',
       kind: 'fault-free',
     },
   ];
 }
 
-export function getChallengeProgress(
+export function getGuideProgress(
   template: GuidedCircuitTemplate,
   circuit: Circuit,
   simRunning: boolean,
   simResult: SimulationResult | null,
-): ChallengeProgress {
+): GuideProgress {
   const objectives = objectivesFor(template);
   const completedIds = objectives
     .filter((objective) => {
@@ -72,6 +81,6 @@ export function getChallengeProgress(
   };
 }
 
-export function getObjectiveList(template: GuidedCircuitTemplate): GuidedCircuitObjective[] {
+export function getGuideObjectiveList(template: GuidedCircuitTemplate): GuidedCircuitObjective[] {
   return objectivesFor(template);
 }

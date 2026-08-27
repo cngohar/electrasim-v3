@@ -1,3 +1,4 @@
+import { ArrowUpRight } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import type { ComponentDef } from '../../../domain';
@@ -50,6 +51,22 @@ export function Step({ n, title, desc }: { n: number; title: string; desc: strin
         </div>
       </div>
     </div>
+  );
+}
+
+/** "Full guide on electrasim.com →" link — the bridge from the quick-reference
+ *  in-app docs to the long-form content on the Astro site. */
+export function ExternalLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50/60 px-2.5 py-1.5 text-[11px] font-semibold text-blue-700 transition hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-300 dark:hover:bg-blue-900/60"
+    >
+      {children}
+      <ArrowUpRight className="size-3" />
+    </a>
   );
 }
 

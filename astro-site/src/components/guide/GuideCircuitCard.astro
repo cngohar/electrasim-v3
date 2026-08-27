@@ -54,7 +54,11 @@ const { circuit } = Astro.props;
   </div>
 
   <div class="try-row">
-    <span>Ready to try it? Open ElectraSim and follow the steps above.</span>
-    <a href="/app/" class="btn-try">Build this circuit →</a>
+    <span>
+      {circuit.app_template
+        ? 'Ready to try it? This walkthrough matches a built-in guide — open it pre-built in the editor.'
+        : 'Ready to try it? Open ElectraSim and follow the steps above.'}
+    </span>
+    <a href={circuit.app_template ? `/app/?template=${circuit.app_template}` : '/app/'} class="btn-try">Build this circuit →</a>
   </div>
 </article>

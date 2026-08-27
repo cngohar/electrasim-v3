@@ -12,6 +12,7 @@
  * portals, animations, or a richer focus trap.
  */
 
+import { X } from 'lucide-react';
 import { type ReactNode, useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useDialogFocus } from '../hooks/useDialogFocus';
 
@@ -110,15 +111,30 @@ export function Modal({
         }`}
       >
         {title && (
-          <div className="border-b border-slate-100 px-5 py-4 dark:border-slate-700/60">
-            <h2 id={titleId} className="text-base font-semibold text-slate-900 dark:text-slate-100">
-              {title}
-            </h2>
-            {description && (
-              <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-                {description}
-              </p>
-            )}
+          <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-5 py-4 dark:border-slate-700/60">
+            <div className="min-w-0">
+              <h2
+                id={titleId}
+                className="text-base font-semibold text-slate-900 dark:text-slate-100"
+              >
+                {title}
+              </h2>
+              {description && (
+                <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                  {description}
+                </p>
+              )}
+            </div>
+            {/* Explicit close affordance — backdrop click and Escape still work. */}
+            <button
+              type="button"
+              onClick={handleRequestClose}
+              aria-label="Close dialog"
+              title="Close (Esc)"
+              className="grid size-8 shrink-0 place-items-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            >
+              <X className="size-4" />
+            </button>
           </div>
         )}
         {title ? <div className="px-5 py-4">{children}</div> : children}

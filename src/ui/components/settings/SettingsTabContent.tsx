@@ -1,5 +1,6 @@
 import { useSettingsStore } from '../../../store';
 import { AboutTab } from './AboutTab';
+import { BackupTab } from './BackupTab';
 import {
   CanvasPresetSelector,
   ElectricToggle,
@@ -18,6 +19,8 @@ export function SettingsTabContent({ activeTab }: { activeTab: SettingsTab }) {
       return <DisplaySettings />;
     case 'simulation':
       return <SimulationSettings />;
+    case 'backup':
+      return <BackupTab />;
     case 'about':
       return <AboutTab />;
   }

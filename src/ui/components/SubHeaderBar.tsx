@@ -1,5 +1,6 @@
-import { ChevronDown, ChevronRight, Edit2, Layers, Route, Sliders, X, Zap } from 'lucide-react';
+import { ChevronDown, ChevronRight, Edit2, Layers, Route, Sliders, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { COMPONENT_DEFS } from '../../domain/components';
 import { getStandard } from '../../domain/standards';
 import { useCircuitStore, useSettingsStore, useUiStore } from '../../store';
@@ -32,23 +33,55 @@ export function SubHeaderBar() {
   const [isEditing, setIsEditing] = useState(false);
   const [showVoltagePicker, setShowVoltagePicker] = useState(false);
   const [customVoltInput, setCustomVoltInput] = useState(globalVoltage.toString());
-  const pickerRef = useRef<HTMLDivElement>(null);
+
+  // The voltage picker renders in a portal at a fixed position so it can
+  // never be clipped by the sub-header's horizontal scroll container.
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
 
   useEffect(() => {
     setCustomVoltInput(globalVoltage.toString());
   }, [globalVoltage]);
 
+  // Close the portal dropdown on outside click, Escape, or viewport resize.
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
-        setShowVoltagePicker(false);
+    if (!showVoltagePicker) return;
+    const handleDown = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (menuRef.current?.contains(target) || triggerRef.current?.contains(target)) {
+        return;
       }
+      setShowVoltagePicker(false);
     };
-    if (showVoltagePicker) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowVoltagePicker(false);
+    };
+    const handleResize = () => setShowVoltagePicker(false);
+    document.addEventListener('mousedown', handleDown);
+    document.addEventListener('keydown', handleKey);
+    window.addEventListener('resize', handleResize);
+    return () => {
+      document.removeEventListener('mousedown', handleDown);
+      document.removeEventListener('keydown', handleKey);
+      window.removeEventListener('resize', handleResize);
+    };
   }, [showVoltagePicker]);
+
+  // Simulation is a live model — the supply can only change while it is
+  // stopped (matches the Inspector's locked Supply Voltage control).
+  useEffect(() => {
+    if (simRunning) setShowVoltagePicker(false);
+  }, [simRunning]);
+
+  const openVoltagePicker = () => {
+    if (simRunning) return;
+    const rect = triggerRef.current?.getBoundingClientRect();
+    if (rect) {
+      setMenuPos({ top: rect.bottom + 6, left: Math.min(rect.left, window.innerWidth - 280) });
+      setShowVoltagePicker(true);
+    }
+  };
 
   const handleApplyCustomVoltage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,15 +116,28 @@ export function SubHeaderBar() {
     useUiStore.getState().setActiveInspectorTab(tab);
   };
 
-  return (
-    <div className="absolute inset-x-0 top-12 z-40 flex items-center gap-2.5 border-b border-slate-200/80 bg-white/95 px-3 py-1.5 text-xs text-slate-700 shadow-sm ring-1 ring-slate-900/5 backdrop-blur-xl transition-all duration-200 dark:border-slate-700/80 dark:bg-slate-900/95 dark:text-slate-300 dark:ring-slate-700/50 whitespace-nowrap overflow-x-auto">
+  const voltagePicker = (
+    <>
       {/* Global Voltage Dropdown Picker */}
-      <div className="relative" ref={pickerRef}>
+      <div className="relative">
         <button
           type="button"
-          onClick={() => setShowVoltagePicker(!showVoltagePicker)}
-          className="flex items-center gap-1.5 rounded-full px-2 py-0.5 font-medium transition hover:bg-slate-100 dark:hover:bg-slate-800"
-          title="Click to change Global Supply Voltage"
+          ref={triggerRef}
+          onClick={() => (showVoltagePicker ? setShowVoltagePicker(false) : openVoltagePicker())}
+          disabled={simRunning}
+          className={[
+            'flex items-center gap-1.5 rounded-full px-2 py-0.5 font-medium transition',
+            simRunning
+              ? 'cursor-not-allowed opacity-60'
+              : 'hover:bg-slate-100 dark:hover:bg-slate-800',
+          ].join(' ')}
+          title={
+            simRunning
+              ? 'Stop the simulation to change the Global Supply Voltage'
+              : 'Click to change Global Supply Voltage'
+          }
+          aria-expanded={showVoltagePicker}
+          aria-haspopup="dialog"
         >
           <span className="size-2 rounded-full bg-emerald-500 shadow-[0_0_6px] shadow-emerald-400" />
           <span className="text-slate-500 dark:text-slate-400">Supply:</span>
@@ -103,63 +149,73 @@ export function SubHeaderBar() {
           />
         </button>
 
-        {showVoltagePicker && (
-          <div className="absolute left-0 top-8 z-50 w-64 rounded-xl border border-slate-200 bg-white p-3 shadow-2xl dark:border-slate-800 dark:bg-slate-900">
-            <div className="mb-2 flex items-center justify-between border-b border-slate-200 pb-1.5 font-bold text-slate-800 dark:border-slate-800 dark:text-slate-100">
-              <span className="flex items-center gap-1.5 text-xs">
-                <Sliders className="size-3.5 text-amber-500" /> Global Supply Voltage
-              </span>
-              <span className="font-mono text-[10px] text-amber-600 dark:text-amber-400">
-                {effectiveVoltage} V
-              </span>
-            </div>
+        {showVoltagePicker &&
+          menuPos &&
+          createPortal(
+            <div
+              // biome-ignore lint/a11y/useSemanticElements: non-modal popover pattern; a native <dialog> would change dismissal semantics
+              ref={menuRef}
+              role="dialog"
+              aria-label="Global Supply Voltage"
+              className="fixed z-[60] w-64 rounded-xl border border-slate-200 bg-white p-3 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
+              style={{ top: menuPos.top, left: menuPos.left }}
+            >
+              <div className="mb-2 flex items-center justify-between border-b border-slate-200 pb-1.5 font-bold text-slate-800 dark:border-slate-800 dark:text-slate-100">
+                <span className="flex items-center gap-1.5 text-xs">
+                  <Sliders className="size-3.5 text-amber-500" /> Global Supply Voltage
+                </span>
+                <span className="font-mono text-[10px] text-amber-600 dark:text-amber-400">
+                  {effectiveVoltage} V
+                </span>
+              </div>
 
-            <div className="mb-2 text-[10px] text-slate-500 dark:text-slate-400">
-              Select global supply voltage level. Synchronizes with real-time checks and load
-              calculations.
-            </div>
+              <div className="mb-2 text-[10px] text-slate-500 dark:text-slate-400">
+                Select global supply voltage level. Synchronizes with real-time checks and load
+                calculations.
+              </div>
 
-            {/* Voltage presets */}
-            <div className="mb-3 grid grid-cols-3 gap-1">
-              {VOLTAGE_PRESETS.map((preset) => (
+              {/* Voltage presets */}
+              <div className="mb-3 grid grid-cols-3 gap-1">
+                {VOLTAGE_PRESETS.map((preset) => (
+                  <button
+                    key={preset.val}
+                    type="button"
+                    onClick={() => {
+                      setGlobalSupplyVoltage(preset.val);
+                      setShowVoltagePicker(false);
+                    }}
+                    className={`rounded border px-2 py-1 font-mono text-[10px] font-bold transition ${
+                      globalVoltage === preset.val
+                        ? 'border-amber-500 bg-amber-500 text-white shadow-xs'
+                        : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-amber-300 hover:bg-amber-50 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-amber-600'
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Custom input */}
+              <form onSubmit={handleApplyCustomVoltage} className="flex items-center gap-1.5">
+                <input
+                  type="number"
+                  min="1"
+                  max="1000"
+                  value={customVoltInput}
+                  onChange={(e) => setCustomVoltInput(e.target.value)}
+                  placeholder="Custom Volts..."
+                  className="w-full rounded border border-slate-200 bg-slate-50 px-2 py-1 font-mono text-xs text-slate-900 focus:border-amber-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                />
                 <button
-                  key={preset.val}
-                  type="button"
-                  onClick={() => {
-                    setGlobalSupplyVoltage(preset.val);
-                    setShowVoltagePicker(false);
-                  }}
-                  className={`rounded border px-2 py-1 font-mono text-[10px] font-bold transition ${
-                    globalVoltage === preset.val
-                      ? 'border-amber-500 bg-amber-500 text-white shadow-xs'
-                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-amber-300 hover:bg-amber-50 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-amber-600'
-                  }`}
+                  type="submit"
+                  className="rounded bg-amber-600 px-2.5 py-1 text-xs font-bold text-white hover:bg-amber-500"
                 >
-                  {preset.label}
+                  Apply
                 </button>
-              ))}
-            </div>
-
-            {/* Custom input */}
-            <form onSubmit={handleApplyCustomVoltage} className="flex items-center gap-1.5">
-              <input
-                type="number"
-                min="1"
-                max="1000"
-                value={customVoltInput}
-                onChange={(e) => setCustomVoltInput(e.target.value)}
-                placeholder="Custom Volts..."
-                className="w-full rounded border border-slate-200 bg-slate-50 px-2 py-1 font-mono text-xs text-slate-900 focus:border-amber-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-              />
-              <button
-                type="submit"
-                className="rounded bg-amber-600 px-2.5 py-1 text-xs font-bold text-white hover:bg-amber-500"
-              >
-                Apply
-              </button>
-            </form>
-          </div>
-        )}
+              </form>
+            </div>,
+            document.body,
+          )}
       </div>
 
       <div className="h-3 w-px bg-slate-200 dark:bg-slate-700" />
@@ -319,6 +375,18 @@ export function SubHeaderBar() {
             }`}
           />
         </span>
+      </div>
+    </>
+  );
+
+  return (
+    <div className="absolute inset-x-0 top-12 z-40 border-b border-slate-200/80 bg-white/95 shadow-sm ring-1 ring-slate-900/5 backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-900/95 dark:ring-slate-700/50">
+      {/* Scroll layer: when the content fits, the centered row sits dead
+          center; when it overflows it scrolls from the left edge. */}
+      <div className="overflow-x-auto">
+        <div className="mx-auto flex w-max items-center gap-2.5 px-3 py-1.5 text-xs text-slate-700 dark:text-slate-300 whitespace-nowrap">
+          {voltagePicker}
+        </div>
       </div>
     </div>
   );

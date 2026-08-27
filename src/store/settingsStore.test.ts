@@ -22,6 +22,8 @@ import {
   __SETTINGS_STORAGE_KEY,
   __parsePersistedSettings,
   clearPersistedSettings,
+  getSettingsSnapshot,
+  sanitizeSettingsPayload,
   startSettingsPersistence,
   useSettingsStore,
 } from './settingsStore';
@@ -213,5 +215,43 @@ describe('settingsStore — Phase 6.1', () => {
     expect(recents).toHaveLength(6);
     expect(recents[0]).toBe('fuse');
     expect(recents.filter((t) => t === 'bulb')).toHaveLength(1); // de-duped
+  });
+});
+
+describe('settingsStore — backup support', () => {
+  it('sanitizeSettingsPayload rebuilds untrusted data through the whitelist', () => {
+    const sanitised = sanitizeSettingsPayload({
+      colorScheme: 'dark',
+      canvasPreset: 'neon-matrix', // invalid enum → default
+      showGrid: false,
+      injected: 'must not survive',
+    });
+    expect(sanitised).not.toBeNull();
+    expect(sanitised?.colorScheme).toBe('dark');
+    expect(sanitised?.canvasPreset).toBe(__SETTINGS_DEFAULTS.canvasPreset);
+    expect(sanitised?.showGrid).toBe(false);
+    expect('injected' in (sanitised ?? {})).toBe(false);
+  });
+
+  it('applySettings replaces every preference with the given snapshot', () => {
+    const before = getSettingsSnapshot();
+    useSettingsStore.getState().applySettings({
+      ...before,
+      colorScheme: 'dark',
+      showGrid: false,
+      appMode: 'pro',
+    });
+
+    const s = useSettingsStore.getState();
+    expect(s.colorScheme).toBe('dark');
+    expect(s.showGrid).toBe(false);
+    expect(s.appMode).toBe('pro');
+    // Unrelated fields keep the snapshot values.
+    expect(s.confirmDelete).toBe(before.confirmDelete);
+  });
+
+  it('getSettingsSnapshot reflects live state', () => {
+    useSettingsStore.getState().setSetting('showTooltips', false);
+    expect(getSettingsSnapshot().showTooltips).toBe(false);
   });
 });

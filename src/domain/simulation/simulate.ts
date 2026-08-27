@@ -224,11 +224,19 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
   const live = traverseSources(liveSources, 'live', index, defs);
   const neutral = traverseSources(neutralSources, 'neutral', index, defs);
 
-  // A component is marked energised when both rails reach it.
+  // A component is marked energised when both rails reach it. Loads without
+  // any neutral port (e.g. the three-phase motor, which carries L1/L2/L3 + PE
+  // only) energise on the live rail alone — three-phase equipment has no
+  // neutral connection by design.
   for (const c of circuit.components) {
-    if (live.reachedComponents.has(c.id) && neutral.reachedComponents.has(c.id)) {
-      energizedComponents.add(c.id);
-    }
+    const def = defs[c.type];
+    if (!def) continue;
+    const hasNeutralPort = def.ports.some((port) => port.type === 'neutral');
+    const reached =
+      def.isLoad && !hasNeutralPort
+        ? live.reachedComponents.has(c.id)
+        : live.reachedComponents.has(c.id) && neutral.reachedComponents.has(c.id);
+    if (reached) energizedComponents.add(c.id);
   }
 
   // Wires that carry either rail count as energised for visualisation.

@@ -4,7 +4,7 @@
  * Full screen height toggleable left panel.
  */
 
-import { ChevronLeft, ChevronRight, Layers, Search, X } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, Layers, Search, X } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { COMPONENT_DEFS } from '../../domain';
 import {
@@ -284,6 +284,49 @@ function TileIcon({
   return <span className="text-xl leading-none">{icon}</span>;
 }
 
+/** Collapsible section header for palette groups (Recent, essentials and
+ *  every component category). */
+function SectionHeader({
+  label,
+  count,
+  accent = 'default',
+  collapsed,
+  onToggle,
+}: {
+  label: string;
+  count?: number;
+  accent?: 'default' | 'indigo';
+  collapsed: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={!collapsed}
+      title={collapsed ? `Expand ${label}` : `Collapse ${label}`}
+      className={[
+        'flex w-full items-center gap-1 rounded-md px-1 py-1 text-left transition hover:bg-slate-100/80 dark:hover:bg-slate-800/80',
+        accent === 'indigo'
+          ? 'text-indigo-600 dark:text-indigo-400'
+          : 'text-slate-400 dark:text-slate-500',
+      ].join(' ')}
+    >
+      {collapsed ? (
+        <ChevronRight className="size-3 shrink-0" />
+      ) : (
+        <ChevronDown className="size-3 shrink-0" />
+      )}
+      <span className="flex-1 text-[10px] font-semibold uppercase tracking-wider">{label}</span>
+      {typeof count === 'number' && (
+        <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+          {count}
+        </span>
+      )}
+    </button>
+  );
+}
+
 export function Palette({ open, isPhone }: Props) {
   const groups = useMemo(buildGroups, []);
   const placingType = useUiStore((s) => s.placingType);
@@ -300,6 +343,13 @@ export function Palette({ open, isPhone }: Props) {
   const challengeRuleFocus = useUiStore((s) => s.challengeRuleFocus);
   const setPaletteOpen = useUiStore((s) => s.setPaletteOpen);
   const [query, setQuery] = useState('');
+  // Collapsed palette sections (Recent, essentials, categories). A section
+  // is treated as expanded while a search query is active so results are
+  // always visible.
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const searching = query.trim().length > 0;
+  const isCollapsed = (key: string) => !searching && collapsed[key] === true;
+  const toggleSection = (key: string) => setCollapsed((prev) => ({ ...prev, [key]: !prev[key] }));
 
   const isChallengeFocusTarget = useCallback(
     (type: string) => challengeRuleFocus?.paletteTypes.includes(type) ?? false,
@@ -435,92 +485,106 @@ export function Palette({ open, isPhone }: Props) {
             )}
             {!query && recommended.length > 0 && (
               <div className="mb-4" data-standard-recommendations={regulationStandard}>
-                <div className="px-1 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-indigo-500 dark:text-indigo-400">
-                  {getStandard(regulationStandard).shortLabel} essentials
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  {recommended.map((item) => {
-                    const active = placingType === item.type;
-                    const definition = COMPONENT_DEFS[item.type];
-                    const isLighting = definition?.category === 'lighting';
-                    return (
-                      <button
-                        type="button"
-                        key={`recommended-${item.type}`}
-                        data-palette-type={item.type}
-                        data-challenge-focused={
-                          isChallengeFocusTarget(item.type) ? 'true' : undefined
-                        }
-                        onClick={() =>
-                          useUiStore.getState().setPlacingType(active ? null : item.type)
-                        }
-                        className={[
-                          'flex flex-col items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50/60 px-2 py-3 text-[11px] font-medium text-indigo-800 shadow-sm transition active:scale-95 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-200',
-                          isChallengeFocusTarget(item.type)
-                            ? 'ring-2 ring-indigo-400 shadow-indigo-400/30 animate-pulse'
-                            : '',
-                        ].join(' ')}
-                      >
-                        <TileIcon
-                          type={item.type}
-                          label={item.label}
-                          icon={item.icon}
-                          isLighting={isLighting}
-                        />
-                        <span className="w-full truncate text-center">{item.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
+                <SectionHeader
+                  label={`${getStandard(regulationStandard).shortLabel} essentials`}
+                  count={recommended.length}
+                  accent="indigo"
+                  collapsed={isCollapsed('essentials')}
+                  onToggle={() => toggleSection('essentials')}
+                />
+                {!isCollapsed('essentials') && (
+                  <div className="grid grid-cols-3 gap-2">
+                    {recommended.map((item) => {
+                      const active = placingType === item.type;
+                      const definition = COMPONENT_DEFS[item.type];
+                      const isLighting = definition?.category === 'lighting';
+                      return (
+                        <button
+                          type="button"
+                          key={`recommended-${item.type}`}
+                          data-palette-type={item.type}
+                          data-challenge-focused={
+                            isChallengeFocusTarget(item.type) ? 'true' : undefined
+                          }
+                          onClick={() =>
+                            useUiStore.getState().setPlacingType(active ? null : item.type)
+                          }
+                          className={[
+                            'flex flex-col items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50/60 px-2 py-3 text-[11px] font-medium text-indigo-800 shadow-sm transition active:scale-95 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-200',
+                            isChallengeFocusTarget(item.type)
+                              ? 'ring-2 ring-indigo-400 shadow-indigo-400/30 animate-pulse'
+                              : '',
+                          ].join(' ')}
+                        >
+                          <TileIcon
+                            type={item.type}
+                            label={item.label}
+                            icon={item.icon}
+                            isLighting={isLighting}
+                          />
+                          <span className="w-full truncate text-center">{item.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
-            {filtered.map((cat) => (
-              <div key={cat.category} className="mb-4">
-                <div className="px-1 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                  {cat.category}
+            {filtered.map((cat) => {
+              const catCollapsed = isCollapsed(cat.category);
+              return (
+                <div key={cat.category} className="mb-4">
+                  <SectionHeader
+                    label={cat.category}
+                    count={cat.items.length}
+                    collapsed={catCollapsed}
+                    onToggle={() => toggleSection(cat.category)}
+                  />
+                  {!catCollapsed && (
+                    <div className="grid grid-cols-3 gap-2">
+                      {cat.items.map((it) => {
+                        const active = placingType === it.type;
+                        const isLighting =
+                          cat.category.toLowerCase() === 'lighting' ||
+                          it.type.startsWith('bulb') ||
+                          it.type === 'led-downlight' ||
+                          it.type === 'tube-light';
+                        return (
+                          <button
+                            type="button"
+                            key={it.type}
+                            data-palette-type={it.type}
+                            data-challenge-focused={
+                              isChallengeFocusTarget(it.type) ? 'true' : undefined
+                            }
+                            onClick={() =>
+                              useUiStore.getState().setPlacingType(active ? null : it.type)
+                            }
+                            className={[
+                              'flex flex-col items-center gap-1.5 rounded-xl border px-2 py-3 text-[11px] font-medium shadow-sm transition active:scale-95',
+                              isChallengeFocusTarget(it.type)
+                                ? 'ring-2 ring-indigo-400 shadow-indigo-400/30 animate-pulse'
+                                : '',
+                              active
+                                ? 'border-blue-400 bg-blue-50 text-blue-700 ring-2 ring-blue-200 dark:bg-blue-950/60 dark:text-blue-400 dark:border-blue-600'
+                                : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300',
+                            ].join(' ')}
+                          >
+                            <TileIcon
+                              type={it.type}
+                              label={it.label}
+                              icon={it.icon}
+                              isLighting={isLighting}
+                            />
+                            <span className="truncate text-center w-full">{it.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
-                <div className="grid grid-cols-3 gap-2">
-                  {cat.items.map((it) => {
-                    const active = placingType === it.type;
-                    const isLighting =
-                      cat.category.toLowerCase() === 'lighting' ||
-                      it.type.startsWith('bulb') ||
-                      it.type === 'led-downlight' ||
-                      it.type === 'tube-light';
-                    return (
-                      <button
-                        type="button"
-                        key={it.type}
-                        data-palette-type={it.type}
-                        data-challenge-focused={
-                          isChallengeFocusTarget(it.type) ? 'true' : undefined
-                        }
-                        onClick={() =>
-                          useUiStore.getState().setPlacingType(active ? null : it.type)
-                        }
-                        className={[
-                          'flex flex-col items-center gap-1.5 rounded-xl border px-2 py-3 text-[11px] font-medium shadow-sm transition active:scale-95',
-                          isChallengeFocusTarget(it.type)
-                            ? 'ring-2 ring-indigo-400 shadow-indigo-400/30 animate-pulse'
-                            : '',
-                          active
-                            ? 'border-blue-400 bg-blue-50 text-blue-700 ring-2 ring-blue-200 dark:bg-blue-950/60 dark:text-blue-400 dark:border-blue-600'
-                            : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300',
-                        ].join(' ')}
-                      >
-                        <TileIcon
-                          type={it.type}
-                          label={it.label}
-                          icon={it.icon}
-                          isLighting={isLighting}
-                        />
-                        <span className="truncate text-center w-full">{it.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </aside>
       </>
@@ -608,43 +672,53 @@ export function Palette({ open, isPhone }: Props) {
       {/* Recent components (toggleable in Settings → Editing) */}
       {!query && showRecentComponents && visibleRecentComponents.length > 0 && (
         <div className="border-b border-slate-100 px-2.5 pb-2 pt-2 dark:border-slate-700/60">
-          <div className="px-1 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-            Recent
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            {visibleRecentComponents.map((type) => {
-              const def = COMPONENT_DEFS[type];
-              if (!def) return null;
-              const active = placingType === type;
-              const isLighting =
-                def.category.toLowerCase() === 'lighting' ||
-                type.startsWith('bulb') ||
-                type === 'led-downlight' ||
-                type === 'tube-light';
-              return (
-                <button
-                  key={type}
-                  type="button"
-                  data-palette-type={type}
-                  data-challenge-focused={isChallengeFocusTarget(type) ? 'true' : undefined}
-                  title={`Click to place ${def.label} on canvas`}
-                  onClick={() => useUiStore.getState().setPlacingType(active ? null : type)}
-                  className={[
-                    'flex flex-col items-center gap-1 rounded-xl border px-2 py-2.5 text-[10px] font-medium shadow-sm transition hover:scale-[1.02]',
-                    isChallengeFocusTarget(type)
-                      ? 'ring-2 ring-indigo-400 shadow-indigo-400/30 animate-pulse'
-                      : '',
-                    active
-                      ? 'border-blue-400 bg-blue-50 text-blue-700 ring-2 ring-blue-200 dark:bg-blue-950/60 dark:text-blue-400 dark:border-blue-600 dark:ring-blue-900'
-                      : 'border-indigo-200/70 bg-indigo-50/40 text-slate-700 hover:border-indigo-300 hover:bg-white hover:text-blue-700 dark:border-indigo-900/60 dark:bg-indigo-950/20 dark:text-slate-300 dark:hover:border-indigo-600 dark:hover:bg-slate-800/60 dark:hover:text-blue-400',
-                  ].join(' ')}
-                >
-                  <TileIcon type={type} label={def.label} icon={def.icon} isLighting={isLighting} />
-                  <span className="truncate text-center w-full px-1">{def.label}</span>
-                </button>
-              );
-            })}
-          </div>
+          <SectionHeader
+            label="Recent"
+            count={visibleRecentComponents.length}
+            collapsed={isCollapsed('recent')}
+            onToggle={() => toggleSection('recent')}
+          />
+          {!isCollapsed('recent') && (
+            <div className="grid grid-cols-2 gap-2">
+              {visibleRecentComponents.map((type) => {
+                const def = COMPONENT_DEFS[type];
+                if (!def) return null;
+                const active = placingType === type;
+                const isLighting =
+                  def.category.toLowerCase() === 'lighting' ||
+                  type.startsWith('bulb') ||
+                  type === 'led-downlight' ||
+                  type === 'tube-light';
+                return (
+                  <button
+                    key={type}
+                    type="button"
+                    data-palette-type={type}
+                    data-challenge-focused={isChallengeFocusTarget(type) ? 'true' : undefined}
+                    title={`Click to place ${def.label} on canvas`}
+                    onClick={() => useUiStore.getState().setPlacingType(active ? null : type)}
+                    className={[
+                      'flex flex-col items-center gap-1 rounded-xl border px-2 py-2.5 text-[10px] font-medium shadow-sm transition hover:scale-[1.02]',
+                      isChallengeFocusTarget(type)
+                        ? 'ring-2 ring-indigo-400 shadow-indigo-400/30 animate-pulse'
+                        : '',
+                      active
+                        ? 'border-blue-400 bg-blue-50 text-blue-700 ring-2 ring-blue-200 dark:bg-blue-950/60 dark:text-blue-400 dark:border-blue-600 dark:ring-blue-900'
+                        : 'border-indigo-200/70 bg-indigo-50/40 text-slate-700 hover:border-indigo-300 hover:bg-white hover:text-blue-700 dark:border-indigo-900/60 dark:bg-indigo-950/20 dark:text-slate-300 dark:hover:border-indigo-600 dark:hover:bg-slate-800/60 dark:hover:text-blue-400',
+                    ].join(' ')}
+                  >
+                    <TileIcon
+                      type={type}
+                      label={def.label}
+                      icon={def.icon}
+                      isLighting={isLighting}
+                    />
+                    <span className="truncate text-center w-full px-1">{def.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
@@ -655,43 +729,53 @@ export function Palette({ open, isPhone }: Props) {
             className="mb-3 rounded-xl border border-indigo-200/80 bg-indigo-50/50 p-2 dark:border-indigo-900 dark:bg-indigo-950/30"
             data-standard-recommendations={regulationStandard}
           >
-            <div className="px-1 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-              {getStandard(regulationStandard).shortLabel} essentials
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              {recommended.map((item) => {
-                const active = placingType === item.type;
-                const definition = COMPONENT_DEFS[item.type];
-                const isLighting = definition?.category === 'lighting';
-                return (
-                  <button
-                    type="button"
-                    key={`recommended-${item.type}`}
-                    data-palette-type={item.type}
-                    data-challenge-focused={isChallengeFocusTarget(item.type) ? 'true' : undefined}
-                    title={`Recommended for ${getStandard(regulationStandard).shortLabel}: ${item.label}`}
-                    onClick={() => useUiStore.getState().setPlacingType(active ? null : item.type)}
-                    className={[
-                      'flex flex-col items-center gap-1 rounded-lg border px-2 py-2 text-[10px] font-medium shadow-sm transition hover:scale-[1.02]',
-                      isChallengeFocusTarget(item.type)
-                        ? 'ring-2 ring-indigo-400 shadow-indigo-400/30 animate-pulse'
-                        : '',
-                      active
-                        ? 'border-blue-400 bg-blue-50 text-blue-700 ring-2 ring-blue-200 dark:border-blue-600 dark:bg-blue-950/60 dark:text-blue-300'
-                        : 'border-indigo-200 bg-white/80 text-slate-700 hover:border-indigo-400 hover:text-indigo-700 dark:border-indigo-800 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-indigo-600',
-                    ].join(' ')}
-                  >
-                    <TileIcon
-                      type={item.type}
-                      label={item.label}
-                      icon={item.icon}
-                      isLighting={isLighting}
-                    />
-                    <span className="w-full truncate text-center">{item.label}</span>
-                  </button>
-                );
-              })}
-            </div>
+            <SectionHeader
+              label={`${getStandard(regulationStandard).shortLabel} essentials`}
+              count={recommended.length}
+              accent="indigo"
+              collapsed={isCollapsed('essentials')}
+              onToggle={() => toggleSection('essentials')}
+            />
+            {!isCollapsed('essentials') && (
+              <div className="grid grid-cols-2 gap-2">
+                {recommended.map((item) => {
+                  const active = placingType === item.type;
+                  const definition = COMPONENT_DEFS[item.type];
+                  const isLighting = definition?.category === 'lighting';
+                  return (
+                    <button
+                      type="button"
+                      key={`recommended-${item.type}`}
+                      data-palette-type={item.type}
+                      data-challenge-focused={
+                        isChallengeFocusTarget(item.type) ? 'true' : undefined
+                      }
+                      title={`Recommended for ${getStandard(regulationStandard).shortLabel}: ${item.label}`}
+                      onClick={() =>
+                        useUiStore.getState().setPlacingType(active ? null : item.type)
+                      }
+                      className={[
+                        'flex flex-col items-center gap-1 rounded-lg border px-2 py-2 text-[10px] font-medium shadow-sm transition hover:scale-[1.02]',
+                        isChallengeFocusTarget(item.type)
+                          ? 'ring-2 ring-indigo-400 shadow-indigo-400/30 animate-pulse'
+                          : '',
+                        active
+                          ? 'border-blue-400 bg-blue-50 text-blue-700 ring-2 ring-blue-200 dark:border-blue-600 dark:bg-blue-950/60 dark:text-blue-300'
+                          : 'border-indigo-200 bg-white/80 text-slate-700 hover:border-indigo-400 hover:text-indigo-700 dark:border-indigo-800 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-indigo-600',
+                      ].join(' ')}
+                    >
+                      <TileIcon
+                        type={item.type}
+                        label={item.label}
+                        icon={item.icon}
+                        isLighting={isLighting}
+                      />
+                      <span className="w-full truncate text-center">{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
         {filtered.length === 0 && (
@@ -699,70 +783,82 @@ export function Palette({ open, isPhone }: Props) {
             No components match &ldquo;{query}&rdquo;
           </div>
         )}
-        {filtered.map((cat) => (
-          <div key={cat.category} className="mb-3">
-            <div className="px-1 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-              {cat.category}
+        {filtered.map((cat) => {
+          const catCollapsed = isCollapsed(cat.category);
+          return (
+            <div key={cat.category} className="mb-3">
+              <SectionHeader
+                label={cat.category}
+                count={cat.items.length}
+                collapsed={catCollapsed}
+                onToggle={() => toggleSection(cat.category)}
+              />
+              {!catCollapsed && (
+                <div className="grid grid-cols-2 gap-2">
+                  {cat.items.map((it) => {
+                    const active = placingType === it.type;
+                    const isProItem = it.tier === 'pro';
+                    const isLighting =
+                      cat.category.toLowerCase() === 'lighting' ||
+                      it.type.startsWith('bulb') ||
+                      it.type === 'led-downlight' ||
+                      it.type === 'tube-light';
+                    return (
+                      <div key={it.type} className="relative group">
+                        <button
+                          type="button"
+                          data-palette-type={it.type}
+                          data-challenge-focused={
+                            isChallengeFocusTarget(it.type) ? 'true' : undefined
+                          }
+                          title={`Click to place ${it.label} on canvas${isProItem ? ' (Pro Component)' : ''}`}
+                          onClick={() =>
+                            useUiStore.getState().setPlacingType(active ? null : it.type)
+                          }
+                          className={[
+                            'w-full flex flex-col items-center gap-1 rounded-xl border px-2 py-2.5 text-[10px] font-medium shadow-sm transition hover:scale-[1.02]',
+                            isChallengeFocusTarget(it.type)
+                              ? 'ring-2 ring-indigo-400 shadow-indigo-400/30 animate-pulse'
+                              : '',
+                            active
+                              ? 'border-blue-400 bg-blue-50 text-blue-700 ring-2 ring-blue-200 dark:bg-blue-950/60 dark:text-blue-400 dark:border-blue-600 dark:ring-blue-900'
+                              : 'border-slate-200/80 bg-white/80 text-slate-700 hover:border-blue-300 hover:bg-white hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:bg-slate-700/80 dark:hover:text-blue-400',
+                          ].join(' ')}
+                        >
+                          {isProItem && (
+                            <span className="absolute top-1 left-1 rounded bg-purple-100 px-1 py-0.5 text-[8px] font-bold text-purple-700 dark:bg-purple-900/60 dark:text-purple-300">
+                              PRO
+                            </span>
+                          )}
+                          <TileIcon
+                            type={it.type}
+                            label={it.label}
+                            icon={it.icon}
+                            isLighting={isLighting}
+                          />
+                          <span className="truncate text-center w-full px-1">{it.label}</span>
+                        </button>
+                        <button
+                          type="button"
+                          title={`View ${it.label} Technical Specifications`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            useUiStore.getState().setActiveComponentInfoType(it.type);
+                          }}
+                          className="absolute top-1 right-1 p-0.5 rounded-full bg-slate-100 hover:bg-sky-500 text-slate-400 hover:text-white dark:bg-slate-800 dark:hover:bg-sky-600 transition shadow-sm cursor-pointer z-10"
+                        >
+                          <span className="text-[9px] font-bold block w-3.5 h-3.5 leading-none text-center">
+                            ?
+                          </span>
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              {cat.items.map((it) => {
-                const active = placingType === it.type;
-                const isProItem = it.tier === 'pro';
-                const isLighting =
-                  cat.category.toLowerCase() === 'lighting' ||
-                  it.type.startsWith('bulb') ||
-                  it.type === 'led-downlight' ||
-                  it.type === 'tube-light';
-                return (
-                  <div key={it.type} className="relative group">
-                    <button
-                      type="button"
-                      data-palette-type={it.type}
-                      data-challenge-focused={isChallengeFocusTarget(it.type) ? 'true' : undefined}
-                      title={`Click to place ${it.label} on canvas${isProItem ? ' (Pro Component)' : ''}`}
-                      onClick={() => useUiStore.getState().setPlacingType(active ? null : it.type)}
-                      className={[
-                        'w-full flex flex-col items-center gap-1 rounded-xl border px-2 py-2.5 text-[10px] font-medium shadow-sm transition hover:scale-[1.02]',
-                        isChallengeFocusTarget(it.type)
-                          ? 'ring-2 ring-indigo-400 shadow-indigo-400/30 animate-pulse'
-                          : '',
-                        active
-                          ? 'border-blue-400 bg-blue-50 text-blue-700 ring-2 ring-blue-200 dark:bg-blue-950/60 dark:text-blue-400 dark:border-blue-600 dark:ring-blue-900'
-                          : 'border-slate-200/80 bg-white/80 text-slate-700 hover:border-blue-300 hover:bg-white hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:bg-slate-700/80 dark:hover:text-blue-400',
-                      ].join(' ')}
-                    >
-                      {isProItem && (
-                        <span className="absolute top-1 left-1 rounded bg-purple-100 px-1 py-0.5 text-[8px] font-bold text-purple-700 dark:bg-purple-900/60 dark:text-purple-300">
-                          PRO
-                        </span>
-                      )}
-                      <TileIcon
-                        type={it.type}
-                        label={it.label}
-                        icon={it.icon}
-                        isLighting={isLighting}
-                      />
-                      <span className="truncate text-center w-full px-1">{it.label}</span>
-                    </button>
-                    <button
-                      type="button"
-                      title={`View ${it.label} Technical Specifications`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        useUiStore.getState().setActiveComponentInfoType(it.type);
-                      }}
-                      className="absolute top-1 right-1 p-0.5 rounded-full bg-slate-100 hover:bg-sky-500 text-slate-400 hover:text-white dark:bg-slate-800 dark:hover:bg-sky-600 transition shadow-sm cursor-pointer z-10"
-                    >
-                      <span className="text-[9px] font-bold block w-3.5 h-3.5 leading-none text-center">
-                        ?
-                      </span>
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </aside>
   );

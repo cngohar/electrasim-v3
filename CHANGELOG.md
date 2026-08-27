@@ -11,6 +11,75 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — Session 2026-08-26 (part 7): Tutorial overhaul — save/restore, empty start, mode matching, spotlight fix
+
+- **Every tutorial now starts on an empty canvas** (Student and Pro alike; the Pro tour previously kept or seeded a demo circuit). The Pro tour's first action is now "Load a practice circuit" from Guided Circuits so its Validate/Diagnostics/Fault Lab steps still have a real circuit to work on.
+- **Save & restore flow**: starting a tour with a user circuit on the canvas prompts first ("your current circuit will be saved and can be restored later"); the circuit is snapshotted into `tourCircuitBackup`, and when the tour completes (or is exited) a new **restore prompt** offers *Restore previous circuit* or *Keep this circuit* (Esc restores — the safe default). The untouched demo seed skips the prompt and is not backed up.
+- **Mode matching fixed**: starting the Student tour now switches the workbench to Basic Student mode and the Pro tour to Pro Electrician mode, so the tutorial copy always matches the toolbar; the pre-tour mode is restored when the tour ends unless the user changed it themselves. The Pro tour's old "switch to Pro" do-step became an explanatory look-step.
+- **Spotlight bug fixed**: selecting the Live/Neutral terminal (or the bulb tile) now moves the spotlight from the palette tile to the canvas via a new `targetWhen` step predicate, so the canvas is never left darkened while the user needs to click it.
+- **UX enhancements**: step card gains a tour chip (Student/Pro tour), a progress bar, keyboard-hint row (Esc exit · ← back · Enter next) and a richer close tooltip; the completion celebration now hands off to the restore prompt.
+- **Verification:** typecheck, biome lint, production build clean; **990 unit tests** (7 new/updated: tour prompts, backup/restore, mode switch & restore, spotlight retargeting, restore-prompt overlay flows).
+
+### Changed — Session 2026-08-26 (part 6): In-app docs ↔ website bridge, guides matched on both sides
+
+The in-app docs and the Astro site's guide section were out of sync (the site still said "six guided templates" while the app ships 18). Both halves are now aligned and linked:
+
+- **In-app docs are now explicitly quick-reference** (`DocsContent.tsx`, `docs/data.ts`): the intro states that each section links to the long-form site content; Getting Started, Wiring, Simulation and Learning Modes each carry a "Full guide on electrasim.com →" button; keyboard keys (and Ctrl+… prose in tips/steps) are platform-aware (⌘ on macOS).
+- **New "Guided Circuits" docs section**: all 18 built-in guides listed in two groups (Getting started / Pro toolbox) with difficulty + Pro badges, a one-line summary, an **Open guide** button that loads the guide straight into the editor (via the new shared `src/lib/guidedCircuitLoader.ts`, also used by the Guided Circuits window), and a deep link to the matching **website walkthrough** (`/guide/#circuit-N`) where one exists.
+- **New "On the Website" section**: a destination grid linking the long-form docs — the complete guide, voltage-drop calculator, Explore 3D Edison bulb, blog & changelog, the comparison page and about/contact.
+- **Website guide page now matches the app** (`astro-site/src/content/pages/guide.json`, `GuideOverview.astro`, `GuideCircuitCard.astro`, `guide.css`, `types/pages.ts`): the guided-templates section lists all **18** guides with their in-app ids and every card deep-links to **`/app/?template=<id>`** ("Open in ElectraSim →"); six of the eight step-by-step walkthroughs (single lamp, two-way, RCD socket, timed lighting, doorbell, consumer unit) now deep-link their "Build this circuit →" button to the matching built-in guide; stale "six/eight templates" copy updated.
+- **Verification:** typecheck, biome lint, full production build and the internal-link checker all pass (142 HTML files, including the new `/app/?template=…` deep links); **985 unit tests** (7 new: shared loader behaviours + docs guides/links coverage).
+
+### Changed — Session 2026-08-26 (part 5): App menu redesigned as a command hub
+
+The MCB-trigger menu was a tall vertical rectangle of 14 rows. It is rebuilt from scratch as a wide, low **command hub**:
+
+- **Layout**: brand header (version + live Student/Pro chip) → "Learn & Practice" 2×2 grid of feature tiles (Guided Circuits, Challenge Mode, Diagnosis Lab, Interactive Tutorial) → "Tools & Info" 2/3-column grid of compact tiles (Documentation, Keyboard Shortcuts, Import / Export, Settings, Contact, About ElectraSim) → footer with version and a system-aware **⌘K / Ctrl K command-palette chip** (Command icon on macOS).
+- **Canvas actions removed**: Clear All Wires, Clear All Components and Reset to Default Circuit no longer appear in the app menu — they are target-aware on the right-click context menu, where they belong. No wiring-related actions or wording remain in the menu (the "Interactive Wiring Lab" subtitle became "The interactive circuit workbench").
+- **Behaviour**: hover-lift tile styling with per-tile accent colors, backdrop blur + Escape + backdrop click preserved, proper focus trap via `useDialogFocus`, and Keyboard Shortcuts now opens the lightweight shortcuts overlay directly instead of scrolling the docs page.
+- **Verification:** typecheck, biome lint, production build clean; **978 unit tests** (6 new menu tests pinning the tile set, accessible names used by the E2E suite, the absence of canvas actions, and every tile action).
+
+### Changed — Session 2026-08-26 (part 4): Guided Circuits unlinked from Challenge Mode
+
+Guided Circuits are learning walkthroughs, not challenges — the panel previously reused challenge framing (trophy icons, "Challenge progress", "Next challenge") and shared a challenge-named completion store. All of that is now guide-specific:
+
+- **Guide checklist panel** (`GuidedCircuitPanel.tsx`): trophies replaced with book icons, "Challenge progress/complete" → **Checklist / Guide complete** with a "x/4 steps" counter, "Next challenge" → **Next guide**, and the inspector hand-off copy now says "guide steps". No challenge wording remains anywhere in the guided-circuit flow.
+- **Dedicated progress modules**: `src/domain/challengeProgress.ts` → **`guideProgress.ts`** (`getGuideProgress`, `getGuideObjectiveList`, objective "Read the result" → "Review the results") and `src/lib/challengeProgressPersistence.ts` → **`guideProgressPersistence.ts`** (`isGuideCompleted`, `markGuideCompleted`, `clearGuideProgress`) with a new storage key `electrasim:guide-progress:v1`. Challenge Mode keeps its own, separate persistence (`declarativeChallengePersistence`) — the two features no longer share anything.
+- **Migration**: completions saved under the old `electrasim:challenge-progress:v1` key are migrated into the new key on read, so existing users keep their "Guide completed" badges; the legacy key is cleaned up.
+- **Verification:** typecheck, biome lint, production build clean; **972 unit tests** (12 new: guide-progress derivation, persistence migration/corruption handling, and 5 panel behaviours including "no challenge wording") plus updated E2E assertions for the guide checklist.
+
+### Added — Session 2026-08-26 (part 3): Guided Circuits window revamp + 10 Pro guides
+
+- **Guided Circuits window revamped** (`TemplatesModal.tsx`): no longer a full-bleed card grid — it is now a constrained window with a visible **✕ close button** (plus backdrop-click, Escape and a footer Close), a **search box**, **All / Basics / Pro tier filters**, grouped sections ("Getting started" / "Pro toolbox") with counts, per-card component/wire counts and Pro badges. The shared `Modal` header also gained a visible close control for every titled dialog (Settings, Challenge dialogs, etc.).
+- **Existing guides updated**: all 8 templates gained a `tier` field, an explicit `globalVoltage`, and refreshed teaching text referencing newer features (Inspector telemetry, the Fault Lab tab, RCD residual-type selector, timer family variants, new fault prompts).
+- **10 new Pro guided circuits** (Advanced, Pro-tier components): Three-Phase DOL Motor Starter, EV Charger Dedicated Circuit, Solar PV with Battery Storage, Underfloor Heating Zone, Staircase Time-Lag Lighting, Motion-Activated Floodlight, Cooker & Induction Hob Supply, Surge-Protected Consumer Unit, Diesel Generator Backup Supply, and AFDD-Protected Bedroom Circuit. Loading a Pro guide in Student mode automatically switches the workbench to Pro mode so the palette matches the guide.
+- **Simulation fix**: loads without a neutral port (the three-phase motor: L1/L2/L3 + PE) now energise on the live rail alone — previously the "both rails" rule made them permanently dead.
+- **Panel affordance**: the guide checklist gained an explicit **End guide** action that closes the checklist while keeping the circuit on the canvas.
+- **Verification:** typecheck, biome lint, production build clean; **960 unit tests** (9 new: pro-template coverage, motor/solar/generator energisation, fault-free guarantees, modal window behaviours) and 3 new E2E cases added to `e2e/guided-circuits.spec.ts` for CI.
+
+### Added — Session 2026-08-26 (part 2): Settings redesign + portable profile backups
+
+Follow-up to the workbench shell polish: the Settings dialog was rewritten from scratch and gains a portable save/load feature.
+
+- **Settings modal redesigned** (`SettingsModal.tsx`): the emoji pill-tabs are replaced by a two-column shell with an icon sidebar (Editing / Display / Simulation / **Backup** / About, each with a subtitle) and a wider scrollable content area; the sidebar degrades to a horizontal strip on narrow screens. Tab content and the store are untouched.
+- **Portable profile backups** (new `BackupTab.tsx`, new `src/lib/backup/backupFormat.ts`): one JSON file (`electrasim-backup-YYYY-MM-DD.json`) carries every preference plus — optionally — the current circuit (components, wires, global supply voltage). Restore applies preferences via a new `applySettings` store action and the circuit through the existing validated `setCircuit` path, after an explicit preview + confirm step.
+- **Malicious-file protection**: backups are treated as hostile input — 10 MB size cap, `electrasim-backup` format magic + schema version gate, outright rejection of `__proto__`/`constructor`/`prototype` keys, settings rebuilt field-by-field through the same whitelist sanitizer used for IndexedDB hydration (unknown keys dropped, invalid values defaulted, warnings surfaced), circuits passed through the existing circuit validator and re-normalised, and an invalid circuit section refuses the whole file. Nothing is applied without the user confirming the preview.
+- **Verification:** typecheck, biome lint, production build clean; full unit suite now **951 tests** (24 new: backup format hostile-input cases, BackupTab export/restore flows, store `applySettings`/`sanitizeSettingsPayload`, tab registry).
+
+### Changed — Session 2026-08-26: Workbench shell polish — centered commands, system-aware shortcuts, collapsible palette
+
+Follow-up polish pass on the professional workbench shell (desktop editor UI only — the simulation engine, data model, and SVG renderer are untouched).
+
+- **Centered header command cluster**: the top application bar is now a three-zone layout — identity + undo/redo + standard on the left, the command cluster (**Guides, Student/Pro, Validate, Run Simulation**, plus Pro-only Analyze / Diagnostics / Fault Lab) exactly centered, and the command-palette hint, theme, settings and menu on the right.
+- **Centered sub-header**: the simulation context bar (supply / system / project / sim state) now renders its content dead-center, gracefully degrading to a horizontal scroll when it overflows.
+- **System-aware command palette**: new `src/lib/platform.ts` detects macOS/Windows/Linux; the header trigger shows the ⌘ Command icon with a `⌘ K` key on macOS and the Search icon with `Ctrl K` elsewhere (also mirrored in the palette footer, shortcuts overlay, and Undo/Redo tooltips).
+- **Fixed global supply voltage dropdown**: the picker was being clipped by the sub-header's scroll container; it now renders in a portal at a fixed position (closes on outside click / Escape / resize) and locks while the simulation is running, matching the Inspector's supply lock.
+- **Variants locked during simulation**: the Inspector's "Available Family Variants" gallery is disabled (with a lock badge and explanation) while the simulation runs — stop the simulation to switch variants.
+- **Collapsible palette sections**: Recent, standard essentials, and every component category are now expandable/collapsible with counts, on both the desktop palette and the phone sheet; sections auto-expand while searching.
+- **Single canvas tool dock**: the redundant bottom-right ToolDock was removed; its unique tools (trace circuit path, zoom in/out) were merged into the top canvas toolbar, so all canvas tools live in one place under the sub-header.
+- **Welcome modal redesigned from scratch**: now covers every surface shipped to date — Guided Circuits, Component Library, Challenge Mode, Diagnosis Lab, Fault Lab, Validation & Diagnostics — plus the platform-aware command palette and keyboard shortcuts entries.
+- **Verification:** `npm run typecheck`, `biome lint`, and the full **927 unit tests** pass (including new platform-detection tests and extended welcome-modal coverage). Playwright browsers are not installable in this sandbox; run the E2E suite locally before deploy.
+
 ### Added — Session 2026-08-25: Explore 3D Historical Feature — Immersive Edison Bulb Laboratory
 
 - **New "Explore" 3D Historical Feature (`/explore/`)**: Introduced an experimental 3D historical laboratory application showcasing revolutionary electrical inventions in interactive 3D, starting with Thomas Edison's 1879 carbon-filament light bulb foundation.

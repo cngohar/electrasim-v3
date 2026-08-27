@@ -207,24 +207,54 @@ export function ComponentPropertiesView({
       {/* Variants Selection Gallery (Moved to top above Fault Simulation & Telemetry) */}
       {variantEntries.length > 1 && (
         <div className="space-y-1.5">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-            Available Family Variants ({variantEntries.length})
+          <div className="flex items-center justify-between gap-2">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Available Family Variants ({variantEntries.length})
+            </div>
+            {simRunning && (
+              <span
+                className="flex shrink-0 items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-700 dark:bg-amber-950/70 dark:text-amber-300"
+                title="Stop the simulation to switch variants"
+              >
+                <Lock className="size-3" />
+                Locked
+              </span>
+            )}
           </div>
+          {simRunning && (
+            <p className="rounded-lg border border-amber-200 bg-amber-50/70 px-2 py-1.5 text-[10px] leading-snug text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300">
+              Variants cannot be changed while the simulation is running. Stop the simulation first,
+              then pick a different family variant.
+            </p>
+          )}
 
-          <div className="grid grid-cols-2 gap-1.5 max-h-44 overflow-y-auto pr-0.5 custom-scrollbar">
+          <div
+            className={`grid grid-cols-2 gap-1.5 max-h-44 overflow-y-auto pr-0.5 custom-scrollbar ${
+              simRunning ? 'pointer-events-none opacity-55 select-none' : ''
+            }`}
+            aria-disabled={simRunning}
+          >
             {variantEntries.map(([vType, vDef]) => {
               const isSelected = selectedComp.type === vType;
               return (
                 <div key={vType} className="relative flex items-center group">
                   <button
                     type="button"
+                    disabled={simRunning}
                     onClick={() => {
                       useCircuitStore.getState().updateComponentType(selectedComp.id, vType);
                       setPreviewVariant(null);
                     }}
-                    onMouseEnter={() => setPreviewVariant(vType, selectedComp.id)}
+                    onMouseEnter={() => {
+                      if (!simRunning) setPreviewVariant(vType, selectedComp.id);
+                    }}
                     onMouseLeave={() => setPreviewVariant(null)}
-                    className={`w-full rounded-lg border py-1.5 pl-2 pr-6 text-left transition ${
+                    title={
+                      simRunning
+                        ? 'Stop the simulation to switch variants'
+                        : `Switch to ${vDef.label}`
+                    }
+                    className={`w-full rounded-lg border py-1.5 pl-2 pr-6 text-left transition disabled:cursor-not-allowed ${
                       isSelected
                         ? 'border-blue-500 bg-blue-50 text-blue-700 font-bold dark:border-blue-500 dark:bg-blue-950/40 dark:text-blue-300'
                         : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300'

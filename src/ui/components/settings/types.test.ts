@@ -7,6 +7,7 @@ describe('settings tabs', () => {
       'editing',
       'display',
       'simulation',
+      'backup',
       'about',
     ]);
     expect(SETTINGS_TABS.every((tab) => isSettingsTab(tab.id))).toBe(true);

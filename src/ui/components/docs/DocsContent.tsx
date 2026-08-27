@@ -1,5 +1,7 @@
 import {
+  BookOpen,
   Cpu,
+  Globe,
   GraduationCap,
   Keyboard,
   Lightbulb,
@@ -8,15 +10,21 @@ import {
   Zap,
 } from 'lucide-react';
 import { COMPONENT_DEFS } from '../../../domain';
+import { GUIDED_CIRCUIT_TEMPLATES, type GuidedCircuitTemplate } from '../../../domain/templates';
+import { loadGuidedCircuitIntoEditor } from '../../../lib/guidedCircuitLoader';
+import { remapShortcutLabel } from '../../../lib/platform';
+import { useUiStore } from '../../../store';
 import { APP_VERSION } from '../../../version';
-import { ComponentCard, SectionHeading, Step, WireSeparator } from './DocsPrimitives';
+import { ComponentCard, ExternalLink, SectionHeading, Step, WireSeparator } from './DocsPrimitives';
 import {
   CATEGORY_ORDER,
   type ComponentGroup,
   FAULTS,
+  GUIDE_WALKTHROUGH_ANCHORS,
   LEARNING_DIFFICULTIES,
   LEARNING_MODES,
   SHORTCUTS,
+  SITE_DESTINATIONS,
   TIPS,
 } from './data';
 
@@ -28,13 +36,15 @@ export function DocsContent({ groups }: { groups: ComponentGroup[] }) {
           ElectraSim Documentation
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-          Everything you need to know about building and simulating electrical circuits in the
-          browser — from placing your first component to diagnosing complex faults.
+          Quick reference for building and simulating electrical circuits in the browser. Each
+          section links to the full guide on the website where you can read more.
         </p>
       </div>
 
       <WireSeparator />
       <GettingStartedSection />
+      <WireSeparator />
+      <GuidedCircuitsSection />
       <WireSeparator />
       <ComponentReferenceSection groups={groups} />
       <WireSeparator />
@@ -47,6 +57,8 @@ export function DocsContent({ groups }: { groups: ComponentGroup[] }) {
       <LearningModesSection />
       <WireSeparator />
       <TipsSection />
+      <WireSeparator />
+      <OnTheWebsiteSection />
 
       <div className="mt-10 flex items-center gap-3">
         <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 to-transparent dark:via-slate-700" />
@@ -54,7 +66,8 @@ export function DocsContent({ groups }: { groups: ComponentGroup[] }) {
         <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 to-transparent dark:via-slate-700" />
       </div>
       <div className="mt-4 pb-8 text-center text-[10px] text-slate-400 dark:text-slate-500">
-        ElectraSim v{APP_VERSION} · {Object.keys(COMPONENT_DEFS).length} components
+        ElectraSim v{APP_VERSION} · {Object.keys(COMPONENT_DEFS).length} components · full guide at
+        electrasim.com
       </div>
     </main>
   );
@@ -91,9 +104,119 @@ function GettingStartedSection() {
       </SectionHeading>
       <div className="space-y-3">
         {steps.map(([title, desc], index) => (
-          <Step key={title} n={index + 1} title={title} desc={desc} />
+          <Step key={title} n={index + 1} title={title} desc={remapShortcutLabel(desc)} />
         ))}
       </div>
+      <div className="mt-3">
+        <ExternalLink href="https://electrasim.com/guide/">
+          Full step-by-step guide on electrasim.com
+        </ExternalLink>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Guided Circuits — the in-app guides and their long-form walkthroughs on the
+ * website. Every row loads the guide straight into the editor and links to
+ * the matching walkthrough on the site where one exists.
+ */
+function GuidedCircuitsSection() {
+  const basic = GUIDED_CIRCUIT_TEMPLATES.filter((template) => template.tier === 'basic');
+  const pro = GUIDED_CIRCUIT_TEMPLATES.filter((template) => template.tier === 'pro');
+
+  const guideRows = (templates: GuidedCircuitTemplate[]) =>
+    templates.map((template) => {
+      const anchor = GUIDE_WALKTHROUGH_ANCHORS[template.id];
+      const siteHref = anchor
+        ? `https://electrasim.com/guide/${anchor}`
+        : 'https://electrasim.com/guide/#templates-h';
+      return (
+        <div
+          key={template.id}
+          className="flex items-start gap-3 rounded-xl border border-slate-100 bg-white/60 p-3 transition hover:border-blue-200 dark:border-slate-700 dark:bg-slate-800/60 dark:hover:border-blue-800"
+        >
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-semibold text-slate-800 dark:text-slate-100">
+                {template.title}
+              </span>
+              <span
+                className={[
+                  'rounded-full border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide',
+                  template.difficulty === 'Beginner'
+                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300'
+                    : template.difficulty === 'Intermediate'
+                      ? 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300'
+                      : 'border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-800 dark:bg-purple-950/40 dark:text-purple-300',
+                ].join(' ')}
+              >
+                {template.difficulty}
+              </span>
+              {template.tier === 'pro' && (
+                <span className="rounded-full bg-purple-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-purple-700 dark:bg-purple-950/60 dark:text-purple-300">
+                  Pro
+                </span>
+              )}
+            </div>
+            <p className="mt-1 text-[11px] leading-relaxed text-slate-600 dark:text-slate-400">
+              {template.summary}
+            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  loadGuidedCircuitIntoEditor(template);
+                  useUiStore.getState().setDocsOpen(false);
+                }}
+                className="rounded-lg bg-blue-600 px-2.5 py-1 text-[10px] font-semibold text-white shadow-sm transition hover:bg-blue-700"
+              >
+                Open guide
+              </button>
+              <a
+                href={siteHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] font-semibold text-blue-600 underline-offset-2 transition hover:underline dark:text-blue-300"
+              >
+                {anchor ? 'Site walkthrough ↗' : 'All guides on the site ↗'}
+              </a>
+            </div>
+          </div>
+        </div>
+      );
+    });
+
+  return (
+    <section id="guided-circuits">
+      <SectionHeading icon={BookOpen} color="bg-blue-600">
+        Guided Circuits
+      </SectionHeading>
+      <p className="mb-3 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
+        {GUIDED_CIRCUIT_TEMPLATES.length} ready-made circuits load straight onto the canvas with a
+        checklist. Where a guide matches a walkthrough on the website, the link takes you to the
+        long-form version with diagrams.
+      </p>
+      <div className="mb-4 flex items-center gap-2">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+          Getting started
+        </span>
+        <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+          {basic.length}
+        </span>
+        <div className="h-px flex-1 bg-gradient-to-r from-slate-200 to-transparent dark:from-slate-700" />
+      </div>
+      <div className="mb-5 space-y-2">{guideRows(basic)}</div>
+      <div className="mb-4 flex items-center gap-2">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-purple-500 dark:text-purple-400">
+          Pro toolbox
+        </span>
+        <span className="rounded-full bg-purple-100 px-1.5 py-0.5 text-[10px] font-bold text-purple-600 dark:bg-purple-950/60 dark:text-purple-300">
+          {pro.length}
+        </span>
+        <div className="h-px flex-1 bg-gradient-to-r from-purple-200 to-transparent dark:from-purple-900" />
+      </div>
+      <div className="space-y-2">{guideRows(pro)}</div>
     </section>
   );
 }
@@ -229,6 +352,11 @@ function WiringSection() {
           </div>
         </div>
       </div>
+      <div className="mt-3">
+        <ExternalLink href="https://electrasim.com/guide/#circuit-walkthroughs">
+          Eight step-by-step circuit walkthroughs on the website
+        </ExternalLink>
+      </div>
     </section>
   );
 }
@@ -252,11 +380,14 @@ function ShortcutsSection() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-            {SHORTCUTS.map(([key, action]) => (
-              <tr key={key} className="transition hover:bg-slate-50/60 dark:hover:bg-slate-800/60">
+            {SHORTCUTS.map(([rawKey, action]) => (
+              <tr
+                key={rawKey}
+                className="transition hover:bg-slate-50/60 dark:hover:bg-slate-800/60"
+              >
                 <td className="px-4 py-2.5">
                   <kbd className="rounded border border-slate-200 bg-slate-100 px-2 py-0.5 font-mono text-[10px] font-medium text-slate-700 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200">
-                    {key}
+                    {remapShortcutLabel(rawKey)}
                   </kbd>
                 </td>
                 <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">{action}</td>
@@ -318,6 +449,11 @@ function SimulationSection() {
             ))}
           </ul>
         </div>
+      </div>
+      <div className="mt-3">
+        <ExternalLink href="https://electrasim.com/guide/#latest-features">
+          Fault simulation and the full workflow on the website
+        </ExternalLink>
       </div>
     </section>
   );
@@ -406,6 +542,11 @@ function LearningModesSection() {
           </p>
         </div>
       </div>
+      <div className="mt-3">
+        <ExternalLink href="https://electrasim.com/guide/#templates-h">
+          Every built-in guided circuit, listed on the website
+        </ExternalLink>
+      </div>
     </section>
   );
 }
@@ -424,9 +565,55 @@ function TipsSection() {
           >
             <span className="mt-0.5 text-amber-400">💡</span>
             <span className="text-xs leading-relaxed text-slate-600 dark:text-slate-400">
-              {tip}
+              {remapShortcutLabel(tip)}
             </span>
           </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/**
+ * On the Website — the bridge to the long-form docs on the Astro site. The
+ * in-app documentation is deliberately quick-reference; anything deeper links
+ * out here (plus per-section links above).
+ */
+function OnTheWebsiteSection() {
+  return (
+    <section id="on-the-website">
+      <SectionHeading icon={Globe} color="bg-cyan-600">
+        On the Website
+      </SectionHeading>
+      <p className="mb-3 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
+        These pages are the long-form half of the documentation — step-by-step guides, the
+        voltage-drop calculator, the 3D history explorer and project news. Everything opens on
+        electrasim.com in a new tab.
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {SITE_DESTINATIONS.map((destination) => (
+          <a
+            key={destination.href}
+            href={destination.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-start gap-3 rounded-xl border border-slate-100 bg-white/60 p-3 transition hover:-translate-y-px hover:border-cyan-200 hover:shadow-sm dark:border-slate-700 dark:bg-slate-800/60 dark:hover:border-cyan-800"
+          >
+            <span className="grid size-8 flex-shrink-0 place-items-center rounded-lg bg-cyan-50 text-cyan-600 ring-1 ring-cyan-100 transition group-hover:bg-cyan-600 group-hover:text-white dark:bg-cyan-950/60 dark:text-cyan-300 dark:ring-cyan-900/60">
+              <destination.icon className="size-4" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-xs font-semibold text-slate-800 dark:text-slate-100">
+                {destination.label}
+              </span>
+              <span className="mt-0.5 block text-[11px] leading-snug text-slate-500 dark:text-slate-400">
+                {destination.description}
+              </span>
+            </span>
+            <span className="text-slate-300 transition group-hover:text-cyan-500 dark:text-slate-600">
+              ↗
+            </span>
+          </a>
         ))}
       </div>
     </section>

@@ -27,18 +27,31 @@ let anchorHost: HTMLDivElement;
 
 beforeEach(() => {
   window.localStorage.clear();
+  vi.spyOn(window, 'confirm').mockReturnValue(true);
   anchorHost = document.createElement('div');
   anchorHost.innerHTML = ANCHORS.map((a) => `<button ${a}>x</button>`).join('');
   document.body.appendChild(anchorHost);
   act(() => {
-    useUiStore.setState({ tourId: 'student', tourStep: 0, paletteOpen: false });
+    useUiStore.setState({
+      tourId: 'student',
+      tourStep: 0,
+      paletteOpen: false,
+      tourCircuitBackup: null,
+      tourOriginalAppMode: null,
+    });
   });
 });
 
 afterEach(() => {
+  vi.restoreAllMocks();
   anchorHost.remove();
   act(() => {
-    useUiStore.setState({ tourId: null, tourStep: 0 });
+    useUiStore.setState({
+      tourId: null,
+      tourStep: 0,
+      tourCircuitBackup: null,
+      tourOriginalAppMode: null,
+    });
   });
 });
 
@@ -123,8 +136,7 @@ describe('TourOverlay', () => {
 });
 
 describe('startTour canvas behaviour', () => {
-  it('clears the canvas for the student tour (undoably) but not for pro', () => {
-    // Seed some circuit content.
+  const seedCircuit = () => {
     act(() => {
       useUiStore.setState({ simRunning: false });
       useCircuitStore.setState({
@@ -132,33 +144,130 @@ describe('startTour canvas behaviour', () => {
           { id: 'c1', type: 'bulb', x: 0, y: 0, rotation: 0, state: {} },
           { id: 'c2', type: 'bulb', x: 60, y: 0, rotation: 0, state: {} },
         ] as never,
-        wires: [{ id: 'w1' }] as never,
+        wires: [{ id: 'w1', controlPoints: [] }] as never,
       });
     });
+  };
 
-    // Pro tour keeps an existing circuit untouched.
+  it('prompts, saves and clears the canvas for both tours', () => {
+    seedCircuit();
+    const confirmSpy = vi.mocked(window.confirm);
+
     act(() => useUiStore.getState().startTour('pro'));
-    expect(useCircuitStore.getState().components.length).toBe(2);
-    act(() => useUiStore.getState().endTour());
-
-    // Student tour starts from an empty canvas.
-    act(() => useUiStore.getState().startTour('student'));
+    expect(confirmSpy).toHaveBeenCalled();
     expect(useCircuitStore.getState().components.length).toBe(0);
     expect(useCircuitStore.getState().wires.length).toBe(0);
-    expect(useSettingsStore.getState().appMode).toBeDefined(); // stores intact
+    expect(useUiStore.getState().tourCircuitBackup?.components.length).toBe(2);
+    act(() => useUiStore.getState().endTour());
+
+    seedCircuit();
+    act(() => useUiStore.getState().startTour('student'));
+    expect(useCircuitStore.getState().components.length).toBe(0);
+    expect(useUiStore.getState().tourCircuitBackup?.components.length).toBe(2);
     act(() => useUiStore.getState().endTour());
   });
 
-  it('seeds the demo circuit for the pro tour when the canvas is empty', () => {
+  it('does not start the tour when the user cancels the prompt', () => {
+    seedCircuit();
+    vi.mocked(window.confirm).mockReturnValue(false);
+    // The file-level beforeEach arms a tour — clear it so this test starts
+    // from a truly idle editor.
+    act(() => useUiStore.setState({ tourId: null }));
+
+    act(() => useUiStore.getState().startTour('student'));
+
+    expect(useUiStore.getState().tourId).toBeNull();
+    expect(useCircuitStore.getState().components.length).toBe(2);
+  });
+
+  it('switches the app mode to match the tour and restores it on end', () => {
     act(() => {
-      useUiStore.setState({ simRunning: false });
+      useSettingsStore.setState({ appMode: 'pro' });
       useCircuitStore.setState({ components: [] as never, wires: [] as never });
     });
 
-    act(() => useUiStore.getState().startTour('pro'));
-    // Validate / diagnostics / Fault Lab need a real circuit to work on.
-    expect(useCircuitStore.getState().components.length).toBeGreaterThan(3);
-    expect(useCircuitStore.getState().wires.length).toBeGreaterThan(3);
+    // Pro mode + student tour → workbench switches to Student mode for the tour.
+    act(() => useUiStore.getState().startTour('student'));
+    expect(useSettingsStore.getState().appMode).toBe('basic');
+    expect(useUiStore.getState().tourOriginalAppMode).toBe('pro');
+
+    // Ending restores the original mode.
     act(() => useUiStore.getState().endTour());
+    expect(useSettingsStore.getState().appMode).toBe('pro');
+
+    // Student mode + pro tour → workbench switches to Pro mode.
+    act(() => useUiStore.getState().startTour('pro'));
+    expect(useSettingsStore.getState().appMode).toBe('pro');
+    act(() => useUiStore.getState().endTour());
+    expect(useSettingsStore.getState().appMode).toBe('pro');
+  });
+
+  it('keeps a manually changed mode when the tour ends', () => {
+    act(() => {
+      useSettingsStore.setState({ appMode: 'pro' });
+      useCircuitStore.setState({ components: [] as never, wires: [] as never });
+    });
+
+    act(() => useUiStore.getState().startTour('student'));
+    expect(useSettingsStore.getState().appMode).toBe('basic');
+
+    // The user switches back to Pro themselves mid-tour — that is a choice.
+    act(() => useSettingsStore.getState().setSetting('appMode', 'pro'));
+    act(() => useUiStore.getState().endTour());
+    expect(useSettingsStore.getState().appMode).toBe('pro');
+  });
+});
+
+describe('tour restore prompt', () => {
+  it('offers to restore the saved circuit when the tour ends early', async () => {
+    // Seed a real (non-demo) circuit and start the tour — this saves a backup.
+    act(() => {
+      useUiStore.setState({ simRunning: false });
+      useCircuitStore.setState({
+        components: [
+          { id: 'c1', type: 'bulb', x: 0, y: 0, rotation: 0, state: {} },
+          { id: 'c2', type: 'bulb', x: 60, y: 0, rotation: 0, state: {} },
+        ] as never,
+        wires: [{ id: 'w1', controlPoints: [] }] as never,
+      });
+    });
+    act(() => useUiStore.getState().startTour('student'));
+    expect(useUiStore.getState().tourCircuitBackup).not.toBeNull();
+
+    render(<TourOverlay isPhone={false} />);
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+    await waitFor(() =>
+      expect(
+        screen.getByRole('dialog', { name: 'Tutorial finished — restore your circuit?' }),
+      ).toBeVisible(),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Restore previous circuit/ }));
+    await waitFor(() => expect(useUiStore.getState().tourId).toBeNull());
+    expect(useCircuitStore.getState().components.length).toBe(2);
+  });
+
+  it('keeps the tutorial circuit when the user chooses to', async () => {
+    act(() => {
+      useUiStore.setState({ simRunning: false });
+      useCircuitStore.setState({
+        components: [{ id: 'c1', type: 'bulb', x: 0, y: 0, rotation: 0, state: {} }] as never,
+        wires: [] as never,
+      });
+    });
+    act(() => useUiStore.getState().startTour('student'));
+
+    render(<TourOverlay isPhone={false} />);
+    fireEvent.keyDown(window, { key: 'Escape' });
+    await waitFor(() =>
+      expect(
+        screen.getByRole('dialog', { name: 'Tutorial finished — restore your circuit?' }),
+      ).toBeVisible(),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Keep this circuit/ }));
+    await waitFor(() => expect(useUiStore.getState().tourId).toBeNull());
+    expect(useCircuitStore.getState().components.length).toBe(0);
   });
 });

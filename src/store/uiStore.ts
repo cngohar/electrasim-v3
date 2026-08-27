@@ -15,6 +15,7 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import {
   COMPONENT_DEFS,
+  type Circuit,
   type ComponentInstance,
   type FaultType,
   type WireInstance,
@@ -22,10 +23,8 @@ import {
   isWireFaultType,
 } from '../domain';
 import { validateCircuit } from '../domain/circuitValidation';
-import { primarySocketForPlug } from '../domain/standards';
 import { prefersReducedMotionNow } from '../lib/reducedMotion';
-import { useCircuitStore } from './circuitStore';
-import { buildProSeedCircuit } from './seed';
+import { isDemoSeedCircuit, useCircuitStore } from './circuitStore';
 import { useSettingsStore } from './settingsStore';
 import {
   createComponent,
@@ -271,6 +270,8 @@ export const useUiStore = create<UiState>()(
     shortcutsOpen: false,
     tourId: null,
     tourStep: 0,
+    tourCircuitBackup: null,
+    tourOriginalAppMode: null,
     undoToast: null,
 
     setSimRunning: (running) =>
@@ -807,6 +808,35 @@ export const useUiStore = create<UiState>()(
         s.shortcutsOpen = !s.shortcutsOpen;
       }),
     startTour: (id) => {
+      const settings = useSettingsStore.getState();
+      const circuit = useCircuitStore.getState();
+      const hadCircuit = circuit.components.length > 0 || circuit.wires.length > 0;
+      // The untouched demo seed is not user work — no need to prompt for it
+      // (a Reset can always bring it back).
+      const isDemo = isDemoSeedCircuit(circuit);
+      if (hadCircuit && !isDemo) {
+        const ok = window.confirm(
+          'Start the tutorial?\n\nYour current circuit will be saved and can be restored later, after completing the tutorial — or you can keep the tutorial circuit instead.',
+        );
+        if (!ok) return;
+      }
+      const backup: Circuit | null =
+        hadCircuit && !isDemo
+          ? {
+              components: circuit.components.map((component) => ({
+                ...component,
+                state: { ...component.state },
+              })),
+              wires: circuit.wires.map((wire) => ({
+                ...wire,
+                controlPoints: wire.controlPoints ? [...wire.controlPoints] : [],
+              })),
+              ...(circuit.globalVoltage !== undefined
+                ? { globalVoltage: circuit.globalVoltage }
+                : {}),
+            }
+          : null;
+
       set((s) => {
         // A tour needs the canvas: close blocking first-run dialogs first.
         if (s.welcomeOpen) markWelcomed();
@@ -815,33 +845,61 @@ export const useUiStore = create<UiState>()(
         s.simRunning = false;
         s.tourId = id;
         s.tourStep = 0;
+        s.tourCircuitBackup = backup;
+        s.tourOriginalAppMode = settings.appMode;
       });
-      // The Student tour teaches place → wire → run from scratch, so it
-      // starts on an empty canvas. Clearing goes through the normal
-      // (undoable) store action — Ctrl+Z after the tour restores whatever
-      // was there, including the first-run demo circuit.
-      if (id === 'student' && useCircuitStore.getState().components.length > 0) {
-        useCircuitStore.getState().clearAllComponents();
+
+      // The tutorial must match the mode it teaches: the Student tour runs
+      // in Basic Student mode and the Pro tour in Pro Electrician mode. The
+      // original mode is restored when the tour ends unless the user changes
+      // it themselves during the tour.
+      const targetMode = id === 'student' ? 'basic' : 'pro';
+      if (settings.appMode !== targetMode) {
+        settings.setSetting('appMode', targetMode);
         get().addLog(
-          'Canvas cleared for the tutorial — press Ctrl+Z afterwards to restore your circuit.',
+          `Switched to ${targetMode === 'pro' ? 'Pro Electrician' : 'Basic Student'} mode for the tutorial.`,
           'info',
         );
       }
-      // The Pro tour exercises Validate, the diagnostics overlay and the
-      // Fault Lab — all of which need a circuit to chew on. If the canvas
-      // is empty (e.g. straight after the Student tour), load the demo
-      // bench for the region's plug system. Undoable like any other edit.
-      if (id === 'pro' && useCircuitStore.getState().components.length === 0) {
-        const plug = useSettingsStore.getState().plugSystem;
-        useCircuitStore.getState().setCircuit(buildProSeedCircuit(primarySocketForPlug(plug)));
-        get().addLog('Demo circuit loaded for the Pro tour — Ctrl+Z removes it.', 'info');
+
+      // Every tutorial starts on an empty canvas. The Student tour builds
+      // from scratch; the Pro tour asks you to load a practice circuit in
+      // its second step. Clearing goes through the normal (undoable) store
+      // action, and a saved circuit is offered back when the tour ends.
+      if (hadCircuit) {
+        useCircuitStore.getState().clearAllComponents();
+        get().addLog(
+          backup
+            ? 'Canvas saved and cleared for the tutorial — restore it when you finish.'
+            : 'Demo bench cleared for the tutorial.',
+          'info',
+        );
       }
     },
-    endTour: () =>
+    endTour: () => {
+      const tourId = get().tourId;
+      const originalMode = get().tourOriginalAppMode;
+      const expectedMode = tourId === 'student' ? 'basic' : 'pro';
       set((s) => {
         s.tourId = null;
         s.tourStep = 0;
-      }),
+        s.tourCircuitBackup = null;
+        s.tourOriginalAppMode = null;
+      });
+      // Hand the pre-tour mode back — unless the user switched modes
+      // themselves while the tour was running, which we treat as a choice.
+      if (
+        originalMode &&
+        originalMode !== expectedMode &&
+        useSettingsStore.getState().appMode === expectedMode
+      ) {
+        useSettingsStore.getState().setSetting('appMode', originalMode);
+        get().addLog(
+          `Tutorial ended — back to ${originalMode === 'pro' ? 'Pro Electrician' : 'Basic Student'} mode.`,
+          'info',
+        );
+      }
+    },
     setTourStep: (step) =>
       set((s) => {
         s.tourStep = step;

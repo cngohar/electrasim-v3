@@ -1,10 +1,24 @@
 /**
  * CanvasToolbar — Workbench experiment: compact contextual toolbar floating
  * near the top of the canvas. Reuses the exact same store actions as the
- * ToolDock / keyboard shortcuts (no duplicate state).
+ * keyboard shortcuts (no duplicate state).
+ *
+ * This is now the single canvas tool dock: the former bottom-right ToolDock
+ * was removed and its unique controls (trace-path, zoom in / out) merged in,
+ * so every canvas tool lives in one place directly under the sub-header bar.
  */
 
-import { Maximize2, MousePointer2, Pen, Plus, ScanSearch, Trash2 } from 'lucide-react';
+import {
+  Eye,
+  Maximize2,
+  MousePointer2,
+  Pen,
+  Plus,
+  ScanSearch,
+  Trash2,
+  ZoomIn,
+  ZoomOut,
+} from 'lucide-react';
 import { useCircuitStore, useSettingsStore, useUiStore, useViewportStore } from '../../store';
 import { requestDeleteSelection } from '../canvas-actions';
 import { IconBtn } from './IconBtn';
@@ -14,6 +28,8 @@ export function CanvasToolbar() {
   const simRunning = useUiStore((s) => s.simRunning);
   const customWiringMode = useSettingsStore((s) => s.customWiringMode);
   const pendingCustomPath = useUiStore((s) => s.pendingCustomPath);
+  const tracePathMode = useUiStore((s) => s.tracePathMode);
+  const toggleTracePathMode = useUiStore((s) => s.toggleTracePathMode);
 
   const selectedWireId = useCircuitStore((s) => s.selectedWireIds[0] ?? null);
   const selectedComponentIds = useCircuitStore((s) => s.selectedComponentIds);
@@ -51,12 +67,37 @@ export function CanvasToolbar() {
         }}
       />
       <IconBtn
+        icon={Eye}
+        title={
+          tracePathMode
+            ? 'Trace Circuit Path: ACTIVE (click to turn off)'
+            : 'Trace Circuit Path: OFF (click to highlight selected wire path)'
+        }
+        active={tracePathMode}
+        onClick={toggleTracePathMode}
+      />
+      <IconBtn
         icon={Trash2}
         title={simRunning ? 'Cannot delete while simulation is running' : 'Delete selected (Del)'}
         disabled={!hasSelection || simRunning}
         onClick={requestDeleteSelection}
       />
       <Sep />
+      <IconBtn
+        icon={ZoomOut}
+        title="Zoom out"
+        onClick={() => useViewportStore.getState().zoomBy(1 / 1.25)}
+      />
+      <IconBtn
+        icon={ZoomIn}
+        title="Zoom in"
+        onClick={() => useViewportStore.getState().zoomBy(1.25)}
+      />
+      <IconBtn
+        icon={Maximize2}
+        title="Reset view (1:1)"
+        onClick={() => useViewportStore.getState().resetView()}
+      />
       <IconBtn
         icon={ScanSearch}
         title="Zoom to fit all (F)"
@@ -71,11 +112,6 @@ export function CanvasToolbar() {
               useCircuitStore.getState().components,
             );
         }}
-      />
-      <IconBtn
-        icon={Maximize2}
-        title="Reset view (1:1)"
-        onClick={() => useViewportStore.getState().resetView()}
       />
     </div>
   );

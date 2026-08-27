@@ -42,12 +42,19 @@ export interface TourSnapshot {
   validationReport: unknown;
   /** True while the standard-selector popover is present in the DOM. */
   standardPopoverOpen: boolean;
+  /** Component type currently armed for placement (null when idle). */
+  placingType: string | null;
 }
 
 export interface TourStep {
   id: string;
   /** CSS selector of the element to spotlight; null = centred card. */
   target: string | null;
+  /** Dynamic spotlight: when provided and returning a selector, it overrides
+   *  `target` (e.g. move the spotlight onto the canvas once the user has
+   *  selected a palette tile, so the dim layer never blocks the next action).
+   */
+  targetWhen?: (snap: TourSnapshot) => string | null;
   title: string;
   body: string;
   kind: 'look' | 'do';
@@ -67,7 +74,7 @@ const STUDENT_STEPS: TourStep[] = [
     target: null,
     kind: 'look',
     title: 'Welcome to the interactive tour',
-    body: 'In about two minutes you will build a working circuit from scratch: place a bulb, give it power, wire it and switch it on. The canvas has been cleared for practice — Ctrl+Z after the tour brings your previous circuit back.',
+    body: 'In about two minutes you will build a working circuit from scratch: place a bulb, give it power, wire it and switch it on. The canvas is empty for practice — your previous circuit is saved, and when the tour ends you can restore it or keep what you built.',
   },
   {
     id: 'mode-badge',
@@ -96,6 +103,7 @@ const STUDENT_STEPS: TourStep[] = [
   {
     id: 'place-component',
     target: '[data-palette-type="bulb"]',
+    targetWhen: (snap) => (snap.placingType === 'bulb' ? '[data-circuit-canvas]' : null),
     kind: 'do',
     title: 'Place a bulb',
     body: 'Click the LED Bulb tile, then click an empty spot on the canvas to drop it. It has two ports: L (Live) on the left, N (Neutral) on the right.',
@@ -105,6 +113,10 @@ const STUDENT_STEPS: TourStep[] = [
   {
     id: 'add-supply',
     target: '[data-palette-type="live-terminal"]',
+    targetWhen: (snap) =>
+      snap.placingType === 'live-terminal' || snap.placingType === 'neutral-terminal'
+        ? '[data-circuit-canvas]'
+        : null,
     kind: 'do',
     title: 'Give it power: Live and Neutral',
     body: 'A load only works with a feed and a return. From the Supply section, place a Live (L) terminal on the left of the bulb and a Neutral (N) terminal on the right.',
@@ -141,7 +153,7 @@ const STUDENT_STEPS: TourStep[] = [
     target: '[data-tour="guided-circuits"]',
     kind: 'look',
     title: 'Guided Circuits — the best next step',
-    body: 'Eight ready-made circuits with learning notes and checklists: staircase two-way switching, RCD earth-fault checks, a contactor motor starter, an RCBO-protected socket, and more.',
+    body: 'Eighteen ready-made circuits with learning notes and checklists: staircase two-way switching, RCD earth-fault checks, a contactor motor starter, an RCBO-protected socket — and ten Pro guides covering three-phase, EV charging, solar, and more.',
   },
   {
     id: 'student-finish',
@@ -156,14 +168,20 @@ const STUDENT_STEPS: TourStep[] = [
 
 const PRO_STEPS: TourStep[] = [
   {
-    id: 'switch-to-pro',
+    id: 'pro-mode-active',
     target: '[data-tour="mode-toggle"]',
+    kind: 'look',
+    title: 'You are in Pro mode',
+    body: 'The tour switched the workbench to Pro Electrician Mode — this button proves it. (Your previous mode is restored when the tour ends.) Pro unlocks the standard selector, compliance validation, the diagnostics overlay, the Fault Lab and circuit analytics.',
+  },
+  {
+    id: 'load-practice-circuit',
+    target: '[data-tour="guided-circuits"]',
     kind: 'do',
-    title: 'Switch to Pro mode',
-    body: 'Pro unlocks the standard selector, compliance validation, the diagnostics overlay, the Fault Lab and circuit analytics. A demo circuit is on the canvas so every one of them has something real to work on.',
-    action: 'Click the Student / Pro toggle',
-    skipIf: (snap) => snap.appMode === 'pro',
-    advanceWhen: (snap) => snap.appMode === 'pro',
+    title: 'Load a practice circuit',
+    body: 'Every tour starts on an empty canvas. Open Guided Circuits and load any guide — the Pro tools below need a real circuit to chew on, and you get a checklist to go with it.',
+    action: 'Load any guided circuit',
+    advanceWhen: (snap, entry) => snap.componentCount >= entry.componentCount + 4,
   },
   {
     id: 'open-standards',

@@ -64,11 +64,16 @@ export type GuideCircuit = {
   diagram: string;
   steps: string[];
   insight: string;
+  /** In-app guided circuit id — the "Build this circuit" button deep-links
+   *  to /app/?template=<id> when the walkthrough matches a built-in guide. */
+  app_template?: string;
 };
 
 export type GuideFeature = ContentCard;
 
 export type GuidedTemplate = {
+  /** In-app guided circuit id — used to deep-link /app/?template=<id>. */
+  id: string;
   title: string;
   level: string;
   body: string;

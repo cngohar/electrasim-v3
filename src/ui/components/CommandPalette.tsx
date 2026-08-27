@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { COMPONENT_DEFS } from '../../domain';
+import { modShortcut } from '../../lib/platform';
 import { useCircuitStore, useClipboardStore, useUiStore, useViewportStore } from '../../store';
 import { useSettingsStore } from '../../store/settingsStore';
 import { requestDeleteSelection } from '../canvas-actions';
@@ -360,9 +361,14 @@ export function CommandPalette() {
             );
           })}
         </div>
-        <div className="border-t border-slate-100 px-4 py-2 text-[10px] text-slate-400 dark:border-slate-800">
-          <Zap className="mr-1 inline size-3 text-amber-400" />
-          ↑↓ to navigate · Enter to run · Esc to close
+        <div className="flex items-center justify-between border-t border-slate-100 px-4 py-2 text-[10px] text-slate-400 dark:border-slate-800">
+          <span>
+            <Zap className="mr-1 inline size-3 text-amber-400" />
+            ↑↓ to navigate · Enter to run · Esc to close
+          </span>
+          <kbd className="rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-mono font-semibold text-slate-400 dark:border-slate-700 dark:bg-slate-800">
+            {modShortcut('K')}
+          </kbd>
         </div>
       </dialog>
     </div>

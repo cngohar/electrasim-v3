@@ -8,6 +8,17 @@ export const GUIDED_CIRCUIT_IDS = [
   'timer-bell',
   'push-button-doorbell',
   'rcbo-protected-socket',
+  // Pro toolbox
+  'pro-3phase-dol-starter',
+  'pro-ev-charger-circuit',
+  'pro-solar-dc-system',
+  'pro-underfloor-heating',
+  'pro-staircase-timer',
+  'pro-pir-floodlight',
+  'pro-cooker-induction',
+  'pro-spd-consumer-unit',
+  'pro-generator-backup',
+  'pro-afdd-bedroom',
 ] as const;
 
 export type GuidedCircuitId = (typeof GUIDED_CIRCUIT_IDS)[number];
