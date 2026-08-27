@@ -7,6 +7,27 @@ A running, append-only log of work on the ElectraSim rewrite. Every coding sessi
 
 ---
 
+## Session 2026-08-27 (part 3) — Multi-Standard Toolbox (BS 7671 / IEC 60364 / US NEC) with SEO Push
+
+**Requests:**
+1. Label calculators explicitly per BS 7671 near results (trust surface)
+2. Add IEC 60364 (international metric) support to all three tools via a standards selector
+3. Ship a US NEC voltage-drop calculator (AWG, feet, 120–480 V) on its own SEO-focused route
+
+**Done:**
+1. **Standards core**: `astro-site/src/lib/tools/standards.ts` profiles + `StandardSelector.astro` (SSR citation lines); standards declared per-tool in `registry.ts` (`standards: StandardId[]`).
+2. **IEC mode** on voltage-drop (4%/5% banding), cable-sizing (Annex G lighting ceiling, citation-aware summaries), and max-zs ($Z_s \times I_a \le U_0$ without $C_{min}$, IEC 60364-6 ⅔ ambient rule, exact RCD 50 V ceiling, UK-only fuses hidden). Both the TS engines (unit-tested) and the mirrored vanilla client engines were updated.
+3. **US NEC tool** at `/tools/us/voltage-drop-calculator/`: NEC Ch. 9 Table 8 stranded resistance @75 °C, temp correction, AWG/kcmil↔mm² display, Cu/Al availability rules, 3%/5% advisory verdicts citing NEC 210.19(A) IN No. 4 / 215.2(A)(1) IN No. 2; `nec-voltage-drop.ts` + 13-case test suite + `nec-voltage-drop-tool.js` + `NecVoltageDropPanels.astro`.
+4. **SEO**: per-tool copy variants in `ToolSeoContent.astro` (fixing hardcoded voltage-drop narrative on other tool pages), standards chips on `/tools/` cards, standards-aware HowTo/WebApplication schema in `seo.ts`, IEC keywords on metric tools, US↔UK cross-links; route allowed in `seo.test.ts` flat-route assertion (`/tools/(us/)?slug/`).
+5. **Verification**: 64 astro-lib vitest pass · `astro check` 0/104 · `tsc` clean · `biome lint .` clean · `astro build` 143 pages (new route in sitemap + search.json).
+
+**Next:**
+1. Print/PDF result sheet for calculators (citations already render — add print stylesheet)
+2. Shareable calculator URLs (query-param input encoding)
+3. Offline caching for tool pages (workbox-style SW on the Astro site)
+
+---
+
 ## Session 2026-08-27 (part 2) — The 8 Architecture & Workbench Enhancements
 
 **Requests:**

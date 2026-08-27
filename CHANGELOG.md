@@ -11,6 +11,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added & Enhanced — Session 2026-08-27 (part 3): Multi-Standard Toolbox (BS 7671 / IEC 60364 / US NEC) with SEO Push
+
+1. **Regional Standards Architecture (`astro-site/src/lib/tools/standards.ts`)**:
+   - Single source of truth for wiring-standard profiles (`uk-bs7671`, `iec-60364`, `us-nec`) with labels, regions, citations, default voltages, and voltage-drop limit banding (BS 7671 Appendix 4: 3%/5% · IEC 60364-5-52 Annex G: 4%/5% · NEC informational notes: 3%/5% advisory).
+   - Reusable `StandardSelector.astro` component renders an accessible compliance picker with a server-rendered citation line (trust/E-E-A-T signal visible without JavaScript).
+2. **IEC 60364 Mode on All Three Metric Tools**:
+   - Voltage Drop: severity banding switches to IEC Annex G 4%/5% with per-standard status copy.
+   - Cable Sizing: lighting ceiling becomes 4% under IEC; summary/labels cite the active standard.
+   - Max Zs: IEC 60364-4-41 formula mode ($Z_s \times I_a \le U_0$, no UK $C_{min}$ correction), IEC 60364-6 ≈⅔ ambient-measurement rule replacing the GN3 80% rule, RCD 50 V touch-voltage ceiling kept exact under both standards, British-only fuse types (BS 88 / BS 1361) hidden in IEC mode.
+   - Client engines (`voltage-drop-tool.js`, `cable-size-tool.js`, `max-zs-tool.js`) mirror the unit-tested TS engines; every result shows an explicit "calculated per …" badge near the verdict.
+3. **US NEC Voltage Drop Calculator — `/tools/us/voltage-drop-calculator/`**:
+   - New engine (`nec-voltage-drop.ts`) using NEC Chapter 9 Table 8 conductor resistance (stranded, 75 °C), inferred-absolute-zero temperature correction ($K = 234.5$ Cu / 228.1 Al), optional NEC Ch. 9 Table 9 reactance, and NEC 210.19(A) IN No. 4 / 215.2(A)(1) IN No. 2 advisory verdicts.
+   - AWG/kcmil sizes (14 AWG → 500 kcmil) with exact mm² equivalents, feet, one-tap 12/24/48 V DC and 120/208/240/277/480 V AC presets, copper & aluminum with per-size availability (14 AWG and 3 AWG are copper-only per Table 8).
+   - Full SEO package: AWG/NEC keyword set, 6-question FAQPage schema, HowTo steps, four formula cards, NEC advisory-limits table, and cross-links to the metric edition.
+4. **SEO & Content Layer**:
+   - `ToolSeoContent.astro` now renders per-tool editorial copy variants (voltage drop, US NEC voltage drop, cable sizing, max Zs) instead of one hardcoded voltage-drop narrative; standards chips row in each tool's reference header.
+   - `seo.ts`: standards-aware HowTo descriptions and `about` annotations on `WebApplication` schema.
+   - Registry: updated meta titles/descriptions/keywords for IEC queries across the three metric tools; `/tools/` hub copy now surfaces BS 7671 / IEC 60364 / US NEC coverage with standards chips on each card.
+   - New page flows automatically into the sitemap (weekly, 0.9 priority), `search.json`, drawer, and command palette.
+5. **Verification**:
+   - 64 astro-lib vitest cases pass (`standards`, `nec-voltage-drop`, plus new IEC banding/derivation cases in the existing suites, incl. the 3%↔4% divergence window and the RCD cross-standard ceiling).
+   - `astro check`: 0 errors across 104 files. `tsc --noEmit`, `biome lint .` clean. `astro build`: 143 pages.
+
 ### Added & Enhanced — Session 2026-08-27 (part 2): The 8 Architecture & Workbench Enhancements
 
 1. **Cable Sizing & Max Zs Tools in Astro Toolbox**:
