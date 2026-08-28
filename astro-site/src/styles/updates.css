@@ -6,9 +6,35 @@
 }
 
 .upd-hero {
+  position: relative;
   padding: 4rem 0 3rem;
   border-bottom: 1px solid var(--border);
   background: var(--bg-2);
+}
+
+/* energised bus along the hero base (scanX pulse, viewport-gated via data-live) */
+.upd-hero::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background-color: var(--rail-ink);
+  background-image: linear-gradient(
+    90deg,
+    transparent 0 60%,
+    var(--rail-glow) 70%,
+    var(--live-2) 75%,
+    var(--rail-glow) 80%,
+    transparent 90% 100%
+  );
+  background-size: 720px 100%;
+  background-repeat: repeat-x;
+  animation: scanX 5s linear infinite paused;
+}
+.is-live .upd-hero::after {
+  animation-play-state: running;
 }
 
 .upd-kicker {
@@ -86,12 +112,41 @@
   z-index: 1;
   flex-shrink: 0;
 }
+.is-live .upd-dot {
+  animation: updDotPulse 2.4s ease-out infinite;
+}
+.upd-entry:nth-child(2n) .upd-dot {
+  animation-delay: 1.2s;
+}
+@keyframes updDotPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4);
+  }
+  60% {
+    box-shadow: 0 0 0 8px rgba(37, 99, 235, 0);
+  }
+}
 .upd-line {
   position: absolute;
   top: 2.5rem;
   bottom: -3.2rem;
   width: 2px;
-  background: linear-gradient(180deg, var(--border-bright), var(--border));
+  background-color: var(--rail-ink);
+}
+/* current pulse travelling down the rail between releases */
+.is-live .upd-line {
+  background-image: linear-gradient(
+    180deg,
+    transparent 0 60%,
+    var(--rail-glow) 70%,
+    var(--live-2) 75%,
+    var(--rail-glow) 80%,
+    transparent 90% 100%
+  );
+  background-size: 100% 620px;
+  background-repeat: repeat-y;
+  animation: scanY 7s linear infinite;
 }
 .upd-entry:last-child .upd-line {
   display: none;
@@ -101,6 +156,7 @@
   display: grid;
   grid-template-columns: 1fr 230px;
   gap: 1.5rem;
+  align-items: center;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 14px;
@@ -242,5 +298,17 @@
   }
   .upd-entry {
     gap: 0.85rem;
+  }
+}
+
+/* Motion safety */
+@media (prefers-reduced-motion: reduce) {
+  .upd-hero::after,
+  .upd-dot,
+  .upd-line {
+    animation: none !important;
+  }
+  .upd-line {
+    background-image: none;
   }
 }

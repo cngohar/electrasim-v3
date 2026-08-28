@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 4. **OG pipeline extended**: generator now processes both corpora (`/og/blog/`, `/og/updates/`) with path-correct brand labels, content-hash manifests per collection, and stale-file pruning (moved cards pruned from `/og/blog/`).
 5. **Search**: updates appear as their own `update` type in `search.json` with a 📦 Updates filter pill in the site search modal; homepage highlights and tag archives no longer include release notes.
 6. **Verification**: 133-page build (5 blog routes removed, 6 update routes added, tag archives re-thresholded); `/updates/` + release pages 200 over preview; astro check 0 errors · 64 tests · lint/typecheck green.
+7. **Polish follow-up**: `/updates/` hub now runs the house pulse animation (energised scanX bus under the hero, scanY current pulse travelling the timeline rail, ping rings on release dots — all viewport-gated via `data-live`/`is-live` and disabled under prefers-reduced-motion); release thumbnails vertically centred in their cards. SEO meta block re-verified on all new routes (canonical, description, index/follow, CollectionPage+ItemList+BreadcrumbList on the hub, Article+Product News section on releases, versioned OG cards).
+
 
 ### Added & Enhanced — Session 2026-08-28 (part 3): 404 "Open Circuit" Redesign
 

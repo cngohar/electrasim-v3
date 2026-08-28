@@ -19,6 +19,8 @@ A running, append-only log of work on the ElectraSim rewrite. Every coding sessi
 4. OG generator multi-corpus (`/og/blog` + `/og/updates`) with path labels and pruning; manifests per kind (`ogCardUrl(slug, kind)`).
 5. Search: `update` type + 📦 filter pill; homepage highlights swapped the v1.6 card for an evergreen article.
 6. Verified: build 133 pages, preview 200s, astro check clean, 64 tests, lint/typecheck OK.
+7. Follow-up: hero/timeline pulse animations added to /updates/ (scanX hero bus + scanY rail + dot pings; data-live gated; reduced-motion safe); update thumbnails vertically centred; SEO meta re-verified per route.
+
 
 ---
 
