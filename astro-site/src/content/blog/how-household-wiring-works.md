@@ -17,7 +17,7 @@ Electricity is generated at power stations and transmitted over high-voltage lin
 
 This supply enters your home through a **service head** (also called a main cutout or meter box). Inside, there's an electricity meter that counts how many kilowatt-hours (kWh) you consume, and from there the supply feeds into your **consumer unit** — commonly known as the fuse box or breaker panel.
 
-> 💡 **Try it yourself:** In ElectraSim, add a Battery (representing your mains supply) and connect it to an MCB. [Open the app →](/app/)
+> <span class="em em-bulb" role="img" aria-label="tip"></span> **Try it yourself:** In ElectraSim, add a Battery (representing your mains supply) and connect it to an MCB. [Open the app →](/app/)
 
 ## The Consumer Unit (Breaker Panel) — The Brain of Your Wiring
 
@@ -57,7 +57,7 @@ A basic light switch circuit is one of the simplest in household wiring, but it 
 
 The earth wire connects to the metal body of the light fitting. If the live wire ever touched the metal casing due to a fault, the current would flow safely to earth and trip the MCB instantly, rather than giving someone an electric shock.
 
-> 💡 **Simulate this now:** In ElectraSim, place a Battery → MCB → Switch → Light Bulb → back to Battery. Hit Run, then toggle the switch. You'll see the bulb light up in real time. [Try it →](/app/)
+> <span class="em em-bulb" role="img" aria-label="tip"></span> **Simulate this now:** In ElectraSim, place a Battery → MCB → Switch → Light Bulb → back to Battery. Hit Run, then toggle the switch. You'll see the bulb light up in real time. [Try it →](/app/)
 
 ## What is an MCB and How Does It Protect You?
 
@@ -68,7 +68,7 @@ A **Miniature Circuit Breaker (MCB)** is a resettable switch that automatically 
 
 Before MCBs, homes used **fuse wire** — a thin wire that melted when overloaded. MCBs are safer because they can be reset after the fault is fixed, while blown fuses must be replaced.
 
-> ⚠️ **Safety note:** Never bypass or replace an MCB with one of a higher rating unless a qualified electrician has assessed the wiring. Oversizing an MCB allows more current than the wires are rated for — a serious fire risk.
+> <span class="em em-warning" role="img" aria-label="warning"></span> **Safety note:** Never bypass or replace an MCB with one of a higher rating unless a qualified electrician has assessed the wiring. Oversizing an MCB allows more current than the wires are rated for — a serious fire risk.
 
 ## The Ring Main: How Sockets Are Wired
 

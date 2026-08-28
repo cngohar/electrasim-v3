@@ -1,4 +1,5 @@
 ---
+import EmojiIcon from '../components/EmojiIcon.astro';
 import '../styles/global.css';
 import packageMetadata from '../../../package.json';
 
@@ -80,7 +81,7 @@ const {
   <!-- Slim footer for toolbox pages (the app shell has no global footer) -->
   <footer class="tool-app-footer" role="contentinfo">
     <div class="tool-app-footer-in">
-      <span class="tool-app-footer-brand">⚡ ElectraSim — free, in your browser</span>
+      <span class="tool-app-footer-brand"><EmojiIcon name="bolt" /> ElectraSim — free, in your browser</span>
       <nav class="tool-app-footer-links" aria-label="Site links">
         <a href="/">Home</a>
         <a href="/updates/">Product updates</a>

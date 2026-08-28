@@ -13,7 +13,7 @@ The **live** wire carries current to your appliance. The **neutral** wire return
 
 This guide explains exactly what each wire does, why all three are necessary, what the UK colour codes mean, and what happens when they're connected incorrectly — with practical circuit diagrams throughout. You can also explore every concept hands-on using **[ElectraSim](/app/)**, a free browser-based electrical circuit simulator.
 
-> 💡 **Try it now:** Build a live–neutral–earth circuit in ElectraSim, simulate a fault, and see how the earth and RCD interact — no sign-up, no download. [Open ElectraSim →](/app/)
+> <span class="em em-bulb" role="img" aria-label="tip"></span> **Try it now:** Build a live–neutral–earth circuit in ElectraSim, simulate a fault, and see how the earth and RCD interact — no sign-up, no download. [Open ElectraSim →](/app/)
 
 ---
 
@@ -236,7 +236,7 @@ ElectraSim lets you build and test circuits that demonstrate all three conductor
 2. Toggle the switch — the bulb turns off, but the live connection to the bulb remains
 3. This interactive demonstration makes the polarity rule immediately obvious — the bulb terminal is still live even with the switch open
 
-> 🔍 ElectraSim's simulation engine runs a full BFS through the circuit graph on every change, so you see correct on/off states and fault detection in real time — the same logic a trained electrician applies mentally.
+> <span class="em em-search" role="img" aria-label="check this"></span> ElectraSim's simulation engine runs a full BFS through the circuit graph on every change, so you see correct on/off states and fault detection in real time — the same logic a trained electrician applies mentally.
 
 ---
 

@@ -1,4 +1,5 @@
 ---
+import EmojiIcon from '../../components/EmojiIcon.astro';
 import ExploreLayout from '../../layouts/ExploreLayout.astro';
 
 const title = 'Edison Carbon-Filament Lamp (1879) — 3D Interactive Explorer | ElectraSim';
@@ -37,7 +38,7 @@ const structuredData = {
     <header class="explore-sub-header" role="region" aria-label="3D Controls">
       <div class="sub-header-left">
         <div class="current-item-badge">
-          <span class="item-icon">💡</span>
+          <span class="item-icon"><EmojiIcon name="bulb" /></span>
           <span class="item-name">Edison Bulb (1879)</span>
           <span class="item-tag">3D MODEL</span>
         </div>
@@ -47,23 +48,23 @@ const structuredData = {
       <div class="sub-header-center">
         <nav class="mode-bar-dark" aria-label="3D Exploration Modes">
           <button type="button" class="mode-btn-dark active" data-mode="assembly" title="Full 3D Assembly Mode (Key: 1)">
-            <span class="mode-icon">🔄</span>
+            <span class="mode-icon"><EmojiIcon name="reset" /></span>
             <span>1. Assembly</span>
           </button>
           <button type="button" class="mode-btn-dark" data-mode="cutaway" title="Glass Envelope Cutaway View (Key: 2)">
-            <span class="mode-icon">✂️</span>
+            <span class="mode-icon"><EmojiIcon name="scissors" /></span>
             <span>2. Cutaway</span>
           </button>
           <button type="button" class="mode-btn-dark" data-mode="exploded" title="Vertical Exploded Component View (Key: 3)">
-            <span class="mode-icon">💥</span>
+            <span class="mode-icon"><EmojiIcon name="burst" /></span>
             <span>3. Exploded</span>
           </button>
           <button type="button" class="mode-btn-dark" data-mode="isolate" title="Isolate and Inspect Components (Key: 4)">
-            <span class="mode-icon">🔍</span>
+            <span class="mode-icon"><EmojiIcon name="search" /></span>
             <span>4. Isolate</span>
           </button>
           <button type="button" class="mode-btn-dark" data-mode="experiment" title="Physics Experiment Laboratory (Key: 5)">
-            <span class="mode-icon">🧪</span>
+            <span class="mode-icon"><EmojiIcon name="flask" /></span>
             <span>5. Experiment</span>
           </button>
         </nav>
@@ -72,12 +73,12 @@ const structuredData = {
       <!-- Right Header Actions -->
       <div class="sub-header-right">
         <button type="button" id="toggle-power-btn" class="power-toggle-btn-dark" title="Toggle Filament Power (Spacebar)">
-          <span class="power-icon">⚡</span>
+          <span class="power-icon"><EmojiIcon name="bolt" /></span>
           <span class="power-text">Power: <strong id="power-state-label" style="color: #f59e0b;">ON</strong></span>
         </button>
 
         <button type="button" id="sidebar-toggle-btn" class="hdr-btn-dark" title="Toggle Guide Sidebar">
-          <span>📜 Guide & Specs</span>
+          <span><EmojiIcon name="scroll" /> Guide & Specs</span>
         </button>
       </div>
     </header>
@@ -95,7 +96,7 @@ const structuredData = {
             <span id="active-mode-title">Assembly Mode</span>
           </div>
           <div class="canvas-hint hide-mobile">
-            <span>🖱️ Left-Click + Drag: Rotate · Scroll: Zoom · Keys 1-5: Modes · Space: Power</span>
+            <span><EmojiIcon name="mouse" /> Left-Click + Drag: Rotate · Scroll: Zoom · Keys 1-5: Modes · Space: Power</span>
           </div>
         </div>
 
@@ -125,7 +126,7 @@ const structuredData = {
         <!-- Physics Experiment Controls Panel (Experiment Mode) -->
         <div id="experiment-controls-panel" class="experiment-panel" hidden>
           <div class="exp-head">
-            <span class="exp-icon">🧪</span>
+            <span class="exp-icon"><EmojiIcon name="flask" /></span>
             <span>Edison 110V Physics Laboratory</span>
           </div>
 
@@ -172,9 +173,9 @@ const structuredData = {
       <!-- Collapsible Historical Guide & Technical Specs Sidebar -->
       <aside class="explore-sidebar" id="explore-sidebar">
         <div class="sidebar-tabs">
-          <button type="button" class="tab-btn active" data-tab="timeline">📜 Timeline Guide</button>
-          <button type="button" class="tab-btn" data-tab="specs">📋 Tech Specs</button>
-          <button type="button" class="tab-btn" data-tab="parts">🧩 Audit</button>
+          <button type="button" class="tab-btn active" data-tab="timeline"><EmojiIcon name="scroll" /> Timeline Guide</button>
+          <button type="button" class="tab-btn" data-tab="specs"><EmojiIcon name="clipboard" /> Tech Specs</button>
+          <button type="button" class="tab-btn" data-tab="parts"><EmojiIcon name="puzzle" /> Audit</button>
         </div>
 
         <!-- Tab 1: Historical Timeline -->

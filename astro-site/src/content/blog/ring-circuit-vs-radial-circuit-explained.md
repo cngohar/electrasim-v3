@@ -11,7 +11,7 @@ If you've ever looked inside a UK consumer unit and noticed that two cables go i
 
 This guide explains exactly how ring circuits and radial circuits work, the rules governing each under **BS 7671** (the IET Wiring Regulations), when you'd choose one over the other, how spurs work, what cable sizes to use, and how to visualise both topologies in **[ElectraSim](/app/)**.
 
-> 💡 **Try it now:** Build and compare ring and radial circuit layouts in ElectraSim — free, browser-based, no sign-up. [Open ElectraSim →](/app/)
+> <span class="em em-bulb" role="img" aria-label="tip"></span> **Try it now:** Build and compare ring and radial circuit layouts in ElectraSim — free, browser-based, no sign-up. [Open ElectraSim →](/app/)
 
 ---
 
@@ -240,7 +240,7 @@ ElectraSim lets you build both topologies and observe how current distributes di
 2. Notice all sockets still show as powered — but current is now flowing through one leg only
 3. This demonstrates why an open ring is invisible to normal operation but dangerous under load
 
-> 🔍 ElectraSim's BFS simulation engine recalculates the entire circuit on every change, so you can toggle, reconnect, and experiment in real time — the same analysis an NICEIC inspector applies during a ring continuity test.
+> <span class="em em-search" role="img" aria-label="check this"></span> ElectraSim's BFS simulation engine recalculates the entire circuit on every change, so you can toggle, reconnect, and experiment in real time — the same analysis an NICEIC inspector applies during a ring continuity test.
 
 ---
 

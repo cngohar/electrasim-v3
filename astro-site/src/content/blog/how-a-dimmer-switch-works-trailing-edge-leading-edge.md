@@ -92,11 +92,11 @@ Trailing edge dimmers are the correct choice for **capacitive loads** — electr
 | **Phase cut** | Start of cycle | End of cycle |
 | **Turn-on edge** | Hard (fast spike) | Smooth |
 | **Turn-off edge** | Abrupt | Controlled |
-| **Works with incandescent** | ✅ Excellent | ✅ Good |
-| **Works with halogen** | ✅ Excellent | ✅ Good |
-| **Works with LED** | ⚠️ Often poor | ✅ Good |
-| **Works with electronic transformer** | ⚠️ Variable | ✅ Good |
-| **Works with magnetic transformer** | ✅ Good | ⚠️ Variable |
+| **Works with incandescent** | <span class="em em-check" role="img" aria-label="do"></span> Excellent | <span class="em em-check" role="img" aria-label="do"></span> Good |
+| **Works with halogen** | <span class="em em-check" role="img" aria-label="do"></span> Excellent | <span class="em em-check" role="img" aria-label="do"></span> Good |
+| **Works with LED** | <span class="em em-warning" role="img" aria-label="warning"></span> Often poor | <span class="em em-check" role="img" aria-label="do"></span> Good |
+| **Works with electronic transformer** | <span class="em em-warning" role="img" aria-label="warning"></span> Variable | <span class="em em-check" role="img" aria-label="do"></span> Good |
+| **Works with magnetic transformer** | <span class="em em-check" role="img" aria-label="do"></span> Good | <span class="em em-warning" role="img" aria-label="warning"></span> Variable |
 | **Cost** | Lower | Higher |
 | **Heat generated** | More | Less |
 

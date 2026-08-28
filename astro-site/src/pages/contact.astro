@@ -1,4 +1,5 @@
 ---
+import EmojiIcon from '../components/EmojiIcon.astro';
 import data from '../content/pages/contact.json';
 import Base from '../layouts/Base.astro';
 import '../styles/contact.css';
@@ -24,14 +25,14 @@ const GOOGLE_FORM_URL = data.google_form_url;
 
     <div class="contact-grid">
       <a href={FACEBOOK_URL} target="_blank" rel="noopener noreferrer" class="contact-card">
-        <span class="contact-icon">📘</span>
+        <span class="contact-icon"><EmojiIcon name="bookClosed" /></span>
         <h2>Facebook Page</h2>
         <p>Follow us on Facebook for updates, tips, and to send us a message directly. We respond within 24 hours.</p>
         <span class="contact-btn">Visit Facebook →</span>
       </a>
 
       <a href={GOOGLE_FORM_URL} target="_blank" rel="noopener noreferrer" class="contact-card">
-        <span class="contact-icon">📝</span>
+        <span class="contact-icon"><EmojiIcon name="memo" /></span>
         <h2>Feedback Form</h2>
         <p>Use our Google Form to report bugs, request features, or share any other feedback. Anonymous submissions welcome.</p>
         <span class="contact-btn">Open Form →</span>

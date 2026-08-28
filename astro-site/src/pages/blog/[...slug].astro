@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import packageMetadata from '../../../../package.json';
+import EmojiIcon from '../../components/EmojiIcon.astro';
 import Base from '../../layouts/Base.astro';
 import { getTagArchives, readingTime, slugifyTag, sortBlogPosts, wordCount } from '../../lib/blog';
 import { ogCardUrl } from '../../og-manifest';
@@ -45,8 +46,7 @@ for (const h of sourceHeadings) {
 }
 // Only long-read articles get the TOC (≥4 min, ≥3 H2 sections).
 const showToc = tocItems.length >= 3 && readingTime(post.body ?? '') >= 4;
-const tocCount =
-  sourceHeadings.length > 0 ? (useH3 ? sourceHeadings.length : tocItems.length) : 0;
+const tocCount = sourceHeadings.length > 0 ? (useH3 ? sourceHeadings.length : tocItems.length) : 0;
 
 const pubDateISO = post.data.pubDate.toISOString().split('T')[0];
 const pubDateDisplay = post.data.pubDate.toLocaleDateString('en-GB', {
@@ -159,10 +159,10 @@ const breadcrumbSchema = {
       <span class="art-tag">{post.data.category}</span>
       <h1>{post.data.title}</h1>
       <div class="art-meta">
-        <span>📅 <time datetime={pubDateISO}>{pubDateDisplay}</time>
+        <span><EmojiIcon name="calendar" /> <time datetime={pubDateISO}>{pubDateDisplay}</time>
           {updDateDisplay && <span class="updated-badge">Updated <time datetime={updDateISO}>{updDateDisplay}</time></span>}
         </span>
-        <span>✍️ {post.data.author}</span>
+        <span><EmojiIcon name="writing" /> {post.data.author}</span>
         <span>⏱ {readMins} min read</span>
       </div>
 
@@ -230,7 +230,7 @@ const breadcrumbSchema = {
       <div class="art-cta">
         <h2>See It All in Action</h2>
         <p>Build and simulate the circuits from this article for free in your browser. No installation, no sign-up.</p>
-        <a href="/app/" class="btn-primary">⚡ Open ElectraSim Free</a>
+        <a href="/app/" class="btn-primary"><EmojiIcon name="bolt" /> Open ElectraSim Free</a>
       </div>
 
       {(prevPost || nextPost) && (

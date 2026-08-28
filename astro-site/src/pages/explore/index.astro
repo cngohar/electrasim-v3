@@ -1,4 +1,5 @@
 ---
+import EmojiIcon from '../../components/EmojiIcon.astro';
 import Explore3DHero from '../../components/explore/Explore3DHero.astro';
 import ExploreLayout from '../../layouts/ExploreLayout.astro';
 
@@ -52,7 +53,7 @@ const exploreSchema = {
       <div class="wrap">
         <div class="sec-head">
           <div class="head-tag-cyan">
-            <span class="tag-icon">⚡</span>
+            <span class="tag-icon"><EmojiIcon name="bolt" /></span>
             <span>FOUNDATIONAL HISTORICAL ITEM · 1879</span>
           </div>
           <h2 class="sec-title-light">Edison Carbon-Filament Incandescent Lamp</h2>
@@ -77,11 +78,11 @@ const exploreSchema = {
               </p>
 
               <div class="found-features-dark">
-                <div class="feat-pill-dark">🔍 5 Interactive 3D Modes</div>
-                <div class="feat-pill-dark">✂️ Glass Cutaway View</div>
-                <div class="feat-pill-dark">💥 Vertical Exploded Assembly</div>
-                <div class="feat-pill-dark">🔬 Live Physics Laboratory</div>
-                <div class="feat-pill-dark">📜 Historical Timeline with Citations</div>
+                <div class="feat-pill-dark"><EmojiIcon name="search" /> 5 Interactive 3D Modes</div>
+                <div class="feat-pill-dark"><EmojiIcon name="scissors" /> Glass Cutaway View</div>
+                <div class="feat-pill-dark"><EmojiIcon name="burst" /> Vertical Exploded Assembly</div>
+                <div class="feat-pill-dark"><EmojiIcon name="microscope" /> Live Physics Laboratory</div>
+                <div class="feat-pill-dark"><EmojiIcon name="scroll" /> Historical Timeline with Citations</div>
               </div>
 
               <div class="found-cta">
@@ -128,31 +129,31 @@ const exploreSchema = {
 
         <div class="modes-grid">
           <div class="mode-card-dark explore-card-glow">
-            <div class="mode-icon">🔄</div>
+            <div class="mode-icon"><EmojiIcon name="reset" /></div>
             <h3>1. Assembly Mode</h3>
             <p>Full 3D rotation, zoom, and panning of the complete Edison bulb. Inspect glass reflections, socket threading, and internal construction from any angle.</p>
           </div>
 
           <div class="mode-card-dark explore-card-glow">
-            <div class="mode-icon">✂️</div>
+            <div class="mode-icon"><EmojiIcon name="scissors" /></div>
             <h3>2. Cutaway Mode</h3>
             <p>Removes a section of the glass envelope or applies semi-transparent X-ray glass shaders to expose the internal stem, lead wires, support loops, and carbon filament.</p>
           </div>
 
           <div class="mode-card-dark explore-card-glow">
-            <div class="mode-icon">💥</div>
+            <div class="mode-icon"><EmojiIcon name="burst" /></div>
             <h3>3. Exploded Mode</h3>
             <p>Smoothly pulls components apart along the vertical axis (Glass envelope, filament, support wires, glass stem, lead wires, brass base, copper foot contact) with Leader Line annotations.</p>
           </div>
 
           <div class="mode-card-dark explore-card-glow">
-            <div class="mode-icon">🔍</div>
+            <div class="mode-icon"><EmojiIcon name="search" /></div>
             <h3>4. Isolate / Inspect Mode</h3>
             <p>Pick any component to isolate it in 3D view with dedicated technical specs, material properties, historical citations, and dimensions metadata.</p>
           </div>
 
           <div class="mode-card-dark explore-card-glow full-width">
-            <div class="mode-icon">⚡</div>
+            <div class="mode-icon"><EmojiIcon name="bolt" /></div>
             <h3>5. Physics Experiment Laboratory Mode</h3>
             <p>Interactive voltage slider (0 V to 130 V) with real physical calculations: cold vs hot resistance (113 Ω → 140 Ω), current, wattage, filament temperature (1500 K – 2500 K), luminous flux, and overdrive burnout simulation!</p>
           </div>

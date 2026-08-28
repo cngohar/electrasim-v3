@@ -14,7 +14,7 @@ Get the zoning wrong and a faulty garden lamp trips the fridge at 2 am. Get it r
 
 This guide explains the four main protection architectures used in UK domestic consumer units, how to assign circuits to zones, how RCD discrimination works, and what the current wiring regulations (BS 7671 18th Edition, Amendment 2) actually mandate.
 
-> 💡 **Simulate it:** ElectraSim includes Distribution Board, MCB, RCD, and RCBO components. Build a split-load or fully-RCBO consumer unit layout and test fault isolation before touching any real wiring. [Open ElectraSim →](/app/)
+> <span class="em em-bulb" role="img" aria-label="tip"></span> **Simulate it:** ElectraSim includes Distribution Board, MCB, RCD, and RCBO components. Build a split-load or fully-RCBO consumer unit layout and test fault isolation before touching any real wiring. [Open ElectraSim →](/app/)
 
 ---
 
@@ -327,7 +327,7 @@ If every high-consumption circuit (shower, cooker, EV charger, immersion) sits b
 4. Add **MCB** components downstream of each RCD, one per circuit
 5. Attach loads (bulbs, sockets, fan) to each MCB output
 6. Press **Run** — all circuits energise from the common DB supply
-7. Enable **Fault Simulation** (⚠ button) and apply an Earth Fault to a load on Zone 1
+7. Enable **Fault Simulation** (<span class="em em-warning" role="img" aria-label="warning"></span> button) and apply an Earth Fault to a load on Zone 1
 8. Zone 1's RCD trips; Zone 2 circuits remain live — exactly what a correctly zoned split-load installation should do
 
 ### Building a Fully RCBO Layout

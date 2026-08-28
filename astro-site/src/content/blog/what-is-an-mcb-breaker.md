@@ -11,7 +11,7 @@ Every time you overload an extension lead and hear a satisfying *click* from the
 
 This guide explains MCBs from the ground up: what they are, what's inside them, why they trip, and how you can test MCB behaviour safely using a **free electrical fault detection simulator** — right in your browser, with no installation and no risk of real-world shocks.
 
-> 💡 **Learn by doing:** You can simulate MCB trips, overloads and short circuits for free in [ElectraSim](/app/) — a virtual electrical lab for students, electricians, and curious learners alike.
+> <span class="em em-bulb" role="img" aria-label="tip"></span> **Learn by doing:** You can simulate MCB trips, overloads and short circuits for free in [ElectraSim](/app/) — a virtual electrical lab for students, electricians, and curious learners alike.
 
 ## What Does MCB Stand For?
 
@@ -69,7 +69,7 @@ A live wire touches an earthed metal part (a casing, pipe, or the earth wire its
 ### Cause 4: Faulty Appliance
 An internal fault in a connected appliance causes a brief short or overload. Unplug all appliances on the tripped circuit, reset the MCB, then plug them back in one at a time to identify the culprit.
 
-> ⚠️ **Safety rule:** If an MCB trips repeatedly after reset with nothing connected, the wiring itself has a fault. Stop resetting it and call a qualified electrician.
+> <span class="em em-warning" role="img" aria-label="warning"></span> **Safety rule:** If an MCB trips repeatedly after reset with nothing connected, the wiring itself has a fault. Stop resetting it and call a qualified electrician.
 
 ## How to Simulate MCB Behaviour Safely
 

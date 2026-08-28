@@ -1,5 +1,6 @@
 ---
 import type { GuideCircuit } from '../../types/pages';
+import EmojiIcon from '../EmojiIcon.astro';
 
 interface Props {
   heading: string;
@@ -29,7 +30,7 @@ const headingLines = heading.split('\n');
     <h1>{headingLines.map((line, index) => <>{index > 0 && <br />}{line}</>)}</h1>
     <p>{description}</p>
     <div class="cta-row">
-      <a href="/app/" class="btn-primary">{primaryCta}</a>
+      <a href="/app/" class="btn-primary"><EmojiIcon name="bolt" /> {primaryCta}</a>
       <a href="#latest-features" class="btn-outline">{secondaryCta}</a>
     </div>
   </div>

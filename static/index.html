@@ -130,6 +130,12 @@ footer{background:#0f172a;color:#94a3b8;padding:3rem 0 2rem}
   .sec{padding:3.5rem 0}
   .ft-top{flex-direction:column;gap:2rem}
 }
+
+/* Vector pictographs (the pages used to carry literal emoji, which every OS
+   renders with a different font). Shapes match astro-site/src/lib/emoji-icons.ts. */
+.ei { width: 1.05em; height: 1.05em; vertical-align: -0.18em; flex: 0 0 auto; display: inline-block; }
+.fi .ei, .uc-i .ei { width: 1.6em; height: 1.6em; vertical-align: -0.3em; }
+.logo-icon .ei { width: 1.1em; height: 1.1em; }
 </style>
 </head>
 <body>
@@ -137,7 +143,7 @@ footer{background:#0f172a;color:#94a3b8;padding:3rem 0 2rem}
 <nav class="nav" role="navigation" aria-label="Main navigation">
   <div class="nav-in">
     <a href="/" class="logo" aria-label="ElectraSim home">
-      <span class="logo-icon" aria-hidden="true">⚡</span>ElectraSim
+      <span class="logo-icon" aria-hidden="true"><svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><path d="M74 8 24 76h26l-10 44 64-70H70z" fill="#FFCC4D" stroke="#F4900C" stroke-width="7" stroke-linejoin="round"/></svg></span>ElectraSim
     </a>
     <div class="nav-links">
       <a href="#features" class="hide-m">Features</a>
@@ -150,19 +156,19 @@ footer{background:#0f172a;color:#94a3b8;padding:3rem 0 2rem}
 
 <header class="hero" role="banner">
   <div class="wrap">
-    <div class="badge"><span aria-hidden="true">⚡</span> Free &amp; No Sign-Up Required</div>
+    <div class="badge"><span aria-hidden="true"><svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><path d="M74 8 24 76h26l-10 44 64-70H70z" fill="#FFCC4D" stroke="#F4900C" stroke-width="7" stroke-linejoin="round"/></svg></span> Free &amp; No Sign-Up Required</div>
     <h1>Build Real Electrical Circuits<br><span>Right in Your Browser</span></h1>
     <p class="hero-desc">ElectraSim is a free, interactive electrical wiring lab. Drag real-world components — MCBs, switches, bulbs, fans, sockets — wire them together and watch your circuit come alive with live simulation.</p>
     <div class="cta-row">
-      <a href="/app/" class="btn-p">⚡ Launch the Simulator</a>
+      <a href="/app/" class="btn-p"><svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><path d="M74 8 24 76h26l-10 44 64-70H70z" fill="#FFCC4D" stroke="#F4900C" stroke-width="7" stroke-linejoin="round"/></svg> Launch the Simulator</a>
       <a href="#how-it-works" class="btn-s">See how it works ↓</a>
     </div>
     <div class="trust">
-      <span>✅ Works offline</span>
-      <span>✅ No installation</span>
-      <span>✅ No sign-up</span>
-      <span>✅ Data stays local</span>
-      <span>✅ Installable PWA</span>
+      <span><svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><rect x="8" y="8" width="112" height="112" rx="26" fill="#17BF63"/><path d="M34 66 55 87l39-45" fill="none" stroke="#fff" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/></svg> Works offline</span>
+      <span><svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><rect x="8" y="8" width="112" height="112" rx="26" fill="#17BF63"/><path d="M34 66 55 87l39-45" fill="none" stroke="#fff" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/></svg> No installation</span>
+      <span><svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><rect x="8" y="8" width="112" height="112" rx="26" fill="#17BF63"/><path d="M34 66 55 87l39-45" fill="none" stroke="#fff" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/></svg> No sign-up</span>
+      <span><svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><rect x="8" y="8" width="112" height="112" rx="26" fill="#17BF63"/><path d="M34 66 55 87l39-45" fill="none" stroke="#fff" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/></svg> Data stays local</span>
+      <span><svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><rect x="8" y="8" width="112" height="112" rx="26" fill="#17BF63"/><path d="M34 66 55 87l39-45" fill="none" stroke="#fff" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/></svg> Installable PWA</span>
     </div>
     <div class="hero-img">
       <img src="/og-image.png" alt="ElectraSim circuit simulator showing MCB breaker, bulb, fan and socket connected on the canvas" width="1200" height="630" loading="eager" fetchpriority="high" />
@@ -179,32 +185,32 @@ footer{background:#0f172a;color:#94a3b8;padding:3rem 0 2rem}
     </div>
     <div class="fg">
       <article class="fc">
-        <div class="fi" aria-hidden="true">🔌</div>
+        <div class="fi" aria-hidden="true"><svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><path d="M46 12v30M82 12v30" stroke="#8899A6" stroke-width="14" stroke-linecap="round"/><path d="M30 42h68v16a34 34 0 0 1-68 0z" fill="#66757F"/><path d="M64 92v26" stroke="#66757F" stroke-width="13" stroke-linecap="round"/></svg></div>
         <h3>Drag &amp; Drop Components</h3>
         <p>Place MCB breakers, switches, light bulbs, fans, motors and sockets from the palette. Components snap to a grid for clean, professional layouts.</p>
       </article>
       <article class="fc">
-        <div class="fi" aria-hidden="true">⚡</div>
+        <div class="fi" aria-hidden="true"><svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><path d="M74 8 24 76h26l-10 44 64-70H70z" fill="#FFCC4D" stroke="#F4900C" stroke-width="7" stroke-linejoin="round"/></svg></div>
         <h3>Real-Time Simulation</h3>
         <p>Hit Run and watch electricity flow instantly. Energised wires animate, bulbs light up, fans spin. Toggle switches and see changes propagate live.</p>
       </article>
       <article class="fc">
-        <div class="fi" aria-hidden="true">🔴</div>
+        <div class="fi" aria-hidden="true"><svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><circle cx="64" cy="64" r="46" fill="#DD2E44"/></svg></div>
         <h3>Fault Detection</h3>
         <p>The simulation engine detects open circuits, short circuits and overloads automatically. Faulty wires highlight in red for instant diagnosis.</p>
       </article>
       <article class="fc">
-        <div class="fi" aria-hidden="true">🔀</div>
+        <div class="fi" aria-hidden="true"><svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><g fill="none" stroke="#66757F" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M12 40h22c14 0 20 48 34 48h18"/><path d="M12 88h22c14 0 20-48 34-48h18"/><path d="M94 16l24 24-24 24M94 64l24 24-24 24"/></g></svg></div>
         <h3>Smart Wire Routing</h3>
         <p>Click a port to start wiring — ElectraSim auto-routes orthogonal wires around components. Custom multi-step wiring also supported.</p>
       </article>
       <article class="fc">
-        <div class="fi" aria-hidden="true">📐</div>
+        <div class="fi" aria-hidden="true"><svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><path d="M14 114 114 114 14 18z" fill="#A6D7F0" stroke="#1D9BF0" stroke-width="9" stroke-linejoin="round"/><path d="M14 92h16M22 78v16M34 66h16M42 52v16" stroke="#1D9BF0" stroke-width="7" stroke-linecap="round"/></svg></div>
         <h3>Multi-Select &amp; Align</h3>
         <p>Shift-click or drag-select multiple components. Align left, center, right, top or bottom with one click for professional diagrams.</p>
       </article>
       <article class="fc">
-        <div class="fi" aria-hidden="true">💾</div>
+        <div class="fi" aria-hidden="true"><svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><rect x="16" y="16" width="96" height="96" rx="10" fill="#5C9EDE"/><rect x="36" y="16" width="56" height="34" rx="4" fill="#F5F8FA"/><rect x="68" y="22" width="14" height="22" rx="3" fill="#66757F"/><rect x="34" y="66" width="60" height="40" rx="6" fill="#C7E8FA"/></svg></div>
         <h3>Import, Export &amp; Share</h3>
         <p>Save your circuit as JSON, export as SVG or PNG, or generate a shareable URL. Your work is autosaved locally and survives page reloads.</p>
       </article>
@@ -253,19 +259,19 @@ footer{background:#0f172a;color:#94a3b8;padding:3rem 0 2rem}
     </div>
     <div class="ug">
       <div class="uc">
-        <div class="uc-i" aria-hidden="true">🎓</div>
+        <div class="uc-i" aria-hidden="true"><svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><path d="M64 20 122 46 64 72 6 46z" fill="#66757F"/><path d="M34 62v26c0 12 14 20 30 20s30-8 30-20V62L64 76z" fill="#8899A6"/><path d="M118 50v34" stroke="#FFCC4D" stroke-width="8" stroke-linecap="round"/><circle cx="118" cy="90" r="8" fill="#FFCC4D"/></svg></div>
         <div><h3>Students</h3><p>Learn electrical wiring concepts hands-on without real wire and voltage. Build and test circuits safely.</p></div>
       </div>
       <div class="uc">
-        <div class="uc-i" aria-hidden="true">📚</div>
+        <div class="uc-i" aria-hidden="true"><svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><rect x="12" y="52" width="20" height="60" rx="4" fill="#DD2E44"/><rect x="34" y="40" width="20" height="72" rx="4" fill="#5C9EDE"/><rect x="56" y="56" width="20" height="56" rx="4" fill="#FFCC4D"/><path d="M78 108 118 56l10 6-40 52z" fill="#85C861"/></svg></div>
         <div><h3>Teachers</h3><p>Create live circuit demonstrations in the classroom. Share circuits via URL for homework assignments.</p></div>
       </div>
       <div class="uc">
-        <div class="uc-i" aria-hidden="true">🔧</div>
+        <div class="uc-i" aria-hidden="true"><svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><path d="M92 16a30 30 0 0 0-38 38L18 90a12 12 0 0 0 17 17l36-36a30 30 0 0 0 38-38l-18 18-17-3-3-17z" fill="#8899A6" stroke="#66757F" stroke-width="6" stroke-linejoin="round"/></svg></div>
         <div><h3>Electricians</h3><p>Prototype wiring layouts and validate circuit logic before installation on site.</p></div>
       </div>
       <div class="uc">
-        <div class="uc-i" aria-hidden="true">🤓</div>
+        <div class="uc-i" aria-hidden="true"><svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><circle cx="64" cy="64" r="52" fill="#FFD983"/><g fill="#F5F8FA" stroke="#66757F" stroke-width="7"><circle cx="44" cy="60" r="17"/><circle cx="84" cy="60" r="17"/></g><path d="M27 60h74" stroke="#66757F" stroke-width="7"/><g fill="#66757F"><circle cx="46" cy="60" r="6"/><circle cx="82" cy="60" r="6"/></g><path d="M42 92q22 16 44 0" fill="none" stroke="#66757F" stroke-width="8" stroke-linecap="round"/></svg></div>
         <div><h3>Hobbyists</h3><p>Experiment with circuit ideas, test different configurations, and learn by doing at your own pace.</p></div>
       </div>
     </div>
@@ -307,7 +313,7 @@ footer{background:#0f172a;color:#94a3b8;padding:3rem 0 2rem}
     <div class="cta-box">
       <h2>Ready to build your first circuit?</h2>
       <p>No installation. No sign-up. Just open ElectraSim and start wiring in seconds.</p>
-      <a href="/app/" class="btn-cta">⚡ Launch ElectraSim Free</a>
+      <a href="/app/" class="btn-cta"><svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><path d="M74 8 24 76h26l-10 44 64-70H70z" fill="#FFCC4D" stroke="#F4900C" stroke-width="7" stroke-linejoin="round"/></svg> Launch ElectraSim Free</a>
     </div>
   </div>
 </section>
@@ -316,7 +322,7 @@ footer{background:#0f172a;color:#94a3b8;padding:3rem 0 2rem}
   <div class="ft">
     <div class="ft-top">
       <div class="ft-brand">
-        <div class="ft-name"><span aria-hidden="true">⚡</span> ElectraSim</div>
+        <div class="ft-name"><span aria-hidden="true"><svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><path d="M74 8 24 76h26l-10 44 64-70H70z" fill="#FFCC4D" stroke="#F4900C" stroke-width="7" stroke-linejoin="round"/></svg></span> ElectraSim</div>
         <p>Free online electrical circuit simulator for learning wiring, building circuit diagrams, testing faults, and simulating circuits in your browser.</p>
       </div>
       <nav class="ft-col" aria-label="Product links">
@@ -344,7 +350,7 @@ footer{background:#0f172a;color:#94a3b8;padding:3rem 0 2rem}
     </div>
     <div class="ft-bot">
       <span>© 2026 ElectraSim. All rights reserved.</span>
-      <span>Built with ⚡ · Data stays on your device · No tracking cookies</span>
+      <span>Built with <svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><path d="M74 8 24 76h26l-10 44 64-70H70z" fill="#FFCC4D" stroke="#F4900C" stroke-width="7" stroke-linejoin="round"/></svg> · Data stays on your device · No tracking cookies</span>
     </div>
   </div>
 </footer>

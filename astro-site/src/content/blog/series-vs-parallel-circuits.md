@@ -26,7 +26,7 @@ Imagine a single pipe of water — it goes through every component before return
 
 **Real-world example:** Older Christmas tree light strings were wired in series. When one bulb's filament blew, it broke the single loop and every light went out. That's why modern lights use parallel wiring instead.
 
-> 💡 **Try it in ElectraSim:** Place a Battery → MCB → Switch → Bulb A → Bulb B → back to Battery. Run the simulation and toggle the switch. Now disconnect Bulb A — notice Bulb B goes out too. That's a series circuit. [Open the app →](/app/)
+> <span class="em em-bulb" role="img" aria-label="tip"></span> **Try it in ElectraSim:** Place a Battery → MCB → Switch → Bulb A → Bulb B → back to Battery. Run the simulation and toggle the switch. Now disconnect Bulb A — notice Bulb B goes out too. That's a series circuit. [Open the app →](/app/)
 
 ## What is a Parallel Circuit?
 
@@ -43,7 +43,7 @@ Think of multiple pipes branching off the same main supply. Each pipe carries it
 
 **Real-world example:** Every socket and light in your home is wired in parallel. Your kettle, TV, and lamp all receive the same 230V. If your lamp blows, your TV stays on. This is why parallel wiring is used in all household circuits.
 
-> 💡 **Try it in ElectraSim:** Place a Battery → MCB, then wire two bulbs in **parallel** branches. Run the simulation. Now disconnect one bulb — the other stays lit at full brightness. [Try it now →](/app/)
+> <span class="em em-bulb" role="img" aria-label="tip"></span> **Try it in ElectraSim:** Place a Battery → MCB, then wire two bulbs in **parallel** branches. Run the simulation. Now disconnect one bulb — the other stays lit at full brightness. [Try it now →](/app/)
 
 ## Series vs Parallel: Side-by-Side Comparison
 
@@ -78,7 +78,7 @@ Real electrical systems almost always use both. The **MCB in your consumer unit 
 
 This is the key insight: use series for **control and protection** (switches, breakers, fuses), and parallel for **power delivery** (anything that needs to run independently of other loads).
 
-> ⚡ **Advanced challenge in ElectraSim:** Build a circuit with one MCB in series, then two bulbs in parallel after it. Add a switch in series before each bulb. You now have a real-world lighting circuit — two independently switched lights sharing one breaker. [Build it now →](/app/)
+> <span class="em em-bolt" role="img" aria-label="live"></span> **Advanced challenge in ElectraSim:** Build a circuit with one MCB in series, then two bulbs in parallel after it. Add a switch in series before each bulb. You now have a real-world lighting circuit — two independently switched lights sharing one breaker. [Build it now →](/app/)
 
 ## FAQ
 

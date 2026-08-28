@@ -1,0 +1,541 @@
+---
+/**
+ * CableSizingScene3d.astro — the optional orbitable 3D cutaway.
+ *
+ * The stage is SVG + CSS by default: crawlable, selectable, instant, and it
+ * costs nothing to download. Some people still want to pick the model up and
+ * look under the insulation, so this component adds a real WebGL view — on
+ * demand only. three.js is dynamically imported the first time "3D view" is
+ * pressed, which keeps it out of the initial payload for everyone else.
+ *
+ * There is no second source of truth: the 3D view reads the same data-*
+ * attributes and CSS custom properties the 2D scene uses, plus the numbers
+ * already in the results panel, and rebuilds when the engine fires
+ * `cs:scene-painted`.
+ *
+ * Fallbacks are quiet on purpose — no WebGL, a failed chunk, or reduced motion
+ * all leave (or return to) the 2D cutaway, which holds every fact already shown.
+ */
+---
+
+<div id="cs-3d-layer" class="cs-3d" hidden>
+  <canvas id="cs-3d-canvas" class="cs-3d-canvas" role="img" aria-label="Three-dimensional cutaway of the cable inside its layers — drag to orbit, scroll to zoom"></canvas>
+  <p class="cs-3d-hint" id="cs-3d-status">Loading the 3D renderer…</p>
+  <p class="cs-3d-caption" id="cs-3d-caption" hidden></p>
+</div>
+
+<style>
+  .cs-3d {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    background: radial-gradient(120% 120% at 50% 20%, rgba(226, 236, 248, 0.95), rgba(203, 213, 225, 0.92));
+  }
+  :global(:root[data-theme='dark']) .cs-3d {
+    background: radial-gradient(120% 120% at 50% 20%, #14203a, #070d18);
+  }
+  .cs-3d[hidden] {
+    display: none;
+  }
+  .cs-3d-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    cursor: grab;
+  }
+  .cs-3d-canvas:active {
+    cursor: grabbing;
+  }
+  .cs-3d-hint,
+  .cs-3d-caption {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.45;
+    color: var(--text-mid, #475569);
+    background: var(--surface-glass, rgba(255, 255, 255, 0.9));
+    border: 1px solid var(--border, #e2e8f0);
+  }
+  .cs-3d-hint {
+    bottom: 1rem;
+  }
+  .cs-3d-caption {
+    /* under the scene HUD row (Animate / Explode / 3D), which occupies the top
+       strip of the stage in every layout — centring the caption there put it
+       straight behind those buttons */
+    top: 4.4rem;
+    max-width: min(560px, calc(100% - 2rem));
+    text-align: center;
+  }
+  .cs-3d-hint[hidden],
+  .cs-3d-caption[hidden] {
+    display: none;
+  }
+  @media (max-width: 768px) {
+    .cs-3d-caption {
+      font-size: 0.66rem;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * Everything below is inert until the toggle is pressed. The whole thing is
+   * wrapped in `boot()` so the elements arrive already narrowed (and so a page
+   * without a cutaway stage never runs any of it).
+   */
+  type VisualState = {
+    method: string;
+    insulation: number;
+    neighbours: number;
+    heat: number;
+    cool: number;
+    core: number;
+    status: string;
+    iz: number;
+    ib: number;
+    size: number;
+  };
+
+  const byId = <T extends Element>(id: string) => document.getElementById(id) as T | null;
+
+  const toggle = byId<HTMLButtonElement>('cs-3d-toggle');
+  const layer = byId<HTMLDivElement>('cs-3d-layer');
+  const canvas = byId<HTMLCanvasElement>('cs-3d-canvas');
+  const root = byId<HTMLDivElement>('cs-scene-root');
+
+  if (toggle && (!layer || !canvas || !root)) {
+    // A tool page without the cutaway stage: remove the affordance entirely.
+    toggle.hidden = true;
+  } else if (toggle && layer && canvas && root) {
+    boot(toggle, layer, canvas, root);
+  }
+
+  function boot(toggle: HTMLButtonElement, layer: HTMLElement, canvas: HTMLCanvasElement, root: HTMLElement) {
+    const status = byId<HTMLParagraphElement>('cs-3d-status');
+    const caption = byId<HTMLParagraphElement>('cs-3d-caption');
+    const svg = byId<SVGSVGElement>('cs-cutaway-svg');
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+
+    let THREE: typeof import('three') | null = null;
+    let renderer: import('three').WebGLRenderer | null = null;
+    let scene: import('three').Scene | null = null;
+    let camera: import('three').PerspectiveCamera | null = null;
+    let raf = 0;
+    let isOpen = false;
+    let loadFailed = false;
+    let current = readState();
+    /* pulled back so the whole stack is inside the frame on first open: at 6.6
+       the plates ran off both edges and the view read as a cropped close-up */
+    const orbit = { angle: 0.9, height: 2.3, distance: 11.4 };
+
+    function readState(): VisualState {
+      const styles = getComputedStyle(root);
+      const styleNum = (name: string, fallback: number) => {
+        const raw = Number.parseFloat(styles.getPropertyValue(name));
+        return Number.isFinite(raw) ? raw : fallback;
+      };
+      const text = (id: string) => document.getElementById(id)?.textContent?.trim() ?? '';
+      const amps = (id: string, fallback: number) => {
+        const n = Number.parseFloat(text(id));
+        return Number.isFinite(n) ? n : fallback;
+      };
+      return {
+        method: root.dataset.method ?? 'C',
+        insulation: Number.parseInt(root.dataset.insulation ?? '0', 10) || 0,
+        neighbours: Number.parseInt(root.dataset.neighbours ?? '0', 10) || 0,
+        heat: styleNum('--heat', 0.3),
+        cool: styleNum('--cool', 0.9),
+        core: styleNum('--core', 0.4),
+        status: root.dataset.status ?? 'pass',
+        iz: amps('cs-out-iz', 0),
+        ib: amps('cs-out-ib', 0),
+        size: Number.parseFloat(text('cs-out-size')) || 0,
+      };
+    }
+
+    function say(message: string) {
+      if (!status) return;
+      if (message) {
+        status.textContent = message;
+        status.hidden = false;
+      } else {
+        status.hidden = true;
+      }
+    }
+
+    /** A throwaway context, so a missing GPU is diagnosed as a missing GPU. */
+    function hasWebGL(): boolean {
+      try {
+        const probe = document.createElement('canvas');
+        return Boolean(probe.getContext('webgl2') || probe.getContext('webgl'));
+      } catch {
+        return false;
+      }
+    }
+
+    /**
+     * A chunk that cannot be fetched is not the browser's fault. A dev server can
+     * retire an optimised dependency while the page holds its old URL (Vite answers
+     * 504 "Outdated Optimize Dep"), and one retry is exactly what recovers there —
+     * so retry once, and report the real reason if it still fails.
+     */
+    async function ensureThree(): Promise<boolean> {
+      if (THREE) return true;
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          THREE = await import('three');
+          return true;
+        } catch {
+          if (attempt === 0) await new Promise((r) => setTimeout(r, 350));
+        }
+      }
+      loadFailed = true;
+      return false;
+    }
+
+    /** Remove and dispose what we built, so repainting cannot leak buffers. */
+    function clearScene() {
+      if (!scene) return;
+      for (const child of [...scene.children]) {
+        scene.remove(child);
+        const mesh = child as import('three').Mesh;
+        mesh.geometry?.dispose?.();
+        const material = mesh.material as import('three').Material | import('three').Material[] | undefined;
+        if (Array.isArray(material)) material.forEach((m) => m.dispose?.());
+        else material?.dispose?.();
+      }
+    }
+
+    function build() {
+      const t = THREE;
+      if (!t || !scene) return;
+      const state = current;
+      const gap = 1 + (state.insulation / 200) * 0.75;
+      const cableY = -1.65 * gap;
+      clearScene();
+
+      /**
+       * Plates mirror the 2D stack (cable plane at the bottom, room air on top).
+       * Anything that does not exist for this method is left nearly invisible
+       * rather than removed, so the geometry still reads as "nothing there".
+       */
+      const plates: Array<{ key: string; y: number; opacity: number; colour: number }> = [
+        { key: 'surface', y: -0.55, opacity: 0.3, colour: 0x9fb3c8 },
+        {
+          key: 'containment',
+          y: 0.15,
+          opacity: state.method === 'B' ? 0.42 : 0.05,
+          colour: 0x60a5fa,
+        },
+        {
+          key: 'insulation',
+          y: 0.85,
+          opacity: state.method === 'A' || state.insulation > 0 ? 0.6 : 0.05,
+          colour: 0xf0d492,
+        },
+        { key: 'ambient', y: 1.6, opacity: state.method === 'D' ? 0.05 : 0.16, colour: 0xbfdbfe },
+      ];
+      for (const spec of plates) {
+        const plate = new t.Mesh(
+          new t.BoxGeometry(7.2, 0.2, 3.4),
+          new t.MeshStandardMaterial({
+            color: spec.colour,
+            transparent: true,
+            opacity: spec.opacity,
+            roughness: 0.86,
+          }),
+        );
+        plate.position.y = spec.y * gap;
+        scene.add(plate);
+      }
+
+      if (state.method === 'D') {
+        const soil = new t.Mesh(
+          new t.BoxGeometry(7.8, 1.5, 3.8),
+          new t.MeshStandardMaterial({ color: 0x9b7b53, roughness: 1 }),
+        );
+        soil.position.y = 1.6;
+        scene.add(soil);
+      }
+      if (state.method === 'E') {
+        for (let i = -3; i <= 3; i++) {
+          const rail = new t.Mesh(
+            new t.BoxGeometry(0.16, 0.12, 3.2),
+            new t.MeshStandardMaterial({ color: 0x64748b, roughness: 0.7 }),
+          );
+          rail.position.set(i * 1.05, cableY + 0.5, 0);
+          scene.add(rail);
+        }
+      }
+
+      const sheath = new t.Mesh(
+        new t.CylinderGeometry(0.46, 0.46, 6.6, 36),
+        new t.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.5, metalness: 0.12 }),
+      );
+      sheath.rotation.z = Math.PI / 2;
+      sheath.position.y = cableY;
+      scene.add(sheath);
+
+      const conductor = state.method === 'A' ? 0xf59e0b : 0xc86a2e;
+      const coreRadius = 0.15 + state.core * 0.2;
+      for (const offset of [-0.18, 0.18]) {
+        const live = offset < 0;
+        const core = new t.Mesh(
+          new t.CylinderGeometry(coreRadius, coreRadius, 6.7, 28),
+          new t.MeshStandardMaterial({
+            color: live ? conductor : 0xdbe4ee,
+            emissive: new t.Color(live ? conductor : 0x223046),
+            emissiveIntensity: state.heat * (live ? 1.2 : 0.3),
+            roughness: 0.34,
+            metalness: 0.55,
+          }),
+        );
+        core.rotation.z = Math.PI / 2;
+        core.position.set(0, cableY + offset, 0);
+        scene.add(core);
+      }
+
+      // grouped circuits: each one glows, and the bundle centre runs hottest
+      for (let i = 0; i < Math.min(state.neighbours, 6); i++) {
+        const side = i % 2 === 0 ? 1 : -1;
+        const rank = Math.floor(i / 2) + 1;
+        const neighbour = new t.Mesh(
+          new t.CylinderGeometry(0.3, 0.3, 6.5, 22),
+          new t.MeshStandardMaterial({
+            color: 0x334155,
+            emissive: new t.Color(0xff6a2f),
+            emissiveIntensity: 0.15 + (1 - state.cool) * 0.55,
+            roughness: 0.6,
+          }),
+        );
+        neighbour.rotation.z = Math.PI / 2;
+        neighbour.position.set(0, cableY + side * rank * 0.66, 0);
+        scene.add(neighbour);
+      }
+
+      const arrows = new t.InstancedMesh(
+        new t.ConeGeometry(0.11, 0.34, 10),
+        new t.MeshBasicMaterial({
+          color: state.cool > 0.5 ? 0xf59e0b : 0xef4444,
+          transparent: true,
+          opacity: 0.85,
+        }),
+        14,
+      );
+      arrows.name = 'arrows';
+      scene.add(arrows);
+
+      const pool = new t.Mesh(
+        new t.SphereGeometry(1.95, 26, 18),
+        new t.MeshBasicMaterial({
+          color: 0xff4d4d,
+          transparent: true,
+          opacity: 0.08 + (1 - state.cool) * 0.3,
+        }),
+      );
+      pool.scale.set(1.7, 0.45, 0.95);
+      pool.position.y = cableY + 0.55;
+      pool.name = 'heatpool';
+      scene.add(pool);
+
+      scene.add(new t.HemisphereLight(0xffffff, 0x1e293b, 1.1));
+      const key = new t.DirectionalLight(0xffffff, 1.35);
+      key.position.set(4.5, 6.5, 5);
+      scene.add(key);
+      const warm = new t.PointLight(conductor, 0.4 + state.heat * (1.7 - state.cool), 9);
+      warm.position.set(0, cableY, 1.5);
+      warm.name = 'warm';
+      scene.add(warm);
+
+      if (caption) {
+        const margin = state.iz > 0 ? ((state.iz - state.ib) / state.iz) * 100 : 0;
+        caption.hidden = false;
+        caption.textContent =
+          `${state.size.toFixed(1)} mm² · Iz ${state.iz.toFixed(0)} A against Ib ${state.ib.toFixed(1)} A ` +
+          `(${margin >= 0 ? `${margin.toFixed(0)}% spare` : `${Math.abs(margin).toFixed(0)}% short`}) — ` +
+          (state.cool > 0.5 ? 'heat is leaving this run' : 'heat is trapped by its surroundings') +
+          '. Drag to orbit.';
+      }
+    }
+
+    function applyCamera() {
+      if (!camera) return;
+      camera.position.set(
+        Math.sin(orbit.angle) * orbit.distance,
+        orbit.height,
+        Math.cos(orbit.angle) * orbit.distance,
+      );
+      camera.lookAt(0, -0.35, 0);
+    }
+
+    function renderOnce() {
+      if (!renderer || !scene || !camera) return;
+      renderer.render(scene, camera);
+    }
+
+    function frame() {
+      raf = 0;
+      if (!renderer || !scene || !camera) return;
+      const t = THREE;
+      const state = current;
+      const gap = 1 + (state.insulation / 200) * 0.75;
+      const arrows = scene.getObjectByName('arrows') as import('three').InstancedMesh | undefined;
+      const pool = scene.getObjectByName('heatpool') as import('three').Mesh | undefined;
+      const warm = scene.getObjectByName('warm') as import('three').PointLight | undefined;
+
+      if (arrows && t) {
+        const matrix = new t.Matrix4();
+        const time = performance.now() / 1000;
+        for (let i = 0; i < arrows.count; i++) {
+          const x = -3 + (i / arrows.count) * 6.2;
+          const phase = (time * (0.3 + state.cool * 0.7) + i * 0.13) % 1;
+          // trapped heat goes up and comes back down instead of leaving
+          const rise = state.cool > 0.5 ? phase : 0.5 - Math.abs(0.5 - phase) * 0.6;
+          matrix.makeTranslation(x, -1.3 * gap + rise * 3.2, Math.sin(i * 1.7) * 1.05);
+          arrows.setMatrixAt(i, matrix);
+        }
+        arrows.instanceMatrix.needsUpdate = true;
+      }
+      if (pool) {
+        (pool.material as import('three').MeshBasicMaterial).opacity = 0.06 + (1 - state.cool) * 0.34;
+      }
+      if (warm) warm.intensity = 0.35 + state.heat * (1.7 - state.cool);
+
+      if (!reduceMotion) {
+        orbit.angle += 0.0018;
+        applyCamera();
+        renderer.render(scene, camera);
+        raf = requestAnimationFrame(frame);
+      } else {
+        renderOnce();
+      }
+    }
+
+    function resize() {
+      if (!renderer || !camera) return;
+      const rect = layer.getBoundingClientRect();
+      if (rect.width < 1 || rect.height < 1) return;
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setSize(rect.width, rect.height, false);
+      camera.aspect = rect.width / rect.height;
+      camera.updateProjectionMatrix();
+      if (reduceMotion) renderOnce();
+    }
+
+    function bindPointer() {
+      let dragging = false;
+      let last = { x: 0, y: 0 };
+      canvas.addEventListener('pointerdown', (e: PointerEvent) => {
+        dragging = true;
+        last = { x: e.clientX, y: e.clientY };
+        canvas.setPointerCapture?.(e.pointerId);
+      });
+      canvas.addEventListener('pointermove', (e: PointerEvent) => {
+        if (!dragging) return;
+        orbit.angle += (e.clientX - last.x) * 0.006;
+        orbit.height = Math.max(0.4, Math.min(6, orbit.height + (e.clientY - last.y) * 0.012));
+        last = { x: e.clientX, y: e.clientY };
+        applyCamera();
+        if (reduceMotion) renderOnce();
+      });
+      const stop = (e: PointerEvent) => {
+        dragging = false;
+        canvas.releasePointerCapture?.(e.pointerId);
+      };
+      canvas.addEventListener('pointerup', stop);
+      canvas.addEventListener('pointercancel', stop);
+      canvas.addEventListener(
+        'wheel',
+        (e: WheelEvent) => {
+          e.preventDefault();
+          orbit.distance = Math.max(3.4, Math.min(11, orbit.distance + e.deltaY * 0.012));
+          applyCamera();
+          if (reduceMotion) renderOnce();
+        },
+        { passive: false },
+      );
+    }
+
+    async function openView() {
+      say(
+        loadFailed
+          ? 'The 3D renderer is unavailable here — the diagram above carries the same data.'
+          : 'Loading the 3D renderer…',
+      );
+      // a previous failure is not permanent: re-arm so another press retries
+      if (loadFailed) {
+        loadFailed = false;
+        toggle.removeAttribute('aria-disabled');
+        if (layer) layer.hidden = true;
+      }
+      if (!(await ensureThree())) {
+        say(
+          hasWebGL()
+            ? 'The 3D renderer could not be fetched — press the button again, or reload the page. The diagram and the numbers above are identical in data.'
+            : '3D needs a WebGL-capable browser — the diagram above is identical in data.',
+        );
+        return;
+      }
+      const t = THREE;
+      if (!t) return;
+      if (!renderer) {
+        try {
+          renderer = new t.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        } catch {
+          loadFailed = true;
+          say('WebGL is unavailable here — the 2D cutaway shows the same thing.');
+          return;
+        }
+        scene = new t.Scene();
+        camera = new t.PerspectiveCamera(46, 1, 0.1, 100);
+        bindPointer();
+      }
+      layer.hidden = false;
+      isOpen = true;
+      if (svg) svg.style.visibility = 'hidden';
+      applyCamera();
+      current = readState();
+      build();
+      resize();
+      say('');
+      if (reduceMotion) renderOnce();
+      else raf = requestAnimationFrame(frame);
+    }
+
+    function closeView() {
+      isOpen = false;
+      layer.hidden = true;
+      if (svg) svg.style.visibility = '';
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+    }
+
+    toggle.addEventListener('click', () => {
+      const next = toggle.getAttribute('aria-pressed') !== 'true';
+      toggle.setAttribute('aria-pressed', next ? 'true' : 'false');
+      toggle.classList.toggle('active', next);
+      if (next) void openView();
+      else closeView();
+    });
+
+    window.addEventListener('resize', () => {
+      if (isOpen) resize();
+    });
+
+    // The 2D engine repaints on every input; rebuild on that same beat so the
+    // two views can never show different numbers.
+    document.addEventListener('cs:scene-painted', () => {
+      if (!isOpen) return;
+      current = readState();
+      build();
+      if (reduceMotion) renderOnce();
+    });
+  }
+</script>

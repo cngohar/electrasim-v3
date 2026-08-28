@@ -1,6 +1,7 @@
 ---
 import type { ToolEntry } from '../../lib/tools/registry';
 import { STANDARD_PROFILES } from '../../lib/tools/standards';
+import EmojiIcon from '../EmojiIcon.astro';
 
 interface Props {
   tool: ToolEntry;
@@ -30,7 +31,8 @@ const VARIANT_COPY: Record<string, ToolSeoCopy> = {
     introParagraphs: [
       'Whenever electric current flows through an electrical cable, energy is dissipated as heat due to the internal resistance of the metallic conductor. This resistance causes a reduction in electrical potential along the length of the wire, meaning the voltage delivered to the load is lower than the voltage supplied at the source origin.',
       'For example, in a <strong>230 V single-phase circuit</strong> delivering <strong>40 A</strong> over a <strong>50-meter</strong> run of <strong>10 mm² copper cable</strong>, the total conductor resistance creates a voltage drop of approximately <strong>6.33 V (2.75%)</strong>. The load receives <strong>223.67 V</strong>, safely within BS 7671 permissible limits.',
-      'This calculator checks results against <strong>BS 7671:2018+A4:2026 (UK)</strong> by default and can switch to <strong>IEC 60364-5-52 Annex G</strong> international guidance via the standards selector in the input panel.',
+      'That 6.33 V figure is the <em>cold</em> cable. Conductors gain about 0.39% of resistance per °C, so at the 70 °C thermoplastic design temperature the same circuit drops 7.57 V (3.29%), and the tabulated mV/A/m route lands near 9.2 V. Set the conductor temperature in Advanced Options to match how you intend to prove the circuit.',
+      'This calculator checks results against <strong>BS 7671:2018+A4:2026 (UK)</strong> by default and can switch to <strong>IEC 60364-5-52 Annex G</strong> international guidance via the standards selector in the input panel. Both quote 3% for lighting and 5% for other uses from a public LV supply; IEC adds a 6%/8% allowance for private supplies and up to +0.5% on runs over 100 m.',
     ],
     equationsTitle: 'The Voltage Drop Formulas & Equations',
     stepsTitle: 'How to Calculate Voltage Drop: Step-by-Step',
@@ -40,7 +42,8 @@ const VARIANT_COPY: Record<string, ToolSeoCopy> = {
       '<strong>Upsize Conductor Cross-Section:</strong> Increasing from 6 mm² to 10 mm² or 16 mm² halves conductor resistance, drastically reducing voltage loss and heat build-up.',
       '<strong>Shorten Cable Routing:</strong> Optimize cable paths through containment and cable trays to eliminate unnecessary run length.',
       '<strong>Switch to Higher Voltages or Three-Phase:</strong> For large industrial loads, distributing load across three phases reduces current per conductor by a factor of 1.732.',
-      '<strong>Use High-Conductivity Copper:</strong> Electrolytic tough pitch copper has ~64% lower resistivity than aluminum conductors of the same physical dimensions.',
+      '<strong>Use High-Conductivity Copper:</strong> Electrolytic tough-pitch copper (0.0172 Ω·mm²/m at 20 °C) has about 39% lower resistivity than the same size of EC-grade aluminum (0.0282 Ω·mm²/m) — equivalently, aluminum drops ~64% more voltage per metre.',
+      '<strong>Size to the hot cable, not the cold one:</strong> 0.39% more resistance per °C means a PVC conductor at its 70 °C design temperature carries roughly a fifth more volt drop than the same cable at 20 °C, and the BS 7671 mV/A/m tables already assume the hot value.',
     ],
   },
   'us-voltage-drop': {
@@ -67,7 +70,8 @@ const VARIANT_COPY: Record<string, ToolSeoCopy> = {
     introParagraphs: [
       'Cable sizing coordinates three currents: the <strong>design current Ib</strong> the load draws, the <strong>protective device rating In</strong> that guards the circuit, and the <strong>installed current-carrying capacity Iz</strong> of the conductor after real-world derating. Compliance requires Ib ≤ In ≤ Iz, so the breaker trips before the cable overheats.',
       'Installation conditions matter as much as conductor size. Cables buried in thermal insulation (Method A) shed heat poorly and are derated heavily, while cables clipped directly to a surface (Method C) run coolest. Ambient temperature (Ca), grouping with other loaded circuits (Cg), and insulation contact (Ci) multiply together into a total derating factor.',
-      'This calculator uses the harmonized metric tables shared by <strong>BS 7671:2018+A4:2026 Appendix 4 (UK)</strong> and <strong>IEC 60364-5-52</strong> (international), then verifies the run against the selected standard’s voltage-drop limits — 3%/5% under BS 7671, or 4%/5% under IEC 60364-5-52 Annex G. Choose your region with the standards selector above the inputs.',
+      'The interactive cutaway on this page is that arithmetic made visible: the layers around the cable, the heat trying to climb through them, and the conductor growing a size step when the surroundings will not let it cool. Move the sliders and the drawing reacts — the gauge is the whole rule in one object, with the load line (Ib) and the required capacity (It) marked on the cable’s derated headroom (Iz).',
+      'This calculator uses the harmonized metric tables shared by <strong>BS 7671:2018+A4:2026 Appendix 4 (UK)</strong> and <strong>IEC 60364-5-52</strong> (international), then verifies the run against the selected standard’s voltage-drop limits — 3%/5% under BS 7671, or 3% lighting / 5% other uses under IEC 60364-5-52 Annex G Table G.52.1 (plus its 6%/8% private-supply and +0.5% over-100 m allowances). Choose your region with the standards selector above the inputs.',
     ],
     equationsTitle: 'The Cable Sizing Formulas & Derating Equations',
     stepsTitle: 'How to Size a Cable: Step-by-Step',
@@ -77,7 +81,8 @@ const VARIANT_COPY: Record<string, ToolSeoCopy> = {
       '<strong>Improve heat dissipation:</strong> Moving from thermal insulation (Method A) to clipped direct (Method C) can raise capacity by ~40%, often dropping a full cable size.',
       '<strong>Reduce grouping:</strong> Splitting grouped circuits into separate containment restores the grouping factor Cg toward 1.0.',
       '<strong>Split long runs into parallel circuits:</strong> Two shorter radials each carry half the load, easing both thermal and voltage-drop constraints.',
-      '<strong>Check both constraints:</strong> Short runs are dominated by thermal capacity (Iz); long runs are usually governed by the voltage-drop ceiling — the engine reports which one is binding.',
+      '<strong>Check both constraints:</strong> Short runs are dominated by thermal capacity (Iz); long runs are usually governed by the voltage-drop ceiling — the engine reports which one is binding, and the cutaway chart marks the length where the handover happens.',
+      '<strong>Fix the heat path before the copper:</strong> changing from Method A to Method C is worth roughly a size step (1.5 mm² goes from 14.5 A to 20 A) at no material cost — re-route the cable rather than buying more of it.',
     ],
   },
   'max-zs': {
@@ -156,7 +161,7 @@ const standardChips = (tool.standards ?? []).map((id) => STANDARD_PROFILES[id]);
               {tool.equations.map((eq) => (
                 <div class="seo-formula-card">
                   <div class="formula-head">
-                    <span class="formula-icon">📐</span>
+                    <span class="formula-icon"><EmojiIcon name="ruler" /></span>
                     <h4>{eq.title}</h4>
                   </div>
                   <code>{eq.formula}</code>
@@ -190,7 +195,7 @@ const standardChips = (tool.standards ?? []).map((id) => STANDARD_PROFILES[id]);
           <section class="seo-block">
             <h3>BS 7671 & IEC 60364 Permissible Voltage Drop Limits</h3>
             <p>
-              Under UK Wiring Regulations (BS 7671:2018+A4:2026 Appendix 4) and international IEC 60364-5-52 Annex G guidance, maximum permitted voltage drop from the origin of the public supply installation to any point of utilization is:
+              Under the UK Wiring Regulations (BS 7671:2018+A4:2026, Regulation 525.1 with the limits tabulated in Appendix 4 Table 4Ab) and the international IEC 60364-5-52 Annex G guidance (Table G.52.1), the voltage drop between the <strong>origin of the installation</strong> and any fixed equipment must not exceed:
             </p>
             <div class="seo-table-wrap">
               <table class="seo-table">
@@ -208,18 +213,35 @@ const standardChips = (tool.standards ?? []).map((id) => STANDARD_PROFILES[id]);
                     <td><span class="table-tag good">5.0% (11.5 V at 230 V)</span></td>
                   </tr>
                   <tr>
-                    <td><strong>Public LV Supply — IEC 60364-5-52 Annex G</strong></td>
-                    <td><span class="table-tag good">4.0% (9.2 V at 230 V)</span></td>
+                    <td><strong>Public LV Supply — IEC 60364-5-52 Annex G, Table G.52.1</strong></td>
+                    <td><span class="table-tag good">3.0% (6.9 V at 230 V)</span></td>
                     <td><span class="table-tag good">5.0% (11.5 V at 230 V)</span></td>
                   </tr>
                   <tr>
-                    <td><strong>Private LV Supply (Solar PV / Generator)</strong></td>
+                    <td><strong>Private LV Supply (generator, on-site transformer, solar PV)</strong></td>
                     <td><span class="table-tag warning">6.0% (13.8 V at 230 V)</span></td>
                     <td><span class="table-tag warning">8.0% (18.4 V at 230 V)</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Three-phase 400 V final circuits (both standards)</strong></td>
+                    <td><span class="table-tag good">3.0% (12 V)</span></td>
+                    <td><span class="table-tag good">5.0% (20 V)</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Long runs — IEC Annex G note</strong></td>
+                    <td colspan="2">
+                      <span class="table-tag good">Beyond 100 m of main wiring the ceilings may be raised by 0.005% per extra metre, capped at +0.5%</span>
+                    </td>
                   </tr>
                 </tbody>
               </table>
             </div>
+            <p class="seo-table-note">
+              These are the <em>installation</em> allowances only. The distributor's own drop sits outside them: EN 50160 lets a 230 V
+              public supply run between −6% and +10% of nominal at the meter, so a circuit calculated at exactly 5% can still arrive at
+              the equipment hungrier than expected. Where a board is fed by a submain the budget is shared — a common split is about
+              0.5% for the consumer mains, 1.5–2% for the submain, and the remainder for the final circuit.
+            </p>
           </section>
         )}
 
@@ -285,8 +307,8 @@ const standardChips = (tool.standards ?? []).map((id) => STANDARD_PROFILES[id]);
                     <td><span class="table-tag good">5.0%</span></td>
                   </tr>
                   <tr>
-                    <td><strong>IEC 60364-5-52 (International), Annex G</strong></td>
-                    <td><span class="table-tag good">4.0%</span></td>
+                    <td><strong>IEC 60364-5-52 (International), Annex G Table G.52.1</strong></td>
+                    <td><span class="table-tag good">3.0%</span></td>
                     <td><span class="table-tag good">5.0%</span></td>
                   </tr>
                 </tbody>
@@ -365,14 +387,15 @@ const standardChips = (tool.standards ?? []).map((id) => STANDARD_PROFILES[id]);
   .tool-seo-section {
     background: var(--bg);
     border-top: 1px solid var(--border);
-    padding: 5rem 0 6rem;
+    /* fluid: the old fixed 5rem/6rem swallowed half the screen on a phone */
+    padding: clamp(2.5rem, 6vw, 5rem) 0 clamp(3rem, 7vw, 6rem);
     position: relative;
     z-index: 10;
   }
   .seo-wrap {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 1.5rem;
+    padding: 0 clamp(1rem, 4vw, 1.5rem);
   }
   .seo-header {
     text-align: center;
@@ -429,8 +452,22 @@ const standardChips = (tool.standards ?? []).map((id) => STANDARD_PROFILES[id]);
   }
   .seo-grid {
     display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 3.5rem;
+    /* minmax(0,…) on both tracks: `1fr` is `minmax(auto,1fr)`, and the auto floor
+       is the column's min-content width — which is what let a `min-width` table
+       inside the article push the whole section (and every paragraph in it) to
+       546 px on a 390 px phone, with the page clipping the right-hand words. */
+    grid-template-columns: minmax(0, 1fr) minmax(0, 340px);
+    gap: clamp(1.5rem, 4vw, 3.5rem);
+    align-items: start;
+  }
+  .seo-article,
+  .seo-sidebar,
+  .seo-block,
+  .seo-formulas-grid,
+  .seo-formula-card,
+  .seo-table-wrap {
+    min-width: 0;
+    max-width: 100%;
   }
   .seo-article {
     display: flex;
@@ -457,7 +494,7 @@ const standardChips = (tool.standards ?? []).map((id) => STANDARD_PROFILES[id]);
   }
   .seo-formulas-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
     gap: 1rem;
     margin-top: 0.5rem;
   }
@@ -492,6 +529,16 @@ const standardChips = (tool.standards ?? []).map((id) => STANDARD_PROFILES[id]);
     border-radius: 0.45rem;
     border: 1px solid var(--border);
     margin-bottom: 0.65rem;
+    /* A formula is the widest thing on this page and mono is greedy: wrap it, and
+       let it scroll only when a single term really is longer than the card. */
+    max-width: 100%;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: normal;
+    overflow-x: auto;
+  }
+  .seo-formula-card code:where(.seo-inline) {
+    white-space: normal;
   }
   .seo-formula-card p {
     font-size: 0.84rem;
@@ -518,8 +565,8 @@ const standardChips = (tool.standards ?? []).map((id) => STANDARD_PROFILES[id]);
     width: 2rem;
     height: 2rem;
     border-radius: 999px;
-    background: var(--blue);
-    color: #ffffff;
+    background: var(--action-bg, #2563eb);
+    color: var(--action-text, #ffffff);
     font-family: var(--font-display);
     font-size: 0.95rem;
     font-weight: 800;
@@ -539,14 +586,28 @@ const standardChips = (tool.standards ?? []).map((id) => STANDARD_PROFILES[id]);
     font-size: 0.9rem;
     margin: 0;
   }
+  .seo-table-note {
+    margin: 0.85rem 0 0;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: var(--text-mid);
+    border-left: 3px solid var(--border-bright, #bfdbfe);
+    padding-left: 0.75rem;
+  }
   .seo-table-wrap {
+    /* the table keeps a min-width so its columns stay readable; the wrapper is
+       what scrolls, so the page never does */
     overflow-x: auto;
+    overscroll-behavior-x: contain;
+    /* tables keep their columns and scroll instead of squashing on a phone */
+    -webkit-overflow-scrolling: touch;
     margin: 0.5rem 0;
     border-radius: var(--radius);
     border: 1px solid var(--border);
   }
   .seo-table {
     width: 100%;
+    min-width: 34rem;
     border-collapse: collapse;
     font-size: 0.92rem;
     text-align: left;
@@ -760,9 +821,88 @@ const standardChips = (tool.standards ?? []).map((id) => STANDARD_PROFILES[id]);
     text-decoration: underline;
   }
 
+  /* ── Responsive: the reference section is normal document flow, so it only
+     needs the type scale, padding and grid collapsed down as the viewport
+     shrinks. Panels above it are handled in VoltageDropPanels.astro. ───── */
   @media (max-width: 960px) {
     .seo-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .seo-header {
+      margin-bottom: 2.5rem;
+    }
+    .seo-article {
+      gap: 2rem;
+    }
+    /* the sidebar reads better as a wide card than a squashed rail */
+    .seo-sidebar {
+      position: static;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+      gap: 1rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .seo-header h2 {
+      font-size: clamp(1.55rem, 7vw, 2rem);
+    }
+    .seo-intro {
+      font-size: 0.98rem;
+    }
+    .seo-formulas-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .seo-formula-card,
+    .seo-step-item {
+      padding: 0.9rem 1rem;
+    }
+    .seo-step-item {
+      gap: 0.8rem;
+    }
+    .seo-block h3 {
+      font-size: 1.28rem;
+    }
+    .seo-block p,
+    .faq-answer p {
+      font-size: 0.93rem;
+    }
+    .faq-question {
+      padding: 0.85rem 1rem;
+      font-size: 0.95rem;
+    }
+    .faq-answer {
+      padding: 0 1rem 1rem;
+    }
+    .seo-table th,
+    .seo-table td {
+      padding: 0.7rem 0.8rem;
+      font-size: 0.85rem;
+    }
+    .seo-checklist li {
+      font-size: 0.92rem;
+    }
+  }
+
+  @media (max-width: 400px) {
+    .seo-std-chips {
+      gap: 0.35rem;
+    }
+    .seo-formula-card code {
+      font-size: 0.82rem;
+      overflow-wrap: anywhere;
+    }
+    .step-num {
+      width: 1.75rem;
+      height: 1.75rem;
+      font-size: 0.85rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .seo-faq-accordion *,
+    .faq-item {
+      transition: none !important;
     }
   }
 </style>

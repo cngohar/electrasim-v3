@@ -11,7 +11,7 @@ Bad wiring rarely announces itself. A socket with reversed polarity looks identi
 
 These five mistakes are among the most common found during Electrical Installation Condition Reports (EICRs) in UK homes. Some are dangerous immediately. Others create a slow-burn hazard that may take years to become a problem. All of them are avoidable.
 
-> 💡 **Test your understanding:** Build and fault-test circuits in [ElectraSim](/app/) — a free browser-based electrical simulator. See how each mistake affects circuit behaviour in real time. [Open ElectraSim →](/app/)
+> <span class="em em-bulb" role="img" aria-label="tip"></span> **Test your understanding:** Build and fault-test circuits in [ElectraSim](/app/) — a free browser-based electrical simulator. See how each mistake affects circuit behaviour in real time. [Open ElectraSim →](/app/)
 
 ---
 
@@ -41,7 +41,7 @@ What's actually happening:
 
 A simple plug-in socket tester (available for under £5) will detect reverse polarity instantly. A voltage indicator or multimeter can also confirm: between live and earth should read ~230 V; between neutral and earth should read close to 0 V. If those readings are swapped, polarity is reversed.
 
-> 📖 **Related:** [Live, Neutral and Earth Wires Explained](/blog/live-neutral-and-earth-wires-explained/) — understanding why the switch must always break the live, never the neutral.
+> <span class="em em-book" role="img" aria-label="reference"></span> **Related:** [Live, Neutral and Earth Wires Explained](/blog/live-neutral-and-earth-wires-explained/) — understanding why the switch must always break the live, never the neutral.
 
 ### How to avoid it
 
@@ -75,7 +75,7 @@ Under a fault condition — a live conductor inside the appliance touches the me
 
 The MCB does **not** trip. There is no overload. The fault is invisible until someone is hurt.
 
-> 📖 **Related:** [Live, Neutral and Earth Wires Explained](/blog/live-neutral-and-earth-wires-explained/) — how earthing works, why Class I appliances require it, and what happens without it.
+> <span class="em em-book" role="img" aria-label="reference"></span> **Related:** [Live, Neutral and Earth Wires Explained](/blog/live-neutral-and-earth-wires-explained/) — how earthing works, why Class I appliances require it, and what happens without it.
 
 ### How to spot it
 
@@ -108,7 +108,7 @@ In an open ring, all current flows down **one leg only**. That single 2.5 mm² c
 
 Over time this causes insulation failure, fire risk, and potential electrocution from a live wall cavity.
 
-> 📖 **Related:** [Ring Circuit vs Radial Circuit: What's the Difference?](/blog/ring-circuit-vs-radial-circuit-explained/) — how a ring circuit works, how to identify an open ring, and the continuity test method to find it.
+> <span class="em em-book" role="img" aria-label="reference"></span> **Related:** [Ring Circuit vs Radial Circuit: What's the Difference?](/blog/ring-circuit-vs-radial-circuit-explained/) — how a ring circuit works, how to identify an open ring, and the continuity test method to find it.
 
 ### How to spot it
 
@@ -161,7 +161,7 @@ A 32 A MCB will not trip at 28–30 A of continuous load. It is designed for ove
 - Fixed high-draw appliances (dishwasher, washing machine, fridge) should ideally be on their own dedicated radial or connected via a [fused connection unit (FCU)](/blog/ring-circuit-vs-radial-circuit-explained/#spurs-adding-sockets-to-an-existing-ring)
 - Never run extension leads daisy-chained on a kitchen socket — each lead adds resistance and heat to an already heavily loaded circuit
 
-> 📖 **Related:** [Distribution Board Explained: How a Consumer Unit is Wired](/blog/distribution-board-explained-how-a-consumer-unit-is-wired/) — how to plan circuit layouts in the consumer unit and allocate dedicated circuits for high-demand areas.
+> <span class="em em-book" role="img" aria-label="reference"></span> **Related:** [Distribution Board Explained: How a Consumer Unit is Wired](/blog/distribution-board-explained-how-a-consumer-unit-is-wired/) — how to plan circuit layouts in the consumer unit and allocate dedicated circuits for high-demand areas.
 
 ---
 
@@ -177,10 +177,10 @@ Common examples:
 |---|---|---|---|
 | Lighting circuit on 16 A MCB | 1.0 mm² (13 A rated) | 16 A | Cable overheats before MCB trips |
 | Socket radial on 32 A MCB | 2.5 mm² (27 A rated) | 32 A | Marginal — acceptable only on a ring where cable shares load |
-| Cooker on 32 A MCB | 6.0 mm² (46 A rated) | 32 A | ✅ Correct — MCB protects cable |
+| Cooker on 32 A MCB | 6.0 mm² (46 A rated) | 32 A | <span class="em em-check" role="img" aria-label="do"></span> Correct — MCB protects cable |
 | Immersion heater on 20 A MCB | 1.5 mm² (15 A rated) | 20 A | Cable overheats before MCB trips |
 
-> 📖 **Related:** [What is an MCB (Miniature Circuit Breaker)?](/blog/what-is-an-mcb-breaker/) — how MCBs work, trip curves (Type B, C, D), and the difference between overload and short-circuit protection.
+> <span class="em em-book" role="img" aria-label="reference"></span> **Related:** [What is an MCB (Miniature Circuit Breaker)?](/blog/what-is-an-mcb-breaker/) — how MCBs work, trip curves (Type B, C, D), and the difference between overload and short-circuit protection.
 
 ### Why it's dangerous
 
@@ -217,7 +217,7 @@ You don't need an EICR to spot warning signs. These non-invasive checks require 
 
 4. **Test your RCD** — press the TEST button on each RCD in your consumer unit once a quarter. The RCD should trip immediately. If it doesn't trip, or won't reset, it needs replacing.
 
-> 📖 **Related:** [What is an RCD and Why Do You Need One?](/blog/what-is-an-rcd-and-why-do-you-need-one/) — how RCDs protect against earth faults, what the TEST button does, and why a non-tripping RCD is a serious hazard.
+> <span class="em em-book" role="img" aria-label="reference"></span> **Related:** [What is an RCD and Why Do You Need One?](/blog/what-is-an-rcd-and-why-do-you-need-one/) — how RCDs protect against earth faults, what the TEST button does, and why a non-tripping RCD is a serious hazard.
 
 ---
 
@@ -242,7 +242,7 @@ You don't need an EICR to spot warning signs. These non-invasive checks require 
 2. Break one leg by removing a wire mid-loop
 3. All loads remain powered — confirming the fault is invisible to normal operation but present in the wiring
 
-> 🔍 ElectraSim's simulation engine performs a full graph traversal on every circuit change — the same logical analysis an electrician applies during fault-finding. [Try it free →](/app/)
+> <span class="em em-search" role="img" aria-label="check this"></span> ElectraSim's simulation engine performs a full graph traversal on every circuit change — the same logical analysis an electrician applies during fault-finding. [Try it free →](/app/)
 
 ---
 

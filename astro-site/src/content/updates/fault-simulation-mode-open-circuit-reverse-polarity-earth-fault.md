@@ -19,7 +19,7 @@ Most circuit simulators only show the happy path — components energised, curre
 
 ## What Is Fault Simulation Mode?
 
-Fault Simulation Mode is a new overlay accessible from the **⚠ button** in the bottom-right tool dock. Pressing it opens the Fault Panel at the top of the canvas.
+Fault Simulation Mode is a new overlay accessible from the **<span class="em em-warning" role="img" aria-label="warning"></span> button** in the bottom-right tool dock. Pressing it opens the Fault Panel at the top of the canvas.
 
 From the panel you choose one of three fault types:
 
@@ -27,11 +27,11 @@ From the panel you choose one of three fault types:
 |---|---|---|
 | **Wire Break** | Any wire | Red dashed line + ✕ marker at midpoint |
 | **Reverse Polarity** | Any component | Orange dashed ring + ↔ badge |
-| **Missing Earth** | Any component | Yellow dashed ring + ⚡ badge |
+| **Missing Earth** | Any component | Yellow dashed ring + <span class="em em-bolt" role="img" aria-label="live"></span> badge |
 
 Click the target element to inject the fault. Click again to remove it. The simulation re-runs automatically after every change — you see the effect immediately in the canvas, the log panel, and the status bar.
 
-When you exit fault mode (press ⚠ again), all injected faults are automatically cleared and the circuit returns to its normal state.
+When you exit fault mode (press <span class="em em-warning" role="img" aria-label="warning"></span> again), all injected faults are automatically cleared and the circuit returns to its normal state.
 
 ---
 
@@ -95,7 +95,7 @@ The standard **polarity test** is a mandatory part of initial verification under
 Select **Reverse Polarity** and click a component. The component receives an **orange dashed ring** with a **↔ badge** and is immediately added to the error list in the log panel:
 
 ```
-⚠ Reverse polarity at [component] — live and neutral are swapped.
+<span class="em em-warning" role="img" aria-label="warning"></span> Reverse polarity at [component] — live and neutral are swapped.
 ```
 
 The adjacent wires are also marked as error wires in the current simulation result. The component may remain energised (because both live and neutral still reach it), but the error flag communicates the safety risk clearly — distinguishing between "this circuit works" and "this circuit is safe".
@@ -133,10 +133,10 @@ This is why earth continuity testing is a mandatory part of every EICR (Electric
 
 ### In ElectraSim
 
-Select **Missing Earth** and click a component. The component receives a **yellow dashed ring** with a **⚡ badge** and a warning appears in the log:
+Select **Missing Earth** and click a component. The component receives a **yellow dashed ring** with a **<span class="em em-bolt" role="img" aria-label="live"></span> badge** and a warning appears in the log:
 
 ```
-⚠ Earth fault at [component] — no earth connection, safety risk.
+<span class="em em-warning" role="img" aria-label="warning"></span> Earth fault at [component] — no earth connection, safety risk.
 ```
 
 The visual distinction from the wire break (red) and reverse polarity (orange) helps build the intuition that these are three distinct fault categories with different detection methods, different consequences, and different remediation steps.
@@ -148,14 +148,14 @@ The visual distinction from the wire break (red) and reverse polarity (orange) h
 1. **Open ElectraSim** at [/app/](/app/) — no account required
 2. **Build a circuit** — or use the default demo. A basic supply → MCB → switch → bulb setup works well for learning
 3. **Start the simulation** — press **Run** so you can see live energisation states
-4. **Activate Fault Mode** — press the **⚠ button** in the bottom-right tool dock
+4. **Activate Fault Mode** — press the **<span class="em em-warning" role="img" aria-label="warning"></span> button** in the bottom-right tool dock
 5. **Choose a fault type** from the panel (Wire Break / Reverse Polarity / Missing Earth)
 6. **Click a wire or component** to inject the fault — the simulation updates immediately
 7. **Read the log panel** — every fault injection produces a log entry describing the fault in plain English
 8. **Click the faulted element again** to remove the fault, or use the active fault list in the panel to remove faults individually
-9. **Exit fault mode** — press ⚠ again; all faults clear automatically
+9. **Exit fault mode** — press <span class="em em-warning" role="img" aria-label="warning"></span> again; all faults clear automatically
 
-> 💡 **Tip:** run multiple fault types simultaneously to see how compound faults interact. A reverse polarity fault combined with a missing earth is particularly illustrative — both faults can coexist silently in a real installation.
+> <span class="em em-bulb" role="img" aria-label="tip"></span> **Tip:** run multiple fault types simultaneously to see how compound faults interact. A reverse polarity fault combined with a missing earth is particularly illustrative — both faults can coexist silently in a real installation.
 
 ---
 

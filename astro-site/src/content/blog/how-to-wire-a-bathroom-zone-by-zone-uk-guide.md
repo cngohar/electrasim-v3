@@ -247,9 +247,9 @@ An uncertified bathroom installation is a problem at resale and potentially a sa
 
 | Zone | Location | Min IP | Sockets | Switches | Mains voltage? |
 |---|---|---|---|---|---|
-| **Zone 0** | Inside bath/shower | IPX7 | ❌ | ❌ | ❌ SELV only |
-| **Zone 1** | Above bath/shower to 2.25 m | IPX4 / IPX5 | ❌ | Pull-cord only | ⚠️ IPX4+ rated only |
-| **Zone 2** | 0.6 m outside Zone 1 | IPX4 | Shaver unit only | Pull-cord or outside | ✅ IPX4+ rated |
-| **Outside zones** | Rest of bathroom | IP2X | Shaver unit only | ✅ Standard | ✅ Standard |
+| **Zone 0** | Inside bath/shower | IPX7 | <span class="em em-cross" role="img" aria-label="don't"></span> | <span class="em em-cross" role="img" aria-label="don't"></span> | <span class="em em-cross" role="img" aria-label="don't"></span> SELV only |
+| **Zone 1** | Above bath/shower to 2.25 m | IPX4 / IPX5 | <span class="em em-cross" role="img" aria-label="don't"></span> | Pull-cord only | <span class="em em-warning" role="img" aria-label="warning"></span> IPX4+ rated only |
+| **Zone 2** | 0.6 m outside Zone 1 | IPX4 | Shaver unit only | Pull-cord or outside | <span class="em em-check" role="img" aria-label="do"></span> IPX4+ rated |
+| **Outside zones** | Rest of bathroom | IP2X | Shaver unit only | <span class="em em-check" role="img" aria-label="do"></span> Standard | <span class="em em-check" role="img" aria-label="do"></span> Standard |
 
 **Reminder:** No 13 A socket outlets in a bathroom under any circumstances.

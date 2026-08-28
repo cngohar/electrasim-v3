@@ -7,22 +7,22 @@
   "mission_body": "ElectraSim exists to make electrical circuit education **free, accessible, and interactive**. Whether you're a student studying for an exam, a teacher preparing a classroom demo, an electrician planning a wiring layout, or simply a curious person who wants to understand why flipping a switch turns on a light — ElectraSim is built for you.\n\nWe believe the best way to learn electricity is to **see it in action**. That's why every component in ElectraSim behaves exactly as it would in the real world: switches break circuits, MCBs trip on overload, bulbs glow when current flows, and faults light up in red so you can diagnose them immediately.",
   "values": [
     {
-      "icon": "🔓",
+      "icon": "unlock",
       "title": "Always Free",
       "body": "No paywalls, no premium tiers, no ads. ElectraSim is and will remain 100% free for everyone."
     },
     {
-      "icon": "🔒",
+      "icon": "lock",
       "title": "Privacy First",
       "body": "Your circuits stay in your browser unless you explicitly export or share one. Share-link fragments are not sent to our servers. No account required, no tracking cookies."
     },
     {
-      "icon": "⚡",
+      "icon": "bolt",
       "title": "Performance",
       "body": "60fps simulation on any modern device. Offline-capable PWA. Instant load. No installation ever."
     },
     {
-      "icon": "📖",
+      "icon": "book",
       "title": "Education First",
       "body": "Every feature is designed to teach, not just simulate. Real fault detection, real component behaviour."
     }

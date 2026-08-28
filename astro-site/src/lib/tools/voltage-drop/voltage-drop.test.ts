@@ -297,10 +297,10 @@ describe('Formatting Helpers', () => {
   });
 });
 
-describe('Standard-aware Limit Banding (IEC 60364)', () => {
-  // 230V DC, 10A, 58.5m, 2.5 mm² copper at 20 °C:
+describe('Standard-aware Limit Banding (BS 7671 vs IEC 60364)', () => {
+  // 230 V DC, 10 A, 58.5 m, 2.5 mm² copper at 20 °C:
   //   VD = 2 × 10 × 58.5 × (0.0172/2.5) = 8.0496 V ≈ 3.4998% of 230 V
-  // Lands exactly in the 3% (BS 7671) vs 4% (IEC Annex G) divergence window.
+  // Lands above the 3% lighting ceiling and below the 5% ceiling for other uses.
   const gapCase = {
     systemType: 'dc' as const,
     voltage: 230,
@@ -317,12 +317,16 @@ describe('Standard-aware Limit Banding (IEC 60364)', () => {
     expect(uk.standardLabel).toBe('BS 7671:2018+A4:2026');
   });
 
-  it('rates the same 3.5% as good under IEC 60364-5-52 Annex G (4% ceiling)', () => {
+  // Regression guard for a real data bug: the IEC profile used to carry a 4%
+  // lighting ceiling, which does not exist in Table G.52.1 (it conflates the
+  // >100 m allowance with the lighting limit). IEC bands 3%/5% on a public supply.
+  it('bands 3.5% the same way under IEC 60364-5-52 Annex G (3% / 5%)', () => {
     const iec = calculateVoltageDrop({ ...gapCase, standard: 'iec-60364' });
     expect(iec.voltageDropPercent).toBeCloseTo(3.4998, 3);
-    expect(iec.severity).toBe('good');
+    expect(iec.severity).toBe('warning');
+    expect(iec.statusDescription).not.toMatch(/4%/);
     expect(iec.standardLabel).toBe('IEC 60364');
-    expect(iec.standardCitation).toContain('Annex G');
+    expect(iec.standardCitation).toContain('Table G.52.1');
   });
 
   it('keeps identical physics between standards (only limits/copy change)', () => {
@@ -330,5 +334,35 @@ describe('Standard-aware Limit Banding (IEC 60364)', () => {
     const iec = calculateVoltageDrop({ ...gapCase, standard: 'iec-60364' });
     expect(uk.voltageDrop).toBeCloseTo(iec.voltageDrop, 9);
     expect(uk.totalResistance).toBeCloseTo(iec.totalResistance, 9);
+  });
+
+  // Real-world cross-check, verified against the published resistivity data:
+  // copper at 70 °C is 0.0172 × (1 + 0.00393 × 50) = 0.020579 Ω·mm²/m, i.e.
+  // +19.65% versus the 20 °C cold figure.
+  it('raises the drop by 19.65% when the conductor is taken to its 70 °C design temperature', () => {
+    const cold = calculateVoltageDrop({ ...gapCase, standard: 'uk-bs7671' });
+    const hot = calculateVoltageDrop({ ...gapCase, standard: 'uk-bs7671', temperature: 70 });
+    expect(hot.voltageDrop / cold.voltageDrop).toBeCloseTo(1.1965, 4);
+    expect(hot.voltageDrop).toBeCloseTo(9.6314, 3);
+  });
+
+  // Sanity anchor against the tabulated method: 10 mm² thermoplastic copper is
+  // listed at 4.6 mV/A/m, so 40 A over a 50 m run works out at 9.2 V. The
+  // physics route at 70 °C must land in the same region, not 20% below it.
+  it('agrees with the tabulated mV/A/m method to within table conservatism', () => {
+    const hot = calculateVoltageDrop({
+      systemType: 'single',
+      voltage: 230,
+      current: 40,
+      length: 50,
+      size: 10,
+      material: 'copper',
+      powerFactor: 0.8,
+      temperature: 70,
+      includeReactance: true,
+    });
+    const tabulated = (4.6 * 40 * 50) / 1000; // 9.2 V
+    expect(hot.voltageDrop).toBeGreaterThan(tabulated * 0.7);
+    expect(hot.voltageDrop).toBeLessThanOrEqual(tabulated);
   });
 });

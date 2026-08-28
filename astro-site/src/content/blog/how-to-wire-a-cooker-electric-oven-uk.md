@@ -152,7 +152,7 @@ A common modern kitchen arrangement is a **separate built-in oven** and an **ind
 If the combined rating of the oven + hob is within the diversity-calculated current for a 32 A circuit, both can be supplied from one cooker circuit via a junction box or a dual cooker control unit (which has two output sets of terminals).
 
 **Example:** 3 kW oven + 7 kW hob = 10 kW total  
-Diversity current = 10 + 0.30 × (43.5 − 10) = 10 + 10.05 = **20 A** → 32 A circuit, 6 mm² cable ✅
+Diversity current = 10 + 0.30 × (43.5 − 10) = 10 + 10.05 = **20 A** → 32 A circuit, 6 mm² cable <span class="em em-check" role="img" aria-label="do"></span>
 
 ### Option B: Separate circuit for each
 

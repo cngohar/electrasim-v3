@@ -1,0 +1,39 @@
+---
+/**
+ * EmojiIcon.astro — inline SVG replica of a pictograph.
+ *
+ * Drop-in replacement for a literal emoji character: it draws the same glyph
+ * as a vector so it renders identically on every OS/browser (no emoji font
+ * dependency, no blurry scaling, no missing-glyph boxes) and inherits the
+ * surrounding font size unless an explicit `size` is given.
+ *
+ * Decorative by default (`aria-hidden`), matching the emoji it replaces —
+ * the visible text next to it always carries the meaning.
+ */
+import { EMOJI_ICON_VIEWBOX, resolveEmojiIcon } from '../lib/emoji-icons';
+
+interface Props {
+  /** Emoji character (e.g. the high-voltage sign) or icon name (e.g. "bolt"). */
+  name: string;
+  /** Optional fixed pixel size; omit to scale with the local font size. */
+  size?: number;
+  class?: string;
+}
+
+const { name, size, class: className } = Astro.props;
+const icon = resolveEmojiIcon(name);
+const classes = ['emoji-icon', size ? 'emoji-icon--fixed' : '', className ?? '']
+  .filter(Boolean)
+  .join(' ');
+---
+
+<svg
+  class={classes}
+  viewBox={EMOJI_ICON_VIEWBOX}
+  width={size}
+  height={size}
+  role="presentation"
+  aria-hidden="true"
+  focusable="false"
+  set:html={icon.body}
+/>

@@ -127,7 +127,7 @@ V_drop = 9 V
 ```
 
 **Check against limit:** 9 V vs limit of 11.5 V (5% of 230 V for power circuit)  
-**Result: ✅ Pass** — within the 5% limit.
+**Result: <span class="em em-check" role="img" aria-label="do"></span> Pass** — within the 5% limit.
 
 ---
 
@@ -142,7 +142,7 @@ V_drop = 11.52 V
 ```
 
 **Check against limit:** 11.52 V vs limit of 11.5 V (5% of 230 V)  
-**Result: ❌ Marginal fail** — just over the 5% limit.
+**Result: <span class="em em-cross" role="img" aria-label="don't"></span> Marginal fail** — just over the 5% limit.
 
 **Solution: step up to 4 mm² cable:**
 
@@ -152,7 +152,7 @@ V_drop = 7,040 / 1,000
 V_drop = 7.04 V
 ```
 
-**Result: ✅ Pass** — well within the 5% limit.
+**Result: <span class="em em-check" role="img" aria-label="do"></span> Pass** — well within the 5% limit.
 
 > Related: [How to Wire a Shed or Outbuilding](/blog/how-to-wire-a-shed-or-outbuilding/)
 
@@ -169,7 +169,7 @@ V_drop = 1.91 V
 ```
 
 **Check against limit:** 1.91 V vs limit of 6.9 V (3% of 230 V for lighting)  
-**Result: ✅ Pass** — comfortably within the 3% limit.
+**Result: <span class="em em-check" role="img" aria-label="do"></span> Pass** — comfortably within the 3% limit.
 
 Lighting circuits rarely fail voltage drop even at long distances because the design current is so low. The 3% limit is tighter than for power circuits, but the low current (2–4 A typical) keeps the drop small.
 
@@ -195,7 +195,7 @@ V_drop = 6,776 / 1,000
 V_drop = 6.78 V
 ```
 
-**Result: ✅ Comfortable pass** — good margin for future load growth.
+**Result: <span class="em em-check" role="img" aria-label="do"></span> Comfortable pass** — good margin for future load growth.
 
 ---
 

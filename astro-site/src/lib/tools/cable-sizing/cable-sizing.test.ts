@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  cableSizingCurve,
   calculateCableSizing,
   calculateDesignCurrent,
   getCa,
@@ -120,14 +121,114 @@ describe('Cable Sizing — Standard Selection (BS 7671 vs IEC 60364)', () => {
     expect(res.summary).toContain('BS 7671');
   });
 
-  it('applies the 4% lighting guidance under IEC 60364-5-52 Annex G', () => {
+  it('applies the same 3% lighting ceiling as BS 7671 under IEC Annex G Table G.52.1', () => {
     const res = calculateCableSizing({ ...base, standard: 'iec-60364' });
-    expect(res.maxPermissibleVdropPercent).toBe(4);
-    expect(res.selectedCableMm2).toBe(1.0);
+    // Table G.52.1 sets 3% for lighting / 5% for other uses on a public LV
+    // supply — not the 4% some vendor guides quote (that figure mixes in the
+    // >100 m allowance). The selected size therefore matches the UK answer.
+    expect(res.maxPermissibleVdropPercent).toBe(3);
+    expect(res.selectedCableMm2).toBe(1.5);
     expect(res.thermalPass).toBe(true);
     expect(res.voltageDropPass).toBe(true);
     expect(res.standardLabel).toBe('IEC 60364');
     expect(res.standardCitation).toContain('IEC 60364');
     expect(res.summary).toContain('IEC 60364');
+  });
+});
+
+describe('Constraint crossover curve (cutaway scene chart)', () => {
+  // 32 A single-phase circuit at 230 V, Method C copper, 30 °C, ungrouped.
+  // Thermal gate: In = 32 A, derating 1.00, so any cable with Iz >= 32 A works —
+  // 2.5 mm² (27 A) fails, 4 mm² (37 A) passes, and that answer never moves
+  // with length. Volt-drop gate: ceiling 5% = 11.5 V, so a size needs
+  // mV/A/m <= 11500 / (32 x L) — which keeps demanding bigger cable as L grows.
+  const base = {
+    systemType: 'single-phase' as const,
+    voltageVolts: 230,
+    currentAmps: 32,
+    powerFactor: 1.0,
+    runLengthMeters: 10,
+    circuitFunction: 'power' as const,
+    installationMethod: 'C' as const,
+    conductorMaterial: 'copper' as const,
+    ambientTempC: 30,
+    groupingCircuits: 1,
+    thermalInsulationMm: 0 as const,
+    fuseTypeCc: false,
+  };
+  const lengths = [3, 15, 30, 45, 60, 90, 120];
+  const curve = cableSizingCurve({ ...base }, lengths);
+
+  it('labels the binding gate by what forced the size up, not by the last check', () => {
+    // 4 mm² carries 32 A fine (37 A) but drops 42 V over 120 m, so the answer is
+    // 16 mm² *because of volt drop* — the engine must not call that thermal.
+    const longRun = calculateCableSizing({ ...base, runLengthMeters: 120 });
+    expect(longRun.selectedCableMm2).toBe(16);
+    expect(longRun.limitingConstraint).toBe('voltage-drop');
+
+    // short run: 4 mm² passes both gates, so heat (ampacity) is the sizing rule
+    const shortRun = calculateCableSizing({ ...base, runLengthMeters: 12 });
+    expect(shortRun.selectedCableMm2).toBe(4);
+    expect(shortRun.limitingConstraint).toBe('thermal');
+
+    // thermal-only pressure: Method A + grouping makes 4 mm² insufficient no matter
+    // how short the run is, and volt drop never enters the argument
+    const hotRun = calculateCableSizing({
+      ...base,
+      runLengthMeters: 5,
+      installationMethod: 'A',
+      ambientTempC: 45,
+      groupingCircuits: 4,
+    });
+    expect(hotRun.limitingConstraint).toBe('thermal');
+    expect(hotRun.selectedCableMm2).toBe(25);
+  });
+
+  it('keeps the thermal requirement flat across every length', () => {
+    expect(new Set(curve.map((p) => p.thermalMm2))).toEqual(new Set([4]));
+  });
+
+  it('rises the volt-drop requirement with length', () => {
+    expect(curve.map((p) => p.dropMm2)).toEqual([1.0, 2.5, 4, 6, 10, 16, 16]);
+  });
+
+  it('flags exactly the lengths where volt drop becomes the binding gate', () => {
+    // 4 mm² (11 mV/A/m) reaches 11.5 V at 11500 / (11 × 32) ≈ 32.7 m
+    expect(curve.filter((p) => p.dropGoverns).map((p) => p.lengthMeters)).toEqual([
+      45, 60, 90, 120,
+    ]);
+  });
+
+  it('reports the size the engine actually selects at that length', () => {
+    const at30 = curve.find((p) => p.lengthMeters === 30);
+    const at120 = curve.find((p) => p.lengthMeters === 120);
+    expect(at30?.selectedMm2).toBe(4);
+    expect(at30?.limitingConstraint).toBe('thermal');
+    expect(at120?.selectedMm2).toBe(16);
+    expect(at120?.limitingConstraint).toBe('voltage-drop');
+  });
+
+  it('lets a hostile environment move the flat thermal line up instead', () => {
+    // Method A + 45 °C + 4 grouped circuits: Ca 0.79 × Cg 0.65 → It = 32 / 0.5135 = 62.3 A
+    // Method A: 16 mm² = 61 A (just short) so 25 mm² = 80 A is required.
+    const derated = cableSizingCurve(
+      { ...base, installationMethod: 'A', ambientTempC: 45, groupingCircuits: 4 },
+      [15],
+    );
+    expect(derated[0].thermalMm2).toBe(25);
+    expect(derated[0].dropMm2).toBeLessThan(25);
+    expect(derated[0].limitingConstraint).toBe('thermal');
+  });
+
+  it('switches which gate dominates when the run is long and the ambient is hot', () => {
+    const both = cableSizingCurve(
+      { ...base, installationMethod: 'A', ambientTempC: 45, groupingCircuits: 4 },
+      [120],
+    );
+    // 25 mm² thermally, but 120 m at 32 A in Method A needs 16 mm² for drop —
+    // so the heat still governs here, and the chart shows the flat line on top.
+    expect(both[0].thermalMm2).toBe(25);
+    expect(both[0].dropGoverns).toBe(false);
+    expect(both[0].selectedMm2).toBe(25);
   });
 });

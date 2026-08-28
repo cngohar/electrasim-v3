@@ -116,14 +116,14 @@ export const TOOLBOX_REGISTRY: ToolEntry[] = [
       {
         step: 'Review Results Against the Selected Standard',
         instruction:
-          'Verify voltage drop against BS 7671 limits (3% lighting / 5% power) or switch the standards selector to check IEC 60364 international guidance (4% / 5%).',
+          'Verify voltage drop against the limits in force — BS 7671 Reg 525.1 (3% lighting / 5% other uses from the origin) or IEC 60364-5-52 Annex G, which shares those ceilings on a public supply and adds the 6%/8% private-supply and >100 m allowances.',
       },
     ],
     faqs: [
       {
         question: 'What is the maximum permitted voltage drop in the UK under BS 7671?',
         answer:
-          'Under UK Wiring Regulations (BS 7671:2018+A3:2024 Appendix 4), the maximum permitted voltage drop from the origin of a standard low-voltage public supply installation is 3% for lighting circuits (6.9 V at 230 V) and 5% for other circuits such as socket outlets, cookers, and heating (11.5 V at 230 V). For private supplies (such as generators or solar PV installations), the limits are 6% for lighting and 8% for other circuits.',
+          'BS 7671:2018+A4:2026 Regulation 525.1 (with the limits tabulated in Appendix 4, Table 4Ab) permits a maximum voltage drop from the origin of the installation of 3% of the nominal voltage for lighting circuits — 6.9 V at 230 V, 12 V at 400 V — and 5% for all other circuits — 11.5 V at 230 V, 20 V at 400 V. Where the installation is fed from a private LV supply (generator, transformer, solar PV), Table 4Ab doubles the allowance to 6% for lighting and 8% for other uses. The DNO-side drop from the transformer to your meter is not included: EN 50160 separately permits the supply itself to sit between −6% and +10% of 230 V.',
       },
       {
         question: 'Why does voltage drop occur in electrical cables?',
@@ -143,7 +143,27 @@ export const TOOLBOX_REGISTRY: ToolEntry[] = [
       {
         question: 'Does temperature affect voltage drop in electrical cables?',
         answer:
-          'Yes. Metals have a positive temperature coefficient of resistance. As conductor temperature rises due to ambient heat or load current, resistivity increases according to ρ_T = ρ_20[1 + α(T - 20)]. For example, a copper conductor operating at 70°C has approximately 19.6% higher resistance than at 20°C, increasing total voltage loss.',
+          'Yes. Metals have a positive temperature coefficient of resistance. As conductor temperature rises due to ambient heat or load current, resistivity increases according to ρ_T = ρ_20[1 + α(T - 20)], with α = 0.00393 /°C for copper and 0.00403 /°C for aluminum (IEC 60287-1-1). A copper conductor at the 70 °C PVC design temperature therefore has 19.6% more resistance than the same conductor cold at 20 °C — on the 230 V / 40 A / 50 m / 10 mm² example that is the difference between 6.33 V (2.75%) and 7.57 V (3.29%).',
+      },
+      {
+        question: 'Why is my answer different from the BS 7671 mV/A/m tables?',
+        answer:
+          "Three assumptions differ. (1) Temperature — the Appendix 4 tables quote mV/A/m at the conductor's maximum operating temperature (70 °C for thermoplastic, 90 °C for thermosetting), while this calculator uses the temperature you enter, 20 °C by default, i.e. a cold cable. (2) Cable data — the tables use the maximum d.c. resistance permitted for the size, a few per cent above the nominal resistivity used here, and for cables up to 16 mm² they publish the resistive drop only (inductance ignored). (3) Power factor — above 16 mm² the tabulated impedance assumes cos φ ≈ 0.8, so set the same power factor and switch cable reactance on to compare like with like. Worked check: 10 mm² thermoplastic copper is tabulated at 4.6 mV/A/m, which gives 4.6 × 40 × 50 / 1000 = 9.2 V on the example run; this tool returns 6.33 V cold at 20 °C and 7.57 V when you set 70 °C. For a lightly loaded cable Appendix 4 also permits a Ct correction: mV/A/m × [230 + t_p − (C_a² − I_b²/I_t²)(t_p − 30)] / (230 + t_p).",
+      },
+      {
+        question: 'How much voltage drop does a 7 kW EV charger need?',
+        answer:
+          'A 7 kW single-phase charger draws 32 A for hours at a time, so volt drop matters more here than on a shower or cooker that runs for ten minutes. Taking the 70 °C design temperature of thermoplastic cable, 6 mm² copper loses about 2.2 V per 10 m at 32 A (roughly 1% of 230 V), 10 mm² about 1.3 V per 10 m, and 2.5 mm² about 5.3 V per 10 m. That is why 6 mm² is normally the longest run you would accept for a budget of 3% (about 30 m) and 10 mm² is the default beyond it, while 2.5 mm² runs out of the 5% ceiling (11.5 V) at around 20 m. Check the chargepoint manual too: many specify a maximum loop impedance or minimum conductor size so the 6 mA DC smoothing and the RCD type still work.',
+      },
+      {
+        question: 'Should I enter the whole ring-main length for a ring final circuit?',
+        answer:
+          'No — a ring feeds the load from both directions, so the two paths are effectively in parallel and carry half the current each. Take a 100 m ring of 2.5 mm² copper at 30 A with the hot-cable resistance (8.23 mΩ/m): each 50 m path carries 15 A, so the drop to the furthest socket is 15 × 0.4115 Ω ≈ 6.2 V (2.7%). A radial over the same 50 m distance would drop 24.7 V — four times as much. To reproduce the ring figure in this calculator, enter one eighth of the total ring length as the one-way run (12.5 m above), and keep margin: real rings unbalance when most of the load sits on one side, which is why long rings are commonly run in 4 mm² instead of 2.5 mm².',
+      },
+      {
+        question: 'Is voltage drop the same thing as power wasted in the cable?',
+        answer:
+          'They are related but not identical. The heat in the conductors is I²R, which is what this calculator reports as "Power Loss"; the volts the load loses is I × Z projected onto the supply phasor, which is why the power factor enters the drop but never the loss. For a resistive load the two line up: a 5% drop (11.5 V) at 40 A is about 460 W being turned into heat inside the wall or ceiling — which is why a cable that is merely "legal" on volt drop is often still the wrong choice thermally.',
       },
     ],
     relatedGuides: [

@@ -2,6 +2,7 @@
 // NecVoltageDropPanels.astro — Interactive panels for the US NEC Voltage Drop Calculator
 import { NEC_CONDUCTORS, NEC_VOLTAGE_PRESETS } from '../../lib/tools/nec-voltage-drop';
 import { STANDARD_PROFILES } from '../../lib/tools/standards';
+import EmojiIcon from '../EmojiIcon.astro';
 
 const profile = STANDARD_PROFILES['us-nec'];
 
@@ -196,7 +197,7 @@ const kcmilConductors = NEC_CONDUCTORS.filter((c) => c.isKcmil);
         Result verified against <strong>{profile.label}</strong> — {profile.vdrop.basis}. Conductor resistance from NEC Chapter 9, Table 8 (75 °C, stranded).
       </p>
       <button type="button" class="share-calc-btn" id="nec-copy-link">
-        🔗 Copy calculation link — inputs are encoded in the URL, share it with a colleague
+        <EmojiIcon name="link" /> Copy calculation link — inputs are encoded in the URL, share it with a colleague
       </button>
     </div>
   </section>
@@ -316,11 +317,12 @@ const kcmilConductors = NEC_CONDUCTORS.filter((c) => c.isKcmil);
   }
   .tool-panels-container {
     display: grid;
-    grid-template-columns: 1fr 1.15fr;
-    gap: 1.5rem;
+    /* minmax(0, …) stops a long value or formula from widening the track */
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: clamp(1rem, 2.5vw, 1.5rem);
     max-width: 1240px;
-    margin: 2rem auto;
-    padding: 0 1.5rem;
+    margin: clamp(1rem, 3vw, 2rem) auto;
+    padding: 0 clamp(0.85rem, 3vw, 1.5rem);
   }
   .calc-panel {
     background: var(--bg-card, #ffffff);
@@ -395,7 +397,24 @@ const kcmilConductors = NEC_CONDUCTORS.filter((c) => c.isKcmil);
     margin-bottom: 1rem;
   }
   .grid-2 {
-    grid-template-columns: 1fr 1fr;
+    /* minmax(0,1fr): a select sizes itself to its longest option, and `1fr`
+       floors at that min-content width — which is how the Max Zs and NEC forms
+       ran off a phone screen and got clipped by the page. */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .form-group {
+    min-width: 0;
+  }
+  .calc-input,
+  .calc-select {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .calc-select {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .grid-3 {
     grid-template-columns: 1fr 1fr 1fr;
@@ -555,10 +574,34 @@ const kcmilConductors = NEC_CONDUCTORS.filter((c) => c.isKcmil);
 
   @media (max-width: 900px) {
     .tool-panels-container {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
     .metrics-grid {
       grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .tool-panels-container {
+      margin-top: 1rem;
+      margin-bottom: 2rem;
+    }
+    .grid-2 {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .calc-panel {
+      padding: 1.1rem 1rem;
+      border-radius: 1rem;
+    }
+    .metrics-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .calc-panel,
+    .metric-card {
+      transition: none !important;
     }
   }
 </style>

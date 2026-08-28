@@ -7,47 +7,16 @@
 (() => {
   const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)');
   const MOBILE_VIEWPORT = window.matchMedia('(max-width: 768px)');
-  const FOCUSABLE_SELECTOR =
-    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
-  // Overlay stack for focus trapping: dialogs push/pop as they open/close,
-  // and Tab is cycled within whichever dialog is on top of the stack.
-  const overlayStack = [];
-
+  // Chrome (drawer, command palette, help dialog, fullscreen, focus trapping)
+  // is shared by every tool page and lives in public/js/tool-chrome.js. This
+  // engine only registers the actions that make sense for voltage drop.
+  const chrome = () => window.ElectraChrome;
   function pushOverlay(el, trigger, initialFocus) {
-    if (!el) return;
-    overlayStack.push({ el, trigger: trigger || document.activeElement });
-    const target = initialFocus || el.querySelector(FOCUSABLE_SELECTOR);
-    if (target) target.focus();
+    chrome()?.pushOverlay(el, trigger, initialFocus);
   }
-
   function popOverlay(el) {
-    const idx = overlayStack.findIndex((o) => o.el === el);
-    if (idx === -1) return;
-    const entry = overlayStack.splice(idx, 1)[0];
-    if (overlayStack.length === 0 && entry.trigger instanceof HTMLElement) {
-      entry.trigger.focus();
-    }
+    chrome()?.popOverlay(el);
   }
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key !== 'Tab' || overlayStack.length === 0) return;
-    const topEl = overlayStack[overlayStack.length - 1].el;
-    const items = Array.from(topEl.querySelectorAll(FOCUSABLE_SELECTOR));
-    if (!items.length) return;
-    const first = items[0];
-    const last = items[items.length - 1];
-    if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault();
-      first.focus();
-    } else if (!topEl.contains(document.activeElement)) {
-      e.preventDefault();
-      first.focus();
-    }
-  });
 
   // Conductor Constants
   const MATERIALS = {
@@ -58,12 +27,22 @@
 
   // Regional limit banding. Physics is identical (resistivity-based); only the
   // compliance ceilings and citations switch between standards.
+  // Verified against the published texts (2026-08 audit):
+  //   BS 7671:2018+A4:2026 Reg 525.1 / Appendix 4 Table 4Ab
+  //     public LV supply: 3 % lighting, 5 % other uses; private LV supply: 6 % / 8 %.
+  //   IEC 60364-5-52 Annex G, Table G.52.1 (informative)
+  //     public LV network: 3 % lighting, 5 % other uses; private LV supply: 6 % / 8 %;
+  //     long runs may add 0.005 % per metre beyond 100 m, capped at +0.5 %.
+  // Both sets share the same ceilings for public supplies — IEC keeps its own band
+  // because of the long-run allowance and the national-annex variations it defers to.
   const VD_STANDARDS = {
     'uk-bs7671': {
       label: 'BS 7671:2018+A4:2026',
       region: 'United Kingdom',
       goodPct: 3,
       hardPct: 5,
+      privateGoodPct: 6,
+      privateHardPct: 8,
       goodDesc:
         'The voltage drop is within the BS 7671 3% lighting-circuit guideline (6.9 V at 230 V).',
       warningDesc:
@@ -77,28 +56,221 @@
     'iec-60364': {
       label: 'IEC 60364',
       region: 'International (IEC)',
-      goodPct: 4,
+      goodPct: 3,
       hardPct: 5,
+      privateGoodPct: 6,
+      privateHardPct: 8,
       goodDesc:
-        'The voltage drop is within the IEC 60364-5-52 Annex G 4% guidance (public LV supply, lighting).',
+        'The voltage drop is within the IEC 60364-5-52 Annex G 3% lighting ceiling (5% for other uses) on a public LV supply.',
       warningDesc:
-        'Voltage drop is between 4% and 5%. Within IEC 60364-5-52 Annex G guidance for other circuits, but close to limit.',
+        'Voltage drop is between 3% and 5%. Acceptable for other uses under Annex G Table G.52.1, but over the lighting ceiling.',
       excessiveDesc:
-        'Voltage drop exceeds the IEC 60364-5-52 Annex G 5% guidance. Conductor is undersized or run is too long. Upsize cable cross-section.',
+        'Voltage drop exceeds the IEC 60364-5-52 Annex G 5% guidance for public supplies. Upsize the conductor or shorten the run.',
       citation:
-        'Results calculated per IEC 60364-5-52 Annex G, Table G.52.1 — 4% lighting / 5% other circuits (public LV supply; 6%/8% private).',
-      echo: 'Verified against <strong>IEC 60364 (International)</strong> — Annex G limits: 4% lighting / 5% other circuits.',
+        'Results calculated per IEC 60364-5-52 Annex G, Table G.52.1 — 3% lighting / 5% other uses from a public LV supply; 6% / 8% from a private LV supply. Informative guidance: national annexes may vary.',
+      echo: 'Verified against <strong>IEC 60364 (International)</strong> — Annex G limits: 3% lighting / 5% other circuits, 6%/8% on private supplies.',
     },
   };
 
   // Educational Tips Carousel
+  // Field notes. Every figure here was checked against the published sources:
+  // BS 7671 Appendix 4 / Reg 525.1, IEC 60364-5-52 Annex G, IET GN3, EN 50160
+  // and the resistivity constants (IEC 60228 / 60889).
   const TIPS = [
-    'Green particles show the flow of electricity. Some voltage is lost along the cable due to its resistance.',
-    'Larger cables (higher mm²) have lower resistance, which reduces the voltage drop.',
-    'Doubling the cable length doubles the voltage drop and increases the physical cable sag.',
-    'BS 7671 uses a 3% voltage-drop guideline for lighting and 5% for most other final circuits.',
-    'Aluminum conductors have about 65% more resistance than copper of the same cross-section.',
-    'Resistivity increases with conductor temperature — under heavy load, cables heat up and drop more voltage.',
+    'Green particles show the flow of electricity. Some voltage is lost along the cable because the conductor has resistance.',
+    'Larger cables (higher mm²) have lower resistance: doubling the cross-section halves the volt drop.',
+    'Doubling the route length doubles the voltage drop — and it also doubles the I²R heating of the cable.',
+    'BS 7671 Reg 525.1 allows 3% for lighting and 5% for other final circuits, measured from the origin of the installation, not from the consumer unit.',
+    'Aluminum has ~64% more resistance than copper of the same size, so an aluminum run needs roughly two sizes up to match the drop.',
+    'Resistance climbs about 0.39% per °C for copper: a PVC cable at its 70 °C design temperature drops ~20% more than the same cable cold at 20 °C.',
+    'The mV/A/m figures in BS 7671 Appendix 4 already assume the conductor is at its maximum operating temperature — compare like for like.',
+    'For ring final circuits, current reaches the load from both ends: use the distance to the furthest socket along one path, not the whole ring length.',
+    'The 3%/5% allowance covers the installation only. EN 50160 lets the DNO sit at -6%/+10% of 230 V on top of that, so budget the worst case.',
+    'Motors are the exception: a direct-on-line start pulls 6-8x full-load current, so check the drop at start too — 10-15% momentary is the usual limit.',
+    'For DC (battery, solar, EV) only resistance matters: reactance is zero, but the round trip is 2x the one-way length.',
+    'Three-phase wins on long runs: a balanced 400 V circuit needs only sqrt(3) x I x L x Z instead of the 2 x round trip of single-phase.',
+    'Terminals add up: a loose or corroded connection can cost more volts than 30 m of cable. Torque every joint before blaming the run.',
+    'Voltage drop is wasted energy. A 5% drop on a 32 A circuit that runs 3000 h a year burns roughly £180 of electricity at 27p/kWh.',
+    'Sub-main budgets: allow ~0.5% for the consumer mains, 1.5-2% for a submain, and leave the rest for the final circuit. The limits are cumulative.',
+    'Switch on the reactance option for cables 16 mm² and above, or for large motor feeders — that is where X starts to matter.',
+    'Harmonics inflate the drop: BS 7671 says the calculated voltage drop must include the effects of harmonic current, and neutral conductors can need upsizing.',
+    'LED drivers and dimmers dislike undervoltage more than lamps do: flicker and buzz appear long before the 3% lighting limit is breached.',
+  ];
+
+  // Real-world circuit presets — typical UK/international installs with the
+  // cable an electrician would actually reach for (size checked against the
+  // BS 7671 current-carrying capacity and voltage-drop tables).
+  const PRESETS = [
+    {
+      id: 'domestic-lighting',
+      name: 'House lighting radial',
+      blurb:
+        '1.5 mm² T&E on a 10 A MCB feeding LED downlights 45 m from the board. At the 70 °C design temperature this run lands just over the 3% lighting ceiling, so 2.5 mm² is the usual fix.',
+      values: {
+        systemType: 'single',
+        voltage: 230,
+        current: 6,
+        length: 45,
+        size: 1.5,
+        material: 'copper',
+        pf: 0.98,
+        temp: 70,
+        standard: 'uk-bs7671',
+      },
+    },
+    {
+      id: 'kitchen-radial',
+      name: 'Kitchen radial socket',
+      blurb:
+        '32 A radial for a kitchen ring spur area in 6 mm² T&E, 20 m of run with appliances, kettle included. Comfortably inside the 5% power ceiling.',
+      values: {
+        systemType: 'single',
+        voltage: 230,
+        current: 32,
+        length: 20,
+        size: 6,
+        material: 'copper',
+        pf: 0.95,
+        temp: 70,
+        standard: 'uk-bs7671',
+      },
+    },
+    {
+      id: 'ev-7kw',
+      name: 'EV charger 7 kW',
+      blurb:
+        'Single-phase 32 A wall-box on a 25 m run of 10 mm². This is the sizing most installers use to keep the drop under 2% so the charger never derates.',
+      values: {
+        systemType: 'single',
+        voltage: 230,
+        current: 32,
+        length: 25,
+        size: 10,
+        material: 'copper',
+        pf: 1,
+        temp: 70,
+        standard: 'uk-bs7671',
+      },
+    },
+    {
+      id: 'ev-11kw',
+      name: 'EV charger 11 kW (3-Φ)',
+      blurb:
+        'Three-phase 16 A per phase on 4 mm² over 30 m. Splitting the load across three phases is why an 11 kW charger needs a smaller cable than a 7 kW single-phase one.',
+      values: {
+        systemType: 'three',
+        voltage: 400,
+        current: 16,
+        length: 30,
+        size: 4,
+        material: 'copper',
+        pf: 0.99,
+        temp: 70,
+        standard: 'uk-bs7671',
+      },
+    },
+    {
+      id: 'shower',
+      name: 'Electric shower 9.5 kW',
+      blurb:
+        '41 A shower on a 12 m run of 10 mm² — the classic "short but heavy" circuit, where ampacity rather than volt drop sets the size.',
+      values: {
+        systemType: 'single',
+        voltage: 230,
+        current: 41,
+        length: 12,
+        size: 10,
+        material: 'copper',
+        pf: 1,
+        temp: 70,
+        standard: 'uk-bs7671',
+      },
+    },
+    {
+      id: 'shed-submain',
+      name: 'Garden office submain',
+      blurb:
+        '32 A three-phase submain to an outbuilding — 120 m of 10 mm² XLPE/SWA (90 °C conductor). Long enough that the IEC Annex G relief for runs over 100 m comes into play, which the note under the verdict quotes.',
+      values: {
+        systemType: 'three',
+        voltage: 400,
+        current: 32,
+        length: 120,
+        size: 10,
+        material: 'copper',
+        pf: 0.9,
+        temp: 90,
+        standard: 'iec-60364',
+      },
+    },
+    {
+      id: 'long-shed',
+      name: 'Long shed run (fails)',
+      blurb:
+        '16 A workshop consumer fed 85 m on 2.5 mm² — a very common DIY shortcut. It works out at 21.27 V (9.25%), well outside both standards; 6 mm² brings it to 3.9% and 10 mm² to 2.3%.',
+      values: {
+        systemType: 'single',
+        voltage: 230,
+        current: 16,
+        length: 85,
+        size: 2.5,
+        material: 'copper',
+        pf: 0.95,
+        temp: 70,
+        standard: 'uk-bs7671',
+      },
+    },
+    {
+      id: 'battery-dc',
+      name: '48 V battery link (DC)',
+      blurb:
+        '100 A from a lithium bank to the inverter over 4 m of 25 mm². On low-voltage DC the cable length is the whole story — this is why battery cables are short and fat.',
+      values: {
+        systemType: 'dc',
+        voltage: 48,
+        current: 100,
+        length: 4,
+        size: 25,
+        material: 'copper',
+        pf: 1,
+        temp: 30,
+        standard: 'iec-60364',
+      },
+    },
+    {
+      id: 'motor',
+      name: 'Workshop motor 5.5 kW',
+      blurb:
+        '400 V three-phase 5.5 kW motor (11 A) on 2.5 mm², 35 m. Fine running, but a direct-on-line start at 6x current momentarily multiplies the drop — check the torque too.',
+      values: {
+        systemType: 'three',
+        voltage: 400,
+        current: 11,
+        length: 35,
+        size: 2.5,
+        material: 'copper',
+        pf: 0.86,
+        temp: 70,
+        standard: 'uk-bs7671',
+      },
+    },
+    {
+      id: 'aluminium-feed',
+      name: 'Aluminum submain',
+      blurb:
+        'Same 32 A load on 16 mm² aluminum instead of 10 mm² copper, 60 m — the classic trade-off on long agricultural and industrial feeders.',
+      values: {
+        systemType: 'three',
+        voltage: 400,
+        current: 32,
+        length: 60,
+        size: 16,
+        material: 'aluminum',
+        pf: 0.9,
+        temp: 70,
+        standard: 'iec-60364',
+      },
+    },
   ];
 
   // Default State
@@ -114,6 +286,7 @@
     pf: 0.92,
     temp: 20,
     reactance: false,
+    preset: '',
     animate: true,
     showValues: true,
     showLegend: true,
@@ -132,6 +305,7 @@
     const S = window.ToolShare;
     if (!S || !urlArmed) return;
     S.pushParams({
+      preset: state.preset || undefined,
       standard: state.standard,
       system: state.systemType,
       voltage: state.voltage,
@@ -163,6 +337,10 @@
     urlArmed = true;
 
     const $id = (id) => document.getElementById(id);
+
+    // A shared preset is applied first, then any explicit field params on top.
+    const presetId = p.get('preset');
+    if (presetId) applyPreset(presetId, { silent: true });
     const setField = (key, id, bounds, targetKey) => {
       const n = S.numParam(p, key, bounds);
       if (n === undefined) return;
@@ -209,6 +387,31 @@
       const sw = $id('switch-reactance');
       if (sw) sw.setAttribute('aria-checked', state.reactance ? 'true' : 'false');
     }
+  }
+
+  // Toast/status pictographs as inline vectors. These mirror the shapes in
+  // `src/lib/emoji-icons.ts` (which the Astro components render) — public/ JS is
+  // shipped verbatim and cannot import that module, so the handful needed at
+  // runtime are kept here. Emoji were removed on purpose: their appearance
+  // depends on whichever emoji font the visitor's OS happens to ship.
+  const SVG_OPEN =
+    '<svg class="emoji-icon emoji-icon--fixed" viewBox="0 0 128 128" width="18" height="18" role="presentation" aria-hidden="true" focusable="false">';
+  const ICON_SHAPES = {
+    info: '<circle cx="64" cy="64" r="52" fill="#1D9BF0"/><circle cx="64" cy="38" r="9" fill="#fff"/><rect x="56" y="54" width="16" height="42" rx="8" fill="#fff"/>',
+    warning:
+      '<path d="M64 12 122 116H6z" fill="#FFCC4D" stroke="#F4900C" stroke-width="9" stroke-linejoin="round"/><rect x="57" y="52" width="14" height="36" rx="7" fill="#fff"/><circle cx="64" cy="100" r="8" fill="#fff"/>',
+    success:
+      '<rect x="8" y="8" width="112" height="112" rx="26" fill="#17BF63"/><path d="M34 66 55 87l39-45" fill="none" stroke="#fff" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>',
+    reset:
+      '<g fill="none" stroke="#1D9BF0" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"><path d="M104 60a40 40 0 1 1-12-28"/><path d="M100 12v24H76"/></g>',
+    ruler:
+      '<path d="M14 114 114 114 14 18z" fill="#A6D7F0" stroke="#1D9BF0" stroke-width="9" stroke-linejoin="round"/><path d="M14 92h16M22 78v16M34 66h16M42 52v16" stroke="#1D9BF0" stroke-width="7" stroke-linecap="round"/>',
+    link: '<g fill="none" stroke="#66757F" stroke-width="13" stroke-linecap="round"><rect x="12" y="46" width="54" height="36" rx="18" transform="rotate(-45 39 64)"/><rect x="62" y="46" width="54" height="36" rx="18" transform="rotate(-45 89 64)"/></g>',
+    bulb: '<path d="M64 12c-20 0-36 15-36 34 0 12 6 20 13 27 4 4 5 8 5 12h36c0-4 1-8 5-12 7-7 13-15 13-27 0-19-16-34-36-34z" fill="#FFD422"/><path d="M50 98h28v9H50zM53 111h22a9 9 0 0 1-9 8h-4a9 9 0 0 1-9-8z" fill="#8899A6"/>',
+  };
+  /** Full inline SVG for an icon key (falls back to the info sign). */
+  function iconSvg(key) {
+    return `${SVG_OPEN}${ICON_SHAPES[key] || ICON_SHAPES.info}</svg>`;
   }
 
   // Severity colors
@@ -402,8 +605,10 @@
     const loadVoltage = Math.max(0, voltageInVolts - voltageDrop);
     const powerLoss = current * current * (powerLossMult * r * length);
 
-    // Limit banding follows the selected regional standard
-    // (BS 7671: 3%/5% — IEC 60364-5-52 Annex G: 4%/5%).
+    // Limit banding follows the selected regional standard. Both metric
+    // standards share 3% (lighting) / 5% (other uses) for a public LV supply;
+    // the IEC profile additionally documents the 6%/8% private-supply and the
+    // >100 m long-run allowances from Table G.52.1.
     let severity = 'good';
     if (dropPct > std.hardPct + 1e-9) {
       severity = 'excessive';
@@ -421,6 +626,54 @@
       statusDesc = std.excessiveDesc;
     }
 
+    // ── Real-world cross-checks shown under the verdict ──────────────
+    // (1) Design-temperature figure. Compliance tables (BS 7671 Appendix 4,
+    //     IEC 60364-5-52) publish mV/A/m at the conductor's maximum operating
+    //     temperature, so a calculation at 20 °C reads optimistic. Restate the
+    //     same circuit at the 70 °C PVC design temperature for comparison.
+    const designTempC = 70;
+    const rhoDesign = Math.max(0, mat.rho20 * (1 + mat.alpha * (designTempC - 20)));
+    const rDesign = rhoDesign / size;
+    // Reactance is a geometry/insulation property, so only the resistive part
+    // is re-evaluated at the design temperature.
+    const designDrop = roundTripMult * current * length * (rDesign * pf + x * sinPhi);
+    const designDropPct = voltageInVolts > 0 ? (designDrop / voltageInVolts) * 100 : 0;
+
+    // (2) IEC Annex G long-run allowance: ceilings may be increased by
+    //     0.005 % per metre beyond 100 m of cable system, capped at +0.5 %.
+    const longRunAllowance = length > 100 ? Math.min(0.5, 0.005 * (length - 100)) : 0;
+
+    const notes = [];
+    if (
+      Number.isFinite(temp) &&
+      temp < designTempC - 0.5 &&
+      Math.abs(designDropPct - dropPct) > 0.02
+    ) {
+      notes.push(
+        `At the ${designTempC} °C design temperature the BS 7671 / IEC tables assume, this run is ${designDrop.toFixed(2)} V (${designDropPct.toFixed(2)}%) — tabulated mV/A/m values are quoted for a hot conductor, not a cold one.`,
+      );
+    }
+    if (longRunAllowance > 0 && state.standard === 'iec-60364') {
+      notes.push(
+        `IEC 60364-5-52 Annex G permits +${longRunAllowance.toFixed(2)}% on a ${Math.round(length)} m run (0.005%/m beyond 100 m, max +0.5%), so the ceiling here could be read as ${(std.hardPct + longRunAllowance).toFixed(2)}%.`,
+      );
+    }
+    if (state.systemType === 'three' && pf < 0.95 && !state.reactance && size >= 16) {
+      notes.push(
+        'Large cable plus a low power factor: switch on cable reactance — from 16 mm² upward X (≈0.08 mΩ/m) starts to move the answer.',
+      );
+    }
+    if (severity === 'excessive') {
+      const next = nextSizeUp(size);
+      if (next) {
+        const rNext = rhoT / next;
+        const dropNext = roundTripMult * current * length * (rNext * pf + x * sinPhi);
+        notes.push(
+          `Next standard size up (${next} mm²) would give ${dropNext.toFixed(2)} V (${((dropNext / Math.max(voltageInVolts, 1e-9)) * 100).toFixed(2)}%).`,
+        );
+      }
+    }
+
     return {
       valid: true,
       sourceVoltage: voltageInVolts,
@@ -431,8 +684,24 @@
       severity,
       statusTitle,
       statusDesc,
+      designDrop,
+      designDropPct,
+      designTempC,
+      longRunAllowance,
+      limitPct: std.hardPct,
+      goodPct: std.goodPct,
+      notes,
       errorNotices: [],
     };
+  }
+
+  /**
+   * Next preferred conductor cross-section (IEC 60228 preferred sizes used by
+   * the BS 7671 / IEC ampacity tables).
+   */
+  const PREFERRED_SIZES = [1, 1.5, 2.5, 4, 6, 10, 16, 25, 35, 50, 70, 95, 120, 150, 185, 240, 300];
+  function nextSizeUp(size) {
+    return PREFERRED_SIZES.find((s) => s > size + 1e-9);
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -456,10 +725,25 @@
   }
 
   // ─────────────────────────────────────────────────────────────
+  // SCROLL AFFORDANCE (module scope: updateUI runs before setupEvents wires the
+  // listeners, and the mobile sheet needs the same hint)
+  // ─────────────────────────────────────────────────────────────
+  function updateInputsScrollAffordance() {
+    const body = document.getElementById('inputs-body');
+    const panel = document.getElementById('inputs-panel');
+    if (!body || !panel) return;
+    const scrollable = body.scrollHeight - body.clientHeight;
+    const atTop = body.scrollTop <= 1;
+    const atBottom = scrollable - body.scrollTop <= 1;
+    panel.classList.toggle('can-scroll-down', scrollable > 4 && !atBottom);
+    panel.classList.toggle('can-scroll-up', scrollable > 4 && !atTop);
+  }
+
+  // ─────────────────────────────────────────────────────────────
   // TOAST NOTIFICATIONS
   // ─────────────────────────────────────────────────────────────
   let toastTimer = null;
-  function showToast(message, icon = 'ℹ️', durationMs = 4000) {
+  function showToast(message, icon = 'info', durationMs = 4000) {
     const elToast = document.getElementById('tool-toast-banner');
     const elIcon = document.getElementById('tool-toast-icon');
     const elText = document.getElementById('tool-toast-text');
@@ -468,7 +752,7 @@
 
     if (toastTimer) clearTimeout(toastTimer);
 
-    if (elIcon) elIcon.textContent = icon;
+    if (elIcon) elIcon.innerHTML = iconSvg(icon);
     elText.textContent = message;
     elToast.hidden = false;
 
@@ -483,6 +767,7 @@
   function updateUI() {
     syncUrl();
     const res = calculate();
+    updateInputsScrollAffordance();
     const colors = SEVERITY_COLORS[res.severity] || SEVERITY_COLORS.good;
 
     // 1. Update Results Panel & Error Notice Card
@@ -539,7 +824,11 @@
           ? 'Fix the highlighted values to continue calculation.'
           : 'Finish editing to update the calculation.';
       }
-      if (elMobileSummary) elMobileSummary.textContent = showNoticeCard ? '⚠️ Check Inputs' : '…';
+      if (elMobileSummary) {
+        elMobileSummary.innerHTML = showNoticeCard
+          ? `${iconSvg('warning')}<span>Check Inputs</span>`
+          : '<span>…</span>';
+      }
     } else {
       // Inputs are valid - Display calculations
       if (elErrorNoticeCard) {
@@ -568,6 +857,22 @@
       }
       if (elStatusTitle) elStatusTitle.textContent = res.statusTitle;
       if (elStatusDesc) elStatusDesc.textContent = res.statusDesc;
+
+      // Real-world advisories (design temperature, Annex G long-run allowance,
+      // the next size up, reactance for big cables) as a vector-icon list.
+      const elNotes = document.getElementById('vd-eng-notes');
+      if (elNotes) {
+        const list = (res.notes || []).filter(Boolean);
+        if (list.length) {
+          elNotes.hidden = false;
+          elNotes.innerHTML = list
+            .map((note) => `<li>${iconSvg('bulb')}<span>${note}</span></li>`)
+            .join('');
+        } else {
+          elNotes.hidden = true;
+          elNotes.innerHTML = '';
+        }
+      }
 
       if (elMobileSummary) {
         elMobileSummary.textContent = `${res.voltageDrop.toFixed(2)} V (${res.dropPct.toFixed(2)}%)`;
@@ -657,9 +962,11 @@
       elSvgLoad.setAttribute('fill', colors.text);
     }
     if (elSvgDrop) {
+      // SVG <text> cannot host an inline SVG child, and a literal emoji here
+      // would render in whatever emoji font the visitor has — plain words only.
       elSvgDrop.textContent = res.valid
         ? `${res.voltageDrop.toFixed(2)} V (${res.dropPct.toFixed(2)}%)`
-        : '⚠️ Check Inputs';
+        : 'Check Inputs';
     }
     if (elSvgDropIcon) {
       elSvgDropIcon.setAttribute('stroke', colors.stroke);
@@ -699,6 +1006,20 @@
         winOpacity = '0.45';
       }
 
+      // the light spilling onto the wall and lawn answers to the same verdict:
+      // a glow that stayed bright while the windows dimmed would be a lie
+      const spill = document.querySelector('.win-spill');
+      if (spill) {
+        const level = !res.valid
+          ? 0.06
+          : res.severity === 'excessive'
+            ? 0.22
+            : res.severity === 'warning'
+              ? 0.5
+              : 1;
+        spill.setAttribute('opacity', String(level));
+      }
+
       winGlasses.forEach((w) => {
         w.setAttribute('fill', winColor);
         w.style.opacity = winOpacity;
@@ -727,17 +1048,237 @@
   // ─────────────────────────────────────────────────────────────
   // SCENE VIEWPORT & PARALLAX SCALING
   // ─────────────────────────────────────────────────────────────
-  function handleResize() {
-    const stage = document.getElementById('interactive-stage');
-    const scaler = document.getElementById('scene-scaler');
-    if (!stage || !scaler) return;
 
+  /**
+   * The scenery is authored on a 1440×810 canvas. A hard `transform: scale()`
+   * of that box left flat page background on both sides of wide and ultrawide
+   * screens (the scale is limited by height, so a 3440×1440 display showed
+   * ~400 px bars). Instead the SVG's viewBox is fitted to the stage: the
+   * composition is always fully visible and *more landscape* fills the extra
+   * area, so the drawing is edge-to-edge at every aspect ratio.
+   */
+  const SCENE_BASE_W = 1440;
+  const SCENE_BASE_H = 810;
+  /** How far the scenery may widen before the artwork starts zooming instead. */
+  const SCENE_MAX_WIDE = 2.6;
+  /** How far it may heighten before the sides start to be cropped. */
+  const SCENE_MAX_TALL = 1.9;
+  /** Never crop tighter than the source + load labels floating above the run. */
+  const SCENE_MIN_CROP_W = 1040;
+
+  function stageParts(stageRect) {
+    const ratio = stageRect.width / stageRect.height;
+    const baseRatio = SCENE_BASE_W / SCENE_BASE_H;
+    let vbW;
+    let vbH;
+
+    if (ratio >= baseRatio) {
+      // Wide / ultra-wide: hold the full 810-unit height and widen the landscape.
+      vbW = Math.min(SCENE_BASE_H * ratio, SCENE_BASE_W * SCENE_MAX_WIDE);
+      vbH = vbW / ratio;
+    } else {
+      // Tall / portrait: grow upwards and downwards first, then ease the sides in.
+      vbH = Math.min(SCENE_BASE_W / ratio, SCENE_BASE_H * SCENE_MAX_TALL);
+      vbW = Math.max(vbH * ratio, SCENE_MIN_CROP_W);
+      vbH = vbW / ratio;
+    }
+
+    const vbX = (SCENE_BASE_W - vbW) / 2;
+    // If the crop eats into the artwork (extreme ratios) keep the ground and the
+    // buildings and give up sky; otherwise share the slack below the horizon.
+    const vbY = vbH <= SCENE_BASE_H ? SCENE_BASE_H - vbH : -(vbH - SCENE_BASE_H) * 0.35;
+    return { x: vbX, y: vbY, width: vbW, height: vbH };
+  }
+
+  /**
+   * The fitting maths itself lives in the shared stage runtime so every tool
+   * stage behaves identically; this local path is the fallback for when
+   * `scene-stage.js` has not been served (older cached HTML, blocked asset).
+   */
+  function fittedViewBox(stageRect) {
+    const helper = window.ElectraStage;
+    const box = helper
+      ? helper.viewBoxFor(stageRect, SCENE_BASE_W, SCENE_BASE_H)
+      : stageParts(stageRect);
+    return `${box.x.toFixed(1)} ${box.y.toFixed(1)} ${box.width.toFixed(1)} ${box.height.toFixed(1)}`;
+  }
+
+  function reapplyTilt() {
+    // Let the 3D tilt overrun its own edges so rotation can never reveal the
+    // flat page background behind the scene.
+    const wrapper = document.getElementById('scene-perspective-wrapper');
+    if (wrapper && wrapper.dataset.tilt === 'on') {
+      wrapper.style.transform = 'none';
+      applyParallax();
+    }
+  }
+
+  // the live handle from ElectraStage.attach; when the shared runtime is present
+  // it owns fitting, so nothing else may write the viewBox (a second, pad-less
+  // writer used to re-crop the view under the floating panels)
+  let stageHandle = null;
+
+  function sceneFrame() {
+    return document.getElementById('scene-frame') || document.getElementById('interactive-stage');
+  }
+
+  function syncSceneViewBox() {
+    const svg = document.getElementById('voltage-drop-svg');
+    if (!svg) return;
+    if (stageHandle && typeof stageHandle.fit === 'function') {
+      stageHandle.fit();
+      return;
+    }
+    const stage = sceneFrame();
+    if (!stage) return;
     const rect = stage.getBoundingClientRect();
-    const targetW = 1440;
-    const targetH = 810;
+    if (rect.width < 1 || rect.height < 1) return;
+    const next = fittedViewBox(rect);
+    if (svg.getAttribute('viewBox') !== next) svg.setAttribute('viewBox', next);
+    // the markup ships `slice` so the pre-JS paint never shows page colour
+    svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    reapplyTilt();
+  }
 
-    const scale = Math.max(0.25, Math.min(rect.width / targetW, rect.height / targetH) * 1.05);
-    scaler.style.transform = `translate(-50%, -50%) scale(${scale})`;
+  // ─────────────────────────────────────────────────────────────
+  // SCENE TILT (3D parallax) — module scope so resize can re-apply it
+  // ─────────────────────────────────────────────────────────────
+  let parallaxFrame = null;
+  let parallaxCoords = null;
+  function applyParallax() {
+    parallaxFrame = null;
+    if (!parallaxCoords) return;
+    const wrapper = document.getElementById('scene-perspective-wrapper');
+    if (!wrapper) return;
+    // scale(1.04) keeps the tilted artwork pasted over its own edges — without
+    // it, rotating the plane exposes the flat background behind the scene.
+    wrapper.style.transform = `perspective(1200px) rotateY(${(parallaxCoords.x * 6).toFixed(2)}deg) rotateX(${(-parallaxCoords.y * 4).toFixed(2)}deg) scale(1.04)`;
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // REAL-WORLD SCENARIO PRESETS
+  // ─────────────────────────────────────────────────────────────
+  function findPreset(id) {
+    return PRESETS.find((p) => p.id === id) || null;
+  }
+
+  function syncPresetButtons() {
+    document.querySelectorAll('[data-preset-id]').forEach((btn) => {
+      const on = btn.getAttribute('data-preset-id') === state.preset;
+      btn.classList.toggle('active', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    const caption = document.getElementById('preset-caption');
+    if (caption) {
+      const preset = findPreset(state.preset);
+      if (preset) {
+        caption.hidden = false;
+        caption.innerHTML = `<strong>${preset.name}:</strong> ${preset.blurb}`;
+      } else {
+        caption.hidden = true;
+        caption.textContent = '';
+      }
+    }
+  }
+
+  function writeField(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.value = String(value);
+  }
+
+  /**
+   * Load a real-world scenario into the form. `opts.silent` skips the toast
+   * (used while restoring a shared link, where the toast is not wanted).
+   */
+  function applyPreset(id, opts = {}) {
+    const preset = findPreset(id);
+    if (!preset) return false;
+    urlArmed = true;
+    const v = preset.values;
+
+    if (v.standard && VD_STANDARDS[v.standard]) {
+      state.standard = v.standard;
+      writeField('input-standard', v.standard);
+    }
+    if (v.systemType) {
+      state.systemType = v.systemType;
+      syncSegmentedButtons(v.systemType);
+    }
+    if (v.voltage !== undefined) {
+      state.voltsUnit = 'V';
+      writeField('select-voltage-unit', 'V');
+      state.voltage = v.voltage;
+      writeField('input-voltage', v.voltage);
+    }
+    if (v.current !== undefined) {
+      state.current = v.current;
+      writeField('input-current', v.current);
+    }
+    if (v.length !== undefined) {
+      state.length = v.length;
+      writeField('input-length', v.length);
+    }
+    if (v.size !== undefined) {
+      state.size = v.size;
+      writeField('input-size', v.size);
+    }
+    if (v.material) {
+      state.material = v.material;
+      writeField('select-material', v.material);
+    }
+    if (v.pf !== undefined) {
+      state.pf = v.pf;
+      writeField('input-pf', v.pf);
+    }
+    if (v.temp !== undefined) {
+      state.temp = v.temp;
+      writeField('input-temp', v.temp);
+    }
+    // Deterministic scenarios: a preset owns the reactance switch too, so a
+    // switch left over from a previous manual experiment cannot skew it.
+    state.reactance = v.reactance === undefined ? false : Boolean(v.reactance);
+    {
+      const sw = document.getElementById('switch-reactance');
+      if (sw) sw.setAttribute('aria-checked', state.reactance ? 'true' : 'false');
+    }
+
+    state.preset = id;
+    touchedFields.clear();
+    syncPresetButtons();
+    updateUI();
+    if (!opts.silent) {
+      showToast(
+        `Loaded “${preset.name}” — ${v.length} m of ${v.size} mm² ${v.material === 'aluminum' ? 'aluminum' : 'copper'} at ${v.temp} °C.`,
+        'ruler',
+      );
+    }
+    return true;
+  }
+
+  /** Any manual edit means the numbers are no longer the preset's numbers. */
+  function releasePreset() {
+    if (!state.preset) return;
+    state.preset = '';
+    syncPresetButtons();
+  }
+
+  function setupPresetControls() {
+    const grid = document.getElementById('preset-grid');
+    if (!grid) return;
+    grid.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-preset-id]');
+      if (!btn) return;
+      const id = btn.getAttribute('data-preset-id');
+      // Clicking the active preset again clears it back to the default case.
+      if (id === state.preset) {
+        releasePreset();
+        resetToDefaults({ keepStandard: true });
+        showToast('Cleared the preset — back to manual entry.', 'reset');
+        return;
+      }
+      applyPreset(id);
+    });
+    syncPresetButtons();
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -753,6 +1294,9 @@
           evt,
           () => {
             urlArmed = true;
+            // Typing detaches the form from a preset (the preset buttons set it
+            // themselves, so 'click' only arms the URL sync).
+            if (evt !== 'click') releasePreset();
           },
           { capture: true },
         );
@@ -785,7 +1329,7 @@
       selStandard.addEventListener('change', (e) => {
         state.standard = VD_STANDARDS[e.target.value] ? e.target.value : 'uk-bs7671';
         updateUI();
-        showToast(`Compliance limits switched to ${VD_STANDARDS[state.standard].label}.`, '📐');
+        showToast(`Compliance limits switched to ${VD_STANDARDS[state.standard].label}.`, 'ruler');
       });
     }
 
@@ -828,7 +1372,10 @@
         const lenNum = Number.parseFloat(e.target.value);
         const isLong = Number.isFinite(lenNum) && lenNum > 1000;
         if (isLong && !longRunToastShown) {
-          showToast('Long cable run (>1000m) entered. Industrial transmission rules apply.', 'ℹ️');
+          showToast(
+            'Long cable run (>1000 m): check the supply voltage at the far end, not just the cable.',
+            'info',
+          );
         }
         longRunToastShown = isLong;
         updateUI();
@@ -892,7 +1439,7 @@
     if (btnAutofix) {
       btnAutofix.addEventListener('click', () => {
         resetToDefaults();
-        showToast('Restored standard circuit parameters.', '✅');
+        showToast('Restored standard circuit parameters.', 'success');
       });
     }
 
@@ -964,18 +1511,37 @@
         const isHidden = advBody.hidden;
         advBody.hidden = !isHidden;
         advToggle.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+        if (!isHidden) {
+          // The accordion grows the panel: bring the newly revealed fields into
+          // view and re-measure the scroll hint instead of leaving them under the
+          // pinned Calculate footer.
+          requestAnimationFrame(() => {
+            const firstField = advBody.querySelector('input, button[role="switch"]');
+            if (firstField && typeof firstField.scrollIntoView === 'function') {
+              firstField.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            }
+            updateInputsScrollAffordance();
+          });
+        }
       });
     }
 
     // 4. Panel Collapsing
     const btnColInputs = document.getElementById('btn-collapse-inputs');
     const elInputsBody = document.getElementById('inputs-body');
+    const elInputsFooter = document.querySelector('[data-panel-footer="inputs"]');
+
     if (btnColInputs && elInputsBody) {
       btnColInputs.addEventListener('click', () => {
         const isCollapsed = elInputsBody.hidden;
         elInputsBody.hidden = !isCollapsed;
+        if (elInputsFooter) elInputsFooter.hidden = !isCollapsed;
         btnColInputs.setAttribute('aria-expanded', isCollapsed ? 'true' : 'false');
+        updateInputsScrollAffordance();
       });
+    }
+    if (elInputsBody) {
+      elInputsBody.addEventListener('scroll', updateInputsScrollAffordance, { passive: true });
     }
 
     const btnColResults = document.getElementById('btn-collapse-results');
@@ -1041,8 +1607,11 @@
         state.threeD = !state.threeD;
         btn3d.classList.toggle('active', state.threeD);
         btn3d.setAttribute('aria-pressed', state.threeD ? 'true' : 'false');
+        sceneWrapper.dataset.tilt = state.threeD ? 'on' : 'off';
         if (!state.threeD) {
           sceneWrapper.style.transform = 'none';
+        } else {
+          applyParallax();
         }
       });
     }
@@ -1051,286 +1620,35 @@
     if (btnResetView) {
       btnResetView.addEventListener('click', () => {
         resetToDefaults();
-        showToast('Reset all parameters to default values.', '🔄');
-      });
-    }
-
-    // 7. Tool Switcher Dropdown in Header
-    const btnSwitcher = document.getElementById('tool-switcher-btn');
-    const menuSwitcher = document.getElementById('tool-switcher-menu');
-    if (btnSwitcher && menuSwitcher) {
-      btnSwitcher.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const isHidden = menuSwitcher.hidden;
-        menuSwitcher.hidden = !isHidden;
-        btnSwitcher.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
-      });
-      document.addEventListener('click', (e) => {
-        if (!menuSwitcher.contains(e.target) && e.target !== btnSwitcher) {
-          menuSwitcher.hidden = true;
-          btnSwitcher.setAttribute('aria-expanded', 'false');
-        }
-      });
-    }
-
-    // 8. Tool Drawer Sidebar (Hamburger)
-    const btnDrawerOpen = document.getElementById('tool-drawer-btn');
-    const btnDrawerClose = document.getElementById('tool-drawer-close');
-    const drawerBackdrop = document.getElementById('tool-drawer-backdrop');
-    const drawerAside = document.getElementById('tool-drawer-menu');
-    const drawerSearch = document.getElementById('tool-drawer-search');
-
-    function openDrawer() {
-      if (!drawerAside || !drawerBackdrop) return;
-      drawerAside.hidden = false;
-      drawerBackdrop.hidden = false;
-      if (btnDrawerOpen) btnDrawerOpen.setAttribute('aria-expanded', 'true');
-      document.body.style.overflow = 'hidden';
-      pushOverlay(drawerAside, btnDrawerOpen, drawerSearch);
-    }
-
-    function closeDrawer() {
-      if (!drawerAside || !drawerBackdrop) return;
-      if (drawerAside.hidden) return;
-      drawerAside.hidden = true;
-      drawerBackdrop.hidden = true;
-      if (btnDrawerOpen) btnDrawerOpen.setAttribute('aria-expanded', 'false');
-      document.body.style.overflow = '';
-      popOverlay(drawerAside);
-    }
-
-    if (btnDrawerOpen) btnDrawerOpen.addEventListener('click', openDrawer);
-    if (btnDrawerClose) btnDrawerClose.addEventListener('click', closeDrawer);
-    if (drawerBackdrop) drawerBackdrop.addEventListener('click', closeDrawer);
-
-    if (drawerSearch) {
-      drawerSearch.addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase().trim();
-        const items = document.querySelectorAll('#drawer-tools-list .drawer-item');
-        items.forEach((it) => {
-          const name = it.getAttribute('data-tool-name') || '';
-          it.style.display = name.includes(query) ? '' : 'none';
-        });
-      });
-    }
-
-    // 9. Command Palette Modal
-    const cmdBackdrop = document.getElementById('cmd-palette-backdrop');
-    const cmdInput = document.getElementById('cmd-palette-input');
-    const cmdTrigger = document.getElementById('cmd-palette-trigger');
-    const cmdOpenFromSwitcher = document.getElementById('open-cmd-palette-btn');
-
-    function openCmdPalette(trigger) {
-      if (!cmdBackdrop) return;
-      cmdBackdrop.hidden = false;
-      document.body.style.overflow = 'hidden';
-      pushOverlay(cmdBackdrop, trigger, cmdInput);
-      filterPalette('');
-      closeDrawer();
-      if (menuSwitcher) {
-        menuSwitcher.hidden = true;
-        if (btnSwitcher) btnSwitcher.setAttribute('aria-expanded', 'false');
-      }
-    }
-
-    function closeCmdPalette() {
-      if (!cmdBackdrop || cmdBackdrop.hidden) return;
-      cmdBackdrop.hidden = true;
-      document.body.style.overflow = '';
-      popOverlay(cmdBackdrop);
-    }
-
-    if (cmdTrigger) cmdTrigger.addEventListener('click', (e) => openCmdPalette(e.currentTarget));
-    if (cmdOpenFromSwitcher) {
-      cmdOpenFromSwitcher.addEventListener('click', (e) => openCmdPalette(e.currentTarget));
-    }
-    if (cmdBackdrop) {
-      cmdBackdrop.addEventListener('click', (e) => {
-        if (e.target === cmdBackdrop) closeCmdPalette();
-      });
-    }
-
-    function setSelectedCmd(item) {
-      document.querySelectorAll('#cmd-results-list .cmd-item').forEach((it) => {
-        const selected = it === item;
-        it.classList.toggle('selected', selected);
-        it.setAttribute('aria-selected', selected ? 'true' : 'false');
-      });
-      if (cmdInput) {
-        if (item?.id) {
-          cmdInput.setAttribute('aria-activedescendant', item.id);
-        } else {
-          cmdInput.removeAttribute('aria-activedescendant');
-        }
-      }
-    }
-
-    function setGroupLabelVisibility(group, visible) {
-      const label = document.querySelector(
-        `#cmd-results-list .cmd-group-label[data-group="${group}"]`,
-      );
-      if (label) label.style.display = visible ? '' : 'none';
-    }
-
-    function filterPalette(query) {
-      const items = Array.from(document.querySelectorAll('#cmd-results-list .cmd-item'));
-      let firstVisible = null;
-      items.forEach((item) => {
-        const title = (item.getAttribute('data-title') || '').toLowerCase();
-        const match = title.includes(query.toLowerCase());
-        item.style.display = match ? '' : 'none';
-        if (match && !firstVisible) {
-          firstVisible = item;
-        }
-      });
-      setGroupLabelVisibility(
-        'tools',
-        items.some((i) => i.getAttribute('data-type') === 'tool' && i.style.display !== 'none'),
-      );
-      setGroupLabelVisibility(
-        'commands',
-        items.some((i) => i.getAttribute('data-type') === 'cmd' && i.style.display !== 'none'),
-      );
-      const emptyEl = document.getElementById('cmd-empty-state');
-      if (emptyEl) emptyEl.hidden = Boolean(firstVisible);
-      setSelectedCmd(firstVisible);
-    }
-
-    if (cmdInput) {
-      cmdInput.addEventListener('input', (e) => {
-        filterPalette(e.target.value);
-      });
-    }
-
-    function executePaletteItem(item) {
-      if (!item) return;
-      const type = item.getAttribute('data-type');
-      if (type === 'tool') {
-        const route = item.getAttribute('data-route');
-        if (route) window.location.href = route;
-      } else if (type === 'cmd') {
-        const action = item.getAttribute('data-action');
-        closeCmdPalette();
-        if (action === 'home') window.location.href = '/tools/';
-        else if (action === 'app') window.location.href = '/app/';
-        else if (action === 'reset') {
-          resetToDefaults();
-          showToast('Reset all parameters to default values.', '🔄');
-        } else if (action === 'help') openHelp();
-        else if (action === 'theme') document.getElementById('tool-theme-toggle')?.click();
-        else if (action === '3d') {
-          if (btn3d) btn3d.click();
-        } else if (action === 'animate') {
-          if (btnAnimate) btnAnimate.click();
-        }
-      }
-    }
-
-    const cmdList = document.getElementById('cmd-results-list');
-    if (cmdList) {
-      cmdList.addEventListener('click', (e) => {
-        const item = e.target.closest('.cmd-item');
-        if (item) executePaletteItem(item);
-      });
-    }
-
-    // Drawer Commands Wiring
-    const cmdReset = document.getElementById('drawer-cmd-reset');
-    const cmdHelp = document.getElementById('drawer-cmd-help');
-    const cmdTheme = document.getElementById('drawer-cmd-theme');
-
-    if (cmdReset) {
-      cmdReset.addEventListener('click', () => {
-        resetToDefaults();
-        closeDrawer();
-        showToast('Reset all parameters to default values.', '🔄');
-      });
-    }
-    if (cmdHelp) {
-      cmdHelp.addEventListener('click', () => {
-        openHelp();
-        closeDrawer();
-      });
-    }
-    if (cmdTheme) {
-      cmdTheme.addEventListener('click', () => {
-        document.getElementById('tool-theme-toggle')?.click();
-        closeDrawer();
-      });
-    }
-
-    // 10. Help Modal
-    const helpBackdrop = document.getElementById('tool-help-backdrop');
-    const btnHelp = document.getElementById('tool-help-btn');
-    const btnHelpClose = document.getElementById('tool-help-close');
-    const btnHelpGotIt = document.getElementById('tool-help-confirm');
-
-    function openHelp(trigger) {
-      if (!helpBackdrop) return;
-      helpBackdrop.hidden = false;
-      document.body.style.overflow = 'hidden';
-      pushOverlay(helpBackdrop, trigger, btnHelpGotIt);
-    }
-
-    function closeHelp() {
-      if (!helpBackdrop || helpBackdrop.hidden) return;
-      helpBackdrop.hidden = true;
-      document.body.style.overflow = '';
-      popOverlay(helpBackdrop);
-    }
-
-    if (btnHelp) btnHelp.addEventListener('click', (e) => openHelp(e.currentTarget));
-    if (btnHelpClose) btnHelpClose.addEventListener('click', closeHelp);
-    if (btnHelpGotIt) btnHelpGotIt.addEventListener('click', closeHelp);
-    if (helpBackdrop) {
-      helpBackdrop.addEventListener('click', (e) => {
-        if (e.target === helpBackdrop) closeHelp();
+        showToast('Reset all parameters to default values.', 'reset');
       });
     }
 
     // 11. Theme toggle: handled globally by theme.js via [data-theme-toggle].
 
-    // 12. Fullscreen Toggle
-    const btnFullscreen = document.getElementById('tool-fullscreen-btn');
-    const fsEnterIcon = document.querySelector('.fs-icon-enter');
-    const fsExitIcon = document.querySelector('.fs-icon-exit');
-
-    function toggleFullscreen() {
-      const docEl = document.documentElement;
-      if (!document.fullscreenElement) {
-        const request =
-          docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.msRequestFullscreen;
-        if (typeof request !== 'function') {
-          showToast("Fullscreen isn't supported on this browser or device.", '⚠️');
-          return;
-        }
-        try {
-          // Standard API returns a promise; legacy webkit/ms APIs return void.
-          Promise.resolve(request.call(docEl))
-            .then(() => showToast('Press Esc to exit fullscreen.', 'ℹ️', 2500))
-            .catch(() => showToast('Fullscreen was blocked by the browser.', '⚠️'));
-        } catch (_) {
-          showToast("Fullscreen isn't available here.", '⚠️');
-        }
-      } else {
-        (document.exitFullscreen || document.webkitExitFullscreen)?.call(document);
-      }
-    }
-
-    if (btnFullscreen) {
-      btnFullscreen.addEventListener('click', toggleFullscreen);
-      document.addEventListener('fullscreenchange', () => {
-        const isFs = Boolean(document.fullscreenElement);
-        if (fsEnterIcon) fsEnterIcon.style.display = isFs ? 'none' : 'block';
-        if (fsExitIcon) fsExitIcon.style.display = isFs ? 'block' : 'none';
-      });
-    }
-
     // 13. Tips Carousel & Toggle
+    const TIP_ROTATE_MS = 9000;
+    let tipsRotation = 0;
+    let tipsHold = false;
     const switchTips = document.getElementById('switch-tips');
     const tipsKnob = document.getElementById('tips-pill-knob');
     const tipsBar = document.getElementById('tips-bar');
     const tipsText = document.getElementById('tips-text');
+
+    if (tipsBar) {
+      tipsBar.addEventListener('mouseenter', () => {
+        tipsHold = true;
+      });
+      tipsBar.addEventListener('mouseleave', () => {
+        tipsHold = false;
+      });
+      tipsBar.addEventListener('focusin', () => {
+        tipsHold = true;
+      });
+      tipsBar.addEventListener('focusout', () => {
+        tipsHold = false;
+      });
+    }
 
     if (switchTips && tipsBar) {
       switchTips.addEventListener('click', () => {
@@ -1341,19 +1659,46 @@
       });
     }
 
-    setInterval(() => {
-      if (!state.showTips || !tipsText || document.hidden || REDUCED_MOTION.matches) return;
-      state.tipIndex = (state.tipIndex + 1) % TIPS.length;
-      if (REDUCED_MOTION.matches) {
-        tipsText.textContent = TIPS[state.tipIndex];
+    const tipsCount = document.getElementById('tips-count');
+    const btnTipPrev = document.getElementById('btn-tip-prev');
+    const btnTipNext = document.getElementById('btn-tip-next');
+
+    function paintTip(animate = true) {
+      if (!tipsText) return;
+      const text = TIPS[state.tipIndex] || TIPS[0];
+      if (tipsCount) tipsCount.textContent = `${state.tipIndex + 1}/${TIPS.length}`;
+      if (!animate || REDUCED_MOTION.matches) {
+        tipsText.textContent = text;
         return;
       }
       tipsText.style.opacity = '0';
       setTimeout(() => {
-        tipsText.textContent = TIPS[state.tipIndex];
+        tipsText.textContent = text;
         tipsText.style.opacity = '1';
       }, 200);
-    }, 7000);
+    }
+
+    function stepTip(delta) {
+      state.tipIndex = (state.tipIndex + delta + TIPS.length) % TIPS.length;
+      tipsRotation = 0;
+      paintTip();
+    }
+
+    if (btnTipPrev) btnTipPrev.addEventListener('click', () => stepTip(-1));
+    if (btnTipNext) btnTipNext.addEventListener('click', () => stepTip(1));
+    paintTip(false);
+
+    // Auto-advance, but the timer restarts whenever the reader pages by hand or
+    // is hovering the tip (so nobody loses a sentence mid-read).
+    setInterval(() => {
+      if (!state.showTips || !tipsText || document.hidden || REDUCED_MOTION.matches) return;
+      if (tipsHold) return;
+      tipsRotation += 1;
+      if (tipsRotation * 1000 < TIP_ROTATE_MS) return;
+      tipsRotation = 0;
+      state.tipIndex = (state.tipIndex + 1) % TIPS.length;
+      paintTip();
+    }, 1000);
 
     // 14. Mobile Bottom Sheet Handlers
     const btnMobInputs = document.getElementById('btn-mobile-open-inputs');
@@ -1402,83 +1747,47 @@
       btnMobResults.addEventListener('click', (e) => openMobileResults(e.currentTarget));
     if (panelScrim) panelScrim.addEventListener('click', closeMobilePanels);
 
-    // 15. Global Keyboard Shortcuts
-    window.addEventListener('keydown', (e) => {
-      if (e.shiftKey && e.code === 'Space') {
-        const target = e.target;
-        const isTypingContext =
-          e.isComposing ||
-          (target &&
-            (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)));
-        if (isTypingContext) return;
-        e.preventDefault();
-        if (cmdBackdrop && !cmdBackdrop.hidden) {
-          closeCmdPalette();
-        } else {
-          openCmdPalette();
-        }
-        return;
-      }
-
-      if (e.key === 'Escape') {
-        closeCmdPalette();
-        closeDrawer();
-        closeHelp();
-        closeMobilePanels();
-        if (menuSwitcher) {
-          menuSwitcher.hidden = true;
-          if (btnSwitcher) btnSwitcher.setAttribute('aria-expanded', 'false');
-        }
-        return;
-      }
-
-      if (cmdBackdrop && !cmdBackdrop.hidden) {
-        const visibleItems = Array.from(
-          document.querySelectorAll('#cmd-results-list .cmd-item'),
-        ).filter((it) => it.style.display !== 'none');
-        if (!visibleItems.length) return;
-
-        const currentIdx = visibleItems.findIndex((it) => it.classList.contains('selected'));
-
-        if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          const next = visibleItems[(currentIdx + 1) % visibleItems.length];
-          setSelectedCmd(next);
-          next.scrollIntoView({ block: 'nearest' });
-        } else if (e.key === 'ArrowUp') {
-          e.preventDefault();
-          const prev = visibleItems[(currentIdx - 1 + visibleItems.length) % visibleItems.length];
-          setSelectedCmd(prev);
-          prev.scrollIntoView({ block: 'nearest' });
-        } else if (e.key === 'Enter') {
-          e.preventDefault();
-          if (currentIdx >= 0) {
-            executePaletteItem(visibleItems[currentIdx]);
-          }
-        }
-      }
-    });
-
-    // 16. Window resize & mouse move (debounced / rAF-batched)
-    let resizeFrame = null;
-    window.addEventListener('resize', () => {
-      if (resizeFrame !== null) return;
-      resizeFrame = requestAnimationFrame(() => {
-        resizeFrame = null;
-        handleResize();
+    // 16. Stage fitting is delegated to the shared runtime (window.ElectraStage)
+    // so every tool scene reacts to resizes, browser zoom, split screen, the
+    // mobile URL bar and orientation the same way. Without it, the local
+    // listeners below keep the landscape fitted.
+    const helper = window.ElectraStage;
+    if (helper?.attach) {
+      stageHandle = helper.attach({
+        // the frame the artwork fills — identical to the stage here, and the
+        // right box for any stage that later gains a stacked layout
+        stage:
+          document.getElementById('scene-frame') || document.getElementById('interactive-stage'),
+        svgId: 'voltage-drop-svg',
+        baseWidth: SCENE_BASE_W,
+        baseHeight: SCENE_BASE_H,
+        // source cabinet, both floating labels and the house: the parts that
+        // carry information, kept clear of the panels at every window size
+        content: { x0: 250, x1: 1310, y0: 200, y1: 700 },
+        panelSelector: '#panel-wrap .inputs-panel-container, #panel-wrap .results-panel-container',
+        // the tilt has to be re-applied after every fit, or rotation can expose
+        // the stage background at the edges
+        onFit: reapplyTilt,
       });
-    });
+    } else {
+      let resizeFrame = null;
+      const scheduleSceneFit = () => {
+        if (resizeFrame !== null) return;
+        resizeFrame = requestAnimationFrame(() => {
+          resizeFrame = null;
+          syncSceneViewBox();
+        });
+      };
+      window.addEventListener('resize', scheduleSceneFit);
+      window.addEventListener('orientationchange', () => setTimeout(scheduleSceneFit, 120));
+      if (window.visualViewport) window.visualViewport.addEventListener('resize', scheduleSceneFit);
+      const stageEl = document.getElementById('interactive-stage');
+      if (typeof ResizeObserver === 'function' && stageEl) {
+        new ResizeObserver(scheduleSceneFit).observe(stageEl);
+      }
+    }
 
     const stage = document.getElementById('interactive-stage');
-    let parallaxFrame = null;
-    let parallaxCoords = null;
-    function applyParallax() {
-      parallaxFrame = null;
-      if (!parallaxCoords) return;
-      const wrapper = document.getElementById('scene-perspective-wrapper');
-      if (!wrapper) return;
-      wrapper.style.transform = `perspective(1200px) rotateY(${(parallaxCoords.x * 6).toFixed(2)}deg) rotateX(${(-parallaxCoords.y * 4).toFixed(2)}deg)`;
-    }
     if (stage) {
       stage.addEventListener('mousemove', (e) => {
         if (!state.threeD || REDUCED_MOTION.matches) return;
@@ -1499,9 +1808,11 @@
   // ─────────────────────────────────────────────────────────────
   // RESET TO STANDARD DEFAULTS
   // ─────────────────────────────────────────────────────────────
-  function resetToDefaults() {
+  function resetToDefaults(opts = {}) {
     urlArmed = true;
+    if (!opts.keepStandard) state.standard = 'uk-bs7671';
     state.systemType = 'single';
+
     state.voltage = 230;
     state.voltsUnit = 'V';
     state.current = 40;
@@ -1512,7 +1823,9 @@
     state.temp = 20;
     state.reactance = false;
     state.threeD = false;
-    state.standard = 'uk-bs7671';
+    state.standard = opts.keepStandard ? state.standard : 'uk-bs7671';
+    state.preset = '';
+    syncPresetButtons();
 
     // Reset Form Inputs
     const inVoltage = document.getElementById('input-voltage');
@@ -1562,9 +1875,28 @@
   // ─────────────────────────────────────────────────────────────
   // INITIALIZATION
   // ─────────────────────────────────────────────────────────────
+  /**
+   * Hand the tool-specific commands to the shared chrome. Palette/drawer entries
+   * nobody registers are hidden by the chrome layer, so this list is also the
+   * statement of what this tool can actually do.
+   */
+  function registerChromeActions() {
+    const api = window.ElectraChrome;
+    if (!api) return;
+    api.setToastHandler((message, icon) => showToast(message, icon));
+    api.register('reset', () => {
+      resetToDefaults();
+      showToast('Reset all parameters to default values.', 'reset');
+    });
+    api.register('3d', () => document.getElementById('btn-toggle-3d')?.click());
+    api.register('animate', () => document.getElementById('btn-toggle-animate')?.click());
+  }
+
   function init() {
+    registerChromeActions();
     setupEvents();
-    handleResize();
+    setupPresetControls();
+    syncSceneViewBox();
 
     // Restore a shared link (if any) before the first paint-compute
     restoreFromUrl();

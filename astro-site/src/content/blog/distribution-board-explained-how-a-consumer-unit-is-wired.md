@@ -11,7 +11,7 @@ Every wire in your home — every socket, every light, every appliance circuit �
 
 This guide covers what a distribution board is, exactly what lives inside it, how it distributes power to each circuit, the different types of protection available, and how to safely simulate a multi-circuit distribution board using **[ElectraSim](/app/)** — free, browser-based, no installation required.
 
-> 💡 **Simulate it now:** ElectraSim includes a Distribution Board component with multiple live and neutral outputs. Build a full consumer unit layout — supply in, multiple circuits out — and see how MCBs, RCDs, and loads interact in real time. [Open ElectraSim →](/app/)
+> <span class="em em-bulb" role="img" aria-label="tip"></span> **Simulate it now:** ElectraSim includes a Distribution Board component with multiple live and neutral outputs. Build a full consumer unit layout — supply in, multiple circuits out — and see how MCBs, RCDs, and loads interact in real time. [Open ElectraSim →](/app/)
 
 ## What is a Distribution Board?
 
@@ -202,7 +202,7 @@ This directly demonstrates the core principle of the distribution board: **indep
 - Failing MCB or RCD — the internal mechanism is wearing or damaged
 - Overloaded circuit causing sustained high current
 
-> ⚠️ **Safety:** Never work inside a consumer unit unless you are a qualified electrician. Even with the main switch off, the **meter tails** (the cables from the meter to the main switch) remain live at all times. Only the utility company can isolate these.
+> <span class="em em-warning" role="img" aria-label="warning"></span> **Safety:** Never work inside a consumer unit unless you are a qualified electrician. Even with the main switch off, the **meter tails** (the cables from the meter to the main switch) remain live at all times. Only the utility company can isolate these.
 
 ## Key Takeaways
 

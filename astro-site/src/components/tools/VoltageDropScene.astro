@@ -1,22 +1,95 @@
 ---
-// VoltageDropScene.astro - Pure SVG Interactive Physics Scenery
+/**
+ * VoltageDropScene.astro - Pure SVG Interactive Physics Scenery
+ *
+ * One light source, one horizon, and everything sits in the ground: the sun is
+ * upper-left, so faces are lit on the left and shaded on the right, contact
+ * shadows fall to the right and back, and the lawn is mown in stripes that
+ * converge on the horizon. That consistency is most of what reads as "real"
+ * rather than "clip-art" — the rest is soft edges (no uniform black outlines)
+ * and a vignette so the frame has depth.
+ */
+type Pt = { x: number; y: number };
+
+/** The vanishing point the ground converges toward (sun-side horizon). */
+const HORIZON_Y = 552;
+const VANISH: Pt = { x: 700, y: HORIZON_Y };
+
+/** Mown stripes: bands from the near edge to the horizon, narrowing with depth. */
+function mownStripes(): Array<{ d: string; o: number }> {
+  const out: Array<{ d: string; o: number }> = [];
+  const nearY = 812;
+  const count = 11;
+  for (let i = 0; i < count; i += 1) {
+    // spread the fan wider at the bottom than at the horizon
+    const t0 = i / count;
+    const t1 = (i + 0.55) / count;
+    const nearSpan = 2600;
+    const farSpan = 1180;
+    const x0n = -1080 + t0 * nearSpan;
+    const x1n = -1080 + t1 * nearSpan;
+    const x0f = VANISH.x - farSpan / 2 + t0 * farSpan;
+    const x1f = VANISH.x - farSpan / 2 + t1 * farSpan;
+    // the near edge follows the ground curve, so fade the stripes in with depth
+    const yNear = nearY;
+    const yFar = HORIZON_Y + 6;
+    out.push({
+      d: `M${x0n.toFixed(0)} ${yNear} L${x0f.toFixed(0)} ${yFar} L${x1f.toFixed(0)} ${yFar} L${x1n.toFixed(0)} ${yNear} Z`,
+      o: (0.1 - Math.abs(t0 - 0.45) * 0.06).toFixed(3) as unknown as number,
+    });
+  }
+  return out.map((r) => ({ ...r, o: Number(r.o) }));
+}
+
+/** Grass tufts, deterministic (no Math.random in a render). */
+function tufts(): Array<{ x: number; y: number; s: number; o: number }> {
+  const out: Array<{ x: number; y: number; s: number; o: number }> = [];
+  let seed = 20260828;
+  const rnd = () => {
+    seed = (seed * 1103515245 + 12345) % 2147483648;
+    return seed / 2147483648;
+  };
+  for (let i = 0; i < 46; i += 1) {
+    const depth = rnd();
+    const y = 566 + depth * 232;
+    const x = -900 + rnd() * 2600;
+    out.push({
+      x: Math.round(x),
+      y: Math.round(y),
+      s: Number((0.5 + depth * 1.15).toFixed(2)),
+      o: Number((0.18 + depth * 0.3).toFixed(2)),
+    });
+  }
+  return out;
+}
+const STRIPES = mownStripes();
+const TUFTS = tufts();
 ---
 
 <div id="scene-container" class="scene-container">
   <div id="scene-scaler" class="scene-scaler">
     <div id="scene-perspective-wrapper" class="scene-perspective-wrapper">
+      <!--
+        The artwork is authored on a 1440x810 canvas. `syncSceneViewBox()` in
+        voltage-drop-tool.js rewrites `viewBox` live so the drawing always
+        covers the full stage: the composition stays fully visible and any spare
+        area is filled with more sky, hills and grass instead of the flat page
+        background (that letterboxing was visible on wide/ultrawide monitors).
+        The static attribute below is the no-JS fallback.
+      -->
       <svg
         id="voltage-drop-svg"
         viewBox="0 0 1440 810"
-        width="1440"
-        height="810"
+        preserveAspectRatio="xMidYMid meet"
+        width="100%"
+        height="100%"
         class="scene-svg"
         role="img"
         aria-label="Interactive electrical scenery illustrating voltage drop from source to load across a cable"
       >
         <defs>
           <!-- Sky Gradients -->
-          <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id="skyGrad" gradientUnits="userSpaceOnUse" x1="0" y1="-120" x2="0" y2="560">
             <stop offset="0%" stop-color="#55b5f0" class="sky-stop-0" />
             <stop offset="52%" stop-color="#a8dcf8" class="sky-stop-52" />
             <stop offset="100%" stop-color="#eefaff" class="sky-stop-100" />
@@ -28,7 +101,7 @@
             <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
           </radialGradient>
 
-          <linearGradient id="horizonGlow" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id="horizonGlow" gradientUnits="userSpaceOnUse" x1="0" y1="258" x2="0" y2="512">
             <stop offset="0%" stop-color="#ffffff" stop-opacity="0" />
             <stop offset="100%" stop-color="#ffffff" stop-opacity="0.62" class="horizon-stop" />
           </linearGradient>
@@ -107,10 +180,67 @@
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
+
+          <!-- ══ material shading (single light source: sun at upper-left) ══ -->
+          <linearGradient id="wallShade" x1="0" y1="0" x2="1" y2="0.25">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35" />
+            <stop offset="42%" stop-color="#ffffff" stop-opacity="0" />
+            <stop offset="100%" stop-color="#0b1a2b" stop-opacity="0.3" />
+          </linearGradient>
+          <linearGradient id="wallAO" gradientUnits="userSpaceOnUse" x1="0" y1="300" x2="0" y2="430">
+            <stop offset="0%" stop-color="#0b1a2b" stop-opacity="0" />
+            <stop offset="100%" stop-color="#0b1a2b" stop-opacity="0.34" />
+          </linearGradient>
+          <linearGradient id="roofGrad" x1="0" y1="0" x2="0.85" y2="1">
+            <stop offset="0%" stop-color="#48586e" />
+            <stop offset="48%" stop-color="#2a3648" />
+            <stop offset="100%" stop-color="#141d2b" />
+          </linearGradient>
+          <linearGradient id="slateEdge" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#8ea3bd" stop-opacity="0.75" />
+            <stop offset="55%" stop-color="#8ea3bd" stop-opacity="0" />
+            <stop offset="100%" stop-color="#0b1220" stop-opacity="0.4" />
+          </linearGradient>
+          <linearGradient id="glassGrad" x1="0.1" y1="0" x2="0.9" y2="1">
+            <stop offset="0%" stop-color="#fff9d9" />
+            <stop offset="55%" stop-color="#ffe085" />
+            <stop offset="100%" stop-color="#f5b93f" />
+          </linearGradient>
+          <linearGradient id="frameGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#f7fafc" />
+            <stop offset="100%" stop-color="#9fb0c4" />
+          </linearGradient>
+          <linearGradient id="doorFace" x1="0" y1="0" x2="1" y2="0.6">
+            <stop offset="0%" stop-color="#7c4a24" />
+            <stop offset="55%" stop-color="#5b3418" />
+            <stop offset="100%" stop-color="#3d220f" />
+          </linearGradient>
+          <linearGradient id="cabinetFace" x1="0" y1="0" x2="1" y2="0.4">
+            <stop offset="0%" stop-color="#e9eef5" />
+            <stop offset="52%" stop-color="#c3cedb" />
+            <stop offset="100%" stop-color="#8e9cab" />
+          </linearGradient>
+          <radialGradient id="lightSpill" cx="50%" cy="18%" r="62%">
+            <stop offset="0%" stop-color="#ffd76b" stop-opacity="0.5" />
+            <stop offset="100%" stop-color="#ffd76b" stop-opacity="0" />
+          </radialGradient>
+          <radialGradient id="softShadow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#0c2415" stop-opacity="0.5" />
+            <stop offset="62%" stop-color="#0c2415" stop-opacity="0.24" />
+            <stop offset="100%" stop-color="#0c2415" stop-opacity="0" />
+          </radialGradient>
+          <radialGradient id="sceneVignette" cx="50%" cy="44%" r="76%">
+            <stop offset="58%" stop-color="#0b1a2b" stop-opacity="0" />
+            <stop offset="100%" stop-color="#071322" stop-opacity="0.3" />
+          </radialGradient>
+          <filter id="softBlur" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="5" />
+          </filter>
         </defs>
 
-        <!-- SKY BACKGROUND -->
-        <rect width="1440" height="810" fill="url(#skyGrad)" />
+        <!-- SKY BACKGROUND — oversized so any viewBox the stage needs is covered -->
+        <rect x="-4000" y="-4000" width="8000" height="8000" fill="url(#skyGrad)" />
+        <rect x="-4000" y="836" width="8000" height="8000" class="ground-deep" />
 
         <!-- NIGHT STARS (Active when dark mode) -->
         <g class="stars-group" aria-hidden="true">
@@ -122,11 +252,17 @@
           <circle cx="950" cy="130" r="1.5" fill="#ffffff" class="star" style="animation-delay: 2.2s;" />
           <circle cx="1120" cy="85" r="1.1" fill="#ffffff" class="star" style="animation-delay: 1.4s;" />
           <circle cx="1300" cy="105" r="1.6" fill="#ffffff" class="star" style="animation-delay: 0.9s;" />
+          <circle cx="-520" cy="120" r="1.4" fill="#ffffff" class="star" style="animation-delay: 1.9s;" />
+          <circle cx="-190" cy="60" r="1" fill="#ffffff" class="star" style="animation-delay: 0.35s;" />
+          <circle cx="20" cy="170" r="1.3" fill="#ffffff" class="star" style="animation-delay: 2.4s;" />
+          <circle cx="2100" cy="95" r="1.5" fill="#ffffff" class="star" style="animation-delay: 1.15s;" />
+          <circle cx="2380" cy="150" r="1.1" fill="#ffffff" class="star" style="animation-delay: 0.55s;" />
+          <circle cx="1620" cy="55" r="1.7" fill="#ffffff" class="star" style="animation-delay: 2.05s;" />
         </g>
 
         <!-- SUN / MOON AURA -->
         <circle cx="460" cy="170" r="220" fill="url(#sunAura)" aria-hidden="true" />
-        <rect y="260" width="1440" height="250" fill="url(#horizonGlow)" aria-hidden="true" />
+        <rect x="-4000" y="260" width="8000" height="252" fill="url(#horizonGlow)" aria-hidden="true" />
 
         <!-- CLOUDS -->
         <g class="clouds-group" aria-hidden="true">
@@ -187,12 +323,12 @@
         </g>
 
         <!-- DISTANT MOUNTAINS -->
-        <path d="M-40 430 L110 320 L280 390 L460 300 L620 375 L820 285 L990 380 L1160 310 L1340 370 L1480 305 L1500 500 L-40 500 Z" fill="url(#mountainFar)" />
-        <path d="M-40 450 L160 360 L350 420 L530 350 L710 415 L910 340 L1080 405 L1270 345 L1480 410 L1500 550 L-40 550 Z" fill="url(#mountainNear)" opacity="0.9" />
+        <path d="M-1400 505 L-1220 360 L-1040 430 L-860 335 L-660 420 L-420 340 L-40 430 L110 320 L280 390 L460 300 L620 375 L820 285 L990 380 L1160 310 L1340 370 L1480 305 L1680 385 L1900 315 L2120 395 L2340 330 L2560 400 L2840 345 L3100 505 Z" fill="url(#mountainFar)" />
+        <path d="M-1400 555 L-1240 420 L-1020 480 L-820 405 L-600 470 L-360 400 L-40 450 L160 360 L350 420 L530 350 L710 415 L910 340 L1080 405 L1270 345 L1480 410 L1700 470 L1940 395 L2180 465 L2420 400 L2660 470 L2840 430 L3100 555 Z" fill="url(#mountainNear)" opacity="0.9" />
 
         <!-- ROLLING HILLS -->
-        <path d="M-60 480 Q220 380 520 440 T1100 430 T1500 460 L1500 680 L-60 680 Z" fill="url(#farHillGrad)" />
-        <path d="M-60 520 Q300 440 680 490 T1500 480 L1500 750 L-60 750 Z" fill="url(#midHillGrad)" />
+        <path d="M-1400 560 Q-1150 470 -900 510 T-400 495 T-60 480 Q220 380 520 440 T1100 430 T1500 460 T1950 480 T2400 455 T2840 505 L3100 680 L-1400 680 Z" fill="url(#farHillGrad)" />
+        <path d="M-1400 600 Q-1100 520 -800 555 T-300 540 T-60 520 Q300 440 680 490 T1500 480 T2200 515 T2840 550 L3100 750 L-1400 750 Z" fill="url(#midHillGrad)" />
 
         <!-- BACKGROUND TREES (Grounded & Swaying at base) -->
         <g transform="translate(180, 480) scale(0.65)" class="tree-bg" aria-hidden="true">
@@ -214,9 +350,45 @@
           </g>
         </g>
 
+        <!-- DISTANT HEDGEROWS & EDGE TREES (fill the extended wide-screen area) -->
+        <g class="edge-scenery" aria-hidden="true">
+          <path d="M-1400 596 q60 -34 120 0 q60 -34 120 0 q60 -34 120 0 q60 -34 120 0 q60 -34 120 0 q60 -34 120 0 v40 h-720 z" fill="#3f8048" opacity="0.75" />
+          <path d="M1700 600 q60 -34 120 0 q60 -34 120 0 q60 -34 120 0 q60 -34 120 0 q60 -34 120 0 q60 -34 120 0 q60 -34 120 0 v40 h-840 z" fill="#3f8048" opacity="0.75" />
+          <g transform="translate(-560, 590) scale(0.9)">
+            <ellipse cx="0" cy="2" rx="26" ry="6" fill="#1f5d32" opacity="0.2" />
+            <g class="tree" style="animation-duration: 6.4s; animation-delay: 0.9s;">
+              <rect x="-4" y="-30" width="8" height="30" rx="2" fill="#4a7a46" />
+              <circle cx="0" cy="-44" r="23" fill="#467d45" />
+              <circle cx="-15" cy="-33" r="15" fill="#3f7a3f" />
+              <circle cx="14" cy="-34" r="14" fill="#3f7a3f" />
+            </g>
+          </g>
+          <g transform="translate(1880, 604) scale(0.82)">
+            <ellipse cx="0" cy="2" rx="26" ry="6" fill="#1f5d32" opacity="0.2" />
+            <g class="tree" style="animation-duration: 5.9s; animation-delay: 1.7s;">
+              <rect x="-4" y="-30" width="8" height="30" rx="2" fill="#4a7a46" />
+              <circle cx="0" cy="-44" r="23" fill="#467d45" />
+              <circle cx="-15" cy="-33" r="15" fill="#3f7a3f" />
+              <circle cx="14" cy="-34" r="14" fill="#3f7a3f" />
+            </g>
+          </g>
+        </g>
+
         <!-- FOREGROUND GRASS & WINDING PATHWAY -->
-        <path d="M-60 560 Q260 500 640 550 T1500 540 L1500 850 L-60 850 Z" fill="url(#grassGrad)" />
+        <path d="M-1400 640 Q-1100 570 -800 600 T-300 585 T-60 560 Q260 500 640 550 T1500 540 T2100 570 T2840 605 L3100 850 L-1400 850 Z" fill="url(#grassGrad)" />
         <path d="M520 810 C620 730, 680 660, 720 620 C760 580, 840 560, 960 550 C1060 542, 1070 545, 1080 548 L1040 560 C930 570, 840 600, 780 650 C710 710, 640 760, 580 810 Z" fill="url(#pathGrad)" opacity="0.95" />
+
+        <!-- MOWN STRIPES: a fan that converges on the horizon, fading in with
+             depth. Flat colour reads as a drawing; a cut lawn reads as a place. -->
+        <g class="lawn-detail" aria-hidden="true">
+          {STRIPES.map((stripe) => <path d={stripe.d} fill="#ffffff" opacity={stripe.o} />)}
+          {STRIPES.map((stripe) => <path d={stripe.d} fill="#0f3a20" opacity={stripe.o * 0.55} transform="translate(26 0)" />)}
+          {TUFTS.map((t) => (
+            <g transform={`translate(${t.x} ${t.y}) scale(${t.s})`} opacity={t.o}>
+              <path d="M0 0 C-2 -6 -5 -9 -6 -12 M0 0 C0 -8 0 -11 1 -14 M0 0 C3 -6 5 -8 7 -11" stroke="#1f4d2b" stroke-width="1.6" fill="none" stroke-linecap="round" />
+            </g>
+          ))}
+        </g>
 
         <!-- FOREGROUND TREES (LEFT - Grounded & Swaying at trunk base) -->
         <g transform="translate(120, 610) scale(1.15)" aria-hidden="true">
@@ -235,21 +407,25 @@
         <!-- Placed at x=320, y=480. Cabinet spans x=290 to x=510, y=320 to y=550 -->
         <g id="source-structure" transform="translate(320, 480)">
           <!-- Ground Shadow -->
-          <ellipse cx="80" cy="180" rx="90" ry="18" fill="#1b4d29" opacity="0.4" />
+          <ellipse cx="96" cy="182" rx="104" ry="20" fill="url(#softShadow)" />
 
           <!-- Concrete Pillar / Mounting Post -->
           <rect x="55" y="60" width="46" height="120" rx="4" fill="url(#poleGrad)" stroke="#434a52" stroke-width="2" />
           <rect x="42" y="170" width="72" height="16" rx="3" fill="#606872" stroke="#373d44" stroke-width="2" />
 
           <!-- Main Enclosure (Width 220, from x=-30 to x=190 -> Canvas X 290 to 510) -->
-          <rect x="-30" y="-160" width="220" height="230" rx="14" fill="url(#boxGrad)" stroke="#535a63" stroke-width="3" />
+          <rect x="-30" y="-160" width="220" height="230" rx="14" fill="url(#cabinetFace)" stroke="#535a63" stroke-width="2.5" />
+          <rect x="-30" y="-160" width="220" height="230" rx="14" fill="url(#wallShade)" opacity="0.5" />
+          <!-- weathered capping with a lit top edge, so it is an object in the light -->
+          <path d="M-38 -166 L198 -166 L190 -152 L-30 -152 Z" fill="#94a3b8" stroke="#5b6878" stroke-width="1.5" />
+          <path d="M-38 -166 L198 -166 L196 -161 L-36 -161 Z" fill="#e2e8f0" opacity="0.8" />
           <!-- Enclosure Bevel Shadow -->
-          <rect x="-24" y="-154" width="208" height="218" rx="10" fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.4" />
+          <rect x="-24" y="-154" width="208" height="218" rx="10" fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.35" />
 
           <!-- Cabinet Door -->
           <rect x="-15" y="-145" width="190" height="200" rx="8" fill="url(#doorGrad)" stroke="#4a5059" stroke-width="2" />
 
-          <!-- Hazard Warning Triangle (⚡) -->
+          <!-- Hazard warning triangle — electrical risk pictogram (vector, no emoji font) -->
           <g transform="translate(80, -50)">
             <polygon points="0,-42 -36,24 36,24" fill="#facc15" stroke="#1e293b" stroke-width="3.5" stroke-linejoin="round" />
             <path d="M2 -30 L-14 -2 L-2 -2 L-6 16 L12 -8 L0 -8 Z" fill="#0f172a" />
@@ -414,11 +590,17 @@
         <!-- Placed at x=980, y=310. House left wall is at x=60 inside group -> Global Canvas X 1040 -->
         <g id="load-structure" transform="translate(980, 310)">
           <!-- Ground Shadow -->
-          <ellipse cx="200" cy="340" rx="190" ry="26" fill="#1b4d29" opacity="0.4" />
+          <ellipse cx="214" cy="338" rx="200" ry="30" fill="url(#softShadow)" />
+          <ellipse cx="196" cy="332" rx="150" ry="14" fill="#0c2415" opacity="0.22" filter="url(#softBlur)" />
 
           <!-- Chimney -->
-          <rect x="250" y="0" width="34" height="68" fill="#475569" stroke="#334155" stroke-width="2" rx="2" />
-          <rect x="245" y="-6" width="44" height="10" fill="#334155" rx="2" />
+          <rect x="250" y="0" width="34" height="68" fill="#4b5a6e" stroke="#334155" stroke-width="1.5" rx="2" />
+          <rect x="250" y="0" width="9" height="68" fill="#8095ad" opacity="0.5" rx="2" />
+          <g class="chimney-bricks" opacity="0.4">
+            <path d="M250 14 H284 M250 28 H284 M250 42 H284 M250 56 H284" stroke="#28344a" stroke-width="1.4" />
+          </g>
+          <rect x="244" y="-8" width="46" height="11" fill="#334155" rx="2.5" />
+          <rect x="244" y="-8" width="46" height="3" fill="#94a3b8" opacity="0.6" rx="1.5" />
 
           <!-- Animated Chimney Smoke -->
           <g class="smoke-group" aria-hidden="true">
@@ -428,14 +610,32 @@
           </g>
 
           <!-- House Main Walls (From x=60 to x=340 -> Canvas X 1040 to 1320) -->
-          <path d="M60 110 L340 110 L340 330 L60 330 Z" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2" class="house-wall" />
+          <path d="M60 110 L340 110 L340 330 L60 330 Z" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5" class="house-wall" />
+          <!-- one light source: the sun is upper-left, so the right of the wall
+               falls away and the ground line gets an ambient-occlusion band -->
+          <path d="M60 110 L340 110 L340 330 L60 330 Z" fill="url(#wallShade)" class="house-shade" />
+          <path d="M60 236 L340 236 L340 330 L60 330 Z" fill="url(#wallAO)" class="house-ao" />
+          <!-- render shadow the eaves throw across the top of the wall -->
+          <path d="M60 110 L340 110 L340 124 L60 118 Z" fill="#0b1a2b" opacity="0.22" />
           <!-- Plinth Base -->
-          <rect x="50" y="320" width="300" height="16" fill="#334155" rx="3" />
+          <rect x="50" y="320" width="300" height="16" fill="#3d4a5c" rx="3" />
+          <rect x="50" y="320" width="300" height="3" fill="#93a5bd" opacity="0.55" rx="1.5" />
 
-          <!-- Roof -->
-          <polygon points="40,115 200,20 360,115" fill="#1e293b" stroke="#0f172a" stroke-width="3" />
-          <!-- Roof Shingle Trim -->
-          <line x1="40" y1="115" x2="360" y2="115" stroke="#334155" stroke-width="5" stroke-linecap="round" />
+          <!-- Roof: a plane with an overhang, not a filled triangle -->
+          <polygon points="34,120 200,18 366,120" fill="url(#roofGrad)" stroke="#0f172a" stroke-width="1.5" stroke-linejoin="round" />
+          <!-- shingle courses, lighter up the sunlit slope -->
+          <g class="roof-courses" opacity="0.5">
+            <path d="M62 100 L338 100" stroke="#8ea3bd" stroke-width="2" opacity="0.5" />
+            <path d="M88 80 L312 80" stroke="#8ea3bd" stroke-width="2" opacity="0.42" />
+            <path d="M114 60 L286 60" stroke="#8ea3bd" stroke-width="2" opacity="0.34" />
+            <path d="M140 40 L260 40" stroke="#8ea3bd" stroke-width="2" opacity="0.26" />
+          </g>
+          <path d="M34 120 L200 18 L200 120 Z" fill="#ffffff" opacity="0.07" />
+          <!-- ridge cap + fascia with its own lit edge and a soft underside -->
+          <path d="M196 16 L204 16 L206 26 L194 26 Z" fill="#5c6e86" />
+          <rect x="30" y="118" width="340" height="10" rx="3" fill="#1b2738" />
+          <rect x="30" y="118" width="340" height="3" rx="1.5" fill="url(#slateEdge)" />
+          <path d="M30 128 L370 128 L364 134 L36 134 Z" fill="#0b1a2b" opacity="0.3" filter="url(#softBlur)" />
 
           <!-- Electrical Weatherhead / Service Entrance Socket on Wall (Global X 1032, Y 428) -->
           <!-- x=52, y=118 inside group -> global (980+52=1032, 310+118=428) -->
@@ -449,21 +649,49 @@
             <rect x="2" y="16" width="6" height="70" fill="#475569" stroke="#334155" stroke-width="1" />
           </g>
 
-          <!-- Front Door -->
-          <rect x="140" y="190" width="60" height="130" rx="4" fill="#0f172a" stroke="#334155" stroke-width="2" />
-          <!-- Door Knob -->
-          <circle cx="150" cy="255" r="3.5" fill="#fbbf24" />
+          <!-- Front Door: reveal, leaf, panels, a knob, and a step -->
+          <rect x="134" y="184" width="72" height="140" rx="4" fill="#25313f" opacity="0.9" />
+          <rect x="140" y="190" width="60" height="130" rx="3" fill="url(#doorFace)" stroke="#2a1a0d" stroke-width="1.5" />
+          <g class="door-panels" opacity="0.5">
+            <rect x="149" y="202" width="42" height="36" rx="2" fill="none" stroke="#2a1a0d" stroke-width="2" />
+            <rect x="149" y="250" width="42" height="42" rx="2" fill="none" stroke="#2a1a0d" stroke-width="2" />
+          </g>
+          <path d="M140 190 L146 190 L146 320 L140 320 Z" fill="#ffffff" opacity="0.16" />
+          <circle cx="152" cy="258" r="3.6" fill="#fbbf24" stroke="#7c5310" stroke-width="0.8" />
+          <rect x="130" y="318" width="80" height="8" rx="2" fill="#5b6a7d" />
+          <rect x="130" y="318" width="80" height="2.5" rx="1" fill="#a7b6c9" opacity="0.7" />
 
-          <!-- Windows with Dynamic Illuminating Glow (Reacts to Voltage Drop) -->
-          <!-- Window 1 (Beside door) -->
-          <rect x="225" y="180" width="75" height="90" rx="4" fill="#0f172a" stroke="#334155" stroke-width="3" />
-          <rect x="230" y="185" width="30" height="38" fill="#fde047" class="win-glass win-flicker" />
-          <rect x="265" y="185" width="30" height="38" fill="#fde047" class="win-glass win-flicker" />
-          <rect x="230" y="228" width="30" height="38" fill="#fde047" class="win-glass win-flicker" />
-          <rect x="265" y="228" width="30" height="38" fill="#fde047" class="win-glass win-flicker" />
+          <!-- Windows: the light in them is the readout, so it is drawn as light —
+               glass with a warm gradient, a reflection, and a spill down the wall -->
+          <g class="window-group">
+            <ellipse cx="262" cy="300" rx="66" ry="34" fill="url(#lightSpill)" class="win-spill" />
+            <rect x="219" y="174" width="87" height="102" rx="4" fill="#25313f" />
+            <rect x="225" y="180" width="75" height="90" rx="3" fill="url(#frameGrad)" />
+            <rect x="230" y="185" width="30" height="38" fill="#fde047" class="win-glass win-flicker" />
+            <rect x="265" y="185" width="30" height="38" fill="#fde047" class="win-glass win-flicker" />
+            <rect x="230" y="228" width="30" height="38" fill="#fde047" class="win-glass win-flicker" />
+            <rect x="265" y="228" width="30" height="38" fill="#fde047" class="win-glass win-flicker" />
+            <g opacity="0.5" class="win-reflection">
+              <path d="M232 220 L256 186 L266 186 L236 228 Z" fill="#ffffff" opacity="0.5" />
+              <path d="M267 220 L291 186 L297 186 L271 228 Z" fill="#ffffff" opacity="0.35" />
+            </g>
+            <!-- glazing bars, sill and lintel -->
+            <path d="M262 185 V265 M230 225 H295" stroke="#e9eef5" stroke-width="4" opacity="0.9" />
+            <rect x="214" y="272" width="97" height="7" rx="2" fill="#cbd5e1" />
+            <rect x="214" y="272" width="97" height="2" rx="1" fill="#ffffff" opacity="0.8" />
+            <path d="M214 279 L311 279 L304 288 L221 288 Z" fill="#0b1a2b" opacity="0.22" />
+            <rect x="216" y="166" width="93" height="8" rx="2" fill="#dbe3ec" />
+          </g>
 
-          <!-- Window 2 (Door Transom Window) -->
-          <rect x="145" y="140" width="50" height="36" rx="3" fill="#fde047" class="win-glass win-flicker" stroke="#334155" stroke-width="2" />
+          <!-- Door transom, and a porch light that matters when the drop is bad -->
+          <rect x="141" y="136" width="58" height="44" rx="4" fill="#25313f" />
+          <rect x="145" y="140" width="50" height="36" rx="3" fill="#fde047" class="win-glass win-flicker" stroke="#334155" stroke-width="1.5" />
+          <path d="M147 172 L167 142 L175 142 L152 174 Z" fill="#ffffff" opacity="0.32" />
+          <g class="porch-light">
+            <path d="M170 128 L186 128 L190 138 L166 138 Z" fill="#3b4a5e" />
+            <circle cx="178" cy="140" r="4.5" fill="#ffe08a" class="win-glass win-flicker" />
+            <circle cx="178" cy="140" r="13" fill="url(#lightSpill)" opacity="0.8" />
+          </g>
         </g>
 
         <!-- LOAD LABELS (Floating Above Load) -->
@@ -471,6 +699,10 @@
           <text x="0" y="0" text-anchor="middle" font-family="'Space Grotesk', sans-serif" font-size="14" font-weight="800" letter-spacing="0.12em" fill="#64748b" class="scene-label-caption">LOAD</text>
           <text id="load-voltage-label" x="0" y="32" text-anchor="middle" font-family="'Space Grotesk', sans-serif" font-size="28" font-weight="800" fill="#16a34a" class="scene-label-value">223.7 V</text>
         </g>
+
+        <!-- A lens, not a border: the corners fall away so the mid-ground reads
+             as depth rather than as a flat filled rectangle. -->
+        <rect x="-4000" y="-4000" width="8000" height="8000" fill="url(#sceneVignette)" class="scene-vignette" aria-hidden="true" />
       </svg>
     </div>
   </div>
@@ -487,14 +719,18 @@
   :global(:root[data-theme="dark"]) .scene-container {
     background: #0b1526;
   }
+  /* Ground below the authored canvas — keeps tall/short viewports on-scenery */
+  .ground-deep {
+    fill: #2f6f31;
+  }
+  :global(:root[data-theme="dark"]) .ground-deep {
+    fill: #10241f;
+  }
   .scene-scaler {
+    /* Fills the stage; the SVG's live viewBox handles fit & zoom */
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 1440px;
-    height: 810px;
-    transform-origin: center center;
+    inset: 0;
+    display: block;
   }
   .scene-perspective-wrapper {
     width: 100%;
@@ -512,10 +748,10 @@
   /* SVG Scenery Animations */
   @keyframes cloudDrift {
     0% {
-      transform: translateX(-300px);
+      transform: translateX(-1500px);
     }
     100% {
-      transform: translateX(1700px);
+      transform: translateX(2900px);
     }
   }
   .cloud {
@@ -595,6 +831,27 @@
     75% {
       opacity: 0.9;
     }
+  }
+  .lawn-detail,
+  .scene-vignette,
+  .house-shade,
+  .house-ao,
+  .roof-courses,
+  .win-reflection {
+    pointer-events: none;
+  }
+  .win-spill {
+    transition: opacity 0.45s ease;
+  }
+  /* dark mode keeps its shading: the sun is gone, the shape must still read */
+  :root[data-theme='dark'] .house-shade {
+    opacity: 0.85;
+  }
+  :root[data-theme='dark'] .lawn-detail {
+    opacity: 0.35;
+  }
+  :root[data-theme='dark'] .win-reflection {
+    opacity: 0.3;
   }
   .win-flicker {
     animation: winFlicker 6s ease-in-out infinite;

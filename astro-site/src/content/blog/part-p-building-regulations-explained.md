@@ -11,7 +11,7 @@ Before you touch a wire in a UK home, Part P asks a simple question: **does this
 
 Part P is the section of the Building Regulations that covers fixed electrical installations in dwellings. It has been in force since 2005 in England and Wales, but the notification rules are not identical across the UK. This guide focuses on England and explains what it covers, what is and is not notifiable, and the three routes to making sure your work is compliant.
 
-> 💡 **Plan first, then build.** Use [ElectraSim](/app/) to design and test your circuit on screen before any cable is run. You can validate the topology, check protection, and brief a qualified electrician with a clear diagram. [Open ElectraSim →](/app/)
+> <span class="em em-bulb" role="img" aria-label="tip"></span> **Plan first, then build.** Use [ElectraSim](/app/) to design and test your circuit on screen before any cable is run. You can validate the topology, check protection, and brief a qualified electrician with a clear diagram. [Open ElectraSim →](/app/)
 
 ---
 
@@ -68,16 +68,16 @@ In England, **notifiable work** is mainly work that adds a new circuit, replaces
 
 | Category | Examples | Notifiable? |
 |---|---|---|
-| **New circuit** | Adding a new ring, radial, lighting, or dedicated circuit from the consumer unit | ✅ Yes |
-| **Consumer unit replacement** | Swapping a fuse box for a modern consumer unit | ✅ Yes |
-| **New circuit in a kitchen** | Dedicated appliance circuit, new kitchen ring | ✅ Yes, because it is a new circuit |
-| **New circuit in a bathroom** | Shower circuit, heated towel rail, lighting | ✅ Yes, because it is a new circuit and may also be in a special location |
-| **Addition or alteration in a bath/shower room zone** | Extra light, fan, heater, shaver supply in scope of the special location | ✅ Yes |
-| **Outdoor wiring on a new circuit** | SWA cable to shed, garden socket, security light on its own circuit | ✅ Yes, because it is a new circuit |
+| **New circuit** | Adding a new ring, radial, lighting, or dedicated circuit from the consumer unit | <span class="em em-check" role="img" aria-label="do"></span> Yes |
+| **Consumer unit replacement** | Swapping a fuse box for a modern consumer unit | <span class="em em-check" role="img" aria-label="do"></span> Yes |
+| **New circuit in a kitchen** | Dedicated appliance circuit, new kitchen ring | <span class="em em-check" role="img" aria-label="do"></span> Yes, because it is a new circuit |
+| **New circuit in a bathroom** | Shower circuit, heated towel rail, lighting | <span class="em em-check" role="img" aria-label="do"></span> Yes, because it is a new circuit and may also be in a special location |
+| **Addition or alteration in a bath/shower room zone** | Extra light, fan, heater, shaver supply in scope of the special location | <span class="em em-check" role="img" aria-label="do"></span> Yes |
+| **Outdoor wiring on a new circuit** | SWA cable to shed, garden socket, security light on its own circuit | <span class="em em-check" role="img" aria-label="do"></span> Yes, because it is a new circuit |
 | **Partial rewire** | Significant replacement that creates a new circuit or alters work in a special location | Depends on scope |
 | **Solar PV / battery storage** | Grid-tied generation circuits and associated AC work | Usually yes where new circuits are installed, plus MCS/G98/G99 requirements |
-| **Electric vehicle charge point** | Dedicated EV charger circuit | ✅ Yes, because it is a new circuit |
-| **Hot tub / spa** | Dedicated supply to a fixed hot tub | ✅ Yes where a new circuit is installed; swimming pool/sauna locations have special-location rules |
+| **Electric vehicle charge point** | Dedicated EV charger circuit | <span class="em em-check" role="img" aria-label="do"></span> Yes, because it is a new circuit |
+| **Hot tub / spa** | Dedicated supply to a fixed hot tub | <span class="em em-check" role="img" aria-label="do"></span> Yes where a new circuit is installed; swimming pool/sauna locations have special-location rules |
 
 ### What Is Non-Notifiable Work (Minor Work)
 
@@ -85,13 +85,13 @@ Part P also lists work that does not need to be notified. This is sometimes call
 
 | Category | Examples | Notifiable? |
 |---|---|---|
-| **Like-for-like replacement** | Swap a damaged socket for an identical one, replace a light switch with the same type | ❌ No |
-| **Adding an accessory** in a non-special location | Adding an extra socket to an existing radial or ring where the circuit remains suitable | ❌ No (but read the caveat below) |
-| **Repair / maintenance** | Replacing a broken ceiling rose, refixing a loose connection | ❌ No |
-| **Replacement of a cable on an existing circuit** (not in a special location) | Re-running damaged cable in the same route | ❌ No |
-| **Adding an extra lighting point** to an existing lighting circuit in a non-special location | New pendant in a bedroom | ❌ No |
-| **Installation of a fixed electric floor or ceiling heating system** in a non-special location | Where it does not involve a new circuit or special-location work | ❌ No (with conditions) |
-| **Replacing an immersion heater, storage heater, or radiator** in the same location | Like-for-like | ❌ No |
+| **Like-for-like replacement** | Swap a damaged socket for an identical one, replace a light switch with the same type | <span class="em em-cross" role="img" aria-label="don't"></span> No |
+| **Adding an accessory** in a non-special location | Adding an extra socket to an existing radial or ring where the circuit remains suitable | <span class="em em-cross" role="img" aria-label="don't"></span> No (but read the caveat below) |
+| **Repair / maintenance** | Replacing a broken ceiling rose, refixing a loose connection | <span class="em em-cross" role="img" aria-label="don't"></span> No |
+| **Replacement of a cable on an existing circuit** (not in a special location) | Re-running damaged cable in the same route | <span class="em em-cross" role="img" aria-label="don't"></span> No |
+| **Adding an extra lighting point** to an existing lighting circuit in a non-special location | New pendant in a bedroom | <span class="em em-cross" role="img" aria-label="don't"></span> No |
+| **Installation of a fixed electric floor or ceiling heating system** in a non-special location | Where it does not involve a new circuit or special-location work | <span class="em em-cross" role="img" aria-label="don't"></span> No (with conditions) |
+| **Replacing an immersion heater, storage heater, or radiator** in the same location | Like-for-like | <span class="em em-cross" role="img" aria-label="don't"></span> No |
 
 **The crucial caveat for "minor works":**
 
@@ -99,7 +99,7 @@ The work must be carried out to **BS 7671** in *every* case. Non-notifiable does
 
 Minor work also requires that the **existing circuit** is capable of supporting the addition (correct rating, RCD protected, in good condition). Adding a 16 A socket to a 6 A lighting circuit is non-notifiable but unsafe — and you are still on the hook.
 
-> 📖 **Related:** [What is an EICR and When Do You Need One?](/blog/when-to-get-an-eicr-electrical-inspection-guide/) — an EICR is how you confirm the existing circuit is in a fit state for any addition.
+> <span class="em em-book" role="img" aria-label="reference"></span> **Related:** [What is an EICR and When Do You Need One?](/blog/when-to-get-an-eicr-electrical-inspection-guide/) — an EICR is how you confirm the existing circuit is in a fit state for any addition.
 
 ---
 
@@ -199,7 +199,7 @@ Most home buildings-and-contents insurance policies require that **electrical in
 - Pay the claim but pursue recovery from the homeowner
 - Cancel the policy and flag you as a higher-risk customer
 
-> 📖 **Related:** [5 Common Electrical Wiring Mistakes (and How to Avoid Them)](/blog/5-common-electrical-wiring-mistakes/) — unnotified work is a legal issue, but the *unsafe* work that often accompanies unnotified DIY is the real problem.
+> <span class="em em-book" role="img" aria-label="reference"></span> **Related:** [5 Common Electrical Wiring Mistakes (and How to Avoid Them)](/blog/5-common-electrical-wiring-mistakes/) — unnotified work is a legal issue, but the *unsafe* work that often accompanies unnotified DIY is the real problem.
 
 ### The Criminal Side
 
@@ -230,20 +230,20 @@ For a typical £200–£500 domestic electrical job, the **registered electricia
 
 | Scenario | Notifiable? | Who can do it | Notes |
 |---|---|---|---|
-| Replace a damaged single socket (like for like) | ❌ No | Anyone competent | No certificate required by Part P, but a Minor Works Certificate is best practice |
-| Add a new double socket to an existing ring (in a bedroom) | ❌ No | Anyone competent | Existing circuit must be verified sound; in practice, electricians often do this as minor works |
-| Add a new double socket in a **kitchen** on an existing suitable circuit | ❌ Usually no in England | Anyone competent | Kitchen is no longer a Part P special location in England; still must comply with BS 7671 |
-| Add an outdoor socket on an existing suitable circuit | ❌ Usually no in England | Anyone competent | Not automatically notifiable unless it creates a new circuit; RCD/IP/mechanical protection still matter |
-| Replace a consumer unit (fuse box) | ✅ Yes | Registered competent person only | Not a job for self-installment; must be tested, Zs verified, RCD protection confirmed |
-| Install a new shower circuit | ✅ Yes | Registered electrician OR notify BC | High-current dedicated circuit |
-| Install an EV charger | ✅ Yes | Registered electrician (OZEV-approved preferred for grant eligibility) | Plus DNO notification in most cases |
-| Wire a new shed / outbuilding from a new circuit | ✅ Yes | Registered electrician OR notify BC | Part P applies when the supply originates from the dwelling |
-| Replace a damaged light switch | ❌ No | Anyone competent | Like for like |
-| Add a new light point in a living room | ❌ No | Anyone competent | Must not overload the existing lighting circuit |
-| Add a new light point in a **bath/shower room special location** | ✅ Yes if within the Part P special-location scope | Registered electrician OR notify BC | Bathrooms and shower rooms have special-location rules |
-| Install a new ring main for sockets | ✅ Yes | Registered electrician OR notify BC | New circuit |
-| Full house rewire | ✅ Yes | Registered competent person | The cost of Building Control route is rarely worth it at this scale |
-| Install solar PV panels with new AC circuits | ✅ Usually yes, plus MCS / G98-G99 | MCS-accredited installer | The MCS route often handles notification for you |
+| Replace a damaged single socket (like for like) | <span class="em em-cross" role="img" aria-label="don't"></span> No | Anyone competent | No certificate required by Part P, but a Minor Works Certificate is best practice |
+| Add a new double socket to an existing ring (in a bedroom) | <span class="em em-cross" role="img" aria-label="don't"></span> No | Anyone competent | Existing circuit must be verified sound; in practice, electricians often do this as minor works |
+| Add a new double socket in a **kitchen** on an existing suitable circuit | <span class="em em-cross" role="img" aria-label="don't"></span> Usually no in England | Anyone competent | Kitchen is no longer a Part P special location in England; still must comply with BS 7671 |
+| Add an outdoor socket on an existing suitable circuit | <span class="em em-cross" role="img" aria-label="don't"></span> Usually no in England | Anyone competent | Not automatically notifiable unless it creates a new circuit; RCD/IP/mechanical protection still matter |
+| Replace a consumer unit (fuse box) | <span class="em em-check" role="img" aria-label="do"></span> Yes | Registered competent person only | Not a job for self-installment; must be tested, Zs verified, RCD protection confirmed |
+| Install a new shower circuit | <span class="em em-check" role="img" aria-label="do"></span> Yes | Registered electrician OR notify BC | High-current dedicated circuit |
+| Install an EV charger | <span class="em em-check" role="img" aria-label="do"></span> Yes | Registered electrician (OZEV-approved preferred for grant eligibility) | Plus DNO notification in most cases |
+| Wire a new shed / outbuilding from a new circuit | <span class="em em-check" role="img" aria-label="do"></span> Yes | Registered electrician OR notify BC | Part P applies when the supply originates from the dwelling |
+| Replace a damaged light switch | <span class="em em-cross" role="img" aria-label="don't"></span> No | Anyone competent | Like for like |
+| Add a new light point in a living room | <span class="em em-cross" role="img" aria-label="don't"></span> No | Anyone competent | Must not overload the existing lighting circuit |
+| Add a new light point in a **bath/shower room special location** | <span class="em em-check" role="img" aria-label="do"></span> Yes if within the Part P special-location scope | Registered electrician OR notify BC | Bathrooms and shower rooms have special-location rules |
+| Install a new ring main for sockets | <span class="em em-check" role="img" aria-label="do"></span> Yes | Registered electrician OR notify BC | New circuit |
+| Full house rewire | <span class="em em-check" role="img" aria-label="do"></span> Yes | Registered competent person | The cost of Building Control route is rarely worth it at this scale |
+| Install solar PV panels with new AC circuits | <span class="em em-check" role="img" aria-label="do"></span> Usually yes, plus MCS / G98-G99 | MCS-accredited installer | The MCS route often handles notification for you |
 
 ---
 
@@ -264,7 +264,7 @@ Part P does not stop you from **planning** a job yourself. The restriction is on
 3. **Brief the electrician** — instead of describing what you want in words, show them a working diagram. They can quote accurately, flag issues early, and quote a fixed price rather than an estimate
 4. **Test ideas safely** — [ElectraSim's fault simulation mode](/updates/fault-simulation-mode-open-circuit-reverse-polarity-earth-fault/) lets you inject reverse polarity, open circuits, and missing earths to see exactly what each fault does — invaluable for understanding *why* Part P requires the work to be certified
 
-> 🔍 The simulator runs a full graph traversal on every change — the same logical analysis an electrician applies during testing. [Try it free →](/app/)
+> <span class="em em-search" role="img" aria-label="check this"></span> The simulator runs a full graph traversal on every change — the same logical analysis an electrician applies during testing. [Try it free →](/app/)
 
 ---
 

@@ -138,13 +138,19 @@ footer{background:#0f172a;color:#94a3b8;padding:2.5rem 0 1.75rem}
   .hide-m{display:none}
   .art-header h1{font-size:1.5rem}
 }
+
+/* Vector pictographs (the pages used to carry literal emoji, which every OS
+   renders with a different font). Shapes match astro-site/src/lib/emoji-icons.ts. */
+.ei { width: 1.05em; height: 1.05em; vertical-align: -0.18em; flex: 0 0 auto; display: inline-block; }
+.fi .ei, .uc-i .ei { width: 1.6em; height: 1.6em; vertical-align: -0.3em; }
+.logo-icon .ei { width: 1.1em; height: 1.1em; }
 </style>
 </head>
 <body>
 
 <nav class="nav" role="navigation" aria-label="Main navigation">
   <div class="nav-in">
-    <a href="/" class="logo"><span class="logo-icon" aria-hidden="true">⚡</span>ElectraSim</a>
+    <a href="/" class="logo"><span class="logo-icon" aria-hidden="true"><svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><path d="M74 8 24 76h26l-10 44 64-70H70z" fill="#FFCC4D" stroke="#F4900C" stroke-width="7" stroke-linejoin="round"/></svg></span>ElectraSim</a>
     <div class="nav-links">
       <a href="/" class="hide-m">Home</a>
       <a href="/blog/">Blog</a>
@@ -175,9 +181,9 @@ footer{background:#0f172a;color:#94a3b8;padding:2.5rem 0 1.75rem}
       <span class="art-tag">Beginner Guide</span>
       <h1 itemprop="headline">How Household Wiring Works: A Complete Beginner's Guide</h1>
       <div class="art-meta">
-        <span>📅 May 2, 2026</span>
+        <span><svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><rect x="14" y="26" width="100" height="90" rx="12" fill="#F5F8FA"/><rect x="14" y="26" width="100" height="26" rx="12" fill="#DD2E44"/><g stroke="#8899A6" stroke-width="9" stroke-linecap="round"><path d="M40 12v22M88 12v22"/></g><g fill="#8899A6"><rect x="30" y="64" width="18" height="15" rx="4"/><rect x="55" y="64" width="18" height="15" rx="4"/><rect x="80" y="64" width="18" height="15" rx="4"/><rect x="30" y="88" width="18" height="15" rx="4"/><rect x="55" y="88" width="18" height="15" rx="4"/></g></svg> May 2, 2026</span>
         <span>⏱ 7 min read</span>
-        <span>✍️ ElectraSim</span>
+        <span><svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><path d="M96 12 58 50l20 20 38-38z" fill="#FFAC33" stroke="#F4900C" stroke-width="6" stroke-linejoin="round"/><path d="M52 56 24 84l-8 28 28-8 28-28z" fill="#FFD983" stroke="#F4900C" stroke-width="6" stroke-linejoin="round"/><path d="M20 108 30 86l14 14z" fill="#55AEA6"/></svg> ElectraSim</span>
       </div>
     </header>
 
@@ -194,7 +200,7 @@ footer{background:#0f172a;color:#94a3b8;padding:2.5rem 0 1.75rem}
       <p>This supply enters your home through a <strong>service head</strong> (also called a main cutout or meter box). Inside, there's an electricity meter that counts how many kilowatt-hours (kWh) you consume, and from there the supply feeds into your <strong>consumer unit</strong> — commonly known as the fuse box or breaker panel.</p>
 
       <div class="tip">
-        <p><strong>💡 Try it yourself:</strong> In ElectraSim, add a Battery (representing your mains supply) and connect it to an MCB. <a href="/app/">Open the app →</a></p>
+        <p><strong><svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><path d="M64 12c-20 0-36 15-36 34 0 12 6 20 13 27 4 4 5 8 5 12h36c0-4 1-8 5-12 7-7 13-15 13-27 0-19-16-34-36-34z" fill="#FFD422"/><path d="M50 98h28v9H50zM53 111h22a9 9 0 0 1-9 8h-4a9 9 0 0 1-9-8z" fill="#8899A6"/><path d="M56 40v20M72 40v20" stroke="#F4900C" stroke-width="6" stroke-linecap="round"/><path d="M64 4v8M20 26l6 6M108 26l-6 6" stroke="#FFAC33" stroke-width="7" stroke-linecap="round"/></svg> Try it yourself:</strong> In ElectraSim, add a Battery (representing your mains supply) and connect it to an MCB. <a href="/app/">Open the app →</a></p>
       </div>
 
       <h2>The Consumer Unit (Breaker Panel) — The Brain of Your Wiring</h2>
@@ -259,7 +265,7 @@ footer{background:#0f172a;color:#94a3b8;padding:2.5rem 0 1.75rem}
       <p>The earth wire connects to the metal body of the light fitting. If the live wire ever touched the metal casing due to a fault, the current would flow safely to earth and trip the MCB instantly, rather than giving someone an electric shock.</p>
 
       <div class="tip">
-        <p><strong>💡 Simulate this now:</strong> In ElectraSim, place a Battery → MCB → Switch → Light Bulb → back to Battery. Hit Run, then toggle the switch. You'll see the bulb light up in real time. <a href="/app/">Try it →</a></p>
+        <p><strong><svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><path d="M64 12c-20 0-36 15-36 34 0 12 6 20 13 27 4 4 5 8 5 12h36c0-4 1-8 5-12 7-7 13-15 13-27 0-19-16-34-36-34z" fill="#FFD422"/><path d="M50 98h28v9H50zM53 111h22a9 9 0 0 1-9 8h-4a9 9 0 0 1-9-8z" fill="#8899A6"/><path d="M56 40v20M72 40v20" stroke="#F4900C" stroke-width="6" stroke-linecap="round"/><path d="M64 4v8M20 26l6 6M108 26l-6 6" stroke="#FFAC33" stroke-width="7" stroke-linecap="round"/></svg> Simulate this now:</strong> In ElectraSim, place a Battery → MCB → Switch → Light Bulb → back to Battery. Hit Run, then toggle the switch. You'll see the bulb light up in real time. <a href="/app/">Try it →</a></p>
       </div>
 
       <h2>What is an MCB and How Does It Protect You?</h2>
@@ -274,7 +280,7 @@ footer{background:#0f172a;color:#94a3b8;padding:2.5rem 0 1.75rem}
       <p>Before MCBs, homes used <strong>fuse wire</strong> — a thin wire that melted when overloaded. MCBs are safer because they can be reset after the fault is fixed, while blown fuses must be replaced.</p>
 
       <div class="warn">
-        <p><strong>⚠️ Safety note:</strong> Never bypass or replace an MCB with one of a higher rating unless a qualified electrician has assessed the wiring. Oversizing an MCB allows more current than the wires are rated for — a serious fire risk.</p>
+        <p><strong><svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><path d="M64 12 122 116H6z" fill="#FFCC4D" stroke="#F4900C" stroke-width="9" stroke-linejoin="round"/><rect x="57" y="52" width="14" height="36" rx="7" fill="#fff"/><circle cx="64" cy="100" r="8" fill="#fff"/></svg> Safety note:</strong> Never bypass or replace an MCB with one of a higher rating unless a qualified electrician has assessed the wiring. Oversizing an MCB allows more current than the wires are rated for — a serious fire risk.</p>
       </div>
 
       <h2>The Ring Main: How Sockets Are Wired</h2>
@@ -311,7 +317,7 @@ footer{background:#0f172a;color:#94a3b8;padding:2.5rem 0 1.75rem}
       <div class="art-cta">
         <h2>See It All in Action</h2>
         <p>Build and simulate the circuits from this article — MCBs, switches, bulbs — for free in your browser. No installation, no sign-up.</p>
-        <a href="/app/" class="btn-cta">⚡ Open ElectraSim Free</a>
+        <a href="/app/" class="btn-cta"><svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><path d="M74 8 24 76h26l-10 44 64-70H70z" fill="#FFCC4D" stroke="#F4900C" stroke-width="7" stroke-linejoin="round"/></svg> Open ElectraSim Free</a>
       </div>
 
     </div>

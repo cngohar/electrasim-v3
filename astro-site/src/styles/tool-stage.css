@@ -1,0 +1,1007 @@
+/* ══════════════════════════════════════════════════════════════════════════
+ * tool-stage.css — the shared "stage" shell for the Electrical Toolbox.
+ *
+ * A stage is a full-bleed live scene with glass instrument panels floating over
+ * it. Voltage drop renders this pattern with its own scoped component styles;
+ * `ts-*` classes below are the generalised version, so the cable-sizing cutaway
+ * (and the max-Zs fault loop, next) get the same behaviour without copying it:
+ * the same aspect-fitted SVG stage (`public/js/scene-stage.js`), the same
+ * scrollable panel + pinned footer that keeps fields above the action button,
+ * the same mobile sheet choreography, the same reduced-motion and safe-area
+ * handling.
+ *
+ * Scene-specific *artwork* CSS stays scoped inside each scene component; this
+ * file only owns layout, chrome and the shared visual language.
+ * ═════════════════════════════════════════════════════════════════════════ */
+
+/* ── Stage ─────────────────────────────────────────────────────────────── */
+.ts-stage {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 3.75rem);
+  height: calc(100dvh - 3.75rem);
+  min-height: min(540px, calc(100dvh - 3.75rem));
+  overflow: hidden;
+  /* ABOVE the reference crawl (`.tool-seo-section` is `position: relative;
+     z-index: 10`). Both are siblings of the workspace shell, and `isolation:
+     isolate` below means everything inside the stage — the floating panels, the
+     scene HUD, the mobile bar and the sheets — is painted at the *stage's* level,
+     so its own z-index values (40, 46) are local and cannot win. That is what made
+     every button on a phone unreachable: the panels were on screen, fully
+     hit-testable, and buried under the prose. */
+  z-index: 20;
+  /* fallback colour while the scene paints / on extreme aspect ratios */
+  background: #eef2f7;
+  isolation: isolate;
+  /* panels anchor inside the stage, so the stage owns the height budget */
+  --ts-panel-w: min(336px, calc(50% - 1.75rem));
+  --ts-gutter: 1.25rem;
+}
+/* The scene gets its own frame: the whole stage while floating, a banner above
+   the panels once stacked. The viewBox fit and the 3D layer measure this element
+   — never the stage — so both stay right in either layout. */
+.ts-scene-frame {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+:root[data-theme="dark"] .ts-stage {
+  background: #080e1a;
+}
+.ts-scene-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.ts-scene-scaler {
+  position: absolute;
+  inset: 0;
+}
+.ts-scene-tilt {
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.25s ease-out;
+}
+.ts-stage.scene-paused *,
+.ts-stage.scene-paused *::before,
+.ts-stage.scene-paused *::after {
+  animation-play-state: paused !important;
+}
+
+/* ── Floating panels ───────────────────────────────────────────────────── */
+/* A wrapper holds the panels so they can anchor to the stage on all four sides.
+   Anchoring (top+bottom) instead of a viewport-unit max-height is what makes it
+   impossible for a panel to overflow the stage — the bug that sliced the method
+   chips off the bottom of a short window. */
+.ts-panel-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 24;
+}
+.ts-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  /* clip at the panel edge and scroll the body — never clip at the stage edge */
+  overflow: hidden;
+  background: var(--surface-glass, rgba(255, 255, 255, 0.96));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 16px 40px -8px rgba(15, 23, 42, 0.18);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 20;
+}
+.ts-panel--inputs {
+  position: absolute;
+  top: var(--ts-gutter);
+  bottom: var(--ts-gutter);
+  left: var(--ts-gutter);
+  width: var(--ts-panel-w);
+}
+.ts-panel--results {
+  position: absolute;
+  top: var(--ts-gutter);
+  bottom: var(--ts-gutter);
+  right: var(--ts-gutter);
+  width: var(--ts-panel-w);
+  justify-content: flex-end;
+}
+.ts-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.9rem 1.1rem 0.45rem;
+  flex: 0 0 auto;
+}
+.ts-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--text);
+}
+.ts-panel-title svg {
+  color: var(--blue);
+}
+.ts-panel-collapse {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-sm, 0.5rem);
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text-mid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.ts-panel-collapse:hover {
+  background: var(--bg-3);
+  color: var(--text);
+}
+.ts-panel-collapse .chevron {
+  transition: transform 0.2s ease;
+}
+.ts-panel-collapse[aria-expanded="false"] .chevron {
+  transform: rotate(180deg);
+}
+/* the panel's own section is the flex column; without this the body cannot
+   shrink and the panel just grows past the stage instead of scrolling */
+.ts-panel-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+.ts-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  /* trailing space belongs to the last child, not to the scroller's padding: a
+     flex container's bottom padding is left out of its scrollable overflow in
+     Chrome, which clips the final control under a pinned footer */
+  padding: 0.6rem 1.1rem 0;
+  flex: 1 1 auto;
+  /* the pinned footer floats over the bottom of the scroll area, so a browser-
+     initiated scroll (an anchor, scrollIntoView, focus) has to stop short of it —
+     otherwise the control that just came into view is the one thing you cannot
+     click, because the footer is under the cursor */
+  scroll-padding-bottom: 4.75rem;
+  overflow-y: auto;
+  /* required: without min-height:0 a flex child refuses to shrink, the panel
+     just overflows and fields end up hidden behind the pinned footer */
+  min-height: 0;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+/* a trailing flex item rather than scroller padding, so it counts toward the
+   scrollable overflow area and the last control can clear the pinned footer */
+/*
+ * Children of a scrolling flex column must not shrink. The default `flex-shrink: 1`
+ * distributes the overflow by squeezing every row instead: on a short window the
+ * last item (an accordion, in the voltage-drop panel) was crushed to its 2px of
+ * border — the control was not hidden behind the button, it had been *squashed*
+ * out of existence, and its click area was gone with it.
+ */
+.ts-panel-body > *,
+.panel-body > * {
+  flex-shrink: 0;
+}
+.ts-panel-body::after {
+  content: "";
+  flex: 0 0 auto;
+  height: 1rem;
+  margin-top: -0.85rem;
+}
+.ts-panel-body[hidden] {
+  display: none;
+}
+.ts-panel-body::-webkit-scrollbar {
+  width: 7px;
+}
+.ts-panel-body::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+.ts-panel-body::-webkit-scrollbar-thumb:hover {
+  background: var(--text-dim);
+}
+.ts-panel-footer {
+  flex: 0 0 auto;
+  padding: 0.6rem 1.1rem calc(0.85rem + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  background: var(--surface-glass, rgba(255, 255, 255, 0.96));
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+.ts-panel-footer[hidden] {
+  display: none;
+}
+/* scroll affordances: only painted while content actually remains that way */
+.ts-panel.can-scroll-down::after,
+.ts-panel.can-scroll-up::before {
+  content: "";
+  position: absolute;
+  left: 0.7rem;
+  right: 0.7rem;
+  height: 1.35rem;
+  pointer-events: none;
+  z-index: 3;
+}
+.ts-panel.can-scroll-down::after {
+  bottom: 4.4rem;
+  background: linear-gradient(to top, rgba(37, 99, 235, 0.16), transparent);
+}
+.ts-panel.can-scroll-up::before {
+  top: 2.9rem;
+  background: linear-gradient(to bottom, rgba(15, 23, 42, 0.12), transparent);
+}
+
+/* ── Form controls ─────────────────────────────────────────────────────── */
+.ts-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.ts-field-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.ts-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.ts-sublabel {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+.ts-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+.ts-input-wrap {
+  display: flex;
+  align-items: stretch;
+  border-radius: 0.6rem;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.ts-input-wrap:focus-within {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  background: var(--bg-card, #fff);
+}
+.ts-input-wrap.is-invalid {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.14);
+}
+.ts-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 2.4rem;
+  padding: 0 0.7rem;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  outline: none;
+}
+.ts-unit {
+  display: flex;
+  align-items: center;
+  padding: 0 0.7rem;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  border-left: 1px solid var(--border);
+}
+.ts-select {
+  width: 100%;
+  height: 2.4rem;
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 0 2rem 0 0.7rem;
+  border-radius: 0.6rem;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+.ts-select:focus {
+  border-color: var(--blue);
+  background: var(--bg-card, #fff);
+}
+.ts-select-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.ts-select-arrow {
+  position: absolute;
+  right: 0.7rem;
+  pointer-events: none;
+  color: var(--text-dim);
+  font-size: 0.72rem;
+}
+.ts-seg {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 0.3rem;
+  padding: 0.22rem;
+  border-radius: 0.6rem;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+}
+.ts-seg-btn {
+  padding: 0.42rem 0.3rem;
+  border-radius: 0.5rem;
+  border: none;
+  background: transparent;
+  color: var(--text-mid);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.ts-seg-btn:hover {
+  color: var(--text);
+}
+.ts-seg-btn.active {
+  background: var(--action-bg, #2563eb);
+  color: var(--action-text, #fff);
+}
+.ts-seg-btn.active:hover {
+  background: var(--action-hover, #1d4ed8);
+  color: var(--action-text, #fff);
+}
+.ts-chip-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+.ts-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 0.55rem;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text-mid);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+.ts-chip:hover {
+  border-color: var(--blue);
+  background: var(--bg-card, #fff);
+  color: var(--text);
+}
+.ts-chip:active {
+  transform: scale(0.985);
+}
+.ts-chip.active {
+  border-color: var(--blue);
+  background: var(--blue-l);
+  color: var(--blue);
+  box-shadow: inset 0 0 0 1px var(--blue);
+}
+.ts-chip-name {
+  font-family: var(--font-display);
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.ts-chip-meta {
+  font-size: 0.66rem;
+  font-weight: 600;
+  opacity: 0.85;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ts-note {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--text-mid);
+}
+.ts-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  width: 100%;
+  min-height: 2.6rem;
+  border: none;
+  border-radius: 0.6rem;
+  background: var(--action-bg, #2563eb);
+  color: var(--action-text, #fff);
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.ts-button:hover {
+  background: var(--action-hover, #1d4ed8);
+  color: var(--action-text, #fff);
+  transform: translateY(-1px);
+}
+.ts-button:active {
+  transform: translateY(0);
+}
+.ts-button--ghost {
+  background: var(--bg-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.ts-button--ghost:hover {
+  background: var(--bg-3);
+  color: var(--text);
+  border-color: var(--border-bright);
+}
+.ts-button:focus-visible,
+.ts-chip:focus-visible,
+.ts-seg-btn:focus-visible,
+.ts-select:focus-visible,
+.ts-panel-collapse:focus-visible {
+  outline: 3px solid var(--blue-glow, rgba(37, 99, 235, 0.28));
+  outline-offset: 2px;
+}
+
+/* ── Scene HUD (instruments that live on the artwork, not in a panel) ──── */
+.ts-hud {
+  position: absolute;
+  z-index: 18;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: var(--radius, 1rem);
+  border: 1px solid var(--border);
+  background: var(--surface-glass, rgba(255, 255, 255, 0.94));
+  box-shadow: 0 12px 30px -10px rgba(15, 23, 42, 0.25);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  width: min(300px, calc(100vw - 2.5rem));
+}
+.ts-hud--top {
+  top: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.ts-hud-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+}
+.ts-hud-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  font-size: 0.78rem;
+  color: var(--text-mid);
+}
+.ts-hud-row strong {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--text);
+}
+.ts-hud-tools {
+  /*
+   * Top-centre, above the panels: it used to sit top-right at a lower z-index,
+   * so the results panel covered Explode and the 3D toggle entirely.
+   */
+  position: absolute;
+  top: var(--ts-gutter);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.4rem;
+  z-index: 27;
+  max-width: calc(100% - 2 * var(--ts-gutter));
+}
+.ts-tool-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.42rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-glass, rgba(255, 255, 255, 0.94));
+  color: var(--text-mid);
+  font-family: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 24px -6px rgba(15, 23, 42, 0.18);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.ts-tool-btn:hover {
+  color: var(--text);
+  border-color: var(--border-bright);
+}
+.ts-tool-btn.active {
+  color: var(--blue);
+  border-color: var(--blue);
+  background: var(--blue-l);
+}
+.ts-tool-btn svg {
+  flex: 0 0 auto;
+}
+
+/* ── Drawer (touch) choreography ─────────────────────────────────────────
+   Every rule that *hides* a panel lives behind `[data-layout="drawer"]`, which
+   only exists once `scene-stage.js` has chosen a layout mode. That is on purpose:
+   with JavaScript off the stage falls back to the stacked flow below, where both
+   panels are ordinary blocks in the page. A drawer that is closed by default is
+   only allowed when there is a visible handle to open it. */
+.ts-mobile-bar {
+  display: none;
+  /*
+   * Sticky inside the stage rather than fixed to the viewport. A viewport-pinned
+   * handle disappears the moment the stage is not the whole window — in an embed,
+   * a short pane, or a preview that is taller than what you can see, the only way
+   * to open the drawer was sitting somewhere off-screen, so the page looked
+   * panel-less. Pinned to the bottom of the stage it is always directly under the
+   * scene it opens, and it still rides along with the viewport while the stage fills it.
+   */
+  position: sticky;
+  bottom: 0;
+  z-index: 40;
+  align-self: stretch;
+  width: 100%;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  gap: 0.5rem;
+  align-items: stretch;
+  padding: 0.55rem 0.75rem calc(0.55rem + env(safe-area-inset-bottom));
+  background: var(--surface-glass, rgba(255, 255, 255, 0.98));
+  border: 1px solid var(--border);
+  border-top-color: var(--border);
+  box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.1);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  transition: transform 0.24s ease;
+}
+.ts-stage[data-stage="stackable"][data-layout="drawer"] .ts-mobile-bar {
+  display: flex;
+}
+/* the handle is only useful while the scene is on screen; once the reader is
+   down in the reference prose it slides away instead of eating a line of text */
+.ts-stage[data-stage="stackable"][data-layout="drawer"][data-offscreen="1"] .ts-mobile-bar {
+  transform: translateY(calc(100% + 1rem));
+  box-shadow: none;
+}
+.ts-mobile-bar--result {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0 0.5rem;
+  border-radius: 0.6rem;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.ts-mobile-out {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.86rem;
+  color: var(--blue);
+  white-space: nowrap;
+}
+.ts-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 44;
+  border: none;
+  padding: 0;
+  background: rgba(2, 6, 23, 0.42);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  cursor: pointer;
+  animation: ts-scrim-in 0.22s ease-out;
+}
+@keyframes ts-scrim-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.ts-scrim[hidden] {
+  display: none;
+}
+/* sheet affordances: the grabber doubles as the drag handle */
+.ts-sheet-grabber {
+  display: none;
+  flex: 0 0 auto;
+  width: 100%;
+  padding: 0.55rem 0 0.1rem;
+  margin: 0;
+  border: none;
+  background: transparent;
+  cursor: grab;
+  touch-action: none;
+}
+.ts-sheet-grabber::before {
+  content: "";
+  display: block;
+  width: 2.6rem;
+  height: 0.28rem;
+  border-radius: 999px;
+  margin: 0 auto;
+  background: var(--border-bright, #cbd5e1);
+}
+.ts-stage[data-stage="stackable"][data-layout="drawer"] .ts-sheet-grabber {
+  display: block;
+}
+.ts-sheet-close {
+  display: none;
+}
+.ts-stage[data-stage="stackable"][data-layout="drawer"] .ts-sheet-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text-mid);
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.ts-sheet-close:hover {
+  background: var(--bg-3);
+  color: var(--text);
+}
+/* the collapse toggle is a desktop affordance — in a sheet it reads as clutter */
+.ts-stage[data-stage="stackable"][data-layout="drawer"] .ts-panel-collapse {
+  display: none;
+}
+
+.ts-stage[data-stage="stackable"][data-layout="drawer"] .ts-panel--inputs,
+.ts-stage[data-stage="stackable"][data-layout="drawer"] .ts-panel--results {
+  position: fixed;
+  top: auto;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  /* leave the app header reachable: help, theme and the tool switcher all stay
+     usable while the drawer is up */
+  max-height: calc(100dvh - 4.6rem);
+  z-index: 46;
+  border: none;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: 0 -18px 50px -12px rgba(15, 23, 42, 0.42);
+  padding-bottom: env(safe-area-inset-bottom);
+  transform: translateY(101%);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.ts-stage[data-stage="stackable"][data-layout="drawer"] .ts-panel.sheet-open {
+  transform: translateY(0);
+}
+/* dragged past the snap point: the sheet takes the whole column */
+.ts-stage[data-stage="stackable"][data-layout="drawer"] .ts-panel.sheet-open.is-expanded {
+  height: calc(100dvh - 4.6rem);
+  max-height: calc(100dvh - 4.6rem);
+}
+.ts-stage[data-stage="stackable"][data-layout="drawer"].sheet-peeking .ts-scene-frame {
+  filter: saturate(0.9);
+}
+/* fade, not jump: the drawer is the only thing moving on purpose */
+.ts-stage[data-stage="stackable"][data-layout="drawer"] .ts-panel--inputs.is-dragging,
+.ts-stage[data-stage="stackable"][data-layout="drawer"] .ts-panel--results.is-dragging {
+  transition: none;
+}
+.ts-stage[data-stage="stackable"][data-layout="drawer"] .ts-panel-body {
+  padding-top: 0.2rem;
+  /* one panel open at a time; the other must not linger under the scrim */
+  overscroll-behavior-y: contain;
+}
+
+/* ── Responsive tiers ──────────────────────────────────────────────────── */
+@media (min-width: 1600px) {
+  .ts-stage[data-stage="stackable"] .ts-panel--inputs,
+  .ts-panel--results {
+    width: min(376px, 26vw);
+  }
+}
+@media (max-width: 1279px) {
+  .ts-panel--inputs,
+  .ts-panel--results {
+    width: min(312px, calc(100vw - 2rem));
+  }
+  .ts-hud--top {
+    top: 0.9rem;
+  }
+}
+/* Narrow desktops: the stage gets short, so panels stop stretching to it */
+@media (max-width: 1080px) {
+  .ts-stage {
+    height: calc(100vh - 3.75rem);
+    height: calc(100dvh - 3.75rem);
+    min-height: min(500px, calc(100dvh - 3.75rem));
+  }
+  .ts-panel {
+    max-height: calc(100vh - 4.75rem);
+    max-height: calc(100dvh - 4.75rem);
+  }
+  .ts-hud {
+    display: none;
+  }
+}
+@media (max-width: 900px) {
+  .ts-panel--inputs {
+    top: 0.75rem;
+    left: 0.75rem;
+  }
+  .ts-panel--results {
+    right: 0.75rem;
+    bottom: 0.75rem;
+  }
+  .ts-tool-btn {
+    padding: 0.36rem 0.55rem;
+    font-size: 0.68rem;
+  }
+}
+/* ── Stacked fallback ──────────────────────────────────────────────────────
+   Not enough room to float panels beside a readable scene — a narrow window, or
+   simply a short one, which is what the small preview window was: the stage stops
+   being a viewport-height canvas. The scene becomes a banner and the panels flow
+   beneath it in normal page scroll, so nothing is absolutely positioned and
+   nothing can be clipped by a container again. */
+@media (max-width: 1360px), (max-height: 700px) {
+  .ts-stage[data-stage="stackable"] {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    padding: 0.9rem clamp(0.85rem, 3vw, 1.5rem) 1.4rem;
+  }
+  .ts-stage[data-stage="stackable"] .ts-scene-frame {
+    position: relative;
+    inset: auto;
+    height: clamp(230px, 34vh, 400px);
+    flex: 0 0 auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 10px 30px -14px rgba(15, 23, 42, 0.3);
+  }
+  .ts-stage[data-stage="stackable"] .ts-panel-wrap {
+    position: static;
+    inset: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    gap: 0.9rem;
+    align-items: start;
+    pointer-events: auto;
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .ts-panel--inputs,
+  .ts-panel--results {
+    position: static;
+    inset: auto;
+    width: auto;
+    justify-content: flex-start;
+  }
+  /* In the stacked flow the page scrolls, so the body must not. In the drawer it
+     is the opposite: the sheet is fixed-height and *must* scroll, or its lower
+     half is clipped by the panel and becomes unreachable. */
+  .ts-stage[data-stage="stackable"]:not([data-layout="drawer"]) .ts-panel-body {
+    overflow: visible;
+    max-height: none;
+  }
+  .ts-stage[data-stage="stackable"][data-layout="drawer"] .ts-panel-body {
+    overflow-y: auto;
+    max-height: none;
+  }
+  .ts-stage[data-stage="stackable"] .ts-panel.can-scroll-down::after,
+  .ts-stage[data-stage="stackable"] .ts-panel.can-scroll-up::before {
+    display: none;
+  }
+  .ts-stage[data-stage="stackable"] .ts-hud-tools {
+    top: 1.5rem;
+    z-index: 5;
+    padding: 0.15rem 0.3rem;
+    border-radius: 999px;
+    background: var(--surface-glass, rgba(255, 255, 255, 0.9));
+    box-shadow: 0 6px 18px -8px rgba(15, 23, 42, 0.35);
+  }
+  .ts-stage[data-stage="stackable"] .ts-tool-btn {
+    padding: 0.3rem 0.55rem;
+    font-size: 0.68rem;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .ts-stage[data-stage="stackable"] .ts-tool-btn:hover {
+    background: var(--bg-3);
+  }
+}
+
+/* Phones and coarse pointers: bigger touch targets, one-column chips, and the
+   panels become bottom sheets (see the drawer rules above — they only switch on
+   once JS has picked `data-layout="drawer"`, so the sheets can never hide a
+   panel from a browser running without scripts). */
+@media (max-width: 768px) {
+  .ts-stage {
+    height: clamp(300px, 56dvh, 520px);
+    min-height: 300px;
+  }
+  .ts-panel-wrap {
+    position: static;
+    display: block;
+    width: 100%;
+    max-width: none;
+    gap: 0;
+  }
+  .ts-chip-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ts-input,
+  .ts-select {
+    height: 2.55rem;
+    font-size: 0.95rem;
+  }
+}
+/* The drawer owns the bottom of the screen, so the banner stage gives it room and
+   stops pretending to be a viewport-height canvas. */
+.ts-stage[data-stage="stackable"][data-layout="drawer"] {
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 0.7rem 0.7rem calc(4.4rem + env(safe-area-inset-bottom));
+}
+.ts-stage[data-stage="stackable"][data-layout="drawer"] .ts-scene-frame {
+  position: relative;
+  inset: auto;
+  /* the scene HUD row (Animate / Explode) is absolutely positioned over the
+     stage; in a banner layout it used to land on the gate lamps. This gap gives
+     it a row of its own above the artwork. */
+  margin-top: 3.15rem;
+  /* the run is a wide composition: the banner has to be tall enough that fitting
+     it by width (not by height) is what decides, or the scene arrives as a thin
+     strip with dead room above and below */
+  height: clamp(214px, 44dvh, 360px);
+}
+.ts-stage[data-stage="stackable"][data-layout="drawer"] .ts-panel-wrap {
+  position: static;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  gap: 0;
+}
+/* the 3D orbit is a drag-vs-scroll fight on a touch screen: keep it on pointer
+   devices, where the WebGL layer also has the pixels to be worth opening */
+.ts-stage[data-stage="stackable"][data-layout="drawer"] .ts-tool-btn--3d {
+  display: none;
+}
+.ts-stage[data-stage="stackable"][data-layout="drawer"] .ts-hud-tools {
+  /* rides in the gap above the banner rather than on top of it, where it used to
+     sit across the gate lamps */
+  top: 0;
+}
+/* Short landscape phones: keep the instruments, drop the decoration */
+@media (max-height: 560px) and (orientation: landscape) {
+  .ts-stage {
+    height: calc(100vh - 3.75rem);
+    min-height: 300px;
+  }
+  .ts-panel {
+    max-height: calc(100vh - 4.5rem);
+  }
+  .ts-panel-body {
+    gap: 0.6rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ts-panel,
+  .ts-chip,
+  .ts-button,
+  .ts-scene-tilt,
+  .ts-mobile-bar,
+  .ts-scrim {
+    transition-duration: 0.01ms !important;
+  }
+  .ts-scrim {
+    animation: none;
+  }
+}
+
+/* Nothing inside a floating panel may be wider than the panel: the chips carry
+   real-world labels ("Enclosed in thermal insulation") and an ellipsis on the
+   condition note is fine, a clipped control is not. */
+.ts-panel-body,
+.ts-chip,
+.ts-seg,
+.ts-field,
+.ts-chip-grid {
+  min-width: 0;
+}
+.ts-chip {
+  min-width: 0;
+  max-width: 100%;
+}
+.ts-chip-meta {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.35;
+}
+.ts-chip-name {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 768px) {
+  .ts-chip {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+}

@@ -1,4 +1,5 @@
 ---
+import EmojiIcon from '../EmojiIcon.astro';
 // VoltageDropPanels.astro - Floating Inputs, Results, Controls, Error Notices & Legend
 import StandardSelector from './StandardSelector.astro';
 ---
@@ -93,7 +94,7 @@ import StandardSelector from './StandardSelector.astro';
 
 <!-- FLOATING TOAST NOTIFICATION BANNER -->
 <div id="tool-toast-banner" class="tool-toast" role="status" aria-live="polite" hidden>
-  <span id="tool-toast-icon" class="tool-toast-icon">ℹ️</span>
+  <span id="tool-toast-icon" class="tool-toast-icon"><EmojiIcon name="info" /></span>
   <span id="tool-toast-text" class="tool-toast-text"></span>
   <button type="button" id="tool-toast-close" class="tool-toast-close" aria-label="Dismiss notification">✕</button>
 </div>
@@ -256,6 +257,57 @@ import StandardSelector from './StandardSelector.astro';
         </div>
       </div>
 
+      <!-- Real-world scenario presets -->
+      <div class="preset-block" id="preset-block">
+        <div class="form-label-row">
+          <label class="form-label" id="preset-label">Real-World Presets</label>
+          <span class="form-sublabel">Typical installs</span>
+        </div>
+        <div class="preset-grid" id="preset-grid" role="group" aria-labelledby="preset-label">
+          <button type="button" class="preset-chip" data-preset-id="domestic-lighting" aria-pressed="false">
+            <span class="preset-chip-name">Lighting radial</span>
+            <span class="preset-chip-meta">6 A · 1.5 mm² · 45 m</span>
+          </button>
+          <button type="button" class="preset-chip" data-preset-id="kitchen-radial" aria-pressed="false">
+            <span class="preset-chip-name">Kitchen radial</span>
+            <span class="preset-chip-meta">32 A · 6 mm² · 20 m</span>
+          </button>
+          <button type="button" class="preset-chip" data-preset-id="ev-7kw" aria-pressed="false">
+            <span class="preset-chip-name">EV 7 kW</span>
+            <span class="preset-chip-meta">32 A · 10 mm² · 25 m</span>
+          </button>
+          <button type="button" class="preset-chip" data-preset-id="ev-11kw" aria-pressed="false">
+            <span class="preset-chip-name">EV 11 kW</span>
+            <span class="preset-chip-meta">16 A · 4 mm² · 3-ph</span>
+          </button>
+          <button type="button" class="preset-chip" data-preset-id="shower" aria-pressed="false">
+            <span class="preset-chip-name">Shower 9.5 kW</span>
+            <span class="preset-chip-meta">41 A · 10 mm² · 12 m</span>
+          </button>
+          <button type="button" class="preset-chip" data-preset-id="shed-submain" aria-pressed="false">
+            <span class="preset-chip-name">Garden submain</span>
+            <span class="preset-chip-meta">32 A · 10 mm² · 120 m</span>
+          </button>
+          <button type="button" class="preset-chip" data-preset-id="long-shed" aria-pressed="false">
+            <span class="preset-chip-name">Long shed run</span>
+            <span class="preset-chip-meta">16 A · 2.5 mm² · 85 m</span>
+          </button>
+          <button type="button" class="preset-chip" data-preset-id="motor" aria-pressed="false">
+            <span class="preset-chip-name">Motor 5.5 kW</span>
+            <span class="preset-chip-meta">11 A · 2.5 mm² · 3-ph</span>
+          </button>
+          <button type="button" class="preset-chip" data-preset-id="aluminium-feed" aria-pressed="false">
+            <span class="preset-chip-name">Aluminium feed</span>
+            <span class="preset-chip-meta">32 A · 16 mm² · 60 m</span>
+          </button>
+          <button type="button" class="preset-chip" data-preset-id="battery-dc" aria-pressed="false">
+            <span class="preset-chip-name">48 V battery link</span>
+            <span class="preset-chip-meta">100 A · 25 mm² · 4 m</span>
+          </button>
+        </div>
+        <p class="preset-caption" id="preset-caption" hidden></p>
+      </div>
+
       <!-- Advanced Options Accordion -->
       <div class="advanced-accordion">
         <button
@@ -335,9 +387,15 @@ import StandardSelector from './StandardSelector.astro';
         </div>
       </div>
 
-      <!-- Calculate Button -->
+    </div>
+
+    <!--
+      Pinned footer (outside the scroll area) — this is what used to sit on top
+      of the last advanced fields: the panel body scrolls, the button does not.
+    -->
+    <div class="panel-footer" data-panel-footer="inputs">
       <button type="button" id="btn-calculate" class="btn-calculate">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <rect x="4" y="2" width="16" height="20" rx="2" />
           <line x1="8" y1="6" x2="16" y2="6" />
           <line x1="16" y1="14" x2="16" y2="18" />
@@ -375,7 +433,7 @@ import StandardSelector from './StandardSelector.astro';
       <!-- Friendly Error Notice Card (Visible when input validation fails) -->
       <div id="error-notice-card" class="error-notice-card" hidden role="alert">
         <div class="error-notice-head">
-          <span class="error-notice-icon">⚠️</span>
+          <span class="error-notice-icon"><EmojiIcon name="warning" /></span>
           <div class="error-notice-title">Please Check Your Inputs</div>
         </div>
         <p class="error-notice-desc">We noticed some values that require your attention before calculations can proceed:</p>
@@ -430,13 +488,16 @@ import StandardSelector from './StandardSelector.astro';
           </p>
         </div>
       </div>
+      <!-- Real-world cross-checks written by the tool script (design temperature,
+           Annex G long-run allowance, next standard size up) -->
+      <ul class="vd-eng-notes" id="vd-eng-notes" hidden></ul>
       <!-- Standards-of-verification trust line (updated by tool script) -->
       <p class="vd-standard-echo" id="vd-standard-echo">
         Verified against <strong>BS 7671:2018+A4:2026 (UK)</strong> — Appendix 4 limits: 3% lighting / 5% power circuits.
       </p>
       <!-- Shareable calculation: every input is encoded in the URL -->
       <button type="button" class="vd-share-btn" id="btn-share-calc">
-        🔗 Copy calculation link — inputs travel inside the URL
+        <EmojiIcon name="link" /> <span data-share-label>Copy calculation link — inputs travel inside the URL</span>
       </button>
     </div>
   </section>
@@ -477,7 +538,7 @@ import StandardSelector from './StandardSelector.astro';
     aria-checked="true"
     aria-label="Toggle educational tips"
   >
-    <span class="tips-icon">💡</span>
+    <span class="tips-icon"><EmojiIcon name="bulb" /></span>
     <span class="tips-label">Tips</span>
     <span class="switch-pill-knob active" id="tips-pill-knob"></span>
   </button>
@@ -486,9 +547,22 @@ import StandardSelector from './StandardSelector.astro';
 <!-- BOTTOM-CENTER ROTATING INFO / TIPS BAR -->
 <div id="tips-bar" class="floating-tips-bar">
   <div class="tips-bar-content">
-    <span class="tips-info-icon">ℹ</span>
+    <span class="tips-info-icon"><EmojiIcon name="info" /></span>
     <span id="tips-text" class="tips-text">
-      Green particles show the flow of electricity. Some voltage is lost along the cable due to its resistance.
+      Green particles show the flow of electricity. Some voltage is lost along the cable because the conductor has resistance.
+    </span>
+    <span class="tips-pager" aria-hidden="true">
+      <button type="button" id="btn-tip-prev" class="tips-arrow" aria-label="Previous tip" tabindex="0">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+      </button>
+      <span class="tips-count" id="tips-count">1/18</span>
+      <button type="button" id="btn-tip-next" class="tips-arrow" aria-label="Next tip" tabindex="0">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </button>
     </span>
   </div>
 </div>
@@ -496,7 +570,7 @@ import StandardSelector from './StandardSelector.astro';
 <!-- MOBILE BOTTOM SHEET TRIGGER (visible on mobile only) -->
 <div class="mobile-bottom-bar" id="mobile-bottom-bar">
   <button type="button" id="btn-mobile-open-inputs" class="btn-mobile-panel">
-    <span class="mobile-btn-icon">⚡</span>
+    <span class="mobile-btn-icon"><EmojiIcon name="bolt" /></span>
     <span>Configure Inputs</span>
   </button>
   <button type="button" id="btn-mobile-open-results" class="btn-mobile-panel btn-mobile-results">
@@ -628,14 +702,23 @@ import StandardSelector from './StandardSelector.astro';
   }
 
   /* Top Right View Controls */
+  /*
+   * Reset and 3D used to be pinned to the top-right corner of the stage, *under*
+   * the results panel (`#panel-wrap` is z-index 24, this was 20): the buttons were
+   * painted, looked pressable, and swallowed nothing — the pointer hit the panel.
+   * They now share the free band in the middle, under the pill row, and sit above
+   * the panels' layer so nothing can ever cover them again.
+   */
   .top-view-controls {
     position: absolute;
-    top: 1.25rem;
-    right: 1.25rem;
+    top: 4.55rem;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    z-index: 20;
+    flex-direction: row;
+    gap: 0.4rem;
+    z-index: 27;
+    max-width: calc(100% - 2.5rem);
   }
   .view-action-btn {
     width: 4.5rem;
@@ -765,10 +848,34 @@ import StandardSelector from './StandardSelector.astro';
     transform: rotate(180deg);
   }
   .panel-body {
-    padding: 0.75rem 1.25rem 1.25rem;
+    /*
+     * Trailing space is a margin on the last child, not padding on the scroller:
+     * Chrome leaves a flex container's bottom padding out of its scrollable
+     * overflow area, so the final control (Advanced Options, on a short window)
+     * sat clipped under the footer at full scroll and could not be reached.
+     */
+    padding: 0.75rem 1.25rem 0;
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    /* flex children need this to shrink below their content height and scroll */
+    flex: 1 1 auto;
+    min-height: 0;
+    /* stop scrolled-to controls clear of the pinned Calculate footer */
+    scroll-padding-bottom: 4.75rem;
+  }
+  .panel-body[hidden] {
+    display: none !important;
+  }
+  /* a trailing flex item, not padding: it is counted in the scrollable overflow area,
+     so the final control can always be brought clear of the pinned footer */
+  /* see tool-stage.css: children of a scrolling flex column must not shrink,
+     or the last row is squeezed to nothing instead of scrolling into view */
+  .panel-body::after {
+    content: "";
+    flex: 0 0 auto;
+    height: 1.25rem;
+    margin-top: -1rem;
   }
 
   /* Left Inputs Panel */
@@ -779,20 +886,54 @@ import StandardSelector from './StandardSelector.astro';
     z-index: 25;
   }
   .inputs-panel {
-    width: 320px;
-    max-height: calc(100vh - 5.5rem);
+    width: min(340px, calc(100vw - 2.5rem));
+    /*
+     * The stage is 100dvh - header, and the panel floats 1.25rem inside it, so
+     * the ceiling has to be measured in dvh (the mobile browser chrome changes
+     * 100vh constantly). min-height: 0 on the body is what makes the overflow
+     * actually scroll inside a flex column instead of pushing content past the
+     * Calculate button.
+     */
+    max-height: calc(100vh - 5.75rem);
+    max-height: calc(100dvh - 5.75rem);
+    position: relative;
   }
   .nice-scroll {
     overflow-y: auto;
+    min-height: 0;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
   }
   .nice-scroll::-webkit-scrollbar {
-    width: 5px;
+    width: 7px;
   }
   .nice-scroll::-webkit-scrollbar-thumb {
     background: var(--border);
     border-radius: 999px;
+  }
+  .nice-scroll::-webkit-scrollbar-thumb:hover {
+    background: var(--text-dim);
+  }
+  /* "there is more below / above" affordance for the inputs panel */
+  .inputs-panel.can-scroll-down::after,
+  .inputs-panel.can-scroll-up::before {
+    content: "";
+    position: absolute;
+    left: 0.75rem;
+    right: 0.75rem;
+    height: 1.4rem;
+    pointer-events: none;
+    z-index: 3;
+  }
+  .inputs-panel.can-scroll-down::after {
+    bottom: calc(2.75rem + 1.55rem);
+    background: linear-gradient(to top, rgba(37, 99, 235, 0.16), transparent);
+  }
+  .inputs-panel.can-scroll-up::before {
+    top: 2.9rem;
+    background: linear-gradient(to bottom, rgba(15, 23, 42, 0.1), transparent);
   }
 
   /* Form Elements & Validation Error Styles */
@@ -839,9 +980,15 @@ import StandardSelector from './StandardSelector.astro';
     color: var(--text);
   }
   .seg-btn.active {
-    background: var(--blue);
-    color: #ffffff;
+    /* action tokens, not --blue: --blue is a pale tint in dark mode and white
+       text on it fails contrast */
+    background: var(--action-bg, #2563eb);
+    color: var(--action-text, #ffffff);
     box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+  }
+  .seg-btn.active:hover {
+    background: var(--action-hover, #1d4ed8);
+    color: var(--action-text, #ffffff);
   }
   .input-with-addon {
     display: flex;
@@ -876,9 +1023,14 @@ import StandardSelector from './StandardSelector.astro';
   .field-error-msg[hidden] {
     display: none !important;
   }
+  /* Inline vector of the warning pictogram — a literal emoji here would render in whatever
+     font the visitor happens to have, at a size unrelated to the message. */
   .field-error-msg::before {
-    content: "⚠️";
-    font-size: 0.75rem;
+    content: "";
+    flex: 0 0 auto;
+    width: 0.95rem;
+    height: 0.95rem;
+    background: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 128 128%27%3E%3Cpath d=%27M64 12 122 116H6z%27 fill=%27%23FFCC4D%27 stroke=%27%23F4900C%27 stroke-width=%279%27 stroke-linejoin=%27round%27/%3E%3Crect x=%2757%27 y=%2752%27 width=%2714%27 height=%2736%27 rx=%277%27 fill=%27%23fff%27/%3E%3Ccircle cx=%2764%27 cy=%27100%27 r=%278%27 fill=%27%23fff%27/%3E%3C/svg%3E") center / contain no-repeat;
   }
   @keyframes errorFadeIn {
     from { opacity: 0; transform: translateY(-3px); }
@@ -951,6 +1103,114 @@ import StandardSelector from './StandardSelector.astro';
     pointer-events: none;
     color: var(--text-dim);
     font-size: 0.75rem;
+  }
+
+  /* Real-world presets */
+  .preset-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+  .preset-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.35rem;
+  }
+  .preset-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.1rem;
+    padding: 0.45rem 0.55rem;
+    border-radius: 0.55rem;
+    border: 1px solid var(--border);
+    background: var(--bg-2);
+    color: var(--text-mid);
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  }
+  .preset-chip:hover {
+    border-color: var(--blue);
+    background: var(--bg-card, #ffffff);
+    color: var(--text);
+  }
+  .preset-chip:active {
+    transform: scale(0.985);
+  }
+  .preset-chip:focus-visible {
+    outline: 3px solid var(--blue-glow, rgba(37, 99, 235, 0.28));
+    outline-offset: 2px;
+  }
+  .preset-chip.active {
+    border-color: var(--blue);
+    background: var(--blue-l);
+    color: var(--blue);
+    box-shadow: inset 0 0 0 1px var(--blue);
+  }
+  .preset-chip-name {
+    font-size: 0.76rem;
+    font-weight: 800;
+    line-height: 1.2;
+    font-family: var(--font-display);
+  }
+  .preset-chip-meta {
+    font-size: 0.66rem;
+    font-weight: 600;
+    opacity: 0.85;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  .preset-caption {
+    margin: 0;
+    font-size: 0.72rem;
+    line-height: 1.5;
+    color: var(--text-mid);
+    border-left: 3px solid var(--blue);
+    padding: 0.35rem 0 0.35rem 0.55rem;
+    background: var(--bg-2);
+    border-radius: 0 0.4rem 0.4rem 0;
+  }
+  .preset-caption[hidden] {
+    display: none;
+  }
+  .preset-caption strong {
+    color: var(--text);
+  }
+
+  /* Real-world cross-check notes under the verdict */
+  .vd-eng-notes {
+    list-style: none;
+    margin: 0.6rem 0 0;
+    padding: 0.55rem 0.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    border-radius: var(--radius-sm, 0.5rem);
+    border: 1px dashed var(--border-bright, #bfdbfe);
+    background: rgba(37, 99, 235, 0.045);
+  }
+  .vd-eng-notes[hidden] {
+    display: none;
+  }
+  .vd-eng-notes li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    font-size: 0.7rem;
+    line-height: 1.45;
+    color: var(--text-mid);
+  }
+  .vd-eng-notes li .emoji-icon {
+    margin-top: 0.1rem;
+    width: 0.95rem;
+    height: 0.95rem;
+  }
+  :root[data-theme='dark'] .vd-eng-notes {
+    background: rgba(115, 168, 255, 0.07);
+    border-color: var(--border-bright);
   }
 
   /* Advanced Options Accordion */
@@ -1035,22 +1295,49 @@ import StandardSelector from './StandardSelector.astro';
     justify-content: center;
     gap: 0.5rem;
     width: 100%;
-    height: 2.75rem;
+    min-height: 2.75rem;
     border-radius: 0.65rem;
-    background: var(--blue);
-    color: #ffffff;
+    /*
+     * Action tokens, not --blue: --blue flips to a pale tint in dark mode and
+     * would strand white text on white. --action-* stay dark-blue in both
+     * themes, which keeps the ~4.5:1 contrast the button needs.
+     */
+    background: var(--action-bg, #2563eb);
+    color: var(--action-text, #ffffff);
     border: none;
     font-family: var(--font-display);
     font-size: 0.92rem;
     font-weight: 700;
     cursor: pointer;
     box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
-    transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
   }
   .btn-calculate:hover {
-    background: var(--blue-h);
+    /* darker *and* still white-on-blue — the old rule referenced an undefined
+       --blue-h token, which made the surface wash out to near-white */
+    background: var(--action-hover, #1d4ed8);
+    color: var(--action-text, #ffffff);
     transform: translateY(-1px);
     box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
+  }
+  .btn-calculate:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+  }
+  .btn-calculate:focus-visible {
+    outline: 3px solid var(--blue-glow, rgba(37, 99, 235, 0.28));
+    outline-offset: 2px;
+  }
+
+  /* Pinned panel footer — the scroll area ends above it */
+  .panel-footer {
+    padding: 0.65rem 1.25rem calc(0.9rem + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--border);
+    background: var(--surface-glass, rgba(255, 255, 255, 0.95));
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  }
+  .panel-footer[hidden] {
+    display: none !important;
   }
 
   /* Right Results Panel */
@@ -1061,8 +1348,14 @@ import StandardSelector from './StandardSelector.astro';
     z-index: 25;
   }
   .results-panel {
-    width: 320px;
+    width: min(340px, calc(100vw - 2.5rem));
+    max-height: calc(100dvh - 5.75rem);
     transition: transform 0.15s ease;
+  }
+  .results-panel .panel-body {
+    overflow-y: auto;
+    min-height: 0;
+    scrollbar-width: thin;
   }
   .results-panel.pop {
     animation: resultPop 0.25s ease-out;
@@ -1385,6 +1678,45 @@ import StandardSelector from './StandardSelector.astro';
     color: var(--text-mid);
     line-height: 1.4;
     transition: opacity 0.2s ease;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .tips-pager {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    flex: 0 0 auto;
+  }
+  .tips-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--bg-2);
+    color: var(--text-mid);
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+  .tips-arrow:hover {
+    color: var(--blue);
+    border-color: var(--blue);
+    background: var(--blue-l);
+  }
+  .tips-arrow:focus-visible {
+    outline: 3px solid var(--blue-glow, rgba(37, 99, 235, 0.28));
+    outline-offset: 2px;
+  }
+  .tips-count {
+    font-family: var(--font-display);
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: var(--text-dim);
+    min-width: 2.6rem;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
   }
 
   /* Mobile Bottom Bar */
@@ -1409,10 +1741,10 @@ import StandardSelector from './StandardSelector.astro';
     align-items: center;
     justify-content: center;
     gap: 0.45rem;
-    height: 100%;
+    min-height: 2.9rem;
     border-radius: 0.65rem;
-    background: var(--blue);
-    color: #ffffff;
+    background: var(--action-bg, #2563eb);
+    color: var(--action-text, #ffffff);
     border: none;
     font-size: 0.85rem;
     font-weight: 700;
@@ -1428,12 +1760,125 @@ import StandardSelector from './StandardSelector.astro';
     display: none;
   }
 
-  /* Responsive Adjustments */
+  /* ── Responsive Adjustments ──────────────────────────────────
+     The workspace is a full-bleed stage with floating panels, so the rules
+     below re-flow the *panels* (and the scene chrome) at every width class
+     instead of letting them collide or run off the edge. */
+
+  /* Big desktops and up: let the panels breathe with the viewport. */
+  @media (min-width: 1600px) {
+    .inputs-panel,
+    .results-panel {
+      width: min(372px, 26vw);
+    }
+  }
+
+  /* Laptops / small desktops: trim the floating chrome first. */
+  @media (max-width: 1279px) {
+    .inputs-panel,
+    .results-panel {
+      width: min(300px, calc(100vw - 2rem));
+    }
+    .panel-body {
+      padding: 0.65rem 1rem 1rem;
+      gap: 0.85rem;
+    }
+    .panel-header {
+      padding: 0.85rem 1rem 0.4rem;
+    }
+    .panel-footer {
+      padding: 0.55rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
+    }
+    .legend-items {
+      gap: 0.6rem;
+      font-size: 0.72rem;
+    }
+    .floating-tips-bar {
+      max-width: 460px;
+    }
+  }
+
+  /* Narrow desktops: the centred legend/tips strips would slide under the two
+     300 px panels, so they move into the gutter between them, then go away
+     entirely once that gutter is too tight for them. */
+  @media (max-width: 1279px) {
+    .floating-legend,
+    .floating-tips-bar {
+      left: calc(1.25rem + 300px + 1rem);
+      right: calc(1.25rem + 300px + 1rem);
+      width: auto;
+      max-width: none;
+      transform: none;
+    }
+    .legend-content {
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.65rem 1rem;
+    }
+    .floating-tips-bar {
+      pointer-events: none;
+    }
+  }
+
+  @media (max-width: 1179px) {
+    .floating-legend,
+    .tips-control-pill {
+      display: none;
+    }
+    .floating-tips-bar {
+      left: 1.25rem;
+      right: 1.25rem;
+      bottom: 1.15rem;
+    }
+  }
+
+  /* Narrow desktops / tablets landscape: single-column presets, tighter type. */
   @media (max-width: 1080px) {
     .floating-tips-bar,
     .tips-control-pill,
     .floating-legend {
       display: none;
+    }
+    .top-controls-bar {
+      top: 0.85rem;
+    }
+    .inputs-panel,
+    .results-panel {
+      width: min(288px, calc(100vw - 1.75rem));
+      max-height: calc(100vh - 5rem);
+      max-height: calc(100dvh - 5rem);
+    }
+    .form-input,
+    .form-select {
+      height: 2.4rem;
+      font-size: 0.9rem;
+    }
+    .preset-grid {
+      gap: 0.3rem;
+    }
+  }
+
+  /* Short viewports (landscape phones, 16:9 laptops with many browser bars). */
+  @media (max-height: 620px) {
+    .inputs-panel,
+    .results-panel {
+      max-height: calc(100vh - 4.5rem);
+      max-height: calc(100dvh - 4.5rem);
+    }
+    .panel-body {
+      gap: 0.7rem;
+      padding-bottom: 0.85rem;
+    }
+    .floating-legend {
+      display: none;
+    }
+  }
+
+  /* Touch / tablet width and below: the panels become bottom sheets. */
+  @media (max-width: 860px) {
+    .inputs-panel,
+    .results-panel {
+      width: min(420px, 100%);
     }
   }
 
@@ -1441,22 +1886,40 @@ import StandardSelector from './StandardSelector.astro';
     .mobile-bottom-bar {
       display: flex;
     }
-    /* Keep scene controls reachable on mobile: compact pills under the header */
+    /* Keep scene controls reachable: compact pill row under the header, and
+       never wider than the viewport (it used to be clipped on 360 px phones). */
     .top-controls-bar {
       top: 0.5rem;
-      transform: translateX(-50%) scale(0.85);
-      transform-origin: top center;
+      left: 0.5rem;
+      right: 0.5rem;
+      transform: none;
+      display: flex;
+      justify-content: center;
+      max-width: 100%;
+    }
+    .pill-group {
+      max-width: 100%;
+      overflow-x: auto;
+      padding: 0.25rem 0.35rem;
+      gap: 0.15rem;
+      scrollbar-width: none;
+    }
+    .pill-group::-webkit-scrollbar {
+      display: none;
     }
     .pill-btn {
       padding: 0.35rem 0.6rem;
       font-size: 0.72rem;
+      white-space: nowrap;
     }
     /* Reset & 3D become a compact row above the mobile bottom bar */
     .top-view-controls {
       flex-direction: row;
       top: auto;
-      right: 0.75rem;
+      left: 50%;
+      right: auto;
       bottom: 4.4rem;
+      transform: translateX(-50%);
     }
     .view-action-btn {
       width: 3.1rem;
@@ -1479,8 +1942,9 @@ import StandardSelector from './StandardSelector.astro';
     }
     .inputs-panel {
       width: 100%;
-      max-height: 80vh;
+      max-height: 82dvh;
       border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      box-shadow: 0 -18px 50px -12px rgba(15, 23, 42, 0.4);
     }
     .panel-scrim {
       position: fixed;
@@ -1505,9 +1969,64 @@ import StandardSelector from './StandardSelector.astro';
     }
     .results-panel {
       width: 100%;
-      max-height: 80vh;
-      max-height: 80dvh;
+      max-height: 82dvh;
       border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+    .panel-body {
+      padding: 0.75rem 1.1rem 1.1rem;
+    }
+  }
+
+  /* Small phones: one preset per row, larger tap targets. */
+  @media (max-width: 1080px) {
+    /* the top-centre slot belongs to the scene controls / the inputs panel here */
+    .tool-toast {
+      top: auto;
+      bottom: 4.75rem;
+      max-width: calc(100vw - 2.5rem);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .preset-grid {
+      grid-template-columns: 1fr;
+    }
+    .preset-chip {
+      flex-direction: row;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.55rem 0.6rem;
+    }
+    .preset-chip-meta {
+      white-space: normal;
+      text-align: right;
+    }
+    .seg-btn {
+      padding: 0.55rem 0.25rem;
+    }
+    .btn-calculate {
+      min-height: 3rem;
+    }
+    .tool-toast {
+      top: auto;
+      bottom: 4.6rem;
+      left: 0.75rem;
+      right: 0.75rem;
+      transform: none;
+      max-width: none;
+      padding: 0.6rem 0.8rem;
+      gap: 0.5rem;
+    }
+    @keyframes toastSlideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
   }
 

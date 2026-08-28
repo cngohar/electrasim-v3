@@ -92,7 +92,7 @@ Travelling clockwise from the negative terminal of the battery:
 I = 1 A
 ```
 
-Check: voltage drop across R1 = 1 × 4 = 4 V; across R2 = 1 × 8 = 8 V; total drop = 12 V = battery voltage. ✅
+Check: voltage drop across R1 = 1 × 4 = 4 V; across R2 = 1 × 8 = 8 V; total drop = 12 V = battery voltage. <span class="em em-check" role="img" aria-label="do"></span>
 
 ### Why it is true
 
@@ -153,7 +153,7 @@ Current through R1 = I1 − I2 ≈ 4.15 − 1.23 = **2.92 A**
 **Verify with KCL at the top node:**
 - I1 flows into node from left = 4.15 A
 - I1 − I2 flows out through R1 = 2.92 A
-- Remainder (I2 = 1.23 A) flows out to right loop ✅
+- Remainder (I2 = 1.23 A) flows out to right loop <span class="em em-check" role="img" aria-label="do"></span>
 
 ---
 
