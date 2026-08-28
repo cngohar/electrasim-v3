@@ -64,6 +64,60 @@
 
   const $ = (id) => document.getElementById(id);
 
+  // Shareable calculation URLs (inputs ride in the query string; the URL is
+  // rewritten with replaceState on every change so a copied link reproduces
+  // the same US-circuit scenario exactly).
+  const URL_BINDINGS = [
+    ['system', 'nec-system'],
+    ['voltage', 'nec-voltage'],
+    ['current', 'nec-current'],
+    ['length', 'nec-length'],
+    ['awg', 'nec-awg'],
+    ['material', 'nec-material'],
+    ['temp', 'nec-temp'],
+    ['pf', 'nec-pf'],
+  ];
+  let urlArmed = false;
+
+  function restoreFromUrl() {
+    const S = window.ToolShare;
+    if (!S) return;
+    const params = S.readParams();
+    if (![...params.keys()].length) return;
+    urlArmed = true;
+    for (const [key, id] of URL_BINDINGS) {
+      const el = $(id);
+      if (!el) continue;
+      const raw = params.get(key);
+      if (raw === null || raw === '') continue;
+      if (el.tagName === 'SELECT') {
+        // Skip conductor options unavailable for the selected material instead
+        // of silently producing an invalid combo.
+        const opt = [...el.options].find((o) => o.value === raw && !o.disabled);
+        if (opt) el.value = raw;
+      } else {
+        const n = S.numParam(params, key, { min: 0, max: 100000 });
+        if (n !== undefined) el.value = String(n);
+      }
+    }
+    const rx = $('nec-reactance');
+    const reactance = params.get('reactance');
+    if (rx && (reactance === '0' || reactance === '1')) rx.checked = reactance === '1';
+  }
+
+  function syncUrl() {
+    const S = window.ToolShare;
+    if (!S || !urlArmed) return;
+    const entries = {};
+    for (const [key, id] of URL_BINDINGS) {
+      const el = $(id);
+      if (el) entries[key] = el.value;
+    }
+    const rx = $('nec-reactance');
+    if (rx) entries.reactance = rx.checked ? '1' : '0';
+    S.pushParams(entries);
+  }
+
   function readInputs() {
     const system = $('nec-system')?.value || 'single';
     const voltage = Number.parseFloat($('nec-voltage')?.value) || 0;
@@ -165,6 +219,7 @@
 
   function updateUi() {
     filterConductorOptions();
+    syncUrl();
     const inp = readInputs();
     const res = calculate(inp);
 
@@ -240,13 +295,20 @@
     if (!form) return;
 
     form.querySelectorAll('input, select').forEach((el) => {
-      el.addEventListener('input', updateUi);
-      el.addEventListener('change', updateUi);
+      el.addEventListener('input', () => {
+        urlArmed = true;
+        updateUi();
+      });
+      el.addEventListener('change', () => {
+        urlArmed = true;
+        updateUi();
+      });
     });
 
     // Voltage preset chips (also flip the system type to sensible mode)
     document.querySelectorAll('.preset-chip[data-preset-volts]').forEach((chip) => {
       chip.addEventListener('click', () => {
+        urlArmed = true;
         const volts = chip.getAttribute('data-preset-volts');
         const system = chip.getAttribute('data-preset-system');
         const vInput = $('nec-voltage');
@@ -269,7 +331,15 @@
     }
     $('nec-system')?.addEventListener('change', toggleDcPresets);
 
+    // Restore a shared link (if any), then compute + sync the URL
+    restoreFromUrl();
+    toggleDcPresets();
     updateUi();
+
+    // "Copy calculation link" button
+    $('nec-copy-link')?.addEventListener('click', (e) => {
+      window.ToolShare?.copyCurrentUrl(e.currentTarget);
+    });
   }
 
   if (document.readyState === 'loading') {

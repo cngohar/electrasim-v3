@@ -123,6 +123,94 @@
     tipIndex: 0,
   };
 
+  // Shareable calculation URLs: state is mirrored into the query string on
+  // every change (history.replaceState) so a copied link replays the exact
+  // scenario — voltage, current, run, size, material, pf, temp, standard.
+  let urlArmed = false;
+
+  function syncUrl() {
+    const S = window.ToolShare;
+    if (!S || !urlArmed) return;
+    S.pushParams({
+      standard: state.standard,
+      system: state.systemType,
+      voltage: state.voltage,
+      voltsunit: state.voltsUnit,
+      current: state.current,
+      length: state.length,
+      size: state.size,
+      material: state.material,
+      pf: state.pf,
+      temp: state.temp,
+      reactance: state.reactance ? 1 : 0,
+    });
+  }
+
+  function syncSegmentedButtons(type) {
+    document.querySelectorAll('.seg-btn').forEach((b) => {
+      const on = b.getAttribute('data-system-type') === type;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-checked', on ? 'true' : 'false');
+      b.setAttribute('tabindex', on ? '0' : '-1');
+    });
+  }
+
+  function restoreFromUrl() {
+    const S = window.ToolShare;
+    if (!S) return;
+    const p = S.readParams();
+    if (![...p.keys()].length) return;
+    urlArmed = true;
+
+    const $id = (id) => document.getElementById(id);
+    const setField = (key, id, bounds, targetKey) => {
+      const n = S.numParam(p, key, bounds);
+      if (n === undefined) return;
+      state[targetKey] = String(n);
+      const el = $id(id);
+      if (el) el.value = String(n);
+    };
+
+    const std = p.get('standard');
+    if (std === 'uk-bs7671' || std === 'iec-60364') {
+      state.standard = std;
+      const sel = $id('input-standard');
+      if (sel) sel.value = std;
+    }
+    const sys = p.get('system');
+    if (sys === 'dc' || sys === 'single' || sys === 'three') {
+      state.systemType = sys;
+      syncSegmentedButtons(sys);
+    }
+    const unit = p.get('voltsunit');
+    if (unit === 'kV' || unit === 'V') {
+      state.voltsUnit = unit;
+      const selU = $id('select-voltage-unit');
+      if (selU) selU.value = unit;
+    }
+    const maxVoltTyped = state.voltsUnit === 'kV' ? 1000 : 1000000;
+    setField('voltage', 'input-voltage', { min: 0.0001, max: maxVoltTyped }, 'voltage');
+    setField('current', 'input-current', { min: 0, max: 50000 }, 'current');
+    setField('length', 'input-length', { min: 0.01, max: 50000 }, 'length');
+    setField('size', 'input-size', { min: 0.5, max: 2500 }, 'size');
+    const mat = p.get('material');
+    if (mat === 'copper' || mat === 'aluminum') {
+      state.material = mat;
+      const sm = $id('select-material');
+      if (sm) sm.value = mat;
+    }
+    if (state.systemType !== 'dc') {
+      setField('pf', 'input-pf', { min: 0.1, max: 1 }, 'pf');
+    }
+    setField('temp', 'input-temp', { min: -50, max: 250 }, 'temp');
+    const rx = p.get('reactance');
+    if (rx === '0' || rx === '1') {
+      state.reactance = rx === '1';
+      const sw = $id('switch-reactance');
+      if (sw) sw.setAttribute('aria-checked', state.reactance ? 'true' : 'false');
+    }
+  }
+
   // Severity colors
   const SEVERITY_COLORS = {
     good: { stroke: '#10b981', fill: '#d9f99d', glow: '#22c55e', text: '#16a34a' },
@@ -393,6 +481,7 @@
   // DOM UPDATES & DYNAMIC PHYSICS SCENERY
   // ─────────────────────────────────────────────────────────────
   function updateUI() {
+    syncUrl();
     const res = calculate();
     const colors = SEVERITY_COLORS[res.severity] || SEVERITY_COLORS.good;
 
@@ -655,6 +744,21 @@
   // SETUP EVENT LISTENERS & WIRING
   // ─────────────────────────────────────────────────────────────
   function setupEvents() {
+    // Arm URL sharing on any input-zone interaction (fields, segmented buttons,
+    // switches) so untouched page loads keep a clean address bar.
+    const inputZone = document.getElementById('inputs-panel-container');
+    if (inputZone) {
+      for (const evt of ['input', 'change', 'click']) {
+        inputZone.addEventListener(
+          evt,
+          () => {
+            urlArmed = true;
+          },
+          { capture: true },
+        );
+      }
+    }
+
     // 1. Input fields real-time change
     const inVoltage = document.getElementById('input-voltage');
     const selVoltageUnit = document.getElementById('select-voltage-unit');
@@ -669,6 +773,13 @@
     const btnCalculate = document.getElementById('btn-calculate');
     const btnAutofix = document.getElementById('btn-autofix-inputs');
     const btnToastClose = document.getElementById('tool-toast-close');
+    const btnShare = document.getElementById('btn-share-calc');
+
+    if (btnShare) {
+      btnShare.addEventListener('click', () => {
+        window.ToolShare?.copyCurrentUrl(btnShare);
+      });
+    }
 
     if (selStandard) {
       selStandard.addEventListener('change', (e) => {
@@ -1389,6 +1500,7 @@
   // RESET TO STANDARD DEFAULTS
   // ─────────────────────────────────────────────────────────────
   function resetToDefaults() {
+    urlArmed = true;
     state.systemType = 'single';
     state.voltage = 230;
     state.voltsUnit = 'V';
@@ -1453,6 +1565,9 @@
   function init() {
     setupEvents();
     handleResize();
+
+    // Restore a shared link (if any) before the first paint-compute
+    restoreFromUrl();
 
     // Honour OS reduced-motion: freeze SMIL particles and mark the toggle off.
     if (REDUCED_MOTION.matches) {

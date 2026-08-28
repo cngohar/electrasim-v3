@@ -76,6 +76,21 @@ const {
 </head>
 <body class="tool-app-body">
   <slot />
+
+  <!-- Slim footer for toolbox pages (the app shell has no global footer) -->
+  <footer class="tool-app-footer" role="contentinfo">
+    <div class="tool-app-footer-in">
+      <span class="tool-app-footer-brand">⚡ ElectraSim — free, in your browser</span>
+      <nav class="tool-app-footer-links" aria-label="Site links">
+        <a href="/">Home</a>
+        <a href="/updates/">Product updates</a>
+        <a href="/blog/">Blog</a>
+        <a href="/guide/">Guide</a>
+        <a href="/contact/">Contact</a>
+        <a href="/privacy/">Privacy</a>
+      </nav>
+    </div>
+  </footer>
 </body>
 </html>
 
@@ -86,5 +101,43 @@ const {
     padding: 0;
     min-height: 100vh;
     background: var(--bg);
+  }
+  .tool-app-footer {
+    border-top: 1px solid var(--border, #e2e8f0);
+    background: var(--bg, #ffffff);
+    padding: 0.9rem 1.25rem;
+  }
+  .tool-app-footer-in {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+  }
+  .tool-app-footer-brand {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-dim, #64748b);
+  }
+  .tool-app-footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .tool-app-footer-links a {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-mid, #475569);
+    text-decoration: none;
+  }
+  .tool-app-footer-links a:hover {
+    color: var(--blue, #2563eb);
+    text-decoration: underline;
+  }
+  :root[data-theme='dark'] .tool-app-footer {
+    background: #050811;
+    border-color: #1e293b;
   }
 </style>

@@ -41,6 +41,7 @@ const { currentTool } = Astro.props;
 </div>
 
 <!-- Load Client Script (Pure vanilla TypeScript compiled / ESM JS, zero React dependencies) -->
+<script is:inline defer src={`/js/tool-share.js?v=${packageMetadata.version}`}></script>
 <script is:inline defer src={`/js/voltage-drop-tool.js?v=${packageMetadata.version}`}></script>
 
 <style>

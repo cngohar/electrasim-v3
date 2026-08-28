@@ -11,6 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added & Enhanced — Session 2026-08-28 (part 5): Shareable Calculator URLs + Tool-Chrome Navigation
+
+1. **Shareable calculator URLs** (`public/js/tool-share.js` + wiring in all four tool engines):
+   - Every input is encoded in the query string (readable names: `?standard=iec-60364&power=7.4&length=42&method=C…`).
+   - URL rewrites via `history.replaceState` on every change — never pollutes history, and the address bar is always a shareable deep link.
+   - "🔗 Copy calculation link" button per tool (clipboard + fallback, copied feedback) under each result verdict.
+   - Opening a shared link restores the full scenario incl. standards selection, NEC conductor + reactance toggle, Zs temp adjust; NaN/out-of-range/unknown option values are rejected (`numParam` bounds + select validation).
+   - Fresh visits keep a clean URL until first interaction ("arming" gate) unless a shared link was opened.
+   - Verified in jsdom: push/read-back/guards, plus live 200s with query strings on all four tool routes.
+2. **Product updates surfaced in tool chrome** (tool pages use an app-shell layout with no global footer): 📦 Product updates + Blog + Guide entries in the drawer SITE section, and a slim `tool-app-footer` strip under the tool SEO content (Home · Product updates · Blog · Guide · Contact · Privacy).
+
 ### Added & Enhanced — Session 2026-08-28 (part 4): Product Updates Split Into Dedicated `/updates/` Changelog
 
 1. **Corpus separation**: the 5 `App Update` posts moved from `src/content/blog/` to a new `src/content/updates/` collection (schema adds optional `version` badges, e.g. v1.6/v1.5). The blog is now a pure educational learning library (66 articles).

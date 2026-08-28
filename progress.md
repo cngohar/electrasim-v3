@@ -7,6 +7,20 @@ A running, append-only log of work on the ElectraSim rewrite. Every coding sessi
 
 ---
 
+## Session 2026-08-28 (part 5) — Shareable Calculator URLs + Tool-Chrome Navigation
+
+**Requests:**
+1. Put the product updates link where tool-page users can see it (tool pages have no global footer)
+2. Complete the shareable calculator URLs feature
+3. (Design-only) proposal for a 3D-style scenic cable-sizing visualisation — deferred to next step by request
+
+**Done:**
+1. Drawer SITE section (📦 Product updates, Blog, Guide) + slim `tool-app-footer` in `ToolLayout`.
+2. `tool-share.js` helper (`pushParams` via replaceState, `readParams`, bounded `numParam`, clipboard copy with legacy fallback); wired into voltage-drop (state-backed restore incl. segmented system buttons/reactance switch/standard), cable-sizing, max-zs (incl. tempAdjust), NEC voltage drop (incl. disabled-option guard for Cu-only sizes); copy buttons under each verdict; arming gate keeps first-visit URLs clean.
+3. jsdom verification of helper round-trip + guards; live curls with query strings 200 on all four routes; astro check/lint/vitest green.
+
+---
+
 ## Session 2026-08-28 (part 4) — Product Updates Split Into `/updates/` Changelog
 
 **Requests:**

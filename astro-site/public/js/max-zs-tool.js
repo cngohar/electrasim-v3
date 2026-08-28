@@ -106,7 +106,59 @@
     return ZS_STANDARDS[raw] ? raw : 'uk-bs7671';
   }
 
+  // Shareable calculation URLs: inputs ride in the query string, synced on
+  // every change (replaceState) so a copied link reproduces the exact check.
+  const URL_BINDINGS = [
+    ['standard', 'zs-standard'],
+    ['device', 'zs-device-type'],
+    ['rating', 'zs-rating'],
+    ['earthing', 'zs-earthing'],
+    ['ze', 'zs-ze'],
+    ['line', 'zs-line-size'],
+    ['cpc', 'zs-cpc-size'],
+    ['length', 'zs-length'],
+  ];
+  let urlArmed = false;
+
+  function restoreFromUrl() {
+    const S = window.ToolShare;
+    if (!S) return;
+    const params = S.readParams();
+    if (![...params.keys()].length) return;
+    urlArmed = true;
+    for (const [key, id] of URL_BINDINGS) {
+      const raw = params.get(key);
+      if (raw === null || raw === '') continue;
+      const el = document.getElementById(id);
+      if (!el) continue;
+      if (el.tagName === 'SELECT') el.value = raw;
+      else {
+        const n = S.numParam(params, key, { min: 0, max: 100000 });
+        if (n !== undefined) el.value = String(n);
+      }
+    }
+    const tempAdjEl = document.getElementById('zs-temp-adj');
+    const tempAdj = params.get('tempAdj');
+    if (tempAdjEl && (tempAdj === '0' || tempAdj === '1')) {
+      tempAdjEl.checked = tempAdj === '1';
+    }
+  }
+
+  function syncUrl() {
+    const S = window.ToolShare;
+    if (!S || !urlArmed) return;
+    const entries = {};
+    for (const [key, id] of URL_BINDINGS) {
+      const el = document.getElementById(id);
+      if (el) entries[key] = el.value;
+    }
+    const tempAdjEl = document.getElementById('zs-temp-adj');
+    if (tempAdjEl) entries.tempAdj = tempAdjEl.checked ? '1' : '0';
+    S.pushParams(entries);
+  }
+
   function runCalculation() {
+    syncUrl();
     const stdId = currentStandard();
     const std = ZS_STANDARDS[stdId];
     const devSelect = document.getElementById('zs-device-type');
@@ -270,8 +322,14 @@
     if (!form) return;
 
     form.querySelectorAll('input, select').forEach((el) => {
-      el.addEventListener('input', runCalculation);
-      el.addEventListener('change', runCalculation);
+      el.addEventListener('input', () => {
+        urlArmed = true;
+        runCalculation();
+      });
+      el.addEventListener('change', () => {
+        urlArmed = true;
+        runCalculation();
+      });
     });
 
     // Earthing default auto-fill
@@ -287,6 +345,7 @@
     // Presets
     document.querySelectorAll('.preset-chip').forEach((chip) => {
       chip.addEventListener('click', () => {
+        urlArmed = true;
         const p = chip.getAttribute('data-preset');
         const dev = document.getElementById('zs-device-type');
         const rating = document.getElementById('zs-rating');
@@ -323,7 +382,14 @@
       });
     });
 
+    // Restore a shared link (if any), then compute + sync the URL
+    restoreFromUrl();
     runCalculation();
+
+    // "Copy calculation link" button
+    document.getElementById('zs-copy-link')?.addEventListener('click', (e) => {
+      window.ToolShare?.copyCurrentUrl(e.currentTarget);
+    });
   }
 
   if (document.readyState === 'loading') {

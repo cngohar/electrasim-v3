@@ -166,7 +166,63 @@
     return CS_STANDARDS[raw] ? raw : 'uk-bs7671';
   }
 
+  // Shareable calculation URLs: encode every input into the query string so a
+  // colleague opens the exact same scenario. URL is rewritten on each change
+  // (history.replaceState — no reload, no history entries).
+  const URL_BINDINGS = [
+    ['standard', 'cs-standard'],
+    ['system', 'cs-system-type'],
+    ['voltage', 'cs-voltage'],
+    ['power', 'cs-power'],
+    ['pf', 'cs-pf'],
+    ['length', 'cs-length'],
+    ['circuit', 'cs-circuit-type'],
+    ['method', 'cs-install-method'],
+    ['material', 'cs-material'],
+    ['temp', 'cs-temp'],
+    ['grouping', 'cs-grouping'],
+    ['insulation', 'cs-insulation'],
+  ];
+
+  // Only start rewriting the URL once something actionable exists — a shared
+  // link was opened, or the user changed a field. Keeps fresh visits clean.
+  let urlArmed = false;
+
+  function restoreFromUrl() {
+    const S = window.ToolShare;
+    if (!S) return;
+    const params = S.readParams();
+    if (![...params.keys()].length) return;
+    urlArmed = true;
+    for (const [key, id] of URL_BINDINGS) {
+      const raw = params.get(key);
+      if (raw === null || raw === '') continue;
+      const el = document.getElementById(id);
+      if (!el) continue;
+      // Selects reject non-option values automatically; numeric inputs get a
+      // NaN-safe parse so junk query values can never produce NaN results.
+      if (el.tagName === 'SELECT') {
+        el.value = raw;
+      } else {
+        const n = S.numParam(params, key, { min: 0.01, max: 100000 });
+        if (n !== undefined) el.value = String(n);
+      }
+    }
+  }
+
+  function syncUrl() {
+    const S = window.ToolShare;
+    if (!S || !urlArmed) return;
+    const entries = {};
+    for (const [key, id] of URL_BINDINGS) {
+      const el = document.getElementById(id);
+      if (el) entries[key] = el.value;
+    }
+    S.pushParams(entries);
+  }
+
   function runSizing() {
+    syncUrl();
     const stdId = currentStandard();
     const std = CS_STANDARDS[stdId];
     const systemType = document.getElementById('cs-system-type')?.value || 'single-phase';
@@ -321,13 +377,20 @@
     if (!form) return;
 
     form.querySelectorAll('input, select').forEach((el) => {
-      el.addEventListener('input', runSizing);
-      el.addEventListener('change', runSizing);
+      el.addEventListener('input', () => {
+        urlArmed = true;
+        runSizing();
+      });
+      el.addEventListener('change', () => {
+        urlArmed = true;
+        runSizing();
+      });
     });
 
     // Presets
     document.querySelectorAll('.preset-chip').forEach((chip) => {
       chip.addEventListener('click', () => {
+        urlArmed = true;
         const p = chip.getAttribute('data-preset');
         const pwr = document.getElementById('cs-power');
         const pf = document.getElementById('cs-pf');
@@ -359,7 +422,14 @@
       });
     });
 
+    // Restore shared-link state (if any), then compute + sync the URL
+    restoreFromUrl();
     runSizing();
+
+    // "Copy calculation link" button
+    document.getElementById('cs-copy-link')?.addEventListener('click', (e) => {
+      window.ToolShare?.copyCurrentUrl(e.currentTarget);
+    });
   }
 
   if (document.readyState === 'loading') {
