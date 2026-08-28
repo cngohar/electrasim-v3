@@ -11,6 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added & Enhanced — Session 2026-08-28 (part 3): 404 "Open Circuit" Redesign
+
+1. **Animated broken-circuit scene** (pure inline SVG + CSS/SMIL — zero images): energised supply (breathing bolt), live conductor with flowing current dashes, electrons that ride the wire and die at the break, resistor, frayed conductor ends, dual-frequency spark flicker with JS-triggered heavier arc bursts, ghost electron that gives up on the dead leg, unlit lamp with a faint "hopeful" glow that fades, and an inert 0.00 A ammeter.
+2. **Bench riddles**: rotating random "weird but physically plausible" electrical questions (14-question pool: phantom voltage, birds on 132 kV lines, LED ghost-glow, shared-neutral breaks, RCD rain trips…) each with a collapsible explanation; SSR fallback riddles for no-JS, "ask another one" rotation button.
+3. **Craft details**: multimeter readout strip (`∞ Ω · broken hyperlink` + blinking caret, echoes the missing path), verdict copy, retained noindex/SEO and CSP (external script only, no inline handlers), full `prefers-reduced-motion` handling (CSS + `pauseAnimations()` for SMIL), light/dark theme aware.
+4. **Verification**: scene snapshot rasterized and visually reviewed; 404 status + scene/riddle/JS wired confirmed over preview; `astro check` 0 errors · 64 tests · lint/typecheck clean · 143-page build.
+
 ### Added & Enhanced — Session 2026-08-28 (part 2): Long-Article TOC & Reading Navigation
 
 1. **Server-Rendered Table of Contents for Long Reads** (`blog/[...slug].astro`):

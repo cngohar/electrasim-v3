@@ -7,6 +7,19 @@ A running, append-only log of work on the ElectraSim rewrite. Every coding sessi
 
 ---
 
+## Session 2026-08-28 (part 3) — 404 "Open Circuit" Redesign
+
+**Requests:**
+1. Redesign the 404 page with an animated broken circuit (no static images) + a random weird-but-plausible electrical question
+
+**Done:**
+1. Inline SVG scene (supply → resistor → severed gap with spark, dead lamp + 0.00 A meter); CSS keyframes for flow/flicker/glow/caret, SMIL for electron motion, JS for randomized arc bursts; reduced-motion freezes everything (incl. SMIL `pauseAnimations()`).
+2. 14-question bench-riddle pool with reveal answers, no-JS SSR fallback, fade-swapped rotation button.
+3. `not-found.js` echoes the missing path into the multimeter readout; CSP-safe (external script only); noindex preserved.
+4. Verified via sharp-rasterized scene snapshot + preview curls; all gates green.
+
+---
+
 ## Session 2026-08-28 (part 2) — Long-Article TOC & Reading Navigation
 
 **Requests:**
