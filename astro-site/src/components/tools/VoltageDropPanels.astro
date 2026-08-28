@@ -261,7 +261,7 @@ import StandardSelector from './StandardSelector.astro';
       <div class="preset-block" id="preset-block">
         <div class="form-label-row">
           <label class="form-label" id="preset-label">Real-World Presets</label>
-          <span class="form-sublabel">Typical installs</span>
+          <span class="form-sublabel">Tap one for the full story</span>
         </div>
         <div class="preset-grid" id="preset-grid" role="group" aria-labelledby="preset-label">
           <button type="button" class="preset-chip" data-preset-id="domestic-lighting" aria-pressed="false">
@@ -582,6 +582,37 @@ import StandardSelector from './StandardSelector.astro';
 <footer class="tool-workspace-footer">
   <span>© 2026 ElectraSim • All calculations are estimates. Verify critical electrical results with qualified engineers.</span>
 </footer>
+
+<!--
+  PRESET DETAIL DIALOG — a preset is a circuit to understand, not a number to
+  silently overwrite: tapping a chip opens this dialog first, the engine fills
+  the body with the circuit's story, its full parameter set and the outcome the
+  maths predicts, and only the Apply button changes the form.
+-->
+<div class="vd-preset-backdrop" id="vd-preset-backdrop" hidden>
+  <div class="vd-preset-dialog" role="dialog" aria-modal="true" aria-labelledby="vd-preset-title">
+    <header class="vd-preset-head">
+      <span class="vd-preset-eyebrow">Real-world circuit</span>
+      <h3 class="vd-preset-title" id="vd-preset-title">Preset</h3>
+      <button type="button" class="vd-preset-close" id="vd-preset-close" aria-label="Close the preset details">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </header>
+    <div class="vd-preset-body" id="vd-preset-body"></div>
+    <footer class="vd-preset-foot">
+      <button type="button" class="vd-preset-clear" id="vd-preset-clear" hidden>Clear preset</button>
+      <button type="button" class="btn-preset-apply" id="vd-preset-apply">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z" />
+        </svg>
+        <span data-preset-apply-label>Load this circuit</span>
+      </button>
+    </footer>
+  </div>
+</div>
 
 <style>
   /* ── FLOATING PANELS & CONTROLS STYLING ── */
@@ -1178,6 +1209,274 @@ import StandardSelector from './StandardSelector.astro';
   }
   .preset-caption strong {
     color: var(--text);
+  }
+
+  /* ── preset detail dialog ─────────────────────────────────────────────
+     Tapping a preset chip opens this dialog: it tells the story of the run,
+     lists every parameter it will write, and shows the predicted outcome.
+     Nothing is applied until the footer button says so. */
+  .vd-preset-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(0.6rem, 3vw, 1.5rem);
+    background: rgba(15, 23, 42, 0.62);
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
+    overflow-y: auto;
+  }
+  .vd-preset-backdrop[hidden] {
+    display: none;
+  }
+  .vd-preset-dialog {
+    width: min(540px, 100%);
+    max-height: min(86dvh, 760px);
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--radius-lg, 1.1rem);
+    border: 1px solid var(--border);
+    background: var(--surface-glass, #ffffff);
+    box-shadow: 0 30px 70px -14px rgba(2, 6, 23, 0.5);
+    overflow: hidden;
+    animation: vdPresetPop 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  @keyframes vdPresetPop {
+    from {
+      opacity: 0;
+      transform: scale(0.96) translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+  .vd-preset-head {
+    position: relative;
+    flex: 0 0 auto;
+    padding: 1rem 1.15rem 0.8rem;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, var(--blue-l, #eaf1ff), transparent);
+  }
+  .vd-preset-eyebrow {
+    font-family: var(--font-display, sans-serif);
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--blue);
+  }
+  .vd-preset-title {
+    margin: 0.2rem 2.6rem 0 0;
+    font-family: var(--font-display, sans-serif);
+    font-size: 1.2rem;
+    font-weight: 800;
+    line-height: 1.25;
+    color: var(--text);
+  }
+  .vd-preset-close {
+    position: absolute;
+    top: 0.8rem;
+    right: 0.85rem;
+    width: 2.1rem;
+    height: 2.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--bg-card, #fff);
+    color: var(--text-mid);
+    cursor: pointer;
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+  .vd-preset-close:hover {
+    color: var(--text);
+    background: var(--bg-3);
+  }
+  .vd-preset-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0.95rem 1.15rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    -webkit-overflow-scrolling: touch;
+  }
+  .vd-preset-story {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.65;
+    color: var(--text-mid);
+  }
+  .vd-preset-facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+    gap: 0.45rem 0.6rem;
+    margin: 0;
+    padding: 0.6rem;
+    border-radius: 0.7rem;
+    border: 1px solid var(--border);
+    background: var(--bg-2);
+  }
+  .vd-preset-facts > div {
+    min-width: 0;
+  }
+  .vd-preset-facts dt {
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .vd-preset-facts dd {
+    margin: 0.1rem 0 0;
+    font-family: var(--font-display, sans-serif);
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+  .vd-preset-outcome {
+    padding: 0.65rem 0.8rem;
+    border-radius: 0.7rem;
+    border: 1px dashed var(--border-bright, #bfdbfe);
+    background: rgba(37, 99, 235, 0.045);
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  :root[data-theme='dark'] .vd-preset-outcome {
+    background: rgba(115, 168, 255, 0.07);
+    border-color: var(--border-bright);
+  }
+  .vd-preset-outcome-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .vd-preset-outcome-head > span:first-child {
+    font-family: var(--font-display, sans-serif);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .vd-preset-outcome-line {
+    margin: 0;
+    font-size: 0.84rem;
+    line-height: 1.55;
+    color: var(--text-mid);
+  }
+  .vd-preset-outcome-line strong {
+    color: var(--text);
+  }
+  .vd-preset-tag {
+    flex: 0 0 auto;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .vd-preset-tag.good {
+    color: #16a34a;
+    background: rgba(16, 185, 129, 0.14);
+  }
+  .vd-preset-tag.warning {
+    color: #d97706;
+    background: rgba(245, 158, 11, 0.16);
+  }
+  .vd-preset-tag.excessive {
+    color: #dc2626;
+    background: rgba(239, 68, 68, 0.12);
+  }
+  .vd-preset-note {
+    margin: 0;
+    font-size: 0.72rem;
+    line-height: 1.5;
+    color: var(--text-dim);
+  }
+  .vd-preset-foot {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.75rem 1.15rem calc(0.85rem + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--border);
+  }
+  .vd-preset-clear {
+    flex: 0 0 auto;
+    padding: 0.6rem 0.85rem;
+    border-radius: 0.65rem;
+    border: 1px solid var(--border);
+    background: var(--bg-2);
+    color: var(--text-mid);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+  .vd-preset-clear:hover {
+    color: #dc2626;
+    border-color: rgba(239, 68, 68, 0.4);
+    background: rgba(239, 68, 68, 0.06);
+  }
+  .btn-preset-apply {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 2.6rem;
+    border-radius: 0.65rem;
+    border: none;
+    background: var(--action-bg, #2563eb);
+    color: var(--action-text, #ffffff);
+    font-family: var(--font-display, sans-serif);
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+    transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .btn-preset-apply:hover {
+    background: var(--action-hover, #1d4ed8);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
+  }
+  .btn-preset-apply:focus-visible {
+    outline: 3px solid var(--blue-glow, rgba(37, 99, 235, 0.28));
+    outline-offset: 2px;
+  }
+  @media (max-width: 560px) {
+    .vd-preset-backdrop {
+      align-items: flex-end;
+      padding: 0;
+    }
+    .vd-preset-dialog {
+      width: 100%;
+      max-height: 92dvh;
+      border-radius: var(--radius-lg, 1.1rem) var(--radius-lg, 1.1rem) 0 0;
+      animation: vdPresetSheet 0.24s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+  }
+  @keyframes vdPresetSheet {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   /* Real-world cross-check notes under the verdict */

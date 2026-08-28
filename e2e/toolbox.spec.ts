@@ -282,10 +282,21 @@ test.describe('Electrical Toolbox & Voltage Drop Calculator', () => {
     });
   }
 
-  test('real-world presets load a scenario and travel in the shared URL', async ({ page }) => {
+  test('real-world presets open a detail dialog, then load the scenario', async ({ page }) => {
     await page.goto('/tools/voltage-drop-calculator/');
 
     await page.locator('[data-preset-id="ev-7kw"]').click();
+    const dialog = page.locator('#vd-preset-backdrop');
+    await expect(dialog).toBeVisible();
+    // the dialog explains the circuit before anything is applied
+    await expect(page.locator('#vd-preset-title')).toHaveText('EV charger 7 kW');
+    await expect(page.locator('#vd-preset-body')).toContainText('10 mm² copper');
+    await expect(page.locator('#vd-preset-body')).toContainText('1.43%');
+    // nothing applied yet — the form still shows the defaults
+    await expect(page.locator('#input-current')).toHaveValue('40');
+
+    await page.locator('#vd-preset-apply').click();
+    await expect(dialog).toBeHidden();
     await expect(page.locator('#input-current')).toHaveValue('32');
     await expect(page.locator('#input-length')).toHaveValue('25');
     await expect(page.locator('#input-size')).toHaveValue('10');
@@ -295,6 +306,18 @@ test.describe('Electrical Toolbox & Voltage Drop Calculator', () => {
     await expect(page.locator('#preset-caption')).toContainText('7 kW');
     await expect(page.locator('[data-preset-id="ev-7kw"]')).toHaveAttribute('aria-pressed', 'true');
     expect(new URL(page.url()).searchParams.get('preset')).toBe('ev-7kw');
+
+    // reopening the active preset offers a clear escape hatch
+    await page.locator('[data-preset-id="ev-7kw"]').click();
+    await expect(dialog).toBeVisible();
+    await expect(page.locator('#vd-preset-clear')).toBeVisible();
+    await page.locator('#vd-preset-clear').click();
+    await expect(dialog).toBeHidden();
+    await expect(page.locator('[data-preset-id="ev-7kw"]')).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    await expect(page.locator('#input-current')).toHaveValue('40');
 
     // a shared link replays the scenario, including the failing long shed run
     await page.goto('/tools/voltage-drop-calculator/?preset=long-shed');

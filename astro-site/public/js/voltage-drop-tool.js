@@ -1262,22 +1262,149 @@
     syncPresetButtons();
   }
 
+  // ── Preset detail dialog ─────────────────────────────────────
+  // A preset is a circuit to understand, not a number to silently overwrite:
+  // tapping a chip opens the dialog with the story, the full parameter set and
+  // the predicted outcome; only the Apply button writes anything to the form.
+
+  const SYSTEM_LABELS = { dc: 'DC', single: '1-Φ AC', three: '3-Φ AC' };
+  const SEVERITY_TAGS = { good: 'Within limits', warning: 'Marginal', excessive: 'Excessive' };
+  let presetModalFor = null;
+
+  /**
+   * Run the same maths as calculate() against a preset's stored values, so the
+   * dialog can show the outcome the calculator itself will reproduce — the
+   * preview and the applied result can never disagree.
+   */
+  function previewPreset(preset) {
+    const v = preset.values;
+    const std = VD_STANDARDS[v.standard] || VD_STANDARDS['uk-bs7671'];
+    const mat = MATERIALS[v.material] || MATERIALS.copper;
+    const temp = v.temp === undefined ? 20 : v.temp;
+    const rhoT = Math.max(0, mat.rho20 * (1 + mat.alpha * (temp - 20)));
+    const r = rhoT / v.size;
+    const x = v.systemType !== 'dc' && v.reactance ? DEFAULT_REACTANCE : 0;
+    const pf = v.pf === undefined ? 1 : v.pf;
+    const sinPhi = v.systemType === 'dc' ? 0 : Math.sqrt(Math.max(0, 1 - pf * pf));
+    const roundTripMult = v.systemType === 'three' ? Math.sqrt(3) : 2;
+    const powerLossMult = v.systemType === 'three' ? 3 : 2;
+    const effectiveImpedance = r * pf + x * sinPhi;
+    const voltageDrop = roundTripMult * v.current * v.length * effectiveImpedance;
+    const dropPct = v.voltage > 0 ? (voltageDrop / v.voltage) * 100 : 0;
+    const loadVoltage = Math.max(0, v.voltage - voltageDrop);
+    const powerLoss = v.current * v.current * (powerLossMult * r * v.length);
+    let severity = 'good';
+    if (dropPct > std.hardPct + 1e-9) severity = 'excessive';
+    else if (dropPct > std.goodPct + 1e-9) severity = 'warning';
+    return { voltageDrop, dropPct, loadVoltage, powerLoss, severity, std };
+  }
+
+  function openPresetModal(id) {
+    const preset = findPreset(id);
+    const backdrop = document.getElementById('vd-preset-backdrop');
+    if (!preset || !backdrop) {
+      // dialog missing (stale cached markup?): behave like the old one-tap flow
+      applyPreset(id);
+      return;
+    }
+    const body = document.getElementById('vd-preset-body');
+    const title = document.getElementById('vd-preset-title');
+    const apply = document.getElementById('vd-preset-apply');
+    const clearBtn = document.getElementById('vd-preset-clear');
+    const v = preset.values;
+    const out = previewPreset(preset);
+    const matName = v.material === 'aluminum' ? 'aluminium' : 'copper';
+
+    if (title) title.textContent = preset.name;
+    if (body) {
+      const facts = [
+        ['System', SYSTEM_LABELS[v.systemType] || v.systemType],
+        ['Supply voltage', `${v.voltage} V`],
+        ['Load current', `${v.current} A`],
+        ['Cable length', `${v.length} m one-way`],
+        ['Conductor', `${v.size} mm² ${matName}`],
+        ['Power factor', v.systemType === 'dc' ? '— (DC)' : Number(v.pf).toFixed(2)],
+        ['Conductor temp', `${v.temp === undefined ? 20 : v.temp} °C`],
+        ['Standard', `${out.std.label} (${out.std.region})`],
+      ];
+      body.innerHTML = `
+        <p class="vd-preset-story">${preset.blurb}</p>
+        <dl class="vd-preset-facts">
+          ${facts.map(([dt, dd]) => `<div><dt>${dt}</dt><dd>${dd}</dd></div>`).join('')}
+        </dl>
+        <div class="vd-preset-outcome">
+          <div class="vd-preset-outcome-head">
+            <span>What you would see</span>
+            <span class="vd-preset-tag ${out.severity}">${SEVERITY_TAGS[out.severity]}</span>
+          </div>
+          <p class="vd-preset-outcome-line">
+            Drop <strong>${out.voltageDrop.toFixed(2)} V (${out.dropPct.toFixed(2)}%)</strong> — the load
+            receives <strong>${out.loadVoltage.toFixed(1)} V</strong>; losses
+            <strong>${out.powerLoss.toFixed(0)} W</strong>.
+          </p>
+        </div>
+        <p class="vd-preset-note">Applying writes all of these into the form, including the advanced options (power factor, conductor temperature, reactance). Edit any field afterwards and the form detaches from the preset.</p>
+      `;
+    }
+    if (apply) {
+      apply.setAttribute('data-preset-name', id);
+      const label = apply.querySelector('[data-preset-apply-label]');
+      if (label)
+        label.textContent = state.preset === id ? 'Re-apply this preset' : 'Load this circuit';
+    }
+    if (clearBtn) clearBtn.hidden = state.preset !== id;
+
+    backdrop.hidden = false;
+    presetModalFor = id;
+    document.body.style.overflow = 'hidden';
+    pushOverlay(backdrop, document.querySelector(`[data-preset-id="${id}"]`), apply || clearBtn);
+  }
+
+  function closePresetModal() {
+    const backdrop = document.getElementById('vd-preset-backdrop');
+    if (!backdrop || backdrop.hidden) return;
+    backdrop.hidden = true;
+    presetModalFor = null;
+    document.body.style.overflow = '';
+    popOverlay(backdrop);
+  }
+
   function setupPresetControls() {
     const grid = document.getElementById('preset-grid');
-    if (!grid) return;
-    grid.addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-preset-id]');
-      if (!btn) return;
-      const id = btn.getAttribute('data-preset-id');
-      // Clicking the active preset again clears it back to the default case.
-      if (id === state.preset) {
-        releasePreset();
-        resetToDefaults({ keepStandard: true });
-        showToast('Cleared the preset — back to manual entry.', 'reset');
-        return;
-      }
-      applyPreset(id);
+    if (grid) {
+      grid.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-preset-id]');
+        if (!btn) return;
+        openPresetModal(btn.getAttribute('data-preset-id'));
+      });
+    }
+
+    const backdrop = document.getElementById('vd-preset-backdrop');
+    if (backdrop) {
+      backdrop.addEventListener('click', (e) => {
+        if (e.target === backdrop) closePresetModal();
+      });
+    }
+    document.getElementById('vd-preset-close')?.addEventListener('click', closePresetModal);
+
+    document.getElementById('vd-preset-apply')?.addEventListener('click', (e) => {
+      const id = e.currentTarget.getAttribute('data-preset-name') || presetModalFor;
+      closePresetModal();
+      if (id) applyPreset(id);
     });
+
+    // Replaces the old "tap the active chip again to clear" shortcut.
+    document.getElementById('vd-preset-clear')?.addEventListener('click', () => {
+      closePresetModal();
+      releasePreset();
+      resetToDefaults({ keepStandard: true });
+      showToast('Cleared the preset — back to manual entry.', 'reset');
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closePresetModal();
+    });
+
     syncPresetButtons();
   }
 
