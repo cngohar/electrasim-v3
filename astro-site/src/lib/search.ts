@@ -5,7 +5,7 @@ export interface SearchItem {
   title: string;
   description: string;
   url: string;
-  type: 'tool' | 'article' | 'guide' | 'page';
+  type: 'tool' | 'article' | 'guide' | 'page' | 'update';
   category: string;
   tags: string[];
 }
@@ -25,6 +25,16 @@ export interface RawGuideCircuit {
   title: string;
   description: string;
   level?: string;
+}
+
+export interface RawUpdatePost {
+  id: string;
+  data: {
+    title: string;
+    description: string;
+    version?: string;
+    tags?: string[];
+  };
 }
 
 export const CORE_PAGES: SearchItem[] = [
@@ -107,6 +117,16 @@ export const CORE_PAGES: SearchItem[] = [
     category: 'Pages',
     tags: ['contact', 'feedback', 'support'],
   },
+  {
+    id: 'page-updates',
+    title: 'Product Updates & Release Notes (Changelog)',
+    description:
+      'The ElectraSim changelog: every new component, simulation mode, and fix — release notes kept separate from the educational blog.',
+    url: '/updates/',
+    type: 'page',
+    category: 'Pages',
+    tags: ['updates', 'changelog', 'release notes', 'new features', 'whats new', 'app news'],
+  },
 ];
 
 /**
@@ -116,6 +136,7 @@ export function buildSearchIndex(
   blogPosts: RawBlogPost[],
   tools: ToolEntry[],
   guideCircuits: RawGuideCircuit[] = [],
+  updatePosts: RawUpdatePost[] = [],
 ): SearchItem[] {
   const items: SearchItem[] = [];
 
@@ -142,6 +163,19 @@ export function buildSearchIndex(
       type: 'article',
       category: post.data.category || 'Articles',
       tags: post.data.tags || [],
+    });
+  }
+
+  // 2b. Product Updates (changelog — separate from the educational corpus)
+  for (const upd of updatePosts) {
+    items.push({
+      id: `update-${upd.id}`,
+      title: upd.data.title,
+      description: upd.data.description,
+      url: `/updates/${upd.id}/`,
+      type: 'update',
+      category: 'Product Updates',
+      tags: [...(upd.data.tags || []), 'changelog', 'release notes', 'whats new'],
     });
   }
 

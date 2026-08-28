@@ -6,12 +6,14 @@ import { TOOLBOX_REGISTRY } from '../lib/tools/registry';
 
 export const GET: APIRoute = async () => {
   const blogPosts = await getCollection('blog', ({ data }) => !data.draft);
+  const updatePosts = await getCollection('updates', ({ data }) => !data.draft);
   const guideCircuits = (guideData?.circuits || []) as unknown as RawGuideCircuit[];
 
   const items = buildSearchIndex(
     blogPosts as unknown as RawBlogPost[],
     TOOLBOX_REGISTRY,
     guideCircuits,
+    updatePosts,
   );
 
   return new Response(JSON.stringify(items), {

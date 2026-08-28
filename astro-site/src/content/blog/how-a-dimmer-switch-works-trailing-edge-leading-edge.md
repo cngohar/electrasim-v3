@@ -195,7 +195,7 @@ When multiple dimmers are installed side by side in a multi-gang back box, heat 
 4. Adjust the dimmer level to see the bulb's brightness respond
 5. Compare the behaviour when the dimmer is in the live path vs the neutral path (the latter is incorrect wiring — the switch/dimmer must always interrupt the live)
 
-For fault simulation: [Fault Simulation Mode — Open Circuit, Reverse Polarity and Earth Faults](/blog/fault-simulation-mode-open-circuit-reverse-polarity-earth-fault/)
+For fault simulation: [Fault Simulation Mode — Open Circuit, Reverse Polarity and Earth Faults](/updates/fault-simulation-mode-open-circuit-reverse-polarity-earth-fault/)
 
 > [Open ElectraSim — free, no sign-up →](/app/)
 

@@ -262,7 +262,7 @@ Part P does not stop you from **planning** a job yourself. The restriction is on
 1. **Design the circuit** — place the consumer unit, run the cable routes, position accessories. Verify the topology is sound
 2. **Validate the protection** — confirm the MCB/RCBO ratings match the cable, the RCD coverage is correct, and the earthing arrangement is appropriate for the location
 3. **Brief the electrician** — instead of describing what you want in words, show them a working diagram. They can quote accurately, flag issues early, and quote a fixed price rather than an estimate
-4. **Test ideas safely** — [ElectraSim's fault simulation mode](/blog/fault-simulation-mode-open-circuit-reverse-polarity-earth-fault/) lets you inject reverse polarity, open circuits, and missing earths to see exactly what each fault does — invaluable for understanding *why* Part P requires the work to be certified
+4. **Test ideas safely** — [ElectraSim's fault simulation mode](/updates/fault-simulation-mode-open-circuit-reverse-polarity-earth-fault/) lets you inject reverse polarity, open circuits, and missing earths to see exactly what each fault does — invaluable for understanding *why* Part P requires the work to be certified
 
 > 🔍 The simulator runs a full graph traversal on every change — the same logical analysis an electrician applies during testing. [Try it free →](/app/)
 

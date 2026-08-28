@@ -1,3 +1,4 @@
+import { type MetricStandardId, STANDARD_PROFILES, type StandardProfile } from '../standards';
 import type {
   ConductorMaterial,
   MaterialProperties,
@@ -20,23 +21,56 @@ export const MATERIAL_PROPERTIES: Record<ConductorMaterial, MaterialProperties> 
 // Typical line reactance for standard non-magnetic multicore cable: 0.08 mΩ/m (8e-5 Ω/m)
 export const DEFAULT_LINE_REACTANCE = 8e-5;
 
-export const SEVERITY_INFO: Record<VoltageDropSeverity, { title: string; description: string }> = {
-  good: {
-    title: 'Good',
-    description:
-      'The calculated voltage drop is within the 3% recommended limit (e.g. BS 7671 lighting circuits).',
+/**
+ * Severity copy per metric standard. UK copy is unchanged from the original
+ * 3% / 5% BS 7671 wording; IEC 60364-5-52 Annex G uses a 4% / 5% banding.
+ */
+export const SEVERITY_INFO_BY_STANDARD: Record<
+  MetricStandardId,
+  Record<VoltageDropSeverity, { title: string; description: string }>
+> = {
+  'uk-bs7671': {
+    good: {
+      title: 'Good',
+      description:
+        'The calculated voltage drop is within the 3% recommended limit (e.g. BS 7671 lighting circuits).',
+    },
+    warning: {
+      title: 'Marginal',
+      description:
+        'Voltage drop is between 3% and 5%. It is acceptable for general power/socket circuits, but close to the limit.',
+    },
+    excessive: {
+      title: 'Excessive',
+      description:
+        'Voltage drop exceeds 5%. This may cause motors to overheat, equipment to malfunction, or excessive power loss. Upsize the cable.',
+    },
   },
-  warning: {
-    title: 'Marginal',
-    description:
-      'Voltage drop is between 3% and 5%. It is acceptable for general power/socket circuits, but close to the limit.',
-  },
-  excessive: {
-    title: 'Excessive',
-    description:
-      'Voltage drop exceeds 5%. This may cause motors to overheat, equipment to malfunction, or excessive power loss. Upsize the cable.',
+  'iec-60364': {
+    good: {
+      title: 'Good',
+      description:
+        'The calculated voltage drop is within the 4% guidance of IEC 60364-5-52 Annex G (public LV supply, lighting).',
+    },
+    warning: {
+      title: 'Marginal',
+      description:
+        'Voltage drop is between 4% and 5%. Within IEC 60364-5-52 Annex G guidance for other circuits, but close to the limit.',
+    },
+    excessive: {
+      title: 'Excessive',
+      description:
+        'Voltage drop exceeds the 5% IEC 60364-5-52 Annex G guidance. This may cause motors to overheat, equipment to malfunction, or excessive power loss. Upsize the cable.',
+    },
   },
 };
+
+/** Backwards-compatible UK view kept for older consumers. */
+export const SEVERITY_INFO = SEVERITY_INFO_BY_STANDARD['uk-bs7671'];
+
+function getMetricStandardProfile(id: MetricStandardId | undefined): StandardProfile {
+  return id === 'iec-60364' ? STANDARD_PROFILES['iec-60364'] : STANDARD_PROFILES['uk-bs7671'];
+}
 
 /**
  * Calculates resistivity at the specified operating temperature.
@@ -54,6 +88,8 @@ export function getResistivityAtTemperature(material: ConductorMaterial, tempC =
  */
 export function calculateVoltageDrop(inputs: VoltageDropInputs): VoltageDropResult {
   const systemType = inputs.systemType ?? 'single';
+  const standardId: MetricStandardId = inputs.standard === 'iec-60364' ? 'iec-60364' : 'uk-bs7671';
+  const standard = getMetricStandardProfile(standardId);
   const voltage = Number.isFinite(inputs.voltage) ? Math.max(0, inputs.voltage) : 0;
   const current = Number.isFinite(inputs.current) ? Math.max(0, inputs.current) : 0;
   const lengthOneWay = Number.isFinite(inputs.length) ? Math.max(0, inputs.length) : 0;
@@ -86,6 +122,8 @@ export function calculateVoltageDrop(inputs: VoltageDropInputs): VoltageDropResu
       severity: 'warning',
       statusTitle: 'Check Inputs',
       statusDescription: 'System voltage and cable size must both be greater than zero.',
+      standardLabel: standard.label,
+      standardCitation: standard.citation,
       errorMessage: 'System voltage and cable size must be greater than 0.',
     };
   }
@@ -112,16 +150,20 @@ export function calculateVoltageDrop(inputs: VoltageDropInputs): VoltageDropResu
   // Power loss: I² * R_total = I² * (powerLossMultiplier * r * L)
   const powerLoss = current * current * (powerLossMultiplier * resistancePerMeter * lengthOneWay);
 
-  // Severity rating: <= 3% is good, 3-5% is warning, > 5% is excessive
+  // Severity banding follows the selected standard's limits:
+  //   BS 7671: ≤3% good · 3–5% marginal · >5% excessive (lighting/power split)
+  //   IEC 60364-5-52 Annex G: ≤4% good · 4–5% marginal · >5% excessive
+  const goodCeiling = standard.vdrop.lightingPct;
+  const hardCeiling = standard.vdrop.powerPct;
   const EPSILON = 1e-9;
   let severity: VoltageDropSeverity = 'good';
-  if (dropPercent > 5.0 + EPSILON) {
+  if (dropPercent > hardCeiling + EPSILON) {
     severity = 'excessive';
-  } else if (dropPercent > 3.0 + EPSILON) {
+  } else if (dropPercent > goodCeiling + EPSILON) {
     severity = 'warning';
   }
 
-  const status = SEVERITY_INFO[severity];
+  const status = SEVERITY_INFO_BY_STANDARD[standardId][severity];
 
   return {
     valid: true,
@@ -141,5 +183,7 @@ export function calculateVoltageDrop(inputs: VoltageDropInputs): VoltageDropResu
     severity,
     statusTitle: status.title,
     statusDescription: status.description,
+    standardLabel: standard.label,
+    standardCitation: standard.citation,
   };
 }

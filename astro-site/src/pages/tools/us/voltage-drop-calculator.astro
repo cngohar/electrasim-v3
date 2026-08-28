@@ -1,0 +1,76 @@
+---
+import packageMetadata from '../../../../../package.json';
+import CommandPalette from '../../../components/tools/CommandPalette.astro';
+import NecVoltageDropPanels from '../../../components/tools/NecVoltageDropPanels.astro';
+import ToolDrawer from '../../../components/tools/ToolDrawer.astro';
+import ToolHeader from '../../../components/tools/ToolHeader.astro';
+import ToolHelpModal from '../../../components/tools/ToolHelpModal.astro';
+import ToolSeoContent from '../../../components/tools/ToolSeoContent.astro';
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import { getToolById } from '../../../lib/tools/registry';
+import { generateToolStructuredData } from '../../../lib/tools/seo';
+
+const tool = getToolById('us-voltage-drop')!;
+const structuredData = generateToolStructuredData(tool);
+---
+
+<ToolLayout
+  title={tool.metaTitle}
+  description={tool.metaDescription}
+  canonical={`https://electrasim.com${tool.route}`}
+  keywords={tool.keywords}
+  ogImage={tool.ogImage}
+  structuredData={structuredData}
+>
+  <div class="tool-workspace-shell" id="tool-workspace-shell">
+    <h1 class="sr-only">
+      US Voltage Drop Calculator — AWG/kcmil wire sizing per NEC guidance (NFPA 70)
+    </h1>
+    <ToolHeader currentTool={tool} />
+    <ToolDrawer currentTool={tool} />
+    <CommandPalette currentTool={tool} />
+    <ToolHelpModal />
+
+    <main id="main-content" class="calc-main-area">
+      <NecVoltageDropPanels />
+    </main>
+
+    <ToolSeoContent tool={tool} />
+  </div>
+
+  <script is:inline defer src={`/js/tool-share.js?v=${packageMetadata.version}`}></script>
+  <script is:inline defer src={`/js/nec-voltage-drop-tool.js?v=${packageMetadata.version}`}
+  ></script>
+</ToolLayout>
+
+<style>
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .tool-workspace-shell {
+    display: flex;
+    flex-direction: column;
+    width: 100vw;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: var(--bg);
+    overflow-x: hidden;
+  }
+  .calc-main-area {
+    width: 100%;
+    min-height: calc(100vh - 3.75rem);
+    background: var(--bg-2, #f8fafc);
+    padding: 1rem 0 3rem;
+  }
+  :root[data-theme='dark'] .calc-main-area {
+    background: #050811;
+  }
+</style>

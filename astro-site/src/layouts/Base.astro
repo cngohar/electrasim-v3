@@ -17,6 +17,8 @@ export interface Props {
   ogImage?: string;
   ogImageWidth?: number;
   ogImageHeight?: number;
+  /** MIME type of the OG image, e.g. "image/png" (generated cards) */
+  ogImageType?: string;
   ogType?: string;
   articleMeta?: {
     publishedTime: string;
@@ -36,6 +38,11 @@ const {
   ogImageHeight = 906,
   ogType = 'website',
   articleMeta,
+  ogImageType = ogImage.endsWith('.webp')
+    ? 'image/webp'
+    : ogImage.endsWith('.avif')
+      ? 'image/avif'
+      : 'image/png',
 } = Astro.props;
 
 const websiteSchema = {
@@ -77,6 +84,8 @@ const websiteSchema = {
   <meta property="og:description" content={description} />
   <meta property="og:url" content={canonical} />
   <meta property="og:image" content={ogImage} />
+  {ogImage.startsWith('https://') && <meta property="og:image:secure_url" content={ogImage} />}
+  <meta property="og:image:type" content={ogImageType} />
   <meta property="og:image:alt" content={title} />
   <meta property="og:image:width" content={String(ogImageWidth)} />
   <meta property="og:image:height" content={String(ogImageHeight)} />

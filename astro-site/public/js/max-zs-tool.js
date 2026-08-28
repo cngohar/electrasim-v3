@@ -7,7 +7,33 @@
 (() => {
   const ZS_U0 = 230;
   const ZS_CMIN = 0.95;
-  const COLD_FACTOR = 0.8;
+
+  // Regional standards: UK (Cmin-corrected tables + GN3 80% rule) vs
+  // IEC 60364-4-41 (Zs × Ia ≤ U0 direct formula + IEC 60364-6 ≈2/3 ambient rule)
+  const ZS_STANDARDS = {
+    'uk-bs7671': {
+      label: 'BS 7671:2018+A4:2026',
+      region: 'United Kingdom',
+      coldFactor: 0.8,
+      coldPct: 80,
+      coldLabel: 'Cold 80% Rule Limit (GN3)',
+      coldRule: 'IET GN3 80% ambient-test rule',
+      citation:
+        'Results calculated per BS 7671:2018+A4:2026 — Tables 41.2–41.4 (Cmin-corrected) with the IET GN3 80% ambient-test rule.',
+      echo: 'Result verified against <strong>BS 7671:2018+A4:2026 (UK)</strong> — Tables 41.2–41.4 with the IET GN3 80% ambient-test rule.',
+    },
+    'iec-60364': {
+      label: 'IEC 60364',
+      region: 'International (IEC)',
+      coldFactor: 2 / 3,
+      coldPct: 67,
+      coldLabel: 'Ambient Limit (IEC 60364-6 ⅔)',
+      coldRule: 'IEC 60364-6 ≈⅔ rule (ambient-temperature measurement)',
+      citation:
+        'Results calculated per IEC 60364-4-41 (Zs × Ia ≤ U0) with IEC 60364-6 ≈⅔ ambient-measurement guidance.',
+      echo: 'Result verified against <strong>IEC 60364 (International)</strong> — 60364-4-41 fault protection formula with 60364-6 ambient-measurement guidance.',
+    },
+  };
 
   const MAX_ZS_TABLE = {
     'mcb-b': {
@@ -75,8 +101,68 @@
     TT: 21.0,
   };
 
+  function currentStandard() {
+    const raw = document.getElementById('zs-standard')?.value;
+    return ZS_STANDARDS[raw] ? raw : 'uk-bs7671';
+  }
+
+  // Shareable calculation URLs: inputs ride in the query string, synced on
+  // every change (replaceState) so a copied link reproduces the exact check.
+  const URL_BINDINGS = [
+    ['standard', 'zs-standard'],
+    ['device', 'zs-device-type'],
+    ['rating', 'zs-rating'],
+    ['earthing', 'zs-earthing'],
+    ['ze', 'zs-ze'],
+    ['line', 'zs-line-size'],
+    ['cpc', 'zs-cpc-size'],
+    ['length', 'zs-length'],
+  ];
+  let urlArmed = false;
+
+  function restoreFromUrl() {
+    const S = window.ToolShare;
+    if (!S) return;
+    const params = S.readParams();
+    if (![...params.keys()].length) return;
+    urlArmed = true;
+    for (const [key, id] of URL_BINDINGS) {
+      const raw = params.get(key);
+      if (raw === null || raw === '') continue;
+      const el = document.getElementById(id);
+      if (!el) continue;
+      if (el.tagName === 'SELECT') el.value = raw;
+      else {
+        const n = S.numParam(params, key, { min: 0, max: 100000 });
+        if (n !== undefined) el.value = String(n);
+      }
+    }
+    const tempAdjEl = document.getElementById('zs-temp-adj');
+    const tempAdj = params.get('tempAdj');
+    if (tempAdjEl && (tempAdj === '0' || tempAdj === '1')) {
+      tempAdjEl.checked = tempAdj === '1';
+    }
+  }
+
+  function syncUrl() {
+    const S = window.ToolShare;
+    if (!S || !urlArmed) return;
+    const entries = {};
+    for (const [key, id] of URL_BINDINGS) {
+      const el = document.getElementById(id);
+      if (el) entries[key] = el.value;
+    }
+    const tempAdjEl = document.getElementById('zs-temp-adj');
+    if (tempAdjEl) entries.tempAdj = tempAdjEl.checked ? '1' : '0';
+    S.pushParams(entries);
+  }
+
   function runCalculation() {
-    const devType = document.getElementById('zs-device-type')?.value || 'mcb-b';
+    syncUrl();
+    const stdId = currentStandard();
+    const std = ZS_STANDARDS[stdId];
+    const devSelect = document.getElementById('zs-device-type');
+    let devType = devSelect?.value || 'mcb-b';
     const rating = Number.parseInt(document.getElementById('zs-rating')?.value, 10) || 32;
     const earthing = document.getElementById('zs-earthing')?.value || 'TN-C-S';
     const zeInput = document.getElementById('zs-ze');
@@ -89,14 +175,56 @@
     );
     const tempAdj = document.getElementById('zs-temp-adj')?.checked ?? true;
 
+    // British-only fuse standards (BS 88 / BS 1361) are not part of IEC 60364 —
+    // disable them while the IEC profile is active and fall back to Type B.
+    if (devSelect) {
+      let fallbackNeeded = false;
+      for (const option of devSelect.options) {
+        const ukOnly = option.value === 'bs88' || option.value === 'bs1361';
+        option.disabled = stdId === 'iec-60364' && ukOnly;
+        option.hidden = option.disabled;
+        if (option.disabled && option.selected) fallbackNeeded = true;
+      }
+      if (fallbackNeeded) {
+        devSelect.value = 'mcb-b';
+        devType = 'mcb-b';
+      }
+    }
+
     // Table limit
     const table = MAX_ZS_TABLE[devType] || MAX_ZS_TABLE['mcb-b'];
-    const maxZs =
-      table[rating] ??
-      (ZS_U0 * ZS_CMIN) /
-        (devType === 'mcb-d' ? 20 * rating : devType === 'mcb-c' ? 10 * rating : 5 * rating);
+    const tableValue = table[rating];
+    const iaFromTable =
+      typeof tableValue === 'number' && tableValue > 0 ? (ZS_U0 * ZS_CMIN) / tableValue : null;
 
-    const coldLimit = maxZs * COLD_FACTOR;
+    let maxZs;
+    if (stdId === 'uk-bs7671') {
+      // Tabulated Cmin-corrected values; formula fallback for other ratings
+      maxZs =
+        tableValue ??
+        (ZS_U0 * ZS_CMIN) /
+          (devType === 'mcb-d' ? 20 * rating : devType === 'mcb-c' ? 10 * rating : 5 * rating);
+    } else {
+      // IEC 60364-4-41: Zs × Ia ≤ U0 directly (no Cmin correction)
+      const ia =
+        devType === 'mcb-d'
+          ? 20 * rating
+          : devType === 'mcb-c'
+            ? 10 * rating
+            : devType === 'mcb-b'
+              ? 5 * rating
+              : (iaFromTable ?? 5 * rating);
+      // RCD ceilings derive from the 50 V touch-voltage limit (50 V ÷ 30 mA),
+      // not U0 × Cmin — identical under BS 7671 and IEC 60364.
+      maxZs =
+        devType === 'rcd-30ma'
+          ? (tableValue ?? 50 / 0.03)
+          : tableValue
+            ? tableValue / ZS_CMIN
+            : ZS_U0 / ia;
+    }
+
+    const coldLimit = maxZs * std.coldFactor;
 
     const r1 = (COPPER_RES[lineMm2] || 18.1 / lineMm2) / 1000;
     const r2 = (COPPER_RES[cpcMm2] || 18.1 / cpcMm2) / 1000;
@@ -106,7 +234,8 @@
     const r1r2Total = r1r2PerM * length;
     const zs = ze + r1r2Total;
 
-    const pfc = (ZS_U0 * ZS_CMIN) / Math.max(0.01, zs);
+    const cminApplied = stdId === 'uk-bs7671' ? ZS_CMIN : 1.0;
+    const pfc = (ZS_U0 * cminApplied) / Math.max(0.01, zs);
     const ia =
       devType === 'mcb-d'
         ? 20 * rating
@@ -114,7 +243,7 @@
           ? 10 * rating
           : devType === 'mcb-b'
             ? 5 * rating
-            : (ZS_U0 * ZS_CMIN) / maxZs;
+            : (ZS_U0 * cminApplied) / maxZs;
 
     const passHot = zs <= maxZs;
     const passCold = zs <= coldLimit;
@@ -141,6 +270,21 @@
     if (outIa) outIa.textContent = `${Math.round(ia)} A`;
     if (outPfc) outPfc.textContent = `${Math.round(pfc)} A`;
 
+    // Standard-of-verification surfaces (labels, trust lines, threshold marker)
+    const coldMetricLabel = document.getElementById('zs-label-cold');
+    if (coldMetricLabel) coldMetricLabel.textContent = std.coldLabel;
+    const coldMarker = document.getElementById('zs-cold-marker');
+    if (coldMarker) {
+      coldMarker.style.left = `${std.coldPct}%`;
+      coldMarker.title = `${std.coldPct}% Ambient Testing Threshold (${std.coldRule})`;
+    }
+    const coldBarLabel = document.getElementById('zs-bar-cold-label');
+    if (coldBarLabel) coldBarLabel.textContent = `${std.coldPct}% Ambient Limit`;
+    const note = document.getElementById('zs-standard-note');
+    if (note) note.textContent = std.citation;
+    const echo = document.getElementById('zs-standard-echo');
+    if (echo) echo.innerHTML = std.echo;
+
     const pctOfMax = Math.min(100, Math.max(0, (zs / maxZs) * 100));
     if (barFill) {
       barFill.style.width = `${pctOfMax}%`;
@@ -158,17 +302,17 @@
         badge.textContent = 'Compliant';
         badge.style.background = '#10b981';
         heroCard.style.background = 'linear-gradient(135deg, #065f46 0%, #10b981 100%)';
-        summary.textContent = `Compliant: Zs of ${zs.toFixed(2)} Ω is well within both the GN3 80% test limit (${coldLimit.toFixed(2)} Ω) and statutory maximum (${maxZs.toFixed(2)} Ω). Guaranteed disconnection in ≤ 0.4s.`;
+        summary.textContent = `Compliant per ${std.label}: Zs of ${zs.toFixed(2)} Ω is well within both the ${std.coldRule} (${coldLimit.toFixed(2)} Ω) and maximum (${maxZs.toFixed(2)} Ω). Guaranteed disconnection in ≤ 0.4s.`;
       } else if (passHot) {
         badge.textContent = 'Marginal (Warm)';
         badge.style.background = '#f59e0b';
         heroCard.style.background = 'linear-gradient(135deg, #92400e 0%, #d97706 100%)';
-        summary.textContent = `Marginal: Zs of ${zs.toFixed(2)} Ω complies with hot 70°C ceiling (${maxZs.toFixed(2)} Ω) but exceeds cold 80% rule limit (${coldLimit.toFixed(2)} Ω). Consider upsizing CPC if length increases.`;
+        summary.textContent = `Marginal per ${std.label}: Zs of ${zs.toFixed(2)} Ω complies with the 70°C operating ceiling (${maxZs.toFixed(2)} Ω) but exceeds the ambient-measurement limit (${coldLimit.toFixed(2)} Ω — ${std.coldRule}). Consider upsizing CPC if length increases.`;
       } else {
         badge.textContent = 'Non-Compliant';
         badge.style.background = '#ef4444';
         heroCard.style.background = 'linear-gradient(135deg, #991b1b 0%, #ef4444 100%)';
-        summary.textContent = `Fail: Zs (${zs.toFixed(2)} Ω) exceeds maximum disconnection threshold (${maxZs.toFixed(2)} Ω). Fault current (${Math.round(pfc)}A) cannot guarantee 0.4s disconnection. Increase CPC or fit 30mA RCD.`;
+        summary.textContent = `Fail per ${std.label}: Zs (${zs.toFixed(2)} Ω) exceeds the maximum disconnection threshold (${maxZs.toFixed(2)} Ω). Fault current (${Math.round(pfc)}A) cannot guarantee 0.4s disconnection. Increase CPC or fit 30mA RCD.`;
       }
     }
   }
@@ -178,8 +322,14 @@
     if (!form) return;
 
     form.querySelectorAll('input, select').forEach((el) => {
-      el.addEventListener('input', runCalculation);
-      el.addEventListener('change', runCalculation);
+      el.addEventListener('input', () => {
+        urlArmed = true;
+        runCalculation();
+      });
+      el.addEventListener('change', () => {
+        urlArmed = true;
+        runCalculation();
+      });
     });
 
     // Earthing default auto-fill
@@ -195,6 +345,7 @@
     // Presets
     document.querySelectorAll('.preset-chip').forEach((chip) => {
       chip.addEventListener('click', () => {
+        urlArmed = true;
         const p = chip.getAttribute('data-preset');
         const dev = document.getElementById('zs-device-type');
         const rating = document.getElementById('zs-rating');
@@ -231,7 +382,14 @@
       });
     });
 
+    // Restore a shared link (if any), then compute + sync the URL
+    restoreFromUrl();
     runCalculation();
+
+    // "Copy calculation link" button
+    document.getElementById('zs-copy-link')?.addEventListener('click', (e) => {
+      window.ToolShare?.copyCurrentUrl(e.currentTarget);
+    });
   }
 
   if (document.readyState === 'loading') {

@@ -185,7 +185,7 @@ For more on how different ElectraSim components interact:
 
 > [Getting Started with ElectraSim](/blog/getting-started-with-electrasim/)
 
-> [6 New Components: RCD, Contactor, Timer, Dimmer, Distribution Board, Bell](/blog/electrasim-new-components-rcd-contactor-timer-dimmer-distribution-board-bell/)
+> [6 New Components: RCD, Contactor, Timer, Dimmer, Distribution Board, Bell](/updates/electrasim-new-components-rcd-contactor-timer-dimmer-distribution-board-bell/)
 
 ---
 

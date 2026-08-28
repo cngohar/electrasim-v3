@@ -4,6 +4,7 @@ description: "ElectraSim v1.6 adds dark mode across the app and website, a new R
 pubDate: 2026-07-20
 author: ElectraSim
 category: App Update
+version: "v1.6"
 tags: [ElectraSim, app update, circuit simulator, electrical simulator, dark mode, RCBO, push button, electrical wiring]
 featured: true
 ---

@@ -1,0 +1,133 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { readingTime } from '../../lib/blog';
+import { sortUpdates } from '../../lib/updates';
+import { ogCardUrl } from '../../og-manifest';
+import '../../styles/updates.css';
+
+const updates = sortUpdates(await getCollection('updates', ({ data }) => !data.draft));
+
+const title = 'Product Updates & Release Notes — ElectraSim';
+const description =
+  'The ElectraSim changelog: every new component, simulation mode, and fix — newest first. Release notes separate from the educational blog: wiring guides and electrical tutorials live at /blog/.';
+const canonical = 'https://electrasim.com/updates/';
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'ElectraSim Product Updates & Release Notes',
+  url: canonical,
+  description,
+  publisher: { '@type': 'Organization', name: 'ElectraSim', url: 'https://electrasim.com/' },
+  mainEntity: {
+    '@type': 'ItemList',
+    itemListElement: updates.map((u, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: u.data.title,
+      url: `https://electrasim.com/updates/${u.id}/`,
+    })),
+  },
+  breadcrumb: {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://electrasim.com/' },
+      { '@type': 'ListItem', position: 2, name: 'Product Updates', item: canonical },
+    ],
+  },
+};
+
+const ogImage = ogCardUrl(updates[0]?.id ?? '', 'updates');
+---
+
+<Base
+  title={title}
+  description={description}
+  canonical={canonical}
+  ogImage={ogImage.startsWith('http') ? ogImage : `https://electrasim.com${ogImage}`}
+  ogImageWidth={1200}
+  ogImageHeight={630}
+  ogType="website"
+>
+  <Fragment slot="head">
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(schema)} />
+  </Fragment>
+
+  <main id="main-content" class="upd-main" data-live>
+    <header class="upd-hero">
+      <div class="wrap">
+        <span class="upd-kicker">CHANGELOG</span>
+        <h1>Product Updates &amp; Release Notes</h1>
+        <p class="upd-lede">
+          Every new component, simulation mode, and fix in ElectraSim — newest first.
+          This changelog is deliberately separate from the blog:
+          <a href="/blog/" class="upd-lede-link">educational wiring guides live over there →</a>
+        </p>
+      </div>
+    </header>
+
+    <section class="upd-feed" aria-label="Release notes timeline">
+      <div class="wrap">
+        <ol class="upd-timeline">
+          {updates.map((upd) => {
+            const pub = upd.data.pubDate;
+            const dateIso = pub.toISOString().split('T')[0];
+            const dateLabel = pub.toLocaleDateString('en-GB', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            });
+            return (
+              <li class="upd-entry">
+                <div class="upd-rail" aria-hidden="true">
+                  <span class="upd-dot"></span>
+                  <span class="upd-line"></span>
+                </div>
+                <article class="upd-card">
+                  <a href={`/updates/${upd.id}/`} class="upd-thumb-link" tabindex="-1" aria-hidden="true">
+                    <img
+                      class="upd-thumb"
+                      src={ogCardUrl(upd.id, 'updates')}
+                      alt=""
+                      width="1200"
+                      height="630"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </a>
+                  <div class="upd-body">
+                    <div class="upd-meta">
+                      {upd.data.version && <span class="upd-version">{upd.data.version}</span>}
+                      <time datetime={dateIso} class="upd-date">{dateLabel}</time>
+                      <span class="upd-read">{readingTime(upd.body ?? '')} min read</span>
+                    </div>
+                    <h2 class="upd-title">
+                      <a href={`/updates/${upd.id}/`}>{upd.data.title}</a>
+                    </h2>
+                    <p class="upd-desc">{upd.data.description}</p>
+                    {upd.data.tags.length > 0 && (
+                      <ul class="upd-tags" aria-label="Topics">
+                        {upd.data.tags.slice(0, 4).map((tag) => (
+                          <li class="upd-tag">{tag}</li>
+                        ))}
+                      </ul>
+                    )}
+                    <a href={`/updates/${upd.id}/`} class="upd-more">
+                      Read the release notes <span aria-hidden="true">→</span>
+                    </a>
+                  </div>
+                </article>
+              </li>
+            );
+          })}
+        </ol>
+
+        <p class="upd-backfill">
+          Missing the theory behind these features? That's <a href="/blog/">the blog</a> — every
+          guide, regulation explainer and test procedure lives there.
+        </p>
+      </div>
+    </section>
+  </main>
+</Base>

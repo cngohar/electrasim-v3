@@ -1,40 +1,50 @@
 ---
 import type { CollectionEntry } from 'astro:content';
-import { partitionBlogPosts } from '../../lib/blog';
 import BlogPostGrid from './BlogPostGrid.astro';
 
 interface Props {
   posts: CollectionEntry<'blog'>[];
 }
 
+// The blog index is the educational learning library only. Product release
+// notes live in their own collection at /updates/ (see pages/updates/).
 const { posts } = Astro.props;
-const { appUpdates, articles } = partitionBlogPosts(posts);
 ---
 
 <div class="blog-index-sections">
-  {appUpdates.length > 0 && (
-    <section class="post-section update-section" aria-labelledby="updates-heading">
-      <header class="blog-section-header">
-        <div>
-          <span class="blog-section-kicker">Product news</span>
-          <h2 id="updates-heading">ElectraSim App Updates</h2>
-        </div>
-        <p>Release notes and practical introductions to recently added tools.</p>
-      </header>
-      <BlogPostGrid posts={appUpdates} headingLevel={3} />
-    </section>
-  )}
-
-  {articles.length > 0 && (
+  {posts.length > 0 && (
     <section class="post-section articles-section" aria-labelledby="articles-heading">
       <header class="blog-section-header">
         <div>
           <span class="blog-section-kicker">Learning library</span>
           <h2 id="articles-heading">Electrical Guides and Articles</h2>
         </div>
-        <p>Clear explanations of wiring, components, regulations, and electrical safety.</p>
+        <p>
+          Clear explanations of wiring, components, regulations, and electrical safety.
+          <span class="blog-updates-callout">
+            Looking for what's new in the app? <a href="/updates/">Product updates &amp; release notes →</a>
+          </span>
+        </p>
       </header>
-      <BlogPostGrid posts={articles} headingLevel={3} />
+      <BlogPostGrid posts={posts} headingLevel={3} />
     </section>
   )}
 </div>
+
+<style>
+  .blog-updates-callout {
+    display: block;
+    margin-top: 0.45rem;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+  }
+  .blog-updates-callout a {
+    color: var(--blue);
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .blog-updates-callout a:hover {
+    text-decoration: underline;
+  }
+</style>

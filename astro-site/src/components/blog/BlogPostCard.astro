@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import { readingTime } from '../../lib/blog';
+import { ogCardUrl } from '../../og-manifest';
 
 interface Props {
   post: CollectionEntry<'blog'>;
@@ -21,6 +22,15 @@ const published = post.data.pubDate.toLocaleDateString('en-GB', {
   href={`/blog/${post.id}/`}
   class:list={['card', { featured: post.data.featured, 'app-update': isAppUpdate }]}
 >
+  <img
+    class="card-thumb"
+    src={post.data.image ?? ogCardUrl(post.id)}
+    alt=""
+    width="1200"
+    height="630"
+    loading="lazy"
+    decoding="async"
+  />
   <div class="card-body">
     <div class="card-top">
       <span class="tag">{isAppUpdate ? 'Product update' : post.data.category}</span>

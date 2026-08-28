@@ -36,6 +36,7 @@ const structuredData = generateToolStructuredData(tool);
     <ToolSeoContent tool={tool} />
   </div>
 
+  <script is:inline defer src={`/js/tool-share.js?v=${packageMetadata.version}`}></script>
   <script is:inline defer src={`/js/cable-size-tool.js?v=${packageMetadata.version}`}></script>
 </ToolLayout>
 

@@ -138,7 +138,93 @@
     return 1.0;
   }
 
+  // Regional standards: identical harmonized ampacity/drop data (BS 7671
+  // Appendix 4 ≡ IEC 60364-5-52 Table B.52.4); only limits & citations differ.
+  const CS_STANDARDS = {
+    'uk-bs7671': {
+      label: 'BS 7671:2018+A4:2026',
+      region: 'United Kingdom',
+      lightingPct: 3,
+      powerPct: 5,
+      citation:
+        'Results calculated per BS 7671:2018+A4:2026 (IET Wiring Regulations) — Appendix 4 Tables 4D5/4B1/4C1 and 3% lighting / 5% power voltage-drop limits.',
+      echo: 'Result verified against <strong>BS 7671:2018+A4:2026 (UK)</strong> — Appendix 4 Tables 4D5/4B1/4C1 and 3%/5% voltage-drop limits.',
+    },
+    'iec-60364': {
+      label: 'IEC 60364',
+      region: 'International (IEC)',
+      lightingPct: 4,
+      powerPct: 5,
+      citation:
+        'Results calculated per IEC 60364 international metric rules — IEC 60364-5-52 Table B.52.4 ampacity and Annex G (Table G.52.1) 4% lighting / 5% other-circuits voltage-drop guidance.',
+      echo: 'Result verified against <strong>IEC 60364 (International)</strong> — IEC 60364-5-52 Table B.52.4 with Annex G 4%/5% voltage-drop guidance.',
+    },
+  };
+
+  function currentStandard() {
+    const raw = document.getElementById('cs-standard')?.value;
+    return CS_STANDARDS[raw] ? raw : 'uk-bs7671';
+  }
+
+  // Shareable calculation URLs: encode every input into the query string so a
+  // colleague opens the exact same scenario. URL is rewritten on each change
+  // (history.replaceState — no reload, no history entries).
+  const URL_BINDINGS = [
+    ['standard', 'cs-standard'],
+    ['system', 'cs-system-type'],
+    ['voltage', 'cs-voltage'],
+    ['power', 'cs-power'],
+    ['pf', 'cs-pf'],
+    ['length', 'cs-length'],
+    ['circuit', 'cs-circuit-type'],
+    ['method', 'cs-install-method'],
+    ['material', 'cs-material'],
+    ['temp', 'cs-temp'],
+    ['grouping', 'cs-grouping'],
+    ['insulation', 'cs-insulation'],
+  ];
+
+  // Only start rewriting the URL once something actionable exists — a shared
+  // link was opened, or the user changed a field. Keeps fresh visits clean.
+  let urlArmed = false;
+
+  function restoreFromUrl() {
+    const S = window.ToolShare;
+    if (!S) return;
+    const params = S.readParams();
+    if (![...params.keys()].length) return;
+    urlArmed = true;
+    for (const [key, id] of URL_BINDINGS) {
+      const raw = params.get(key);
+      if (raw === null || raw === '') continue;
+      const el = document.getElementById(id);
+      if (!el) continue;
+      // Selects reject non-option values automatically; numeric inputs get a
+      // NaN-safe parse so junk query values can never produce NaN results.
+      if (el.tagName === 'SELECT') {
+        el.value = raw;
+      } else {
+        const n = S.numParam(params, key, { min: 0.01, max: 100000 });
+        if (n !== undefined) el.value = String(n);
+      }
+    }
+  }
+
+  function syncUrl() {
+    const S = window.ToolShare;
+    if (!S || !urlArmed) return;
+    const entries = {};
+    for (const [key, id] of URL_BINDINGS) {
+      const el = document.getElementById(id);
+      if (el) entries[key] = el.value;
+    }
+    S.pushParams(entries);
+  }
+
   function runSizing() {
+    syncUrl();
+    const stdId = currentStandard();
+    const std = CS_STANDARDS[stdId];
     const systemType = document.getElementById('cs-system-type')?.value || 'single-phase';
     const v = Number.parseFloat(document.getElementById('cs-voltage')?.value) || 230;
     const powerKw = Number.parseFloat(document.getElementById('cs-power')?.value) || 7.2;
@@ -184,7 +270,10 @@
     const totalFactor = Math.max(0.05, ca * cg * ci);
 
     const itRequired = inRating / totalFactor;
-    const maxVdropPct = circuitType === 'lighting' ? 3.0 : 5.0;
+    // Voltage-drop ceiling follows the selected standard:
+    //   BS 7671 Appendix 4: 3% lighting / 5% power
+    //   IEC 60364-5-52 Annex G: 4% lighting / 5% other
+    const maxVdropPct = circuitType === 'lighting' ? std.lightingPct : std.powerPct;
     const maxVdropV = (v * maxVdropPct) / 100;
 
     let selectedSize = STANDARD_SIZES[STANDARD_SIZES.length - 1];
@@ -257,15 +346,28 @@
     if (fCi) fCi.textContent = ci.toFixed(2);
     if (fTot) fTot.textContent = totalFactor.toFixed(2);
 
+    // Standard-of-verification trust surfaces (inputs note + results echo)
+    const note = document.getElementById('cs-standard-note');
+    if (note) note.textContent = std.citation;
+    const echo = document.getElementById('cs-standard-echo');
+    if (echo) echo.innerHTML = std.echo;
+    const lightingOption = document.getElementById('cs-lighting-option');
+    if (lightingOption) {
+      lightingOption.textContent =
+        stdId === 'iec-60364'
+          ? 'Lighting Circuit (4% max — IEC Annex G)'
+          : 'Lighting Circuit (3% max — BS 7671)';
+    }
+
     if (badge && summary) {
       if (thermalPass && vdropPass) {
         badge.textContent = 'Compliant';
         badge.style.background = '#10b981';
-        summary.textContent = `Compliant: ${selectedSize} mm² cable satisfies current capacity (${selectedAmpacity.toFixed(1)}A ≥ ${itRequired.toFixed(1)}A) and ${circuitType} voltage drop (${selectedVdropPct.toFixed(2)}% ≤ ${maxVdropPct}%).`;
+        summary.textContent = `Compliant per ${std.label}: ${selectedSize} mm² cable satisfies current capacity (${selectedAmpacity.toFixed(1)}A ≥ ${itRequired.toFixed(1)}A) and ${circuitType} voltage drop (${selectedVdropPct.toFixed(2)}% ≤ ${maxVdropPct}%).`;
       } else {
         badge.textContent = 'Limits Exceeded';
         badge.style.background = '#ef4444';
-        summary.textContent = `Non-compliant: Run length (${length}m) or derating limits exceeded. Increase conductor cross-section or shorten run length.`;
+        summary.textContent = `Non-compliant per ${std.label}: Run length (${length}m) or derating limits exceeded. Increase conductor cross-section or shorten run length.`;
       }
     }
   }
@@ -275,13 +377,20 @@
     if (!form) return;
 
     form.querySelectorAll('input, select').forEach((el) => {
-      el.addEventListener('input', runSizing);
-      el.addEventListener('change', runSizing);
+      el.addEventListener('input', () => {
+        urlArmed = true;
+        runSizing();
+      });
+      el.addEventListener('change', () => {
+        urlArmed = true;
+        runSizing();
+      });
     });
 
     // Presets
     document.querySelectorAll('.preset-chip').forEach((chip) => {
       chip.addEventListener('click', () => {
+        urlArmed = true;
         const p = chip.getAttribute('data-preset');
         const pwr = document.getElementById('cs-power');
         const pf = document.getElementById('cs-pf');
@@ -313,7 +422,14 @@
       });
     });
 
+    // Restore shared-link state (if any), then compute + sync the URL
+    restoreFromUrl();
     runSizing();
+
+    // "Copy calculation link" button
+    document.getElementById('cs-copy-link')?.addEventListener('click', (e) => {
+      window.ToolShare?.copyCurrentUrl(e.currentTarget);
+    });
   }
 
   if (document.readyState === 'loading') {
