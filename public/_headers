@@ -67,6 +67,20 @@
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
 
+# ─── Generated per-post OG cards — content-hash versioned via ?v=─────────────
+# URLs carry ?v=<sha256-prefix> (see astro-site/src/og-manifest.ts), so HTML
+# always references the newest card while the CDN/browser can cache forever.
+/og/blog/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Site-wide default social card (versionless shared file)
+/og-image.png
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+# Self-hosted font files (stable, small set)
+/fonts/*
+  Cache-Control: public, max-age=2592000, stale-while-revalidate=2592000
+
 # Versionless marketing assets revalidate regularly while remaining fast on repeat visits.
 /images/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800

@@ -18,6 +18,8 @@ A running, append-only log of work on the ElectraSim rewrite. Every coding sessi
 3. **Ops**: `npm run gen:og --workspace astro-site` to regenerate; artifacts committed so CI/deploy needs no `sharp`; postbuild merge carries them into `dist/`.
 4. **Verification**: astro check 0 errors · vitest green · lint clean · build 143 pages · curl-verified PNGs served as image/png and per-post og tags in built HTML.
 5. **On-page visibility fix**: OG cards were social-meta only → now rendered as the visible article hero (`art-hero`, eager+preload LCP hints) and as lazy thumbnails on every blog listing card (index/tags/pagination via `BlogPostCard`).
+6. **Caching strategy**: `?v=<sha256>` content-hash versioning from `og-manifest.ts` + `_headers` immutable rule (`/og/blog/*` 1y immutable, `/og-image.png` 1d/7d SWR, `/fonts/*` 30d/30d SWR). Regeneration changes hashes → new URLs → instant invalidation; day-to-day builds keep byte-identical files (verified via sha256 diff on forced re-render).
+
 
 
 **Next:**

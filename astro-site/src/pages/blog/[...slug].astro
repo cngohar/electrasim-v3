@@ -2,6 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import { getTagArchives, readingTime, slugifyTag, sortBlogPosts, wordCount } from '../../lib/blog';
+import { ogCardUrl } from '../../og-manifest';
 import '../../styles/blog/blog-article.css';
 
 export async function getStaticPaths() {
@@ -38,11 +39,13 @@ const updDateDisplay = post.data.updatedDate
 const canonical = `https://electrasim.com/blog/${post.id}/`;
 // Per-post generated social card (1200×630, unique per article). An explicit
 // frontmatter `image:` still wins — those are bespoke article-only assets.
+// ogCardUrl() appends a content hash (?v=…) so the CDN can cache immutable.
+const cardImageRel = ogCardUrl(post.id);
 const ogImage = post.data.image
   ? post.data.image.startsWith('http')
     ? post.data.image
     : `https://electrasim.com${post.data.image}`
-  : `https://electrasim.com/og/blog/${post.id}.png`;
+  : `https://electrasim.com${cardImageRel}`;
 const ogImageType = post.data.image
   ? post.data.image.endsWith('.webp')
     ? 'image/webp'
@@ -52,7 +55,7 @@ const ogImageType = post.data.image
   : 'image/png';
 // Visible in-article hero: bespoke frontmatter asset when present, otherwise
 // the article's unique generated social card (1200×630).
-const heroImageRel = post.data.image ?? `/og/blog/${post.id}.png`;
+const heroImageRel = post.data.image ?? cardImageRel;
 
 const readMins = readingTime(post.body ?? '');
 

@@ -29,6 +29,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Blog index/tag/pagination cards (`BlogPostCard.astro`) now show the per-article card as a thumbnail (lazy-loaded, CLS-safe dimensions).
    - Bespoke frontmatter `image:` assets are hero'd with the same pipeline where present.
 3. **Verification**: `astro check` 0 errors (104 files) · astro-lib vitest suite passes · `biome lint .` clean · `astro build` 143 pages with all 71 cards copied to `dist-astro/og/blog/`.
+4. **HTTP Caching for OG Cards (content-hash immutable)**:
+   - Generator now emits `astro-site/src/og-manifest.ts` — sha256 prefix per card; all references (og:image, twitter:image, Article schema image, hero, card thumbnails, preload) use `/og/blog/<slug>.png?v=<hash>`.
+   - `public/_headers`: `/og/blog/*` → `Cache-Control: public, max-age=31536000, immutable` (safe: URL changes whenever pixels change); `/og-image.png` → 1d + 7d SWR; `/fonts/*` → 30d + SWR (previously uncached).
+   - A design refresh (`gen:og --force`) changes hashes → new URLs → instant global invalidation, no stale cards.
+
 
 ### Added & Enhanced — Session 2026-08-27 (part 3): Multi-Standard Toolbox (BS 7671 / IEC 60364 / US NEC) with SEO Push
 

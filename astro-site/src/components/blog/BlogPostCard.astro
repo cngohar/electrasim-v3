@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import { readingTime } from '../../lib/blog';
+import { ogCardUrl } from '../../og-manifest';
 
 interface Props {
   post: CollectionEntry<'blog'>;
@@ -23,7 +24,7 @@ const published = post.data.pubDate.toLocaleDateString('en-GB', {
 >
   <img
     class="card-thumb"
-    src={post.data.image ?? `/og/blog/${post.id}.png`}
+    src={post.data.image ?? ogCardUrl(post.id)}
     alt=""
     width="1200"
     height="630"
