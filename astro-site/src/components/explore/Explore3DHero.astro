@@ -1,4 +1,5 @@
 ---
+import EmojiIcon from '../EmojiIcon.astro';
 interface Props {
   title?: string;
   subtitle?: string;
@@ -15,7 +16,7 @@ const {
   <div class="wrap explore-hero-container">
     <div class="explore-hero-content">
       <div class="explore-badge-lab">
-        <span class="badge-icon">⚡</span>
+        <span class="badge-icon"><EmojiIcon name="bolt" /></span>
         <span class="badge-text">EXPERIMENTAL 3D LABORATORY</span>
       </div>
 
@@ -24,7 +25,7 @@ const {
 
       <div class="explore-actions">
         <a href="/explore/edison-bulb/" class="btn-explore-cyan">
-          <span class="btn-icon">💡</span>
+          <span class="btn-icon"><EmojiIcon name="bulb" /></span>
           <span>Explore Edison Bulb (1879)</span>
           <span class="arrow">→</span>
         </a>
@@ -61,7 +62,7 @@ const {
         <div class="hero-stage-overlay">
           <div class="stage-tag-neon">FOUNDATION MODEL · EDISON LAMP (1879)</div>
           <div class="stage-controls-hint-dark">
-            <span>🖱️ Click & Drag to Rotate · Scroll to Zoom</span>
+            <span><EmojiIcon name="mouse" /> Click & Drag to Rotate · Scroll to Zoom</span>
           </div>
         </div>
 

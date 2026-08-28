@@ -1,497 +1,1972 @@
 ---
-// CableSizingPanels.astro — Interactive panels for Cable Sizing Tool
+import {
+  BASE_AMPACITY_TABLE,
+  cableSizingCurve,
+  calculateCableSizing,
+} from '../../lib/tools/cable-sizing/calculation';
+import type { CableSizingInputs } from '../../lib/tools/cable-sizing/types';
+/**
+ * CableSizingPanels.astro — floating instruments for the Cable Size Calculator.
+ *
+ * The page is one full-bleed stage (see CableSizingScene.astro) with three
+ * floating instruments over it, sharing the `ts-*` stage shell with the other
+ * toolbox scenes:
+ *
+ *   • left  — the circuit and its environment, as sliders and method chips so
+ *             every change is something you can *feel* moving the drawing
+ *   • top   — the ampacity gauge: the whole sizing rule (Ib ≤ In ≤ Iz) as one
+ *             bar, with a "why this size?" factor waterfall
+ *   • right — the numeric readout (kept complete: nothing lives only in the art)
+ *
+ * The markup keeps every element id the client engine (`cable-size-tool.js`)
+ * writes to; the method and insulation pickers drive hidden inputs so the
+ * engine — and shared-link restore — stays the single source of truth.
+ */
+import EmojiIcon from '../EmojiIcon.astro';
 import StandardSelector from './StandardSelector.astro';
+
+/**
+ * Server-rendered defaults. Every figure below comes from the same engine the
+ * client runs, so the page is already correct before JavaScript arrives (and for
+ * crawlers), and the first client paint is a no-op rather than a correction.
+ */
+const DEFAULTS: CableSizingInputs = {
+  systemType: 'single-phase',
+  voltageVolts: 230,
+  powerWatts: 7200,
+  powerFactor: 1.0,
+  runLengthMeters: 18,
+  circuitFunction: 'power',
+  installationMethod: 'C',
+  conductorMaterial: 'copper',
+  ambientTempC: 30,
+  groupingCircuits: 1,
+  thermalInsulationMm: 0,
+  fuseTypeCc: false,
+};
+const r = calculateCableSizing(DEFAULTS);
+const gaugeScale =
+  Math.max(r.cableAmpacityIz, r.requiredAmpacityIt, r.protectiveDeviceRatingIn, 1) * 1.12;
+const frac = (n: number) => (n / gaugeScale).toFixed(3);
+const gaugeStyle =
+  `--gauge:${frac(r.cableAmpacityIz)};` +
+  `--load-mark:${frac(r.designCurrentIb)};` +
+  `--rating-mark:${frac(r.protectiveDeviceRatingIn)};` +
+  `--need-mark:${frac(r.requiredAmpacityIt)};`;
+/** Same edge rule the client applies, so the server-rendered gauge is not a
+ *  second, worse copy of the widget. */
+const gaugeMarks = [r.designCurrentIb, r.requiredAmpacityIt, r.protectiveDeviceRatingIn].map(
+  (n) => n / gaugeScale,
+);
+const gaugeEdge =
+  Math.max(...gaugeMarks) > 0.84 && Math.min(...gaugeMarks) <= 0.84
+    ? 'right'
+    : Math.min(...gaugeMarks) < 0.1 && Math.max(...gaugeMarks) <= 0.84
+      ? 'left'
+      : 'center';
+const spare =
+  r.cableAmpacityIz > 0
+    ? (((r.cableAmpacityIz - r.requiredAmpacityIt) / r.cableAmpacityIz) * 100).toFixed(0)
+    : '0';
+const badgeText =
+  r.status === 'pass' ? 'Compliant' : r.status === 'warning' ? 'Marginal' : 'Limits Exceeded';
+
+/* Size ladder + crossover chart. Both are derived from the same tables the
+   selector walks, so a curve can never disagree with the answer above it. */
+const SIZES = [1.0, 1.5, 2.5, 4, 6, 10, 16, 25, 35, 50, 70, 95] as const;
+const CHART = { x: 12, y: 10, w: 296, h: 78 };
+const curve = cableSizingCurve(DEFAULTS);
+const sizeIndexOf = (mm2: number) => Math.max(0, (SIZES as readonly number[]).indexOf(mm2));
+const chartX = (len: number) => CHART.x + (Math.min(120, Math.max(0, len)) / 120) * CHART.w;
+const chartY = (mm2: number) =>
+  CHART.y + CHART.h - ((sizeIndexOf(mm2) + 1) / SIZES.length) * CHART.h;
+
+/** Step line: flat while one size satisfies the gate, jumping as it grows. */
+function stepPath(pick: (p: (typeof curve)[number]) => number): string {
+  const parts: string[] = [];
+  curve.forEach((point, i) => {
+    const x = chartX(point.lengthMeters).toFixed(1);
+    const y = chartY(pick(point)).toFixed(1);
+    if (i === 0) parts.push(`M${x} ${y}`);
+    else {
+      const prevY = chartY(pick(curve[i - 1])).toFixed(1);
+      if (prevY !== y) parts.push(`L${x} ${prevY}`);
+      parts.push(`L${x} ${y}`);
+    }
+  });
+  return parts.join(' ');
+}
+const thermalPath = stepPath((p) => p.thermalMm2);
+const dropPath = stepPath((p) => p.dropMm2);
+const crossover = curve.find((p, i) => p.dropGoverns && !(curve[i - 1]?.dropGoverns ?? false));
+const chartLabel = `Run length against required cross-section: heat requires ${r.selectedCableMm2} mm² at every length, and volt drop${
+  crossover
+    ? ` takes over past about ${Math.round(crossover.lengthMeters)} m`
+    : ' stays inside that at these lengths'
+}`;
+
+const METHODS = [
+  {
+    id: 'A',
+    name: 'A',
+    short: 'In insulation',
+    note: 'Enclosed in thermal insulation — the most heat-starved case',
+  },
+  {
+    id: 'B',
+    name: 'B',
+    short: 'Conduit',
+    note: 'In conduit or trunking on a wall, sharing the air with other circuits',
+  },
+  {
+    id: 'C',
+    name: 'C',
+    short: 'Clipped direct',
+    note: 'Clipped direct to a surface — the reference case, best airflow',
+  },
+  {
+    id: 'D',
+    name: 'D',
+    short: 'In ground',
+    note: 'Buried — heat has to conduct through soil, and depth matters',
+  },
+  {
+    id: 'E',
+    name: 'E',
+    short: 'Free air / tray',
+    note: 'On a perforated tray or ladder in free air',
+  },
+] as const;
+
+const INSULATION = [
+  { value: '0', label: 'None' },
+  { value: '50', label: '50 mm' },
+  { value: '100', label: '100 mm' },
+  { value: '200', label: 'Enclosed' },
+] as const;
+
+/**
+ * Real-world starting points.
+ *
+ * Each entry is a circuit someone would actually install, with the conditions
+ * that decide its answer. Nothing here hard-codes a result: the chip label, the
+ * popup card and the numbers inside it are all computed by `calculateCableSizing`
+ * at build time from `inputs`, so a preset can never disagree with the
+ * calculator, and the same `inputs` are shipped to the client as the field
+ * payload (one source of truth, in this file).
+ */
+interface PresetSpec {
+  id: string;
+  name: string;
+  /** connected load, spelled out so the card never divides an optional field */
+  watts: number;
+  /** what the far end of the scene draws */
+  load: 'lighting' | 'socket' | 'shower' | 'hob' | 'ev' | 'motor';
+  where: string;
+  inputs: CableSizingInputs;
+  story: string;
+  why: string;
+  checks: string[];
+  refs: string;
+}
+
+const PRESETS: PresetSpec[] = [
+  {
+    id: 'shower',
+    watts: 8500,
+    name: '8.5 kW shower',
+    load: 'shower',
+    where: 'Bathroom, 14 m of cable clipped direct in the loft',
+    inputs: {
+      systemType: 'single-phase',
+      voltageVolts: 230,
+      powerWatts: 8500,
+      powerFactor: 1.0,
+      runLengthMeters: 14,
+      circuitFunction: 'power',
+      installationMethod: 'C',
+      conductorMaterial: 'copper',
+      ambientTempC: 30,
+      groupingCircuits: 1,
+      thermalInsulationMm: 0,
+      fuseTypeCc: false,
+    },
+    story:
+      'A 30 A–45 A shower is the heaviest thing in most houses that runs for twenty minutes at a time. The element is a plain resistance, so the power factor is 1.0 and the design current is simply kW ÷ volts.',
+    why: 'Heat decides this one. The cable must carry the full 40 A device rating after derating, and only 6 mm² in method C does that. Volt drop is a comfortable 1.6% by comparison.',
+    checks: [
+      'The isolator and the shower are on the same radial — no spurs off the shower itself.',
+      'Metal tray or bonded frame: the CPC has to survive a fault in a wet room.',
+      '30 mA RCD protection is mandatory on a bathroom supply.',
+    ],
+    refs: 'BS 7671 Reg 702.410.3 · Table 4D5A method C · Reg 525.1 (5% other uses)',
+  },
+  {
+    id: 'ev',
+    watts: 7400,
+    name: '7.4 kW EV wallbox',
+    load: 'ev',
+    where: 'Garage, 25 m in conduit sharing a wall with another circuit',
+    inputs: {
+      systemType: 'single-phase',
+      voltageVolts: 230,
+      powerWatts: 7400,
+      powerFactor: 0.98,
+      runLengthMeters: 25,
+      circuitFunction: 'power',
+      installationMethod: 'B',
+      conductorMaterial: 'copper',
+      ambientTempC: 35,
+      groupingCircuits: 2,
+      thermalInsulationMm: 0,
+      fuseTypeCc: false,
+    },
+    story:
+      'A 32 A home charger runs at full load for hours, overnight, inside a garage that never gets below 35 °C in summer. It is a continuous load, which is why the installation is judged on the cable, not on the charger.',
+    why: 'The deratings, not the amps, move this size up. 32 A in method C would pass on 6 mm², but in conduit (method B), at 35 °C, grouped with a second circuit, the required It climbs to 53 A and 6 mm² falls short.',
+    checks: [
+      'Type A or Type B RCD, or a DC fault device built into the wallbox (Reg 722.411).',
+      'The 30 A or 32 A device is a dedicated one — nothing else shares this radial.',
+      'Charge power is capped by the installer settings, so the cable never sees more than Ib.',
+    ],
+    refs: 'BS 7671 Reg 722.410.3 · Table 4D5B method B · Appendix 4 grouping Ca/Cg',
+  },
+  {
+    id: 'ev-22',
+    watts: 22000,
+    name: '22 kW three-phase',
+    load: 'ev',
+    where: 'Three-phase board to a car-port wallbox, 18 m in conduit',
+    inputs: {
+      systemType: 'three-phase',
+      voltageVolts: 400,
+      powerWatts: 22000,
+      powerFactor: 0.99,
+      runLengthMeters: 18,
+      circuitFunction: 'power',
+      installationMethod: 'B',
+      conductorMaterial: 'copper',
+      ambientTempC: 35,
+      groupingCircuits: 2,
+      thermalInsulationMm: 0,
+      fuseTypeCc: false,
+    },
+    story:
+      'Three phases split the same kilowatts by √3, so a 22 kW box only draws 32 A per phase — the same current as a single-phase 7.4 kW charger, at three times the power.',
+    why: 'Watch the neutral: at 22 kW the load is balanced, so the line conductors do the work and 10 mm² is enough on the tables. If a phase trips, an EVSE stops charging rather than running the car on two phases.',
+    checks: [
+      'Confirm the supply really is three-phase at the board before sizing anything.',
+      'Type B RCD (or the wallbox\u2019s own monitoring) — three-phase boxes do not suit a plain Type A.',
+      'The volt-drop ceiling is measured against 400 V, so it is far more forgiving in volts.',
+    ],
+    refs: 'IEC 60364-5-52 Table B.52.4 · BS 7671 Reg 525.1 · Table 4D5B',
+  },
+  {
+    id: 'hob',
+    watts: 10500,
+    name: '10.5 kW induction hob',
+    load: 'hob',
+    where: 'Kitchen, 10 m radial from the board under the floorboards',
+    inputs: {
+      systemType: 'single-phase',
+      voltageVolts: 230,
+      powerWatts: 10500,
+      powerFactor: 1.0,
+      runLengthMeters: 10,
+      circuitFunction: 'power',
+      installationMethod: 'C',
+      conductorMaterial: 'copper',
+      ambientTempC: 30,
+      groupingCircuits: 1,
+      thermalInsulationMm: 0,
+      fuseTypeCc: false,
+    },
+    story:
+      'All four zones and the oven can be on at once, which is why a hob is treated as a fixed 10.5 kW load and never as diversity. The cable runs behind a kitchen wall, warm and enclosed.',
+    why: 'At 45.7 A the 50 A device needs a cable rated 50 A after derating: 10 mm² in method C at 65 A. A shorter run does not help, because the constraint here is current, not volts.',
+    checks: [
+      'A 45 A or 50 A switch, not a plug — and never a 32 A shared with an oven.',
+      'Diversity on a control unit with an oven *is* allowed (Appendix 4 Note 4): hob + oven can be reduced.',
+      'Leave service slack: the unit is pulled out of its housing to be worked on.',
+    ],
+    refs: 'BS 7671 Appendix 4 Ch. 4 Note 4 · Table 4D5A · Reg 525.1',
+  },
+  {
+    id: 'lighting',
+    watts: 800,
+    name: 'Loft lighting run',
+    load: 'lighting',
+    where: 'Attic, 40 m buried under 200 mm of insulation, 40 °C',
+    inputs: {
+      systemType: 'single-phase',
+      voltageVolts: 230,
+      powerWatts: 800,
+      powerFactor: 0.95,
+      runLengthMeters: 40,
+      circuitFunction: 'lighting',
+      installationMethod: 'A',
+      conductorMaterial: 'copper',
+      ambientTempC: 40,
+      groupingCircuits: 1,
+      thermalInsulationMm: 200,
+      fuseTypeCc: false,
+    },
+    story:
+      'Eight LED fittings in a loft. The load is trivial — 3.7 A — and the lighting circuit is the one place BS 7671 asks for a tighter volt-drop ceiling: 3% instead of 5%, because lamps are sensitive to voltage.',
+    why: 'This is the classic trap. The current would pass on 1.0 mm², but the run is method A (touching insulation) at 40 °C, so Ci 0.5 and Ca 0.87 knock the capacity down and the 6 A device needs 13.8 A of It. 1.5 mm² just clears it.',
+    checks: [
+      'Loft wiring must not be chased under insulation that can\u2019t be inspected — leave it visible or trunk it.',
+      'On a 3% ceiling, 1.5 mm² at 40 m is 1.85%: a longer run would need 2.5 mm² for volts, not heat.',
+      'If a future feeder cable is added to the same bundle, Cg applies to both.',
+    ],
+    refs: 'BS 7671 Table 4A1 (Ci, Ca) · Reg 525.1 3% lighting · Table 4D5A method A',
+  },
+  {
+    id: 'workshop',
+    watts: 6500,
+    name: 'Workshop radial',
+    load: 'socket',
+    where: 'Outbuilding, 28 m in conduit with the lighting circuit, 35 °C',
+    inputs: {
+      systemType: 'single-phase',
+      voltageVolts: 230,
+      powerWatts: 6500,
+      powerFactor: 0.95,
+      runLengthMeters: 28,
+      circuitFunction: 'power',
+      installationMethod: 'B',
+      conductorMaterial: 'copper',
+      ambientTempC: 35,
+      groupingCircuits: 2,
+      thermalInsulationMm: 0,
+      fuseTypeCc: false,
+    },
+    story:
+      'A 32 A radial serving four sockets, a compressor and a bench supply. Motors and compressors are the reason the power factor is not 1.0, and the reason volt drop is checked at starting as well as running.',
+    why: '29.7 A of running current, a 32 A device, and It 42.6 A after the conduit and grouping deratings: 10 mm². 6 mm² fails on heat at 41 A, and it is only a 28 m run, so volts never had a chance to bite.',
+    checks: [
+      'Compressor starting current is 6× for a second — volt drop shows as a lamp flicker at start-up.',
+      'Sockets over 20 A in a building under construction need 30 mA RCD (Reg 411.3.2, A4 change).',
+      'Keep the run radial and label it; do not loop it into the house ring.',
+    ],
+    refs: 'BS 7671 Reg 411.3.2 · Table 4D5B · Reg 525.1 (5%)',
+  },
+  {
+    id: 'shed',
+    watts: 2500,
+    name: 'Garden office, 95 m',
+    load: 'socket',
+    where: 'Long single-phase run to a garden office, on a tray in free air',
+    inputs: {
+      systemType: 'single-phase',
+      voltageVolts: 230,
+      powerWatts: 2500,
+      powerFactor: 0.95,
+      runLengthMeters: 95,
+      circuitFunction: 'power',
+      installationMethod: 'E',
+      conductorMaterial: 'copper',
+      ambientTempC: 30,
+      groupingCircuits: 1,
+      thermalInsulationMm: 0,
+      fuseTypeCc: false,
+    },
+    story:
+      'A laptop, a small heater and three sockets — 2.5 kW — but 95 m of cable to deliver it. Long runs are the one place where the amps say \u201csmall cable\u201d and the volts say otherwise.',
+    why: 'Volt drop decides, by a wide margin. Thermally 1.5 mm² would carry 16 A comfortably; the 5% ceiling at 95 m needs 6 mm², four sizes up, purely to hold the voltage.',
+    checks: [
+      'A 95 m single-phase run is a good argument for three-phase, or for a lower load.',
+      'Burying this in ground (method D) changes the ampacity, not the volt-drop answer.',
+      'Above 100 m, IEC Annex G allows +0.005% per metre (capped at +0.5%) — worth knowing before you upsize twice.',
+    ],
+    refs: 'IEC 60364-5-52 Annex G Table G.52.1 · BS 7671 Reg 525.1 · Table 4D5E',
+  },
+  {
+    id: 'motor',
+    watts: 11000,
+    name: '11 kW three-phase motor',
+    load: 'motor',
+    where: 'Machine room, 45 m on a perforated cable tray with two other circuits',
+    inputs: {
+      systemType: 'three-phase',
+      voltageVolts: 400,
+      powerWatts: 11000,
+      powerFactor: 0.85,
+      runLengthMeters: 45,
+      circuitFunction: 'power',
+      installationMethod: 'E',
+      conductorMaterial: 'copper',
+      ambientTempC: 30,
+      groupingCircuits: 3,
+      thermalInsulationMm: 0,
+      fuseTypeCc: false,
+    },
+    story:
+      'An 11 kW motor draws 18.7 A at 400 V with a power factor of 0.85, and the starter is usually a DOL with a motor protection relay. Cables here are grouped with two other machine feeds on the same tray.',
+    why: 'Grouping is the whole story: three circuits side by side gives Cg 0.7, so 2.5 mm² on tray (30 A) is needed rather than 1.5 mm². Volt drop at 3.3% of the 400 V ceiling is not the binding gate.',
+    checks: [
+      'Check the starter type: DOL starting at 6× Ib must not stall contactors elsewhere on the board.',
+      'Motor circuits use aBS 60947-4-1 combination; the cable must survive the overload as well as the short circuit.',
+      'On a tray, spacing between circuits is worth more than the next size of cable.',
+    ],
+    refs: 'IEC 60364-5-52 Table B.52.4 · grouping Cg (Table 4C1) · Reg 525.1',
+  },
+];
+
+/** Everything below is derived, so a chip, a card and the answer agree. */
+const presetCards = PRESETS.map((preset) => ({
+  ...preset,
+  result: calculateCableSizing(preset.inputs),
+  fields: {
+    'cs-system-type': preset.inputs.systemType,
+    'cs-voltage': String(preset.inputs.voltageVolts),
+    'cs-power': String(preset.watts / 1000),
+    'cs-pf': preset.inputs.powerFactor.toFixed(2),
+    'cs-length': String(preset.inputs.runLengthMeters),
+    'cs-temp': String(preset.inputs.ambientTempC),
+    'cs-grouping': String(preset.inputs.groupingCircuits),
+    'cs-insulation': String(preset.inputs.thermalInsulationMm),
+    'cs-circuit-type': preset.inputs.circuitFunction,
+    'cs-install-method': preset.inputs.installationMethod,
+    'cs-material': preset.inputs.conductorMaterial,
+    'cs-fuse-cc': preset.inputs.fuseTypeCc ? '1' : '0',
+    'cs-load': preset.load,
+  },
+}));
+const presetJson = JSON.stringify(
+  Object.fromEntries(presetCards.map((c) => [c.id, c.fields])),
+).replace(/<\//g, '<\\/');
+const LOAD_LABEL: Record<PresetSpec['load'], string> = {
+  lighting: 'a lighting run',
+  socket: 'a socket radial',
+  shower: 'a shower unit',
+  hob: 'a hob',
+  ev: 'an EV wallbox',
+  motor: 'a motor',
+};
 ---
 
-<div class="tool-panels-container">
-  <!-- Left Inputs Panel -->
-  <section class="calc-panel input-panel" aria-label="Circuit Parameters">
-    <div class="panel-header">
-      <div class="panel-header-title">
-        <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="2" y="7" width="20" height="10" rx="2"></rect>
-          <line x1="6" y1="12" x2="6.01" y2="12"></line>
-          <line x1="10" y1="12" x2="10.01" y2="12"></line>
-          <line x1="14" y1="12" x2="14.01" y2="12"></line>
-          <line x1="18" y1="12" x2="18.01" y2="12"></line>
+<!-- ═══ scene view tools ═══ -->
+<div class="ts-hud-tools" id="cs-view-tools">
+  <button type="button" class="ts-tool-btn active" id="cs-scene-pause" aria-pressed="true" title="Pause or resume the scene animation">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
+      <polygon points="5 3 19 12 5 21 5 3"></polygon>
+    </svg>
+    <span>Animate</span>
+  </button>
+  <label class="ts-tool-btn ts-tool-btn--range" for="cs-explode" title="Pull the layers apart">
+    <span>Explode</span>
+    <input type="range" id="cs-explode" min="0" max="100" value="42" />
+  </label>
+  <button type="button" class="ts-tool-btn ts-tool-btn--3d" id="cs-3d-toggle" aria-pressed="false" title="Switch to an orbitable 3D cutaway (loads the 3D renderer on demand)">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+      <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+      <line x1="12" y1="22.08" x2="12" y2="12"></line>
+    </svg>
+    <span>3D view</span>
+  </button>
+</div>
+
+<!-- sheet backdrop lives at the stage level: a transformed panel could not
+     contain a fixed-position scrim, it would clip to the panel instead ── -->
+<div id="cs-scrim" class="ts-scrim" hidden></div>
+
+<!-- ═══ left: circuit + environment ═══ -->
+<div class="ts-panel ts-panel--inputs" id="cs-inputs-container">
+  <section class="ts-panel-shell" id="cs-inputs-panel" aria-label="Circuit parameters">
+    <!--
+      The grabber is the drawer's handle: it only renders inside a drawer layout
+      (see `.ts-sheet-grabber` in tool-stage.css) and it is a real button so the
+      expand/collapse gesture is available without a touchscreen.
+    -->
+    <button
+      type="button"
+      class="ts-sheet-grabber"
+      aria-label="Drag the drawer up for more, or pull it down to close"
+    ></button>
+    <div class="ts-panel-header">
+      <div class="ts-panel-title">
+        <EmojiIcon name="plug" />
+        <span>CIRCUIT &amp; ROUTE</span>
+      </div>
+      <button type="button" class="ts-sheet-close" data-sheet-close="inputs" aria-label="Close the circuit drawer">×</button>
+      <button type="button" class="ts-panel-collapse" id="cs-collapse-inputs" aria-expanded="true" aria-label="Collapse the inputs panel">
+        <svg class="chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="18 15 12 9 6 15"></polyline>
         </svg>
-        <span>Circuit Specifications</span>
-      </div>
-      <div class="quick-presets-row">
-        <button type="button" class="preset-chip" data-preset="shower">8.5kW Shower</button>
-        <button type="button" class="preset-chip" data-preset="ev">7.4kW EV</button>
-        <button type="button" class="preset-chip" data-preset="cooker">32A Cooker</button>
-        <button type="button" class="preset-chip" data-preset="lighting">6A Lighting</button>
-      </div>
+      </button>
     </div>
 
-    <form class="calc-form" id="cable-sizing-form" novalidate>
-      <!-- Regional wiring standard (BS 7671 / IEC 60364) -->
+    <form class="ts-panel-body" id="cs-inputs-body" name="cable-sizing" novalidate>
       <StandardSelector inputId="cs-standard" noteId="cs-standard-note" />
 
-      <!-- Load Type & Supply -->
-      <div class="form-row grid-2">
-        <div class="form-group">
-          <label for="cs-system-type">Supply System</label>
-          <select id="cs-system-type" name="systemType" class="calc-select">
-            <option value="single-phase" selected>Single-Phase AC (1-Φ)</option>
-            <option value="three-phase">Three-Phase AC (3-Φ)</option>
-            <option value="dc">Direct Current (DC)</option>
-          </select>
+      <div class="ts-field">
+        <div class="ts-field-row">
+          <span class="ts-label" id="cs-system-label">Supply system</span>
+          <span class="ts-sublabel">sets the Ib formula</span>
         </div>
-        <div class="form-group">
-          <label for="cs-voltage">Supply Voltage (V)</label>
-          <input type="number" id="cs-voltage" name="voltage" value="230" min="12" max="1000" class="calc-input" />
+        <div class="ts-seg" role="radiogroup" aria-labelledby="cs-system-label" data-cs-group="system">
+          <button type="button" class="ts-seg-btn active" data-cs-value="single-phase" role="radio" aria-checked="true" tabindex="0">1-Φ AC</button>
+          <button type="button" class="ts-seg-btn" data-cs-value="three-phase" role="radio" aria-checked="false" tabindex="-1">3-Φ AC</button>
+          <button type="button" class="ts-seg-btn" data-cs-value="dc" role="radio" aria-checked="false" tabindex="-1">DC</button>
         </div>
+        <select id="cs-system-type" class="cs-hidden-native" tabindex="-1" aria-hidden="true">
+          <option value="single-phase" selected>Single-Phase AC (1-Φ)</option>
+          <option value="three-phase">Three-Phase AC (3-Φ)</option>
+          <option value="dc">Direct Current (DC)</option>
+        </select>
       </div>
 
-      <!-- Power & Current -->
-      <div class="form-row grid-2">
-        <div class="form-group">
-          <label for="cs-power">Load Power (kW)</label>
-          <input type="number" id="cs-power" name="powerKw" value="7.2" step="0.1" min="0.1" max="500" class="calc-input" />
-        </div>
-        <div class="form-group">
-          <label for="cs-pf">Power Factor (cos φ)</label>
-          <input type="number" id="cs-pf" name="powerFactor" value="1.00" step="0.01" min="0.5" max="1.0" class="calc-input" />
-        </div>
-      </div>
-
-      <!-- Run Length & Circuit Function -->
-      <div class="form-row grid-2">
-        <div class="form-group">
-          <label for="cs-length">One-Way Run Length (m)</label>
-          <input type="number" id="cs-length" name="length" value="18" min="1" max="500" class="calc-input" />
-        </div>
-        <div class="form-group">
-          <label for="cs-circuit-type">Circuit Function</label>
-          <select id="cs-circuit-type" name="circuitType" class="calc-select">
-            <option value="power" selected>Power / Sockets / Shower (5% max)</option>
-            <option value="lighting" id="cs-lighting-option">Lighting Circuit (3% max — BS 7671)</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Installation Method & Material -->
-      <div class="form-row grid-2">
-        <div class="form-group">
-          <label for="cs-install-method">Installation Method (BS 7671)</label>
-          <select id="cs-install-method" name="installMethod" class="calc-select">
-            <option value="C" selected>Method C: Clipped direct to wall</option>
-            <option value="B">Method B: In conduit or trunking on wall</option>
-            <option value="A">Method A: Enclosed in thermal insulation</option>
-            <option value="D">Method D: In ground or direct underground</option>
-            <option value="E">Method E: In free air / cable tray</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="cs-material">Conductor Material</label>
-          <select id="cs-material" name="material" class="calc-select">
-            <option value="copper" selected>Copper (Cu)</option>
-            <option value="aluminum">Aluminum (Al)</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Environmental Derating Factors -->
-      <div class="derating-box">
-        <div class="derating-title">Environmental Correction Factors</div>
-        <div class="form-row grid-3">
-          <div class="form-group">
-            <label for="cs-temp">Ambient Temp (°C)</label>
-            <input type="number" id="cs-temp" name="temp" value="30" min="10" max="60" class="calc-input" />
+      <div class="ts-grid-2">
+        <div class="ts-field">
+          <label class="ts-label" for="cs-voltage">Voltage</label>
+          <div class="ts-input-wrap">
+            <input type="number" id="cs-voltage" name="voltage" class="ts-input" value="230" min="12" max="1000" step="1" />
+            <span class="ts-unit">V</span>
           </div>
-          <div class="form-group">
-            <label for="cs-grouping">Grouped Circuits</label>
-            <input type="number" id="cs-grouping" name="grouping" value="1" min="1" max="20" class="calc-input" />
+        </div>
+        <div class="ts-field">
+          <label class="ts-label" for="cs-pf">Power factor</label>
+          <div class="ts-input-wrap">
+            <input type="number" id="cs-pf" name="powerFactor" class="ts-input" value="1.00" min="0.5" max="1" step="0.01" />
+            <span class="ts-unit">cos φ</span>
           </div>
-          <div class="form-group">
-            <label for="cs-insulation">Thermal Insulation</label>
-            <select id="cs-insulation" name="insulation" class="calc-select">
-              <option value="0" selected>None (0 mm)</option>
-              <option value="50">50 mm contact</option>
-              <option value="100">100 mm contact</option>
-              <option value="200">Totally enclosed</option>
+        </div>
+      </div>
+
+      <div class="ts-field">
+        <div class="ts-field-row">
+          <label class="ts-label" for="cs-power">Load power</label>
+          <span class="ts-sublabel" id="cs-power-hint">7.2 kW ≈ 31.3 A at 230 V</span>
+        </div>
+        <div class="ts-input-wrap">
+          <input type="number" id="cs-power" name="powerKw" class="ts-input" value="7.2" min="0.1" max="500" step="0.1" />
+          <span class="ts-unit">kW</span>
+        </div>
+      </div>
+
+      <div class="ts-field">
+        <div class="ts-field-row">
+          <label class="ts-label" for="cs-length">One-way run length</label>
+          <output class="ts-sublabel" for="cs-length" id="cs-length-out">18 m</output>
+        </div>
+        <input type="range" id="cs-length" name="length" class="cs-range" min="1" max="200" step="1" value="18" />
+        <div class="cs-range-scale" aria-hidden="true"><span>1 m</span><span>200 m</span></div>
+      </div>
+
+      <div class="ts-field">
+        <div class="ts-field-row">
+          <span class="ts-label" id="cs-method-label">How the cable is fixed</span>
+          <span class="ts-sublabel">BS 7671 reference method</span>
+        </div>
+        <div class="cs-method-grid" role="radiogroup" aria-labelledby="cs-method-label" data-cs-group="method">
+          {
+            METHODS.map((m) => (
+              <button
+                type="button"
+                class:list={['cs-method-btn', { active: m.id === 'C' }]}
+                data-cs-value={m.id}
+                role="radio"
+                aria-checked={m.id === 'C' ? 'true' : 'false'}
+                tabindex={m.id === 'C' ? 0 : -1}
+                title={m.note}
+              >
+                <span class="cs-method-key">{m.name}</span>
+                <span class="cs-method-short">{m.short}</span>
+                <svg class="cs-method-glyph" viewBox="0 0 40 26" aria-hidden="true" focusable="false">
+                  {
+                    m.id === 'A' && (
+                      <g>
+                        <rect x="2" y="2" width="36" height="22" rx="3" class="cs-glyph-fill" />
+                        <path d="M6 8h28M6 13h28M6 18h28" class="cs-glyph-line" />
+                        <circle cx="20" cy="13" r="4.4" class="cs-glyph-core" />
+                      </g>
+                    )
+                  }
+                  {
+                    m.id === 'B' && (
+                      <g>
+                        <rect x="4" y="6" width="32" height="14" rx="7" class="cs-glyph-fill" />
+                        <circle cx="15" cy="13" r="3.4" class="cs-glyph-core" />
+                        <circle cx="25" cy="13" r="3.4" class="cs-glyph-core" />
+                      </g>
+                    )
+                  }
+                  {
+                    m.id === 'C' && (
+                      <g>
+                        <path d="M2 20h36" class="cs-glyph-line" />
+                        <circle cx="20" cy="14" r="4.4" class="cs-glyph-core" />
+                        <path d="M10 20v-3M30 20v-3" class="cs-glyph-line" />
+                      </g>
+                    )
+                  }
+                  {
+                    m.id === 'D' && (
+                      <g>
+                        <path d="M2 10h36" class="cs-glyph-line" />
+                        <path d="M2 16h36M2 22h36" class="cs-glyph-line cs-glyph-faint" />
+                        <circle cx="20" cy="19" r="4" class="cs-glyph-core" />
+                      </g>
+                    )
+                  }
+                  {
+                    m.id === 'E' && (
+                      <g>
+                        <path d="M4 20h32" class="cs-glyph-line" />
+                        <path d="M9 20v-4M19 20v-4M29 20v-4" class="cs-glyph-line" />
+                        <circle cx="20" cy="12" r="4.2" class="cs-glyph-core" />
+                      </g>
+                    )
+                  }
+                </svg>
+              </button>
+            ))
+          }
+        </div>
+        <input type="hidden" id="cs-install-method" name="installMethod" value="C" />
+        <p class="cs-field-foot" id="cs-method-note">Clipped direct to a surface — the reference case, best airflow.</p>
+      </div>
+
+      <div class="ts-field">
+        <div class="ts-field-row">
+          <span class="ts-label" id="cs-insul-label">Thermal insulation around the run</span>
+          <span class="ts-sublabel">factor Ci</span>
+        </div>
+        <div class="ts-seg" role="radiogroup" aria-labelledby="cs-insul-label" data-cs-group="insulation">
+          {
+            INSULATION.map((o) => (
+              <button
+                type="button"
+                class:list={['ts-seg-btn', { active: o.value === '0' }]}
+                data-cs-value={o.value}
+                role="radio"
+                aria-checked={o.value === '0' ? 'true' : 'false'}
+                tabindex={o.value === '0' ? 0 : -1}
+              >
+                {o.label}
+              </button>
+            ))
+          }
+        </div>
+        <input type="hidden" id="cs-insulation" name="insulation" value="0" />
+      </div>
+
+      <div class="ts-field">
+        <div class="ts-field-row">
+          <label class="ts-label" for="cs-temp">Ambient temperature</label>
+          <output class="ts-sublabel" for="cs-temp" id="cs-temp-out">30 °C</output>
+        </div>
+        <input type="range" id="cs-temp" name="temp" class="cs-range" min="10" max="60" step="1" value="30" />
+        <div class="cs-range-scale" aria-hidden="true"><span>10 °C</span><span>loft 40 °C</span><span>60 °C</span></div>
+      </div>
+
+      <div class="ts-field">
+        <div class="ts-field-row">
+          <label class="ts-label" for="cs-grouping">Circuits grouped together</label>
+          <output class="ts-sublabel" for="cs-grouping" id="cs-grouping-out">1 circuit</output>
+        </div>
+        <input type="range" id="cs-grouping" name="grouping" class="cs-range" min="1" max="20" step="1" value="1" />
+        <div class="cs-range-scale" aria-hidden="true"><span>alone</span><span>in one tray, conduit or bundle</span></div>
+      </div>
+
+      <div class="ts-grid-2">
+        <div class="ts-field">
+          <label class="ts-label" for="cs-material">Conductor</label>
+          <div class="ts-select-wrap">
+            <select id="cs-material" name="material" class="ts-select">
+              <option value="copper" selected>Copper</option>
+              <option value="aluminum">Aluminium</option>
             </select>
+            <span class="ts-select-arrow">▾</span>
+          </div>
+        </div>
+        <div class="ts-field">
+          <label class="ts-label" for="cs-circuit-type">Circuit function</label>
+          <div class="ts-select-wrap">
+            <select id="cs-circuit-type" name="circuitType" class="ts-select">
+              <option value="power" selected>Power / sockets (5%)</option>
+              <option value="lighting" id="cs-lighting-option">Lighting (3% — BS 7671)</option>
+            </select>
+            <span class="ts-select-arrow">▾</span>
           </div>
         </div>
       </div>
+
+      <div class="ts-field">
+        <div class="ts-field-row">
+          <label class="ts-label" for="cs-load">The scene ends at</label>
+          <span class="ts-sublabel">drawing only — never the maths</span>
+        </div>
+        <div class="ts-select-wrap">
+          <select id="cs-load" name="sceneLoad" class="ts-select">
+            <option value="auto" selected>Auto — by circuit function</option>
+            <option value="lighting">A lighting run (bulbs dim when the drop is big)</option>
+            <option value="socket">A socket radial</option>
+            <option value="shower">A shower unit</option>
+            <option value="hob">An induction hob</option>
+            <option value="ev">An EV wallbox</option>
+            <option value="motor">A motor (heavy inductive load)</option>
+          </select>
+          <span class="ts-select-arrow">▾</span>
+        </div>
+      </div>
+
+      <div class="ts-field">
+        <span class="ts-label" id="cs-preset-label">Real-world starting points</span>
+        <div class="ts-chip-grid ts-chip-grid--presets" role="group" aria-labelledby="cs-preset-label">
+          {
+            presetCards.map((preset) => (
+              <button
+                type="button"
+                class:list={['ts-chip', { active: false }]}
+                data-preset={preset.id}
+                aria-pressed="false"
+                aria-haspopup="dialog"
+                title={`${preset.where} — press to read the run before loading it`}
+              >
+                <span class="ts-chip-name">{preset.name}</span>
+                <span class="ts-chip-meta">
+                  {preset.result.selectedCableMm2.toFixed(1)} mm² · {preset.result.designCurrentIb.toFixed(0)} A ·{' '}
+                  {preset.inputs.runLengthMeters} m
+                </span>
+              </button>
+            ))
+          }
+        </div>
+        <p class="cs-field-foot">
+          Press one to read the circuit behind the numbers — the run, the deratings, and why the
+          size lands where it does. Nothing changes until you press “Load this circuit”.
+        </p>
+        <!--
+          One source of truth: the chips, the cards and the field payload the client
+          applies are all rendered from PRESETS above, so no preset can drift away from
+          its own answer.
+        -->
+        <script is:inline type="application/json" id="cs-preset-data" set:html={presetJson} />
+      </div>
+
+      <label class="cs-check">
+        <input type="checkbox" id="cs-fuse-cc" name="fuseTypeCc" />
+        <span>Protected by a BS 3036 semi-enclosed fuse (adds the 0.725 factor)</span>
+      </label>
+      <!--
+        A form with no submit action: it gives the fields a real grouping for
+        autofill/keyboard behaviour and lets the engine bind one listener set,
+        while every change is computed live. `novalidate` keeps the browser from
+        second-guessing our own validation copy.
+      -->
+      <button type="submit" class="cs-form-sentinel" tabindex="-1" aria-hidden="true"></button>
     </form>
   </section>
+</div>
 
-  <!-- Right Results Panel -->
-  <section class="calc-panel result-panel" aria-label="Sizing Results">
-    <div class="panel-header">
-      <div class="panel-header-title">
-        <svg class="panel-icon text-emerald" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+<!-- ═══ right: the numbers ═══ -->
+<div class="ts-panel ts-panel--results" id="cs-results-container">
+  <section class="ts-panel-shell" id="cs-results-panel" aria-label="Sizing results" tabindex="-1">
+    <!--
+      The grabber is the drawer's handle: it only renders inside a drawer layout
+      (see `.ts-sheet-grabber` in tool-stage.css) and it is a real button so the
+      expand/collapse gesture is available without a touchscreen.
+    -->
+    <button
+      type="button"
+      class="ts-sheet-grabber"
+      aria-label="Drag the drawer up for more, or pull it down to close"
+    ></button>
+    <div class="ts-panel-header">
+      <div class="ts-panel-title">
+        <EmojiIcon name="clipboard" />
+        <span>SIZE &amp; PROOF</span>
+      </div>
+      <button type="button" class="ts-sheet-close" data-sheet-close="results" aria-label="Close the results drawer">×</button>
+      <button type="button" class="ts-panel-collapse" id="cs-collapse-results" aria-expanded="true" aria-label="Collapse the results panel">
+        <svg class="chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="18 15 12 9 6 15"></polyline>
         </svg>
-        <span>Recommended Conductor Sizing</span>
-      </div>
-      <div class="status-badge-pill" id="cs-status-badge">Compliant</div>
+      </button>
     </div>
 
-    <!-- Main Cable Size Hero Box -->
-    <div class="hero-size-card" id="cs-hero-card">
-      <div class="hero-size-label">RECOMMENDED MINIMUM CABLE SIZE</div>
-      <div class="hero-size-val">
-        <span id="cs-out-size">6.0</span> <span class="unit">mm²</span>
+    <div class="ts-panel-body" id="cs-results-body">
+      <div class="cs-hero" id="cs-hero-card" data-state="pass">
+        <div class="cs-hero-label">Smallest compliant size</div>
+        <div class="cs-hero-value">
+          <span id="cs-out-size">{r.selectedCableMm2.toFixed(1)}</span>
+          <span class="cs-hero-unit">mm²</span>
+        </div>
+        <div class="cs-hero-cpc">with <strong id="cs-out-cpc">{r.cpcCableMm2.toFixed(1)} mm²</strong> CPC</div>
+        <div class="cs-hero-badge" id="cs-status-badge">{badgeText}</div>
       </div>
-      <div class="hero-cpc-val">
-        Matching CPC Earth Conductor: <strong id="cs-out-cpc">2.5 mm²</strong>
-      </div>
+
+      <div class="cs-card" id="cs-hud" role="group" aria-labelledby="cs-hud-title">
+    <div class="ts-hud-title">
+      <span id="cs-hud-title">Derated capacity against the load</span>
+      <span class="cs-chip" id="cs-constraint-chip" data-constraint={r.limitingConstraint}>
+        {r.limitingConstraint === 'voltage-drop' ? 'volt drop sets this size' : 'heat sets this size'}
+      </span>
     </div>
 
-    <!-- Key Engineering Telemetry Metrics -->
-    <div class="metrics-grid">
-      <div class="metric-card">
-        <div class="metric-label">Design Current (Ib)</div>
-        <div class="metric-value" id="cs-out-ib">31.3 A</div>
+    <div class="cs-gauge" id="cs-gauge" data-state={r.status} data-edge={gaugeEdge} style={gaugeStyle}>
+      <div class="cs-gauge-scale">
+        <div class="cs-gauge-fill" id="cs-gauge-fill"></div>
+        <div class="cs-gauge-mark cs-gauge-mark--need" id="cs-gauge-need"><span>It</span></div>
+        <div class="cs-gauge-mark cs-gauge-mark--rating" id="cs-gauge-rating"><span>In</span></div>
+        <div class="cs-gauge-mark cs-gauge-mark--load" id="cs-gauge-load"><span>Ib</span></div>
       </div>
-      <div class="metric-card">
-        <div class="metric-label">Breaker Rating (In)</div>
-        <div class="metric-value" id="cs-out-in">32 A</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Required Capacity (It)</div>
-        <div class="metric-value" id="cs-out-it">32.0 A</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Cable Capacity (Iz)</div>
-        <div class="metric-value" id="cs-out-iz">47.0 A</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Voltage Drop (V)</div>
-        <div class="metric-value" id="cs-out-vdrop-v">4.1 V</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Voltage Drop (%)</div>
-        <div class="metric-value" id="cs-out-vdrop-pct">1.79%</div>
-      </div>
+      <p class="cs-gauge-caption" id="cs-gauge-caption" aria-live="polite">
+        {r.selectedCableMm2.toFixed(1)} mm² sheds its heat at {r.cableAmpacityIz.toFixed(0)} A and must cover{' '}
+        {r.requiredAmpacityIt.toFixed(1)} A after derating — {spare}% spare capacity.
+      </p>
     </div>
 
-    <!-- Derating Factor Breakdown -->
-    <div class="derating-breakdown-card">
-      <div class="derating-header">Derating Breakdown (Ca × Cg × Ci = Total Factor)</div>
-      <div class="derating-factors-row">
-        <span>Temp (Ca): <strong id="cs-factor-ca">1.00</strong></span>
-        <span>Grouping (Cg): <strong id="cs-factor-cg">1.00</strong></span>
-        <span>Insulation (Ci): <strong id="cs-factor-ci">1.00</strong></span>
-        <span>Total: <strong id="cs-factor-total">1.00</strong></span>
-      </div>
+    <div class="cs-gauge-foot">
+      <span class="cs-mini">total derating <strong id="cs-chip-derate">{r.correctionFactors.totalDerating.toFixed(2)}</strong></span>
+      <span class="cs-mini">volt drop <strong id="cs-chip-drop">{r.voltageDropPercent.toFixed(2)}%</strong> of{' '}
+        <span id="cs-chip-ceiling">{r.maxPermissibleVdropPercent}%</span></span>
+      <button type="button" class="cs-why-btn" id="cs-why-btn" aria-expanded="false" aria-controls="cs-why-pop">
+        Why this size?
+      </button>
     </div>
 
-    <!-- Summary Notice Box -->
-    <div class="compliance-summary-box" id="cs-summary-box">
-      <div class="summary-text" id="cs-summary-text">
-        Loading sizing calculation...
+    <div class="cs-why" id="cs-why-pop" hidden>
+      <div class="cs-waterfall" id="cs-why-bars" role="img" aria-label="Factor waterfall: each environmental correction multiplied into the total derating"></div>
+      <p class="cs-why-text" id="cs-why-text"></p>
+    </div>
       </div>
-      <p class="standard-result-echo" id="cs-standard-echo">
+
+      <div class="cs-metrics">
+        <div class="cs-metric">
+          <span class="cs-metric-label">Design current Ib</span>
+          <span class="cs-metric-value" id="cs-out-ib">{r.designCurrentIb.toFixed(1)} A</span>
+        </div>
+        <div class="cs-metric">
+          <span class="cs-metric-label">Device rating In</span>
+          <span class="cs-metric-value" id="cs-out-in">{r.protectiveDeviceRatingIn} A</span>
+        </div>
+        <div class="cs-metric">
+          <span class="cs-metric-label">Capacity needed It</span>
+          <span class="cs-metric-value" id="cs-out-it">{r.requiredAmpacityIt.toFixed(1)} A</span>
+        </div>
+        <div class="cs-metric">
+          <span class="cs-metric-label">Cable capacity Iz</span>
+          <span class="cs-metric-value" id="cs-out-iz">{r.cableAmpacityIz.toFixed(1)} A</span>
+        </div>
+        <div class="cs-metric">
+          <span class="cs-metric-label">Volt drop</span>
+          <span class="cs-metric-value" id="cs-out-vdrop-v">{r.voltageDropVolts.toFixed(1)} V</span>
+        </div>
+        <div class="cs-metric">
+          <span class="cs-metric-label">Volt drop %</span>
+          <span class="cs-metric-value" id="cs-out-vdrop-pct">{r.voltageDropPercent.toFixed(2)}%</span>
+        </div>
+      </div>
+
+      <div class="cs-factors">
+        <div class="cs-factors-head">Derating applied to the cable</div>
+        <div class="cs-factors-row">
+          <span>ambient Ca <strong id="cs-factor-ca">{r.correctionFactors.ca.toFixed(2)}</strong></span>
+          <span>grouping Cg <strong id="cs-factor-cg">{r.correctionFactors.cg.toFixed(2)}</strong></span>
+          <span>insulation Ci <strong id="cs-factor-ci">{r.correctionFactors.ci.toFixed(2)}</strong></span>
+          <span class="cs-factors-total">total <strong id="cs-factor-total">{r.correctionFactors.totalDerating.toFixed(2)}</strong></span>
+        </div>
+
+      <!-- the IEC ladder, drawn to relative conductor area -->
+      <div class="cs-card">
+        <div class="cs-card-title">Size ladder · method C · copper</div>
+        <div class="cs-ladder" role="list" aria-label="Standard conductor sizes; the chosen one is highlighted and everything below it is marked as insufficient">
+          {
+            SIZES.map((size) => (
+              <span
+                class:list={['cs-rung', { 'is-selected': size === r.selectedCableMm2, 'is-short': size < r.selectedCableMm2 }]}
+                data-size={String(size)}
+                role="listitem"
+                style={`--dot: ${(4.5 + Math.sqrt(size) * 2.1).toFixed(1)}px`}
+              >
+                <span class="cs-rung-dot" />
+                <span class="cs-rung-size">{size % 1 === 0 ? size.toFixed(0) : size.toFixed(1)}</span>
+                <span class="cs-rung-amp">{BASE_AMPACITY_TABLE.C[size] ?? 0} A</span>
+              </span>
+            ))
+          }
+        </div>
+      </div>
+
+      <!-- where heat stops being the problem and length starts -->
+      <div class="cs-card" id="cs-chart-card">
+        <div class="cs-card-title">What sets your size: heat or length?</div>
+        <svg class="cs-chart" viewBox="0 0 320 118" role="img" aria-label={chartLabel}>
+          <line class="cs-chart-axis" x1={CHART.x} y1={CHART.y + CHART.h} x2={CHART.x + CHART.w} y2={CHART.y + CHART.h} />
+          {
+            [30, 60, 90, 120].map((tick) => (
+              <g class="cs-chart-grid">
+                <line x1={chartX(tick)} y1={CHART.y - 2} x2={chartX(tick)} y2={CHART.y + CHART.h} />
+                <text class="cs-chart-tick" x={chartX(tick)} y={CHART.y + CHART.h + 12} text-anchor="middle">
+                  {tick}m
+                </text>
+              </g>
+            ))
+          }
+          <path class="cs-line cs-line--thermal" d={thermalPath} />
+          <path class="cs-line cs-line--drop" d={dropPath} />
+          {
+            crossover && (
+              <g class="cs-cross" transform={`translate(${chartX(crossover.lengthMeters).toFixed(1)} 0)`}>
+                <line class="cs-cross-line" x1="0" y1={CHART.y - 4} x2="0" y2={CHART.y + CHART.h} />
+                <circle class="cs-cross-dot" cx="0" cy={chartY(crossover.thermalMm2).toFixed(1)} r="3.5" />
+              </g>
+            )
+          }
+          <text class="cs-legend cs-legend--thermal" x="4" y="112">
+            <tspan class="cs-swatch">■</tspan> ampacity gate
+          </text>
+          <text class="cs-legend cs-legend--drop" x="112" y="112">
+            <tspan class="cs-swatch">■</tspan> volt-drop gate
+          </text>
+          <text class="cs-chart-foot" x="212" y="112">{crossover ? `~${Math.round(crossover.lengthMeters)} m` : 'heat governs'}</text>
+        </svg>
+      </div>
+
+      </div>
+
+      <p class="cs-summary" id="cs-summary-text">{r.summary}</p>
+      <p class="cs-echo" id="cs-standard-echo">
         Result verified against <strong>BS 7671:2018+A4:2026 (UK)</strong> — Appendix 4 Tables 4D5/4B1/4C1 and 3%/5% voltage-drop limits.
       </p>
-      <button type="button" class="share-calc-btn" id="cs-copy-link">
-        🔗 Copy calculation link — inputs are encoded in the URL, share it with a colleague
+      <button type="button" class="cs-share" id="cs-copy-link">
+        <EmojiIcon name="link" /> <span data-share-label>Copy calculation link — inputs travel inside the URL</span>
       </button>
     </div>
   </section>
 </div>
 
+<!-- ═══ the drawer handle: pinned to the bottom of a touch layout ═══ -->
+<div class="ts-mobile-bar" id="cs-mobile-bar" data-status="pass" role="group" aria-label="Calculator drawers">
+  <span class="cs-mobile-dot" id="cs-mobile-dot" data-status="pass" aria-hidden="true"></span>
+  <button type="button" class="ts-button ts-mobile-bar--inputs" id="cs-mob-inputs" data-sheet="inputs">
+    <EmojiIcon name="plug" /> <span>Circuit</span>
+  </button>
+  <button type="button" class="ts-mobile-bar--result" id="cs-mob-results" data-sheet="results">
+    <span class="ts-mobile-out" id="cs-mobile-size">{r.selectedCableMm2.toFixed(1)} mm²</span>
+    <span class="cs-mobile-sub" id="cs-mobile-drop">{r.voltageDropPercent.toFixed(2)}% of {r.maxPermissibleVdropPercent}%</span>
+  </button>
+</div>
+
+<!-- ═══ preset card: what the run actually is, before it changes anything ═══ -->
+<div class="cs-preset-backdrop" id="cs-preset-backdrop" hidden>
+  <div class="cs-preset-dialog" role="dialog" aria-modal="true" aria-labelledby="cs-preset-title">
+    <header class="cs-preset-head">
+      <span class="cs-preset-eyebrow">Real-world circuit</span>
+      <h3 class="cs-preset-title" id="cs-preset-title">Preset</h3>
+      <button type="button" class="cs-preset-close" id="cs-preset-close" aria-label="Close the preset details">×</button>
+    </header>
+    <div class="cs-preset-body" id="cs-preset-body"></div>
+    <footer class="cs-preset-foot">
+      <button type="button" class="ts-button" id="cs-preset-apply">
+        <EmojiIcon name="plug" /> <span data-preset-apply-label>Load this circuit</span>
+      </button>
+    </footer>
+  </div>
+</div>
+
+<!--
+  Each card is server-rendered once and cloned into the dialog on demand: the
+  prose is readable with JavaScript off (it sits in the page) and crawlable, and
+  every figure inside it came from `calculateCableSizing`.
+-->
+{
+  presetCards.map((preset) => {
+    const p = preset.result;
+    return (
+      <template id={`cs-preset-tpl-${preset.id}`} data-title={preset.name}>
+        <p class="cs-preset-where">{preset.where}</p>
+        <dl class="cs-preset-facts">
+          <div>
+            <dt>Connected load</dt>
+            <dd>
+              {preset.watts >= 1000
+                ? `${(preset.watts / 1000).toFixed(1)} kW`
+                : `${preset.watts} W`}{' '}
+              at {preset.inputs.voltageVolts} V {preset.inputs.systemType === 'three-phase' ? '3-Φ' : '1-Φ'}
+            </dd>
+          </div>
+          <div>
+            <dt>Design current Ib</dt>
+            <dd>{p.designCurrentIb.toFixed(1)} A → {p.protectiveDeviceRatingIn} A device</dd>
+          </div>
+          <div>
+            <dt>Run</dt>
+            <dd>
+              {preset.inputs.runLengthMeters} m, method {preset.inputs.installationMethod},{' '}
+              {preset.inputs.ambientTempC} °C, {preset.inputs.groupingCircuits} circuit
+              {preset.inputs.groupingCircuits > 1 ? 's' : ''} together
+            </dd>
+          </div>
+          <div>
+            <dt>After derating</dt>
+            <dd>
+              It ≥ {p.requiredAmpacityIt.toFixed(1)} A → {p.selectedCableMm2.toFixed(1)} mm² at{' '}
+              {p.cableAmpacityIz.toFixed(0)} A
+            </dd>
+          </div>
+          <div>
+            <dt>Volt drop</dt>
+            <dd>
+              {p.voltageDropVolts.toFixed(2)} V ({p.voltageDropPercent.toFixed(2)}%) of{' '}
+              {p.maxPermissibleVdropPercent}%
+            </dd>
+          </div>
+          <div>
+            <dt>Earth conductor</dt>
+            <dd>{p.cpcCableMm2.toFixed(1)} mm² CPC</dd>
+          </div>
+          <div>
+            <dt>Decided by</dt>
+            <dd>{p.limitingConstraint === 'voltage-drop' ? 'volt drop' : 'heat (ampacity)'}</dd>
+          </div>
+        </dl>
+        <p class="cs-preset-story">{preset.story}</p>
+        <p class="cs-preset-why">
+          <strong>{p.limitingConstraint === 'voltage-drop' ? 'Volt drop is the gate.' : 'Heat is the gate.'}</strong>{' '}
+          {preset.why}
+        </p>
+        <ul class="cs-preset-checks">
+          {preset.checks.map((check) => (
+            <li>{check}</li>
+          ))}
+        </ul>
+        <p class="cs-preset-refs">{preset.refs}</p>
+        <p class="cs-preset-scene">
+          Drawn as {LOAD_LABEL[preset.load]} at the far end of the cable.
+        </p>
+      </template>
+    );
+  })
+}
+
 <style>
-  /* Shareable calculation link button */
-  .share-calc-btn {
+  /* ── instrument cards inside the results panel ─────────────────────
+     The scene owns the drawing; these two graphics are data, so they live
+     where they can never be covered by a floating panel or clipped by a short
+     window. The chart re-uses the scene's emphasis rule (binding line bold). */
+  .cs-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.55rem 0.65rem 0.65rem;
+    border-radius: 0.65rem;
+    border: 1px solid var(--border);
+    background: var(--bg-2);
+  }
+  .cs-card-title {
+    font-family: var(--font-display, sans-serif);
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .cs-ladder {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(46px, 1fr));
+    gap: 0.2rem;
+  }
+  .cs-rung {
+    --dot: 7px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.12rem;
+    padding: 0.28rem 0.1rem 0.22rem;
+    border-radius: 0.4rem;
+    border: 1px solid transparent;
+    color: var(--text-mid);
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+  }
+  .cs-rung-dot {
+    width: var(--dot);
+    height: var(--dot);
+    border-radius: 999px;
+    background: linear-gradient(135deg, #f3a86c, #a8571f);
+    opacity: 0.5;
+  }
+  .cs-rung.is-selected {
+    border-color: var(--blue, #2563eb);
+    background: var(--blue-l, #eff6ff);
+    color: var(--blue, #2563eb);
+  }
+  .cs-rung.is-selected .cs-rung-dot {
+    opacity: 1;
+    box-shadow: 0 0 0 1.5px var(--blue, #2563eb);
+  }
+  .cs-rung.is-short .cs-rung-dot {
+    opacity: 0.28;
+  }
+  .cs-rung-size {
+    font-family: var(--font-display, sans-serif);
+    font-size: 0.7rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .cs-rung-amp {
+    font-size: 0.56rem;
+    font-weight: 600;
+    opacity: 0.75;
+    line-height: 1;
+  }
+  .cs-chart {
     display: block;
     width: 100%;
-    margin-top: 0.7rem;
-    padding: 0.55rem 0.9rem;
-    border-radius: 8px;
+    height: auto;
+    color: var(--text-mid);
+  }
+  .cs-chart-axis {
+    stroke: rgba(148, 163, 184, 0.75);
+    stroke-width: 1;
+  }
+  .cs-chart-grid line {
+    stroke: rgba(148, 163, 184, 0.3);
+    stroke-width: 0.8;
+    stroke-dasharray: 2 4;
+  }
+  .cs-chart-tick {
+    font-family: var(--font-display, sans-serif);
+    font-size: 9px;
+    font-weight: 600;
+    fill: currentColor;
+    opacity: 0.6;
+  }
+  .cs-line {
+    fill: none;
+    stroke-width: 2.4;
+    stroke-linejoin: round;
+    transition: opacity 0.3s ease, stroke-width 0.3s ease;
+  }
+  .cs-line--thermal {
+    stroke: #f59e0b;
+  }
+  .cs-line--drop {
+    stroke: #2563eb;
+  }
+  #cs-chart-card[data-constraint='thermal'] .cs-line--drop,
+  #cs-chart-card[data-constraint='voltage-drop'] .cs-line--thermal {
+    opacity: 0.4;
+    stroke-width: 1.6;
+  }
+  .cs-cross-line {
+    stroke: #10b981;
+    stroke-width: 1.4;
+    stroke-dasharray: 4 3;
+  }
+  .cs-cross-dot {
+    fill: #10b981;
+  }
+  .cs-legend,
+  .cs-chart-foot {
+    font-family: var(--font-display, sans-serif);
+    font-size: 9.5px;
+    font-weight: 700;
+    fill: currentColor;
+  }
+  .cs-chart-foot {
+    font-weight: 600;
+    opacity: 0.65;
+  }
+  .cs-legend--thermal .cs-swatch {
+    fill: #f59e0b;
+  }
+  .cs-legend--drop .cs-swatch {
+    fill: #2563eb;
+  }
+  /* aluminium reads grey in the ladder too, matching the scene and specimen */
+  #cs-results-container[data-material='aluminum'] .cs-rung-dot {
+    background: linear-gradient(135deg, #dbe4ee, #7f8e9e);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cs-rung,
+    .cs-line {
+      transition: none !important;
+    }
+  }
+
+  /* gauge — the one inequality that is the whole method */
+  .cs-gauge {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .cs-gauge-scale {
+    position: relative;
+    /* room for the marker labels: Ib and It sit above the bar on separate rows,
+       In sits below it — three marks that routinely land within a pixel of each
+       other (It = In whenever nothing needs derating) used to print on top of
+       one another */
+    margin: 2.35rem 0 1.35rem;
+    height: 1.55rem;
+    border-radius: 999px;
+    background: var(--bg-3, #eef2f7);
+    border: 1px solid var(--border);
+    overflow: visible;
+  }
+  .cs-gauge-fill {
+    position: absolute;
+    inset: 2px auto 2px 2px;
+    width: calc(var(--gauge, 0.7) * 100%);
+    border-radius: 999px;
+    background: linear-gradient(90deg, #34d399, #10b981);
+    transition: width 0.45s cubic-bezier(0.22, 0.61, 0.36, 1), background 0.3s ease;
+  }
+  .cs-gauge[data-state='warning'] .cs-gauge-fill {
+    background: linear-gradient(90deg, #fbbf24, #f59e0b);
+  }
+  .cs-gauge[data-state='fail'] .cs-gauge-fill {
+    background: linear-gradient(90deg, #f87171, #ef4444);
+  }
+  .cs-gauge-mark {
+    position: absolute;
+    top: -4px;
+    bottom: -4px;
+    width: 2.5px;
+    background: #0f172a;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+  .cs-gauge-mark span {
+    position: absolute;
+    top: -1.05rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-display, sans-serif);
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: var(--text-mid);
+  }
+  .cs-gauge-mark--load {
+    background: #1d4ed8;
+    left: calc(var(--load-mark, 0.55) * 100%);
+  }
+  .cs-gauge-mark--load span {
+    top: -2.15rem;
+  }
+  .cs-gauge-mark--rating span {
+    top: auto;
+    bottom: -1.25rem;
+  }
+  /* a label at the far edge would be clipped by the panel, so it hangs left */
+  .cs-gauge[data-edge='right'] .cs-gauge-mark span {
+    left: auto;
+    right: 0;
+    transform: translateX(50%);
+  }
+  .cs-gauge[data-edge='left'] .cs-gauge-mark span {
+    left: 0;
+    transform: translateX(-15%);
+  }
+  .cs-gauge-mark--need {
+    background: #b45309;
+    left: calc(var(--need-mark, 0.6) * 100%);
+  }
+  .cs-gauge-mark--rating {
+    background: #64748b;
+    left: calc(var(--rating-mark, 0.6) * 100%);
+  }
+  .cs-gauge[data-state='fail'] .cs-gauge-mark--need {
+    background: #dc2626;
+  }
+  .cs-gauge-caption {
+    margin: 0.55rem 0 0;
+    font-size: 0.74rem;
+    line-height: 1.45;
+    color: var(--text-mid);
+  }
+  .cs-gauge-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    border-top: 1px dashed var(--border);
+    padding-top: 0.5rem;
+  }
+  .cs-mini {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+  }
+  .cs-mini strong {
+    color: var(--text);
+    font-family: var(--font-display, sans-serif);
+  }
+  .cs-chip {
+    font-family: var(--font-display, sans-serif);
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    background: var(--blue-l, #eff6ff);
+    color: var(--blue, #2563eb);
+    border: 1px solid var(--border-bright, #bfdbfe);
+  }
+  .cs-chip[data-constraint='voltage-drop'] {
+    background: rgba(37, 99, 235, 0.12);
+  }
+  .cs-why-btn {
+    margin-left: auto;
+    border: 1px solid var(--border);
+    background: var(--bg-2);
+    color: var(--text-mid);
+    border-radius: 999px;
+    padding: 0.25rem 0.6rem;
+    font-family: inherit;
+    font-size: 0.68rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  .cs-why-btn:hover,
+  .cs-why-btn[aria-expanded='true'] {
+    color: var(--blue);
+    border-color: var(--blue);
+  }
+  .cs-why {
+    border-top: 1px solid var(--border);
+    padding-top: 0.5rem;
+  }
+  .cs-why[hidden] {
+    display: none;
+  }
+  .cs-waterfall {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.4rem;
+    height: 4.6rem;
+  }
+  .cs-bar {
+    flex: 1 1 0;
+    min-width: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 0.2rem;
+    text-align: center;
+  }
+  .cs-bar-fill {
+    border-radius: 0.3rem 0.3rem 0 0;
+    background: var(--blue, #2563eb);
+    opacity: 0.85;
+    height: calc(var(--h, 1) * 100%);
+    transition: height 0.35s ease;
+  }
+  .cs-bar--total .cs-bar-fill {
+    background: #f59e0b;
+    opacity: 1;
+  }
+  .cs-bar-label,
+  .cs-bar-value {
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: var(--text-dim);
+  }
+  .cs-bar-value {
+    font-family: var(--font-display, sans-serif);
+    color: var(--text);
+  }
+  .cs-why-text {
+    margin: 0.5rem 0 0;
+    font-size: 0.72rem;
+    line-height: 1.5;
+    color: var(--text-mid);
+  }
+
+  /* hidden native controls that keep the engine as the source of truth */
+  .cs-hidden-native {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* method picker */
+  .cs-method-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    gap: 0.35rem;
+  }
+  .cs-method-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.15rem;
+    padding: 0.45rem 0.5rem 0.5rem;
+    border-radius: 0.6rem;
+    border: 1px solid var(--border);
+    background: var(--bg-2);
+    color: var(--text-mid);
+    font-family: inherit;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease, transform 0.12s ease;
+  }
+  .cs-method-btn:hover {
+    border-color: var(--blue);
+    color: var(--text);
+  }
+  .cs-method-btn:active {
+    transform: translateY(1px);
+  }
+  .cs-method-btn.active {
+    border-color: var(--blue);
+    background: var(--blue-l, #eff6ff);
+    color: var(--blue, #2563eb);
+    box-shadow: inset 0 0 0 1px var(--blue, #2563eb);
+  }
+  .cs-method-btn:focus-visible {
+    outline: 3px solid var(--blue-glow, rgba(37, 99, 235, 0.28));
+    outline-offset: 2px;
+  }
+  .cs-method-key {
+    font-family: var(--font-display, sans-serif);
+    font-size: 0.85rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .cs-method-short {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    opacity: 0.85;
+    text-align: left;
+  }
+  .cs-method-glyph {
+    width: 100%;
+    height: 1.5rem;
+    margin-top: 0.15rem;
+  }
+  .cs-glyph-fill {
+    fill: currentColor;
+    opacity: 0.14;
+  }
+  .cs-glyph-line {
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+    opacity: 0.7;
+  }
+  .cs-glyph-faint {
+    opacity: 0.35;
+  }
+  .cs-glyph-core {
+    fill: #c86a2e;
+  }
+  .cs-method-btn.active .cs-glyph-core {
+    fill: var(--blue, #2563eb);
+  }
+  .cs-field-foot {
+    margin: 0;
+    font-size: 0.68rem;
+    line-height: 1.45;
+    color: var(--text-dim);
+  }
+
+  /* sliders: the input that makes the drawing feel alive */
+  .cs-range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 1.5rem;
+    background: transparent;
+    cursor: pointer;
+  }
+  .cs-range::-webkit-slider-runnable-track {
+    height: 0.4rem;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--blue, #2563eb), var(--blue-bright, #3b82f6));
+    border: 1px solid var(--border);
+  }
+  .cs-range::-moz-range-track {
+    height: 0.4rem;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--blue, #2563eb), var(--blue-bright, #3b82f6));
+    border: 1px solid var(--border);
+  }
+  .cs-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 1.1rem;
+    height: 1.1rem;
+    margin-top: -0.42rem;
+    border-radius: 999px;
+    background: #ffffff;
+    border: 2px solid var(--blue, #2563eb);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.25);
+  }
+  .cs-range::-moz-range-thumb {
+    width: 1.05rem;
+    height: 1.05rem;
+    border-radius: 999px;
+    background: #ffffff;
+    border: 2px solid var(--blue, #2563eb);
+  }
+  .cs-range:focus-visible {
+    outline: 3px solid var(--blue-glow, rgba(37, 99, 235, 0.28));
+    outline-offset: 4px;
+    border-radius: 999px;
+  }
+  .cs-range-scale {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: var(--text-dim);
+    margin-top: -0.2rem;
+  }
+
+  .cs-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.45rem;
+    font-size: 0.72rem;
+    line-height: 1.45;
+    color: var(--text-mid);
+    cursor: pointer;
+  }
+  .cs-check input {
+    margin-top: 0.12rem;
+    width: 1rem;
+    height: 1rem;
+    accent-color: var(--blue, #2563eb);
+  }
+
+  /* results: hero size card + metric grid */
+  .cs-hero {
+    position: relative;
+    padding: 0.85rem 1rem 0.95rem;
+    border-radius: var(--radius, 1rem);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    background: rgba(16, 185, 129, 0.1);
+    transition: border-color 0.3s ease, background 0.3s ease;
+  }
+  .cs-hero[data-state='warning'] {
+    border-color: rgba(245, 158, 11, 0.45);
+    background: rgba(245, 158, 11, 0.12);
+  }
+  .cs-hero[data-state='fail'] {
+    border-color: rgba(239, 68, 68, 0.45);
+    background: rgba(239, 68, 68, 0.12);
+  }
+  .cs-hero-label {
+    font-family: var(--font-display, sans-serif);
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .cs-hero-value {
+    display: flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    font-family: var(--font-display, sans-serif);
+    font-size: 2.1rem;
+    font-weight: 800;
+    line-height: 1.05;
+    color: var(--text);
+  }
+  .cs-hero-unit {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-mid);
+  }
+  .cs-hero-cpc {
+    font-size: 0.72rem;
+    color: var(--text-mid);
+    margin-top: 0.15rem;
+  }
+  .cs-hero-badge {
+    position: absolute;
+    top: 0.7rem;
+    right: 0.75rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-family: var(--font-display, sans-serif);
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    background: #10b981;
+    color: #ffffff;
+  }
+  .cs-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.4rem;
+  }
+  .cs-metric {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    padding: 0.45rem 0.55rem;
+    border-radius: 0.55rem;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+  }
+  .cs-metric-label {
+    font-size: 0.66rem;
+    font-weight: 600;
+    color: var(--text-dim);
+  }
+  .cs-metric-value {
+    font-family: var(--font-display, sans-serif);
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--text);
+  }
+  .cs-factors {
+    padding: 0.5rem 0.6rem;
+    border-radius: 0.6rem;
+    border: 1px dashed var(--border-bright, #bfdbfe);
+    background: rgba(37, 99, 235, 0.05);
+  }
+  .cs-factors-head {
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .cs-factors-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 0.7rem;
+    margin-top: 0.3rem;
+    font-size: 0.72rem;
+    color: var(--text-mid);
+  }
+  .cs-factors-row strong {
+    font-family: var(--font-display, sans-serif);
+    color: var(--text);
+  }
+  .cs-factors-total strong {
+    color: var(--blue, #2563eb);
+  }
+  .cs-summary {
+    margin: 0;
+    font-size: 0.76rem;
+    line-height: 1.55;
+    color: var(--text-mid);
+  }
+  .cs-echo {
+    margin: 0;
+    padding-top: 0.5rem;
+    border-top: 1px dashed var(--border);
+    font-size: 0.68rem;
+    line-height: 1.45;
+    color: var(--text-dim);
+  }
+  .cs-echo strong {
+    color: var(--text);
+  }
+  .cs-share {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    width: 100%;
+    padding: 0.5rem 0.7rem;
+    border-radius: 0.55rem;
     border: 1px dashed rgba(37, 99, 235, 0.45);
     background: rgba(37, 99, 235, 0.06);
     color: var(--blue, #2563eb);
-    font-size: 0.75rem;
+    font-family: inherit;
+    font-size: 0.7rem;
     font-weight: 700;
     cursor: pointer;
-    transition: background 0.15s ease, border-color 0.15s ease;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   }
-  .share-calc-btn:hover, .share-calc-btn:focus-visible {
+  .cs-share:hover {
     background: rgba(37, 99, 235, 0.12);
     border-color: var(--blue, #2563eb);
   }
-  .share-calc-btn.copied {
+  .cs-share.copied {
     border-style: solid;
     border-color: #10b981;
     color: #10b981;
     background: rgba(16, 185, 129, 0.1);
   }
+  .cs-share:focus-visible,
+  .cs-why-btn:focus-visible {
+    outline: 3px solid var(--blue-glow, rgba(37, 99, 235, 0.28));
+    outline-offset: 2px;
+  }
 
-  .standard-result-echo {
-    margin: 0.6rem 0 0;
-    font-size: 0.6875rem;
-    line-height: 1.45;
-    color: #475569;
-    border-top: 1px dashed rgba(100, 116, 139, 0.35);
-    padding-top: 0.55rem;
+  /* the mobile bar's results shortcut needs a stronger number */
+  #cs-mobile-out {
+    font-family: var(--font-display, sans-serif);
   }
-  .standard-result-echo strong {
-    color: #1e293b;
+  /* a form needs a submit path that does nothing but reload the page */
+  .cs-form-sentinel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  @media (max-width: 1080px) {
+    .ts-hud--top {
+      display: none;
+    }
+  }
+  @media (min-width: 1081px) {
+    /* leave the strip's room on the right for the view tools */
+    .ts-hud--top {
+      left: auto;
+      transform: none;
+      right: 22rem;
+      width: min(330px, 34vw);
+    }
+  }
+  @media (max-width: 768px) {
+    .cs-metrics {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .cs-method-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    /*
+     The HUD row belongs to the shared stage shell (tool-stage.css), which anchors
+     it and hides the WebGL toggle on touch layouts. The only local decision is
+     that Explode stays: it drives the specimen peel, and on a narrow screen it
+     shrinks to just the slider instead of disappearing.
+    */
+    .ts-tool-btn--range {
+      gap: 0.3rem;
+      padding: 0.28rem 0.5rem;
+    }
+    .ts-tool-btn--range > span {
+      display: none;
+    }
+    .ts-tool-btn--range input[type='range'] {
+      width: 4.4rem;
+    }
+  }
+  @media (max-width: 420px) {
+    .cs-method-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  /* ── the drawer handle ────────────────────────────────────────────────
+     The bar is the only thing between the scene and the settings on a touch
+     layout, so it carries the verdict: the size, the drop against its ceiling,
+     and a dot that takes the colour of the result badge. */
+  .ts-mobile-bar--inputs {
+    flex: 0 0 auto;
+    width: auto;
+    padding: 0 0.9rem;
+    min-height: 2.6rem;
+    border-radius: 0.6rem;
+    background: var(--action-bg, #2563eb);
+    color: var(--action-text, #fff);
+    font-family: var(--font-display, sans-serif);
+    font-size: 0.8rem;
+    border: none;
+  }
+  .ts-mobile-bar--inputs:hover {
+    background: var(--action-hover, #1d4ed8);
+    color: var(--action-text, #fff);
+  }
+  .cs-mobile-dot {
+    flex: 0 0 auto;
+    align-self: center;
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 999px;
+    background: #16a34a;
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.18);
+  }
+  .cs-mobile-dot[data-status='warning'] {
+    background: #d97706;
+    box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.18);
+  }
+  .cs-mobile-dot[data-status='fail'] {
+    background: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.18);
+  }
+  .cs-mobile-sub {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-dim);
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
   }
-  :root[data-theme='dark'] .standard-result-echo {
-    color: #94a3b8;
-  }
-  :root[data-theme='dark'] .standard-result-echo strong {
-    color: #e2e8f0;
-  }
-  .tool-panels-container {
-    display: grid;
-    grid-template-columns: 1fr 1.15fr;
-    gap: 1.5rem;
-    max-width: 1240px;
-    margin: 2rem auto;
-    padding: 0 1.5rem;
-  }
-  .calc-panel {
-    background: var(--bg-card, #ffffff);
-    border: 1px solid var(--border, #e2e8f0);
-    border-radius: 1.25rem;
-    padding: 1.75rem;
-    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
-  }
-  :root[data-theme="dark"] .calc-panel {
-    background: #0f172a;
-    border-color: #1e293b;
-  }
-  .panel-header {
+
+  /* ── preset card ───────────────────────────────────────────────────────
+     A preset is not a number to apply, it is a circuit to understand, so the
+     chip opens a card and the card is what carries the Apply button. */
+  .cs-preset-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1.5rem;
-    border-bottom: 1px solid var(--border, #e2e8f0);
-    padding-bottom: 1rem;
+    justify-content: center;
+    padding: clamp(0.6rem, 3vw, 1.5rem);
+    background: rgba(15, 23, 42, 0.62);
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
+    overflow-y: auto;
   }
-  :root[data-theme="dark"] .panel-header {
-    border-color: #1e293b;
+  .cs-preset-backdrop[hidden] {
+    display: none;
   }
-  .panel-header-title {
+  .cs-preset-dialog {
+    width: min(560px, 100%);
+    max-height: min(86dvh, 760px);
     display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    font-family: var(--font-display);
-    font-size: 1.15rem;
-    font-weight: 700;
+    flex-direction: column;
+    border-radius: var(--radius-lg, 1.1rem);
+    border: 1px solid var(--border);
+    background: var(--surface-glass, #ffffff);
+    box-shadow: 0 30px 70px -14px rgba(2, 6, 23, 0.5);
+    overflow: hidden;
+  }
+  .cs-preset-head {
+    position: relative;
+    flex: 0 0 auto;
+    padding: 1rem 1.15rem 0.8rem;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, var(--blue-l, #eaf1ff), transparent);
+  }
+  .cs-preset-eyebrow {
+    font-family: var(--font-display, sans-serif);
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--blue);
+  }
+  .cs-preset-title {
+    margin: 0.2rem 2.4rem 0 0;
+    font-family: var(--font-display, sans-serif);
+    font-size: 1.24rem;
+    font-weight: 800;
+    line-height: 1.25;
     color: var(--text);
   }
-  .panel-icon {
-    width: 1.25rem;
-    height: 1.25rem;
-    color: var(--blue, #2563eb);
-  }
-  .panel-icon.text-emerald {
-    color: #10b981;
-  }
-  .quick-presets-row {
+  .cs-preset-close {
+    position: absolute;
+    top: 0.8rem;
+    right: 0.85rem;
+    width: 2.1rem;
+    height: 2.1rem;
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-  }
-  .preset-chip {
-    font-size: 0.72rem;
-    font-weight: 600;
-    padding: 0.2rem 0.55rem;
+    align-items: center;
+    justify-content: center;
     border-radius: 999px;
-    background: var(--bg-2, #f8fafc);
-    border: 1px solid var(--border, #cbd5e1);
-    color: var(--text-mid, #64748b);
+    border: 1px solid var(--border);
+    background: var(--bg-card, #fff);
+    color: var(--text-mid);
+    font-size: 1.15rem;
+    line-height: 1;
     cursor: pointer;
-    transition: all 0.15s ease;
   }
-  .preset-chip:hover {
-    background: var(--blue-l, #eff6ff);
-    border-color: var(--blue, #2563eb);
-    color: var(--blue, #2563eb);
+  .cs-preset-close:hover {
+    color: var(--text);
+    background: var(--bg-3);
   }
-  :root[data-theme="dark"] .preset-chip {
-    background: #1e293b;
-    border-color: #334155;
-    color: #94a3b8;
+  .cs-preset-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0.95rem 1.15rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    -webkit-overflow-scrolling: touch;
   }
-  .form-row {
+  .cs-preset-where {
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--blue);
+    line-height: 1.45;
+  }
+  .cs-preset-facts {
     display: grid;
-    gap: 1rem;
-    margin-bottom: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+    gap: 0.45rem 0.6rem;
+    margin: 0;
+    padding: 0.6rem;
+    border-radius: 0.7rem;
+    border: 1px solid var(--border);
+    background: var(--bg-2);
   }
-  .grid-2 {
-    grid-template-columns: 1fr 1fr;
+  .cs-preset-facts > div {
+    min-width: 0;
   }
-  .grid-3 {
-    grid-template-columns: 1fr 1fr 1fr;
+  .cs-preset-facts dt {
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
   }
-  .form-group {
+  .cs-preset-facts dd {
+    margin: 0.1rem 0 0;
+    font-family: var(--font-display, sans-serif);
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+  .cs-preset-story,
+  .cs-preset-why {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.65;
+    color: var(--text-mid);
+  }
+  .cs-preset-why {
+    padding: 0.65rem 0.8rem;
+    border-left: 3px solid var(--blue);
+    border-radius: 0 0.55rem 0.55rem 0;
+    background: var(--blue-l, #eaf1ff);
+    color: var(--text);
+  }
+  .cs-preset-checks {
+    margin: 0;
+    padding: 0 0 0 1.05rem;
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
-  }
-  .form-group label {
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--text-mid, #64748b);
-  }
-  .calc-input, .calc-select {
-    padding: 0.65rem 0.85rem;
-    border-radius: 0.65rem;
-    border: 1px solid var(--border, #cbd5e1);
-    background: var(--bg, #ffffff);
-    color: var(--text, #0f172a);
-    font-family: var(--font-mono);
-    font-size: 0.92rem;
-    font-weight: 600;
-    transition: border-color 0.15s ease;
-  }
-  .calc-input:focus, .calc-select:focus {
-    outline: none;
-    border-color: var(--blue, #2563eb);
-  }
-  :root[data-theme="dark"] .calc-input,
-  :root[data-theme="dark"] .calc-select {
-    background: #090e17;
-    border-color: #334155;
-    color: #f1f5f9;
-  }
-  .derating-box {
-    background: var(--bg-2, #f8fafc);
-    border: 1px solid var(--border, #e2e8f0);
-    border-radius: 0.85rem;
-    padding: 1rem;
-    margin-top: 1rem;
-  }
-  :root[data-theme="dark"] .derating-box {
-    background: #090e17;
-    border-color: #1e293b;
-  }
-  .derating-title {
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-mid, #64748b);
-    margin-bottom: 0.75rem;
-  }
-  /* Hero Size Card */
-  .hero-size-card {
-    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
-    color: #ffffff;
-    border-radius: 1rem;
-    padding: 1.5rem;
-    text-align: center;
-    margin-bottom: 1.25rem;
-    box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.3);
-  }
-  .hero-size-label {
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    color: #bfdbfe;
-    margin-bottom: 0.25rem;
-  }
-  .hero-size-val {
-    font-family: var(--font-display);
-    font-size: 3.25rem;
-    font-weight: 800;
-    line-height: 1;
-  }
-  .hero-size-val .unit {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #93c5fd;
-  }
-  .hero-cpc-val {
-    font-size: 0.85rem;
-    color: #dbeafe;
-    margin-top: 0.5rem;
-  }
-  /* Metrics Grid */
-  .metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.75rem;
-    margin-bottom: 1.25rem;
-  }
-  .metric-card {
-    background: var(--bg-2, #f8fafc);
-    border: 1px solid var(--border, #e2e8f0);
-    border-radius: 0.75rem;
-    padding: 0.75rem;
-    text-align: center;
-  }
-  :root[data-theme="dark"] .metric-card {
-    background: #1e293b;
-    border-color: #334155;
-  }
-  .metric-label {
-    font-size: 0.7rem;
-    color: var(--text-mid, #64748b);
-    margin-bottom: 0.2rem;
-  }
-  .metric-value {
-    font-family: var(--font-mono);
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--text, #0f172a);
-  }
-  /* Derating Breakdown */
-  .derating-breakdown-card {
-    background: var(--bg-2, #f8fafc);
-    border: 1px solid var(--border, #e2e8f0);
-    border-radius: 0.75rem;
-    padding: 0.85rem;
-    font-size: 0.78rem;
-    margin-bottom: 1.25rem;
-  }
-  :root[data-theme="dark"] .derating-breakdown-card {
-    background: #1e293b;
-    border-color: #334155;
-  }
-  .derating-header {
-    font-weight: 700;
+    font-size: 0.84rem;
+    line-height: 1.55;
     color: var(--text-mid);
-    margin-bottom: 0.35rem;
   }
-  .derating-factors-row {
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-  /* Compliance Summary Box */
-  .compliance-summary-box {
-    border-radius: 0.85rem;
-    padding: 1rem;
-    font-size: 0.88rem;
+  .cs-preset-refs,
+  .cs-preset-scene {
+    margin: 0;
+    font-size: 0.72rem;
+    color: var(--text-dim);
     line-height: 1.5;
-    background: rgba(16, 185, 129, 0.1);
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    color: #065f46;
   }
-  :root[data-theme="dark"] .compliance-summary-box {
-    background: rgba(16, 185, 129, 0.15);
-    border-color: rgba(16, 185, 129, 0.4);
-    color: #6ee7b7;
+  .cs-preset-foot {
+    flex: 0 0 auto;
+    padding: 0.75rem 1.15rem calc(0.85rem + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--border);
   }
-  .status-badge-pill {
-    font-size: 0.75rem;
-    font-weight: 700;
-    padding: 0.25rem 0.65rem;
-    border-radius: 999px;
-    background: #10b981;
-    color: #ffffff;
-  }
-
-  @media (max-width: 900px) {
-    .tool-panels-container {
-      grid-template-columns: 1fr;
+  @media (max-width: 560px) {
+    .cs-preset-backdrop {
+      align-items: flex-end;
+      padding: 0;
     }
-    .metrics-grid {
-      grid-template-columns: repeat(2, 1fr);
+    .cs-preset-dialog {
+      width: 100%;
+      max-height: 92dvh;
+      border-radius: var(--radius-lg, 1.1rem) var(--radius-lg, 1.1rem) 0 0;
     }
   }
 </style>

@@ -22,8 +22,10 @@ export const MATERIAL_PROPERTIES: Record<ConductorMaterial, MaterialProperties> 
 export const DEFAULT_LINE_REACTANCE = 8e-5;
 
 /**
- * Severity copy per metric standard. UK copy is unchanged from the original
- * 3% / 5% BS 7671 wording; IEC 60364-5-52 Annex G uses a 4% / 5% banding.
+ * Severity copy per metric standard. Both metric standards band identically for
+ * a public LV supply (3% lighting / 5% other uses — BS 7671 Reg 525.1 Table 4Ab
+ * and IEC 60364-5-52 Annex G Table G.52.1); only the citations, the private
+ * supply allowances and the >100 m relaxation differ.
  */
 export const SEVERITY_INFO_BY_STANDARD: Record<
   MetricStandardId,
@@ -50,17 +52,17 @@ export const SEVERITY_INFO_BY_STANDARD: Record<
     good: {
       title: 'Good',
       description:
-        'The calculated voltage drop is within the 4% guidance of IEC 60364-5-52 Annex G (public LV supply, lighting).',
+        'The calculated voltage drop is within the IEC 60364-5-52 Annex G 3% lighting ceiling (5% for other uses) on a public LV supply.',
     },
     warning: {
       title: 'Marginal',
       description:
-        'Voltage drop is between 4% and 5%. Within IEC 60364-5-52 Annex G guidance for other circuits, but close to the limit.',
+        'Voltage drop is between 3% and 5%. Within IEC 60364-5-52 Annex G guidance for other uses, but over the lighting ceiling.',
     },
     excessive: {
       title: 'Excessive',
       description:
-        'Voltage drop exceeds the 5% IEC 60364-5-52 Annex G guidance. This may cause motors to overheat, equipment to malfunction, or excessive power loss. Upsize the cable.',
+        'Voltage drop exceeds the 5% IEC 60364-5-52 Annex G guidance for public supplies. Runs over 100 m may claim up to +0.5%; otherwise upsize the cable.',
     },
   },
 };
@@ -151,8 +153,8 @@ export function calculateVoltageDrop(inputs: VoltageDropInputs): VoltageDropResu
   const powerLoss = current * current * (powerLossMultiplier * resistancePerMeter * lengthOneWay);
 
   // Severity banding follows the selected standard's limits:
-  //   BS 7671: ≤3% good · 3–5% marginal · >5% excessive (lighting/power split)
-  //   IEC 60364-5-52 Annex G: ≤4% good · 4–5% marginal · >5% excessive
+  //   BS 7671 Reg 525.1 / Table 4Ab:  ≤3% good · 3–5% marginal · >5% excessive
+  //   IEC 60364-5-52 Annex G Table G.52.1: same ceilings on a public LV supply
   const goodCeiling = standard.vdrop.lightingPct;
   const hardCeiling = standard.vdrop.powerPct;
   const EPSILON = 1e-9;

@@ -79,9 +79,9 @@ The most common and accessible approach. A ring socket has **two sets of conduct
 **How to confirm a socket is on the ring (not already a spur):**
 
 Open the back box and count the conductors:
-- **Two cables** (or two sets of conductors in the terminals) — the socket is a ring socket. ✅ Safe to spur from.
-- **One cable** — the socket is already a spur. ❌ Do not spur from it.
-- **Three cables** — a spur already exists at this socket. ❌ Do not add another spur here.
+- **Two cables** (or two sets of conductors in the terminals) — the socket is a ring socket. <span class="em em-check" role="img" aria-label="do"></span> Safe to spur from.
+- **One cable** — the socket is already a spur. <span class="em em-cross" role="img" aria-label="don't"></span> Do not spur from it.
+- **Three cables** — a spur already exists at this socket. <span class="em em-cross" role="img" aria-label="don't"></span> Do not add another spur here.
 
 This check is essential. Spurring from a spur violates BS 7671 and undermines the overcurrent protection of the circuit.
 

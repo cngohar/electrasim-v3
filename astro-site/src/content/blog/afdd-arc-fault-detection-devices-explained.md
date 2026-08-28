@@ -13,7 +13,7 @@ That is the job of an **AFDD** — Arc Fault Detection Device. Strengthened in B
 
 This guide explains what AFDDs do, how they work, where BS 7671 requires or recommends them, how they compare to MCBs and RCDs, and what you should realistically expect when one is quoted on a new consumer unit.
 
-> 💡 **Simulate electrical faults safely:** ElectraSim lets you build protected circuits and explore fault behaviour — including series and parallel fault scenarios — entirely in your browser. [Open ElectraSim →](/app/)
+> <span class="em em-bulb" role="img" aria-label="tip"></span> **Simulate electrical faults safely:** ElectraSim lets you build protected circuits and explore fault behaviour — including series and parallel fault scenarios — entirely in your browser. [Open ElectraSim →](/app/)
 
 ---
 
@@ -35,12 +35,12 @@ The arc occurs between two conductors at different potentials — Live to Neutra
 
 | Fault Type | MCB Detects | RCD Detects | AFDD Detects |
 |---|---|---|---|
-| Overload (excess current) | ✅ | ❌ | ✅ (as supplementary) |
-| Short circuit (bolted fault) | ✅ | ❌ | ✅ |
-| Earth leakage (shock risk) | ❌ | ✅ | ❌ (RCD still needed) |
-| **Series arc fault** | ❌ | ❌ | ✅ |
-| **Parallel arc fault (low impedance)** | ✅ | ❌ | ✅ |
-| **Parallel arc fault (high impedance)** | ❌ | ❌ | ✅ |
+| Overload (excess current) | <span class="em em-check" role="img" aria-label="do"></span> | <span class="em em-cross" role="img" aria-label="don't"></span> | <span class="em em-check" role="img" aria-label="do"></span> (as supplementary) |
+| Short circuit (bolted fault) | <span class="em em-check" role="img" aria-label="do"></span> | <span class="em em-cross" role="img" aria-label="don't"></span> | <span class="em em-check" role="img" aria-label="do"></span> |
+| Earth leakage (shock risk) | <span class="em em-cross" role="img" aria-label="don't"></span> | <span class="em em-check" role="img" aria-label="do"></span> | <span class="em em-cross" role="img" aria-label="don't"></span> (RCD still needed) |
+| **Series arc fault** | <span class="em em-cross" role="img" aria-label="don't"></span> | <span class="em em-cross" role="img" aria-label="don't"></span> | <span class="em em-check" role="img" aria-label="do"></span> |
+| **Parallel arc fault (low impedance)** | <span class="em em-check" role="img" aria-label="do"></span> | <span class="em em-cross" role="img" aria-label="don't"></span> | <span class="em em-check" role="img" aria-label="do"></span> |
+| **Parallel arc fault (high impedance)** | <span class="em em-cross" role="img" aria-label="don't"></span> | <span class="em em-cross" role="img" aria-label="don't"></span> | <span class="em em-check" role="img" aria-label="do"></span> |
 
 The gap in the middle of that table — series arcs and high-impedance parallel arcs — is precisely where electrical fires start and why AFDDs exist.
 
@@ -110,15 +110,15 @@ The regulation targets **socket outlet circuits up to 32 A**. This means:
 
 | Circuit | AFDD Required (mandatory locations) |
 |---|---|
-| Ring main — sockets | ✅ |
-| Kitchen socket circuit | ✅ |
-| Outdoor socket circuit | ✅ |
-| Garage / shed socket circuit | ✅ |
-| Lighting circuits | ❌ (not socket circuits) |
-| Shower circuit (dedicated) | ❌ (dedicated appliance, no socket) |
-| Cooker circuit (dedicated) | ❌ |
-| EV charger circuit (no socket) | ❌ |
-| Immersion heater circuit | ❌ |
+| Ring main — sockets | <span class="em em-check" role="img" aria-label="do"></span> |
+| Kitchen socket circuit | <span class="em em-check" role="img" aria-label="do"></span> |
+| Outdoor socket circuit | <span class="em em-check" role="img" aria-label="do"></span> |
+| Garage / shed socket circuit | <span class="em em-check" role="img" aria-label="do"></span> |
+| Lighting circuits | <span class="em em-cross" role="img" aria-label="don't"></span> (not socket circuits) |
+| Shower circuit (dedicated) | <span class="em em-cross" role="img" aria-label="don't"></span> (dedicated appliance, no socket) |
+| Cooker circuit (dedicated) | <span class="em em-cross" role="img" aria-label="don't"></span> |
+| EV charger circuit (no socket) | <span class="em em-cross" role="img" aria-label="don't"></span> |
+| Immersion heater circuit | <span class="em em-cross" role="img" aria-label="don't"></span> |
 
 **Important nuance:** a circuit that supplies a fused connection unit (FCU) with no accessible socket is not a socket circuit for the purposes of this regulation. A circuit ending in a 13 A socket — even if only one socket is on the circuit — is a socket circuit and falls within scope.
 
@@ -128,10 +128,10 @@ The regulation targets **socket outlet circuits up to 32 A**. This means:
 
 | Device | Overload | Short Circuit | Earth Leakage | Series Arc | Parallel Arc |
 |---|---|---|---|---|---|
-| MCB | ✅ | ✅ | ❌ | ❌ | Partial |
-| RCD / RCBO | Partial | Partial | ✅ | ❌ | ❌ |
-| AFDD + MCB | ✅ | ✅ | ❌ | ✅ | ✅ |
-| **AFDD + RCBO** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| MCB | <span class="em em-check" role="img" aria-label="do"></span> | <span class="em em-check" role="img" aria-label="do"></span> | <span class="em em-cross" role="img" aria-label="don't"></span> | <span class="em em-cross" role="img" aria-label="don't"></span> | Partial |
+| RCD / RCBO | Partial | Partial | <span class="em em-check" role="img" aria-label="do"></span> | <span class="em em-cross" role="img" aria-label="don't"></span> | <span class="em em-cross" role="img" aria-label="don't"></span> |
+| AFDD + MCB | <span class="em em-check" role="img" aria-label="do"></span> | <span class="em em-check" role="img" aria-label="do"></span> | <span class="em em-cross" role="img" aria-label="don't"></span> | <span class="em em-check" role="img" aria-label="do"></span> | <span class="em em-check" role="img" aria-label="do"></span> |
+| **AFDD + RCBO** | <span class="em em-check" role="img" aria-label="do"></span> | <span class="em em-check" role="img" aria-label="do"></span> | <span class="em em-check" role="img" aria-label="do"></span> | <span class="em em-check" role="img" aria-label="do"></span> | <span class="em em-check" role="img" aria-label="do"></span> |
 
 The **AFDD + RCBO** combination is the gold standard for socket circuits in new installations. It is the only single-device solution that covers all four major fault types.
 

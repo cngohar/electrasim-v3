@@ -39,7 +39,7 @@ Live (L) → RCD (L-in → L-out) → Load
 Neutral (N) → RCD (N-in → N-out) → Load
 ```
 
-> 💡 **Key difference from MCB:** An MCB protects against overload and short circuit. An RCD protects against earth faults and electrocution risk. In modern installations they're often combined into a single device called an **RCBO**. ElectraSim now includes a dedicated [RCBO component](/blog/what-is-an-rcbo-difference-between-rcd-mcb-rcbo/) (added in v1.6), so you can place one directly — or still model the same protection the classic way with an MCB and an RCD in series.
+> <span class="em em-bulb" role="img" aria-label="tip"></span> **Key difference from MCB:** An MCB protects against overload and short circuit. An RCD protects against earth faults and electrocution risk. In modern installations they're often combined into a single device called an **RCBO**. ElectraSim now includes a dedicated [RCBO component](/blog/what-is-an-rcbo-difference-between-rcd-mcb-rcbo/) (added in v1.6), so you can place one directly — or still model the same protection the classic way with an MCB and an RCD in series.
 
 ---
 
@@ -86,7 +86,7 @@ A timer switch automatically opens or closes the circuit at pre-programmed times
 **In ElectraSim:**
 The Timer Switch has two ports — Live-in and Live-out — and behaves like a single-way switch that you can toggle to represent the timer triggering. Wire it in series before the loads it controls. Use it with a Bulb or Socket to model timed lighting circuits.
 
-> 💡 **Circuit idea:** Wire a Timer Switch in series with an outdoor Bulb. Toggle the switch to simulate the timer reaching its ON time. Add an MCB upstream for a realistic outdoor lighting circuit.
+> <span class="em em-bulb" role="img" aria-label="tip"></span> **Circuit idea:** Wire a Timer Switch in series with an outdoor Bulb. Toggle the switch to simulate the timer reaching its ON time. Add an MCB upstream for a realistic outdoor lighting circuit.
 
 ---
 
@@ -111,7 +111,7 @@ Always match the dimmer type to your bulb type — using a leading-edge dimmer w
 **In ElectraSim:**
 The Dimmer Switch has two ports — Live-in and Live-out — and connects in series between the MCB and the Bulb. The simulator models it as a controlled pass-through: it can be toggled to represent full-on vs dimmed state. Wire it the same way as a single-way switch, but note it is for **lighting loads only** — connecting a Dimmer to a motor or fan is incorrect wiring (use the Fan Dimmer component for fans instead).
 
-> 💡 **Note:** ElectraSim also has a **Fan Dimmer** component, which is the rotary speed controller used specifically with ceiling fans. The Dimmer Switch is specifically for lighting circuits.
+> <span class="em em-bulb" role="img" aria-label="tip"></span> **Note:** ElectraSim also has a **Fan Dimmer** component, which is the rotary speed controller used specifically with ceiling fans. The Dimmer Switch is specifically for lighting circuits.
 
 ---
 
@@ -148,7 +148,7 @@ N1 → Neutral return for lighting + ring main
 N2 → Neutral return for kitchen
 ```
 
-> 💡 **Circuit challenge:** Build a three-circuit panel: one for lighting (Bulb + Switch), one for sockets (3-Pin Socket), and one for a motor. Wire all three through the Distribution Board and add individual MCBs on each output.
+> <span class="em em-bulb" role="img" aria-label="tip"></span> **Circuit challenge:** Build a three-circuit panel: one for lighting (Bulb + Switch), one for sockets (3-Pin Socket), and one for a motor. Wire all three through the Distribution Board and add individual MCBs on each output.
 
 ---
 
@@ -175,7 +175,7 @@ The Push Button is momentary (closes only while held), so the Bell energises onl
 
 The dedicated [Push Button guide](/blog/how-does-a-push-button-switch-work/) explains the spring-return mechanism, NO and NC contacts, and how this simple bell circuit differs from industrial holding logic.
 
-> 💡 **Circuit idea:** Build a doorbell with two buttons — one at the front door and one at the back — wired in parallel, both feeding the same Bell. Either button triggers the bell independently.
+> <span class="em em-bulb" role="img" aria-label="tip"></span> **Circuit idea:** Build a doorbell with two buttons — one at the front door and one at the back — wired in parallel, both feeding the same Bell. Either button triggers the bell independently.
 
 ---
 

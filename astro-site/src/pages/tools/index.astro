@@ -1,4 +1,5 @@
 ---
+import EmojiIcon from '../../components/EmojiIcon.astro';
 import Base from '../../layouts/Base.astro';
 import { TOOLBOX_REGISTRY } from '../../lib/tools/registry';
 import { generateToolboxHubStructuredData } from '../../lib/tools/seo';
@@ -24,7 +25,7 @@ const toolboxSchema = generateToolboxHubStructuredData(TOOLBOX_REGISTRY);
     <header class="toolbox-hero">
       <div class="wrap">
         <div class="hero-badge">
-          <span class="badge-icon">⚡</span>
+          <span class="badge-icon"><EmojiIcon name="bolt" /></span>
           <span>ELECTRASIM ELECTRICAL TOOLBOX</span>
         </div>
         <h1 class="hero-title">Interactive Electrical Calculators & Tools</h1>
@@ -130,22 +131,22 @@ const toolboxSchema = generateToolboxHubStructuredData(TOOLBOX_REGISTRY);
         <h2 class="sec-heading">Why Electrical Professionals Choose ElectraSim</h2>
         <div class="features-grid">
           <div class="feature-item">
-            <div class="feat-icon">⚡</div>
+            <div class="feat-icon"><EmojiIcon name="bolt" /></div>
             <h3>Real-Time Interactive Physics</h3>
             <p>Don't just look at dry numbers. See voltage loss along the cable, observe particle velocity proportional to current, and watch conductor heating in real time.</p>
           </div>
           <div class="feature-item">
-            <div class="feat-icon">🔒</div>
+            <div class="feat-icon"><EmojiIcon name="lock" /></div>
             <h3>100% Client-Side Privacy</h3>
             <p>Calculations execute locally in your browser. No sign-up, no login required, and no confidential project data leaves your device.</p>
           </div>
           <div class="feature-item">
-            <div class="feat-icon">📐</div>
+            <div class="feat-icon"><EmojiIcon name="ruler" /></div>
             <h3>Standards & Regulations</h3>
             <p>Pre-configured with UK BS 7671 Amendment 4 limits (3% lighting, 5% general circuits), IEC standards, and customizable temperature correction.</p>
           </div>
           <div class="feature-item">
-            <div class="feat-icon">📱</div>
+            <div class="feat-icon"><EmojiIcon name="phone" /></div>
             <h3>Mobile On-Site Ready</h3>
             <p>Fully optimized for on-site calculations on your phone or tablet with full touch support and collapsible tool panels.</p>
           </div>

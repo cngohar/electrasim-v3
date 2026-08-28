@@ -74,13 +74,19 @@ footer{background:#0f172a;color:#94a3b8;padding:2.5rem 0 1.75rem}
 .ft-bot a:hover{color:#fff}
 
 @media(max-width:640px){.hide-m{display:none}.page-hero{padding:3rem 0 2.5rem}}
+
+/* Vector pictographs (the pages used to carry literal emoji, which every OS
+   renders with a different font). Shapes match astro-site/src/lib/emoji-icons.ts. */
+.ei { width: 1.05em; height: 1.05em; vertical-align: -0.18em; flex: 0 0 auto; display: inline-block; }
+.fi .ei, .uc-i .ei { width: 1.6em; height: 1.6em; vertical-align: -0.3em; }
+.logo-icon .ei { width: 1.1em; height: 1.1em; }
 </style>
 </head>
 <body>
 
 <nav class="nav" role="navigation" aria-label="Main navigation">
   <div class="nav-in">
-    <a href="/" class="logo"><span class="logo-icon" aria-hidden="true">⚡</span>ElectraSim</a>
+    <a href="/" class="logo"><span class="logo-icon" aria-hidden="true"><svg class="ei" viewBox="0 0 128 128" role="presentation" aria-hidden="true" focusable="false"><path d="M74 8 24 76h26l-10 44 64-70H70z" fill="#FFCC4D" stroke="#F4900C" stroke-width="7" stroke-linejoin="round"/></svg></span>ElectraSim</a>
     <div class="nav-links">
       <a href="/" class="hide-m">Home</a>
       <a href="/blog/" style="color:var(--blue)" aria-current="page">Blog</a>

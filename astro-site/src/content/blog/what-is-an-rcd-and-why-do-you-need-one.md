@@ -13,7 +13,7 @@ Yet the RCD is the less understood of the two. Most people know their circuit br
 
 This guide explains what an RCD is, how it works, why a regular MCB can't do its job, and how you can safely simulate RCD behaviour using **[ElectraSim](/app/)** — a free, browser-based electrical circuit simulator.
 
-> 💡 **Try it now:** ElectraSim includes a fully functional RCD component. Build a protected circuit, simulate an earth fault, and watch the RCD trip — all in your browser, no sign-up required. [Open ElectraSim →](/app/)
+> <span class="em em-bulb" role="img" aria-label="tip"></span> **Try it now:** ElectraSim includes a fully functional RCD component. Build a protected circuit, simulate an earth fault, and watch the RCD trip — all in your browser, no sign-up required. [Open ElectraSim →](/app/)
 
 ## What Does RCD Stand For?
 
@@ -119,7 +119,7 @@ Every RCD and RCBO has a **TEST button**. Pressing it creates an internal fault 
 
 **What to do if it doesn't trip:** The RCD is faulty and must be replaced immediately. An RCD that doesn't trip on test provides no protection.
 
-> ⚠️ **Important:** A TEST button failure means the RCD is defective — not that the circuit is fine. Replace it before using any circuits it protects.
+> <span class="em em-warning" role="img" aria-label="warning"></span> **Important:** A TEST button failure means the RCD is defective — not that the circuit is fine. Replace it before using any circuits it protects.
 
 ## How to Simulate RCD Protection in ElectraSim
 
@@ -147,12 +147,12 @@ The answer is **both** — they protect against entirely different hazards and a
 
 | | MCB | RCD | RCBO |
 |---|---|---|---|
-| **Overload protection** | ✅ | ❌ | ✅ |
-| **Short circuit protection** | ✅ | ❌ | ✅ |
-| **Earth fault protection** | ❌ | ✅ | ✅ |
-| **Electrocution protection** | ❌ | ✅ | ✅ |
-| **Resettable** | ✅ | ✅ | ✅ |
-| **Individual circuit isolation** | ✅ | ❌ (shared) | ✅ |
+| **Overload protection** | <span class="em em-check" role="img" aria-label="do"></span> | <span class="em em-cross" role="img" aria-label="don't"></span> | <span class="em em-check" role="img" aria-label="do"></span> |
+| **Short circuit protection** | <span class="em em-check" role="img" aria-label="do"></span> | <span class="em em-cross" role="img" aria-label="don't"></span> | <span class="em em-check" role="img" aria-label="do"></span> |
+| **Earth fault protection** | <span class="em em-cross" role="img" aria-label="don't"></span> | <span class="em em-check" role="img" aria-label="do"></span> | <span class="em em-check" role="img" aria-label="do"></span> |
+| **Electrocution protection** | <span class="em em-cross" role="img" aria-label="don't"></span> | <span class="em em-check" role="img" aria-label="do"></span> | <span class="em em-check" role="img" aria-label="do"></span> |
+| **Resettable** | <span class="em em-check" role="img" aria-label="do"></span> | <span class="em em-check" role="img" aria-label="do"></span> | <span class="em em-check" role="img" aria-label="do"></span> |
+| **Individual circuit isolation** | <span class="em em-check" role="img" aria-label="do"></span> | <span class="em em-cross" role="img" aria-label="don't"></span> (shared) | <span class="em em-check" role="img" aria-label="do"></span> |
 
 For any new installation or rewire, **RCBOs on every circuit** is the current best practice and what most modern wiring standards mandate.
 

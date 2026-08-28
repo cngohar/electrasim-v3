@@ -37,7 +37,12 @@ export type TagArchive<T extends BlogPostLike = BlogPostLike> = {
 };
 
 export function wordCount(content: string): number {
-  const normalized = content.trim();
+  // Inline markup (icon spans, callouts, embedded figures) is not prose: strip
+  // tags first so a decorated article does not report a longer read than it is.
+  const normalized = content
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
   return normalized ? normalized.split(/\s+/).length : 0;
 }
 

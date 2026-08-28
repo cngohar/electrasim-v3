@@ -31,7 +31,8 @@ export interface CableSizingInputs {
   /**
    * Compliance standard. Ampacity/drop tables are harmonized between
    * BS 7671 Appendix 4 and IEC 60364-5-52; the standard selects the voltage
-   * drop limit banding (3%/5% vs 4%/5%) and result citations.
+   * drop limit banding (both 3%/5% for public supplies, with IEC adding the
+   * 6%/8% private-supply and >100 m allowances) and result citations.
    * Defaults to 'uk-bs7671'.
    */
   standard?: MetricStandardId;

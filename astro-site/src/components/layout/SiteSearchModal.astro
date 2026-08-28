@@ -1,4 +1,5 @@
 ---
+import EmojiIcon from '../EmojiIcon.astro';
 // SiteSearchModal.astro - Global Instant Search Modal for ElectraSim
 ---
 
@@ -41,16 +42,16 @@
         All
       </button>
       <button type="button" class="search-filter-pill" data-filter="tool" aria-pressed="false">
-        ⚡ Calculators
+        <EmojiIcon name="bolt" /> Calculators
       </button>
       <button type="button" class="search-filter-pill" data-filter="article" aria-pressed="false">
-        📖 Articles
+        <EmojiIcon name="book" /> Articles
       </button>
       <button type="button" class="search-filter-pill" data-filter="update" aria-pressed="false">
-        📦 Updates
+        <EmojiIcon name="box" /> Updates
       </button>
       <button type="button" class="search-filter-pill" data-filter="guide" aria-pressed="false">
-        📐 Guides
+        <EmojiIcon name="ruler" /> Guides
       </button>
     </div>
 
@@ -67,7 +68,7 @@
 
       <!-- No Results State -->
       <div id="site-search-empty" class="search-empty-state" hidden>
-        <div class="empty-icon" aria-hidden="true">🔍</div>
+        <div class="empty-icon" aria-hidden="true"><EmojiIcon name="search" /></div>
         <p class="empty-title">No results found for "<span id="search-empty-query"></span>"</p>
         <p class="empty-desc">Try checking for spelling or searching with broader electrical terms (e.g. "RCD", "voltage", "switch").</p>
       </div>
@@ -80,7 +81,7 @@
 
       <!-- Error State -->
       <div id="site-search-error" class="search-empty-state" role="alert" hidden>
-        <div class="empty-icon" aria-hidden="true">⚠️</div>
+        <div class="empty-icon" aria-hidden="true"><EmojiIcon name="warning" /></div>
         <p class="empty-title">Couldn't load search results</p>
         <p class="empty-desc">Check your connection and try again.</p>
         <button type="button" id="site-search-retry-btn" class="search-retry-btn">Retry</button>
@@ -228,9 +229,9 @@
   }
 
   .search-filter-pill.active {
-    background: var(--blue, #2563eb);
-    color: #ffffff;
-    border-color: var(--blue, #2563eb);
+    background: var(--action-bg, #2563eb);
+    color: var(--action-text, #ffffff);
+    border-color: var(--action-bg, #2563eb);
   }
 
   .search-section-label {
@@ -395,9 +396,9 @@
     margin-top: 0.9rem;
     padding: 0.45rem 1.25rem;
     border-radius: 999px;
-    border: 1px solid var(--blue, #2563eb);
-    background: var(--blue, #2563eb);
-    color: #ffffff;
+    border: 1px solid var(--action-bg, #2563eb);
+    background: var(--action-bg, #2563eb);
+    color: var(--action-text, #ffffff);
     font-size: 0.82rem;
     font-weight: 700;
     cursor: pointer;

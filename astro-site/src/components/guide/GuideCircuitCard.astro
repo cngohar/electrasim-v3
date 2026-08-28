@@ -1,6 +1,7 @@
 ---
 import { levelClass } from '../../lib/guide';
 import type { GuideCircuit } from '../../types/pages';
+import EmojiIcon from '../EmojiIcon.astro';
 
 interface Props {
   circuit: GuideCircuit;
@@ -47,7 +48,7 @@ const { circuit } = Astro.props;
       </ol>
 
       <div class="insight">
-        <span class="insight-label">💡 Key insight</span>
+        <span class="insight-label"><EmojiIcon name="bulb" /> Key insight</span>
         <p>{circuit.insight}</p>
       </div>
     </div>

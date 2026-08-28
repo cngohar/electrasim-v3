@@ -1,4 +1,5 @@
 ---
+import EmojiIcon from '../EmojiIcon.astro';
 ---
 
 <dialog id="explore-search-dialog" class="exp-search-dialog" aria-label="Explore 3D Command Palette">
@@ -6,7 +7,7 @@
     <!-- Search Input Header -->
     <header class="exp-search-header">
       <div class="exp-input-wrap">
-        <span class="exp-search-icon">⚡</span>
+        <span class="exp-search-icon"><EmojiIcon name="bolt" /></span>
         <input
           type="search"
           id="explore-search-input"
@@ -30,10 +31,10 @@
     <!-- Quick Category Filter Pills -->
     <div class="exp-search-filters">
       <button type="button" class="exp-filter-pill active" data-filter="all">All 3D Items</button>
-      <button type="button" class="exp-filter-pill" data-filter="model">💡 3D Models</button>
-      <button type="button" class="exp-filter-pill" data-filter="mode">⚙️ 3D Modes</button>
-      <button type="button" class="exp-filter-pill" data-filter="component">🧩 Components</button>
-      <button type="button" class="exp-filter-pill" data-filter="history">📜 History</button>
+      <button type="button" class="exp-filter-pill" data-filter="model"><EmojiIcon name="bulb" /> 3D Models</button>
+      <button type="button" class="exp-filter-pill" data-filter="mode"><EmojiIcon name="gear" /> 3D Modes</button>
+      <button type="button" class="exp-filter-pill" data-filter="component"><EmojiIcon name="puzzle" /> Components</button>
+      <button type="button" class="exp-filter-pill" data-filter="history"><EmojiIcon name="scroll" /> History</button>
     </div>
 
     <!-- Results List -->
@@ -43,7 +44,7 @@
       </ul>
 
       <div id="explore-search-empty" class="exp-empty-state" hidden>
-        <span class="empty-icon">🔍</span>
+        <span class="empty-icon"><EmojiIcon name="search" /></span>
         <p class="empty-title">No 3D results found for "<span id="exp-empty-query"></span>"</p>
         <p class="empty-desc">Try searching for "Filament", "Exploded", "Cutaway", "1879", or "Patent".</p>
       </div>

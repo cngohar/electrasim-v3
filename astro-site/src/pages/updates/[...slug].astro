@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import packageMetadata from '../../../../package.json';
+import EmojiIcon from '../../components/EmojiIcon.astro';
 import Base from '../../layouts/Base.astro';
 import { readingTime, wordCount } from '../../lib/blog';
 import { sortUpdates, updateNeighbours } from '../../lib/updates';
@@ -47,7 +48,11 @@ const pubDateDisplay = post.data.pubDate.toLocaleDateString('en-GB', {
 });
 const updDateISO = post.data.updatedDate ? post.data.updatedDate.toISOString().split('T')[0] : null;
 const updDateDisplay = post.data.updatedDate
-  ? post.data.updatedDate.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })
+  ? post.data.updatedDate.toLocaleDateString('en-GB', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
   : null;
 
 const canonical = `https://electrasim.com/updates/${post.id}/`;
@@ -98,7 +103,12 @@ const breadcrumbSchema = {
   '@type': 'BreadcrumbList',
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://electrasim.com/' },
-    { '@type': 'ListItem', position: 2, name: 'Product Updates', item: 'https://electrasim.com/updates/' },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Product Updates',
+      item: 'https://electrasim.com/updates/',
+    },
     { '@type': 'ListItem', position: 3, name: post.data.title, item: canonical },
   ],
 };
@@ -147,10 +157,10 @@ const breadcrumbSchema = {
       </div>
       <h1>{post.data.title}</h1>
       <div class="art-meta">
-        <span>📅 <time datetime={pubDateISO}>{pubDateDisplay}</time>
+        <span><EmojiIcon name="calendar" /> <time datetime={pubDateISO}>{pubDateDisplay}</time>
           {updDateDisplay && <span class="updated-badge">Updated <time datetime={updDateISO}>{updDateDisplay}</time></span>}
         </span>
-        <span>✍️ {post.data.author}</span>
+        <span><EmojiIcon name="writing" /> {post.data.author}</span>
         <span>⏱ {readMins} min read</span>
       </div>
 
@@ -218,7 +228,7 @@ const breadcrumbSchema = {
       <div class="art-cta">
         <h2>Try It in ElectraSim</h2>
         <p>Load the app and use the newest components and modes right away — free, in your browser, no sign-up.</p>
-        <a href="/app/" class="btn-primary">⚡ Open ElectraSim Free</a>
+        <a href="/app/" class="btn-primary"><EmojiIcon name="bolt" /> Open ElectraSim Free</a>
       </div>
 
       {(olderPost || newerPost) && (

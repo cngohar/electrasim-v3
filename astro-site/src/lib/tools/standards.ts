@@ -20,6 +20,17 @@ export interface VoltageDropLimitProfile {
   powerPct: number;
   /** Short citation for where the limits come from */
   basis: string;
+  /** Ceilings permitted on a private LV supply (IEC 60364 / BS 7671: 6% / 8%) */
+  privateLightingPct?: number;
+  privatePowerPct?: number;
+  /**
+   * IEC 60364-5-52 Annex G: main wiring runs longer than 100 m may raise the
+   * ceiling by `longRunAllowancePerMetrePct` per metre beyond
+   * `longRunAllowanceStartM`, up to `longRunAllowanceCapPct`.
+   */
+  longRunAllowancePerMetrePct?: number;
+  longRunAllowanceStartM?: number;
+  longRunAllowanceCapPct?: number;
 }
 
 export interface StandardProfile {
@@ -46,12 +57,13 @@ export const STANDARD_PROFILES: Record<StandardId, StandardProfile> = {
     regionLabel: 'United Kingdom',
     badge: 'BS 7671 · UK',
     citation:
-      'BS 7671:2018+A4:2026 (IET Wiring Regulations, 18th Edition) — Appendix 4 current-carrying capacities and voltage drop limits: 3% lighting / 5% other circuits from the origin of a public LV supply.',
+      'BS 7671:2018+A4:2026 (IET Wiring Regulations, 18th Edition) — Regulation 525.1 and Appendix 4 Table 4Ab: 3% lighting / 5% other uses, measured from the origin of the installation for a public LV supply (6% / 8% from a private LV supply). Ampacity and mV/A/m data from Appendix 4.',
     defaultVoltages: { single: 230, three: 400 },
     vdrop: {
       lightingPct: 3,
       powerPct: 5,
-      basis: 'BS 7671 Appendix 4, Table 4Ab (3% lighting / 5% other circuits)',
+      basis:
+        'BS 7671 Reg 525.1 / Appendix 4 Table 4Ab (3% lighting, 5% other uses; 6% / 8% private LV supply)',
     },
     conductorUnit: 'mm²',
     lengthUnit: 'm',
@@ -62,12 +74,22 @@ export const STANDARD_PROFILES: Record<StandardId, StandardProfile> = {
     regionLabel: 'International (IEC)',
     badge: 'IEC 60364 · Intl',
     citation:
-      'IEC 60364 (international metric) — IEC 60364-5-52 Annex G voltage drop guidance: 4% lighting / 5% other circuits on public LV supplies (6% / 8% on private supplies). Ampacity data harmonized with IEC 60364-5-52 Table B.52.4.',
+      'IEC 60364 (international metric) — IEC 60364-5-52 Annex G, Table G.52.1 voltage-drop guidance: 3% lighting / 5% other uses from a public LV supply, 6% / 8% from a private LV supply, with up to +0.5% allowed on runs over 100 m (0.005% per metre). Informative only — national annexes vary. Ampacity data harmonized with IEC 60364-5-52 Table B.52.4.',
     defaultVoltages: { single: 230, three: 400 },
     vdrop: {
-      lightingPct: 4,
+      // Table G.52.1 (Annex G) — 3 % lighting / 5 % other uses on a public LV
+      // supply. The long-standing "4 %" figure quoted by some vendor guides is
+      // not the table value: it mixes the Annex G allowance for runs over 100 m
+      // (0.005 % per metre, capped at +0.5 %) into the lighting ceiling.
+      lightingPct: 3,
       powerPct: 5,
-      basis: 'IEC 60364-5-52 Annex G, Table G.52.1 (4% lighting / 5% other circuits)',
+      privateLightingPct: 6,
+      privatePowerPct: 8,
+      longRunAllowancePerMetrePct: 0.005,
+      longRunAllowanceStartM: 100,
+      longRunAllowanceCapPct: 0.5,
+      basis:
+        'IEC 60364-5-52 Annex G, Table G.52.1 (3% lighting / 5% other uses on public LV supplies; 6% / 8% private, +0.005%/m over 100 m up to +0.5%)',
     },
     conductorUnit: 'mm²',
     lengthUnit: 'm',

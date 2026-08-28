@@ -1,6 +1,6 @@
 ---
-import Base from '../layouts/Base.astro';
 import packageMetadata from '../../../package.json';
+import Base from '../layouts/Base.astro';
 import '../styles/not-found.css';
 
 // Default riddle rendered server-side (progressive enhancement: replaced by a
@@ -8,7 +8,7 @@ import '../styles/not-found.css';
 // RIDDLES pool in not-found.js (index 0).
 const SSR_RIDDLE = {
   q: 'Your multimeter shows 90 V on a cable you definitely disconnected. Why?',
-  a: "Ghost (phantom) voltage: the dead cable runs parallel to live ones, so capacitive coupling between conductors lifts it to a readable voltage. Your high-impedance meter (10 MΩ) barely loads it down. Touch it with a solenoid tester and the phantom collapses to zero — no phantom, no problem.",
+  a: 'Ghost (phantom) voltage: the dead cable runs parallel to live ones, so capacitive coupling between conductors lifts it to a readable voltage. Your high-impedance meter (10 MΩ) barely loads it down. Touch it with a solenoid tester and the phantom collapses to zero — no phantom, no problem.',
 };
 ---
 

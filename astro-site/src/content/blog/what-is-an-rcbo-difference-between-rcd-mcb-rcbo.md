@@ -173,7 +173,7 @@ To compare overcurrent protection with earth leakage protection yourself:
 1. Build a circuit: **Power Supply → RCBO → Socket → Load**
 2. Run the simulation — the load energises normally
 3. Add a **short circuit** fault (wire the load's output directly back to the supply's neutral port) — the overcurrent side of the protection detects the fault and the circuit is flagged as a short circuit error
-4. Now enable **Fault Simulation Mode** (⚠ button) and apply an **Earth Fault** to the load component
+4. Now enable **Fault Simulation Mode** (<span class="em em-warning" role="img" aria-label="warning"></span> button) and apply an **Earth Fault** to the load component
 5. The residual side of the protection responds, representing what the earth-leakage detection in an RCBO or RCD picks up in a real installation
 6. Rebuild the same circuit with a separate **MCB + RCD in series** to see how the older two-device layout provides the same two protections in two enclosures
 
@@ -210,10 +210,10 @@ It depends on the charger type and the earth fault current waveform it can produ
 
 | | MCB | RCD | RCBO |
 |---|---|---|---|
-| **Overcurrent protection** | ✅ | ❌ | ✅ |
-| **Earth leakage protection** | ❌ | ✅ | ✅ |
-| **Individual circuit isolation** | ✅ | ❌ (shared) | ✅ |
-| **Test button required** | ❌ | ✅ | ✅ |
+| **Overcurrent protection** | <span class="em em-check" role="img" aria-label="do"></span> | <span class="em em-cross" role="img" aria-label="don't"></span> | <span class="em em-check" role="img" aria-label="do"></span> |
+| **Earth leakage protection** | <span class="em em-cross" role="img" aria-label="don't"></span> | <span class="em em-check" role="img" aria-label="do"></span> | <span class="em em-check" role="img" aria-label="do"></span> |
+| **Individual circuit isolation** | <span class="em em-check" role="img" aria-label="do"></span> | <span class="em em-cross" role="img" aria-label="don't"></span> (shared) | <span class="em em-check" role="img" aria-label="do"></span> |
+| **Test button required** | <span class="em em-cross" role="img" aria-label="don't"></span> | <span class="em em-check" role="img" aria-label="do"></span> | <span class="em em-check" role="img" aria-label="do"></span> |
 | **Standard** | BS EN 60898 | BS EN 61008 | BS EN 61009 |
 
 An RCBO is simply the correct device when a circuit needs both types of protection and you want a fault on that circuit to trip only that circuit — which in a modern BS 7671-compliant installation is nearly every circuit in the building.

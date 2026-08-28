@@ -13,7 +13,7 @@ A **Surge Protection Device (SPD)** is the only protection against transient ove
 
 This guide explains what voltage surges are, how SPDs clamp them, the main SPD types and where each is used, what BS 7671 Amendment 2 actually mandates, and how to specify the right SPD for a domestic or light commercial installation.
 
-> 💡 **Related:** If you are planning a new consumer unit and want to understand all the Amendment 2 requirements together, see our guide on [AFDDs: Arc Fault Detection Devices Explained](/blog/afdd-arc-fault-detection-devices-explained/) — the other major Amendment 2 addition.
+> <span class="em em-bulb" role="img" aria-label="tip"></span> **Related:** If you are planning a new consumer unit and want to understand all the Amendment 2 requirements together, see our guide on [AFDDs: Arc Fault Detection Devices Explained](/blog/afdd-arc-fault-detection-devices-explained/) — the other major Amendment 2 addition.
 
 ---
 

@@ -1,6 +1,7 @@
 ---
 import type { ToolEntry } from '../../lib/tools/registry';
 import { TOOLBOX_REGISTRY } from '../../lib/tools/registry';
+import EmojiIcon from '../EmojiIcon.astro';
 
 interface Props {
   currentTool: ToolEntry;
@@ -54,7 +55,7 @@ const { currentTool } = Astro.props;
           data-id={tool.id}
         >
           <div class="cmd-item-left">
-            <span class="cmd-item-glyph">⚡</span>
+            <span class="cmd-item-glyph"><EmojiIcon name="bolt" /></span>
             <div class="cmd-item-texts">
               <span class="cmd-item-title">{tool.name}</span>
               <span class="cmd-item-sub">{tool.description}</span>
@@ -78,7 +79,7 @@ const { currentTool } = Astro.props;
         data-title="toolbox home"
       >
         <div class="cmd-item-left">
-          <span class="cmd-item-glyph">🏠</span>
+          <span class="cmd-item-glyph"><EmojiIcon name="home" /></span>
           <div class="cmd-item-texts">
             <span class="cmd-item-title">Toolbox Home</span>
             <span class="cmd-item-sub">Return to the Electrical Toolbox index</span>
@@ -96,7 +97,7 @@ const { currentTool } = Astro.props;
         data-title="launch wiring lab simulator app"
       >
         <div class="cmd-item-left">
-          <span class="cmd-item-glyph">⚡</span>
+          <span class="cmd-item-glyph"><EmojiIcon name="bolt" /></span>
           <div class="cmd-item-texts">
             <span class="cmd-item-title">Launch Interactive Wiring Lab</span>
             <span class="cmd-item-sub">Open full circuit simulation and testing lab</span>
@@ -132,9 +133,9 @@ const { currentTool } = Astro.props;
         data-title="help how voltage drop works guide"
       >
         <div class="cmd-item-left">
-          <span class="cmd-item-glyph">❓</span>
+          <span class="cmd-item-glyph"><EmojiIcon name="question" /></span>
           <div class="cmd-item-texts">
-            <span class="cmd-item-title">How Voltage Drop Works</span>
+            <span class="cmd-item-title">{`How ${currentTool.shortName} Works`}</span>
             <span class="cmd-item-sub">Formulas, calculations, and standards reference</span>
           </div>
         </div>
@@ -150,7 +151,7 @@ const { currentTool } = Astro.props;
         data-title="toggle dark light mode appearance theme"
       >
         <div class="cmd-item-left">
-          <span class="cmd-item-glyph">🌓</span>
+          <span class="cmd-item-glyph"><EmojiIcon name="contrast" /></span>
           <div class="cmd-item-texts">
             <span class="cmd-item-title">Toggle Appearance</span>
             <span class="cmd-item-sub">Switch between Light Mode and Dark Mode</span>
@@ -168,7 +169,7 @@ const { currentTool } = Astro.props;
         data-title="toggle 3d view perspective"
       >
         <div class="cmd-item-left">
-          <span class="cmd-item-glyph">🧊</span>
+          <span class="cmd-item-glyph"><EmojiIcon name="ice" /></span>
           <div class="cmd-item-texts">
             <span class="cmd-item-title">Toggle 3D View</span>
             <span class="cmd-item-sub">Enable or disable 3D mouse parallax</span>
@@ -195,7 +196,7 @@ const { currentTool } = Astro.props;
       </div>
 
       <div id="cmd-empty-state" class="cmd-empty-state" hidden>
-        <span class="cmd-empty-icon" aria-hidden="true">🔍</span>
+        <span class="cmd-empty-icon" aria-hidden="true"><EmojiIcon name="search" /></span>
         <p>No matching tools or commands. Try "reset", "help", or a tool name.</p>
       </div>
     </div>

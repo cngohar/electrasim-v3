@@ -3,40 +3,40 @@
   "seo_description": "Learn the current ElectraSim workflow: guided circuit templates, smart and custom wiring, fault simulation, import/export, alignment tools, mini-map, and eight step-by-step wiring walkthroughs.",
   "hero_heading": "Build Real Circuits.\nLearn by Simulating.",
   "hero_description": "A practical guide to the current ElectraSim app: start with guided templates, wire circuits with smart or custom routing, test faults, organise large diagrams, and practise eight real wiring walkthroughs.",
-  "hero_cta_primary": "⚡ Open ElectraSim",
+  "hero_cta_primary": "Open ElectraSim",
   "hero_cta_secondary": "See Latest Features ↓",
   "cta_heading": "You know the current workflow. Now build your own circuit.",
   "cta_description": "Use guided templates, fault mode, smart routing, custom wiring, and export tools for free in your browser. No sign-up, no installation.",
-  "cta_primary": "⚡ Open ElectraSim Free",
+  "cta_primary": "Open ElectraSim Free",
   "cta_secondary": "Read the Blog →",
   "latest_features": [
     {
-      "icon": "🧭",
+      "icon": "compass",
       "title": "Guided Circuit Templates",
       "body": "Open 18 built-in guided circuits straight inside the app: eight starter circuits (lamps, one-way and two-way switching, RCD fault checks, contactors, timers, a push-button doorbell, an RCBO socket) and ten Pro scenarios — three-phase motor control, EV charging, solar with battery storage, underfloor heating, staircase timers, PIR floodlights, cooker supplies, surge-protected consumer units, generator backup and AFDD bedrooms."
     },
     {
-      "icon": "⚠️",
+      "icon": "warning",
       "title": "Fault Simulation Mode",
       "body": "Inject wire breaks, reverse polarity, and missing-earth faults directly on the canvas, then compare the warning and error feedback."
     },
     {
-      "icon": "┗",
+      "icon": "plug",
       "title": "Smart and Custom Wiring",
       "body": "Use default smart right-angle routing around components, or enable custom wiring to place manual checkpoint corners for real cable-run teaching."
     },
     {
-      "icon": "🧰",
+      "icon": "toolbox",
       "title": "Import, Export and Share",
       "body": "Export circuits as JSON, SVG, PNG, PDF/print sheets, or shareable URLs. Import is schema-validated so broken files do not corrupt your work."
     },
     {
-      "icon": "🧲",
+      "icon": "magnet",
       "title": "Canvas Organisation Tools",
       "body": "Use drag-select, copy/paste, alignment, distribution, mini-map navigation, zoom-to-fit, gridless mode, and colour presets for larger diagrams."
     },
     {
-      "icon": "🌙",
+      "icon": "moon",
       "title": "Performance and Accessibility",
       "body": "Choose light, dark, or system theme, high-contrast and colour-blind canvas palettes, and reduced visual effects for lower-powered devices."
     }

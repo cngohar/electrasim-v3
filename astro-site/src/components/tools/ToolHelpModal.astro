@@ -1,3 +1,271 @@
+---
+import type { ToolEntry } from '../../lib/tools/registry';
+/**
+ * ToolHelpModal.astro — the "how this works" dialog shared by the toolbox.
+ *
+ * Content is keyed by tool so each calculator explains *its own* method: the
+ * formula block mirrors the tool's published equations, and the tools that
+ * teach something physical (voltage drop, cable sizing) also get limit tables
+ * and field notes. Anything else falls back to its own equations and steps,
+ * which is still better than showing another tool's prose.
+ */
+import EmojiIcon from '../EmojiIcon.astro';
+
+interface FormulaRow {
+  label: string;
+  /** Rendered as HTML so sub/sup and Greek letters stay readable. */
+  expression: string;
+}
+interface GuideItem {
+  tone: 'good' | 'warning' | 'excessive';
+  badge: string;
+  text: string;
+}
+interface RefCard {
+  badge: string;
+  value: string;
+  unit: string;
+  note: string;
+  tone: 'copper' | 'aluminum' | 'neutral';
+}
+interface Note {
+  icon: string;
+  text: string;
+}
+interface Copy {
+  title: string;
+  intro: string;
+  formulas: FormulaRow[];
+  formulaMeta: string[];
+  cards: RefCard[];
+  guidelinesTitle: string;
+  guidelines: GuideItem[];
+  notesTitle: string;
+  notes: Note[];
+  tip: string;
+}
+
+interface Props {
+  tool?: ToolEntry;
+}
+const { tool } = Astro.props;
+
+const GUIDE_TONE: Record<GuideItem['tone'], string> = {
+  good: 'tag-good',
+  warning: 'tag-warning',
+  excessive: 'tag-excessive',
+};
+
+const COPY: Record<string, Copy> = {
+  'voltage-drop': {
+    title: 'How Voltage Drop Works',
+    intro:
+      'Current pushes through the resistance and reactance of the cable on its way to the load and back, so the load receives less than the supply origin delivers.',
+    formulas: [
+      { label: 'DC', expression: 'V<sub>drop</sub> = 2 · I · L · r' },
+      { label: '1-Φ AC', expression: 'V<sub>drop</sub> = 2 · I · L · (r cos φ + x sin φ)' },
+      { label: '3-Φ AC', expression: 'V<sub>drop</sub> = √3 · I · L · (r cos φ + x sin φ)' },
+    ],
+    formulaMeta: [
+      'r = ρ<sub>T</sub> / A (Ω/m one-way conductor resistance)',
+      'P<sub>loss</sub> = I² · R<sub>total</sub> (watts wasted as heat)',
+    ],
+    cards: [
+      {
+        badge: 'COPPER',
+        value: '0.0172',
+        unit: 'Ω·mm²/m',
+        note: 'at 20 °C (standard electrolytic)',
+        tone: 'copper',
+      },
+      {
+        badge: 'ALUMINIUM',
+        value: '0.0282',
+        unit: 'Ω·mm²/m',
+        note: 'at 20 °C (~64% higher resistance)',
+        tone: 'aluminum',
+      },
+    ],
+    guidelinesTitle: 'BS 7671 &amp; IEC limits (public LV supply)',
+    guidelines: [
+      {
+        tone: 'good',
+        badge: '≤ 3%',
+        text: '<strong>Good:</strong> inside the lighting ceiling of 3% (6.9 V at 230 V) that BS 7671 Reg 525.1 / Table 4Ab and IEC 60364-5-52 Table G.52.1 both set for lighting.',
+      },
+      {
+        tone: 'warning',
+        badge: '&gt; 3% – 5%',
+        text: '<strong>Marginal:</strong> acceptable for sockets, heaters, cookers and other uses (5% = 11.5 V at 230 V, 20 V at 400 V) but over the lighting budget.',
+      },
+      {
+        tone: 'excessive',
+        badge: '&gt; 5%',
+        text: '<strong>Excessive:</strong> outside both standards for a public supply. Upsize the conductor or shorten the run — motors also lose starting torque with the square of the voltage.',
+      },
+      {
+        tone: 'good',
+        badge: '6% / 8%',
+        text: '<strong>Private LV supply:</strong> generator, on-site transformer or solar PV may use 6% lighting / 8% other uses. IEC Annex G also allows up to +0.5% on runs over 100 m (0.005% per metre).',
+      },
+    ],
+    notesTitle: 'Field notes from real installations',
+    notes: [
+      {
+        icon: 'ruler',
+        text: '<strong>Compare like with like.</strong> BS 7671 mV/A/m figures assume the conductor at its maximum operating temperature (70 °C thermoplastic, 90 °C thermosetting). At 20 °C this calculator reads about 17% lower.',
+      },
+      {
+        icon: 'warning',
+        text: '<strong>The limit is measured from the origin,</strong> not from your consumer unit — a submain already spends part of the budget, and the DNO is separately allowed −6%/+10% of 230 V at the meter (EN 50160).',
+      },
+      {
+        icon: 'bolt',
+        text: '<strong>Ring finals mislead if you use the whole ring length.</strong> Current reaches the load from both directions, so a 100 m ring at 30 A drops about 6.2 V where a 50 m radial drops 24.7 V.',
+      },
+      {
+        icon: 'gear',
+        text: '<strong>Reactance only earns its keep above about 16 mm².</strong> The Appendix 4 tables ignore inductance for smaller cables; for large multi-core or armoured single-core runs, switch it on.',
+      },
+      {
+        icon: 'reset',
+        text: '<strong>Motors need a second, starting check.</strong> Direct-on-line starting pulls 6–8× full-load current and torque falls with the square of voltage — keep the running drop tight or it will not start under load.',
+      },
+      {
+        icon: 'flask',
+        text: '<strong>Loose terminations beat physics.</strong> A 0.5 mΩ corroded joint costs 0.02 V per amp — more than 12 m of 2.5 mm² cable. Torque and re-check links before you upsize anything.',
+      },
+    ],
+    tip: '<strong>Pro Tip:</strong> conductor resistance rises ~0.39% per °C above 20 °C for copper (~0.40% for aluminium). Under full load a cable really runs at 70 °C (PVC) or 90 °C (XLPE) — enter that temperature and the verdict matches what an inspector can prove from the tabulated data.',
+  },
+
+  'cable-size': {
+    title: 'How Cable Sizing Works',
+    intro:
+      'A cable is sized by heat, not by appetite: it has to carry the load current without its conductor passing the insulation temperature limit, in the surroundings where it will actually be installed.',
+    formulas: [
+      {
+        label: 'Design current',
+        expression: 'I<sub>b</sub> = P / (U · cos φ) &nbsp;— &nbsp;√3 · U for 3-Φ',
+      },
+      {
+        label: 'Capacity needed',
+        expression:
+          'I<sub>t</sub> = I<sub>n</sub> / (C<sub>a</sub> · C<sub>g</sub> · C<sub>i</sub> · C<sub>c</sub>)',
+      },
+      {
+        label: 'The rule',
+        expression: 'I<sub>b</sub> ≤ I<sub>n</sub> ≤ I<sub>z</sub> &nbsp;and&nbsp; ΔV ≤ ceiling',
+      },
+    ],
+    formulaMeta: [
+      'I<sub>z</sub> = tabulated ampacity after derating — the cable as its real environment leaves it',
+      'The answer is the smallest IEC 60228 cross-section that passes both gates',
+    ],
+    cards: [
+      {
+        badge: 'METHOD C → A',
+        value: '20 A → 14.5 A',
+        unit: '1.5 mm²',
+        note: 'the same copper, clipped direct versus buried in loft insulation',
+        tone: 'neutral',
+      },
+      {
+        badge: 'GROUPING',
+        value: '× 0.65',
+        unit: '4 circuits',
+        note: 'one cable tray, four circuits — Cg lands on every one of them',
+        tone: 'neutral',
+      },
+    ],
+    guidelinesTitle: 'What the run is telling you',
+    guidelines: [
+      {
+        tone: 'good',
+        badge: 'cable + arrows',
+        text: '<strong>Left to right, always.</strong> The power leaves the consumer unit, travels the cable and arrives at the appliance. The dots are the load current; the thicker the line, the more copper the answer needed.',
+      },
+      {
+        tone: 'good',
+        badge: 'heat rising',
+        text: '<strong>Heat escaping.</strong> Chevrons climb off the run when the method can shed what the load produces — so the gauge stays long and a smaller cable is legal.',
+      },
+      {
+        tone: 'warning',
+        badge: 'heat stalls',
+        text: '<strong>Heat straining.</strong> A hot loft, a shared conduit or extra neighbours: capacity drains towards the load line, the cable glows, and the answer steps up a size.',
+      },
+      {
+        tone: 'excessive',
+        badge: 'device trips',
+        text: '<strong>Nothing fits.</strong> The run glows end to end and the MCB goes red: even 95 mm² cannot shed what these conditions demand. Shorten the run, split the circuit, or let the cable breathe.',
+      },
+      {
+        tone: 'warning',
+        badge: 'appliance sags',
+        text: '<strong>The far end is the proof.</strong> A dim bulb, a slow motor or a weak shower is the volt drop you computed, drawn. The number under LOAD is volts actually delivered, not nominal.',
+      },
+      {
+        tone: 'good',
+        badge: 'gate lights up',
+        text: '<strong>Which gate bit.</strong> The two lamps above the run say whether heat (Iz ≥ It) or volts (ΔV ≤ ceiling) decided the size — and the chart in the results panel shows where they cross.',
+      },
+    ],
+    notesTitle: 'Things that bite on site',
+    notes: [
+      {
+        icon: 'ruler',
+        text: '<strong>Method, not metres, moves the answer most.</strong> 1.5 mm² is 20 A clipped direct and 14.5 A enclosed in insulation — a 27% swing decided before the cable is bought.',
+      },
+      {
+        icon: 'toolbox',
+        text: '<strong>Derating factors multiply, never add.</strong> 0.87 (40 °C) × 0.65 (4 circuits) is 0.57, not 0.76. Two mild conditions together make a severe one.',
+      },
+      {
+        icon: 'warning',
+        text: '<strong>A BS 3036 semi-enclosed fuse costs another 0.725</strong> — common in older consumer units, and why a rewireable-fuse circuit needs a bigger cable than its MCB twin.',
+      },
+      {
+        icon: 'plug',
+        text: '<strong>The CPC has to keep up.</strong> Table 54.7 pairs each live size with a minimum protective conductor (10 mm² → 4 mm²); an undersized CPC is a routine EICR observation even when the live conductors are right.',
+      },
+      {
+        icon: 'ice',
+        text: '<strong>Buried cable reads the ground, not the air.</strong> Method D assumes 20 °C soil at 1.0 K·m/W; dry sand, a shallow trench or several circuits in one run all cost capacity again.',
+      },
+      {
+        icon: 'search',
+        text: '<strong>Check both gates before ordering.</strong> A short heavy circuit is usually thermal-limited, a long light one volt-drop-limited — and a shower on a 40 m run can fail both for different reasons.',
+      },
+    ],
+    tip: '<strong>Pro Tip:</strong> tabulated ampacities assume 30 °C air and 20 °C ground. A loft that sits at 40 °C in August is not a 30 °C environment — that one assumption is why compliant-on-paper circuits turn up warm on site. Start from a real-world preset: press one and the card says what the circuit is, what it draws, and which gate decides it.',
+  },
+};
+
+/** Any other tool: its own published equations and steps, no borrowed prose. */
+const fallback: Copy = {
+  title: tool ? `How ${tool.shortName} Works` : 'How this calculator works',
+  intro: tool?.description ?? '',
+  formulas: (tool?.equations ?? []).slice(0, 4).map((eq) => ({
+    label: eq.title.replace(/\s*\(.*\)\s*$/, ''),
+    expression: eq.formula,
+  })),
+  formulaMeta: (tool?.equations ?? []).slice(0, 2).map((eq) => eq.description),
+  cards: [],
+  guidelinesTitle: 'How to work through it',
+  guidelines: (tool?.steps ?? []).map((step, i) => ({
+    tone: i === 3 ? 'excessive' : 'good',
+    badge: `Step ${i + 1}`,
+    text: `<strong>${step.step}:</strong> ${step.instruction}`,
+  })),
+  notesTitle: '',
+  notes: [],
+  tip: '',
+};
+
+const copy = COPY[tool?.id ?? ''] ?? fallback;
+---
+
 <div id="tool-help-backdrop" class="tool-help-backdrop" hidden>
   <div
     id="tool-help-dialog"
@@ -8,8 +276,8 @@
   >
     <div class="help-modal-header">
       <div class="help-modal-title-wrap">
-        <span class="help-icon-bolt">⚡</span>
-        <h2 id="help-modal-title" class="help-modal-title">How Voltage Drop Works</h2>
+        <span class="help-icon-bolt"><EmojiIcon name="bolt" /></span>
+        <h2 id="help-modal-title" class="help-modal-title">{copy.title}</h2>
       </div>
       <button type="button" id="tool-help-close" class="btn-help-close" aria-label="Close help modal">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -20,64 +288,85 @@
     </div>
 
     <div class="help-modal-body">
-      <!-- Formulas Box -->
-      <div class="help-formulas-box">
-        <div class="formula-row">
-          <span class="formula-label">DC:</span>
-          <code>V<sub>drop</sub> = 2 · I · L · r</code>
-        </div>
-        <div class="formula-row">
-          <span class="formula-label">1-Φ AC:</span>
-          <code>V<sub>drop</sub> = 2 · I · L · (r cos φ + x sin φ)</code>
-        </div>
-        <div class="formula-row">
-          <span class="formula-label">3-Φ AC:</span>
-          <code>V<sub>drop</sub> = √3 · I · L · (r cos φ + x sin φ)</code>
-        </div>
-        <div class="formula-divider"></div>
-        <div class="formula-meta">
-          <span>r = ρ<sub>T</sub> / A (Ω/m one-way conductor resistance)</span>
-          <span>P<sub>loss</sub> = I² · R<sub>total</sub> (Watts wasted as heat)</span>
-        </div>
-      </div>
+      {copy.intro && <p class="help-intro">{copy.intro}</p>}
 
-      <!-- Materials Cards -->
-      <div class="help-materials-grid">
-        <div class="material-card copper">
-          <div class="mat-badge">COPPER</div>
-          <div class="mat-rho">0.0172 <span class="mat-unit">Ω·mm²/m</span></div>
-          <div class="mat-temp">at 20 °C (Standard electrolytic)</div>
-        </div>
-        <div class="material-card aluminum">
-          <div class="mat-badge">ALUMINUM</div>
-          <div class="mat-rho">0.0282 <span class="mat-unit">Ω·mm²/m</span></div>
-          <div class="mat-temp">at 20 °C (~64% higher resistance)</div>
-        </div>
-      </div>
+      {
+        copy.formulas.length > 0 && (
+          <div class="help-formulas-box">
+            {copy.formulas.map((row) => (
+              <div class="formula-row">
+                <span class="formula-label">{row.label}:</span>
+                <code set:html={row.expression} />
+              </div>
+            ))}
+            {copy.formulaMeta.length > 0 && (
+              <div class="help-formulas-extra">
+                <div class="formula-divider"></div>
+                <div class="formula-meta">
+                  {copy.formulaMeta.map((meta) => <span set:html={meta} />)}
+                </div>
+              </div>
+            )}
+          </div>
+        )
+      }
 
-      <!-- Status Guidelines -->
-      <div class="help-guidelines">
-        <h3 class="guidelines-title">BS 7671 & International Guidelines</h3>
-        <ul class="guidelines-list">
-          <li>
-            <strong class="tag-good">≤ 3%</strong>
-            <span><strong>Good:</strong> Complies with the strict 3% limit for lighting circuits to prevent visible flicker.</span>
-          </li>
-          <li>
-            <strong class="tag-warning">&gt; 3% – 5%</strong>
-            <span><strong>Marginal:</strong> Acceptable under BS 7671 for power sockets, heaters, and appliances from a public supply.</span>
-          </li>
-          <li>
-            <strong class="tag-excessive">&gt; 5%</strong>
-            <span><strong>Excessive:</strong> Drop exceeds recommended design standards. Upsize cable cross-section or shorten length to avoid overheating.</span>
-          </li>
-        </ul>
-      </div>
+      {
+        copy.cards.length > 0 && (
+          <div class="help-materials-grid">
+            {copy.cards.map((card) => (
+              <div class:list={['material-card', card.tone]}>
+                <div class="mat-badge">{card.badge}</div>
+                <div class="mat-rho">
+                  {card.value} <span class="mat-unit">{card.unit}</span>
+                </div>
+                <div class="mat-temp">{card.note}</div>
+              </div>
+            ))}
+          </div>
+        )
+      }
 
-      <div class="help-tip-note">
-        <span class="tip-icon">💡</span>
-        <span><strong>Pro Tip:</strong> Conductor resistance increases by ~0.4% per °C above 20 °C. Under full load, conductors often operate at 70 °C (PVC) or 90 °C (XLPE).</span>
-      </div>
+      {
+        copy.guidelines.length > 0 && (
+          <div class="help-guidelines">
+            <h3 class="guidelines-title" set:html={copy.guidelinesTitle} />
+            <ul class="guidelines-list">
+              {copy.guidelines.map((item) => (
+                <li>
+                  <strong class={GUIDE_TONE[item.tone]}>{item.badge}</strong>
+                  <span set:html={item.text} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
+
+      {
+        copy.notes.length > 0 && (
+          <div class="help-field-notes">
+            <h3 class="guidelines-title">{copy.notesTitle}</h3>
+            <ul class="field-notes-list">
+              {copy.notes.map((note) => (
+                <li>
+                  <EmojiIcon name={note.icon} />
+                  <span set:html={note.text} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
+
+      {
+        copy.tip && (
+          <div class="help-tip-note">
+            <span class="tip-icon"><EmojiIcon name="bulb" /></span>
+            <span set:html={copy.tip} />
+          </div>
+        )
+      }
     </div>
 
     <div class="help-modal-footer">
@@ -85,6 +374,28 @@
     </div>
   </div>
 </div>
+
+<style>
+  .help-intro {
+    margin: 0;
+    font-size: 0.86rem;
+    line-height: 1.6;
+    color: var(--text-mid);
+  }
+  .help-formulas-extra {
+    margin-top: 0.6rem;
+  }
+  .material-card.neutral {
+    border-color: var(--border-bright, #bfdbfe);
+    background: var(--bg-2, #f8fafc);
+  }
+  .material-card.neutral .mat-badge {
+    color: var(--blue, #2563eb);
+  }
+  .mat-rho {
+    line-height: 1.25;
+  }
+</style>
 
 <style>
   .tool-help-backdrop {
@@ -298,6 +609,40 @@
     font-size: 0.78rem;
     shrink: 0;
   }
+  .help-field-notes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .field-notes-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .field-notes-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: var(--text-mid);
+    background: var(--bg-2, #f8fafc);
+    border: 1px solid var(--border);
+    border-radius: 0.6rem;
+    padding: 0.55rem 0.7rem;
+  }
+  .field-notes-list li .emoji-icon {
+    width: 1.05rem;
+    height: 1.05rem;
+    margin-top: 0.08rem;
+  }
+  .field-notes-list strong {
+    color: var(--text);
+  }
+  :root[data-theme='dark'] .field-notes-list li {
+    background: rgba(148, 163, 184, 0.06);
+  }
   .help-tip-note {
     display: flex;
     align-items: flex-start;
@@ -324,8 +669,8 @@
     height: 2.75rem;
     border-radius: 0.65rem;
     border: none;
-    background: var(--blue);
-    color: #ffffff;
+    background: var(--action-bg, #2563eb);
+    color: var(--action-text, #ffffff);
     font-family: var(--font-display);
     font-size: 0.95rem;
     font-weight: 700;

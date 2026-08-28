@@ -18,6 +18,73 @@ Marketing colours are shared CSS variables in `src/styles/global.css`. The same-
 
 The site is fully static. Do not add inline executable scripts or styles: production uses a strict self-only Content Security Policy from the root `public/_headers` file. JSON-LD data blocks are the only inline script exception. Competitor claims on `/compare/` must stay dated, task-based, and linked to official first-party sources.
 
+## Tool layouts: one mode, decided once
+
+`public/js/scene-stage.js` picks the layout mode for a stage from the viewport and
+publishes it as `stage.dataset.layout` — `float` (panels beside the art), `stack`
+(scene as a banner, panels in the page flow) or `drawer` (phone: panels become bottom
+sheets with a pinned handle). `src/styles/tool-stage.css` keys its geometry off that
+attribute, so JS and CSS cannot disagree — and every rule that *hides* a panel lives
+behind it, which means a browser without JavaScript falls back to the stacked flow and
+both panels stay readable in the page.
+
+Two rules worth keeping when editing a stage:
+
+- **Control groups and scene state use different attributes.** Pickers are
+  `data-cs-group="<name>"` on the wrapper plus `data-cs-value="<option>"` on each
+  button; the scene reports state on `data-method` / `data-insulation` / `data-status`.
+  They must not collide: when both were `data-method`, `bindGroup()` resolved to the
+  scene root (which precedes the panels in the document) and bound its click listener to
+  the artwork, leaving every Method chip dead with nothing in the console.
+- **The stage owns a stacking level** (`.ts-stage { z-index: 20 }`, above
+  `.tool-seo-section`'s 10, below the header's 30 and the chrome overlays' 50–100).
+  The stage is `isolation: isolate`, so the z-index of anything inside it — the floating
+  panels, the scrim, the mobile handle — is *local*: drop the stage below the crawl and
+  the controls are painted, visible, and unclickable.
+
+Scrolling panel bodies are flex columns, so their children need `flex-shrink: 0`
+(otherwise the last row is squeezed to nothing on a short window) and their trailing
+space must be a `::after` flex item, not bottom padding (a flex container's bottom
+padding is left out of its scrollable overflow in Chrome).
+
+## Tool stages (the shared visual contract)
+
+Every visual calculator renders the same way: a full-bleed scene stage with glass panels floating
+over it. Three pieces make that reusable rather than copyable:
+
+- `public/js/scene-stage.js` — fits an authored SVG canvas to the stage box so the artwork is
+  edge-to-edge at any aspect ratio (never letterboxed in page colour), owns the resize/zoom/
+  orientation/`ResizeObserver` plumbing, and exposes `ElectraStage.paint` for CSS-variable painting.
+- `src/lib/tools/stage-spec.ts` — the same fitting caps for the server render, plus the documented
+  set of custom properties (`--heat`, `--cool`, `--gauge`, `--core`, …) and attributes
+  (`data-method`, `data-status`, `data-constraint`, `data-neighbours`) a scene may read. Scenes are
+  painted **from the calculator result only** — never from their own copy of the inputs — so the
+  picture and the numbers cannot disagree.
+- `public/js/tool-chrome.js` — the drawer, ⌘-palette, tool switcher, help dialog, fullscreen and
+  focus trap shared by all four tools. A tool opts into palette/drawer commands with
+  `ElectraChrome.register('reset', fn)`; unclaimed commands are hidden, not left inert.
+
+`src/components/tools/ToolWorkspace.astro` wires them together (`variant` + `toolScript` + the
+`scene`/`panels` slots). Add a tool scene by authoring SVG on a fixed canvas, honouring the variable
+contract, and registering its actions — see `CableSizingScene.astro` for the reference example. Keep
+every fact a scene shows in text somewhere too: the drawing is decoration, not the only copy.
+
+## Icons (no emoji)
+
+Every pictograph in the rendered site is a vector, never an emoji character —
+emoji render differently per OS (or not at all) and cannot be themed or scaled
+cleanly.
+
+- **Components**: `<EmojiIcon name="bolt" />` (`src/components/EmojiIcon.astro`)
+  draws the shapes registered in `src/lib/emoji-icons.ts`. Pass no `size` to let
+  the glyph track the local `font-size`.
+- **Markdown articles**: write `<span class="em em-check" role="img" aria-label="do"></span>`;
+  the `.em-*` classes in `src/styles/global.css` carry the matching artwork, and
+  their shapes mirror `emoji-icons.ts` — add to both when a new icon is needed.
+- **Tool runtime JS** (`public/js/*.js`) keeps a small local mirror of the icons
+  it needs (`ICON_SHAPES` in `voltage-drop-tool.js`) because files in `public/`
+  are shipped verbatim and cannot import the module.
+
 ## Design system — "Living Schematic"
 
 The marketing site is drawn as a wiring diagram rather than a generic SaaS page.

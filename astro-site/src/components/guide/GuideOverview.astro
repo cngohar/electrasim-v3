@@ -1,6 +1,7 @@
 ---
 import { levelClass } from '../../lib/guide';
 import type { GuideFeature, GuidedTemplate } from '../../types/pages';
+import EmojiIcon from '../EmojiIcon.astro';
 
 interface Props {
   features: GuideFeature[];
@@ -19,7 +20,7 @@ const { features, templates } = Astro.props;
   <div class="latest-grid">
     {features.map((feature) => (
       <article class="latest-card">
-        <span class="latest-icon" aria-hidden="true">{feature.icon}</span>
+        <span class="latest-icon" aria-hidden="true"><EmojiIcon name={feature.icon} /></span>
         <h3>{feature.title}</h3>
         <p>{feature.body}</p>
       </article>

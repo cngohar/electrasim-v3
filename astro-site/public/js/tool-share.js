@@ -42,15 +42,21 @@
     return n;
   }
 
-  /** Copy the current URL; flashes "copied" state on the invoking button. */
+  /**
+   * Copy the current URL; flashes "copied" state on the invoking button.
+   * Only the button's [data-share-label] text is swapped when it has one, so
+   * inline SVG icons in the button survive the temporary label change.
+   */
   function copyCurrentUrl(btn) {
+    const label = btn ? btn.querySelector('[data-share-label]') : null;
+    const target = label || btn;
     const mark = () => {
-      if (!btn) return;
-      const prev = btn.textContent;
-      btn.textContent = 'Link copied ✓';
+      if (!target) return;
+      const prev = target.textContent;
+      target.textContent = 'Link copied ✓';
       btn.classList.add('copied');
       window.setTimeout(() => {
-        btn.textContent = prev;
+        target.textContent = prev;
         btn.classList.remove('copied');
       }, 1600);
     };

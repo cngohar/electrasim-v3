@@ -120,7 +120,7 @@ High-resistance connections are a significant fire risk. They may not trip the M
 
 1. Build a simple circuit: **Live (L) → Switch → Bulb → Neutral (N)**
 2. Run the simulation — the bulb illuminates
-3. Activate Fault Mode (⚠ button, bottom-right)
+3. Activate Fault Mode (<span class="em em-warning" role="img" aria-label="warning"></span> button, bottom-right)
 4. Select **Wire Break**
 5. Click the wire between the Switch and the Bulb
 

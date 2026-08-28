@@ -1,6 +1,21 @@
 ---
+/**
+ * ToolWorkspace.astro — the shared stage shell for the Electrical Toolbox.
+ *
+ * One composition for every visual tool: header, drawer, command palette and
+ * help modal; a full-bleed scene stage (slot `scene`) with its floating
+ * instruments (slot `panels`); then the crawlable reference section. Scripts are
+ * the shared stage runtime plus whichever tool engine the page asks for.
+ *
+ * Defaults render the voltage-drop landscape, so that page is untouched; cable
+ * sizing passes its own scene, panels and engine. Both get the same
+ * aspect-fitted stage (public/js/scene-stage.js), the same reduced-motion and
+ * dark-mode behaviour, and the same responsive tiering.
+ */
 import packageMetadata from '../../../../package.json';
 import type { ToolEntry } from '../../lib/tools/registry';
+import CableSizingPanels from './CableSizingPanels.astro';
+import CableSizingScene from './CableSizingScene.astro';
 import CommandPalette from './CommandPalette.astro';
 import ToolDrawer from './ToolDrawer.astro';
 import ToolHeader from './ToolHeader.astro';
@@ -11,38 +26,91 @@ import VoltageDropScene from './VoltageDropScene.astro';
 
 interface Props {
   currentTool: ToolEntry;
+  /** Tool engine shipped from public/js; the shared stage runtime is always loaded first. */
+  toolScript?: string;
+  /** Which tool family this stage renders — decides the default slot content. */
+  variant?: 'voltage-drop' | 'cable-sizing';
+  /** Accessible title for the sr-only h1. */
+  heading?: string;
 }
 
-const { currentTool } = Astro.props;
+const {
+  currentTool,
+  toolScript = '/js/voltage-drop-tool.js',
+  variant = 'voltage-drop',
+  heading = currentTool.name,
+} = Astro.props;
+
+const hasSceneSlot = Astro.slots.has('scene');
+const hasPanelsSlot = Astro.slots.has('panels');
+const version = packageMetadata.version;
 ---
 
 <div class="tool-workspace-shell" id="tool-workspace-shell">
-  <h1 class="sr-only">{currentTool.name}</h1>
+  <h1 class="sr-only">{heading}</h1>
+
   <!-- Header -->
   <ToolHeader currentTool={currentTool} />
 
-  <!-- Navigation Drawer (Hamburger) -->
+  <!-- Navigation drawer (hamburger) -->
   <ToolDrawer currentTool={currentTool} />
 
-  <!-- Command Palette Modal -->
+  <!-- Command palette -->
   <CommandPalette currentTool={currentTool} />
 
-  <!-- Educational Help Modal -->
-  <ToolHelpModal />
+  <!-- Educational help modal (content is per-tool) -->
+  <ToolHelpModal tool={currentTool} />
 
-  <!-- Main Full-Screen Workspace Area -->
-  <div class="tool-interactive-stage" id="interactive-stage">
-    <VoltageDropScene />
-    <VoltageDropPanels />
+  <!--
+    Full-bleed stage. The scene gets its own frame (.ts-scene-frame) so the
+    viewBox fit always measures the box the artwork actually occupies — the
+    whole stage while floating, a banner once the layout stacks — and the panels
+    share one wrapper layer (.ts-panel-wrap) that owns their anchoring and the
+    stacked-mode grid. See src/styles/tool-stage.css.
+  -->
+  <div
+    class="tool-interactive-stage ts-stage"
+    id="interactive-stage"
+    data-stage={variant === 'cable-sizing' ? 'stackable' : 'fixed'}
+  >
+    <div class="ts-scene-frame" id="scene-frame">
+      {
+        hasSceneSlot ? (
+          <slot name="scene" />
+        ) : variant === 'cable-sizing' ? (
+          <CableSizingScene />
+        ) : (
+          <VoltageDropScene />
+        )
+      }
+    </div>
+    <div class="ts-panel-wrap" id="panel-wrap">
+      {
+        hasPanelsSlot ? (
+          <slot name="panels" />
+        ) : variant === 'cable-sizing' ? (
+          <CableSizingPanels />
+        ) : (
+          <VoltageDropPanels />
+        )
+      }
+    </div>
   </div>
 
-  <!-- Crawlable Educational SEO Content -->
+  <!-- Crawlable educational reference content -->
   <ToolSeoContent tool={currentTool} />
 </div>
 
-<!-- Load Client Script (Pure vanilla TypeScript compiled / ESM JS, zero React dependencies) -->
-<script is:inline defer src={`/js/tool-share.js?v=${packageMetadata.version}`}></script>
-<script is:inline defer src={`/js/voltage-drop-tool.js?v=${packageMetadata.version}`}></script>
+<!--
+  Script order matters and is guaranteed by `defer`: shared chrome (drawer,
+  palette, help, focus trap) → scene runtime → tool engine. The engine registers
+  its commands with the chrome layer on init, and chrome prunes any palette entry
+  no engine claims.
+-->
+<script is:inline defer src={`/js/tool-chrome.js?v=${version}`}></script>
+<script is:inline defer src={`/js/scene-stage.js?v=${version}`}></script>
+<script is:inline defer src={`/js/tool-share.js?v=${version}`}></script>
+<script is:inline defer src={`${toolScript}?v=${version}`}></script>
 
 <style>
   .sr-only {
@@ -59,27 +127,39 @@ const { currentTool } = Astro.props;
   .tool-workspace-shell {
     display: flex;
     flex-direction: column;
-    width: 100vw;
+    /* 100% (not 100vw): 100vw includes the classic scrollbar's width, which
+       pushed a few pixels of horizontal overflow beside the scene on desktop. */
+    width: 100%;
     min-height: 100vh;
     min-height: 100dvh;
     background: var(--bg);
     overflow-x: hidden;
     position: relative;
   }
+  /* .ts-stage (tool-stage.css) owns the geometry; these rules only tune the
+     per-variant heights so each tool's composition keeps its own balance. */
   .tool-interactive-stage {
-    position: relative;
-    width: 100vw;
-    height: calc(100vh - 3.75rem);
-    height: calc(100dvh - 3.75rem);
     min-height: min(540px, calc(100dvh - 3.75rem));
-    overflow: hidden;
   }
 
   @media (max-width: 1080px) {
     .tool-interactive-stage {
-      height: 70vh;
-      height: 70dvh;
-      min-height: min(480px, calc(100dvh - 3.75rem));
+      height: calc(100vh - 3.75rem);
+      height: calc(100dvh - 3.75rem);
+      min-height: min(500px, calc(100dvh - 3.75rem));
+    }
+  }
+
+  @media (max-width: 768px) {
+    .tool-interactive-stage {
+      min-height: min(440px, calc(100dvh - 3.75rem));
+    }
+  }
+
+  @media (max-width: 768px) and (orientation: portrait) {
+    .tool-interactive-stage {
+      height: clamp(280px, 52dvh, 460px);
+      min-height: 280px;
     }
   }
 

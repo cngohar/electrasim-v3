@@ -36,7 +36,7 @@ Every circuit needs a source of power. In ElectraSim, you use two supply termina
 1. In the palette, find the **Live (L)** terminal under the *Supply* category and click it — or drag it — onto the canvas.
 2. Find the **Neutral (N)** terminal and place it below the Live terminal, leaving some space between them.
 
-> 💡 **Tip:** Live and Neutral terminals represent the mains supply. Live carries current to your circuit; Neutral returns it. Together they form the complete loop every circuit needs.
+> <span class="em em-bulb" role="img" aria-label="tip"></span> **Tip:** Live and Neutral terminals represent the mains supply. Live carries current to your circuit; Neutral returns it. Together they form the complete loop every circuit needs.
 
 ---
 
@@ -75,7 +75,7 @@ Wire up your circuit in this order:
 
 ElectraSim uses intelligent wire routing — wires travel in clean horizontal and vertical lines and avoid overlapping other components wherever possible.
 
-> 💡 **Wire colours:** Live wires are drawn in **red/orange**, Neutral wires in **blue**, and Earth wires in **green/yellow** — following standard electrical colour conventions.
+> <span class="em em-bulb" role="img" aria-label="tip"></span> **Wire colours:** Live wires are drawn in **red/orange**, Neutral wires in **blue**, and Earth wires in **green/yellow** — following standard electrical colour conventions.
 
 ---
 

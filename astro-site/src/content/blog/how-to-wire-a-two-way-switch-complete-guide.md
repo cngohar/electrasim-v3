@@ -13,7 +13,7 @@ Most people understand a standard on/off switch: break the circuit, bulb goes of
 
 This guide explains exactly how two-way switch wiring works — the terminals, the strapping wires, the wiring diagram — and how to safely build and test the circuit in **[ElectraSim](/app/)** before touching real wire.
 
-> 💡 **Simulate it first:** ElectraSim includes a Two-way Switch component with COM, L1, and L2 terminals. Build the staircase circuit, press Run, and toggle either switch to confirm it works from both ends. [Open ElectraSim →](/app/)
+> <span class="em em-bulb" role="img" aria-label="tip"></span> **Simulate it first:** ElectraSim includes a Two-way Switch component with COM, L1, and L2 terminals. Build the staircase circuit, press Run, and toggle either switch to confirm it works from both ends. [Open ElectraSim →](/app/)
 
 ## What is a Two-Way Switch?
 
@@ -103,7 +103,7 @@ With power applied, toggle SW1 — bulb should respond. Toggle SW2 — bulb shou
 | Neutral | Blue | Neutral bar → light |
 | Earth | Green/Yellow | Earth terminal |
 
-> ⚠️ The grey strapping wire carries **Live potential** even though grey is sometimes associated with neutral in old wiring. Always test before assuming any wire is safe to touch.
+> <span class="em em-warning" role="img" aria-label="warning"></span> The grey strapping wire carries **Live potential** even though grey is sometimes associated with neutral in old wiring. Always test before assuming any wire is safe to touch.
 
 ### Old (pre-2004 UK colours)
 Old wiring used red (live), yellow (L1 strap), blue (L2 strap), and black (neutral). If you find an existing two-way circuit with red/yellow/blue wires, it follows the old colour code — do not assume yellow or blue is neutral without testing.

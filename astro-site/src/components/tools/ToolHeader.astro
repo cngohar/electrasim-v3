@@ -1,6 +1,7 @@
 ---
 import type { ToolEntry } from '../../lib/tools/registry';
 import { TOOLBOX_REGISTRY } from '../../lib/tools/registry';
+import EmojiIcon from '../EmojiIcon.astro';
 
 interface Props {
   currentTool: ToolEntry;
@@ -52,7 +53,7 @@ const { currentTool } = Astro.props;
         aria-expanded="false"
         aria-controls="tool-switcher-menu"
       >
-        <span class="tool-switcher-icon" aria-hidden="true">⚡</span>
+        <span class="tool-switcher-icon" aria-hidden="true"><EmojiIcon name="bolt" /></span>
         <span class="tool-switcher-title">{currentTool.name}</span>
         <svg class="tool-switcher-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <polyline points="6 9 12 15 18 9" />
@@ -111,8 +112,8 @@ const { currentTool } = Astro.props;
       aria-pressed="false"
       title="Toggle appearance"
     >
-      <span class="theme-icon-sun" aria-hidden="true">☀️</span>
-      <span class="theme-icon-moon" aria-hidden="true">🌙</span>
+      <span class="theme-icon-sun" aria-hidden="true"><EmojiIcon name="sun" /></span>
+      <span class="theme-icon-moon" aria-hidden="true"><EmojiIcon name="moon" /></span>
       <span class="btn-label hide-xs">Mode</span>
     </button>
 
@@ -196,8 +197,8 @@ const { currentTool } = Astro.props;
     width: 2rem;
     height: 2rem;
     border-radius: 0.5rem;
-    background: var(--blue);
-    color: #ffffff;
+    background: var(--action-bg, #2563eb);
+    color: var(--action-text, #ffffff);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -437,6 +438,86 @@ const { currentTool } = Astro.props;
     }
     .tool-brand-sub {
       display: none;
+    }
+  }
+  /* Narrow: the switcher is absolutely centred above, which reads fine on a
+     laptop and collides with whatever sits beside it once the header runs out of
+     room — the brand was clipped in half on a phone, and the Search pill landed on
+     top of the switcher on a small tablet. Below 1024 px the header becomes a real
+     flex row: everything shares the line, the middle truncates, nothing overflows. */
+  @media (max-width: 1023px) {
+    .tool-app-header {
+      padding: 0 0.55rem;
+      gap: 0.35rem;
+    }
+    .tool-header-left {
+      flex: 0 1 auto;
+      min-width: 0;
+      gap: 0.45rem;
+    }
+    .tool-brand {
+      min-width: 0;
+      gap: 0.45rem;
+    }
+    .tool-brand-text {
+      min-width: 0;
+    }
+    .tool-brand-name {
+      font-size: 0.95rem;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .tool-header-center {
+      position: static;
+      transform: none;
+      flex: 1 1 auto;
+      min-width: 0;
+      justify-content: flex-end;
+      display: flex;
+    }
+    .tool-selector-dropdown {
+      min-width: 0;
+      max-width: 100%;
+    }
+    .tool-switcher-btn {
+      max-width: 100%;
+      padding: 0.4rem 0.55rem;
+      min-width: 0;
+    }
+    .tool-switcher-title {
+      max-width: min(38vw, 190px);
+      min-width: 0;
+    }
+    .tool-header-right {
+      flex: 0 0 auto;
+      gap: 0.3rem;
+    }
+    .tool-switcher-menu {
+      left: auto;
+      right: 0;
+      transform: none;
+      width: min(320px, calc(100vw - 1.1rem));
+    }
+  }
+  @media (max-width: 699px) {
+    .tool-brand-name {
+      font-size: 1rem;
+    }
+  }
+  @media (max-width: 430px) {
+    /* the mark says who we are; the tool name is the important word */
+    .tool-brand-text {
+      display: none;
+    }
+    .tool-switcher-title {
+      max-width: 34vw;
+      font-size: 0.8rem;
+    }
+    .tool-brand-icon {
+      width: 1.8rem;
+      height: 1.8rem;
     }
   }
 </style>

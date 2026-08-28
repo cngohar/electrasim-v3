@@ -60,16 +60,16 @@ Every 13 A plug carries a fuse. That fuse is rated for the cable attached to it,
 
 | Appliance | Typical Power | Extension Lead Safe? |
 |---|---|---|
-| Kettle | 2,200–3,000 W | ❌ — requires 1.25 mm² minimum, ideally direct to wall socket |
-| Fan heater | 1,500–2,500 W | ❌ — high continuous load |
-| Oil-filled radiator | 1,500–2,500 W | ❌ — continuous load, very common cause of extension lead fires |
-| Washing machine | 2,000–2,500 W | ❌ — direct to wall socket required |
-| Tumble dryer | 2,000–2,500 W | ❌ — high continuous load |
-| Microwave (large) | 900–1,500 W | ⚠️ — only on 13 A rated lead (1.25 mm² or larger) |
-| Vacuum cleaner | 700–1,200 W | ⚠️ — often labelled 13 A but cable drag creates stress |
-| Toaster | 800–1,500 W | ⚠️ — only on 13 A rated lead |
-| Hair dryer | 1,500–2,200 W | ❌ — high continuous load |
-| Electric heater / convector | 2,000–3,000 W | ❌ — must go direct to wall |
+| Kettle | 2,200–3,000 W | <span class="em em-cross" role="img" aria-label="don't"></span> — requires 1.25 mm² minimum, ideally direct to wall socket |
+| Fan heater | 1,500–2,500 W | <span class="em em-cross" role="img" aria-label="don't"></span> — high continuous load |
+| Oil-filled radiator | 1,500–2,500 W | <span class="em em-cross" role="img" aria-label="don't"></span> — continuous load, very common cause of extension lead fires |
+| Washing machine | 2,000–2,500 W | <span class="em em-cross" role="img" aria-label="don't"></span> — direct to wall socket required |
+| Tumble dryer | 2,000–2,500 W | <span class="em em-cross" role="img" aria-label="don't"></span> — high continuous load |
+| Microwave (large) | 900–1,500 W | <span class="em em-warning" role="img" aria-label="warning"></span> — only on 13 A rated lead (1.25 mm² or larger) |
+| Vacuum cleaner | 700–1,200 W | <span class="em em-warning" role="img" aria-label="warning"></span> — often labelled 13 A but cable drag creates stress |
+| Toaster | 800–1,500 W | <span class="em em-warning" role="img" aria-label="warning"></span> — only on 13 A rated lead |
+| Hair dryer | 1,500–2,200 W | <span class="em em-cross" role="img" aria-label="don't"></span> — high continuous load |
+| Electric heater / convector | 2,000–3,000 W | <span class="em em-cross" role="img" aria-label="don't"></span> — must go direct to wall |
 
 ---
 
@@ -151,10 +151,10 @@ Many extension leads and power strips advertise **surge protection**. It is impo
 
 | Aspect | Surge-Protected Lead | Standard Lead |
 |---|---|---|
-| Overload protection | ❌ — the surge protector does not limit current | ❌ — only the fuse protects |
-| Fire protection | ❌ — MOVs clamp voltage; they do not prevent cable overload | ❌ |
-| Lightning/surge protection for connected equipment | ✅ — clamps voltage spikes up to a rated limit (typically 1–6 kA) | ❌ |
-| Protects against continuous overvoltage | ❌ — MOVs fail short-circuit under sustained overvoltage (e.g., a lost neutral on the supply) | ❌ |
+| Overload protection | <span class="em em-cross" role="img" aria-label="don't"></span> — the surge protector does not limit current | <span class="em em-cross" role="img" aria-label="don't"></span> — only the fuse protects |
+| Fire protection | <span class="em em-cross" role="img" aria-label="don't"></span> — MOVs clamp voltage; they do not prevent cable overload | <span class="em em-cross" role="img" aria-label="don't"></span> |
+| Lightning/surge protection for connected equipment | <span class="em em-check" role="img" aria-label="do"></span> — clamps voltage spikes up to a rated limit (typically 1–6 kA) | <span class="em em-cross" role="img" aria-label="don't"></span> |
+| Protects against continuous overvoltage | <span class="em em-cross" role="img" aria-label="don't"></span> — MOVs fail short-circuit under sustained overvoltage (e.g., a lost neutral on the supply) | <span class="em em-cross" role="img" aria-label="don't"></span> |
 
 A surge-protected extension lead is useful for protecting sensitive electronics — computers, TVs, audio equipment — from the voltage spikes caused by nearby lightning, motor switching, or utility network transients. It is **not** a safety device that prevents extension lead fires.
 

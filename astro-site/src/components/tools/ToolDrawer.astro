@@ -1,6 +1,7 @@
 ---
 import type { ToolEntry } from '../../lib/tools/registry';
 import { TOOLBOX_REGISTRY } from '../../lib/tools/registry';
+import EmojiIcon from '../EmojiIcon.astro';
 
 interface Props {
   currentTool: ToolEntry;
@@ -21,7 +22,7 @@ const { currentTool } = Astro.props;
 >
   <div class="drawer-header">
     <div class="drawer-brand">
-      <span class="drawer-logo-icon">⚡</span>
+      <span class="drawer-logo-icon"><EmojiIcon name="bolt" /></span>
       <div>
         <div class="drawer-title">Electrical Toolbox</div>
         <div class="drawer-sub">ElectraSim Suite</div>
@@ -77,13 +78,13 @@ const { currentTool } = Astro.props;
     <div class="drawer-items-list" id="drawer-commands-list">
       <a href="/tools/" class="drawer-item cmd-item" data-cmd="home">
         <div class="drawer-item-content">
-          <span class="drawer-item-icon">🏠</span>
+          <span class="drawer-item-icon"><EmojiIcon name="home" /></span>
           <div class="drawer-item-title">Toolbox Home</div>
         </div>
       </a>
       <a href="/app/" class="drawer-item cmd-item" data-cmd="app">
         <div class="drawer-item-content">
-          <span class="drawer-item-icon">⚡</span>
+          <span class="drawer-item-icon"><EmojiIcon name="bolt" /></span>
           <div class="drawer-item-title">Launch Interactive Wiring Lab</div>
         </div>
       </a>
@@ -95,13 +96,13 @@ const { currentTool } = Astro.props;
       </button>
       <button type="button" class="drawer-item cmd-item drawer-btn-item" id="drawer-cmd-help" data-cmd="help">
         <div class="drawer-item-content">
-          <span class="drawer-item-icon">❓</span>
-          <div class="drawer-item-title">How Voltage Drop Works</div>
+          <span class="drawer-item-icon"><EmojiIcon name="question" /></span>
+          <div class="drawer-item-title">{`How ${currentTool.shortName} Works`}</div>
         </div>
       </button>
       <button type="button" class="drawer-item cmd-item drawer-btn-item" id="drawer-cmd-theme" data-cmd="theme">
         <div class="drawer-item-content">
-          <span class="drawer-item-icon">🌓</span>
+          <span class="drawer-item-icon"><EmojiIcon name="contrast" /></span>
           <div class="drawer-item-title">Toggle Appearance</div>
         </div>
       </button>
@@ -111,19 +112,19 @@ const { currentTool } = Astro.props;
     <div class="drawer-items-list" id="drawer-site-list">
       <a href="/updates/" class="drawer-item cmd-item" data-cmd="updates">
         <div class="drawer-item-content">
-          <span class="drawer-item-icon">📦</span>
+          <span class="drawer-item-icon"><EmojiIcon name="box" /></span>
           <div class="drawer-item-title">Product Updates &amp; Release Notes</div>
         </div>
       </a>
       <a href="/blog/" class="drawer-item cmd-item" data-cmd="blog">
         <div class="drawer-item-content">
-          <span class="drawer-item-icon">📖</span>
+          <span class="drawer-item-icon"><EmojiIcon name="book" /></span>
           <div class="drawer-item-title">Learning Library (Blog)</div>
         </div>
       </a>
       <a href="/guide/" class="drawer-item cmd-item" data-cmd="guide">
         <div class="drawer-item-content">
-          <span class="drawer-item-icon">📐</span>
+          <span class="drawer-item-icon"><EmojiIcon name="ruler" /></span>
           <div class="drawer-item-title">Guided Circuit Tutorials</div>
         </div>
       </a>

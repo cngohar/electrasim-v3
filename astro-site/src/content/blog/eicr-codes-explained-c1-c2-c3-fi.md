@@ -11,7 +11,7 @@ An EICR report arrives and the first thing you see is a list of observations —
 
 This guide explains every EICR code in depth, maps real-world faults to specific codes, shows what remedial work costs for each level, and covers the property-sale and insurance implications that most guides skip.
 
-> 💡 **Understand faults before they happen.** [ElectraSim](/app/) lets you build circuits and inject the same faults an EICR inspector looks for — reverse polarity, missing earths, absent RCD protection — and see exactly how each affects the circuit. [Open ElectraSim →](/app/)
+> <span class="em em-bulb" role="img" aria-label="tip"></span> **Understand faults before they happen.** [ElectraSim](/app/) lets you build circuits and inject the same faults an EICR inspector looks for — reverse polarity, missing earths, absent RCD protection — and see exactly how each affects the circuit. [Open ElectraSim →](/app/)
 
 ---
 
@@ -113,7 +113,7 @@ The installation has a defect that is **not immediately dangerous** but **could 
 | Replace cable that fails insulation resistance | £150–£400 per circuit |
 | Relocate bathroom fitting to correct zone | £100–£300 |
 
-> 📖 **Related:** [Consumer Unit Upgrade: What to Expect When Replacing Your Fuse Board](/blog/consumer-unit-upgrade-what-to-expect/) — a consumer unit upgrade is the most common C2 remedial work; this guide explains the full process and costs.
+> <span class="em em-book" role="img" aria-label="reference"></span> **Related:** [Consumer Unit Upgrade: What to Expect When Replacing Your Fuse Board](/blog/consumer-unit-upgrade-what-to-expect/) — a consumer unit upgrade is the most common C2 remedial work; this guide explains the full process and costs.
 
 ### How to simulate in ElectraSim
 
@@ -311,7 +311,7 @@ If a fire or electrical incident occurs and the insurer discovers an unremediate
 6. **Request a partial re-inspection** — the original EICR inspector re-tests the affected circuits and issues a supplementary report confirming the C1/C2 findings have been resolved
 7. **Update your records** — file the EIC and supplementary report alongside the original EICR
 
-> 📖 **Related:** [Consumer Unit Upgrade: What to Expect When Replacing Your Fuse Board](/blog/consumer-unit-upgrade-what-to-expect/) — upgrading a consumer unit is the most common remedial action after an Unsatisfactory EICR.
+> <span class="em em-book" role="img" aria-label="reference"></span> **Related:** [Consumer Unit Upgrade: What to Expect When Replacing Your Fuse Board](/blog/consumer-unit-upgrade-what-to-expect/) — upgrading a consumer unit is the most common remedial action after an Unsatisfactory EICR.
 
 ---
 
@@ -334,7 +334,7 @@ EICR codes (C1/C2/C3/FI) apply to the **fixed installation** — the wiring, con
 
 PAT testing has its own pass/fail system — there are no C1/C2 codes. A failed PAT test means the specific appliance is unsafe, not the building's wiring.
 
-> 📖 **Related:** [PAT Testing Explained: Portable Appliance Testing for Landlords and Businesses](/blog/pat-testing-explained-portable-appliance-testing/)
+> <span class="em em-book" role="img" aria-label="reference"></span> **Related:** [PAT Testing Explained: Portable Appliance Testing for Landlords and Businesses](/blog/pat-testing-explained-portable-appliance-testing/)
 
 ---
 
@@ -398,7 +398,7 @@ The C2 must be remediated (28 days for landlords). The FI must also be investiga
 2. Break one leg by removing a wire mid-loop
 3. All loads remain powered — the fault is invisible to normal operation but present in the wiring
 
-> 🔍 ElectraSim's simulation engine performs a full graph traversal on every circuit change — the same logical analysis an electrician applies during testing. [Try it free →](/app/)
+> <span class="em em-search" role="img" aria-label="check this"></span> ElectraSim's simulation engine performs a full graph traversal on every circuit change — the same logical analysis an electrician applies during testing. [Try it free →](/app/)
 
 ---
 
