@@ -50,6 +50,9 @@ const ogImageType = post.data.image
       ? 'image/avif'
       : 'image/png'
   : 'image/png';
+// Visible in-article hero: bespoke frontmatter asset when present, otherwise
+// the article's unique generated social card (1200×630).
+const heroImageRel = post.data.image ?? `/og/blog/${post.id}.png`;
 
 const readMins = readingTime(post.body ?? '');
 
@@ -103,6 +106,7 @@ const breadcrumbSchema = {
   }}
 >
   <Fragment slot="head">
+    <link rel="preload" as="image" href={heroImageRel} />
     <script is:inline type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
     <script is:inline type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
     {post.data.tags.map((tag: string) => <meta property="article:tag" content={tag} />)}
@@ -132,6 +136,18 @@ const breadcrumbSchema = {
         <span>✍️ {post.data.author}</span>
         <span>⏱ {readMins} min read</span>
       </div>
+
+      <figure class="art-hero">
+        <img
+          src={heroImageRel}
+          alt={post.data.title}
+          width="1200"
+          height="630"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </figure>
 
       <Content />
 

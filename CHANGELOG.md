@@ -24,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - `blog/[...slug].astro`: `og:image` now defaults to the per-post card (`https://electrasim.com/og/blog/<slug>.png`, 1200×630) and the Article JSON-LD `image` follows automatically; custom hero overrides get the correct MIME type.
    - `Base.astro`: added `og:image:type` (derived from extension, overridable) and `og:image:secure_url` for HTTPS image URLs; `twitter:image` continues to mirror `og:image` with per-post alt text.
    - Verified in built output: unique `og:image`/`twitter:image` per article, `og:image:type image/png`, 1200×630 dimensions, and no article referencing the shared fallback image.
+3. **Visible Per-Post Images On-Page** (the generated cards were previously social-meta only):
+   - Article template (`blog/[...slug].astro`) now renders the post's unique card as a visible hero banner (`<figure class="art-hero">`, 1200×630, `loading="eager"` + `fetchpriority="high"`, alt = title, `rel=preload` in `<head>` for LCP).
+   - Blog index/tag/pagination cards (`BlogPostCard.astro`) now show the per-article card as a thumbnail (lazy-loaded, CLS-safe dimensions).
+   - Bespoke frontmatter `image:` assets are hero'd with the same pipeline where present.
 3. **Verification**: `astro check` 0 errors (104 files) · astro-lib vitest suite passes · `biome lint .` clean · `astro build` 143 pages with all 71 cards copied to `dist-astro/og/blog/`.
 
 ### Added & Enhanced — Session 2026-08-27 (part 3): Multi-Standard Toolbox (BS 7671 / IEC 60364 / US NEC) with SEO Push

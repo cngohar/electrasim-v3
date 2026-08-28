@@ -21,6 +21,15 @@ const published = post.data.pubDate.toLocaleDateString('en-GB', {
   href={`/blog/${post.id}/`}
   class:list={['card', { featured: post.data.featured, 'app-update': isAppUpdate }]}
 >
+  <img
+    class="card-thumb"
+    src={post.data.image ?? `/og/blog/${post.id}.png`}
+    alt=""
+    width="1200"
+    height="630"
+    loading="lazy"
+    decoding="async"
+  />
   <div class="card-body">
     <div class="card-top">
       <span class="tag">{isAppUpdate ? 'Product update' : post.data.category}</span>

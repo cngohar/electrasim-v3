@@ -17,6 +17,8 @@ A running, append-only log of work on the ElectraSim rewrite. Every coding sessi
 2. **SEO wiring**: posts default `og:image`/`twitter:image`/Article schema `image` to their unique card (absolute `https://` URL, `og:image:width/height` 1200×630, `og:image:type`, `og:image:secure_url`, per-post alt = title). Frontmatter `image:` remains a bespoke override (2 posts), with correct `image/webp` typing. Shared `og-image.png` fallback eliminated from all articles.
 3. **Ops**: `npm run gen:og --workspace astro-site` to regenerate; artifacts committed so CI/deploy needs no `sharp`; postbuild merge carries them into `dist/`.
 4. **Verification**: astro check 0 errors · vitest green · lint clean · build 143 pages · curl-verified PNGs served as image/png and per-post og tags in built HTML.
+5. **On-page visibility fix**: OG cards were social-meta only → now rendered as the visible article hero (`art-hero`, eager+preload LCP hints) and as lazy thumbnails on every blog listing card (index/tags/pagination via `BlogPostCard`).
+
 
 **Next:**
 1. Optional: AI-illustrated background art per topic cluster composited under the same card layout
