@@ -36,11 +36,20 @@ const updDateDisplay = post.data.updatedDate
     })
   : null;
 const canonical = `https://electrasim.com/blog/${post.id}/`;
+// Per-post generated social card (1200×630, unique per article). An explicit
+// frontmatter `image:` still wins — those are bespoke article-only assets.
 const ogImage = post.data.image
   ? post.data.image.startsWith('http')
     ? post.data.image
     : `https://electrasim.com${post.data.image}`
-  : 'https://electrasim.com/og-image.png';
+  : `https://electrasim.com/og/blog/${post.id}.png`;
+const ogImageType = post.data.image
+  ? post.data.image.endsWith('.webp')
+    ? 'image/webp'
+    : post.data.image.endsWith('.avif')
+      ? 'image/avif'
+      : 'image/png'
+  : 'image/png';
 
 const readMins = readingTime(post.body ?? '');
 
@@ -83,8 +92,9 @@ const breadcrumbSchema = {
   description={post.data.description}
   canonical={canonical}
   ogImage={ogImage}
-  ogImageWidth={post.data.image ? 1200 : 1736}
-  ogImageHeight={post.data.image ? 630 : 906}
+  ogImageWidth={1200}
+  ogImageHeight={630}
+  ogImageType={ogImageType}
   ogType="article"
   articleMeta={{
     publishedTime: pubDateISO,

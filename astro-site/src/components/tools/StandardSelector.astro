@@ -1,0 +1,118 @@
+---
+/**
+ * StandardSelector.astro — Regional wiring-standard picker for tool panels.
+ *
+ * Renders an accessible <select> populated from the standards registry plus a
+ * trust citation line (server-rendered, so the active standard and its source
+ * table are legible even without JavaScript — E-E-A-T signal for search).
+ *
+ * The client engine re-reads the select value on every `input`/`change` event
+ * inside the tool form, so no extra wiring is needed beyond mounting it inside
+ * the tool's <form>.
+ */
+import { STANDARD_PROFILES, type StandardId } from '../../lib/tools/standards';
+
+interface Props {
+  /** id of the <select> element (also used for the label's for attribute) */
+  inputId: string;
+  /** id of the citation paragraph that client JS updates on standard change */
+  noteId: string;
+  /** Standards offered; defaults to the metric pair */
+  standards?: StandardId[];
+  /** Visually emphasise the field (default true) */
+  emphasise?: boolean;
+}
+
+const { inputId, noteId, standards = ['uk-bs7671', 'iec-60364'], emphasise = true } = Astro.props;
+const options = standards.map((id) => STANDARD_PROFILES[id]);
+const active = options[0];
+---
+
+<div class:list={['form-group', 'standard-selector-group', { emphasise }]}>
+  <label for={inputId} class="standard-selector-label">
+    Compliance Standard
+    <span class="standard-region-tag">{active.regionLabel} default</span>
+  </label>
+  <select id={inputId} name="standard" class="calc-select standard-selector" aria-describedby={noteId}>
+    {options.map((profile, i) => (
+      <option value={profile.id} selected={i === 0}>
+        {profile.label} — {profile.regionLabel}
+      </option>
+    ))}
+  </select>
+  <p class="standard-citation" id={noteId}>
+    Results calculated per <strong>{active.label}</strong>. {active.citation}
+  </p>
+</div>
+
+<style>
+  .standard-selector-group {
+    border: 1px solid rgba(37, 99, 235, 0.25);
+    border-radius: 10px;
+    padding: 0.65rem 0.85rem;
+    background: rgba(37, 99, 235, 0.05);
+    margin-bottom: 1rem;
+  }
+  .standard-selector-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    color: var(--text-high, #0f172a);
+  }
+  .standard-region-tag {
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #2563eb;
+    background: rgba(37, 99, 235, 0.12);
+    border-radius: 999px;
+    padding: 0.125rem 0.5rem;
+  }
+  .standard-selector {
+    width: 100%;
+    margin-bottom: 0.45rem;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid rgba(100, 116, 139, 0.35);
+    border-radius: 8px;
+    background: var(--bg-2, #fff);
+    color: var(--text-high, #0f172a);
+    cursor: pointer;
+  }
+  .standard-selector:focus {
+    outline: 2px solid #2563eb;
+    outline-offset: 1px;
+    border-color: #2563eb;
+  }
+  :root[data-theme='dark'] .standard-selector {
+    background: rgba(15, 23, 42, 0.8);
+    border-color: rgba(148, 163, 184, 0.35);
+    color: #e2e8f0;
+  }
+  .standard-citation {
+    margin: 0;
+    font-size: 0.6875rem;
+    line-height: 1.45;
+    color: var(--text-mid, #475569);
+  }
+  .standard-citation strong {
+    color: var(--text-high, #0f172a);
+  }
+  :root[data-theme='dark'] .standard-selector-group,
+  :root[data-resolved-theme='dark'] .standard-selector-group {
+    background: rgba(59, 130, 246, 0.08);
+    border-color: rgba(59, 130, 246, 0.35);
+  }
+  :root[data-theme='dark'] .standard-selector-label,
+  :root[data-theme='dark'] .standard-citation strong {
+    color: #e2e8f0;
+  }
+  :root[data-theme='dark'] .standard-citation {
+    color: #94a3b8;
+  }
+</style>

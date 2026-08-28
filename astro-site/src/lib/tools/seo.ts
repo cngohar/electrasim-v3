@@ -1,4 +1,23 @@
 import type { ToolEntry } from './registry';
+import { STANDARD_PROFILES } from './standards';
+
+/** Human-readable standards phrase for SEO copy, e.g. "BS 7671 (UK) and IEC 60364" */
+function standardsPhrase(tool: ToolEntry): string {
+  if (!tool.standards || tool.standards.length === 0) return 'electrical standards';
+  return tool.standards.map((id) => STANDARD_PROFILES[id].label).join(' and ');
+}
+
+function standardsAbout(tool: ToolEntry): Array<Record<string, unknown>> | undefined {
+  if (!tool.standards || tool.standards.length === 0) return undefined;
+  return tool.standards.map((id) => {
+    const profile = STANDARD_PROFILES[id];
+    return {
+      '@type': 'Thing',
+      name: profile.label,
+      description: `${profile.regionLabel} wiring standard`,
+    };
+  });
+}
 
 export interface StructuredDataGraph {
   '@context': 'https://schema.org';
@@ -42,6 +61,7 @@ export function generateToolStructuredData(tool: ToolEntry): StructuredDataGraph
           url: `${siteUrl}/favicon.svg`,
         },
       },
+      ...(standardsAbout(tool) ? { about: standardsAbout(tool) } : {}),
       image: tool.ogImage || `${siteUrl}/og-image.png`,
     },
 
@@ -94,7 +114,7 @@ export function generateToolStructuredData(tool: ToolEntry): StructuredDataGraph
       '@type': 'HowTo',
       '@id': `${toolUrl}#howto`,
       name: `How to Calculate ${tool.shortName}`,
-      description: `Step-by-step electrical engineering method for calculating ${tool.shortName.toLowerCase()} using standard conductor physics and BS 7671 rules.`,
+      description: `Step-by-step electrical engineering method for calculating ${tool.shortName.toLowerCase()} using published conductor physics and ${standardsPhrase(tool)} rules.`,
       step: tool.steps.map((s, index) => ({
         '@type': 'HowToStep',
         position: index + 1,

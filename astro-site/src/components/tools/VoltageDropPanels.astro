@@ -1,5 +1,6 @@
 ---
 // VoltageDropPanels.astro - Floating Inputs, Results, Controls, Error Notices & Legend
+import StandardSelector from './StandardSelector.astro';
 ---
 
 <!-- TOP-CENTER CONTROLS BAR -->
@@ -132,6 +133,9 @@
     </div>
 
     <div id="inputs-body" class="panel-body nice-scroll">
+      <!-- Regional wiring standard (BS 7671 / IEC 60364) -->
+      <StandardSelector inputId="input-standard" noteId="vd-standard-note" />
+
       <!-- System Type -->
       <div class="form-group">
         <label class="form-label">System Type</label>
@@ -426,6 +430,10 @@
           </p>
         </div>
       </div>
+      <!-- Standards-of-verification trust line (updated by tool script) -->
+      <p class="vd-standard-echo" id="vd-standard-echo">
+        Verified against <strong>BS 7671:2018+A4:2026 (UK)</strong> — Appendix 4 limits: 3% lighting / 5% power circuits.
+      </p>
     </div>
   </section>
 </div>
@@ -499,6 +507,26 @@
 
 <style>
   /* ── FLOATING PANELS & CONTROLS STYLING ── */
+
+  /* Standards verification trust line (under status card) */
+  .vd-standard-echo {
+    margin: 0.6rem 0 0;
+    font-size: 0.6875rem;
+    line-height: 1.45;
+    color: rgba(71, 85, 105, 0.95);
+    border-top: 1px dashed rgba(100, 116, 139, 0.3);
+    padding-top: 0.55rem;
+  }
+  .vd-standard-echo strong {
+    color: #1e293b;
+    white-space: nowrap;
+  }
+  :root[data-theme='dark'] .vd-standard-echo {
+    color: #94a3b8;
+  }
+  :root[data-theme='dark'] .vd-standard-echo strong {
+    color: #e2e8f0;
+  }
 
   /* Top Controls */
   .top-controls-bar {
