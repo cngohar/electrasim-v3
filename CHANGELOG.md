@@ -11,6 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added & Enhanced — Session 2026-08-28 (part 2): Long-Article TOC & Reading Navigation
+
+1. **Server-Rendered Table of Contents for Long Reads** (`blog/[...slug].astro`):
+   - Auto-built from markdown headings via Astro's `render()` (`headings` API) — H2-led tree with H3 nested; posts with >24 sections fall back to an H2-only outline.
+   - Shown only for long reads (≥3 H2 sections and ≥4 min reading time), so short posts stay clean.
+   - SEO: semantic `<nav aria-label="Table of contents">` with plain crawlable anchor links to the auto-id headings (deep-linkable fragments can surface as "jump to" links in SERPs); headings get `scroll-margin-top` to clear the fixed header.
+2. **Layout & Interaction**:
+   - Desktop (≥1360 px): TOC docks as a sticky rail in the article's left gutter, geometry computed from the 768 px padding box so it always clears the decorative live-rail; mobile/tablet: collapsible `<details>` card above the article body (collapsed by default).
+   - Client script `public/js/blog-article.js` (progressive enhancement): IntersectionObserver scroll-spy with `aria-current` highlighting, viewport-adaptive collapse, `#` permalink buttons on every H2/H3 (copy section link + history update, clipboard fallback-safe), reduced-motion-aware smooth jumps, and keyboard focus hand-off to the target section.
+3. **Verification**: `astro check` 0 errors · 64 vitest pass · lint/typecheck clean · 143-page build; TOC presence/thresholds and anchor integrity verified in built HTML over the preview server.
+
 ### Added & Enhanced — Session 2026-08-28 (part 1): Unique Per-Post Open Graph Images
 
 1. **Per-Post OG Card Generator (`astro-site/scripts/generate-og-images.mjs`)**:

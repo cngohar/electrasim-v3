@@ -583,3 +583,183 @@
   background: #050811;
   box-shadow: 0 14px 38px -14px rgba(15, 23, 42, 0.28);
 }
+
+/* ── Blog Post: Table of Contents (long-read jump navigation) ────────────── */
+
+/* Anchor jumps clear the fixed header + breadcrumb bar */
+.art-inner :is(h2, h3) {
+  scroll-margin-top: 5.5rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .art-wrap {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Mobile & tablet: collapsed card above the article body */
+.art-toc {
+  position: static;
+  margin: 0 0 2.25rem;
+}
+.art-toc-box {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.art-toc-details summary {
+  list-style: none;
+}
+.art-toc-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+  user-select: none;
+}
+.art-toc-summary::-webkit-details-marker {
+  display: none;
+}
+.art-toc-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.art-toc-title svg {
+  color: var(--blue);
+}
+.art-toc-count {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.12rem 0.55rem;
+  white-space: nowrap;
+}
+.art-toc-details:not([open]) .art-toc-summary {
+  border-bottom: none;
+}
+.art-toc-details[open] .art-toc-summary {
+  border-bottom: 1px solid var(--border);
+}
+
+.art-toc-list,
+.art-toc-sublist {
+  list-style: none;
+  margin: 0;
+  padding: 0.6rem 0.75rem 0.85rem;
+}
+.art-toc-sublist {
+  padding: 0.25rem 0 0.1rem 0.9rem;
+}
+.art-toc-item {
+  margin: 0;
+  border-top: none;
+  border-left: 2px solid var(--border);
+}
+.art-toc-subitem {
+  border-left-color: transparent;
+}
+.art-toc-item a {
+  display: block;
+  padding: 0.34rem 0.65rem;
+  font-size: 0.85rem;
+  font-weight: 550;
+  line-height: 1.35;
+  color: var(--text-mid);
+  text-decoration: none;
+  border-radius: 0 6px 6px 0;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.art-toc-subitem a {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-dim);
+}
+.art-toc-item a:hover,
+.art-toc-item a:focus-visible {
+  color: var(--blue);
+  background: var(--blue-l);
+}
+.art-toc-item a.is-active,
+.art-toc-item a[aria-current="true"] {
+  color: var(--blue);
+  background: var(--blue-l);
+  font-weight: 700;
+}
+.art-toc-item:has(> a.is-active) {
+  border-left-color: var(--blue);
+}
+
+/* Desktop: sticky rail docked in the left gutter of the article.
+   Geometry is computed off the 768px padding-box of .art-inner so the card
+   always clears the decorative live-rail (≈4px left of the content edge). */
+@media (min-width: 1360px) {
+  .art-inner {
+    position: relative;
+  }
+  .art-toc {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(0px - clamp(232px, (100vw - 768px) / 2 - 24px, 260px));
+    width: clamp(232px, (100vw - 768px) / 2 - 60px, 244px);
+    margin: 0;
+  }
+  .art-toc-box {
+    position: sticky;
+    top: 5.5rem;
+    max-height: calc(100vh - 7rem);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    background: var(--bg-card);
+  }
+}
+
+/* Hover permalink buttons injected by blog-article.js */
+.h-anchor {
+  margin-left: 0.45rem;
+  padding: 0 0.3rem;
+  border: none;
+  background: none;
+  color: var(--text-dim);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease;
+  vertical-align: middle;
+}
+.art-inner h2:hover .h-anchor,
+.art-inner h3:hover .h-anchor,
+.h-anchor:focus-visible {
+  opacity: 1;
+}
+.h-anchor:hover,
+.h-anchor:focus-visible {
+  color: var(--blue);
+}
+.h-anchor.copied {
+  color: #10b981;
+  opacity: 1;
+}
+
+/* Keyboard-focus target after a TOC jump — no halo on headings */
+.art-inner :is(h2, h3):focus {
+  outline: none;
+}
+.art-inner :is(h2, h3):focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 4px;
+  border-radius: 2px;
+}

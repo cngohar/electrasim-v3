@@ -1,5 +1,6 @@
 ---
 import { getCollection, render } from 'astro:content';
+import packageMetadata from '../../../../package.json';
 import Base from '../../layouts/Base.astro';
 import { getTagArchives, readingTime, slugifyTag, sortBlogPosts, wordCount } from '../../lib/blog';
 import { ogCardUrl } from '../../og-manifest';
@@ -20,7 +21,32 @@ export async function getStaticPaths() {
 }
 
 const { post, prevPost, nextPost, generatedTags } = Astro.props;
-const { Content } = await render(post);
+const { Content, headings } = await render(post);
+
+// ── Table of Contents (server-rendered jump links for long articles) ────────
+// Build an H2-led tree (H3 nested one level). Very long outlines fall back to
+// H2-only so the TOC stays scannable.
+interface TocItem {
+  slug: string;
+  text: string;
+  children: TocItem[];
+}
+const tocItems: TocItem[] = [];
+const sourceHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
+const useH3 = sourceHeadings.length <= 24;
+for (const h of sourceHeadings) {
+  if (h.depth === 2 || !useH3) {
+    if (h.depth === 2) tocItems.push({ slug: h.slug, text: h.text, children: [] });
+    continue;
+  }
+  const parent = tocItems[tocItems.length - 1];
+  if (parent) parent.children.push({ slug: h.slug, text: h.text, children: [] });
+  else tocItems.push({ slug: h.slug, text: h.text, children: [] });
+}
+// Only long-read articles get the TOC (≥4 min, ≥3 H2 sections).
+const showToc = tocItems.length >= 3 && readingTime(post.body ?? '') >= 4;
+const tocCount =
+  sourceHeadings.length > 0 ? (useH3 ? sourceHeadings.length : tocItems.length) : 0;
 
 const pubDateISO = post.data.pubDate.toISOString().split('T')[0];
 const pubDateDisplay = post.data.pubDate.toLocaleDateString('en-GB', {
@@ -152,6 +178,45 @@ const breadcrumbSchema = {
         />
       </figure>
 
+      {showToc && (
+        <nav class="art-toc" aria-label="Table of contents — on this page">
+          <div class="art-toc-box">
+            <details class="art-toc-details" open>
+              <summary class="art-toc-summary">
+                <span class="art-toc-title">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="8" y1="6" x2="21" y2="6" />
+                    <line x1="8" y1="12" x2="21" y2="12" />
+                    <line x1="8" y1="18" x2="21" y2="18" />
+                    <line x1="3" y1="6" x2="3.01" y2="6" />
+                    <line x1="3" y1="12" x2="3.01" y2="12" />
+                    <line x1="3" y1="18" x2="3.01" y2="18" />
+                  </svg>
+                  On this page
+                </span>
+                <span class="art-toc-count">{tocCount} section{tocCount === 1 ? '' : 's'}</span>
+              </summary>
+              <ol class="art-toc-list">
+                {tocItems.map((item) => (
+                  <li class="art-toc-item">
+                    <a href={`#${item.slug}`} data-toc-link={item.slug}>{item.text}</a>
+                    {item.children.length > 0 && (
+                      <ol class="art-toc-sublist">
+                        {item.children.map((child) => (
+                          <li class="art-toc-item art-toc-subitem">
+                            <a href={`#${child.slug}`} data-toc-link={child.slug}>{child.text}</a>
+                          </li>
+                        ))}
+                      </ol>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            </details>
+          </div>
+        </nav>
+      )}
+
       <Content />
 
       {generatedTags.length > 0 && (
@@ -187,4 +252,8 @@ const breadcrumbSchema = {
     </article>
     </div>
   </main>
+
+  {showToc && (
+    <script is:inline defer src={`/js/blog-article.js?v=${packageMetadata.version}`}></script>
+  )}
 </Base>

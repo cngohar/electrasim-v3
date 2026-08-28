@@ -7,6 +7,19 @@ A running, append-only log of work on the ElectraSim rewrite. Every coding sessi
 
 ---
 
+## Session 2026-08-28 (part 2) — Long-Article TOC & Reading Navigation
+
+**Requests:**
+1. 1000+ word posts render as one long line of scrolling content — adjust layout/navigation; TOC with SEO-aware settings
+
+**Done:**
+1. SSR TOC from `render()` headings (H2-led tree, H3 nested, >24 sections → H2-only fallback); gated to ≥3 sections & ≥4 min reads.
+2. Desktop sticky left-rail (≥1360 px, gutter-geometry safe vs live-rail), mobile collapsible details card, crawlable anchor links (jump-to SEO), scroll-margin-top for the fixed header.
+3. `blog-article.js`: scroll-spy (IntersectionObserver, aria-current), responsive collapse, permalink `#` buttons with clipboard copy, reduced-motion safe scrolling, focus hand-off.
+4. Verified: built HTML anchor set per post, TOC gated off short posts, astro check 0 errors, 64 tests, lint/typecheck clean.
+
+---
+
 ## Session 2026-08-28 (part 1) — Unique Per-Post Open Graph Images
 
 **Requests:**
