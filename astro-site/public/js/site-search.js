@@ -225,6 +225,7 @@
       list = list.filter((item) => {
         if (activeFilter === 'tool') return item.type === 'tool';
         if (activeFilter === 'article') return item.type === 'article';
+        if (activeFilter === 'update') return item.type === 'update';
         if (activeFilter === 'guide') return item.type === 'guide';
         return true;
       });
@@ -253,7 +254,9 @@
           ? 'Guide'
           : item.type === 'article'
             ? 'Article'
-            : 'Page';
+            : item.type === 'update'
+              ? 'Update'
+              : 'Page';
 
     return `
       <li

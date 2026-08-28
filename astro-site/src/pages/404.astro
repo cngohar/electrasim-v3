@@ -1,10 +1,20 @@
 ---
 import Base from '../layouts/Base.astro';
+import packageMetadata from '../../../package.json';
 import '../styles/not-found.css';
+
+// Default riddle rendered server-side (progressive enhancement: replaced by a
+// random one via /js/not-found.js once JS is available). Keep in sync with the
+// RIDDLES pool in not-found.js (index 0).
+const SSR_RIDDLE = {
+  q: 'Your multimeter shows 90 V on a cable you definitely disconnected. Why?',
+  a: "Ghost (phantom) voltage: the dead cable runs parallel to live ones, so capacitive coupling between conductors lifts it to a readable voltage. Your high-impedance meter (10 MΩ) barely loads it down. Touch it with a solenoid tester and the phantom collapses to zero — no phantom, no problem.",
+};
 ---
+
 <Base
   title="Page Not Found — ElectraSim"
-  description="The page you're looking for doesn't exist. Return to the ElectraSim homepage."
+  description="Open circuit: the page you're looking for doesn't exist. Return to the ElectraSim homepage."
   canonical="https://electrasim.com/404/"
   robots="noindex, follow"
   contentSecurityPolicy="default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
@@ -12,14 +22,124 @@ import '../styles/not-found.css';
   <main id="main-content">
     <div class="not-found" data-live>
       <div class="not-found-inner">
-        <span class="not-found-code" aria-hidden="true">404</span>
-        <h1>Page Not Found</h1>
-        <p>The page you're looking for has been moved, deleted, or never existed. Let's get you back on track.</p>
+        <p class="nf-code-banner" role="status">FAULT CODE 404 · OPEN CIRCUIT</p>
+
+        <!-- Animated broken-circuit scene (pure SVG, no images) -->
+        <svg
+          class="nf-scene"
+          viewBox="0 0 1200 300"
+          role="img"
+          aria-label="Animated circuit diagram: an energised wire ends at a severed gap where a spark arcs; the lamp on the dead side stays dark"
+        >
+          <defs>
+            <path id="wire-live-path" d="M 92 150 H 215 L 235 150 l 10 -16 l 16 32 l 16 -32 l 16 32 l 16 -32 l 16 32 l 16 -16 H 552" fill="none" />
+            <path id="wire-dead-path" d="M 652 150 H 905 M 975 150 H 1108" fill="none" />
+          </defs>
+
+          <!-- supply: bolt in a circle, breathing -->
+          <g class="nf-supply">
+            <circle cx="58" cy="150" r="34" class="nf-supply-ring" />
+            <path class="nf-supply-bolt" d="M 64 124 L 46 156 H 57 L 52 176 L 71 144 H 60 Z" />
+            <text x="58" y="206" text-anchor="middle" class="nf-svg-label">SUPPLY</text>
+          </g>
+
+          <!-- live leg: base wire + flowing current dashes -->
+          <use href="#wire-live-path" class="nf-wire nf-wire-live" />
+          <use href="#wire-live-path" class="nf-flow" />
+
+          <!-- electrons that reach the break and die there (SMIL) -->
+          <circle r="5" class="nf-electron">
+            <animateMotion dur="1.6s" repeatCount="indefinite" begin="0s"><mpath href="#wire-live-path" /></animateMotion>
+            <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="1.6s" repeatCount="indefinite" begin="0s" />
+          </circle>
+          <circle r="5" class="nf-electron">
+            <animateMotion dur="1.6s" repeatCount="indefinite" begin="0.53s"><mpath href="#wire-live-path" /></animateMotion>
+            <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="1.6s" repeatCount="indefinite" begin="0.53s" />
+          </circle>
+          <circle r="5" class="nf-electron">
+            <animateMotion dur="1.6s" repeatCount="indefinite" begin="1.06s"><mpath href="#wire-live-path" /></animateMotion>
+            <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="1.6s" repeatCount="indefinite" begin="1.06s" />
+          </circle>
+
+          <text x="330" y="206" text-anchor="middle" class="nf-svg-label">RESISTOR (survived)</text>
+          <text x="330" y="110" text-anchor="middle" class="nf-svg-label nf-svg-live">LIVE · 230 V</text>
+
+          <!-- the break: frayed conductor ends + arcing spark -->
+          <g class="nf-break">
+            <path class="nf-fray" d="M 552 150 l 10 -7 M 552 150 l 11 1 M 552 150 l 9 8" />
+            <path class="nf-fray nf-fray-dead" d="M 652 150 l -10 -8 M 652 150 l -12 0 M 652 150 l -9 9" />
+            <g class="nf-spark">
+              <g class="nf-spark-halo"><circle cx="602" cy="150" r="30" /></g>
+              <g class="nf-spark-star">
+                <path d="M602 128 v-12 M602 184 v-12 M580 150 h-12 M632 150 h-12 M587 135 l-9 -9 M620 174 l-9 -9 M587 165 l-9 9 M620 126 l-9 9" />
+              </g>
+            </g>
+            <text x="602" y="228" text-anchor="middle" class="nf-svg-label nf-svg-fault">THE BREAK · ∞ Ω</text>
+          </g>
+
+          <!-- dead leg (inert — no flow animation) -->
+          <use href="#wire-dead-path" class="nf-wire nf-wire-dead" />
+          <circle r="4" class="nf-ghost">
+            <animate attributeName="cx" values="662;694;662" keyTimes="0;0.35;1" dur="2.8s" repeatCount="indefinite" />
+            <animate attributeName="opacity" values="0;0.5;0" keyTimes="0;0.3;1" dur="2.8s" repeatCount="indefinite" />
+            <animate attributeName="cy" values="150;150" dur="2.8s" repeatCount="indefinite" />
+          </circle>
+
+          <!-- dead lamp: unlit, with a faint glow that hopes and fails -->
+          <g class="nf-lamp">
+            <circle cx="940" cy="150" r="35" class="nf-lamp-glass" />
+            <path class="nf-lamp-cross" d="M 926 136 l 28 28 M 954 136 l -28 28" />
+            <circle cx="940" cy="150" r="35" class="nf-lamp-glow" />
+            <text x="940" y="206" text-anchor="middle" class="nf-svg-label">LOAD · 0.00 W</text>
+          </g>
+
+          <!-- inert ammeter -->
+          <g class="nf-meter">
+            <circle cx="1142" cy="150" r="30" class="nf-meter-ring" />
+            <text x="1142" y="157" text-anchor="middle" class="nf-meter-read">0.00</text>
+            <text x="1142" y="206" text-anchor="middle" class="nf-svg-label">AMPS</text>
+          </g>
+        </svg>
+
+        <h1>No continuity to this page.</h1>
+        <p class="nf-lead">
+          We put the meter on it: infinite resistance between you and that URL. The conductor is severed —
+          the link rotted, the page moved, or it never existed. Current stops here.
+        </p>
+
+        <p class="nf-readout" aria-hidden="true">
+          <span class="nf-readout-prompt">&gt;</span> continuity test …
+          <span class="nf-readout-ohm">∞ Ω</span> · prospective current
+          <span class="nf-readout-amps">0.00 A</span> · verdict:
+          <span class="nf-readout-ohno">broken hyperlink</span><span class="nf-caret">▊</span>
+        </p>
+
         <div class="not-found-actions">
-          <a href="/" class="btn-primary">← Back to Home</a>
-          <a href="/blog/" class="btn-secondary">Browse the Blog</a>
+          <a href="/" class="btn-primary">⟵ Return to supply</a>
+          <a href="/guide/" class="btn-secondary">Consult the wiring guides</a>
+          <a href="/tools/" class="btn-secondary">Test the calculators</a>
         </div>
+
+        <!-- Bench riddle: weird but physically possible electrical question -->
+        <section class="nf-riddle" aria-label="Electrician's riddle">
+          <p class="nf-riddle-chip">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+            </svg>
+            BENCH RIDDLE — WEIRD, BUT PHYSICALLY PLAUSIBLE
+          </p>
+          <p class="nf-riddle-q" id="nf-riddle-q">{SSR_RIDDLE.q}</p>
+          <details class="nf-riddle-details">
+            <summary class="nf-riddle-summary">How is that possible?</summary>
+            <p class="nf-riddle-a" id="nf-riddle-a">{SSR_RIDDLE.a}</p>
+          </details>
+          <button type="button" class="nf-riddle-next" id="nf-riddle-next" hidden>
+            ↻ Ask the bench another one
+          </button>
+        </section>
       </div>
     </div>
   </main>
+
+  <script is:inline defer src={`/js/not-found.js?v=${packageMetadata.version}`}></script>
 </Base>

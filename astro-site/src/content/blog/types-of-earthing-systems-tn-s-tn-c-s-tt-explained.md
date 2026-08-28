@@ -246,7 +246,7 @@ Smart meters draw a small but constant current from the live and return through 
 
 > [Open ElectraSim — free, no sign-up →](/app/)
 
-> Related: [Fault Simulation Mode: Open Circuit, Reverse Polarity and Earth Faults](/blog/fault-simulation-mode-open-circuit-reverse-polarity-earth-fault/)
+> Related: [Fault Simulation Mode: Open Circuit, Reverse Polarity and Earth Faults](/updates/fault-simulation-mode-open-circuit-reverse-polarity-earth-fault/)
 
 ---
 

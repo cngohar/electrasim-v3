@@ -94,7 +94,7 @@ An open circuit is found with a **continuity test**: with the circuit isolated, 
 
 The method is to work systematically from one end of the circuit to the other, testing each section in turn, until you find the segment where continuity is absent. The break is between the last point that shows continuity and the first point that does not.
 
-> Related: [Fault Simulation Mode in ElectraSim: Diagnose Open Circuits, Reverse Polarity and Earth Faults](/blog/fault-simulation-mode-open-circuit-reverse-polarity-earth-fault/)
+> Related: [Fault Simulation Mode in ElectraSim: Diagnose Open Circuits, Reverse Polarity and Earth Faults](/updates/fault-simulation-mode-open-circuit-reverse-polarity-earth-fault/)
 
 ---
 
@@ -134,7 +134,7 @@ ElectraSim's simulation engine already detects short circuits in normal mode —
 
 > Try it: [open ElectraSim →](/app/), place one Live (L) terminal and one Neutral (N) terminal, then connect them with a single wire. Press Run. The short circuit is detected immediately.
 
-For a deeper exploration of fault injection: [Fault Simulation Mode — detailed guide](/blog/fault-simulation-mode-open-circuit-reverse-polarity-earth-fault/)
+For a deeper exploration of fault injection: [Fault Simulation Mode — detailed guide](/updates/fault-simulation-mode-open-circuit-reverse-polarity-earth-fault/)
 
 ---
 

@@ -4,6 +4,7 @@ description: "ElectraSim v1.5 feels smoother on larger circuits, improves keyboa
 pubDate: 2026-07-16
 author: ElectraSim
 category: App Update
+version: "v1.5"
 tags: [ElectraSim, app update, circuit simulator, electrical simulator, new features, accessibility, privacy, guided circuits]
 featured: false
 ---
@@ -91,7 +92,7 @@ Version 1.5 improves that foundation without asking you to learn a new interface
 
 ## Try ElectraSim v1.5
 
-If you are new to ElectraSim, begin with [Guided Circuits](/blog/guided-circuits-electrasim-templates-checklists/). It gives you ready-made examples and a checklist to follow inside the simulator.
+If you are new to ElectraSim, begin with [Guided Circuits](/updates/guided-circuits-electrasim-templates-checklists/). It gives you ready-made examples and a checklist to follow inside the simulator.
 
 You can also read the [simulator guide](/guide/) or open a blank canvas and build your own circuit.
 

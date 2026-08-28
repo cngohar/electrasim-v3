@@ -56,6 +56,41 @@
   };
   const DEFAULT_REACTANCE = 8e-5; // 0.08 mΩ/m
 
+  // Regional limit banding. Physics is identical (resistivity-based); only the
+  // compliance ceilings and citations switch between standards.
+  const VD_STANDARDS = {
+    'uk-bs7671': {
+      label: 'BS 7671:2018+A4:2026',
+      region: 'United Kingdom',
+      goodPct: 3,
+      hardPct: 5,
+      goodDesc:
+        'The voltage drop is within the BS 7671 3% lighting-circuit guideline (6.9 V at 230 V).',
+      warningDesc:
+        'Voltage drop is between 3% and 5%. Acceptable for general power circuits per BS 7671 Appendix 4, but close to limit.',
+      excessiveDesc:
+        'Voltage drop exceeds the BS 7671 5% ceiling. Conductor is undersized or run is too long. Upsize cable cross-section.',
+      citation:
+        'Results calculated per BS 7671:2018+A4:2026 — Appendix 4 limits: 3% lighting / 5% power circuits from a public LV supply origin.',
+      echo: 'Verified against <strong>BS 7671:2018+A4:2026 (UK)</strong> — Appendix 4 limits: 3% lighting / 5% power circuits.',
+    },
+    'iec-60364': {
+      label: 'IEC 60364',
+      region: 'International (IEC)',
+      goodPct: 4,
+      hardPct: 5,
+      goodDesc:
+        'The voltage drop is within the IEC 60364-5-52 Annex G 4% guidance (public LV supply, lighting).',
+      warningDesc:
+        'Voltage drop is between 4% and 5%. Within IEC 60364-5-52 Annex G guidance for other circuits, but close to limit.',
+      excessiveDesc:
+        'Voltage drop exceeds the IEC 60364-5-52 Annex G 5% guidance. Conductor is undersized or run is too long. Upsize cable cross-section.',
+      citation:
+        'Results calculated per IEC 60364-5-52 Annex G, Table G.52.1 — 4% lighting / 5% other circuits (public LV supply; 6%/8% private).',
+      echo: 'Verified against <strong>IEC 60364 (International)</strong> — Annex G limits: 4% lighting / 5% other circuits.',
+    },
+  };
+
   // Educational Tips Carousel
   const TIPS = [
     'Green particles show the flow of electricity. Some voltage is lost along the cable due to its resistance.',
@@ -70,6 +105,7 @@
   const state = {
     systemType: 'single', // 'dc' | 'single' | 'three'
     voltage: 230,
+    standard: 'uk-bs7671', // 'uk-bs7671' | 'iec-60364'
     voltsUnit: 'V', // 'V' | 'kV'
     current: 40,
     length: 50,
@@ -262,6 +298,7 @@
     }
 
     const { voltageInVolts, current, length, size, pf, temp } = val;
+    const std = VD_STANDARDS[state.standard] || VD_STANDARDS['uk-bs7671'];
     const mat = MATERIALS[state.material] || MATERIALS.copper;
     const rhoT = Math.max(0, mat.rho20 * (1 + mat.alpha * (temp - 20)));
     const r = rhoT / size; // Ω/m
@@ -277,23 +314,23 @@
     const loadVoltage = Math.max(0, voltageInVolts - voltageDrop);
     const powerLoss = current * current * (powerLossMult * r * length);
 
+    // Limit banding follows the selected regional standard
+    // (BS 7671: 3%/5% — IEC 60364-5-52 Annex G: 4%/5%).
     let severity = 'good';
-    if (dropPct > 5.0 + 1e-9) {
+    if (dropPct > std.hardPct + 1e-9) {
       severity = 'excessive';
-    } else if (dropPct > 3.0 + 1e-9) {
+    } else if (dropPct > std.goodPct + 1e-9) {
       severity = 'warning';
     }
 
     let statusTitle = 'Good';
-    let statusDesc = 'The voltage drop is within the BS 7671 3% lighting-circuit guideline.';
+    let statusDesc = std.goodDesc;
     if (severity === 'warning') {
       statusTitle = 'Marginal';
-      statusDesc =
-        'Voltage drop is between 3% and 5%. Acceptable for general power circuits, but close to limit.';
+      statusDesc = std.warningDesc;
     } else if (severity === 'excessive') {
       statusTitle = 'Excessive';
-      statusDesc =
-        'Voltage drop exceeds 5%. Conductor is undersized or run is too long. Upsize cable cross-section.';
+      statusDesc = std.excessiveDesc;
     }
 
     return {
@@ -446,6 +483,13 @@
       if (elMobileSummary) {
         elMobileSummary.textContent = `${res.voltageDrop.toFixed(2)} V (${res.dropPct.toFixed(2)}%)`;
       }
+
+      // Standards-of-verification trust surfaces
+      const stdMeta = VD_STANDARDS[state.standard] || VD_STANDARDS['uk-bs7671'];
+      const elStdNote = document.getElementById('vd-standard-note');
+      if (elStdNote) elStdNote.textContent = stdMeta.citation;
+      const elStdEcho = document.getElementById('vd-standard-echo');
+      if (elStdEcho) elStdEcho.innerHTML = stdMeta.echo;
     }
 
     // 2. Dynamic Catenary Curve Sag Calculation
@@ -620,10 +664,19 @@
     const selMaterial = document.getElementById('select-material');
     const inPf = document.getElementById('input-pf');
     const inTemp = document.getElementById('input-temp');
+    const selStandard = document.getElementById('input-standard');
     const switchReactance = document.getElementById('switch-reactance');
     const btnCalculate = document.getElementById('btn-calculate');
     const btnAutofix = document.getElementById('btn-autofix-inputs');
     const btnToastClose = document.getElementById('tool-toast-close');
+
+    if (selStandard) {
+      selStandard.addEventListener('change', (e) => {
+        state.standard = VD_STANDARDS[e.target.value] ? e.target.value : 'uk-bs7671';
+        updateUI();
+        showToast(`Compliance limits switched to ${VD_STANDARDS[state.standard].label}.`, '📐');
+      });
+    }
 
     if (inVoltage) {
       inVoltage.addEventListener('input', (e) => {
@@ -1347,6 +1400,7 @@
     state.temp = 20;
     state.reactance = false;
     state.threeD = false;
+    state.standard = 'uk-bs7671';
 
     // Reset Form Inputs
     const inVoltage = document.getElementById('input-voltage');
@@ -1357,6 +1411,7 @@
     const selMaterial = document.getElementById('select-material');
     const inPf = document.getElementById('input-pf');
     const inTemp = document.getElementById('input-temp');
+    const selStandard = document.getElementById('input-standard');
     const switchReactance = document.getElementById('switch-reactance');
     const btn3d = document.getElementById('btn-toggle-3d');
     const sceneWrapper = document.getElementById('scene-perspective-wrapper');
@@ -1369,6 +1424,7 @@
     if (selMaterial) selMaterial.value = 'copper';
     if (inPf) inPf.value = '0.92';
     if (inTemp) inTemp.value = '20';
+    if (selStandard) selStandard.value = state.standard;
     if (switchReactance) switchReactance.setAttribute('aria-checked', 'false');
     if (btn3d) {
       btn3d.classList.remove('active');

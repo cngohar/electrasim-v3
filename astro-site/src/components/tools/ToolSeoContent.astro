@@ -1,11 +1,120 @@
 ---
 import type { ToolEntry } from '../../lib/tools/registry';
+import { STANDARD_PROFILES } from '../../lib/tools/standards';
 
 interface Props {
   tool: ToolEntry;
 }
 
 const { tool } = Astro.props;
+
+/**
+ * Per-tool editorial copy. Only the marketing-standard sections were
+ * previously hardcoded for voltage drop; each calculator now gets its own
+ * semantically correct copy so the crawlable content matches the page intent.
+ */
+interface ToolSeoCopy {
+  introTitle: string;
+  introParagraphs: string[];
+  equationsTitle: string;
+  stepsTitle: string;
+  /** Which compliance-limit table to render (null = none) */
+  limitsTable: 'metric-vdrop' | 'nec-vdrop' | 'shared-metric' | null;
+  checklistTitle: string;
+  checklist: string[];
+}
+
+const VARIANT_COPY: Record<string, ToolSeoCopy> = {
+  'voltage-drop': {
+    introTitle: 'What is Voltage Drop in Electrical Cables?',
+    introParagraphs: [
+      'Whenever electric current flows through an electrical cable, energy is dissipated as heat due to the internal resistance of the metallic conductor. This resistance causes a reduction in electrical potential along the length of the wire, meaning the voltage delivered to the load is lower than the voltage supplied at the source origin.',
+      'For example, in a <strong>230 V single-phase circuit</strong> delivering <strong>40 A</strong> over a <strong>50-meter</strong> run of <strong>10 mm² copper cable</strong>, the total conductor resistance creates a voltage drop of approximately <strong>6.33 V (2.75%)</strong>. The load receives <strong>223.67 V</strong>, safely within BS 7671 permissible limits.',
+      'This calculator checks results against <strong>BS 7671:2018+A4:2026 (UK)</strong> by default and can switch to <strong>IEC 60364-5-52 Annex G</strong> international guidance via the standards selector in the input panel.',
+    ],
+    equationsTitle: 'The Voltage Drop Formulas & Equations',
+    stepsTitle: 'How to Calculate Voltage Drop: Step-by-Step',
+    limitsTable: 'metric-vdrop',
+    checklistTitle: 'How to Reduce Voltage Drop in Long Cable Runs',
+    checklist: [
+      '<strong>Upsize Conductor Cross-Section:</strong> Increasing from 6 mm² to 10 mm² or 16 mm² halves conductor resistance, drastically reducing voltage loss and heat build-up.',
+      '<strong>Shorten Cable Routing:</strong> Optimize cable paths through containment and cable trays to eliminate unnecessary run length.',
+      '<strong>Switch to Higher Voltages or Three-Phase:</strong> For large industrial loads, distributing load across three phases reduces current per conductor by a factor of 1.732.',
+      '<strong>Use High-Conductivity Copper:</strong> Electrolytic tough pitch copper has ~64% lower resistivity than aluminum conductors of the same physical dimensions.',
+    ],
+  },
+  'us-voltage-drop': {
+    introTitle: 'What is Voltage Drop on US Branch Circuits (AWG Conductors)?',
+    introParagraphs: [
+      'Every wire gauge has a finite resistance per foot. When load current flows through that resistance, some supply voltage is absorbed by the run itself, so the equipment at the far end receives less than the panel voltage. In the American Wire Gauge system, <strong>smaller AWG numbers are physically larger conductors</strong> with lower resistance per foot.',
+      'Worked example: a <strong>120 V single-phase branch circuit</strong> drawing <strong>20 A</strong> over a <strong>100 ft</strong> one-way run of <strong>12 AWG stranded copper</strong> (1.98 Ω per 1000 ft at 75 °C per NEC Chapter 9, Table 8) drops <strong>7.92 V (6.6%)</strong> round-trip. The load sees only <strong>112.1 V</strong> — beyond the NEC advisory guidance, so you would step up to 10 AWG or 8 AWG.',
+      'Verdicts are checked against <strong>NEC 210.19(A) Informational Note No. 4</strong> and <strong>215.2(A)(1) Informational Note No. 2</strong>: a maximum of 3% on any single feeder or branch circuit and 5% total from service entrance to farthest outlet. These notes are advisory (not enforceable Code text), but most inspectors and engineers design to them.',
+    ],
+    equationsTitle: 'NEC Voltage Drop Formulas & Data Sources',
+    stepsTitle: 'How to Calculate Voltage Drop (NEC Method): Step-by-Step',
+    limitsTable: 'nec-vdrop',
+    checklistTitle: 'How to Fix Excessive Voltage Drop on US Circuits',
+    checklist: [
+      '<strong>Jump two AWG sizes:</strong> Going from 12 AWG to 10 AWG copper cuts resistance per foot by ~37% (1.98 → 1.24 Ω/kFT); each size up multiplies capacity meaningfully.',
+      '<strong>Re-feed at 240 V instead of 120 V:</strong> At double the voltage, the same load draws half the current and the same volt drop is half the percentage — a 4× improvement in drop margin.',
+      '<strong>Use three-phase distribution:</strong> A balanced 208 V or 480 V three-phase feed uses √3 instead of a full round trip, reducing drop ~13% further for the same conductors.',
+      '<strong>Account for hot conductors:</strong> A THHN run under load at 75 °C has ~20% more resistance than cold wire at 20 °C — size to the operating temperature, not the bench measurement.',
+      '<strong>Weigh aluminum vs copper:</strong> Aluminum of equal size drops ~64% more voltage; two AWG sizes up in aluminum (e.g. 10 AWG Al for 12 AWG Cu) roughly equalizes drop at lower cost.',
+    ],
+  },
+  'cable-size': {
+    introTitle: 'How Cable Sizing Works (The Ib ≤ In ≤ Iz Coordination Rule)',
+    introParagraphs: [
+      'Cable sizing coordinates three currents: the <strong>design current Ib</strong> the load draws, the <strong>protective device rating In</strong> that guards the circuit, and the <strong>installed current-carrying capacity Iz</strong> of the conductor after real-world derating. Compliance requires Ib ≤ In ≤ Iz, so the breaker trips before the cable overheats.',
+      'Installation conditions matter as much as conductor size. Cables buried in thermal insulation (Method A) shed heat poorly and are derated heavily, while cables clipped directly to a surface (Method C) run coolest. Ambient temperature (Ca), grouping with other loaded circuits (Cg), and insulation contact (Ci) multiply together into a total derating factor.',
+      'This calculator uses the harmonized metric tables shared by <strong>BS 7671:2018+A4:2026 Appendix 4 (UK)</strong> and <strong>IEC 60364-5-52</strong> (international), then verifies the run against the selected standard’s voltage-drop limits — 3%/5% under BS 7671, or 4%/5% under IEC 60364-5-52 Annex G. Choose your region with the standards selector above the inputs.',
+    ],
+    equationsTitle: 'The Cable Sizing Formulas & Derating Equations',
+    stepsTitle: 'How to Size a Cable: Step-by-Step',
+    limitsTable: 'shared-metric',
+    checklistTitle: 'Practical Ways to Reduce the Required Cable Size',
+    checklist: [
+      '<strong>Improve heat dissipation:</strong> Moving from thermal insulation (Method A) to clipped direct (Method C) can raise capacity by ~40%, often dropping a full cable size.',
+      '<strong>Reduce grouping:</strong> Splitting grouped circuits into separate containment restores the grouping factor Cg toward 1.0.',
+      '<strong>Split long runs into parallel circuits:</strong> Two shorter radials each carry half the load, easing both thermal and voltage-drop constraints.',
+      '<strong>Check both constraints:</strong> Short runs are dominated by thermal capacity (Iz); long runs are usually governed by the voltage-drop ceiling — the engine reports which one is binding.',
+    ],
+  },
+  'max-zs': {
+    introTitle: 'What is Earth Fault Loop Impedance (Zs)?',
+    introParagraphs: [
+      'During a line-to-earth fault, current must flow from the supply transformer, down the line conductor (R1), through the fault, back along the protective earth conductor (R2), and through the supply earthing path (Ze). The total impedance of this loop, <strong>Zs = Ze + (R1 + R2)</strong>, determines whether enough fault current flows to trip the protective device within the required disconnection time.',
+      'For final circuits up to 32 A at 230 V, both BS 7671 and IEC 60364-4-41 require automatic disconnection within <strong>0.4 seconds</strong>. Published BS 7671 Tables 41.2–41.4 already include the 0.95 Cmin voltage correction; IEC 60364-4-41 expresses the same physics directly as <strong>Zs × Ia ≤ U0</strong>.',
+      'Because published limits assume conductors at full operating temperature, a cold measurement has to stay under a derated ceiling: the <strong>IET GN3 80% rule</strong> in the UK, or the <strong>IEC 60364-6 ≈⅔ rule</strong> internationally. Pick your rule set with the standards selector above the inputs.',
+    ],
+    equationsTitle: 'Zs, Disconnection Time & Fault Current Equations',
+    stepsTitle: 'How to Verify Disconnection Times: Step-by-Step',
+    limitsTable: null,
+    checklistTitle: 'How to Bring a Failing Circuit Back into Compliance',
+    checklist: [
+      '<strong>Increase the CPC cross-section:</strong> A larger earth conductor lowers R2 and pulls total Zs below the ceiling.',
+      '<strong>Shorten the circuit run:</strong> R1 + R2 grows linearly with length; rerouting or splitting the circuit reduces it directly.',
+      '<strong>Fit a 30 mA RCD/RCBO:</strong> Under both BS 7671 and IEC 60364, residual-current protection permits far higher Zs (the 1667 Ω ceiling) for final circuits.',
+      '<strong>Measure Ze at the intake:</strong> Real supply impedance is often lower than the typical worst-case defaults (0.35 Ω TN-C-S / 0.8 Ω TN-S) — a measured Ze can reclaim margin legitimately.',
+    ],
+  },
+};
+
+const fallbackCopy: ToolSeoCopy = {
+  introTitle: `What is ${tool.shortName}?`,
+  introParagraphs: [tool.description],
+  equationsTitle: `${tool.shortName} Formulas & Equations`,
+  stepsTitle: `How to Use the ${tool.shortName}: Step-by-Step`,
+  limitsTable: null,
+  checklistTitle: 'Engineering Best Practices',
+  checklist: [
+    '<strong>Verify against the published standard:</strong> Always cross-check calculator output against the current edition of the applicable wiring regulations.',
+    '<strong>Design for conductor operating temperature:</strong> Warm conductors resist more than cold bench values suggest.',
+  ],
+};
+
+const copy = VARIANT_COPY[tool.id] ?? fallbackCopy;
+const standardChips = (tool.standards ?? []).map((id) => STANDARD_PROFILES[id]);
 ---
 
 <section class="tool-seo-section" id="educational-guide" aria-label={`${tool.name} Technical Guide & Reference`}>
@@ -13,8 +122,19 @@ const { tool } = Astro.props;
     <header class="seo-header">
       <div class="seo-badge">TECHNICAL REFERENCE & COMPLIANCE GUIDE</div>
       <h2>{tool.name} Explained</h2>
+      {standardChips.length > 0 && (
+        <div class="seo-std-chips">
+          <span class="seo-std-chips-label">Standards covered:</span>
+          {standardChips.map((profile) => (
+            <span class="seo-std-chip" title={profile.citation}>{profile.badge}</span>
+          ))}
+        </div>
+      )}
       <p class="seo-intro">
-        An in-depth electrical engineering guide to conductor physics, cable sizing formulas, and international wiring regulations (BS 7671 & IEC 60364).
+        An in-depth electrical engineering guide to conductor physics, calculation formulas, and the wiring regulations behind this tool
+        {standardChips.length > 0
+          ? ` (${standardChips.map((p) => p.label).join(' · ')})`
+          : ''}.
       </p>
     </header>
 
@@ -22,22 +142,16 @@ const { tool } = Astro.props;
       <article class="seo-article">
         <!-- Section 1: Overview -->
         <section class="seo-block">
-          <h3>What is Voltage Drop in Electrical Cables?</h3>
-          <p>
-            Whenever electric current flows through an electrical cable, energy is dissipated as heat due to the internal resistance of the metallic conductor.
-            This resistance causes a reduction in electrical potential along the length of the wire, meaning the voltage delivered to the load is lower than the voltage supplied at the source origin.
-          </p>
-          <p>
-            For example, in a <strong>230 V single-phase circuit</strong> delivering <strong>40 A</strong> over a <strong>50-meter</strong> run of <strong>10 mm² copper cable</strong>,
-            the total conductor resistance creates a voltage drop of approximately <strong>6.33 V (2.75%)</strong>.
-            The load receives <strong>223.67 V</strong>, safely within BS 7671 permissible limits.
-          </p>
+          <h3>{copy.introTitle}</h3>
+          {copy.introParagraphs.map((para) => (
+            <p set:html={para} />
+          ))}
         </section>
 
         <!-- Section 2: Mathematical Equations & Derivations -->
         {tool.equations && tool.equations.length > 0 && (
           <section class="seo-block">
-            <h3>The Voltage Drop Formulas & Equations</h3>
+            <h3>{copy.equationsTitle}</h3>
             <div class="seo-formulas-grid">
               {tool.equations.map((eq) => (
                 <div class="seo-formula-card">
@@ -56,7 +170,7 @@ const { tool } = Astro.props;
         <!-- Section 3: How-To Step by Step -->
         {tool.steps && tool.steps.length > 0 && (
           <section class="seo-block">
-            <h3>How to Calculate Voltage Drop: Step-by-Step</h3>
+            <h3>{copy.stepsTitle}</h3>
             <ol class="seo-steps-list">
               {tool.steps.map((s, idx) => (
                 <li class="seo-step-item">
@@ -71,45 +185,123 @@ const { tool } = Astro.props;
           </section>
         )}
 
-        <!-- Section 4: BS 7671 Limits Table -->
-        <section class="seo-block">
-          <h3>BS 7671 & IEC 60364 Permissible Voltage Drop Limits</h3>
-          <p>
-            Under UK Wiring Regulations (BS 7671:2018+A3:2024 Appendix 4) and international IEC standards, maximum permitted voltage drop from the origin of the public supply installation to any point of utilization is:
-          </p>
-          <div class="seo-table-wrap">
-            <table class="seo-table">
-              <thead>
-                <tr>
-                  <th>Installation Type</th>
-                  <th>Lighting Circuits (Max %)</th>
-                  <th>Other Uses: Sockets, Power, Heating (Max %)</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>Public Low-Voltage Supply (Standard)</strong></td>
-                  <td><span class="table-tag good">3.0% (6.9 V at 230 V)</span></td>
-                  <td><span class="table-tag good">5.0% (11.5 V at 230 V)</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Private Low-Voltage Supply (Solar PV / Generator)</strong></td>
-                  <td><span class="table-tag warning">6.0% (13.8 V at 230 V)</span></td>
-                  <td><span class="table-tag warning">8.0% (18.4 V at 230 V)</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
+        <!-- Section 4: Compliance Limits Tables -->
+        {copy.limitsTable === 'metric-vdrop' && (
+          <section class="seo-block">
+            <h3>BS 7671 & IEC 60364 Permissible Voltage Drop Limits</h3>
+            <p>
+              Under UK Wiring Regulations (BS 7671:2018+A4:2026 Appendix 4) and international IEC 60364-5-52 Annex G guidance, maximum permitted voltage drop from the origin of the public supply installation to any point of utilization is:
+            </p>
+            <div class="seo-table-wrap">
+              <table class="seo-table">
+                <thead>
+                  <tr>
+                    <th>Installation Type & Standard</th>
+                    <th>Lighting Circuits (Max %)</th>
+                    <th>Other Uses: Sockets, Power, Heating (Max %)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Public LV Supply — BS 7671 (UK)</strong></td>
+                    <td><span class="table-tag good">3.0% (6.9 V at 230 V)</span></td>
+                    <td><span class="table-tag good">5.0% (11.5 V at 230 V)</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Public LV Supply — IEC 60364-5-52 Annex G</strong></td>
+                    <td><span class="table-tag good">4.0% (9.2 V at 230 V)</span></td>
+                    <td><span class="table-tag good">5.0% (11.5 V at 230 V)</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Private LV Supply (Solar PV / Generator)</strong></td>
+                    <td><span class="table-tag warning">6.0% (13.8 V at 230 V)</span></td>
+                    <td><span class="table-tag warning">8.0% (18.4 V at 230 V)</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
+        {copy.limitsTable === 'nec-vdrop' && (
+          <section class="seo-block">
+            <h3>NEC Voltage Drop Recommendations (Advisory Limits)</h3>
+            <p>
+              In the US National Electrical Code (NFPA 70), voltage drop appears in Informational Notes — engineering guidance rather than enforceable requirements. NEC 210.19(A)(1) Informational Note No. 4 (branch circuits) and 215.2(A)(1) Informational Note No. 2 (feeders) recommend:
+            </p>
+            <div class="seo-table-wrap">
+              <table class="seo-table">
+                <thead>
+                  <tr>
+                    <th>Circuit Leg</th>
+                    <th>Recommended Max Drop</th>
+                    <th>Example Ceiling (120 V / 240 V systems)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Any single branch circuit</strong></td>
+                    <td><span class="table-tag good">3.0%</span></td>
+                    <td><span class="table-tag good">3.6 V / 7.2 V</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Any single feeder</strong></td>
+                    <td><span class="table-tag good">3.0%</span></td>
+                    <td><span class="table-tag good">3.6 V / 7.2 V</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Feeder + branch circuit combined (service → outlet)</strong></td>
+                    <td><span class="table-tag warning">5.0%</span></td>
+                    <td><span class="table-tag warning">6.0 V / 12.0 V</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p>
+              Note: conductor ampacity is a separate check — this tool verifies voltage drop using NEC Chapter 9 Table 8 resistance, but you must still confirm ampacity per NEC Table 310.16 and termination limits per 110.14(C).
+            </p>
+          </section>
+        )}
+
+        {copy.limitsTable === 'shared-metric' && (
+          <section class="seo-block">
+            <h3>Voltage Drop Ceilings by Standard (Applied Automatically)</h3>
+            <p>
+              The sizing engine verifies the selected conductor against the voltage-drop ceiling of the active standard, alongside thermal capacity:
+            </p>
+            <div class="seo-table-wrap">
+              <table class="seo-table">
+                <thead>
+                  <tr>
+                    <th>Standard</th>
+                    <th>Lighting Circuits</th>
+                    <th>Other Circuits (Power)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>BS 7671:2018+A4:2026 (UK), Appendix 4</strong></td>
+                    <td><span class="table-tag good">3.0%</span></td>
+                    <td><span class="table-tag good">5.0%</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>IEC 60364-5-52 (International), Annex G</strong></td>
+                    <td><span class="table-tag good">4.0%</span></td>
+                    <td><span class="table-tag good">5.0%</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
 
         <!-- Section 5: Mitigation Techniques -->
         <section class="seo-block">
-          <h3>How to Reduce Voltage Drop in Long Cable Runs</h3>
+          <h3>{copy.checklistTitle}</h3>
           <ul class="seo-checklist">
-            <li><strong>Upsize Conductor Cross-Section:</strong> Increasing from 6 mm² to 10 mm² or 16 mm² halves conductor resistance, drastically reducing voltage loss and heat build-up.</li>
-            <li><strong>Shorten Cable Routing:</strong> Optimize cable paths through containment and cable trays to eliminate unnecessary run length.</li>
-            <li><strong>Switch to Higher Voltages or Three-Phase:</strong> For large industrial loads, distributing load across three phases reduces current per conductor by a factor of 1.732.</li>
-            <li><strong>Use High-Conductivity Copper:</strong> Electrolytic tough pitch copper has ~64% lower resistivity than aluminum conductors of the same physical dimensions.</li>
+            {copy.checklist.map((item) => (
+              <li set:html={item} />
+            ))}
           </ul>
         </section>
 
@@ -211,6 +403,29 @@ const { tool } = Astro.props;
     font-size: 1.1rem;
     color: var(--text-mid);
     line-height: 1.65;
+  }
+  .seo-std-chips {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.9rem;
+  }
+  .seo-std-chips-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-dim);
+  }
+  .seo-std-chip {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    padding: 0.22rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(37, 99, 235, 0.1);
+    color: var(--blue);
+    border: 1px solid rgba(37, 99, 235, 0.3);
   }
   .seo-grid {
     display: grid;

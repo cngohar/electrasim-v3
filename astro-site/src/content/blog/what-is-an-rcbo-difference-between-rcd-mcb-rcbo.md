@@ -179,7 +179,7 @@ To compare overcurrent protection with earth leakage protection yourself:
 
 > Try it now: [Open ElectraSim →](/app/)
 
-For more on fault simulation: [Fault Simulation Mode — complete guide](/blog/fault-simulation-mode-open-circuit-reverse-polarity-earth-fault/)
+For more on fault simulation: [Fault Simulation Mode — complete guide](/updates/fault-simulation-mode-open-circuit-reverse-polarity-earth-fault/)
 
 ---
 

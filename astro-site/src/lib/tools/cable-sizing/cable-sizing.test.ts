@@ -91,3 +91,43 @@ describe('Cable Sizing Calculation Engine', () => {
     expect(getCi(100)).toBe(0.81);
   });
 });
+
+describe('Cable Sizing — Standard Selection (BS 7671 vs IEC 60364)', () => {
+  // 500 W lighting load at 230 V → Ib ≈ 2.17 A, In = 6 A (thermal not binding).
+  // 1.0 mm² Method C drops 44 mV/A/m × 2.17 A × 85 m ≈ 8.13 V ≈ 3.53%:
+  //   → BS 7671 lighting (3%) fails 1.0 mm², selects 1.5 mm²
+  //   → IEC 60364 Annex G lighting (4%) passes 1.0 mm²
+  const base: CableSizingInputs = {
+    systemType: 'single-phase',
+    voltageVolts: 230,
+    powerWatts: 500,
+    powerFactor: 1.0,
+    runLengthMeters: 85,
+    circuitFunction: 'lighting',
+    installationMethod: 'C',
+    conductorMaterial: 'copper',
+    ambientTempC: 30,
+    groupingCircuits: 1,
+    thermalInsulationMm: 0,
+    fuseTypeCc: false,
+  };
+
+  it('applies the 3% lighting ceiling under BS 7671 (default)', () => {
+    const res = calculateCableSizing({ ...base });
+    expect(res.maxPermissibleVdropPercent).toBe(3);
+    expect(res.selectedCableMm2).toBe(1.5);
+    expect(res.standardLabel).toBe('BS 7671:2018+A4:2026');
+    expect(res.summary).toContain('BS 7671');
+  });
+
+  it('applies the 4% lighting guidance under IEC 60364-5-52 Annex G', () => {
+    const res = calculateCableSizing({ ...base, standard: 'iec-60364' });
+    expect(res.maxPermissibleVdropPercent).toBe(4);
+    expect(res.selectedCableMm2).toBe(1.0);
+    expect(res.thermalPass).toBe(true);
+    expect(res.voltageDropPass).toBe(true);
+    expect(res.standardLabel).toBe('IEC 60364');
+    expect(res.standardCitation).toContain('IEC 60364');
+    expect(res.summary).toContain('IEC 60364');
+  });
+});

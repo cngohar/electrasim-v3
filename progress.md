@@ -7,6 +7,89 @@ A running, append-only log of work on the ElectraSim rewrite. Every coding sessi
 
 ---
 
+## Session 2026-08-28 (part 4) — Product Updates Split Into `/updates/` Changelog
+
+**Requests:**
+1. App-update posts mixed into the blog confuse readers vs. real articles — set them aside / separate them (suggest design)
+
+**Done:**
+1. New `updates` content collection (5 posts moved via git mv; optional `version:` frontmatter → version badges).
+2. `/updates/` changelog hub (timeline design with rail/dots, version pills, thumbnails, CTAs to blog) + per-release article pages (hero, TOC gating, Older/Newer release nav, Updates breadcrumb).
+3. Migration hygiene: 301 `_redirects` for the 5 old `/blog/<slug>/` URLs; all internal cross-links repointed; sitemap priority split; blog index update-section replaced by a slim callout.
+4. OG generator multi-corpus (`/og/blog` + `/og/updates`) with path labels and pruning; manifests per kind (`ogCardUrl(slug, kind)`).
+5. Search: `update` type + 📦 filter pill; homepage highlights swapped the v1.6 card for an evergreen article.
+6. Verified: build 133 pages, preview 200s, astro check clean, 64 tests, lint/typecheck OK.
+
+---
+
+## Session 2026-08-28 (part 3) — 404 "Open Circuit" Redesign
+
+**Requests:**
+1. Redesign the 404 page with an animated broken circuit (no static images) + a random weird-but-plausible electrical question
+
+**Done:**
+1. Inline SVG scene (supply → resistor → severed gap with spark, dead lamp + 0.00 A meter); CSS keyframes for flow/flicker/glow/caret, SMIL for electron motion, JS for randomized arc bursts; reduced-motion freezes everything (incl. SMIL `pauseAnimations()`).
+2. 14-question bench-riddle pool with reveal answers, no-JS SSR fallback, fade-swapped rotation button.
+3. `not-found.js` echoes the missing path into the multimeter readout; CSP-safe (external script only); noindex preserved.
+4. Verified via sharp-rasterized scene snapshot + preview curls; all gates green.
+
+---
+
+## Session 2026-08-28 (part 2) — Long-Article TOC & Reading Navigation
+
+**Requests:**
+1. 1000+ word posts render as one long line of scrolling content — adjust layout/navigation; TOC with SEO-aware settings
+
+**Done:**
+1. SSR TOC from `render()` headings (H2-led tree, H3 nested, >24 sections → H2-only fallback); gated to ≥3 sections & ≥4 min reads.
+2. Desktop sticky left-rail (≥1360 px, gutter-geometry safe vs live-rail), mobile collapsible details card, crawlable anchor links (jump-to SEO), scroll-margin-top for the fixed header.
+3. `blog-article.js`: scroll-spy (IntersectionObserver, aria-current), responsive collapse, permalink `#` buttons with clipboard copy, reduced-motion safe scrolling, focus hand-off.
+4. Verified: built HTML anchor set per post, TOC gated off short posts, astro check 0 errors, 64 tests, lint/typecheck clean.
+
+---
+
+## Session 2026-08-28 (part 1) — Unique Per-Post Open Graph Images
+
+**Requests:**
+1. Create a unique OG image per blog post, unique to that article and not reused elsewhere, with SEO tags intact
+
+**Done:**
+1. **Generator**: `astro-site/scripts/generate-og-images.mjs` (`sharp` + `gray-matter`) renders a 1200×630 branded PNG per article → `public/og/blog/<slug>.png` (71 cards). Slug-seeded PRNG → unique circuit-trace motif/glow/gradient per post; category palettes + schematic icons; title auto-wrap/shrink; date + reading time; brand header with domain.
+2. **SEO wiring**: posts default `og:image`/`twitter:image`/Article schema `image` to their unique card (absolute `https://` URL, `og:image:width/height` 1200×630, `og:image:type`, `og:image:secure_url`, per-post alt = title). Frontmatter `image:` remains a bespoke override (2 posts), with correct `image/webp` typing. Shared `og-image.png` fallback eliminated from all articles.
+3. **Ops**: `npm run gen:og --workspace astro-site` to regenerate; artifacts committed so CI/deploy needs no `sharp`; postbuild merge carries them into `dist/`.
+4. **Verification**: astro check 0 errors · vitest green · lint clean · build 143 pages · curl-verified PNGs served as image/png and per-post og tags in built HTML.
+5. **On-page visibility fix**: OG cards were social-meta only → now rendered as the visible article hero (`art-hero`, eager+preload LCP hints) and as lazy thumbnails on every blog listing card (index/tags/pagination via `BlogPostCard`).
+6. **Caching strategy**: `?v=<sha256>` content-hash versioning from `og-manifest.ts` + `_headers` immutable rule (`/og/blog/*` 1y immutable, `/og-image.png` 1d/7d SWR, `/fonts/*` 30d/30d SWR). Regeneration changes hashes → new URLs → instant invalidation; day-to-day builds keep byte-identical files (verified via sha256 diff on forced re-render).
+
+
+
+**Next:**
+1. Optional: AI-illustrated background art per topic cluster composited under the same card layout
+2. RSS feed (still outstanding from earlier suggestion list)
+
+---
+
+## Session 2026-08-27 (part 3) — Multi-Standard Toolbox (BS 7671 / IEC 60364 / US NEC) with SEO Push
+
+**Requests:**
+1. Label calculators explicitly per BS 7671 near results (trust surface)
+2. Add IEC 60364 (international metric) support to all three tools via a standards selector
+3. Ship a US NEC voltage-drop calculator (AWG, feet, 120–480 V) on its own SEO-focused route
+
+**Done:**
+1. **Standards core**: `astro-site/src/lib/tools/standards.ts` profiles + `StandardSelector.astro` (SSR citation lines); standards declared per-tool in `registry.ts` (`standards: StandardId[]`).
+2. **IEC mode** on voltage-drop (4%/5% banding), cable-sizing (Annex G lighting ceiling, citation-aware summaries), and max-zs ($Z_s \times I_a \le U_0$ without $C_{min}$, IEC 60364-6 ⅔ ambient rule, exact RCD 50 V ceiling, UK-only fuses hidden). Both the TS engines (unit-tested) and the mirrored vanilla client engines were updated.
+3. **US NEC tool** at `/tools/us/voltage-drop-calculator/`: NEC Ch. 9 Table 8 stranded resistance @75 °C, temp correction, AWG/kcmil↔mm² display, Cu/Al availability rules, 3%/5% advisory verdicts citing NEC 210.19(A) IN No. 4 / 215.2(A)(1) IN No. 2; `nec-voltage-drop.ts` + 13-case test suite + `nec-voltage-drop-tool.js` + `NecVoltageDropPanels.astro`.
+4. **SEO**: per-tool copy variants in `ToolSeoContent.astro` (fixing hardcoded voltage-drop narrative on other tool pages), standards chips on `/tools/` cards, standards-aware HowTo/WebApplication schema in `seo.ts`, IEC keywords on metric tools, US↔UK cross-links; route allowed in `seo.test.ts` flat-route assertion (`/tools/(us/)?slug/`).
+5. **Verification**: 64 astro-lib vitest pass · `astro check` 0/104 · `tsc` clean · `biome lint .` clean · `astro build` 143 pages (new route in sitemap + search.json).
+
+**Next:**
+1. Print/PDF result sheet for calculators (citations already render — add print stylesheet)
+2. Shareable calculator URLs (query-param input encoding)
+3. Offline caching for tool pages (workbox-style SW on the Astro site)
+
+---
+
 ## Session 2026-08-27 (part 2) — The 8 Architecture & Workbench Enhancements
 
 **Requests:**

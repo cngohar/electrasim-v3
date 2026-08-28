@@ -11,6 +11,80 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added & Enhanced — Session 2026-08-28 (part 4): Product Updates Split Into Dedicated `/updates/` Changelog
+
+1. **Corpus separation**: the 5 `App Update` posts moved from `src/content/blog/` to a new `src/content/updates/` collection (schema adds optional `version` badges, e.g. v1.6/v1.5). The blog is now a pure educational learning library (66 articles).
+2. **New `/updates/` section**: changelog timeline hub (version badge, date, tags, per-release OG thumbnail, "Read the release notes") + per-release article pages (same hero/TOC/prev-next plumbing as articles, Updates breadcrumb, `articleSection: Product News`).
+3. **SEO migration safety**: 301 redirects in `public/_redirects` for every moved URL; all internal cross-links (7 articles + compare page) rewritten to point at `/updates/` directly; sitemap entries at lower priority (index 0.6 weekly, releases 0.5 monthly); blog index drops the update section and gains a small "Product updates →" callout instead.
+4. **OG pipeline extended**: generator now processes both corpora (`/og/blog/`, `/og/updates/`) with path-correct brand labels, content-hash manifests per collection, and stale-file pruning (moved cards pruned from `/og/blog/`).
+5. **Search**: updates appear as their own `update` type in `search.json` with a 📦 Updates filter pill in the site search modal; homepage highlights and tag archives no longer include release notes.
+6. **Verification**: 133-page build (5 blog routes removed, 6 update routes added, tag archives re-thresholded); `/updates/` + release pages 200 over preview; astro check 0 errors · 64 tests · lint/typecheck green.
+
+### Added & Enhanced — Session 2026-08-28 (part 3): 404 "Open Circuit" Redesign
+
+1. **Animated broken-circuit scene** (pure inline SVG + CSS/SMIL — zero images): energised supply (breathing bolt), live conductor with flowing current dashes, electrons that ride the wire and die at the break, resistor, frayed conductor ends, dual-frequency spark flicker with JS-triggered heavier arc bursts, ghost electron that gives up on the dead leg, unlit lamp with a faint "hopeful" glow that fades, and an inert 0.00 A ammeter.
+2. **Bench riddles**: rotating random "weird but physically plausible" electrical questions (14-question pool: phantom voltage, birds on 132 kV lines, LED ghost-glow, shared-neutral breaks, RCD rain trips…) each with a collapsible explanation; SSR fallback riddles for no-JS, "ask another one" rotation button.
+3. **Craft details**: multimeter readout strip (`∞ Ω · broken hyperlink` + blinking caret, echoes the missing path), verdict copy, retained noindex/SEO and CSP (external script only, no inline handlers), full `prefers-reduced-motion` handling (CSS + `pauseAnimations()` for SMIL), light/dark theme aware.
+4. **Verification**: scene snapshot rasterized and visually reviewed; 404 status + scene/riddle/JS wired confirmed over preview; `astro check` 0 errors · 64 tests · lint/typecheck clean · 143-page build.
+
+### Added & Enhanced — Session 2026-08-28 (part 2): Long-Article TOC & Reading Navigation
+
+1. **Server-Rendered Table of Contents for Long Reads** (`blog/[...slug].astro`):
+   - Auto-built from markdown headings via Astro's `render()` (`headings` API) — H2-led tree with H3 nested; posts with >24 sections fall back to an H2-only outline.
+   - Shown only for long reads (≥3 H2 sections and ≥4 min reading time), so short posts stay clean.
+   - SEO: semantic `<nav aria-label="Table of contents">` with plain crawlable anchor links to the auto-id headings (deep-linkable fragments can surface as "jump to" links in SERPs); headings get `scroll-margin-top` to clear the fixed header.
+2. **Layout & Interaction**:
+   - Desktop (≥1360 px): TOC docks as a sticky rail in the article's left gutter, geometry computed from the 768 px padding box so it always clears the decorative live-rail; mobile/tablet: collapsible `<details>` card above the article body (collapsed by default).
+   - Client script `public/js/blog-article.js` (progressive enhancement): IntersectionObserver scroll-spy with `aria-current` highlighting, viewport-adaptive collapse, `#` permalink buttons on every H2/H3 (copy section link + history update, clipboard fallback-safe), reduced-motion-aware smooth jumps, and keyboard focus hand-off to the target section.
+3. **Verification**: `astro check` 0 errors · 64 vitest pass · lint/typecheck clean · 143-page build; TOC presence/thresholds and anchor integrity verified in built HTML over the preview server.
+
+### Added & Enhanced — Session 2026-08-28 (part 1): Unique Per-Post Open Graph Images
+
+1. **Per-Post OG Card Generator (`astro-site/scripts/generate-og-images.mjs`)**:
+   - Generates a unique, on-brand **1200×630 PNG social card for every blog article** into `astro-site/public/og/blog/<slug>.png` (71 cards, ~10 MB total).
+   - Deterministic per-slug seed (mulberry32 over a djb2 slug hash) drives a one-off circuit-trace motif, radial glow position, icon placement, and accent gradient — no two cards repeat, and no article shares the generic `og-image.png` anymore.
+   - Category design language: distinct accent palettes + schematic icons per category (Wiring Guide, Beginner Guide, Electrical Safety, Regulations & Safety, App Update, …).
+   - Each card carries its own SEO identity: wrapped auto-shrinking title (up to 4 lines), category chip, publication date, and reading time — plus ElectraSim branding and the `electrasim.com/blog` domain.
+   - Posts keep an explicit frontmatter `image:` override (bespoke article assets win; generated card is the default).
+   - Regenerate with `npm run gen:og --workspace astro-site` (`sharp` + `gray-matter` dev dependencies).
+2. **SEO Wiring**:
+   - `blog/[...slug].astro`: `og:image` now defaults to the per-post card (`https://electrasim.com/og/blog/<slug>.png`, 1200×630) and the Article JSON-LD `image` follows automatically; custom hero overrides get the correct MIME type.
+   - `Base.astro`: added `og:image:type` (derived from extension, overridable) and `og:image:secure_url` for HTTPS image URLs; `twitter:image` continues to mirror `og:image` with per-post alt text.
+   - Verified in built output: unique `og:image`/`twitter:image` per article, `og:image:type image/png`, 1200×630 dimensions, and no article referencing the shared fallback image.
+3. **Visible Per-Post Images On-Page** (the generated cards were previously social-meta only):
+   - Article template (`blog/[...slug].astro`) now renders the post's unique card as a visible hero banner (`<figure class="art-hero">`, 1200×630, `loading="eager"` + `fetchpriority="high"`, alt = title, `rel=preload` in `<head>` for LCP).
+   - Blog index/tag/pagination cards (`BlogPostCard.astro`) now show the per-article card as a thumbnail (lazy-loaded, CLS-safe dimensions).
+   - Bespoke frontmatter `image:` assets are hero'd with the same pipeline where present.
+3. **Verification**: `astro check` 0 errors (104 files) · astro-lib vitest suite passes · `biome lint .` clean · `astro build` 143 pages with all 71 cards copied to `dist-astro/og/blog/`.
+4. **HTTP Caching for OG Cards (content-hash immutable)**:
+   - Generator now emits `astro-site/src/og-manifest.ts` — sha256 prefix per card; all references (og:image, twitter:image, Article schema image, hero, card thumbnails, preload) use `/og/blog/<slug>.png?v=<hash>`.
+   - `public/_headers`: `/og/blog/*` → `Cache-Control: public, max-age=31536000, immutable` (safe: URL changes whenever pixels change); `/og-image.png` → 1d + 7d SWR; `/fonts/*` → 30d + SWR (previously uncached).
+   - A design refresh (`gen:og --force`) changes hashes → new URLs → instant global invalidation, no stale cards.
+
+
+### Added & Enhanced — Session 2026-08-27 (part 3): Multi-Standard Toolbox (BS 7671 / IEC 60364 / US NEC) with SEO Push
+
+1. **Regional Standards Architecture (`astro-site/src/lib/tools/standards.ts`)**:
+   - Single source of truth for wiring-standard profiles (`uk-bs7671`, `iec-60364`, `us-nec`) with labels, regions, citations, default voltages, and voltage-drop limit banding (BS 7671 Appendix 4: 3%/5% · IEC 60364-5-52 Annex G: 4%/5% · NEC informational notes: 3%/5% advisory).
+   - Reusable `StandardSelector.astro` component renders an accessible compliance picker with a server-rendered citation line (trust/E-E-A-T signal visible without JavaScript).
+2. **IEC 60364 Mode on All Three Metric Tools**:
+   - Voltage Drop: severity banding switches to IEC Annex G 4%/5% with per-standard status copy.
+   - Cable Sizing: lighting ceiling becomes 4% under IEC; summary/labels cite the active standard.
+   - Max Zs: IEC 60364-4-41 formula mode ($Z_s \times I_a \le U_0$, no UK $C_{min}$ correction), IEC 60364-6 ≈⅔ ambient-measurement rule replacing the GN3 80% rule, RCD 50 V touch-voltage ceiling kept exact under both standards, British-only fuse types (BS 88 / BS 1361) hidden in IEC mode.
+   - Client engines (`voltage-drop-tool.js`, `cable-size-tool.js`, `max-zs-tool.js`) mirror the unit-tested TS engines; every result shows an explicit "calculated per …" badge near the verdict.
+3. **US NEC Voltage Drop Calculator — `/tools/us/voltage-drop-calculator/`**:
+   - New engine (`nec-voltage-drop.ts`) using NEC Chapter 9 Table 8 conductor resistance (stranded, 75 °C), inferred-absolute-zero temperature correction ($K = 234.5$ Cu / 228.1 Al), optional NEC Ch. 9 Table 9 reactance, and NEC 210.19(A) IN No. 4 / 215.2(A)(1) IN No. 2 advisory verdicts.
+   - AWG/kcmil sizes (14 AWG → 500 kcmil) with exact mm² equivalents, feet, one-tap 12/24/48 V DC and 120/208/240/277/480 V AC presets, copper & aluminum with per-size availability (14 AWG and 3 AWG are copper-only per Table 8).
+   - Full SEO package: AWG/NEC keyword set, 6-question FAQPage schema, HowTo steps, four formula cards, NEC advisory-limits table, and cross-links to the metric edition.
+4. **SEO & Content Layer**:
+   - `ToolSeoContent.astro` now renders per-tool editorial copy variants (voltage drop, US NEC voltage drop, cable sizing, max Zs) instead of one hardcoded voltage-drop narrative; standards chips row in each tool's reference header.
+   - `seo.ts`: standards-aware HowTo descriptions and `about` annotations on `WebApplication` schema.
+   - Registry: updated meta titles/descriptions/keywords for IEC queries across the three metric tools; `/tools/` hub copy now surfaces BS 7671 / IEC 60364 / US NEC coverage with standards chips on each card.
+   - New page flows automatically into the sitemap (weekly, 0.9 priority), `search.json`, drawer, and command palette.
+5. **Verification**:
+   - 64 astro-lib vitest cases pass (`standards`, `nec-voltage-drop`, plus new IEC banding/derivation cases in the existing suites, incl. the 3%↔4% divergence window and the RCD cross-standard ceiling).
+   - `astro check`: 0 errors across 104 files. `tsc --noEmit`, `biome lint .` clean. `astro build`: 143 pages.
+
 ### Added & Enhanced — Session 2026-08-27 (part 2): The 8 Architecture & Workbench Enhancements
 
 1. **Cable Sizing & Max Zs Tools in Astro Toolbox**:

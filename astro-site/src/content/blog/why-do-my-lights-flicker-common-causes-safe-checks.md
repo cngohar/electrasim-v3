@@ -170,7 +170,7 @@ This is why a clear description of the pattern is useful. "The kitchen pendant f
 
 No browser simulator can test the wiring in your home. ElectraSim cannot measure voltage, inspect a connection, or certify that an installation is safe.
 
-What it can do is help you understand the layout of a [lighting circuit](/blog/how-to-wire-a-lighting-circuit/), trace the live and neutral paths, and see why one upstream connection can affect several downstream lights. You can also use [Fault Simulation Mode](/blog/fault-simulation-mode-open-circuit-reverse-polarity-earth-fault/) to learn how broken paths and other faults change circuit behaviour in a safe virtual environment.
+What it can do is help you understand the layout of a [lighting circuit](/blog/how-to-wire-a-lighting-circuit/), trace the live and neutral paths, and see why one upstream connection can affect several downstream lights. You can also use [Fault Simulation Mode](/updates/fault-simulation-mode-open-circuit-reverse-polarity-earth-fault/) to learn how broken paths and other faults change circuit behaviour in a safe virtual environment.
 
 [Explore a lighting circuit in ElectraSim ->](/app/)
 

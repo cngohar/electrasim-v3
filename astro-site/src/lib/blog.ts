@@ -1,7 +1,9 @@
 export const BLOG_PAGE_SIZE = 9;
 export const MIN_TAG_POSTS = 3;
+// Educational highlights only — release notes live in the updates collection
+// and never appear in the blog corpus or homepage "Latest from the blog".
 export const HOMEPAGE_ARTICLE_IDS = [
-  'electrasim-v1-6-dark-mode-rcbo-comparison-update',
+  'electrical-cable-sizes-explained',
   'how-does-a-push-button-switch-work',
   'why-do-my-lights-flicker-common-causes-safe-checks',
   '5-common-electrical-wiring-mistakes',

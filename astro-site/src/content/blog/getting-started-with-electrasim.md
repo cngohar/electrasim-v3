@@ -134,7 +134,7 @@ Replace the single-way Switch with two **Two-way Switches** wired to control one
 Add a **3-Pin Socket** instead of the Bulb. Wire Live, Neutral, and Earth to their respective terminals. Use a **Junction Box** to feed multiple sockets from one supply.
 
 ### 4. RCD-Protected Circuit
-Add an **RCD** between the MCB and the Switch. The RCD adds earth fault protection — essential in bathrooms, kitchens, and outdoor circuits. [See our guide on the new components →](/blog/electrasim-new-components-rcd-contactor-timer-dimmer-distribution-board-bell/)
+Add an **RCD** between the MCB and the Switch. The RCD adds earth fault protection — essential in bathrooms, kitchens, and outdoor circuits. [See our guide on the new components →](/updates/electrasim-new-components-rcd-contactor-timer-dimmer-distribution-board-bell/)
 
 ### 5. Full Consumer Unit
 Use the **Distribution Board** component to distribute supply to multiple separate circuits — each with its own MCB. This models a complete home breaker panel.

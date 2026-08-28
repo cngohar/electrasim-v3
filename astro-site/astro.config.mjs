@@ -38,6 +38,13 @@ export default defineConfig({
         if (url === `${SITE}/blog/`) {
           return { ...item, changefreq: ChangeFreqEnum.WEEKLY, priority: 0.8 };
         }
+        if (url === `${SITE}/updates/`) {
+          return { ...item, changefreq: ChangeFreqEnum.WEEKLY, priority: 0.6 };
+        }
+        if (url.includes('/updates/')) {
+          // Release notes: crawlable but lower weight than the evergreen corpus
+          return { ...item, changefreq: ChangeFreqEnum.MONTHLY, priority: 0.5 };
+        }
         if (url === `${SITE}/tools/`) {
           return { ...item, changefreq: ChangeFreqEnum.WEEKLY, priority: 0.9 };
         }

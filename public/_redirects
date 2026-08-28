@@ -9,3 +9,10 @@
 # Handle nested paths at any depth, e.g. /blog/tags/rcd/index.html.
 /*/index.html  /:splat/  301
 /*/index.php   /:splat/  301
+
+# Product release notes moved out of the blog into the changelog section (301)
+/blog/electrasim-new-components-rcd-contactor-timer-dimmer-distribution-board-bell/  /updates/electrasim-new-components-rcd-contactor-timer-dimmer-distribution-board-bell/  301
+/blog/electrasim-v1-5-performance-accessibility-privacy-update/  /updates/electrasim-v1-5-performance-accessibility-privacy-update/  301
+/blog/electrasim-v1-6-dark-mode-rcbo-comparison-update/  /updates/electrasim-v1-6-dark-mode-rcbo-comparison-update/  301
+/blog/fault-simulation-mode-open-circuit-reverse-polarity-earth-fault/  /updates/fault-simulation-mode-open-circuit-reverse-polarity-earth-fault/  301
+/blog/guided-circuits-electrasim-templates-checklists/  /updates/guided-circuits-electrasim-templates-checklists/  301
