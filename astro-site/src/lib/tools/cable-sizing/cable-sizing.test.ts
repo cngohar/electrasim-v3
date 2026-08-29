@@ -232,3 +232,99 @@ describe('Constraint crossover curve (cutaway scene chart)', () => {
     expect(both[0].selectedMm2).toBe(25);
   });
 });
+
+describe('Cable Sizing — IEC 60364 Annex G long-run allowance (>100 m)', () => {
+  const base: CableSizingInputs = {
+    systemType: 'single-phase',
+    voltageVolts: 230,
+    powerWatts: 500,
+    powerFactor: 1.0,
+    runLengthMeters: 120,
+    circuitFunction: 'lighting',
+    installationMethod: 'C',
+    conductorMaterial: 'copper',
+    ambientTempC: 30,
+    groupingCircuits: 1,
+    thermalInsulationMm: 0,
+    fuseTypeCc: false,
+  };
+
+  it('raises the lighting ceiling by 0.005 %/m past 100 m under IEC', () => {
+    const res = calculateCableSizing({ ...base, standard: 'iec-60364' });
+    // 3% + (120 − 100) × 0.005% = 3.1%
+    expect(res.maxPermissibleVdropPercent).toBeCloseTo(3.1, 3);
+  });
+
+  it('raises the power ceiling the same way under IEC', () => {
+    const res = calculateCableSizing({
+      ...base,
+      circuitFunction: 'power',
+      standard: 'iec-60364',
+    });
+    expect(res.maxPermissibleVdropPercent).toBeCloseTo(5.1, 3);
+  });
+
+  it('caps the allowance at +0.5%', () => {
+    const res = calculateCableSizing({
+      ...base,
+      runLengthMeters: 200,
+      standard: 'iec-60364',
+    });
+    expect(res.maxPermissibleVdropPercent).toBeCloseTo(3.5, 3);
+  });
+
+  it('leaves BS 7671 at the flat 3% ceiling for the same run', () => {
+    const res = calculateCableSizing({ ...base });
+    expect(res.maxPermissibleVdropPercent).toBe(3);
+  });
+});
+
+describe('Cable Sizing — honest fail state when no tabulated size clears both gates', () => {
+  it('reports non-compliant with the largest size kept only as a reference', () => {
+    // Method A (insulation) at 50 °C with 6 grouped circuits: It = 125 A
+    // (largest device rating) ÷ (0.71 × 0.57 × 0.725) ≈ 425 A — far beyond the
+    // 95 mm² Method A tabulated 182 A (×0.78 aluminium = 142 A), so nothing on
+    // the ladder can pass.
+    const res = calculateCableSizing({
+      systemType: 'three-phase',
+      voltageVolts: 400,
+      currentAmps: 300,
+      powerFactor: 1.0,
+      runLengthMeters: 10,
+      circuitFunction: 'power',
+      installationMethod: 'A',
+      conductorMaterial: 'aluminum',
+      ambientTempC: 50,
+      groupingCircuits: 6,
+      thermalInsulationMm: 200,
+      fuseTypeCc: true,
+    });
+    expect(res.status).toBe('fail');
+    expect(res.compliant).toBe(false);
+    // the reference size is the largest tabulated one, never a real answer
+    expect(res.selectedCableMm2).toBe(95);
+    expect(res.maxTabulatedSizeMm2).toBe(95);
+    expect(res.maxTabulatedAmpacityIz).toBe(182 * 0.78); // aluminium derated
+    expect(res.summary).toContain('No standard size clears both gates');
+  });
+
+  it('still returns a compliant pass when the load is reasonable', () => {
+    const res = calculateCableSizing({
+      systemType: 'single-phase',
+      voltageVolts: 230,
+      powerWatts: 7200,
+      powerFactor: 1.0,
+      runLengthMeters: 18,
+      circuitFunction: 'power',
+      installationMethod: 'C',
+      conductorMaterial: 'copper',
+      ambientTempC: 30,
+      groupingCircuits: 1,
+      thermalInsulationMm: 0,
+      fuseTypeCc: false,
+    });
+    expect(res.compliant).toBe(true);
+    expect(res.status).toBe('pass');
+    expect(res.maxTabulatedSizeMm2).toBe(95);
+  });
+});

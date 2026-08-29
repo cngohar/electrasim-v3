@@ -18,9 +18,19 @@
     ? window.matchMedia('(prefers-reduced-motion: reduce)')
     : { matches: false, addEventListener() {}, removeEventListener() {} };
 
-  const STANDARD_RATINGS = [6, 10, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125];
-  const STANDARD_SIZES = [1.0, 1.5, 2.5, 4.0, 6.0, 10.0, 16.0, 25.0, 35.0, 50.0, 70.0, 95.0];
-  const CPC_MAP = {
+  /**
+   * Conductor data comes from `cable-tables.js` (window.ElectraCableTables), the
+   * browser mirror of `src/lib/tools/cable-sizing/tables.ts`. If that file has not
+   * loaded (stale cache, offline copy), fall back to the inline constants below so
+   * the tool still works — a consistency test keeps the two in step.
+   */
+  const T = window.ElectraCableTables || {};
+
+  const STANDARD_RATINGS = T.STANDARD_RATINGS || [6, 10, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125];
+  const STANDARD_SIZES = T.STANDARD_SIZES || [
+    1.0, 1.5, 2.5, 4.0, 6.0, 10.0, 16.0, 25.0, 35.0, 50.0, 70.0, 95.0,
+  ];
+  const CPC_MAP = T.CPC_MAP || {
     1.0: 1.0,
     1.5: 1.0,
     2.5: 1.5,
@@ -34,9 +44,7 @@
     70.0: 35.0,
     95.0: 50.0,
   };
-
-  /** BS 7671 Table 4D5A-family: 70 °C thermoplastic copper, amps per method. */
-  const AMPACITY = {
+  const AMPACITY = T.AMPACITY || {
     A: {
       1: 11.5,
       1.5: 14.5,
@@ -110,7 +118,7 @@
   };
 
   /** mV/A/m (single-phase loop). Above 16 mm² the tabulated value already folds in reactance. */
-  const VDROP_MV = {
+  const VDROP_MV = T.VDROP_MV || {
     1: 44,
     1.5: 29,
     2.5: 18,
@@ -125,41 +133,49 @@
     95: 0.49,
   };
 
-  /** Kept in step with `src/lib/tools/cable-sizing/calculation.ts` (Tables 4B1 / 4C1 / Reg 523.9). */
-  function getCa(t) {
-    if (t <= 25) return 1.03;
-    if (t <= 30) return 1.0;
-    if (t <= 35) return 0.94;
-    if (t <= 40) return 0.87;
-    if (t <= 45) return 0.79;
-    if (t <= 50) return 0.71;
-    if (t <= 55) return 0.61;
-    if (t <= 60) return 0.5;
-    return 0.35;
-  }
+  /** Kept in step with `src/lib/tools/cable-sizing/tables.ts` (Tables 4B1 / 4C1 / Reg 523.9). */
+  const getCa =
+    T.getCa ||
+    ((t) => {
+      if (t <= 25) return 1.03;
+      if (t <= 30) return 1.0;
+      if (t <= 35) return 0.94;
+      if (t <= 40) return 0.87;
+      if (t <= 45) return 0.79;
+      if (t <= 50) return 0.71;
+      if (t <= 55) return 0.61;
+      if (t <= 60) return 0.5;
+      return 0.35;
+    });
 
-  function getCg(n) {
-    if (n <= 1) return 1.0;
-    if (n === 2) return 0.8;
-    if (n === 3) return 0.7;
-    if (n === 4) return 0.65;
-    if (n === 5) return 0.6;
-    if (n === 6) return 0.57;
-    if (n === 7) return 0.54;
-    if (n === 8) return 0.52;
-    if (n >= 9) return 0.5;
-    return 1.0;
-  }
+  const getCg =
+    T.getCg ||
+    ((n) => {
+      if (n <= 1) return 1.0;
+      if (n === 2) return 0.8;
+      if (n === 3) return 0.7;
+      if (n === 4) return 0.65;
+      if (n === 5) return 0.6;
+      if (n === 6) return 0.57;
+      if (n === 7) return 0.54;
+      if (n === 8) return 0.52;
+      if (n >= 9) return 0.5;
+      return 1.0;
+    });
 
-  function getCi(mm) {
-    if (mm === 50) return 0.89;
-    if (mm === 100) return 0.81;
-    if (mm === 200) return 0.5;
-    return 1.0;
-  }
+  const getCi =
+    T.getCi ||
+    ((mm) => {
+      if (mm === 50) return 0.89;
+      if (mm === 100) return 0.81;
+      if (mm === 200) return 0.5;
+      return 1.0;
+    });
 
   /** Table 4A1 note: a BS 3036 semi-enclosed fuse derates the cable further. */
-  const BS3036_FACTOR = 0.725;
+  const BS3036_FACTOR = T.BS3036_FACTOR || 0.725;
+  const ALUMINIUM_AMPACITY_FACTOR = T.ALUMINIUM_AMPACITY_FACTOR || 0.78;
+  const ALUMINIUM_MV_RATIO = T.ALUMINIUM_MV_RATIO || 1.64;
 
   const METHOD_INFO = {
     A: {
@@ -326,7 +342,11 @@
   function applySystemDefaults(system) {
     const values = SYSTEM_DEFAULTS[system];
     if (!values) return;
-    for (const [id, value] of [['cs-voltage', values.voltage], ['cs-power', values.power], ['cs-pf', values.pf]]) {
+    for (const [id, value] of [
+      ['cs-voltage', values.voltage],
+      ['cs-power', values.power],
+      ['cs-pf', values.pf],
+    ]) {
       const el = document.getElementById(id);
       if (el) el.value = String(value);
     }
@@ -465,7 +485,7 @@
   function mvFor(size, systemType, material) {
     let mv = VDROP_MV[size] || 44;
     if (systemType === 'three-phase') mv *= Math.sqrt(3) / 2;
-    if (material === 'aluminum') mv *= 1.64;
+    if (material === 'aluminum') mv *= ALUMINIUM_MV_RATIO;
     return mv;
   }
 
@@ -495,9 +515,11 @@
       const raw = document.getElementById(id)?.value.trim() ?? '';
       const value = Number.parseFloat(raw);
       if (raw === '' || !Number.isFinite(value)) {
-        errors.push(`Enter ${label.toLowerCase()}.`); fields.push(id);
+        errors.push(`Enter ${label.toLowerCase()}.`);
+        fields.push(id);
       } else if (value < min || value > max) {
-        errors.push(`${label} must be between ${min} and ${max}${unit ? ` ${unit}` : ''}.`); fields.push(id);
+        errors.push(`${label} must be between ${min} and ${max}${unit ? ` ${unit}` : ''}.`);
+        fields.push(id);
       }
     }
     return { errors, fields };
@@ -506,7 +528,9 @@
   function runSizing() {
     const validation = validateCableInputs();
     setCableValidation(
-      validation.errors.length ? `${validation.errors.join(' ')} The calculation preview uses the nearest safe value until you finish editing.` : '',
+      validation.errors.length
+        ? `${validation.errors.join(' ')} The calculation preview uses the nearest safe value until you finish editing.`
+        : '',
       validation.fields,
     );
     // Calculation uses boundedValue below, so an in-progress empty field remains
@@ -530,12 +554,14 @@
     const insulation = readValue('cs-insulation', 0);
     const fuseCc = Boolean(document.getElementById('cs-fuse-cc')?.checked);
 
-    // Design current Ib
+    // Design current Ib. An in-progress empty field is clamped, never zeroed:
+    // a 0 A design current would silently size a circuit for nothing.
     let ib = 0;
     if (systemType === 'three-phase') ib = powerWatts / (Math.sqrt(3) * v * pf);
     else if (systemType === 'dc') ib = powerWatts / v;
     else ib = powerWatts / (v * pf);
-    if (!Number.isFinite(ib) || ib < 0) ib = 0;
+    if (!Number.isFinite(ib)) ib = 0;
+    ib = Math.max(0.1, ib);
 
     // Protective device rating In (next standard ≥ Ib)
     let inRating = STANDARD_RATINGS[STANDARD_RATINGS.length - 1];
@@ -554,24 +580,34 @@
     const totalFactor = Math.max(0.05, ca * cg * ci * cc);
     const itRequired = inRating / totalFactor;
 
-    const maxVdropPct = circuitType === 'lighting' ? std.lightingPct : std.powerPct;
+    // IEC 60364-5-52 Annex G raises the ceiling by 0.005 %/m past 100 m (cap
+    // +0.5 %); BS 7671 Table 4Ab has no such allowance. Mirrors
+    // `longRunDropAllowancePct` in calculation.ts.
+    const IEC = CS_STANDARDS['iec-60364'];
+    const longRunAllowance =
+      stdId === 'iec-60364' && length > 100 ? Math.min(0.5, (length - 100) * 0.005) : 0;
+    const maxVdropPct =
+      (circuitType === 'lighting' ? std.lightingPct : std.powerPct) + longRunAllowance;
     const maxVdropV = (v * maxVdropPct) / 100;
 
     const methodTable = AMPACITY[method] || AMPACITY.C;
-    let selectedSize = STANDARD_SIZES[STANDARD_SIZES.length - 1];
+    const largestSize = STANDARD_SIZES[STANDARD_SIZES.length - 1];
+    let selectedSize = largestSize;
     let selectedAmpacity = 0;
     let selectedVdropV = 0;
     let selectedVdropPct = 0;
+    // True only when a tabulated size clears both gates.
+    let compliant = false;
     // Which gate forced this size: 'voltage-drop' when a smaller cable was big
     // enough thermally but could not hold the voltage.
     let dropWasBinding = false;
     // The two gates, kept separate so the crossover chart can draw both lines.
-    let thermalOnlySize = STANDARD_SIZES[STANDARD_SIZES.length - 1];
-    let dropOnlySize = STANDARD_SIZES[STANDARD_SIZES.length - 1];
+    let thermalOnlySize = largestSize;
+    let dropOnlySize = largestSize;
+    const ampacityOf = (size) =>
+      (methodTable[size] || 0) * (material === 'aluminum' ? ALUMINIUM_AMPACITY_FACTOR : 1);
     for (const size of STANDARD_SIZES) {
-      let iz = methodTable[size] || 0;
-      if (material === 'aluminum') iz *= 0.78;
-      if (iz >= itRequired) {
+      if (ampacityOf(size) >= itRequired) {
         thermalOnlySize = size;
         break;
       }
@@ -584,8 +620,7 @@
     }
 
     for (const size of STANDARD_SIZES) {
-      let iz = methodTable[size] || 0;
-      if (material === 'aluminum') iz *= 0.78;
+      const iz = ampacityOf(size);
       const thermalOk = iz >= itRequired;
       const vDrop = (mvFor(size, systemType, material) * ib * length) / 1000;
       const vDropOk = vDrop <= maxVdropV;
@@ -596,14 +631,17 @@
         selectedAmpacity = iz;
         selectedVdropV = vDrop;
         selectedVdropPct = (vDrop / v) * 100;
+        compliant = true;
         break;
       }
     }
 
-    if (selectedAmpacity === 0) {
-      // Nothing on the ladder passes both: report the largest, say so honestly.
-      selectedAmpacity = (methodTable[selectedSize] || 0) * (material === 'aluminum' ? 0.78 : 1);
-      selectedVdropV = (mvFor(selectedSize, systemType, material) * ib * length) / 1000;
+    if (!compliant) {
+      // Nothing on the ladder passes both gates. Keep the largest size as the
+      // *reference* the scene draws (the fattest cable), but the verdict below
+      // must not present it as a real answer.
+      selectedAmpacity = ampacityOf(largestSize);
+      selectedVdropV = (mvFor(largestSize, systemType, material) * ib * length) / 1000;
       selectedVdropPct = (selectedVdropV / v) * 100;
     }
 
@@ -649,26 +687,40 @@
     // Compare percentages with percentages. The previous expression compared
     // selectedVdropPct (%) with maxVdropV (volts), making the "Marginal" state
     // depend on supply voltage rather than proximity to the drop limit.
-    const status =
-      thermalPass && vdropPass
+    const status = compliant
+      ? thermalPass && vdropPass
         ? selectedVdropPct > maxVdropPct * 0.85
           ? 'warning'
           : 'pass'
-        : 'fail';
+        : 'fail'
+      : 'fail';
     const badge = document.getElementById('cs-status-badge');
     const hero = document.getElementById('cs-hero-card');
+    const heroValue = document.getElementById('cs-out-size');
     const summary = document.getElementById('cs-summary-text');
     if (badge) {
       badge.textContent =
         status === 'pass' ? 'Compliant' : status === 'warning' ? 'Marginal' : 'Limits Exceeded';
     }
     if (hero) hero.dataset.state = status;
+    if (heroValue) {
+      // The hero must never present the reference size as a real answer.
+      heroValue.textContent = compliant ? selectedSize.toFixed(1) : '—';
+    }
     if (summary) {
       const methodLabel = (METHOD_INFO[method] || METHOD_INFO.C).name;
-      if (status === 'fail') {
-        summary.textContent = `Non-compliant per ${std.label}: no ladder size clears both gates at ${length} m in ${methodLabel} (It ${itRequired.toFixed(
+      if (!compliant) {
+        summary.textContent = `No compliant size per ${std.label}: even the largest tabulated ${largestSize.toFixed(
           1,
-        )} A needed). Shorten the run, split the circuit, or improve how the cable is fixed.`;
+        )} mm² only carries ${selectedAmpacity.toFixed(0)} A after derating (It ${itRequired.toFixed(
+          1,
+        )} A needed) with ${selectedVdropPct.toFixed(
+          2,
+        )}% volt drop against the ${maxVdropPct.toFixed(1)}% ceiling at ${length} m in ${methodLabel}. Shorten the run, split the circuit into branches, or improve how the cable is fixed.`;
+      } else if (status === 'fail') {
+        summary.textContent = `Non-compliant per ${std.label}: run exceeds conductor limits at ${length} m in ${methodLabel} (It ${itRequired.toFixed(
+          1,
+        )} A needed). Upsize the cable route, reduce run length, or split circuit branches.`;
       } else if (status === 'warning') {
         summary.textContent = `Marginal: ${selectedSize.toFixed(1)} mm² meets ${std.label}, but volt drop is at ${selectedVdropPct.toFixed(
           2,
@@ -702,12 +754,16 @@
       factors: { ca, cg, ci, cc },
       limitingConstraint,
       status,
+      compliant,
       stdLabel: std.label,
+      stdId,
+      powerKw,
+      pf,
       thermalOnlySize,
       dropOnlySize,
       length,
       methodTable,
-      materialFactor: material === 'aluminum' ? 0.78 : 1,
+      materialFactor: material === 'aluminum' ? ALUMINIUM_AMPACITY_FACTOR : 1,
       systemTypeForCurve: systemType,
       v,
     });
@@ -719,6 +775,35 @@
       ceiling: maxVdropPct,
       status,
       constraint: limitingConstraint,
+      compliant,
+    });
+
+    populatePrintSheet({
+      method,
+      insulation,
+      grouping,
+      temp,
+      material,
+      systemType,
+      fuseCc,
+      ib,
+      inRating,
+      itRequired,
+      iz: selectedAmpacity,
+      size: selectedSize,
+      cpc,
+      vdropPct: selectedVdropPct,
+      maxVdropPct,
+      totalFactor,
+      limitingConstraint,
+      status,
+      compliant,
+      stdLabel: std.label,
+      stdId,
+      powerKw,
+      pf,
+      length,
+      v,
     });
 
     // Tell the (possibly loaded) 3D view that the data changed.
@@ -860,20 +945,43 @@
     );
     setText(
       'cs-tag-cable',
-      `${model.size.toFixed(1)} mm² ${model.material === 'aluminum' ? 'aluminium' : 'copper'} · ${model.length} m · ${model.cpc.toFixed(1)} mm² CPC`,
+      model.compliant
+        ? `${model.size.toFixed(1)} mm² ${model.material === 'aluminum' ? 'aluminium' : 'copper'} · ${model.length} m · ${model.cpc.toFixed(1)} mm² CPC`
+        : `no compliant size · ${model.material === 'aluminum' ? 'aluminium' : 'copper'} · ${model.length} m · ${model.cpc.toFixed(1)} mm² CPC`,
+    );
+    const deviceKind = model.fuseCc ? 'BS 3036 fuse' : 'MCB';
+    setText('cs-tag-device', `${model.inRating} A ${deviceKind}`);
+    setText(
+      'cs-tag-iz',
+      model.compliant
+        ? `Iz ${model.iz.toFixed(0)} A ≥ It ${model.itRequired.toFixed(1)} A`
+        : `Iz ${model.iz.toFixed(0)} A < It ${model.itRequired.toFixed(1)} A — no compliant size`,
     );
     setText(
-      'cs-tag-device',
-      `${model.inRating} A ${model.fuseCc ? 'BS 3036 fuse' : model.method === 'D' ? 'MCB' : 'MCB'}`,
+      'cs-tag-iz-readout',
+      model.compliant
+        ? `Iz ${model.iz.toFixed(0)} A ≥ It ${model.itRequired.toFixed(1)} A`
+        : `Iz ${model.iz.toFixed(0)} A < It ${model.itRequired.toFixed(1)} A — no compliant size`,
     );
-    setText('cs-tag-iz', `Iz ${model.iz.toFixed(0)} A ≥ It ${model.itRequired.toFixed(1)} A`);
-    setText('cs-tag-iz-readout', `Iz ${model.iz.toFixed(0)} A ≥ It ${model.itRequired.toFixed(1)} A`);
     setText(
       'cs-tag-gate',
-      model.limitingConstraint === 'voltage-drop' ? 'volt drop decides' : 'heat decides',
+      model.compliant
+        ? model.limitingConstraint === 'voltage-drop'
+          ? 'volt drop decides'
+          : 'heat decides'
+        : 'no compliant size',
     );
-    const methodNames = { A: 'IN INSULATION', B: 'IN CONDUIT', C: 'CLIPPED DIRECT', D: 'BURIED IN GROUND', E: 'FREE AIR / TRAY' };
-    setText('cs-tag-method', `METHOD ${model.method} · ${methodNames[model.method] || 'INSTALLATION'}`);
+    const methodNames = {
+      A: 'IN INSULATION',
+      B: 'IN CONDUIT',
+      C: 'CLIPPED DIRECT',
+      D: 'BURIED IN GROUND',
+      E: 'FREE AIR / TRAY',
+    };
+    setText(
+      'cs-tag-method',
+      `METHOD ${model.method} · ${methodNames[model.method] || 'INSTALLATION'}`,
+    );
     setText('cs-tag-dim', `${model.length} m one-way`);
     setText(
       'cs-tag-gate-drop',
@@ -883,9 +991,6 @@
     /* ── the ampacity gauge ── */
     const gauge = document.getElementById('cs-gauge');
     const fill = document.getElementById('cs-gauge-fill');
-    const loadMark = document.getElementById('cs-gauge-load');
-    const ratingMark = document.getElementById('cs-gauge-rating');
-    const needMark = document.getElementById('cs-gauge-need');
     const caption = document.getElementById('cs-gauge-caption');
 
     // The gauge spans 0 → max(Iz, It, In) × 1.12; every mark is a 0..1 fraction,
@@ -907,19 +1012,19 @@
       gauge.dataset.state = model.status;
     }
     if (fill) fill.setAttribute('aria-hidden', 'true');
-    void loadMark;
-    void ratingMark;
-    void needMark;
     if (caption) {
       const spare = model.iz > 0 ? ((model.iz - model.itRequired) / model.iz) * 100 : 0;
-      caption.textContent =
-        model.iz >= model.itRequired
+      caption.textContent = model.compliant
+        ? model.iz >= model.itRequired
           ? `${model.size.toFixed(1)} mm² sheds its heat at ${model.iz.toFixed(0)} A and needs to cover ${model.itRequired.toFixed(
               1,
             )} A after derating — ${spare.toFixed(0)}% spare capacity.`
           : `Even the largest ladder size only sheds ${model.iz.toFixed(0)} A here, short of the ${model.itRequired.toFixed(
               1,
-            )} A that ${model.method === 'A' ? 'the insulation' : 'these conditions'} demand.`;
+            )} A that ${model.method === 'A' ? 'the insulation' : 'these conditions'} demand.`
+        : `No tabulated size clears both gates: the largest ${model.size.toFixed(1)} mm² sheds ${model.iz.toFixed(
+            0,
+          )} A but ${model.itRequired.toFixed(1)} A is needed — shorten the run or split the circuit.`;
     }
 
     const chip = document.getElementById('cs-constraint-chip');
@@ -986,9 +1091,11 @@
     /* ── size ladder highlight ── */
     document.querySelectorAll('.cs-rung').forEach((rung) => {
       const size = Number.parseFloat(rung.getAttribute('data-size'));
-      rung.classList.toggle('is-selected', Math.abs(size - model.size) < 1e-6);
-      // mark the sizes that would fail: everything below the answer
-      rung.classList.toggle('is-short', size < model.size - 1e-6);
+      // when nothing on the ladder is compliant, no rung is "the answer"
+      rung.classList.toggle('is-selected', model.compliant && Math.abs(size - model.size) < 1e-6);
+      // mark the sizes that would fail: everything below the answer (or every
+      // rung, when even the largest cannot clear the gates)
+      rung.classList.toggle('is-short', !model.compliant || size < model.size - 1e-6);
       // The ladder is a live proof, not a decorative copper-only legend.
       const amp = (model.methodTable[size] || 0) * model.materialFactor;
       const ampNode = rung.querySelector('.cs-rung-amp');
@@ -1002,7 +1109,9 @@
     if (ladder) {
       ladder.setAttribute(
         'aria-label',
-        `Standard conductor sizes for method ${model.method}, ${model.material === 'aluminum' ? 'aluminium' : 'copper'}; ${model.size.toFixed(1)} mm² is selected`,
+        model.compliant
+          ? `Standard conductor sizes for method ${model.method}, ${model.material === 'aluminum' ? 'aluminium' : 'copper'}; ${model.size.toFixed(1)} mm² is selected`
+          : `Standard conductor sizes for method ${model.method}, ${model.material === 'aluminum' ? 'aluminium' : 'copper'}; no size is compliant at this load`,
       );
     }
 
@@ -1146,13 +1255,15 @@
   function updateMobileSummary(model) {
     const bar = document.getElementById('cs-mobile-bar');
     const size = document.getElementById('cs-mobile-size');
-    if (size) size.textContent = `${model.size.toFixed(1)} mm²`;
+    // the handle must never present the reference size as a real answer either
+    if (size) size.textContent = model.compliant ? `${model.size.toFixed(1)} mm²` : 'no size';
     const drop = document.getElementById('cs-mobile-drop');
     if (drop) {
-      drop.textContent =
-        model.status === 'fail'
-          ? 'no size clears both gates'
-          : `${model.vdropPct.toFixed(2)}% of ${model.ceiling}%`;
+      drop.textContent = model.compliant
+        ? model.status === 'fail'
+          ? 'limits exceeded'
+          : `${model.vdropPct.toFixed(2)}% of ${model.ceiling}%`
+        : 'no compliant size';
     }
     if (bar) {
       bar.setAttribute('data-status', model.status);
@@ -1160,6 +1271,77 @@
     }
     const dot = document.getElementById('cs-mobile-dot');
     if (dot) dot.setAttribute('data-status', model.status);
+  }
+
+  /* ─────────────────────────────────────────────────────────────────────
+   * Print / PDF summary. The sheet is rendered from the same model object
+   * that paints the scene and the panels, so what the installer prints is
+   * exactly what the screen showed (one source of truth).
+   * ──────────────────────────────────────────────────────────────────── */
+
+  function populatePrintSheet(model) {
+    const sheet = document.getElementById('cs-print-sheet');
+    if (!sheet) return;
+    const t = (id) => sheet.querySelector(`[data-print="${id}"]`);
+    const set = (id, value) => {
+      const node = t(id);
+      if (node) node.textContent = value;
+    };
+    const fmt = (n, digits = 1) => (Number.isFinite(n) ? n.toFixed(digits) : '—');
+
+    set(
+      'date',
+      new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }),
+    );
+    set('standard', model.stdLabel);
+    set(
+      'system',
+      `${model.systemType === 'three-phase' ? '3-Φ' : model.systemType === 'dc' ? 'DC' : '1-Φ'} ${model.v} V`,
+    );
+    set('power', `${fmt(model.powerKw, 1)} kW`);
+    set('pf', fmt(model.pf, 2));
+    set('length', `${fmt(model.length, 0)} m`);
+    set('method', (METHOD_INFO[model.method] || METHOD_INFO.C).name);
+    set('material', model.material === 'aluminum' ? 'Aluminium' : 'Copper');
+    set('temp', `${fmt(model.temp, 0)} °C`);
+    set('grouping', `${model.grouping} circuit${model.grouping === 1 ? '' : 's'}`);
+    set('insulation', model.insulation > 0 ? `${model.insulation} mm` : 'None');
+    set('fuse', model.fuseCc ? 'BS 3036 (0.725)' : 'None');
+
+    const size = t('size');
+    if (size)
+      size.textContent = model.compliant ? `${fmt(model.size, 1)} mm²` : 'No compliant size';
+    const cpc = t('cpc');
+    if (cpc) cpc.textContent = model.compliant ? `${fmt(model.cpc, 1)} mm²` : '—';
+    set('ib', `${fmt(model.ib, 1)} A`);
+    set('in', `${fmt(model.inRating, 0)} A`);
+    set('it', `${fmt(model.itRequired, 1)} A`);
+    set('iz', `${fmt(model.iz, 1)} A`);
+    set('derate', fmt(model.totalFactor, 2));
+    set('vdrop', `${fmt(model.vdropPct, 2)}% of ${fmt(model.maxVdropPct, 1)}%`);
+    set(
+      'constraint',
+      model.compliant
+        ? model.limitingConstraint === 'voltage-drop'
+          ? 'Volt drop sets this size'
+          : 'Heat (ampacity) sets this size'
+        : 'No compliant size',
+    );
+    const verdict = t('verdict');
+    if (verdict) {
+      verdict.textContent =
+        model.status === 'pass'
+          ? 'Compliant'
+          : model.status === 'warning'
+            ? 'Marginal'
+            : 'Limits exceeded';
+    }
+    const summary = t('summary');
+    if (summary) {
+      summary.textContent = document.getElementById('cs-summary-text')?.textContent || '';
+    }
+    const citation = t('citation');
+    if (citation) citation.textContent = CS_STANDARDS[model.stdId]?.citation || '';
   }
 
   /* ─────────────────────────────────────────────────────────────────────
@@ -1782,6 +1964,11 @@
     const copyBtn = document.getElementById('cs-copy-link');
     copyBtn?.addEventListener('click', (e) => {
       window.ToolShare?.copyCurrentUrl(e.currentTarget);
+    });
+
+    // print / PDF summary: the sheet is kept live by every runSizing()
+    document.getElementById('cs-print-btn')?.addEventListener('click', () => {
+      window.print();
     });
   }
 

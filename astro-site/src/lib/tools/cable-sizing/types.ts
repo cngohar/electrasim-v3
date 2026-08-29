@@ -51,8 +51,18 @@ export interface CableSizingResult {
   protectiveDeviceRatingIn: number;
   correctionFactors: CorrectionFactors;
   requiredAmpacityIt: number;
+  /**
+   * True when a tabulated size clears both gates. When false, `selectedCableMm2`
+   * is the largest tabulated size kept as a *reference* only — it is not a
+   * compliant answer, and the UI must say so.
+   */
+  compliant: boolean;
   selectedCableMm2: number;
   cableAmpacityIz: number;
+  /** Largest tabulated size, kept so the fail state can name the ceiling. */
+  maxTabulatedSizeMm2: number;
+  /** Derated ampacity of the largest tabulated size. */
+  maxTabulatedAmpacityIz: number;
   cpcCableMm2: number;
   voltageDropVolts: number;
   voltageDropPercent: number;

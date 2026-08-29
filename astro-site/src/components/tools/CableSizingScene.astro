@@ -81,14 +81,69 @@ const style = `--core:${(0.34 + sizeT * .32).toFixed(3)};--drop:${dropRatio.toFi
       <g class="cs-pill cs-pill--dark"><rect x="520" y="612" width="264" height="34" rx="17"/><text x="652" y="634" text-anchor="middle" id="cs-tag-gate">heat decides</text></g>
       <g class="cs-pill cs-method-badge"><rect x="492" y="456" width="320" height="30" rx="15"/><text x="652" y="476" text-anchor="middle" id="cs-tag-method">METHOD C · CLIPPED DIRECT</text></g>
 
-      <!-- right: load and result -->
+      <!-- right: load and result. The appliance changes with `data-load` on the
+           scene root (lighting = bulb, socket, shower, hob, ev, motor); every
+           variant shares the volt-drop "delivered" dim/bright treatment. -->
       <g class="cs-load" filter="url(#cs-shadow)">
         <rect x="1000" y="230" width="210" height="242" rx="18" fill="#10253d" stroke="#6e9fc5" stroke-width="2"/>
         <text x="1024" y="264" class="cs-device-label cs-device-label--light">LOAD END</text>
-        <circle cx="1105" cy="340" r="63" fill="#172f4a" stroke="#8fc9ee" stroke-width="3"/>
-        <circle cx="1105" cy="340" r="46" class="cs-lamp-glow" fill="url(#cs-heat)"/><path d="M1081 335q24-34 48 0l-7 24h-34z" fill="#ffe7a4" stroke="#ffc45b"/><path d="M1090 365h30M1095 374h20" stroke="#ffb34d" stroke-width="5" stroke-linecap="round"/>
-        <text x="1105" y="431" text-anchor="middle" class="cs-micro cs-micro--light" id="cs-tag-iz">Iz — ≥ It —</text>
-        <text x="1105" y="454" text-anchor="middle" class="cs-micro cs-micro--light" id="cs-tag-device">MCB — A</text>
+
+        <!-- lighting: a bulb that dims with volt drop -->
+        <g class="cs-appliance cs-load-lighting">
+          <circle cx="1105" cy="340" r="63" fill="#172f4a" stroke="#8fc9ee" stroke-width="3"/>
+          <circle cx="1105" cy="340" r="46" class="cs-lamp-glow" fill="url(#cs-heat)"/><path d="M1081 335q24-34 48 0l-7 24h-34z" fill="#ffe7a4" stroke="#ffc45b"/><path d="M1090 365h30M1095 374h20" stroke="#ffb34d" stroke-width="5" stroke-linecap="round"/>
+        </g>
+
+        <!-- socket: a twin wall socket, its LEDs dim with the drop -->
+        <g class="cs-appliance cs-load-socket">
+          <rect x="1055" y="296" width="100" height="92" rx="10" fill="#e7eef7" stroke="#8bb0cf" stroke-width="2"/>
+          <circle cx="1081" cy="336" r="15" fill="#c8d5e3" stroke="#5d7690" stroke-width="2"/>
+          <circle cx="1129" cy="336" r="15" fill="#c8d5e3" stroke="#5d7690" stroke-width="2"/>
+          <path d="M1081 331v10M1129 331v10" stroke="#33465c" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="1081" cy="368" r="4" class="cs-appliance-led"/><circle cx="1129" cy="368" r="4" class="cs-appliance-led"/>
+        </g>
+
+        <!-- shower: a shower unit with a control dial -->
+        <g class="cs-appliance cs-load-shower">
+          <rect x="1058" y="284" width="94" height="118" rx="12" fill="#dbe7f2" stroke="#6e9fc5" stroke-width="2"/>
+          <rect x="1072" y="300" width="66" height="30" rx="6" fill="#172b45"/>
+          <text x="1105" y="320" text-anchor="middle" class="cs-appliance-label">SHOWER</text>
+          <circle cx="1105" cy="352" r="20" fill="#f4f8fc" stroke="#4c6380" stroke-width="3"/>
+          <path d="M1105 352l10-14" stroke="#e07a35" stroke-width="4" stroke-linecap="round"/>
+          <path d="M1082 384h46" stroke="#5d7690" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="1105" cy="392" r="4" class="cs-appliance-led"/>
+        </g>
+
+        <!-- hob: an induction hob with two glowing rings -->
+        <g class="cs-appliance cs-load-hob">
+          <rect x="1040" y="306" width="130" height="76" rx="10" fill="#0d1b2e" stroke="#8bb0cf" stroke-width="2"/>
+          <circle cx="1076" cy="344" r="20" fill="none" stroke="#ffb34d" stroke-width="5" class="cs-hob-ring"/>
+          <circle cx="1134" cy="344" r="20" fill="none" stroke="#ffb34d" stroke-width="5" class="cs-hob-ring"/>
+          <text x="1105" y="398" text-anchor="middle" class="cs-appliance-label">INDUCTION HOB</text>
+        </g>
+
+        <!-- ev: a wallbox with a charge cable -->
+        <g class="cs-appliance cs-load-ev">
+          <rect x="1056" y="282" width="98" height="122" rx="12" fill="#0d1b2e" stroke="#8fc9ee" stroke-width="2"/>
+          <circle cx="1105" cy="318" r="14" fill="none" stroke="#45e5a0" stroke-width="4"/>
+          <text x="1105" y="356" text-anchor="middle" class="cs-appliance-label">EV WALLBOX</text>
+          <path d="M1085 368h40" stroke="#45e5a0" stroke-width="4" stroke-linecap="round"/>
+          <path d="M1105 368v-14" stroke="#45e5a0" stroke-width="4" stroke-linecap="round"/>
+          <path d="M1105 384q0 14 22 14" fill="none" stroke="#5d7690" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="1105" cy="392" r="4" class="cs-appliance-led"/>
+        </g>
+
+        <!-- motor: a 3-phase motor with a fan disc -->
+        <g class="cs-appliance cs-load-motor">
+          <circle cx="1105" cy="340" r="52" fill="#172f4a" stroke="#8fc9ee" stroke-width="3"/>
+          <circle cx="1105" cy="340" r="30" fill="none" stroke="#8fc9ee" stroke-width="2" stroke-dasharray="4 6"/>
+          <circle cx="1105" cy="340" r="7" fill="#e07a35"/>
+          <path d="M1085 404h40M1085 412h28" stroke="#5d7690" stroke-width="5" stroke-linecap="round"/>
+          <text x="1105" y="272" text-anchor="middle" class="cs-appliance-label">3-PHASE MOTOR</text>
+        </g>
+
+        <text x="1105" y="431" text-anchor="middle" class="cs-micro cs-micro--light" id="cs-tag-iz">Iz 87 A ≥ It 40.0 A</text>
+        <text x="1105" y="454" text-anchor="middle" class="cs-micro cs-micro--light" id="cs-tag-device">40 A MCB</text>
       </g>
 
       <!-- bottom workbench: cross-section specimen -->
@@ -106,5 +161,11 @@ const style = `--core:${(0.34 + sizeT * .32).toFixed(3)};--drop:${dropRatio.toFi
 
 <style>
   .cs-scene{width:100%;height:100%;color:#d9efff;font-family:var(--font-mono,monospace);background:#101b32;overflow:hidden}
-  .cs-scene .cs-bg{transition:fill .3s ease}.cs-run-zone{transform-box:fill-box;transform-origin:center;transform:perspective(900px) rotateX(4deg) translateZ(4px)}.cs-source,.cs-load{transform-box:fill-box;transform-origin:center;transition:transform .3s ease}.cs-source{transform:perspective(900px) rotateY(2deg) translateZ(5px)}.cs-load{transform:perspective(900px) rotateY(-2deg) translateZ(8px)}.cs-title{font:800 25px var(--font-display,sans-serif);fill:#ecf7ff;letter-spacing:-.02em}.cs-kicker,.cs-callout-head,.cs-section-title{font:800 10px var(--font-mono,monospace);letter-spacing:.14em;fill:#8bd5ff}.cs-subtitle,.cs-callout-copy{font:500 12px var(--font-mono,monospace);fill:#94b2ca}.cs-device-label{font:800 11px var(--font-mono,monospace);letter-spacing:.12em;fill:#17314e}.cs-device-label--light,.cs-micro--light{fill:#d8edff}.cs-micro{font:700 10px var(--font-mono,monospace);fill:#5d7690}.cs-led{fill:#45e5a0;filter:url(#cs-glow)}.cs-led--warm{fill:#ffbd63}.cs-run-core{transition:stroke-width .35s ease}.cs-run-heat{opacity:calc(.15 + var(--heat) * .7);transition:opacity .3s}.cs-flow-dot{fill:#9de3ff;filter:url(#cs-glow)}.cs-callout path{fill:none;stroke:#78b9db;stroke-opacity:.7;stroke-dasharray:3 4}.cs-callout circle{fill:#9de3ff}.cs-callout rect,.cs-pill rect{fill:#142943;fill-opacity:.94;stroke:#4c7799;stroke-opacity:.8}.cs-pill text{font:800 11px var(--font-mono,monospace);letter-spacing:.04em;fill:#dff4ff}.cs-pill-sub{font-size:9px!important;fill:#83b3d2!important}.cs-pill--dark rect{fill:#0b192c}.cs-lamp-glow{opacity:calc(.2 + var(--delivered, .95) * .7);transition:opacity .35s}.cs-spec-conductor{stroke-width:calc(1px + var(--core) * 4px)}.cs-readout rect{fill-opacity:.94}.cs-scene[data-status=fail] .cs-run-core{stroke:#ff704d}.cs-scene[data-status=fail] .cs-led--warm{fill:#ff4d4d}.cs-scene[data-status=warning] .cs-led--warm{fill:#ffd166}@media(prefers-reduced-motion:reduce){.cs-flow-dot{display:none}.cs-scene *{transition:none!important}}
+  .cs-scene .cs-bg{transition:fill .3s ease}.cs-run-zone{transform-box:fill-box;transform-origin:center;transform:perspective(900px) rotateX(4deg) translateZ(4px)}.cs-source,.cs-load{transform-box:fill-box;transform-origin:center;transition:transform .3s ease}.cs-source{transform:perspective(900px) rotateY(2deg) translateZ(5px)}.cs-load{transform:perspective(900px) rotateY(-2deg) translateZ(8px)}.cs-title{font:800 25px var(--font-display,sans-serif);fill:#ecf7ff;letter-spacing:-.02em}.cs-kicker,.cs-callout-head,.cs-section-title{font:800 10px var(--font-mono,monospace);letter-spacing:.14em;fill:#8bd5ff}.cs-subtitle,.cs-callout-copy{font:500 12px var(--font-mono,monospace);fill:#94b2ca}.cs-device-label{font:800 11px var(--font-mono,monospace);letter-spacing:.12em;fill:#17314e}.cs-device-label--light,.cs-micro--light{fill:#d8edff}.cs-micro{font:700 10px var(--font-mono,monospace);fill:#5d7690}.cs-led{fill:#45e5a0;filter:url(#cs-glow)}.cs-led--warm{fill:#ffbd63}.cs-run-core{transition:stroke-width .35s ease}.cs-run-heat{opacity:calc(.15 + var(--heat) * .7);transition:opacity .3s}.cs-flow-dot{fill:#9de3ff;filter:url(#cs-glow)}.cs-callout path{fill:none;stroke:#78b9db;stroke-opacity:.7;stroke-dasharray:3 4}.cs-callout circle{fill:#9de3ff}.cs-callout rect,.cs-pill rect{fill:#142943;fill-opacity:.94;stroke:#4c7799;stroke-opacity:.8}.cs-pill text{font:800 11px var(--font-mono,monospace);letter-spacing:.04em;fill:#dff4ff}.cs-pill-sub{font-size:9px!important;fill:#83b3d2!important}.cs-pill--dark rect{fill:#0b192c}
+  /* appliance variants: exactly one is visible, chosen by data-load on the root */
+  .cs-appliance{display:none}.cs-scene[data-load=lighting] .cs-load-lighting,.cs-scene[data-load=socket] .cs-load-socket,.cs-scene[data-load=shower] .cs-load-shower,.cs-scene[data-load=hob] .cs-load-hob,.cs-scene[data-load=ev] .cs-load-ev,.cs-scene[data-load=motor] .cs-load-motor{display:block}
+  .cs-appliance-label{font:800 9px var(--font-mono,monospace);letter-spacing:.1em;fill:#9db9d0}
+  .cs-appliance-led{fill:#45e5a0;opacity:calc(.35 + var(--delivered, .95) * .65);transition:opacity .35s}
+  .cs-hob-ring{opacity:calc(.25 + var(--delivered, .95) * .75);transition:opacity .35s}
+  .cs-lamp-glow{opacity:calc(.2 + var(--delivered, .95) * .7);transition:opacity .35s}.cs-spec-conductor{stroke-width:calc(1px + var(--core) * 4px)}.cs-readout rect{fill-opacity:.94}.cs-scene[data-status=fail] .cs-run-core{stroke:#ff704d}.cs-scene[data-status=fail] .cs-led--warm{fill:#ff4d4d}.cs-scene[data-status=warning] .cs-led--warm{fill:#ffd166}@media(prefers-reduced-motion:reduce){.cs-flow-dot{display:none}.cs-scene *{transition:none!important}}
 </style>

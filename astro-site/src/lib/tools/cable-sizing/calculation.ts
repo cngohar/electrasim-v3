@@ -8,6 +8,19 @@
  */
 
 import { type MetricStandardId, STANDARD_PROFILES } from '../standards';
+import {
+  ALUMINIUM_AMPACITY_FACTOR,
+  ALUMINIUM_MV_RATIO,
+  BASE_AMPACITY_TABLE,
+  BS3036_FACTOR,
+  STANDARD_CPC_SIZES,
+  STANDARD_METRIC_SIZES,
+  STANDARD_RATINGS_IN,
+  VOLTAGE_DROP_MV_PER_A_M,
+  getCa,
+  getCg,
+  getCi,
+} from './tables';
 import type {
   CableSizingInputs,
   CableSizingResult,
@@ -15,151 +28,40 @@ import type {
   InstallationMethod,
 } from './types';
 
-export const STANDARD_RATINGS_IN = [6, 10, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125] as const;
-export const STANDARD_METRIC_SIZES = [1.0, 1.5, 2.5, 4, 6, 10, 16, 25, 35, 50, 70, 95] as const;
-
-export const STANDARD_CPC_SIZES: Record<number, number> = {
-  1.0: 1.0,
-  1.5: 1.0,
-  2.5: 1.5,
-  4: 1.5,
-  6: 2.5,
-  10: 4.0,
-  16: 6.0,
-  25: 10.0,
-  35: 16.0,
-  50: 25.0,
-  70: 35.0,
-  95: 50.0,
+/**
+ * Shared conductor data lives in `tables.ts` (single source of truth, mirrored
+ * by `public/js/cable-tables.js` for the browser engine). Re-exported here so
+ * existing consumers that import from `./calculation` keep working.
+ */
+export {
+  ALUMINIUM_AMPACITY_FACTOR,
+  ALUMINIUM_MV_RATIO,
+  BASE_AMPACITY_TABLE,
+  BS3036_FACTOR,
+  getCa,
+  getCg,
+  getCi,
+  STANDARD_CPC_SIZES,
+  STANDARD_METRIC_SIZES,
+  STANDARD_RATINGS_IN,
+  VOLTAGE_DROP_MV_PER_A_M,
 };
+export type { InstallationMethod };
 
 /**
- * BS 7671 Appendix 4 (Table 4D5 family): 70 °C thermoplastic copper ampacity per
- * reference method. Exported because the cable-sizing scene draws its size
- * ladder from the same table the selector walks.
+ * IEC 60364-5-52 Annex G (Table G.52.1 note): main wiring runs longer than
+ * 100 m may raise the voltage-drop ceiling by 0.005 % per extra metre, capped
+ * at +0.5 %. BS 7671 has no such allowance — its Table 4Ab limits are absolute
+ * from the origin of the installation.
  */
-export const BASE_AMPACITY_TABLE: Record<InstallationMethod, Record<number, number>> = {
-  A: {
-    1.0: 11.5,
-    1.5: 14.5,
-    2.5: 20,
-    4: 26,
-    6: 34,
-    10: 46,
-    16: 61,
-    25: 80,
-    35: 99,
-    50: 119,
-    70: 151,
-    95: 182,
-  },
-  B: {
-    1.0: 13.5,
-    1.5: 17.5,
-    2.5: 24,
-    4: 32,
-    6: 41,
-    10: 57,
-    16: 76,
-    25: 101,
-    35: 125,
-    50: 151,
-    70: 192,
-    95: 232,
-  },
-  C: {
-    1.0: 16,
-    1.5: 20,
-    2.5: 27,
-    4: 37,
-    6: 47,
-    10: 65,
-    16: 87,
-    25: 114,
-    35: 141,
-    50: 182,
-    70: 234,
-    95: 284,
-  },
-  D: {
-    1.0: 18,
-    1.5: 22,
-    2.5: 29,
-    4: 38,
-    6: 47,
-    10: 63,
-    16: 83,
-    25: 110,
-    35: 135,
-    50: 165,
-    70: 210,
-    95: 255,
-  },
-  E: {
-    1.0: 17,
-    1.5: 22,
-    2.5: 30,
-    4: 40,
-    6: 52,
-    10: 71,
-    16: 96,
-    25: 128,
-    35: 157,
-    50: 196,
-    70: 249,
-    95: 302,
-  },
-};
-
-/** BS 7671 Table 4D5: Voltage Drop (mV/A/m) for single-phase circuits */
-const VOLTAGE_DROP_MV_PER_A_M: Record<number, number> = {
-  1.0: 44,
-  1.5: 29,
-  2.5: 18,
-  4: 11,
-  6: 7.3,
-  10: 4.4,
-  16: 2.8,
-  25: 1.75,
-  35: 1.25,
-  50: 0.93,
-  70: 0.65,
-  95: 0.49,
-};
-
-/** Table 4B1: Ambient temperature correction factor Ca (70°C thermoplastic) */
-export function getCa(tempC: number): number {
-  if (tempC <= 25) return 1.03;
-  if (tempC <= 30) return 1.0;
-  if (tempC <= 35) return 0.94;
-  if (tempC <= 40) return 0.87;
-  if (tempC <= 45) return 0.79;
-  if (tempC <= 50) return 0.71;
-  if (tempC <= 55) return 0.61;
-  if (tempC <= 60) return 0.5;
-  return 0.35;
-}
-
-/** Table 4C1: Grouping factor Cg */
-export function getCg(count: number): number {
-  if (count <= 1) return 1.0;
-  if (count === 2) return 0.8;
-  if (count === 3) return 0.7;
-  if (count === 4) return 0.65;
-  if (count === 5) return 0.6;
-  if (count === 6) return 0.57;
-  if (count === 7) return 0.54;
-  if (count === 8) return 0.52;
-  if (count >= 9) return 0.5;
-  return 1.0;
-}
-
-/** Thermal insulation factor Ci (BS 7671 Reg 523.9) */
-export function getCi(mm: 0 | 50 | 100 | 200): number {
-  if (mm === 50) return 0.89;
-  if (mm === 100) return 0.81;
-  if (mm === 200) return 0.5;
-  return 1.0;
+export function longRunDropAllowancePct(standard: MetricStandardId, lengthMeters: number): number {
+  const profile = STANDARD_PROFILES[standard];
+  const allowance = profile.vdrop.longRunAllowancePerMetrePct;
+  const start = profile.vdrop.longRunAllowanceStartM;
+  const cap = profile.vdrop.longRunAllowanceCapPct;
+  if (allowance === undefined || start === undefined || cap === undefined) return 0;
+  if (lengthMeters <= start) return 0;
+  return Math.min(cap, (lengthMeters - start) * allowance);
 }
 
 /** Calculate design current Ib */
@@ -210,11 +112,22 @@ export function calculateCableSizing(inputs: CableSizingInputs): CableSizingResu
   // Voltage-drop limit banding follows the selected standard
   // (BS 7671 Reg 525.1/Table 4Ab: 3% lighting / 5% power; IEC 60364-5-52 Annex G
   // Table G.52.1: 3% lighting / 5% other uses on a public LV supply).
+  // IEC 60364-5-52 Annex G additionally raises the ceiling by up to +0.5% on
+  // runs over 100 m (0.005% per metre); BS 7671 has no such allowance.
+  const longRunAllowance = longRunDropAllowancePct(standardId, inputs.runLengthMeters);
   const maxVdropPct =
-    inputs.circuitFunction === 'lighting' ? standard.vdrop.lightingPct : standard.vdrop.powerPct;
+    (inputs.circuitFunction === 'lighting' ? standard.vdrop.lightingPct : standard.vdrop.powerPct) +
+    longRunAllowance;
   const maxVdropVolts = (inputs.voltageVolts * maxVdropPct) / 100;
 
-  let selectedSize = STANDARD_METRIC_SIZES[STANDARD_METRIC_SIZES.length - 1];
+  const maxSize = STANDARD_METRIC_SIZES[STANDARD_METRIC_SIZES.length - 1];
+  const maxTabulatedAmpacity =
+    (BASE_AMPACITY_TABLE[inputs.installationMethod][maxSize] ?? 0) *
+    (inputs.conductorMaterial === 'aluminum' ? ALUMINIUM_AMPACITY_FACTOR : 1);
+
+  let selectedSize = maxSize;
+  // True only when the selection loop below found a size passing both gates.
+  let compliant = false;
   // Which gate actually forced this size up. 'voltage-drop' when some smaller
   // cross-section was big enough thermally but failed the drop check — that
   // history used to be overwritten by the selection branch below, which mislabelled
@@ -224,7 +137,7 @@ export function calculateCableSizing(inputs: CableSizingInputs): CableSizingResu
   for (const size of STANDARD_METRIC_SIZES) {
     let ampacity = BASE_AMPACITY_TABLE[inputs.installationMethod][size] ?? 0;
     if (inputs.conductorMaterial === 'aluminum') {
-      ampacity *= 0.78; // Aluminum derating ~0.78
+      ampacity *= ALUMINIUM_AMPACITY_FACTOR;
     }
 
     // Check thermal compliance: Iz >= It
@@ -236,7 +149,7 @@ export function calculateCableSizing(inputs: CableSizingInputs): CableSizingResu
       mvPerAm *= Math.sqrt(3) / 2; // balanced 3-phase factor ≈ 0.866
     }
     if (inputs.conductorMaterial === 'aluminum') {
-      mvPerAm *= 1.64; // Aluminum resistivity ratio
+      mvPerAm *= ALUMINIUM_MV_RATIO;
     }
 
     const vDropVolts = (mvPerAm * ib * inputs.runLengthMeters) / 1000;
@@ -250,6 +163,7 @@ export function calculateCableSizing(inputs: CableSizingInputs): CableSizingResu
 
     if (thermalOk && vDropOk) {
       selectedSize = size;
+      compliant = true;
       break;
     }
   }
@@ -260,11 +174,11 @@ export function calculateCableSizing(inputs: CableSizingInputs): CableSizingResu
 
   // Recalculate chosen cable metrics
   let finalAmpacity = BASE_AMPACITY_TABLE[inputs.installationMethod][selectedSize] ?? 0;
-  if (inputs.conductorMaterial === 'aluminum') finalAmpacity *= 0.78;
+  if (inputs.conductorMaterial === 'aluminum') finalAmpacity *= ALUMINIUM_AMPACITY_FACTOR;
 
   let finalMvPerAm = VOLTAGE_DROP_MV_PER_A_M[selectedSize] ?? 44;
   if (inputs.systemType === 'three-phase') finalMvPerAm *= Math.sqrt(3) / 2;
-  if (inputs.conductorMaterial === 'aluminum') finalMvPerAm *= 1.64;
+  if (inputs.conductorMaterial === 'aluminum') finalMvPerAm *= ALUMINIUM_MV_RATIO;
 
   const finalVdropVolts = (finalMvPerAm * ib * inputs.runLengthMeters) / 1000;
   const finalVdropPct = (finalVdropVolts / inputs.voltageVolts) * 100;
@@ -277,7 +191,14 @@ export function calculateCableSizing(inputs: CableSizingInputs): CableSizingResu
   let status: 'pass' | 'warning' | 'fail' = 'pass';
   let summary = `Compliant: ${selectedSize} mm² cable satisfies both thermal capacity (${finalAmpacity} A ≥ ${itRequired.toFixed(1)} A required) and ${inputs.circuitFunction} voltage drop (${finalVdropPct.toFixed(2)}% ≤ ${maxVdropPct}%) per ${standard.label}.`;
 
-  if (!thermalPass || !vdropPass) {
+  if (!compliant) {
+    status = 'fail';
+    summary = `No standard size clears both gates: even the largest tabulated ${maxSize} mm² cable only carries ${finalAmpacity} A after derating (It ${itRequired.toFixed(
+      1,
+    )} A needed) with ${finalVdropPct.toFixed(2)}% volt drop against the ${maxVdropPct.toFixed(
+      1,
+    )}% ceiling per ${standard.label}. Shorten the run, split the circuit into branches, or improve how the cable is fixed.`;
+  } else if (!thermalPass || !vdropPass) {
     status = 'fail';
     summary = `Non-compliant: Run exceeds ${standard.label} conductor limits. Upsize cable route, reduce run length, or split circuit branches.`;
   } else if (finalVdropPct > maxVdropPct * 0.85) {
@@ -290,8 +211,11 @@ export function calculateCableSizing(inputs: CableSizingInputs): CableSizingResu
     protectiveDeviceRatingIn: inRating,
     correctionFactors: factors,
     requiredAmpacityIt: itRequired,
+    compliant,
     selectedCableMm2: selectedSize,
     cableAmpacityIz: finalAmpacity,
+    maxTabulatedSizeMm2: maxSize,
+    maxTabulatedAmpacityIz: maxTabulatedAmpacity,
     cpcCableMm2: cpcSize,
     voltageDropVolts: finalVdropVolts,
     voltageDropPercent: finalVdropPct,
@@ -338,21 +262,29 @@ function deratingProduct(inputs: CableSizingInputs): number {
     getCa(inputs.ambientTempC) *
     getCg(inputs.groupingCircuits) *
     getCi(inputs.thermalInsulationMm) *
-    (inputs.fuseTypeCc ? 0.725 : 1.0)
+    (inputs.fuseTypeCc ? BS3036_FACTOR : 1.0)
   );
 }
 
 /** The voltage-drop ceiling (in %) that applies to this circuit's function. */
 function dropCeilingPercent(inputs: CableSizingInputs): number {
   const profile = STANDARD_PROFILES[inputs.standard === 'iec-60364' ? 'iec-60364' : 'uk-bs7671'];
-  return inputs.circuitFunction === 'lighting' ? profile.vdrop.lightingPct : profile.vdrop.powerPct;
+  const base =
+    inputs.circuitFunction === 'lighting' ? profile.vdrop.lightingPct : profile.vdrop.powerPct;
+  return (
+    base +
+    longRunDropAllowancePct(
+      inputs.standard === 'iec-60364' ? 'iec-60364' : 'uk-bs7671',
+      inputs.runLengthMeters,
+    )
+  );
 }
 
 /** Per-metre volt-drop factor for a size, adjusted for phase and material. */
 function mvPerAmFor(size: number, inputs: CableSizingInputs): number {
   let mv = VOLTAGE_DROP_MV_PER_A_M[size] ?? 44;
   if (inputs.systemType === 'three-phase') mv *= Math.sqrt(3) / 2; // ≈ 0.866
-  if (inputs.conductorMaterial === 'aluminum') mv *= 1.64;
+  if (inputs.conductorMaterial === 'aluminum') mv *= ALUMINIUM_MV_RATIO;
   return mv;
 }
 
@@ -367,7 +299,7 @@ function sizePassingThermal(inputs: CableSizingInputs): number {
     Math.max(0.01, deratingProduct(inputs));
   for (const size of STANDARD_METRIC_SIZES) {
     let ampacity = BASE_AMPACITY_TABLE[inputs.installationMethod][size] ?? 0;
-    if (inputs.conductorMaterial === 'aluminum') ampacity *= 0.78;
+    if (inputs.conductorMaterial === 'aluminum') ampacity *= ALUMINIUM_AMPACITY_FACTOR;
     if (ampacity >= itRequired) return size;
   }
   return largestSize();

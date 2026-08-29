@@ -1,9 +1,9 @@
 ---
 import {
-  BASE_AMPACITY_TABLE,
   cableSizingCurve,
   calculateCableSizing,
 } from '../../lib/tools/cable-sizing/calculation';
+import { BASE_AMPACITY_TABLE, STANDARD_METRIC_SIZES } from '../../lib/tools/cable-sizing/tables';
 import type { CableSizingInputs } from '../../lib/tools/cable-sizing/types';
 /**
  * CableSizingPanels.astro — floating instruments for the Cable Size Calculator.
@@ -73,7 +73,7 @@ const badgeText =
 
 /* Size ladder + crossover chart. Both are derived from the same tables the
    selector walks, so a curve can never disagree with the answer above it. */
-const SIZES = [1.0, 1.5, 2.5, 4, 6, 10, 16, 25, 35, 50, 70, 95] as const;
+const SIZES = STANDARD_METRIC_SIZES;
 const CHART = { x: 12, y: 10, w: 296, h: 78 };
 const curve = cableSizingCurve(DEFAULTS);
 const sizeIndexOf = (mm2: number) => Math.max(0, (SIZES as readonly number[]).indexOf(mm2));
@@ -795,11 +795,11 @@ const LOAD_LABEL: Record<PresetSpec['load'], string> = {
     </div>
 
     <div class="ts-panel-body" id="cs-results-body">
-      <div class="cs-hero" id="cs-hero-card" data-state="pass">
+      <div class="cs-hero" id="cs-hero-card" data-state={r.status}>
         <div class="cs-hero-label">Smallest compliant size</div>
         <div class="cs-hero-value">
-          <span id="cs-out-size">{r.selectedCableMm2.toFixed(1)}</span>
-          <span class="cs-hero-unit">mm²</span>
+          <span id="cs-out-size">{r.compliant ? r.selectedCableMm2.toFixed(1) : '—'}</span>
+          <span class="cs-hero-unit">{r.compliant ? 'mm²' : ''}</span>
         </div>
         <div class="cs-hero-cpc">with <strong id="cs-out-cpc">{r.cpcCableMm2.toFixed(1)} mm²</strong> CPC</div>
         <div class="cs-hero-badge" id="cs-status-badge">{badgeText}</div>
@@ -821,8 +821,9 @@ const LOAD_LABEL: Record<PresetSpec['load'], string> = {
         <div class="cs-gauge-mark cs-gauge-mark--load" id="cs-gauge-load"><span>Ib</span></div>
       </div>
       <p class="cs-gauge-caption" id="cs-gauge-caption" aria-live="polite">
-        {r.selectedCableMm2.toFixed(1)} mm² sheds its heat at {r.cableAmpacityIz.toFixed(0)} A and must cover{' '}
-        {r.requiredAmpacityIt.toFixed(1)} A after derating — {spare}% spare capacity.
+        {r.compliant
+          ? `${r.selectedCableMm2.toFixed(1)} mm² sheds its heat at ${r.cableAmpacityIz.toFixed(0)} A and must cover ${r.requiredAmpacityIt.toFixed(1)} A after derating — ${spare}% spare capacity.`
+          : `No tabulated size clears both gates: the largest ${r.selectedCableMm2.toFixed(1)} mm² sheds ${r.cableAmpacityIz.toFixed(0)} A but ${r.requiredAmpacityIt.toFixed(1)} A is needed — shorten the run or split the circuit.`}
       </p>
     </div>
 
@@ -884,7 +885,10 @@ const LOAD_LABEL: Record<PresetSpec['load'], string> = {
           {
             SIZES.map((size) => (
               <span
-                class:list={['cs-rung', { 'is-selected': size === r.selectedCableMm2, 'is-short': size < r.selectedCableMm2 }]}
+                class:list={['cs-rung', {
+                  'is-selected': r.compliant && size === r.selectedCableMm2,
+                  'is-short': !r.compliant || size < r.selectedCableMm2,
+                }]}
                 data-size={String(size)}
                 role="listitem"
                 style={`--dot: ${(4.5 + Math.sqrt(size) * 2.1).toFixed(1)}px`}
@@ -939,22 +943,73 @@ const LOAD_LABEL: Record<PresetSpec['load'], string> = {
       <p class="cs-echo" id="cs-standard-echo">
         Result verified against <strong>BS 7671:2018+A4:2026 (UK)</strong> — Appendix 4 Tables 4D5/4B1/4C1 and 3%/5% voltage-drop limits.
       </p>
-      <button type="button" class="cs-share" id="cs-copy-link">
-        <EmojiIcon name="link" /> <span data-share-label>Copy calculation link — inputs travel inside the URL</span>
-      </button>
+      <div class="cs-actions">
+        <button type="button" class="cs-share" id="cs-copy-link">
+          <EmojiIcon name="link" /> <span data-share-label>Copy calculation link — inputs travel inside the URL</span>
+        </button>
+        <button type="button" class="cs-print" id="cs-print-btn">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+            <rect x="6" y="14" width="12" height="8"></rect>
+          </svg>
+          <span>Print / PDF summary</span>
+        </button>
+      </div>
     </div>
   </section>
 </div>
 
+<!-- ═══ print / PDF summary: hidden on screen, the only thing on paper ═══ -->
+<div class="cs-print-sheet" id="cs-print-sheet" aria-hidden="true">
+  <header class="cs-print-head">
+    <strong>Cable Size Calculator — calculation summary</strong>
+    <span data-print="date"></span>
+  </header>
+  <section class="cs-print-col">
+    <h3>Circuit inputs</h3>
+    <dl class="cs-print-facts">
+      <div><dt>Standard</dt><dd data-print="standard"></dd></div>
+      <div><dt>Supply</dt><dd data-print="system"></dd></div>
+      <div><dt>Load</dt><dd data-print="power"></dd></div>
+      <div><dt>Power factor</dt><dd data-print="pf"></dd></div>
+      <div><dt>One-way run</dt><dd data-print="length"></dd></div>
+      <div><dt>Installation</dt><dd data-print="method"></dd></div>
+      <div><dt>Conductor</dt><dd data-print="material"></dd></div>
+      <div><dt>Ambient</dt><dd data-print="temp"></dd></div>
+      <div><dt>Grouped circuits</dt><dd data-print="grouping"></dd></div>
+      <div><dt>Thermal insulation</dt><dd data-print="insulation"></dd></div>
+      <div><dt>BS 3036 fuse</dt><dd data-print="fuse"></dd></div>
+    </dl>
+  </section>
+  <section class="cs-print-col">
+    <h3>Result</h3>
+    <dl class="cs-print-facts">
+      <div><dt>Selected size</dt><dd data-print="size"></dd></div>
+      <div><dt>CPC</dt><dd data-print="cpc"></dd></div>
+      <div><dt>Design current Ib</dt><dd data-print="ib"></dd></div>
+      <div><dt>Device rating In</dt><dd data-print="in"></dd></div>
+      <div><dt>Capacity needed It</dt><dd data-print="it"></dd></div>
+      <div><dt>Cable capacity Iz</dt><dd data-print="iz"></dd></div>
+      <div><dt>Total derating</dt><dd data-print="derate"></dd></div>
+      <div><dt>Volt drop</dt><dd data-print="vdrop"></dd></div>
+      <div><dt>Decided by</dt><dd data-print="constraint"></dd></div>
+      <div><dt>Verdict</dt><dd data-print="verdict"></dd></div>
+    </dl>
+    <p class="cs-print-summary" data-print="summary"></p>
+  </section>
+  <footer class="cs-print-foot" data-print="citation"></footer>
+</div>
+
 <!-- ═══ the drawer handle: pinned to the bottom of a touch layout ═══ -->
-<div class="ts-mobile-bar" id="cs-mobile-bar" data-status="pass" role="group" aria-label="Calculator drawers">
-  <span class="cs-mobile-dot" id="cs-mobile-dot" data-status="pass" aria-hidden="true"></span>
+<div class="ts-mobile-bar" id="cs-mobile-bar" data-status={r.status} role="group" aria-label="Calculator drawers">
+  <span class="cs-mobile-dot" id="cs-mobile-dot" data-status={r.status} aria-hidden="true"></span>
   <button type="button" class="ts-button ts-mobile-bar--inputs" id="cs-mob-inputs" data-sheet="inputs">
     <EmojiIcon name="plug" /> <span>Circuit</span>
   </button>
   <button type="button" class="ts-mobile-bar--result" id="cs-mob-results" data-sheet="results">
-    <span class="ts-mobile-out" id="cs-mobile-size">{r.selectedCableMm2.toFixed(1)} mm²</span>
-    <span class="cs-mobile-sub" id="cs-mobile-drop">{r.voltageDropPercent.toFixed(2)}% of {r.maxPermissibleVdropPercent}%</span>
+    <span class="ts-mobile-out" id="cs-mobile-size">{r.compliant ? r.selectedCableMm2.toFixed(1) : 'no size'} mm²</span>
+    <span class="cs-mobile-sub" id="cs-mobile-drop">{r.compliant ? `${r.voltageDropPercent.toFixed(2)}% of ${r.maxPermissibleVdropPercent}%` : 'no compliant size'}</span>
   </button>
 </div>
 
@@ -1711,6 +1766,131 @@ const LOAD_LABEL: Record<PresetSpec['load'], string> = {
     border-color: #10b981;
     color: #10b981;
     background: rgba(16, 185, 129, 0.1);
+  }
+  .cs-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.45rem;
+  }
+  .cs-print {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.7rem;
+    border-radius: 0.55rem;
+    border: 1px solid var(--border);
+    background: var(--bg-2);
+    color: var(--text-mid);
+    font-family: inherit;
+    font-size: 0.7rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+  .cs-print:hover {
+    border-color: var(--text-mid);
+    color: var(--text);
+  }
+  .cs-print:focus-visible {
+    outline: 3px solid var(--blue-glow, rgba(37, 99, 235, 0.28));
+    outline-offset: 2px;
+  }
+  @media (max-width: 480px) {
+    .cs-actions {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ── print / PDF summary ─────────────────────────────────────────────
+     Hidden on screen; in print media it is the only thing on the page, so an
+     installer gets a clean A4 record of exactly what the screen showed. */
+  .cs-print-sheet {
+    display: none;
+  }
+  @media print {
+    @page {
+      margin: 14mm 12mm;
+    }
+    body {
+      background: #fff !important;
+    }
+    .tool-workspace-shell > *:not(.cs-print-sheet) {
+      display: none !important;
+    }
+    .cs-print-sheet {
+      display: block;
+      color: #0f172a;
+      font-family: var(--font-body, system-ui, sans-serif);
+      font-size: 11pt;
+      line-height: 1.45;
+    }
+    .cs-print-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #0f172a;
+      margin-bottom: 1rem;
+    }
+    .cs-print-head strong {
+      font-size: 15pt;
+    }
+    .cs-print-head span {
+      font-size: 9.5pt;
+      color: #475569;
+    }
+    .cs-print-col {
+      margin-bottom: 1rem;
+    }
+    .cs-print-col h3 {
+      margin: 0 0 0.4rem;
+      font-size: 9pt;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #1e40af;
+    }
+    .cs-print-facts {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 0.35rem 1.2rem;
+      margin: 0;
+      padding: 0.6rem 0.7rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+    }
+    .cs-print-facts div {
+      break-inside: avoid;
+    }
+    .cs-print-facts dt {
+      font-size: 7.5pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+    }
+    .cs-print-facts dd {
+      margin: 0;
+      font-weight: 700;
+      font-size: 10.5pt;
+      color: #0f172a;
+    }
+    .cs-print-summary {
+      margin: 0.6rem 0 0;
+      padding: 0.55rem 0.7rem;
+      border-left: 3px solid #1e40af;
+      background: #f1f5f9;
+      font-size: 9.5pt;
+      color: #1e293b;
+    }
+    .cs-print-foot {
+      margin-top: 1rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid #cbd5e1;
+      font-size: 8pt;
+      color: #64748b;
+    }
   }
   .cs-share:focus-visible,
   .cs-why-btn:focus-visible {

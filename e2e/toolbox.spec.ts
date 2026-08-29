@@ -531,6 +531,66 @@ test.describe('Cable Size Calculator — cutaway scene', () => {
     expect(Number(after?.replace(' A', ''))).toBeGreaterThan(Number(before?.replace(' A', '')));
   });
 
+  test('the scene-load picker changes the appliance drawn at the end of the run', async ({
+    page,
+  }) => {
+    await page.goto('/tools/cable-size-calculator/');
+    // default (auto + power) draws a socket radial
+    await expect(page.locator('#cs-scene-root')).toHaveAttribute('data-load', 'socket');
+
+    await page.locator('#cs-load').selectOption('shower');
+    await expect(page.locator('#cs-scene-root')).toHaveAttribute('data-load', 'shower');
+    await expect(page.locator('.cs-load-shower')).toBeVisible();
+    // only one appliance is ever drawn
+    await expect(page.locator('.cs-appliance:visible')).toHaveCount(1);
+
+    await page.locator('#cs-load').selectOption('ev');
+    await expect(page.locator('#cs-scene-root')).toHaveAttribute('data-load', 'ev');
+    await expect(page.locator('.cs-load-ev')).toBeVisible();
+  });
+
+  test('an impossible load shows an honest “no compliant size” verdict', async ({ page }) => {
+    // Method A (in insulation) at 60 °C with 20 grouped circuits and a BS 3036
+    // fuse: It ≈ 125 A ÷ (0.5 × 0.5 × 0.725) ≈ 690 A — nothing on the 95 mm²
+    // ladder comes close.
+    await page.goto(
+      '/tools/cable-size-calculator/?method=A&temp=60&grouping=20&insulation=200&fuse=1&power=100&voltage=230',
+    );
+    await expect(page.locator('#cs-hero-card')).toHaveAttribute('data-state', 'fail');
+    await expect(page.locator('#cs-out-size')).toHaveText('—');
+    await expect(page.locator('#cs-status-badge')).toHaveText('Limits Exceeded');
+    await expect(page.locator('#cs-summary-text')).toContainText('No compliant size');
+    await expect(page.locator('#cs-gauge-caption')).toContainText('largest');
+    // the ladder marks every rung as insufficient, none selected
+    await expect(page.locator('.cs-rung.is-selected')).toHaveCount(0);
+    await expect(page.locator('.cs-rung.is-short')).toHaveCount(12);
+  });
+
+  test('the IEC >100 m allowance raises the volt-drop ceiling', async ({ page }) => {
+    await page.goto('/tools/cable-size-calculator/?standard=iec-60364&length=120&circuit=lighting');
+    await expect(page.locator('#cs-chip-ceiling')).toHaveText('3.1%');
+    // BS 7671 stays flat at 3% for the same run
+    await page.goto('/tools/cable-size-calculator/?standard=uk-bs7671&length=120&circuit=lighting');
+    await expect(page.locator('#cs-chip-ceiling')).toHaveText('3%');
+  });
+
+  test('the print summary reflects the live result', async ({ page }) => {
+    await page.goto('/tools/cable-size-calculator/');
+    const sheet = page.locator('#cs-print-sheet');
+    // hidden on screen, present in the DOM with live data
+    await expect(sheet).toBeHidden();
+    await expect(sheet.locator('[data-print="size"]')).not.toBeEmpty();
+
+    await page.locator('#cs-length').fill('150');
+    const size = (await page.locator('#cs-out-size').textContent())?.trim() ?? '';
+    await expect(sheet.locator('[data-print="size"]')).toHaveText(`${size} mm²`);
+    await expect(sheet.locator('[data-print="length"]')).toHaveText('150 m');
+
+    // the button is wired and clickable
+    await expect(page.locator('#cs-print-btn')).toBeVisible();
+    await page.locator('#cs-print-btn').click();
+  });
+
   test('the optional 3D view is opt-in and never breaks the 2D stage', async ({ page }) => {
     const errors: string[] = [];
     page.on('pageerror', (e) => errors.push(String(e)));
@@ -745,8 +805,10 @@ test.describe('Cable Size Calculator — the run, the drawer, and preset cards',
   });
 
   test('the scene says what the numbers say — no stale captions', async ({ page }) => {
+    // Method A in 200 mm insulation at 50 °C with 6 grouped circuits — hostile
+    // enough to move the size, mild enough that a tabulated size still clears.
     await page.goto(
-      '/tools/cable-size-calculator/?method=A&insulation=200&grouping=6&temp=50&power=14&length=60',
+      '/tools/cable-size-calculator/?method=A&insulation=200&grouping=6&temp=50&power=6&length=60',
     );
     const texts = await page.evaluate(() => {
       const t = (id: string) => document.getElementById(id)?.textContent?.trim() ?? '';
