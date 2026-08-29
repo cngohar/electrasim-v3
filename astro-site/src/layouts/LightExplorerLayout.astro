@@ -1,7 +1,0 @@
----
-import '../styles/global.css';
-import packageMetadata from '../../../package.json';
-interface Props { title: string; description: string; canonical: string; structuredData?: Record<string, unknown> }
-const { title, description, canonical, structuredData } = Astro.props;
----
-<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/><meta name="theme-color" content="#f8f4ec"/><title>{title}</title><meta name="description" content={description}/><link rel="canonical" href={canonical}/><meta name="robots" content="index, follow"/><meta property="og:type" content="website"/><meta property="og:title" content={title}/><meta property="og:description" content={description}/><meta property="og:url" content={canonical}/><meta property="og:image" content="https://electrasim.com/og-image.png"/><meta property="og:image:alt" content="Edison-style 1879 carbon-filament lamp in a warm historical laboratory"/><meta name="twitter:card" content="summary_large_image"/><meta name="twitter:title" content={title}/><meta name="twitter:description" content={description}/>{structuredData && <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />}</head><body class="light-explorer-body"><slot/><script is:inline defer src={`/js/light-explorer.js?v=${packageMetadata.version}`}></script></body></html>
