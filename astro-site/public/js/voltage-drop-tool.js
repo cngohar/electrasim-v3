@@ -320,6 +320,28 @@
     });
   }
 
+  const SYSTEM_DEFAULTS = {
+    single: { voltage: 230, current: 40, length: 50, size: 10, pf: 0.92, temp: 20 },
+    three: { voltage: 400, current: 16, length: 50, size: 6, pf: 0.92, temp: 20 },
+    dc: { voltage: 48, current: 50, length: 5, size: 16, pf: 1, temp: 20 },
+  };
+
+  function applySystemDefaults(type) {
+    const values = SYSTEM_DEFAULTS[type];
+    if (!values) return;
+    Object.assign(state, values, { voltsUnit: 'V', preset: '' });
+    const fields = {
+      voltage: 'input-voltage', current: 'input-current', length: 'input-length',
+      size: 'input-size', pf: 'input-pf', temp: 'input-temp',
+    };
+    for (const [key, id] of Object.entries(fields)) {
+      const el = document.getElementById(id);
+      if (el) el.value = String(values[key]);
+    }
+    const unit = document.getElementById('select-voltage-unit');
+    if (unit) unit.value = 'V';
+  }
+
   function syncSegmentedButtons(type) {
     document.querySelectorAll('.seg-btn').forEach((b) => {
       const on = b.getAttribute('data-system-type') === type;
@@ -1608,6 +1630,7 @@
         const type = btn.getAttribute('data-system-type');
         if (!type) return;
         state.systemType = type;
+        applySystemDefaults(type);
         segButtons.forEach((b) => {
           b.classList.remove('active');
           b.setAttribute('aria-checked', 'false');
