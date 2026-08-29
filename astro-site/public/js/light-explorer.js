@@ -9,7 +9,13 @@
   if (!canvas) return;
   let THREE, renderer, scene, camera, lamp, filament, filamentGlow, raf, powered = false, mode = 'assembly';
   let yaw = .35, pitch = .15, zoom = 7, drag = null;
-  let appliedVoltage = 0, failed = false, buildStep = 0;
+  let appliedVoltage = 0, failed = false, buildStep = 0, vacuumState = 'open';
+  const BUILD_STEPS = [
+    ['CONNECT', 'Copper wires + platinum sections'], ['FORM', 'Glass stem blown around the wires'],
+    ['CARBONIZE', 'Cotton thread becomes carbon filament'], ['MOUNT', 'Filament fixed to platinum clamps'],
+    ['FIT', 'Glass envelope fitted around assembly'], ['EVACUATE', 'Air removed through the top glass tip'],
+    ['SEAL', 'Tip sealed; lamp ready for life test'],
+  ];
   const components = {};
   const makeMat = (color, opts = {}) => new THREE.MeshPhysicalMaterial({ color, roughness: .42, metalness: .08, ...opts });
   const cyl = (r, h, mat, y = 0) => { const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 48), mat); m.position.y = y; return m; };
@@ -40,6 +46,7 @@
     }
     if (mode === 'cutaway') components.envelope.scale.x = .58;
     if (mode === 'xray') components.envelope.scale.set(.9, 1.08, .9);
+    components.envelope.material.opacity = vacuumState === 'sealed' ? .3 : vacuumState === 'pumping' ? .18 : .34;
     if (failed) { components.filament.visible = false; }
     const heat = Math.min(1, appliedVoltage / 110);
     components.filament.material.emissive = new THREE.Color(failed ? '#210b06' : '#ff4d18');
@@ -66,8 +73,24 @@
   }
   power?.addEventListener('click', () => { const slider = document.getElementById('le-voltage'); if (failed) return; const next = powered ? 0 : 110; if (slider) slider.value = String(next); updatePhysics(); });
   document.getElementById('le-voltage')?.addEventListener('input', updatePhysics);
-  document.querySelectorAll('[data-mode]').forEach((button) => button.addEventListener('click', () => { mode = button.dataset.mode; if (mode === 'build') { buildStep = (buildStep + 1) % 7; } document.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('active', b === button)); refresh(); }));
-  document.getElementById('le-reset')?.addEventListener('click', () => { appliedVoltage = 0; powered = false; failed = false; buildStep = 0; const slider = document.getElementById('le-voltage'); if (slider) slider.value = '0'; mode = 'assembly'; document.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('active', b.dataset.mode === 'assembly')); updatePhysics(); });
+  document.querySelectorAll('[data-mode]').forEach((button) => button.addEventListener('click', () => {
+    mode = button.dataset.mode;
+    if (mode === 'build') {
+      buildStep = (buildStep + 1) % 7;
+      const step = BUILD_STEPS[buildStep];
+      const label = document.getElementById('le-build-status');
+      if (label) label.textContent = `STEP ${String(buildStep + 1).padStart(2, '0')} · ${step[0]} · ${step[1]}`;
+    }
+    document.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('active', b === button)); refresh();
+  }));
+  document.getElementById('le-reset')?.addEventListener('click', () => { appliedVoltage = 0; powered = false; failed = false; buildStep = 0; vacuumState = 'open'; const vacuumButton = document.getElementById('le-vacuum'); if (vacuumButton) vacuumButton.textContent = 'VACUUM PUMP'; const vacuumLabel = document.getElementById('le-vacuum-status'); if (vacuumLabel) vacuumLabel.textContent = 'VACUUM · OPEN TO ATMOSPHERE'; const slider = document.getElementById('le-voltage'); if (slider) slider.value = '0'; mode = 'assembly'; document.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('active', b.dataset.mode === 'assembly')); updatePhysics(); });
+  document.getElementById('le-vacuum')?.addEventListener('click', () => {
+    vacuumState = vacuumState === 'open' ? 'pumping' : vacuumState === 'pumping' ? 'sealed' : 'open';
+    const labels = { open: 'VACUUM · OPEN TO ATMOSPHERE', pumping: 'VACUUM · PUMPING AIR OUT…', sealed: 'VACUUM · SEALED FOR LIFE TEST' };
+    const label = document.getElementById('le-vacuum-status'); if (label) label.textContent = labels[vacuumState];
+    const button = document.getElementById('le-vacuum'); if (button) button.textContent = vacuumState === 'sealed' ? 'REOPEN TIP' : vacuumState === 'pumping' ? 'SEAL TIP' : 'VACUUM PUMP';
+    refresh();
+  });
   document.getElementById('le-history')?.addEventListener('click', () => openPanel(history));
   document.getElementById('le-history-close')?.addEventListener('click', () => { history.hidden = true; });
   document.getElementById('le-close')?.addEventListener('click', () => { inspector.hidden = true; });
