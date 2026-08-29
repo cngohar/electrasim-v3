@@ -22,6 +22,12 @@ import StandardSelector from './StandardSelector.astro';
       </div>
     </div>
 
+    <div class="tool-validation-notice" id="zs-validation-notice" role="alert" aria-live="polite" hidden>
+      <strong id="zs-validation-title">Check these inputs</strong>
+      <p id="zs-validation-message"></p>
+      <small>Tip: use positive values and stay within the ranges shown on each field.</small>
+    </div>
+
     <form class="calc-form" id="max-zs-form" novalidate>
       <!-- Regional wiring standard (BS 7671 / IEC 60364) -->
       <StandardSelector inputId="zs-standard" noteId="zs-standard-note" />
@@ -202,6 +208,19 @@ import StandardSelector from './StandardSelector.astro';
 </div>
 
 <style>
+  .tool-validation-notice {
+    margin: 0 0 1rem;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid #f59e0b;
+    border-radius: 0.7rem;
+    background: #fffbeb;
+    color: #92400e;
+    font-size: 0.78rem;
+  }
+  .tool-validation-notice p { margin: 0.2rem 0; }
+  .tool-validation-notice small { color: #a16207; }
+  :root[data-theme='dark'] .tool-validation-notice { background: rgba(120, 53, 15, 0.24); color: #fde68a; }
+
   /* Shareable calculation link button */
   .share-calc-btn {
     display: block;

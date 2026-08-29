@@ -217,9 +217,51 @@
     }
   }
 
+  function setValidation(message, fields = []) {
+    const notice = $('nec-validation-notice');
+    const text = $('nec-validation-message');
+    if (notice) notice.hidden = !message;
+    if (text) text.textContent = message || '';
+    for (const id of ['nec-voltage', 'nec-current', 'nec-length', 'nec-pf']) {
+      const el = $(id);
+      if (el) el.toggleAttribute('aria-invalid', fields.includes(id));
+    }
+  }
+
+  function validateInputs() {
+    const rules = [
+      ['nec-voltage', 'System voltage', 1, 1000],
+      ['nec-current', 'Load current', 0, 1200],
+      ['nec-length', 'One-way run length', 1, 10000],
+      ['nec-pf', 'Power factor', 0.1, 1],
+    ];
+    const errors = [];
+    const fields = [];
+    for (const [id, label, min, max] of rules) {
+      const raw = $(id)?.value.trim() ?? '';
+      const value = Number.parseFloat(raw);
+      if (raw === '' || !Number.isFinite(value)) {
+        errors.push(`Enter ${label.toLowerCase()}.`); fields.push(id);
+      } else if (value < min || value > max) {
+        errors.push(`${label} must be between ${min} and ${max}${id === 'nec-voltage' ? ' V' : id === 'nec-length' ? ' ft' : id === 'nec-pf' ? '' : ' A'}.`); fields.push(id);
+      }
+    }
+    return { errors, fields };
+  }
+
   function updateUi() {
     filterConductorOptions();
     syncUrl();
+    const validation = validateInputs();
+    if (validation.errors.length) {
+      setValidation(`${validation.errors.join(' ')} Check the unit shown beside each field, then try again.`, validation.fields);
+      const summary = $('nec-summary-text');
+      if (summary) summary.textContent = 'We cannot calculate voltage drop yet. Correct the highlighted values and the result will update automatically.';
+      const badge = $('nec-status-badge');
+      if (badge) badge.textContent = 'Check Inputs';
+      return;
+    }
+    setValidation();
     const inp = readInputs();
     const res = calculate(inp);
 

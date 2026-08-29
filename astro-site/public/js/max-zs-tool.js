@@ -157,8 +157,40 @@
     S.pushParams(entries);
   }
 
+  function setValidation(message, fields = []) {
+    const notice = document.getElementById('zs-validation-notice');
+    const text = document.getElementById('zs-validation-message');
+    if (notice) notice.hidden = !message;
+    if (text) text.textContent = message || '';
+    for (const id of ['zs-ze', 'zs-line-size', 'zs-cpc-size', 'zs-length']) {
+      const el = document.getElementById(id);
+      if (el) el.toggleAttribute('aria-invalid', fields.includes(id));
+    }
+  }
+
   function runCalculation() {
     syncUrl();
+    const raw = {
+      ze: document.getElementById('zs-ze')?.value.trim() ?? '',
+      length: document.getElementById('zs-length')?.value.trim() ?? '',
+    };
+    const errors = [];
+    const fields = [];
+    const zeValue = Number.parseFloat(raw.ze);
+    const lengthValue = Number.parseFloat(raw.length);
+    if (raw.ze === '' || !Number.isFinite(zeValue)) { errors.push('Enter external impedance Ze.'); fields.push('zs-ze'); }
+    else if (zeValue < 0 || zeValue > 100) { errors.push('Ze must be between 0 and 100 Ω.'); fields.push('zs-ze'); }
+    if (raw.length === '' || !Number.isFinite(lengthValue)) { errors.push('Enter the one-way cable length.'); fields.push('zs-length'); }
+    else if (lengthValue <= 0 || lengthValue > 500) { errors.push('Cable length must be between 1 and 500 m.'); fields.push('zs-length'); }
+    if (errors.length) {
+      setValidation(`${errors.join(' ')} Increase the CPC or review the earthing arrangement if the result is unexpectedly high.`, fields);
+      const summary = document.getElementById('zs-summary-text');
+      if (summary) summary.textContent = 'We cannot verify disconnection yet. Correct the highlighted values and the calculation will update automatically.';
+      const badge = document.getElementById('zs-status-badge');
+      if (badge) badge.textContent = 'Check Inputs';
+      return;
+    }
+    setValidation();
     const stdId = currentStandard();
     const std = ZS_STANDARDS[stdId];
     const devSelect = document.getElementById('zs-device-type');

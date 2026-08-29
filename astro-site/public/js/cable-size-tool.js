@@ -146,7 +146,8 @@
     if (n === 5) return 0.6;
     if (n === 6) return 0.57;
     if (n === 7) return 0.54;
-    if (n >= 8) return 0.52;
+    if (n === 8) return 0.52;
+    if (n >= 9) return 0.5;
     return 1.0;
   }
 
@@ -248,6 +249,29 @@
     return Number.isFinite(n) ? n : fallback;
   }
 
+  /** Keep typed values inside the same bounds advertised by the native controls.
+   * Browsers do not clamp number inputs, so an out-of-range shared URL or a
+   * pasted value could previously produce a result that did not match the field
+   * the user was looking at. */
+  function boundedValue(id, fallback, min, max) {
+    return Math.min(max, Math.max(min, readValue(id, fallback)));
+  }
+
+  function normaliseNumericInputs() {
+    const bounds = [
+      ['cs-voltage', 230, 12, 1000],
+      ['cs-power', 7.2, 0.1, 500],
+      ['cs-pf', 1, 0.5, 1],
+      ['cs-temp', 30, 10, 60],
+      ['cs-grouping', 1, 1, 20],
+      ['cs-length', 18, 1, 200],
+    ];
+    for (const [id, fallback, min, max] of bounds) {
+      const el = document.getElementById(id);
+      if (el) el.value = String(boundedValue(id, fallback, min, max));
+    }
+  }
+
   /** Reflect the hidden inputs back into the visual pickers. */
   function syncControls() {
     const method = document.getElementById('cs-install-method')?.value || 'C';
@@ -261,19 +285,19 @@
     if (methodNote) methodNote.textContent = (METHOD_INFO[method] || METHOD_INFO.C).blurb;
 
     const lengthOut = document.getElementById('cs-length-out');
-    if (lengthOut) lengthOut.textContent = `${readValue('cs-length', 18)} m`;
+    if (lengthOut) lengthOut.textContent = `${boundedValue('cs-length', 18, 1, 200)} m`;
     const tempOut = document.getElementById('cs-temp-out');
-    if (tempOut) tempOut.textContent = `${readValue('cs-temp', 30)} °C`;
+    if (tempOut) tempOut.textContent = `${boundedValue('cs-temp', 30, 10, 60)} °C`;
     const groupingOut = document.getElementById('cs-grouping-out');
     if (groupingOut) {
-      const n = readValue('cs-grouping', 1);
+      const n = boundedValue('cs-grouping', 1, 1, 20);
       groupingOut.textContent = n <= 1 ? '1 circuit' : `${n} circuits`;
     }
     const powerHint = document.getElementById('cs-power-hint');
     if (powerHint) {
-      const v = readValue('cs-voltage', 230);
-      const kw = readValue('cs-power', 7.2);
-      const pf = Math.min(1, Math.max(0.1, readValue('cs-pf', 1)));
+      const v = boundedValue('cs-voltage', 230, 12, 1000);
+      const kw = boundedValue('cs-power', 7.2, 0.1, 500);
+      const pf = boundedValue('cs-pf', 1, 0.5, 1);
       const systemNow = document.getElementById('cs-system-type')?.value || 'single-phase';
       const divisor =
         systemNow === 'three-phase' ? Math.sqrt(3) * v * pf : systemNow === 'dc' ? v : v * pf;
@@ -293,6 +317,21 @@
    * bound to the scene frame and every Method A–E chip was silently dead — no
    * error, nothing to see in the console, the answer just never moved.
    */
+  const SYSTEM_DEFAULTS = {
+    'single-phase': { voltage: 230, power: 7.2, pf: 1 },
+    'three-phase': { voltage: 400, power: 22, pf: 0.99 },
+    dc: { voltage: 48, power: 2.4, pf: 1 },
+  };
+
+  function applySystemDefaults(system) {
+    const values = SYSTEM_DEFAULTS[system];
+    if (!values) return;
+    for (const [id, value] of [['cs-voltage', values.voltage], ['cs-power', values.power], ['cs-pf', values.pf]]) {
+      const el = document.getElementById(id);
+      if (el) el.value = String(value);
+    }
+  }
+
   function bindGroup(groupId, targetId) {
     const group = document.querySelector(`[data-cs-group="${groupId}"]`);
     if (!group) return;
@@ -302,6 +341,7 @@
       const input = document.getElementById(targetId);
       if (!input) return;
       input.value = btn.getAttribute('data-cs-value');
+      if (groupId === 'system') applySystemDefaults(input.value);
       releasePreset();
       syncControls();
       runSizing();
@@ -429,22 +469,64 @@
     return mv;
   }
 
+  function setCableValidation(message, fields = []) {
+    const notice = document.getElementById('cs-validation-notice');
+    const text = document.getElementById('cs-validation-message');
+    if (notice) notice.hidden = !message;
+    if (text) text.textContent = message || '';
+    for (const id of ['cs-voltage', 'cs-power', 'cs-pf', 'cs-length', 'cs-temp', 'cs-grouping']) {
+      const el = document.getElementById(id);
+      if (el) el.toggleAttribute('aria-invalid', fields.includes(id));
+    }
+  }
+
+  function validateCableInputs() {
+    const rules = [
+      ['cs-voltage', 'Voltage', 12, 1000, 'V'],
+      ['cs-power', 'Load power', 0.1, 500, 'kW'],
+      ['cs-pf', 'Power factor', 0.5, 1, ''],
+      ['cs-length', 'Run length', 1, 200, 'm'],
+      ['cs-temp', 'Ambient temperature', 10, 60, '°C'],
+      ['cs-grouping', 'Grouped circuits', 1, 20, ''],
+    ];
+    const errors = [];
+    const fields = [];
+    for (const [id, label, min, max, unit] of rules) {
+      const raw = document.getElementById(id)?.value.trim() ?? '';
+      const value = Number.parseFloat(raw);
+      if (raw === '' || !Number.isFinite(value)) {
+        errors.push(`Enter ${label.toLowerCase()}.`); fields.push(id);
+      } else if (value < min || value > max) {
+        errors.push(`${label} must be between ${min} and ${max}${unit ? ` ${unit}` : ''}.`); fields.push(id);
+      }
+    }
+    return { errors, fields };
+  }
+
   function runSizing() {
+    const validation = validateCableInputs();
+    setCableValidation(
+      validation.errors.length ? `${validation.errors.join(' ')} The calculation preview uses the nearest safe value until you finish editing.` : '',
+      validation.fields,
+    );
+    // Calculation uses boundedValue below, so an in-progress empty field remains
+    // editable while the live answer stays safe. Values are canonicalised on
+    // change and during initial shared-link restore.
     syncUrl();
 
     const stdId = currentStandard();
     const std = CS_STANDARDS[stdId];
     const systemType = document.getElementById('cs-system-type')?.value || 'single-phase';
-    const v = Math.max(1, readValue('cs-voltage', 230));
-    const powerKw = readValue('cs-power', 7.2);
-    const powerWatts = Math.max(0, powerKw * 1000);
-    const pf = Math.max(0.1, Math.min(1.0, readValue('cs-pf', 1.0)));
-    const length = Math.max(1, Math.min(500, readValue('cs-length', 18)));
+    const v = boundedValue('cs-voltage', 230, 12, 1000);
+    const powerKw = boundedValue('cs-power', 7.2, 0.1, 500);
+    const powerWatts = powerKw * 1000;
+    const pf = boundedValue('cs-pf', 1.0, 0.5, 1.0);
+    const length = boundedValue('cs-length', 18, 1, 200);
     const circuitType = document.getElementById('cs-circuit-type')?.value || 'power';
     const method = document.getElementById('cs-install-method')?.value || 'C';
     const material = document.getElementById('cs-material')?.value || 'copper';
-    const temp = readValue('cs-temp', 30);
-    const grouping = Math.max(1, Math.min(20, readValue('cs-grouping', 1)));
+    const temp = boundedValue('cs-temp', 30, 10, 60);
+    const grouping = boundedValue('cs-grouping', 1, 1, 20);
     const insulation = readValue('cs-insulation', 0);
     const fuseCc = Boolean(document.getElementById('cs-fuse-cc')?.checked);
 
@@ -564,9 +646,12 @@
     const chipDerate = document.getElementById('cs-chip-derate');
     if (chipDerate) chipDerate.textContent = totalFactor.toFixed(2);
 
+    // Compare percentages with percentages. The previous expression compared
+    // selectedVdropPct (%) with maxVdropV (volts), making the "Marginal" state
+    // depend on supply voltage rather than proximity to the drop limit.
     const status =
       thermalPass && vdropPass
-        ? selectedVdropPct > maxVdropV * 0.85
+        ? selectedVdropPct > maxVdropPct * 0.85
           ? 'warning'
           : 'pass'
         : 'fail';
@@ -782,10 +867,13 @@
       `${model.inRating} A ${model.fuseCc ? 'BS 3036 fuse' : model.method === 'D' ? 'MCB' : 'MCB'}`,
     );
     setText('cs-tag-iz', `Iz ${model.iz.toFixed(0)} A ≥ It ${model.itRequired.toFixed(1)} A`);
+    setText('cs-tag-iz-readout', `Iz ${model.iz.toFixed(0)} A ≥ It ${model.itRequired.toFixed(1)} A`);
     setText(
       'cs-tag-gate',
       model.limitingConstraint === 'voltage-drop' ? 'volt drop decides' : 'heat decides',
     );
+    const methodNames = { A: 'IN INSULATION', B: 'IN CONDUIT', C: 'CLIPPED DIRECT', D: 'BURIED IN GROUND', E: 'FREE AIR / TRAY' };
+    setText('cs-tag-method', `METHOD ${model.method} · ${methodNames[model.method] || 'INSTALLATION'}`);
     setText('cs-tag-dim', `${model.length} m one-way`);
     setText(
       'cs-tag-gate-drop',
@@ -901,7 +989,22 @@
       rung.classList.toggle('is-selected', Math.abs(size - model.size) < 1e-6);
       // mark the sizes that would fail: everything below the answer
       rung.classList.toggle('is-short', size < model.size - 1e-6);
+      // The ladder is a live proof, not a decorative copper-only legend.
+      const amp = (model.methodTable[size] || 0) * model.materialFactor;
+      const ampNode = rung.querySelector('.cs-rung-amp');
+      if (ampNode) ampNode.textContent = `${amp.toFixed(0)} A`;
     });
+    const ladderTitle = document.getElementById('cs-ladder-title');
+    if (ladderTitle) {
+      ladderTitle.textContent = `Size ladder · method ${model.method} · ${model.material === 'aluminum' ? 'aluminium' : 'copper'}`;
+    }
+    const ladder = document.querySelector('.cs-ladder');
+    if (ladder) {
+      ladder.setAttribute(
+        'aria-label',
+        `Standard conductor sizes for method ${model.method}, ${model.material === 'aluminum' ? 'aluminium' : 'copper'}; ${model.size.toFixed(1)} mm² is selected`,
+      );
+    }
 
     /* ── crossover chart ── */
     paintCrossover(model);
@@ -1467,9 +1570,13 @@
       document.getElementById('cable-sizing-form') || document.getElementById('cs-inputs-body');
     if (scope) {
       scope.querySelectorAll('input, select').forEach((el) => {
-        const handler = () => {
+        const handler = (event) => {
           urlArmed = true;
           releasePreset();
+          // Do not rewrite an input while the user is clearing/replacing it;
+          // that makes number fields frustrating to edit. The bounded calculation
+          // handles the transient value, while change canonicalises it.
+          if (event.type === 'change') normaliseNumericInputs();
           syncControls();
           runSizing();
           updateScrollAffordance('cs-inputs-container', 'cs-inputs-body');
@@ -1666,6 +1773,7 @@
     // restore shared-link state (if any), then compute and paint
     restoreFromUrl();
     if (presetParam && presetData()[presetParam]) applyPreset(presetParam);
+    normaliseNumericInputs();
     syncControls();
     runSizing();
     updateScrollAffordance('cs-inputs-container', 'cs-inputs-body');

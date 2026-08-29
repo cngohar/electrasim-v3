@@ -498,6 +498,12 @@ const LOAD_LABEL: Record<PresetSpec['load'], string> = {
       </button>
     </div>
 
+    <div class="cs-validation-notice" id="cs-validation-notice" role="status" aria-live="polite" hidden>
+      <strong>Check this value</strong>
+      <p id="cs-validation-message"></p>
+      <small>Tip: enter a value within the range shown by the control.</small>
+    </div>
+
     <form class="ts-panel-body" id="cs-inputs-body" name="cable-sizing" novalidate>
       <StandardSelector inputId="cs-standard" noteId="cs-standard-note" />
 
@@ -873,7 +879,7 @@ const LOAD_LABEL: Record<PresetSpec['load'], string> = {
 
       <!-- the IEC ladder, drawn to relative conductor area -->
       <div class="cs-card">
-        <div class="cs-card-title">Size ladder · method C · copper</div>
+        <div class="cs-card-title" id="cs-ladder-title">Size ladder · method C · copper</div>
         <div class="cs-ladder" role="list" aria-label="Standard conductor sizes; the chosen one is highlighted and everything below it is marked as insufficient">
           {
             SIZES.map((size) => (
@@ -1045,6 +1051,19 @@ const LOAD_LABEL: Record<PresetSpec['load'], string> = {
 }
 
 <style>
+  .cs-validation-notice {
+    margin: 0.75rem 1.1rem 0;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid #f59e0b;
+    border-radius: 0.65rem;
+    background: #fffbeb;
+    color: #92400e;
+    font-size: 0.76rem;
+  }
+  .cs-validation-notice p { margin: 0.15rem 0; }
+  .cs-validation-notice small { color: #a16207; }
+  :global(:root[data-theme='dark']) .cs-validation-notice { background: rgba(120, 53, 15, 0.24); color: #fde68a; }
+
   /* ── instrument cards inside the results panel ─────────────────────
      The scene owns the drawing; these two graphics are data, so they live
      where they can never be covered by a floating panel or clipped by a short
