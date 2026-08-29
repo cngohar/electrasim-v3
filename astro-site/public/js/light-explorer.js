@@ -9,7 +9,7 @@
   if (!canvas) return;
   let THREE, renderer, scene, camera, lamp, filament, filamentGlow, raf, powered = false, mode = 'assembly';
   let yaw = .35, pitch = .15, zoom = 7, drag = null;
-  let appliedVoltage = 0, failed = false, buildStep = 0, vacuumState = 'open';
+  let appliedVoltage = 0, failed = false, buildStep = 0, vacuumState = 'open', demonstration = false;
   const BUILD_STEPS = [
     ['CONNECT', 'Copper wires + platinum sections'], ['FORM', 'Glass stem blown around the wires'],
     ['CARBONIZE', 'Cotton thread becomes carbon filament'], ['MOUNT', 'Filament fixed to platinum clamps'],
@@ -28,10 +28,23 @@
     const key = new THREE.DirectionalLight('#fff3d2', 4); key.position.set(-3, 6, 5); key.castShadow = true; scene.add(key);
     const fill = new THREE.PointLight('#ffd879', powered ? 15 : 2, 12); fill.position.set(0, 1, 1); scene.add(fill); filamentGlow = fill;
     const bench = new THREE.Mesh(new THREE.BoxGeometry(13, .3, 7), makeMat('#9b6a43')); bench.position.y = -2.5; scene.add(bench);
-    const back = new THREE.Mesh(new THREE.BoxGeometry(13, 6, .2), makeMat('#d7c6ad')); back.position.set(0, .5, -2.9); scene.add(back);
+    const back = new THREE.Mesh(new THREE.BoxGeometry(13, 6, .2), makeMat(demonstration ? '#b7a88f' : '#d7c6ad')); back.position.set(0, .5, -2.9); scene.add(back);
+    if (demonstration) {
+      // Three distant warm points suggest the many lamps reported at Menlo Park;
+      // the foreground object remains the documented hero lamp.
+      for (const x of [-4.2, 0, 4.2]) { const window = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.1, .08), makeMat('#f4d68d', { emissive: '#9c6424', emissiveIntensity: 1.4 })); window.position.set(x, .9, -2.76); scene.add(window); }
+      const night = new THREE.AmbientLight('#8ba6ba', .4); scene.add(night);
+    }
     lamp = new THREE.Group(); lamp.position.y = -.25; scene.add(lamp);
     components.envelope = new THREE.Mesh(new THREE.SphereGeometry(1.48, 64, 32), makeMat('#dff4ff', { transparent: true, opacity: mode === 'xray' ? .16 : mode === 'cutaway' ? .28 : .34, transmission: .25, roughness: .08, side: THREE.DoubleSide })); components.envelope.scale.y = 1.08; components.envelope.position.y = .85; lamp.add(components.envelope);
     components.tip = new THREE.Mesh(new THREE.ConeGeometry(.18, .5, 32), makeMat('#d8edf0', { transparent: true, opacity: .55 })); components.tip.position.y = 2.47; lamp.add(components.tip);
+    if (vacuumState !== 'open') {
+      components.pump = new THREE.Group();
+      const pumpBody = new THREE.Mesh(new THREE.CylinderGeometry(.34, .34, 1.7, 32), makeMat('#aab2b5', { metalness: .8 })); pumpBody.position.set(2.7, 1.5, 0); components.pump.add(pumpBody);
+      const hose = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(2.35, 1.5, 0), new THREE.Vector3(1.6, 2.1, 0), new THREE.Vector3(.18, 2.45, 0)]), 24, .07, 12), makeMat('#78909c', { metalness: .25 })); components.pump.add(hose);
+      const plunger = new THREE.Mesh(new THREE.BoxGeometry(.12, .9, .12), makeMat('#806a55', { metalness: .35 })); plunger.position.set(2.7, 2.75, 0); components.pump.add(plunger);
+      scene.add(components.pump);
+    }
     components.stem = cyl(.11, 1.8, makeMat('#e9f8f5', { transparent: true, opacity: .65 }), -.45); lamp.add(components.stem);
     const curve = new THREE.CatmullRomCurve3([new THREE.Vector3(-.58, .25, 0), new THREE.Vector3(-.58, .8, 0), new THREE.Vector3(.58, .8, 0), new THREE.Vector3(.58, .25, 0)]);
     filament = new THREE.Mesh(new THREE.TubeGeometry(curve, 32, .045, 12), makeMat('#a84222', { emissive: '#321008', emissiveIntensity: powered ? 3 : .1 })); filament.name = 'CarbonFilament'; components.filament = filament; lamp.add(filament);
@@ -83,12 +96,19 @@
     }
     document.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('active', b === button)); refresh();
   }));
-  document.getElementById('le-reset')?.addEventListener('click', () => { appliedVoltage = 0; powered = false; failed = false; buildStep = 0; vacuumState = 'open'; const vacuumButton = document.getElementById('le-vacuum'); if (vacuumButton) vacuumButton.textContent = 'VACUUM PUMP'; const vacuumLabel = document.getElementById('le-vacuum-status'); if (vacuumLabel) vacuumLabel.textContent = 'VACUUM · OPEN TO ATMOSPHERE'; const slider = document.getElementById('le-voltage'); if (slider) slider.value = '0'; mode = 'assembly'; document.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('active', b.dataset.mode === 'assembly')); updatePhysics(); });
+  document.getElementById('le-reset')?.addEventListener('click', () => { appliedVoltage = 0; powered = false; failed = false; buildStep = 0; vacuumState = 'open'; demonstration = false; const vacuumButton = document.getElementById('le-vacuum'); if (vacuumButton) vacuumButton.textContent = 'VACUUM PUMP'; const vacuumLabel = document.getElementById('le-vacuum-status'); if (vacuumLabel) vacuumLabel.textContent = 'VACUUM · OPEN TO ATMOSPHERE'; const demoButton = document.getElementById('le-demonstration'); if (demoButton) demoButton.textContent = '31 DEC 1879'; const eventLabel = document.getElementById('le-event-status'); if (eventLabel) eventLabel.textContent = 'MENLO PARK · LABORATORY BENCH'; const slider = document.getElementById('le-voltage'); if (slider) slider.value = '0'; mode = 'assembly'; document.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('active', b.dataset.mode === 'assembly')); updatePhysics(); });
   document.getElementById('le-vacuum')?.addEventListener('click', () => {
     vacuumState = vacuumState === 'open' ? 'pumping' : vacuumState === 'pumping' ? 'sealed' : 'open';
     const labels = { open: 'VACUUM · OPEN TO ATMOSPHERE', pumping: 'VACUUM · PUMPING AIR OUT…', sealed: 'VACUUM · SEALED FOR LIFE TEST' };
     const label = document.getElementById('le-vacuum-status'); if (label) label.textContent = labels[vacuumState];
     const button = document.getElementById('le-vacuum'); if (button) button.textContent = vacuumState === 'sealed' ? 'REOPEN TIP' : vacuumState === 'pumping' ? 'SEAL TIP' : 'VACUUM PUMP';
+    refresh();
+  });
+  document.getElementById('le-demonstration')?.addEventListener('click', () => {
+    demonstration = !demonstration;
+    const label = document.getElementById('le-event-status');
+    if (label) label.textContent = demonstration ? 'MENLO PARK · 31 DEC 1879 · DEMONSTRATION' : 'MENLO PARK · LABORATORY BENCH';
+    const button = document.getElementById('le-demonstration'); if (button) button.textContent = demonstration ? 'RETURN TO LAB' : '31 DEC 1879';
     refresh();
   });
   document.getElementById('le-history')?.addEventListener('click', () => openPanel(history));
