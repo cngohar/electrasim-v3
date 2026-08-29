@@ -113,6 +113,19 @@
   });
   document.getElementById('le-history')?.addEventListener('click', () => openPanel(history));
   document.getElementById('le-history-close')?.addEventListener('click', () => { history.hidden = true; });
+  const EVENTS = {
+    earlier: { title: 'Earlier electric-light experiments', copy: 'Incandescent and arc-light experiments predate Edison. The explorer presents Edison’s practical system in context, not as the first electric light.', source: 'Historical context · Smithsonian Lighting a Revolution' },
+    october: { title: '22 October 1879', copy: 'Edison’s notebook records a carbonized cotton-thread experiment in a vacuum bulb: approximately 113 Ω starting resistance, later approximately 140 Ω, with about half-candle-power output.', source: 'Historical fact · Edison Papers, Rutgers University' },
+    december: { title: '31 December 1879', copy: 'The documented demonstration lamp was used at Menlo Park on New Year’s Eve. Approximately 70 lamps illuminated the grounds and buildings according to the Smithsonian record.', source: 'Historical fact · Smithsonian Institution' },
+    system: { title: '1882 · Pearl Street era', copy: 'The practical lamp became part of a wider electrical system: generation, distribution, wiring, metering and usable lamp hardware.', source: 'Historical context · U.S. Department of Energy' },
+  };
+  document.querySelectorAll('[data-event]').forEach((button) => button.addEventListener('click', () => {
+    const event = EVENTS[button.dataset.event]; if (!event) return;
+    const title = document.querySelector('#le-history-panel h2'); const copy = document.getElementById('le-history-copy'); const source = document.querySelector('#le-history-panel .le-source');
+    if (title) title.textContent = event.title; if (copy) copy.textContent = event.copy; if (source) source.textContent = event.source;
+    document.querySelectorAll('[data-event]').forEach((b) => b.classList.toggle('active', b === button)); openPanel(history);
+    demonstration = button.dataset.event === 'december'; const label = document.getElementById('le-event-status'); if (label) label.textContent = demonstration ? 'MENLO PARK · 31 DEC 1879 · DEMONSTRATION' : 'HISTORICAL CONTEXT · ' + event.title.toUpperCase(); refresh();
+  }));
   document.getElementById('le-close')?.addEventListener('click', () => { inspector.hidden = true; });
   document.getElementById('le-isolate')?.addEventListener('click', () => { Object.entries(components).forEach(([key, object]) => { if (key !== 'filament') object.visible = false; }); });
   canvas.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, y: e.clientY }; canvas.setPointerCapture(e.pointerId); hint.classList.add('is-hidden'); });
