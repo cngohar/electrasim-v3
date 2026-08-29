@@ -5,7 +5,7 @@ const baseURL = remoteBaseURL ?? 'http://127.0.0.1:8788';
 
 export default defineConfig({
   testDir: 'e2e',
-  testMatch: /(production|toolbox)\.spec\.ts/,
+  testMatch: /(production|toolbox|scroll-lock)\.spec\.ts/,
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

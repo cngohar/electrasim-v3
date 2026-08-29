@@ -1,7 +1,7 @@
 ---
-import LightExplorerLayout from '../../layouts/LightExplorerLayout.astro';
-import LightExplorerApp from '../../experimental/light-explorer/LightExplorerApp.astro';
-import { getEdison1879SEO } from '../../experimental/light-explorer/data/seo';
+import LightExplorerLayout from '../../../../layouts/LightExplorerLayout.astro';
+import LightExplorerApp from '../../../../experimental/light-explorer/LightExplorerApp.astro';
+import { getEdison1879SEO } from '../../../../experimental/light-explorer/data/seo';
 
 const seo = getEdison1879SEO();
 ---
@@ -9,7 +9,7 @@ const seo = getEdison1879SEO();
 <LightExplorerLayout
   title={seo.title}
   description={seo.description}
-  canonical="https://electrasim.com/explore/edison-bulb/"
+  canonical={seo.canonical}
   ogImage={seo.ogImage}
   ogImageAlt={seo.ogImageAlt}
   structuredData={seo.structuredData}

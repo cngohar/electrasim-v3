@@ -1,7 +1,7 @@
 ---
-import LightExplorerLayout from '../../layouts/LightExplorerLayout.astro';
-import LightExplorerApp from '../../experimental/light-explorer/LightExplorerApp.astro';
-import { LIGHT_EXPLORER_SEO } from '../../experimental/light-explorer/data/seo';
+import LightExplorerLayout from '../../../layouts/LightExplorerLayout.astro';
+import LightExplorerApp from '../../../experimental/light-explorer/LightExplorerApp.astro';
+import { LIGHT_EXPLORER_SEO } from '../../../experimental/light-explorer/data/seo';
 
 const { title, description, canonical, ogImage, ogImageAlt, structuredData } = LIGHT_EXPLORER_SEO;
 ---
@@ -9,7 +9,7 @@ const { title, description, canonical, ogImage, ogImageAlt, structuredData } = L
 <LightExplorerLayout
   title={title}
   description={description}
-  canonical="https://electrasim.com/explore/"
+  canonical={canonical}
   ogImage={ogImage}
   ogImageAlt={ogImageAlt}
   structuredData={structuredData}

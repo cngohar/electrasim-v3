@@ -17,7 +17,7 @@ const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? localBaseURL;
 
 export default defineConfig({
   testDir: 'e2e',
-  testIgnore: /(production|toolbox)\.spec\.ts/,
+  testIgnore: /(production|toolbox|scroll-lock)\.spec\.ts/,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
