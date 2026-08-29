@@ -9,6 +9,7 @@
   if (!canvas) return;
   let THREE, renderer, scene, camera, lamp, filament, filamentGlow, raf, powered = false, mode = 'assembly';
   let yaw = .35, pitch = .15, zoom = 7, drag = null;
+  let appliedVoltage = 0, failed = false, buildStep = 0;
   const components = {};
   const makeMat = (color, opts = {}) => new THREE.MeshPhysicalMaterial({ color, roughness: .42, metalness: .08, ...opts });
   const cyl = (r, h, mat, y = 0) => { const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 48), mat); m.position.y = y; return m; };
@@ -32,6 +33,18 @@
     components.plates = new THREE.Group(); for (const x of [-.48, .48]) { const p = new THREE.Mesh(new THREE.BoxGeometry(.18, .65, .7), makeMat('#b8783e', { metalness: .65 })); p.position.set(x, -1.35, 0); components.plates.add(p); } lamp.add(components.plates);
     components.contacts = cyl(.9, .12, makeMat('#b8783e', { metalness: .7 }), -1.72); lamp.add(components.contacts);
     if (mode === 'disassemble') { components.envelope.position.y += 1.4; components.tip.position.y += 2; components.platinum.position.y -= .3; components.plates.position.y -= .35; components.contacts.position.y -= .55; }
+    if (mode === 'build') {
+      // A physical construction sequence, from contact hardware to sealed lamp.
+      const reveal = [components.contacts, components.plates, components.stem, components.platinum, components.filament, components.envelope, components.tip];
+      reveal.forEach((object, index) => { object.visible = index <= buildStep; object.position.y += (index - 3) * .16; });
+    }
+    if (mode === 'cutaway') components.envelope.scale.x = .58;
+    if (mode === 'xray') components.envelope.scale.set(.9, 1.08, .9);
+    if (failed) { components.filament.visible = false; }
+    const heat = Math.min(1, appliedVoltage / 110);
+    components.filament.material.emissive = new THREE.Color(failed ? '#210b06' : '#ff4d18');
+    components.filament.material.emissiveIntensity = failed ? .05 : heat * 5;
+    if (filamentGlow) { filamentGlow.intensity = powered ? 2 + heat * 18 : 2; filamentGlow.color.set(heat > .75 ? '#ffd36b' : '#e3a86d'); }
     for (const [name, object] of Object.entries(components)) { object.userData = { name }; }
   }
   function render() { if (!renderer || !scene) return; camera.position.set(Math.sin(yaw) * zoom, Math.sin(pitch) * zoom * .45, Math.cos(yaw) * zoom); camera.lookAt(0, .15, 0); renderer.render(scene, camera); if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) raf = requestAnimationFrame(render); }
@@ -40,8 +53,21 @@
   async function load() { try { THREE = await import('three'); start(); } catch { loading.textContent = '3D is unavailable — use the accessible history below.'; } }
   function refresh() { if (renderer) { cancelAnimationFrame(raf); build(); render(); } }
   enter?.addEventListener('click', () => { enter.textContent = 'LAB OPEN'; hint.classList.add('is-hidden'); });
-  power?.addEventListener('click', () => { powered = !powered; power.textContent = powered ? 'POWER ON' : 'POWER OFF'; refresh(); });
-  document.querySelectorAll('[data-mode]').forEach((button) => button.addEventListener('click', () => { mode = button.dataset.mode; document.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('active', b === button)); refresh(); }));
+  function updatePhysics() {
+    appliedVoltage = Number(document.getElementById('le-voltage')?.value || 0);
+    powered = appliedVoltage > 0;
+    if (appliedVoltage >= 124) failed = true;
+    const output = document.getElementById('le-voltage-out');
+    if (output) output.textContent = `${appliedVoltage} V`;
+    const physics = document.getElementById('le-physics-status');
+    if (physics) physics.textContent = failed ? 'SIMULATION · FILAMENT FAILED' : `SIMULATION · ${powered ? `POWER ${appliedVoltage} V · P ≈ ${(appliedVoltage * appliedVoltage / 140).toFixed(1)} W` : 'POWER OFF'}`;
+    if (power) power.textContent = powered ? 'POWER ON' : 'POWER OFF';
+    refresh();
+  }
+  power?.addEventListener('click', () => { const slider = document.getElementById('le-voltage'); if (failed) return; const next = powered ? 0 : 110; if (slider) slider.value = String(next); updatePhysics(); });
+  document.getElementById('le-voltage')?.addEventListener('input', updatePhysics);
+  document.querySelectorAll('[data-mode]').forEach((button) => button.addEventListener('click', () => { mode = button.dataset.mode; if (mode === 'build') { buildStep = (buildStep + 1) % 7; } document.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('active', b === button)); refresh(); }));
+  document.getElementById('le-reset')?.addEventListener('click', () => { appliedVoltage = 0; powered = false; failed = false; buildStep = 0; const slider = document.getElementById('le-voltage'); if (slider) slider.value = '0'; mode = 'assembly'; document.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('active', b.dataset.mode === 'assembly')); updatePhysics(); });
   document.getElementById('le-history')?.addEventListener('click', () => openPanel(history));
   document.getElementById('le-history-close')?.addEventListener('click', () => { history.hidden = true; });
   document.getElementById('le-close')?.addEventListener('click', () => { inspector.hidden = true; });
