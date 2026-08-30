@@ -124,10 +124,10 @@ describe('useSimulation request sequencing', () => {
     const narrated: SimulationResult = {
       ...resultFor('bulb-1'),
       errors: [
-        '⚡ Cartridge Fuse (13A) TRIPPED: bolted short circuit — cleared in <0.1 s.',
-        '🔧 TERMINAL DISCONNECT: Loose terminal screw on Push Button port!',
+        'Cartridge Fuse (13A) TRIPPED: bolted short circuit — cleared in <0.1 s.',
+        'TERMINAL DISCONNECT: Loose terminal screw on Push Button port!',
       ],
-      warnings: ['🔒 BREAKER JAMMED OPEN: Device mechanism locked in open state.'],
+      warnings: ['BREAKER JAMMED OPEN: Device mechanism locked in open state.'],
       // index 1 of errors, index 0 of warnings name the fault outright
       faultNarrationErrors: [1],
       faultNarrationWarnings: [0],
@@ -150,8 +150,8 @@ describe('useSimulation request sequencing', () => {
   it('still reports fault narration when no Diagnosis is active (negative control)', async () => {
     const narrated: SimulationResult = {
       ...resultFor('bulb-1'),
-      errors: ['🔧 TERMINAL DISCONNECT: Loose terminal screw on Push Button port!'],
-      warnings: ['🔒 BREAKER JAMMED OPEN: Device mechanism locked in open state.'],
+      errors: ['TERMINAL DISCONNECT: Loose terminal screw on Push Button port!'],
+      warnings: ['BREAKER JAMMED OPEN: Device mechanism locked in open state.'],
       faultNarrationErrors: [0],
       faultNarrationWarnings: [0],
     };

@@ -1,17 +1,18 @@
 import { GraduationCap, Sparkles, Wrench } from 'lucide-react';
 import { useUiStore } from '../../../store';
 import { APP_VERSION } from '../../../version';
+import { EmojiGlyph } from '../EmojiGlyph';
 
 const ROADMAP: Array<[icon: string, item: string, status: string]> = [
-  ['✅', 'Simulation engine + fault detection', 'shipped'],
-  ['✅', 'Smart wiring + undo/redo', 'shipped'],
-  ['✅', 'Multi-select, copy/paste, custom wiring', 'shipped'],
-  ['✅', 'Alignment, mini-map, colour presets', 'shipped'],
-  ['✅', 'Dark mode + PWA + offline support', 'shipped'],
-  ['✅', 'Import / Export / Share URL', 'shipped'],
-  ['✅', '6 new components (RCD, Contactor, Timer, Dimmer, DB, Bell)', 'shipped'],
-  ['🔮', 'Cloud save + accounts', 'v2.0'],
-  ['🔮', 'AI assistant', 'v2.0'],
+  ['tick', 'Simulation engine + fault detection', 'shipped'],
+  ['tick', 'Smart wiring + undo/redo', 'shipped'],
+  ['tick', 'Multi-select, copy/paste, custom wiring', 'shipped'],
+  ['tick', 'Alignment, mini-map, colour presets', 'shipped'],
+  ['tick', 'Dark mode + PWA + offline support', 'shipped'],
+  ['tick', 'Import / Export / Share URL', 'shipped'],
+  ['tick', '6 new components (RCD, Contactor, Timer, Dimmer, DB, Bell)', 'shipped'],
+  ['crystal', 'Cloud save + accounts', 'v2.0'],
+  ['crystal', 'AI assistant', 'v2.0'],
 ];
 
 export function AboutTab() {
@@ -20,8 +21,8 @@ export function AboutTab() {
       <div className="relative overflow-hidden rounded-xl border border-blue-200 bg-gradient-to-br from-blue-600 to-blue-700 p-5 text-white shadow-lg shadow-blue-600/20">
         <div className="absolute right-0 top-0 size-32 rounded-bl-full bg-white/5" />
         <div className="relative flex items-center gap-3">
-          <div className="flex size-12 items-center justify-center rounded-xl bg-white/15 text-2xl shadow-sm">
-            ⚡
+          <div className="flex size-12 items-center justify-center rounded-xl bg-white/15 shadow-sm">
+            <EmojiGlyph emoji="bolt" size={26} />
           </div>
           <div>
             <div className="text-lg font-bold tracking-tight">ElectraSim</div>
@@ -75,13 +76,13 @@ export function AboutTab() {
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-white/80 p-3 dark:border-slate-700 dark:bg-slate-800/60">
-        <div className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-          🗺️ Roadmap
+        <div className="mb-2 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+          <EmojiGlyph emoji="map" size={12} /> Roadmap
         </div>
         <div className="space-y-1">
           {ROADMAP.map(([icon, item, status]) => (
             <div key={item} className="flex items-center gap-2 py-0.5 text-[11px]">
-              <span>{icon}</span>
+              <EmojiGlyph emoji={icon} size={14} className="shrink-0" />
               <span
                 className={`flex-1 ${status === 'shipped' ? 'text-slate-700 dark:text-slate-300' : status === 'in progress' ? 'font-semibold text-blue-700 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'}`}
               >
@@ -104,7 +105,7 @@ export function AboutTab() {
           rel="noopener noreferrer"
           className="flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-[11px] font-semibold text-blue-700 transition hover:bg-blue-100 dark:border-blue-700 dark:bg-blue-950/60 dark:text-blue-400 dark:hover:bg-blue-900/60"
         >
-          <span>📘</span> Facebook
+          <EmojiGlyph emoji="book" size={14} /> Facebook
         </a>
         <button
           type="button"
@@ -114,7 +115,7 @@ export function AboutTab() {
           }}
           className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
         >
-          <span>✉️</span> Contact
+          <EmojiGlyph emoji="envelope" size={14} /> Contact
         </button>
         <a
           href="https://electrasim.com"
@@ -122,12 +123,12 @@ export function AboutTab() {
           rel="noopener noreferrer"
           className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
         >
-          <span>🌐</span> electrasim.com
+          <EmojiGlyph emoji="globe" size={14} /> electrasim.com
         </a>
       </div>
 
-      <div className="text-center text-[10px] text-slate-400 dark:text-slate-500">
-        Built with ⚡ · Preferences stored locally · No tracking
+      <div className="flex items-center justify-center gap-1 text-center text-[10px] text-slate-400 dark:text-slate-500">
+        Built with <EmojiGlyph emoji="bolt" size={11} /> · Preferences stored locally · No tracking
       </div>
     </div>
   );

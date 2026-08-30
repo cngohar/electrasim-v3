@@ -20,7 +20,7 @@ export const FAN_AND_LOAD_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '🌀',
+    icon: 'fan',
   },
 
   'extractor-fan': {
@@ -34,7 +34,7 @@ export const FAN_AND_LOAD_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '🌀',
+    icon: 'fan',
   },
 
   'industrial-exhaust-fan': {
@@ -49,7 +49,7 @@ export const FAN_AND_LOAD_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '🌀',
+    icon: 'fan',
   },
 
   'table-fan': {
@@ -63,7 +63,7 @@ export const FAN_AND_LOAD_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '🌀',
+    icon: 'fan',
   },
 
   motor: {
@@ -77,7 +77,7 @@ export const FAN_AND_LOAD_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '🛞',
+    icon: 'wheel',
   },
 
   bell: {
@@ -92,7 +92,7 @@ export const FAN_AND_LOAD_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '🔔',
+    icon: 'bell',
   },
 
   'water-heater': {
@@ -106,7 +106,7 @@ export const FAN_AND_LOAD_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '🚿',
+    icon: 'shower',
   },
 
   'space-heater': {
@@ -120,7 +120,7 @@ export const FAN_AND_LOAD_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '🔥',
+    icon: 'flame',
   },
 
   'air-conditioner': {
@@ -135,7 +135,7 @@ export const FAN_AND_LOAD_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '❄️',
+    icon: 'snow',
   },
 
   'induction-hob': {
@@ -151,7 +151,7 @@ export const FAN_AND_LOAD_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '🍳',
+    icon: 'cooker',
   },
 
   'ev-charger': {
@@ -169,7 +169,7 @@ export const FAN_AND_LOAD_DEFS: Record<string, ComponentDef> = {
       { type: 'neutral', relX: 0, relY: 0.5, label: 'N' },
       { type: 'earth', relX: 0, relY: 0.75, label: 'E' },
     ],
-    icon: '🚗',
+    icon: 'car',
   },
 
   // ─── Fixed permanent domestic circuits (audit-report additions) ──────
@@ -187,7 +187,7 @@ export const FAN_AND_LOAD_DEFS: Record<string, ComponentDef> = {
       { type: 'neutral', relX: 0, relY: 0.5, label: 'N' },
       { type: 'earth', relX: 0, relY: 0.75, label: 'E' },
     ],
-    icon: '🚿',
+    icon: 'shower',
   },
 
   'immersion-heater': {
@@ -203,7 +203,7 @@ export const FAN_AND_LOAD_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '♨️',
+    icon: 'hot-springs',
   },
 
   'extractor-hood': {
@@ -217,7 +217,7 @@ export const FAN_AND_LOAD_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '💨',
+    icon: 'wind',
   },
 
   'underfloor-heating': {
@@ -233,7 +233,7 @@ export const FAN_AND_LOAD_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '🌡️',
+    icon: 'thermometer',
   },
 
   'storage-heater': {
@@ -249,7 +249,7 @@ export const FAN_AND_LOAD_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '🔥',
+    icon: 'flame',
   },
 
   'heat-pump': {
@@ -267,7 +267,7 @@ export const FAN_AND_LOAD_DEFS: Record<string, ComponentDef> = {
       { type: 'neutral', relX: 0, relY: 0.5, label: 'N' },
       { type: 'earth', relX: 0, relY: 0.75, label: 'E' },
     ],
-    icon: '🌬️',
+    icon: 'wind-face',
   },
 
   dishwasher: {
@@ -281,7 +281,7 @@ export const FAN_AND_LOAD_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '🍽️',
+    icon: 'plate',
   },
 
   'washing-machine': {
@@ -295,7 +295,7 @@ export const FAN_AND_LOAD_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '🧺',
+    icon: 'basket',
   },
 
   'tumble-dryer': {
@@ -309,7 +309,7 @@ export const FAN_AND_LOAD_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '🌀',
+    icon: 'fan',
   },
 
   'fridge-freezer': {
@@ -324,6 +324,6 @@ export const FAN_AND_LOAD_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '🧊',
+    icon: 'ice',
   },
 };

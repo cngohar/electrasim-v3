@@ -2,6 +2,7 @@ import { ArrowUpRight } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import type { ComponentDef } from '../../../domain';
+import { EmojiGlyph } from '../EmojiGlyph';
 
 export function WireSeparator({ color = 'blue' }: { color?: 'blue' | 'slate' }) {
   const gradient =
@@ -73,7 +74,7 @@ export function ExternalLink({ href, children }: { href: string; children: React
 export function ComponentCard({ definition }: { definition: ComponentDef }) {
   return (
     <div className="flex items-start gap-3 rounded-xl border border-slate-100 bg-white/60 p-3 transition hover:border-blue-200 hover:shadow-sm dark:border-slate-700 dark:bg-slate-800/60 dark:hover:border-blue-800">
-      <span className="text-2xl leading-none">{definition.icon}</span>
+      <EmojiGlyph emoji={definition.icon} size={26} className="shrink-0" />
       <div className="min-w-0 flex-1">
         <div className="text-xs font-semibold text-slate-800 dark:text-slate-100">
           {definition.label}

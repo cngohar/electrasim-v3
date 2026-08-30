@@ -4,7 +4,7 @@
  * Three-zone full-width strip with the workbench command order:
  *   left:   [ElectraSim] [Undo] [Redo] [Standard]
  *   center: [Guides] [Student/Pro] [Validate] [▶ Run Simulation]
- *           [⚡ Fault Lab] [Analyze] [Diagnostics]   ← exactly centered
+ *           [Fault Lab] [Analyze] [Diagnostics]   ← exactly centered
  *   right:  [⌘K / Ctrl K] [Theme] [Settings] [Menu]
  *
  * All existing behaviour is preserved — this only re-hosts the same buttons

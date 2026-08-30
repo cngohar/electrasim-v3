@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
-console.log('🚀 Running Explore 3D Technical & Visual Verification Probe...\n');
+console.log('[verify] Running Explore 3D Technical & Visual Verification Probe...\n');
 
 const baseUrl = 'http://127.0.0.1:4321';
 
@@ -19,9 +19,9 @@ async function verifyRoute(path, expectedStrings) {
         throw new Error(`Missing expected string "${str}" in ${path}`);
       }
     }
-    console.log(`  ✅ Route ${path} passed validation (${html.length} bytes).`);
+    console.log(`  [pass] Route ${path} passed validation (${html.length} bytes).`);
   } catch (err) {
-    console.error(`  ❌ Failed route ${path}:`, err.message);
+    console.error(`  [fail] Failed route ${path}:`, err.message);
     process.exit(1);
   }
 }
@@ -65,9 +65,9 @@ async function run() {
   if (!exploreCss.includes('.exp-ribbon')) {
     throw new Error('explore.css missing .exp-ribbon');
   }
-  console.log('  ✅ explore.css rules verified.');
+  console.log('  [pass] explore.css rules verified.');
 
-  console.log('\n🎉 ALL EXPLORE VERIFICATION PROBES PASSED 100% CLEAN!\n');
+  console.log('\n[pass] ALL EXPLORE VERIFICATION PROBES PASSED 100% CLEAN!\n');
 }
 
 run();

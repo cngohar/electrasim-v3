@@ -16,6 +16,7 @@ import {
 import { useUiStore } from '../../store';
 import { useSettingsStore } from '../../store/settingsStore';
 import { getDefaultArt } from '../canvas/componentArt';
+import { EmojiGlyph } from './EmojiGlyph';
 import { getComponentImage } from './componentImages';
 
 interface PaletteEntry {
@@ -281,7 +282,7 @@ function TileIcon({
       </div>
     );
   }
-  return <span className="text-xl leading-none">{icon}</span>;
+  return <EmojiGlyph emoji={icon} size={20} className="shrink-0" />;
 }
 
 /** Collapsible section header for palette groups (Recent, essentials and

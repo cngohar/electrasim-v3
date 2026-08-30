@@ -33,7 +33,7 @@ export const SOCKET_DEFS: Record<string, ComponentDef> = {
       { type: 'neutral', relX: 0, relY: 0.5, label: 'N' },
       { type: 'earth', relX: 0, relY: 0.75, label: 'E' },
     ],
-    icon: '⏚',
+    icon: 'ground',
   },
 
   'double-socket': {
@@ -48,7 +48,7 @@ export const SOCKET_DEFS: Record<string, ComponentDef> = {
       { type: 'neutral', relX: 0, relY: 0.5, label: 'N' },
       { type: 'earth', relX: 0, relY: 0.75, label: 'E' },
     ],
-    icon: '🔌',
+    icon: 'plug',
   },
 
   'socket-usb': {
@@ -64,7 +64,7 @@ export const SOCKET_DEFS: Record<string, ComponentDef> = {
       { type: 'neutral', relX: 0, relY: 0.5, label: 'N' },
       { type: 'earth', relX: 0, relY: 0.75, label: 'E' },
     ],
-    icon: '🔌',
+    icon: 'plug',
   },
 
   'socket-gfci': {
@@ -81,7 +81,7 @@ export const SOCKET_DEFS: Record<string, ComponentDef> = {
       { type: 'neutral', relX: 0, relY: 0.5, label: 'N' },
       { type: 'earth', relX: 0, relY: 0.75, label: 'E' },
     ],
-    icon: '🛡️',
+    icon: 'shield',
   },
 
   'socket-industrial': {
@@ -97,7 +97,7 @@ export const SOCKET_DEFS: Record<string, ComponentDef> = {
       { type: 'neutral', relX: 0, relY: 0.5, label: 'N' },
       { type: 'earth', relX: 0, relY: 0.75, label: 'E' },
     ],
-    icon: '🔌',
+    icon: 'plug',
   },
 
   // ─── US / NEMA 5-15 ─────────────────────────────────────────────────────
@@ -113,7 +113,7 @@ export const SOCKET_DEFS: Record<string, ComponentDef> = {
       { type: 'neutral', relX: 0, relY: 0.5, label: 'N' },
       { type: 'earth', relX: 0, relY: 0.75, label: 'E' },
     ],
-    icon: '⏚',
+    icon: 'ground',
   },
   'double-socket-us': {
     label: 'NEMA 5-15R Duplex (15A)',
@@ -127,7 +127,7 @@ export const SOCKET_DEFS: Record<string, ComponentDef> = {
       { type: 'neutral', relX: 0, relY: 0.5, label: 'N' },
       { type: 'earth', relX: 0, relY: 0.75, label: 'E' },
     ],
-    icon: '🔌',
+    icon: 'plug',
   },
 
   // ─── EU / Schuko (CEE 7/3) ─────────────────────────────────────────────
@@ -143,7 +143,7 @@ export const SOCKET_DEFS: Record<string, ComponentDef> = {
       { type: 'neutral', relX: 0, relY: 0.5, label: 'N' },
       { type: 'earth', relX: 0, relY: 0.75, label: 'E' },
     ],
-    icon: '⏚',
+    icon: 'ground',
   },
   'socket-schuko-double': {
     label: 'Schuko Double Socket (CEE 7/3) 16A',
@@ -157,7 +157,7 @@ export const SOCKET_DEFS: Record<string, ComponentDef> = {
       { type: 'neutral', relX: 0, relY: 0.5, label: 'N' },
       { type: 'earth', relX: 0, relY: 0.75, label: 'E' },
     ],
-    icon: '🔌',
+    icon: 'plug',
   },
 
   // ─── Australia / NZ (AS/NZS 3112) ──────────────────────────────────────
@@ -173,7 +173,7 @@ export const SOCKET_DEFS: Record<string, ComponentDef> = {
       { type: 'neutral', relX: 0, relY: 0.5, label: 'N' },
       { type: 'earth', relX: 0, relY: 0.75, label: 'E' },
     ],
-    icon: '⏚',
+    icon: 'ground',
   },
   'socket-as3112-double': {
     label: 'AS/NZS 3112 Twin Socket',
@@ -187,7 +187,7 @@ export const SOCKET_DEFS: Record<string, ComponentDef> = {
       { type: 'neutral', relX: 0, relY: 0.5, label: 'N' },
       { type: 'earth', relX: 0, relY: 0.75, label: 'E' },
     ],
-    icon: '🔌',
+    icon: 'plug',
   },
 
   // ─── India / BS 546 ────────────────────────────────────────────────────
@@ -203,7 +203,7 @@ export const SOCKET_DEFS: Record<string, ComponentDef> = {
       { type: 'neutral', relX: 0, relY: 0.5, label: 'N' },
       { type: 'earth', relX: 0, relY: 0.75, label: 'E' },
     ],
-    icon: '⏚',
+    icon: 'ground',
   },
   'shaver-socket': {
     label: 'Shaver Socket (Bathroom)',
@@ -217,7 +217,7 @@ export const SOCKET_DEFS: Record<string, ComponentDef> = {
       { type: 'neutral', relX: 0, relY: 0.5, label: 'N' },
       { type: 'earth', relX: 0, relY: 0.75, label: 'E' },
     ],
-    icon: '🪒',
+    icon: 'razor',
   },
 
   'socket-bs546-double': {
@@ -232,6 +232,6 @@ export const SOCKET_DEFS: Record<string, ComponentDef> = {
       { type: 'neutral', relX: 0, relY: 0.5, label: 'N' },
       { type: 'earth', relX: 0, relY: 0.75, label: 'E' },
     ],
-    icon: '🔌',
+    icon: 'plug',
   },
 };

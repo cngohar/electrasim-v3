@@ -24,6 +24,7 @@ import {
   primarySocketForPlug,
 } from '../../domain/standards';
 import { useCircuitStore, useSettingsStore, useUiStore } from '../../store';
+import { EmojiGlyph } from './EmojiGlyph';
 
 interface Props {
   /** Compact variant drops the citation text (used on narrow widths). */
@@ -71,7 +72,7 @@ export function StandardSelector({ compact = false }: Props) {
     // hardware choice; the plug controls below remain the sole owner of it.
     setOpen(false);
     addLog(
-      `Standard set to ${preset.flag} ${preset.label} (${preset.citation}) — ${preset.nominalVoltage} V / ${preset.frequencyHz} Hz.`,
+      `Standard set to ${preset.label} (${preset.citation}) — ${preset.nominalVoltage} V / ${preset.frequencyHz} Hz.`,
       'info',
     );
     // Re-validate so newly applicable rules (drop %, RCD, MCB curve) flag up.
@@ -102,7 +103,7 @@ export function StandardSelector({ compact = false }: Props) {
           className="flex max-w-52 items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
         >
           <Globe className="size-3.5 shrink-0 text-indigo-500" />
-          <span className="font-mono">{current.flag}</span>
+          <EmojiGlyph emoji={current.flag} size={13} />
           <span className="shrink-0 font-bold">{current.shortLabel}</span>
           <span className="truncate text-slate-500 dark:text-slate-400" data-standard-citation>
             {current.citation}
@@ -158,7 +159,7 @@ export function StandardSelector({ compact = false }: Props) {
         aria-expanded={open}
       >
         <Globe className="size-3.5" />
-        <span className="font-mono">{current.flag}</span>
+        <EmojiGlyph emoji={current.flag} size={14} />
         {!compact && (
           <span className="hidden md:inline">
             {current.shortLabel} · {PLUG_SYSTEMS[plugSystem].shortLabel}
@@ -194,7 +195,7 @@ export function StandardSelector({ compact = false }: Props) {
                     : 'border-transparent hover:bg-slate-50 dark:hover:bg-slate-800/60'
                 }`}
               >
-                <span className="text-base leading-none">{s.flag}</span>
+                <EmojiGlyph emoji={s.flag} size={16} />
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center justify-between gap-2">
                     <span className="text-xs font-bold text-slate-800 dark:text-slate-100">
@@ -248,7 +249,7 @@ export function StandardSelector({ compact = false }: Props) {
                       : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800/60'
                   }`}
                 >
-                  <span className="text-sm leading-none">{p.flag}</span>
+                  <EmojiGlyph emoji={p.flag} size={14} />
                   <span className="truncate">{p.shortLabel}</span>
                 </button>
               );

@@ -20,7 +20,7 @@ export const LIGHTING_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '💡',
+    icon: 'bulb',
   },
 
   'bulb-incandescent': {
@@ -35,7 +35,7 @@ export const LIGHTING_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '💡',
+    icon: 'bulb',
   },
 
   'bulb-halogen': {
@@ -49,7 +49,7 @@ export const LIGHTING_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '💡',
+    icon: 'bulb',
   },
 
   'bulb-cfl': {
@@ -63,7 +63,7 @@ export const LIGHTING_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '💡',
+    icon: 'bulb',
     bulbAnimationType: 'cfl', // Slow warm-up flicker
   },
 
@@ -79,7 +79,7 @@ export const LIGHTING_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '💡',
+    icon: 'bulb',
     bulbAnimationType: 'led', // Instant on with soft fade
   },
 
@@ -94,7 +94,7 @@ export const LIGHTING_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '💡',
+    icon: 'bulb',
     bulbAnimationType: 'led', // Instant on with soft fade
   },
 
@@ -109,7 +109,7 @@ export const LIGHTING_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '💡',
+    icon: 'bulb',
     bulbAnimationType: 'fluorescent', // Flickering start-up
   },
 };

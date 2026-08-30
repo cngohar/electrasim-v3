@@ -265,6 +265,10 @@ const DEFS: Record<string, IconDef> = {
     label: 'achievement',
     body: '<path d="M36 18h56v26a28 28 0 0 1-56 0z" fill="#FFCC4D"/><path d="M36 24H20a16 16 0 0 0 16 24zM92 24h16a16 16 0 0 1-16 24z" fill="none" stroke="#FFCC4D" stroke-width="9"/><rect x="56" y="70" width="16" height="18" fill="#F4900C"/><rect x="38" y="90" width="52" height="16" rx="6" fill="#FFCC4D"/>',
   },
+  stopwatch: {
+    label: 'reading time',
+    body: '<circle cx="64" cy="72" r="44" fill="#F5F8FA" stroke="#66757F" stroke-width="9"/><circle cx="64" cy="72" r="33" fill="#C7E8FA"/><path d="M64 40v32l22 13" fill="none" stroke="#1D9BF0" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><rect x="47" y="10" width="34" height="16" rx="8" fill="#8899A6"/><circle cx="81" cy="18" r="11" fill="#8899A6"/><circle cx="64" cy="72" r="4" fill="#1D9BF0"/>',
+  },
 };
 
 /**
@@ -340,6 +344,8 @@ export const EMOJI_TO_NAME: Record<string, string> = {
   '\u270D': 'writing',
   '\u2702': 'scissors',
   '\u2699': 'gear',
+  '\u23F1': 'stopwatch',
+  '\u23F1\uFE0F': 'stopwatch',
 };
 
 export interface EmojiIconEntry {

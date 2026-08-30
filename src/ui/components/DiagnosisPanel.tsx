@@ -56,6 +56,7 @@ import { useDiagnosisStore } from '../../store/diagnosisStore';
 import { MAX_ZOOM, MIN_ZOOM } from '../../store/viewportStore';
 import { fitCircuitIntoVisibleRegion } from '../canvas/fitRegion';
 import { useCopyToClipboard } from '../hooks/useCopyToClipboard';
+import { EmojiGlyph } from './EmojiGlyph';
 
 interface Props {
   isPhone: boolean;
@@ -420,7 +421,7 @@ export function DiagnosisPanel({ isPhone }: Props) {
           {ohmageddonMode && (
             <div className="space-y-1.5 rounded-xl border border-rose-300 bg-rose-50/70 p-2 dark:border-rose-800 dark:bg-rose-950/40">
               <p className="flex items-center gap-1.5 text-[11px] font-bold text-rose-800 dark:text-rose-200">
-                <span aria-hidden="true">😈</span> Ohmageddon Mode
+                <EmojiGlyph emoji="devil" size={14} /> Ohmageddon Mode
               </p>
               <p className="text-[9px] leading-relaxed text-rose-700/90 dark:text-rose-300/90">
                 Harder to diagnose, never dishonest. Pick a tier, or leave it off for a normal
@@ -575,14 +576,15 @@ export function DiagnosisPanel({ isPhone }: Props) {
             §28: same success pipeline (Diagnose → Repair → Verify → Success),
             "slightly more playful message... Keep it tasteful and optional."
           */}
-          <p className="text-[13px] font-bold text-emerald-800 dark:text-emerald-200">
+          <p className="flex items-center justify-center gap-1 text-[13px] font-bold text-emerald-800 dark:text-emerald-200">
+            <EmojiGlyph emoji={scenario.rage ? 'devil' : 'party'} size={14} />
             {scenario.rage
               ? solved.length > 1
-                ? '😈 YOU ACTUALLY FOUND THEM ALL'
-                : '😈 YOU ACTUALLY FOUND IT'
+                ? 'YOU ACTUALLY FOUND THEM ALL'
+                : 'YOU ACTUALLY FOUND IT'
               : solved.length > 1
-                ? '🎉 ALL FAULTS CLEARED!'
-                : '🎉 FAULT CLEARED!'}
+                ? 'ALL FAULTS CLEARED!'
+                : 'FAULT CLEARED!'}
           </p>
           {solved.map((entry) => (
             <div key={entry.id}>
@@ -786,7 +788,7 @@ export function DiagnosisPanel({ isPhone }: Props) {
               .map((a) => a.label)
               .join(', ')}`}
           >
-            <span aria-hidden="true">😈</span> Rage Bait
+            <EmojiGlyph emoji="devil" size={12} /> Rage Bait
           </span>
         )}
         <span
@@ -888,8 +890,8 @@ export function DiagnosisPanel({ isPhone }: Props) {
          */}
         {scenario.rage && (
           <div className="rounded-lg border border-rose-200 bg-rose-50/70 p-2 dark:border-rose-900 dark:bg-rose-950/40">
-            <p className="text-[10px] font-bold text-rose-800 dark:text-rose-200">
-              😈 {scenario.rage.tierLabel} active
+            <p className="flex items-center gap-1 text-[10px] font-bold text-rose-800 dark:text-rose-200">
+              <EmojiGlyph emoji="devil" size={12} /> {scenario.rage.tierLabel} active
             </p>
             <ul className="mt-1 space-y-0.5">
               {scenario.rage.applications

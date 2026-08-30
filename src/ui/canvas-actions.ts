@@ -39,7 +39,7 @@ function logConnectionWarnings(
 ): void {
   if (!validation.warnings) return;
   for (const warning of validation.warnings) {
-    addLog(`⚠️ Warning: ${warning.message}`, 'warning');
+    addLog(`Warning: ${warning.message}`, 'warning');
   }
 }
 

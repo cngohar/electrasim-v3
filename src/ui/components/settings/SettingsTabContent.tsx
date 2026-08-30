@@ -38,7 +38,7 @@ function EditingSettings() {
   return (
     <>
       <TabIntro
-        icon="🔌"
+        icon="plug"
         title="Editing Behaviour"
         desc="Controls how the canvas responds to your interactions — wire routing, confirmations, and placement."
       />
@@ -47,8 +47,8 @@ function EditingSettings() {
         description="When enabled, a safety dialog appears before removing any component or wire. Disable to delete instantly with no prompt."
         preview={
           confirmDelete
-            ? '⚠️ A confirmation dialog will appear before each deletion.'
-            : '🗑️ Components and wires are deleted immediately — no dialog shown.'
+            ? 'A confirmation dialog will appear before each deletion.'
+            : 'Components and wires are deleted immediately — no dialog shown.'
         }
         checked={confirmDelete}
         onChange={(value) => setSetting('confirmDelete', value)}
@@ -58,8 +58,8 @@ function EditingSettings() {
         description="Click a port to start a polyline, click empty canvas to add corners, then click the destination port to commit. Each completed wire is one undo entry. Press Esc to cancel. Disable to use the standard single-click wiring."
         preview={
           customWiringMode
-            ? '✏️ Click port → click corners → click port. Full manual control over wire routing.'
-            : '⚡ Standard mode: click source port then destination port — path routed automatically.'
+            ? 'Click port → click corners → click port. Full manual control over wire routing.'
+            : 'Standard mode: click source port then destination port — path routed automatically.'
         }
         checked={customWiringMode}
         onChange={(value) => setSetting('customWiringMode', value)}
@@ -73,7 +73,7 @@ function EditingSettings() {
         description="When two bezier wires cross each other, automatically place a connection joint (dot) at the crossing point. A standard schematic convention for marking intentional junctions. Applies to bezier wires only."
         preview={
           autoWireJoints
-            ? '🔘 A joint dot is drawn wherever two bezier wires cross.'
+            ? 'A joint dot is drawn wherever two bezier wires cross.'
             : '◯ Crossed wires are shown as plain crossings with no joint dot.'
         }
         checked={autoWireJoints}
@@ -84,8 +84,8 @@ function EditingSettings() {
         description="Magnetically align components to neighboring components when dragging, displaying horizontal and vertical alignment guide lines across the canvas. Preserved across profile backup exports and imports."
         preview={
           smartAlignmentGuides
-            ? '📏 Alignment guidelines and magnetic snapping active while dragging.'
-            : '🔓 Free dragging without neighbor alignment guide lines.'
+            ? 'Alignment guidelines and magnetic snapping active while dragging.'
+            : 'Free dragging without neighbor alignment guide lines.'
         }
         checked={smartAlignmentGuides}
         onChange={(value) => setSetting('smartAlignmentGuides', value)}
@@ -95,8 +95,8 @@ function EditingSettings() {
         description="Show a quick-access row of your six most recently placed components at the top of the palette. Disable for a cleaner, category-only palette."
         preview={
           showRecentComponents
-            ? '🕘 The palette opens with your recently placed components on top.'
-            : '📂 The palette shows regional essentials and categories only.'
+            ? 'The palette opens with your recently placed components on top.'
+            : 'The palette shows regional essentials and categories only.'
         }
         checked={showRecentComponents}
         onChange={(value) => setSetting('showRecentComponents', value)}
@@ -117,7 +117,7 @@ function DisplaySettings() {
   return (
     <>
       <TabIntro
-        icon="🖥️"
+        icon="desktop"
         title="Canvas Display"
         desc="Visual preferences — how the canvas looks, color mode, regional wire standards, and hover information."
       />
@@ -126,8 +126,8 @@ function DisplaySettings() {
         description="Hover over any component to see its name, port types, and live energised state. Useful while learning the circuit layout."
         preview={
           showTooltips
-            ? '💬 Hovering a component shows a tooltip with name, ports, and live state.'
-            : '🔕 No tooltips shown on hover — cleaner canvas for experienced users.'
+            ? 'Hovering a component shows a tooltip with name, ports, and live state.'
+            : 'No tooltips shown on hover — cleaner canvas for experienced users.'
         }
         checked={showTooltips}
         onChange={(value) => setSetting('showTooltips', value)}
@@ -142,8 +142,8 @@ function DisplaySettings() {
         description="Display the background dot grid on the canvas. Disable for a clean, grid-free canvas."
         preview={
           showGrid
-            ? '🔲 Dot grid visible — helps with alignment and component placement.'
-            : '⬜ Grid hidden — minimal, distraction-free canvas.'
+            ? 'Dot grid visible — helps with alignment and component placement.'
+            : 'Grid hidden — minimal, distraction-free canvas.'
         }
         checked={showGrid}
         onChange={(value) => setSetting('showGrid', value)}
@@ -153,8 +153,8 @@ function DisplaySettings() {
         description="Display a thumbnail overview of the full canvas in the bottom-right corner. Click it to pan to any area."
         preview={
           showMiniMap
-            ? '🗺️ Mini-map visible — click any spot to jump the canvas there.'
-            : '🔕 Mini-map hidden — full canvas area available.'
+            ? 'Mini-map visible — click any spot to jump the canvas there.'
+            : 'Mini-map hidden — full canvas area available.'
         }
         checked={showMiniMap}
         onChange={(value) => setSetting('showMiniMap', value)}
@@ -177,7 +177,7 @@ function SimulationSettings() {
   return (
     <>
       <TabIntro
-        icon="⚡"
+        icon="bolt"
         title="Simulation Visuals"
         desc="Control how live electricity is rendered on the canvas — flow animations, load effects, and performance mode."
       />
@@ -186,7 +186,7 @@ function SimulationSettings() {
         description="Animated dashes move along energised wires showing current direction. Runs at 24 fps to balance visual clarity and CPU cost."
         preview={
           currentFlowAnimation
-            ? '〰️ Dashes animate along live wires, indicating current direction and polarity.'
+            ? 'Dashes animate along live wires, indicating current direction and polarity.'
             : '─ Energised wires are highlighted statically — no moving dashes.'
         }
         checked={currentFlowAnimation}
@@ -197,7 +197,7 @@ function SimulationSettings() {
         description="Energised loads show visual feedback: bulbs glow, fans rotate, motors and bells pulse. Disable on low-end hardware for smoother performance."
         preview={
           activeLoadEffects
-            ? '💡 Bulbs glow, fans spin, motors and bells pulse when energised by a live circuit.'
+            ? 'Bulbs glow, fans spin, motors and bells pulse when energised by a live circuit.'
             : '○ Load components show a static energised colour with no animations.'
         }
         checked={activeLoadEffects}
@@ -208,8 +208,8 @@ function SimulationSettings() {
         description="Disables wire glow and flow animation to save CPU — critical on low-end devices. Also auto-activates when your circuit exceeds 50 components."
         preview={
           reducedEffects
-            ? '🏎️ Performance mode ON — wire glow and flow animation suppressed for max fps.'
-            : '✨ Full visuals ON — glow halos and animations active (auto-disables at 50+ components).'
+            ? 'Performance mode ON — wire glow and flow animation suppressed for max fps.'
+            : 'Full visuals ON — glow halos and animations active (auto-disables at 50+ components).'
         }
         checked={reducedEffects}
         onChange={(value) => setSetting('reducedEffects', value)}
@@ -230,12 +230,12 @@ function SimulationSettings() {
        * to them.
        */}
       <ElectricToggle
-        label="😈 Ohmageddon Mode"
+        label="Ohmageddon Mode"
         description="Deliberately difficult diagnostic challenges. Enable only if you want the challenge to fight back. Adds red herrings, faults placed far from the symptom, and fewer hints to the Diagnosis Lab. The electrical simulation stays completely honest — only the diagnosis gets harder."
         preview={
           ohmageddonMode
-            ? '😈 Rage tiers are selectable in the Diagnosis Lab. Expect decoys, remote faults and rationed hints.'
-            : '🎓 Normal educational challenges only — no red herrings, no chaos, full hints.'
+            ? 'Rage tiers are selectable in the Diagnosis Lab. Expect decoys, remote faults and rationed hints.'
+            : 'Normal educational challenges only — no red herrings, no chaos, full hints.'
         }
         checked={ohmageddonMode}
         onChange={(value) => setSetting('ohmageddonMode', value)}

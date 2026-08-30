@@ -15,6 +15,7 @@ import { loadGuidedCircuitIntoEditor } from '../../../lib/guidedCircuitLoader';
 import { remapShortcutLabel } from '../../../lib/platform';
 import { useUiStore } from '../../../store';
 import { APP_VERSION } from '../../../version';
+import { EmojiGlyph } from '../EmojiGlyph';
 import { ComponentCard, ExternalLink, SectionHeading, Step, WireSeparator } from './DocsPrimitives';
 import {
   CATEGORY_ORDER,
@@ -345,7 +346,15 @@ function WiringSection() {
 
         <div className="flex items-center justify-center rounded-xl border-2 border-dashed border-blue-200 bg-blue-50/30 py-10 dark:border-blue-900 dark:bg-blue-950/20">
           <div className="text-center">
-            <div className="mb-2 text-4xl">🔴 → 🔌 → 💡 → 🔵</div>
+            <div className="mb-2 flex items-center justify-center gap-2 text-4xl">
+              <EmojiGlyph emoji="red-circle" size={30} />
+              <span className="text-2xl text-blue-400 dark:text-blue-500">→</span>
+              <EmojiGlyph emoji="plug" size={30} />
+              <span className="text-2xl text-blue-400 dark:text-blue-500">→</span>
+              <EmojiGlyph emoji="bulb" size={30} />
+              <span className="text-2xl text-blue-400 dark:text-blue-500">→</span>
+              <EmojiGlyph emoji="blue-circle" size={30} />
+            </div>
             <div className="text-[10px] text-blue-300 dark:text-blue-500">
               A complete circuit: Live → Switch → Bulb → Neutral
             </div>
@@ -563,7 +572,7 @@ function TipsSection() {
             key={tip}
             className="flex gap-2 rounded-xl border border-slate-100 bg-white/60 p-3 dark:border-slate-700 dark:bg-slate-800/60"
           >
-            <span className="mt-0.5 text-amber-400">💡</span>
+            <EmojiGlyph emoji="bulb" size={16} className="mt-0.5 shrink-0" />
             <span className="text-xs leading-relaxed text-slate-600 dark:text-slate-400">
               {remapShortcutLabel(tip)}
             </span>

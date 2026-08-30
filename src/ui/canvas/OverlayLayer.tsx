@@ -9,6 +9,7 @@ import {
   getPortPos,
   snapToGrid,
 } from '../../domain';
+import { emojiDataUri, emojiTextSymbol } from '../../lib/emoji/emojiSvg';
 import { type PendingCustomPath, useSettingsStore, useUiStore } from '../../store';
 import { WireEndpointHandles } from './WireLayer';
 import { getDefaultArt } from './componentArt';
@@ -358,6 +359,30 @@ function DragRect({
   );
 }
 
+/** Canvas glyph for a component definition icon: official Twemoji artwork for
+ *  pictographs, plain text symbol for deliberate non-emoji marks (⏚, ⑊). */
+function DefinitionGlyph({
+  icon,
+  cx,
+  cy,
+  size,
+}: {
+  icon: string;
+  cx: number;
+  cy: number;
+  size: number;
+}) {
+  const uri = emojiDataUri(icon, size);
+  if (uri) {
+    return <image href={uri} x={cx - size / 2} y={cy - size / 2} width={size} height={size} />;
+  }
+  return (
+    <text x={cx} y={cy + size / 3} textAnchor="middle" fontSize={size}>
+      {emojiTextSymbol(icon) ?? icon}
+    </text>
+  );
+}
+
 function GhostComponent({
   type,
   cursor,
@@ -399,9 +424,7 @@ function GhostComponent({
           preserveAspectRatio="xMidYMid meet"
         />
       ) : (
-        <text x={COMP_W / 2} y={28} textAnchor="middle" fontSize="20">
-          {definition.icon}
-        </text>
+        <DefinitionGlyph icon={definition.icon} cx={COMP_W / 2} cy={21} size={20} />
       )}
       <text
         x={COMP_W / 2}
@@ -494,9 +517,7 @@ function VariantPreviewGhost({ type, component, theme }: VariantPreviewGhostProp
           preserveAspectRatio="xMidYMid meet"
         />
       ) : (
-        <text x={COMP_W / 2} y={32} textAnchor="middle" fontSize="22">
-          {definition.icon}
-        </text>
+        <DefinitionGlyph icon={definition.icon} cx={COMP_W / 2} cy={23} size={22} />
       )}
 
       {/* Variant Label */}

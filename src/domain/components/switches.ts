@@ -20,7 +20,7 @@ export const SWITCH_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L-in' },
       { type: 'live', relX: 1, relY: 0.5, label: 'L-out' },
     ],
-    icon: '🔌',
+    icon: 'plug',
   },
 
   'two-way-switch': {
@@ -39,7 +39,7 @@ export const SWITCH_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.25, label: 'L1' },
       { type: 'live', relX: 1, relY: 0.75, label: 'L2' },
     ],
-    icon: '🔀',
+    icon: 'shuffle',
   },
 
   'intermediate-switch': {
@@ -57,7 +57,7 @@ export const SWITCH_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.35, label: 'L1-out' },
       { type: 'live', relX: 1, relY: 0.65, label: 'L2-out' },
     ],
-    icon: '🔀',
+    icon: 'shuffle',
   },
 
   'double-pole-switch': {
@@ -76,7 +76,7 @@ export const SWITCH_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.35, label: 'L-out' },
       { type: 'neutral', relX: 1, relY: 0.65, label: 'N-out' },
     ],
-    icon: '🔌',
+    icon: 'plug',
   },
 
   'push-button': {
@@ -91,7 +91,7 @@ export const SWITCH_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L-in' },
       { type: 'live', relX: 1, relY: 0.5, label: 'L-out' },
     ],
-    icon: '🔘',
+    icon: 'radio-button',
   },
 
   'rotary-selector-switch': {
@@ -106,7 +106,7 @@ export const SWITCH_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.35, label: 'AUTO' },
       { type: 'live', relX: 1, relY: 0.65, label: 'MAN' },
     ],
-    icon: '🎛️',
+    icon: 'knobs',
   },
 
   contactor: {
@@ -122,7 +122,7 @@ export const SWITCH_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.35, label: 'L-out' },
       { type: 'neutral', relX: 1, relY: 0.65, label: 'N-out' },
     ],
-    icon: '⚡',
+    icon: 'bolt',
   },
 
   'cooker-unit': {
@@ -143,6 +143,6 @@ export const SWITCH_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.35, label: 'L-out' },
       { type: 'neutral', relX: 1, relY: 0.65, label: 'N-out' },
     ],
-    icon: '🍳',
+    icon: 'cooker',
   },
 };

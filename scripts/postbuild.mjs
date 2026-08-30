@@ -32,7 +32,7 @@ function copyDir(src, dest) {
   }
 }
 
-console.log('\n📦 postbuild: merging Vite + Astro output...\n');
+console.log('\n[postbuild] merging Vite + Astro output...\n');
 
 // 1. Move Vite's SPA shell + assets to /app/
 mkdirSync(join(dist, 'app'), { recursive: true });
@@ -85,4 +85,4 @@ copyDir(distAstro, dist);
 rmSync(distAstro, { recursive: true, force: true });
 console.log('  cleaned: dist-astro/');
 
-console.log('\n✅ postbuild complete.\n');
+console.log('\n[postbuild] complete.\n');

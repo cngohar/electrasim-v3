@@ -154,7 +154,7 @@ test.describe('Diagnosis Lab', () => {
     // than the 30 s default.
     test.setTimeout(120_000);
     // Regression: the simulator narrates every injected fault by name
-    // ("🔧 TERMINAL DISCONNECT: ...", "⚡ SHORT CIRCUIT FAULT: ...") and those
+    // ("TERMINAL DISCONNECT: ...", "SHORT CIRCUIT FAULT: ...") and those
     // messages were rendered in the Console panel and the fault-alert modal
     // during a Diagnosis exercise — handing over the answer that the learner
     // was simultaneously being asked to pick from a list. The previous §14

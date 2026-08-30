@@ -112,5 +112,5 @@ const server = createServer((req, res) => {
 });
 
 server.listen(port, host, () => {
-  console.log(`⚡ Preview server running at http://${host}:${port}/ (serving ${dist})`);
+  console.log(`[preview] Preview server running at http://${host}:${port}/ (serving ${dist})`);
 });

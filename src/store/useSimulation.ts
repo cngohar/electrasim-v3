@@ -133,7 +133,7 @@ export function useSimulation() {
             // hint points straight at the faulted component.
             const diagnosing = useUiStore.getState().diagnosisActive;
             const faultAlert = {
-              title: '⚡ CIRCUIT PROTECTION TRIPPED!',
+              title: 'CIRCUIT PROTECTION TRIPPED!',
               kind: 'trip' as const,
               deviceName: trip.label,
               deviceId: trip.id,
@@ -166,7 +166,7 @@ export function useSimulation() {
             const ui = useUiStore.getState();
             ui.setSimRunning(false); // Stop simulation immediately
             const faultAlert = {
-              title: '🔥 CABLE OVERLOADED & MELTED!',
+              title: 'CABLE OVERLOADED & MELTED!',
               kind: 'melt' as const,
               wireId: melt.wireId,
               reason: `Cable (${melt.cableMm2} mm²) melted and busted carrying ${melt.currentAmps.toFixed(1)} A because current exceeded cable capacity (${melt.capacityAmps.toFixed(1)} A) and NO active protection device (MCB/Fuse) was present in the circuit!`,
@@ -212,38 +212,38 @@ export function useSimulation() {
               const fType = faultedComp.state.fault;
               const def = COMPONENT_DEFS[faultedComp.type];
               const compLabel = faultedComp.state.autoLabel ?? def?.label ?? faultedComp.type;
-              let faultTitle = '⚡ MANUAL FAULT SIMULATION DETECTED!';
+              let faultTitle = 'MANUAL FAULT SIMULATION DETECTED!';
               let faultReason = `Manual fault injected on ${compLabel}.`;
               let resolution =
                 'Fault Clearing Instructions:\n1. Click "Clear Fault" in the Inspector panel.\n2. Restart simulation.';
 
               if (fType === 'short-circuit') {
-                faultTitle = '⚡ MANUAL SHORT CIRCUIT FAULT!';
+                faultTitle = 'MANUAL SHORT CIRCUIT FAULT!';
                 faultReason = `A manual short-circuit fault was injected on ${compLabel}, triggering immediate emergency shutdown.`;
                 resolution =
                   'Fault Clearing Instructions:\n1. Select the component in the Inspector.\n2. Click "Clear Fault" in the Manual Fault Simulation section.\n3. Restart simulation.';
               } else if (fType === 'open-circuit') {
-                faultTitle = '✂ MANUAL OPEN CIRCUIT BREAK!';
+                faultTitle = 'MANUAL OPEN CIRCUIT BREAK!';
                 faultReason = `A manual open-circuit break was injected on ${compLabel}, interrupting the conductive path.`;
                 resolution =
                   'Fault Clearing Instructions:\n1. Click "Clear Fault" in the Inspector or Context Menu to restore contact continuity.\n2. Restart simulation.';
               } else if (fType === 'reverse-polarity') {
-                faultTitle = '🔄 MANUAL REVERSE POLARITY FAULT!';
+                faultTitle = 'MANUAL REVERSE POLARITY FAULT!';
                 faultReason = `A manual reverse-polarity fault was injected on ${compLabel} (Live and Neutral are swapped).`;
                 resolution =
                   'Fault Clearing Instructions:\n1. Click "Clear Fault" in the Inspector panel or reverse wire connections.\n2. Restart simulation.';
               } else if (fType === 'earth-fault') {
-                faultTitle = '⚡ MANUAL EARTH FAULT!';
+                faultTitle = 'MANUAL EARTH FAULT!';
                 faultReason = `A manual earth leakage / missing ground fault was injected on ${compLabel}.`;
                 resolution =
                   'Fault Clearing Instructions:\n1. Click "Clear Fault" in the Inspector panel.\n2. Ensure continuous CPC protective bonding.';
               } else if (fType === 'smooth-dc-residual') {
-                faultTitle = '🌊 SMOOTH DC RESIDUAL — RCD BLINDED!';
+                faultTitle = 'SMOOTH DC RESIDUAL — RCD BLINDED!';
                 faultReason = `A smooth DC residual fault (EV/PV/VFD earth leakage) was injected on ${compLabel}. Type AC/A/F residual devices cannot detect smooth DC — the sensing toroid saturates and the device stays closed on a live earth fault (BS EN 62423, BS 7671 Reg 531.3.3). Only a Type B device trips on it.`;
                 resolution =
                   'Fault Clearing Instructions:\n1. Select the guarding RCD/RCBO and set its Residual Current Type to B in the Inspector (EV/PV/VFD circuits need Type B or 6 mA RDC-DD protection).\n2. Click "Clear Fault" on the faulted component.\n3. Restart simulation and confirm the Type B device trips.';
               } else if (fType === 'arc-fault') {
-                faultTitle = '🔥 ARC FAULT — NO AFDD PROTECTION!';
+                faultTitle = 'ARC FAULT — NO AFDD PROTECTION!';
                 faultReason = `An arc fault (series/parallel arcing) was injected on ${compLabel}. No AFDD guards this network, so nothing tripped: arc current rides at/below load current with no earth imbalance, leaving MCBs and RCDs blind while the arc reaches ignition temperatures. Only an AFDD (BS EN 62606) detects the waveform.`;
                 resolution =
                   'Fault Clearing Instructions:\n1. Add an AFDD (BS EN 62606) at the origin of this circuit — Reg 421.1.7 requires it on socket circuits up to 32 A in higher-risk residential buildings, HMOs, student accommodation and care homes.\n2. Click "Clear Fault" on the faulted component and repair the damaged conductor/terminal.\n3. Restart simulation and confirm the AFDD trips on a reinjected arc.';
@@ -273,9 +273,7 @@ export function useSimulation() {
               const wfType = faultedWire.fault;
               const faultAlert = {
                 title:
-                  wfType === 'short-circuit'
-                    ? '⚡ MANUAL WIRE SHORT CIRCUIT!'
-                    : '✂ MANUAL WIRE BREAK!',
+                  wfType === 'short-circuit' ? 'MANUAL WIRE SHORT CIRCUIT!' : 'MANUAL WIRE BREAK!',
                 kind: wfType === 'short-circuit' ? ('melt' as const) : ('trip' as const),
                 wireId: faultedWire.id,
                 reason:
@@ -305,8 +303,8 @@ export function useSimulation() {
             const isVoltageMismatch = blown.reason === 'overvoltage';
             const faultAlert = {
               title: isVoltageMismatch
-                ? '⚡ VOLTAGE MISMATCH & OVERVOLTAGE FAULT!'
-                : '💥 COMPONENT BURNED OUT!',
+                ? 'VOLTAGE MISMATCH & OVERVOLTAGE FAULT!'
+                : 'COMPONENT BURNED OUT!',
               kind: 'melt' as const,
               deviceId: blown.id,
               deviceName: comp?.state.autoLabel ?? comp?.type ?? 'Component',

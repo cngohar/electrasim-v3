@@ -11,6 +11,7 @@ import {
   type WireInstance,
 } from '../../../domain';
 import { useCircuitStore, useSettingsStore, useUiStore } from '../../../store';
+import { EmojiGlyph } from '../EmojiGlyph';
 import type { InspectorSelectionState } from './useInspectorSelectionState';
 
 export function InspectorSimulationContent({
@@ -213,7 +214,9 @@ export function InspectorSimulationContent({
                   }
                   className="flex-1 rounded-lg border border-red-300 bg-red-600 py-2 text-xs font-bold text-white hover:bg-red-500 transition shadow-xs"
                 >
-                  ⚡ TRIP Breaker (Manual Fault)
+                  <span className="inline-flex items-center gap-1">
+                    <EmojiGlyph emoji="bolt" size={13} /> TRIP Breaker (Manual Fault)
+                  </span>
                 </button>
               ) : (
                 <button

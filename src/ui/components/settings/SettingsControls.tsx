@@ -4,13 +4,14 @@ import type {
   UserSettings,
   WireColorStandard,
 } from '../../../store/settingsStore';
+import { EmojiGlyph } from '../EmojiGlyph';
 
 type CanvasPreset = UserSettings['canvasPreset'];
 
 export function TabIntro({ icon, title, desc }: { icon: string; title: string; desc: string }) {
   return (
     <div className="flex items-start gap-3 rounded-xl border border-blue-100 bg-blue-50/60 px-3.5 py-3 dark:border-blue-900/50 dark:bg-blue-950/40">
-      <span className="mt-0.5 text-lg leading-none">{icon}</span>
+      <EmojiGlyph emoji={icon} size={20} className="mt-0.5 shrink-0" />
       <div>
         <div className="text-xs font-bold text-blue-800 dark:text-blue-300">{title}</div>
         <div className="mt-0.5 text-[11px] leading-relaxed text-blue-600/80 dark:text-blue-400/80">
@@ -188,9 +189,9 @@ const SCHEME_OPTIONS: Array<{
   icon: string;
   desc: string;
 }> = [
-  { value: 'light', label: 'Light', icon: '☀️', desc: 'Lab Glass white theme' },
-  { value: 'dark', label: 'Dark', icon: '🌙', desc: 'Full dark mode' },
-  { value: 'system', label: 'System', icon: '💻', desc: 'Follow OS setting' },
+  { value: 'light', label: 'Light', icon: 'sun', desc: 'Lab Glass white theme' },
+  { value: 'dark', label: 'Dark', icon: 'moon', desc: 'Full dark mode' },
+  { value: 'system', label: 'System', icon: 'laptop', desc: 'Follow OS setting' },
 ];
 
 export function SchemeSelector({
@@ -221,7 +222,7 @@ export function SchemeSelector({
                 : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800/60 dark:hover:border-blue-600',
             ].join(' ')}
           >
-            <span className="text-base leading-none">{option.icon}</span>
+            <EmojiGlyph emoji={option.icon} size={16} />
             <span
               className={`font-semibold ${value === option.value ? 'text-blue-700 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300'}`}
             >
@@ -241,17 +242,17 @@ const PRESET_OPTIONS: Array<{
   icon: string;
   desc: string;
 }> = [
-  { value: 'default', label: 'Default', icon: '🎨', desc: 'Standard Lab Glass palette' },
+  { value: 'default', label: 'Default', icon: 'paint', desc: 'Standard Lab Glass palette' },
   {
     value: 'high-contrast',
     label: 'High Contrast',
-    icon: '⬛',
+    icon: 'black-square',
     desc: 'Black bg, bold wires, yellow accents',
   },
   {
     value: 'deuteranopia',
     label: 'Colour-blind',
-    icon: '👁️',
+    icon: 'eye',
     desc: 'Orange/purple/cyan — no red/green reliance',
   },
 ];
@@ -284,7 +285,7 @@ export function CanvasPresetSelector({
                 : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800/60 dark:hover:border-blue-600',
             ].join(' ')}
           >
-            <span className="text-base leading-none">{option.icon}</span>
+            <EmojiGlyph emoji={option.icon} size={16} />
             <span
               className={`text-[10px] font-bold ${value === option.value ? 'text-blue-700 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300'}`}
             >
@@ -309,13 +310,13 @@ const WIRE_STANDARD_OPTIONS: Array<{
   {
     value: 'uk_eu',
     label: 'UK / EU Standard',
-    icon: '🇬🇧 🇪🇺',
+    icon: 'flag-gb flag-eu',
     desc: 'Live = Brown · Neutral = Blue · Earth = Green/Yellow (BS 7671 / IEC 60446)',
   },
   {
     value: 'us',
     label: 'US Standard',
-    icon: '🇺🇸',
+    icon: 'flag-us',
     desc: 'Live = Black/Red · Neutral = White/Gray · Earth = Green/Bare (NEC)',
   },
 ];
@@ -348,7 +349,7 @@ export function WireColorStandardSelector({
                 : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800/60 dark:hover:border-blue-600',
             ].join(' ')}
           >
-            <span className="text-base leading-none">{option.icon}</span>
+            <EmojiGlyph emoji={option.icon} size={16} />
             <span
               className={`text-xs font-bold ${value === option.value ? 'text-blue-700 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300'}`}
             >

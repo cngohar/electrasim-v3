@@ -16,7 +16,7 @@ export const SUPPLY_AND_JUNCTION_DEFS: Record<string, ComponentDef> = {
     isSource: true,
     sourceType: 'live',
     ports: [{ type: 'live', relX: 1, relY: 0.5, label: 'L-out' }],
-    icon: '🔴',
+    icon: 'red-circle',
   },
 
   'neutral-terminal': {
@@ -26,7 +26,7 @@ export const SUPPLY_AND_JUNCTION_DEFS: Record<string, ComponentDef> = {
     isSource: true,
     sourceType: 'neutral',
     ports: [{ type: 'neutral', relX: 1, relY: 0.5, label: 'N-out' }],
-    icon: '🔵',
+    icon: 'blue-circle',
   },
 
   'earth-terminal': {
@@ -36,7 +36,7 @@ export const SUPPLY_AND_JUNCTION_DEFS: Record<string, ComponentDef> = {
     isSource: true,
     sourceType: 'earth',
     ports: [{ type: 'earth', relX: 1, relY: 0.5, label: 'PE-out' }],
-    icon: '🟢',
+    icon: 'green-circle',
   },
 
   'ac-mains-supply': {
@@ -51,7 +51,7 @@ export const SUPPLY_AND_JUNCTION_DEFS: Record<string, ComponentDef> = {
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
       { type: 'earth', relX: 1, relY: 0.75, label: 'PE' },
     ],
-    icon: '⚡',
+    icon: 'bolt',
   },
 
   'dc-battery-12v': {
@@ -65,7 +65,7 @@ export const SUPPLY_AND_JUNCTION_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.35, label: '+12V' },
       { type: 'neutral', relX: 1, relY: 0.65, label: '0V' },
     ],
-    icon: '🔋',
+    icon: 'battery',
   },
 
   'solar-pv-panel': {
@@ -79,7 +79,7 @@ export const SUPPLY_AND_JUNCTION_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.35, label: 'DC+' },
       { type: 'neutral', relX: 1, relY: 0.65, label: 'DC-' },
     ],
-    icon: '☀️',
+    icon: 'sun',
   },
 
   'diesel-generator': {
@@ -94,7 +94,7 @@ export const SUPPLY_AND_JUNCTION_DEFS: Record<string, ComponentDef> = {
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
       { type: 'earth', relX: 1, relY: 0.75, label: 'PE' },
     ],
-    icon: '🏭',
+    icon: 'factory',
   },
 
   'kwh-meter': {
@@ -110,7 +110,7 @@ export const SUPPLY_AND_JUNCTION_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.3, label: 'L-out' },
       { type: 'neutral', relX: 1, relY: 0.7, label: 'N-out' },
     ],
-    icon: '🔢',
+    icon: 'numbers',
   },
 
   'earth-rod': {
@@ -121,7 +121,7 @@ export const SUPPLY_AND_JUNCTION_DEFS: Record<string, ComponentDef> = {
     isSource: true,
     sourceType: 'earth',
     ports: [{ type: 'earth', relX: 1, relY: 0.5, label: 'PE' }],
-    icon: '⏚',
+    icon: 'ground',
   },
 
   'junction-box': {
@@ -136,7 +136,7 @@ export const SUPPLY_AND_JUNCTION_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.75, label: 'L-out2' },
       { type: 'live', relX: 0.5, relY: 1, label: 'L-out3' },
     ],
-    icon: '🔲',
+    icon: 'grid-square',
   },
 
   'terminal-strip': {
@@ -151,7 +151,7 @@ export const SUPPLY_AND_JUNCTION_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.35, label: 'Out1' },
       { type: 'live', relX: 1, relY: 0.65, label: 'Out2' },
     ],
-    icon: '🔲',
+    icon: 'grid-square',
   },
 
   'wago-connector': {
@@ -165,6 +165,6 @@ export const SUPPLY_AND_JUNCTION_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.35, label: 'Out1' },
       { type: 'live', relX: 1, relY: 0.65, label: 'Out2' },
     ],
-    icon: '🔲',
+    icon: 'grid-square',
   },
 };
