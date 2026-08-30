@@ -1,0 +1,1857 @@
+---
+/**
+ * CableSizeScene.astro — the hero of the Cable Size Calculator (§9, §10, §11).
+ *
+ * The scene *is* the calculator: SOURCE ──── CABLE ──── LOAD, drawn as one
+ * lightweight SVG that the client engine repaints from a structured state.
+ *
+ * Two rules keep it honest:
+ *
+ * 1. **It paints; it never calculates.** Every number printed here comes from
+ *    `evaluateCableRun()` at build time and from the engine's state at runtime —
+ *    the same engine, so the picture and the panels cannot disagree.
+ * 2. **Cable thickness is a controlled visual scale**, not the physical area
+ *    (see `visual.ts`): `1.5 mm²` is visibly thinner than `10 mm²`, and the label
+ *    always states the true size.
+ *
+ * Rendering is SVG + CSS only (§15) — no 3D engine, no canvas, no WebGL.
+ */
+import { CABLE_SIZE_DEFAULTS, type CableSizeInputs } from '../../lib/tools/cable-size/config';
+import { evaluateCableRun } from '../../lib/tools/cable-size/evaluate';
+import { statusCopy } from '../../lib/tools/cable-size/explain';
+import { getLoadPreset } from '../../lib/tools/cable-size/presets';
+import {
+  SCENE_GEOMETRY,
+  buildSceneState,
+  buildVisualState,
+} from '../../lib/tools/cable-size/visual';
+import { formatLoadPower } from '../../lib/tools/cable-size/format';
+import {
+  formatCurrent,
+  formatLength,
+  formatPercent,
+  formatVoltage,
+} from '../../lib/tools/voltage-drop/formatting';
+
+const { baseWidth: BASE_W, baseHeight: BASE_H, content: SCENE_CONTENT } = SCENE_GEOMETRY;
+const CABLE_PATH = 'M288 352 Q 620 470 962 352';
+
+/**
+ * Scenery detail is generated, not hand-placed, and generated *deterministically*
+ * — no Math.random() in a render, or the server HTML and the client repaint
+ * disagree and the drawing shimmers on every keystroke.
+ */
+function seeded(seed: number | string): () => number {
+  let state =
+    typeof seed === 'number'
+      ? seed
+      : [...seed].reduce((acc, char) => (acc * 31 + char.charCodeAt(0)) % 2147483647, 7);
+  return () => {
+    state = (state * 1103515245 + 12345) % 2147483648;
+    return state / 2147483648;
+  };
+}
+
+/** Gravel on the ground: sparse, denser towards the horizon, never uniform. */
+const GRAVEL = (() => {
+  const rnd = seeded(20260829);
+  const out: Array<{ x: number; y: number; r: number; o: number }> = [];
+  for (let i = 0; i < 54; i += 1) {
+    const depth = rnd();
+    const y = 476 + depth * 150;
+    out.push({
+      x: Math.round(-40 + rnd() * 1360),
+      y: Math.round(y),
+      r: Number((0.7 + depth * 1.5).toFixed(2)),
+      o: Number((0.12 + depth * 0.26).toFixed(2)),
+    });
+  }
+  return out;
+})();
+
+/** Distant lattice pylons: the run is part of a network, not a lab bench. */
+function pylon(x: number, baseY: number, height: number, o: number): string {
+  const halfBase = height * 0.16;
+  const halfTop = height * 0.06;
+  const top = baseY - height;
+  const legs = `M${(x - halfBase).toFixed(1)} ${baseY}L${(x - halfTop).toFixed(1)} ${(top + height * 0.34).toFixed(1)}M${(x + halfBase).toFixed(1)} ${baseY}L${(x + halfTop).toFixed(1)} ${(top + height * 0.34).toFixed(1)}`;
+  const mast = `M${x} ${baseY}V${top.toFixed(1)}`;
+  const braces: string[] = [];
+  const rungs = 5;
+  for (let i = 0; i < rungs; i += 1) {
+    const t0 = i / rungs;
+    const t1 = (i + 1) / rungs;
+    const w0 = halfBase + (halfTop - halfBase) * t0;
+    const w1 = halfBase + (halfTop - halfBase) * t1;
+    const y0 = baseY - height * t0;
+    const y1 = baseY - height * t1;
+    braces.push(
+      `M${(x - w0).toFixed(1)} ${y0.toFixed(1)}L${(x + w1).toFixed(1)} ${y1.toFixed(1)}M${(x + w0).toFixed(1)} ${y0.toFixed(1)}L${(x - w1).toFixed(1)} ${y1.toFixed(1)}`,
+    );
+    braces.push(`M${(x - w0).toFixed(1)} ${y0.toFixed(1)}H${(x + w0).toFixed(1)}`);
+  }
+  // one cross-arm with two insulators, so it reads as a pylon and not a mast
+  const armY = top + height * 0.24;
+  const arm = `M${(x - height * 0.2).toFixed(1)} ${armY.toFixed(1)}H${(x + height * 0.2).toFixed(1)}`;
+  return `<g class="cs2-pylon" opacity="${o}" data-pylon="${x}">${legs}${mast}${braces.join('')}${arm}</g>`;
+}
+const PYLONS = [pylon(410, 470, 78, 0.3), pylon(842, 470, 62, 0.22)];
+
+/** Slow ground fog, so the horizon is weather rather than a hard line. */
+const FOG = [
+  { cx: 300, cy: 486, rx: 420, ry: 26, o: 0.16, dur: '58s' },
+  { cx: 900, cy: 500, rx: 380, ry: 22, o: 0.12, dur: '74s' },
+  { cx: 620, cy: 470, rx: 300, ry: 16, o: 0.1, dur: '66s' },
+];
+
+/** Drifting clouds: three shapes, each with its own speed and height. */
+const CLOUDS = [
+  { x: 150, y: 96, s: 1, dur: '104s', delay: '-12s' },
+  { x: 640, y: 58, s: 0.68, dur: '148s', delay: '-64s' },
+  { x: 1010, y: 128, s: 0.82, dur: '122s', delay: '-96s' },
+];
+const CLOUD_SHAPE =
+  '<ellipse cx="0" cy="0" rx="52" ry="23" /><ellipse cx="-40" cy="7" rx="32" ry="15" /><ellipse cx="40" cy="6" rx="36" ry="17" /><ellipse cx="4" cy="-16" rx="30" ry="19" />';
+
+/** Birds gliding across the sky, in a loose V. */
+const BIRDS = [
+  { y: 156, dur: '34s', delay: '-4s', s: 1 },
+  { y: 186, dur: '34s', delay: '-6.5s', s: 0.85 },
+  { y: 132, dur: '34s', delay: '-9s', s: 0.72 },
+];
+const BIRD_SHAPE = 'M0 0q7 -7 14 0q7 -7 14 0';
+
+/** Trees along the hedge line; the crowns sway from their own trunk tops. */
+const TREES = (() => {
+  const rnd = seeded('cs2-trees');
+  const spots = [
+    [96, 476, 78],
+    [252, 472, 58],
+    [1188, 474, 70],
+    [1304, 470, 54],
+    [452, 470, 44],
+    [868, 470, 48],
+  ];
+  return spots.map(([x, baseY, h], i) => {
+    const w = h * 0.62;
+    const dur = (6 + rnd() * 4).toFixed(1);
+    const delay = (-rnd() * 6).toFixed(1);
+    const trunk = `<path d="M${x} ${baseY}V${baseY - h * 0.55}" stroke="#7a5636" stroke-width="${(h * 0.09).toFixed(1)}" stroke-linecap="round" />`;
+    const crown = `<g class="cs2-sway" style="animation-duration:${dur}s;animation-delay:${delay}s"><ellipse cx="${x}" cy="${baseY - h * 0.72}" rx="${(w * 0.62).toFixed(1)}" ry="${(h * 0.36).toFixed(1)}" fill="${i % 2 ? '#4e9a52' : '#43924c'}" /><ellipse cx="${(x - w * 0.32).toFixed(1)}" cy="${(baseY - h * 0.55).toFixed(1)}" rx="${(w * 0.44).toFixed(1)}" ry="${(h * 0.26).toFixed(1)}" fill="#57a759" /><ellipse cx="${(x + w * 0.34).toFixed(1)}" cy="${(baseY - h * 0.58).toFixed(1)}" rx="${(w * 0.42).toFixed(1)}" ry="${(h * 0.25).toFixed(1)}" fill="#3d8547" /></g>`;
+    return trunk + crown;
+  });
+})();
+
+/** Grass: mown stripes converging on a vanishing point above the horizon. */
+const STRIPES = (() => {
+  const out: string[] = [];
+  const count = 16;
+  const vpx = 640;
+  const vpy = 420;
+  const yBottom = 1180;
+  const yTop = 484;
+  const t = (yBottom - yTop) / (yBottom - vpy);
+  const span = 4200;
+  for (let i = 0; i < count; i += 1) {
+    if (i % 2) continue;
+    const b0 = -1460 + i * (span / count);
+    const b1 = b0 + span / count;
+    const x0 = vpx + (b0 - vpx) * t;
+    const x1 = vpx + (b1 - vpx) * t;
+    out.push(
+      `<path d="M${x0.toFixed(1)} ${yTop}L${x1.toFixed(1)} ${yTop}L${b1.toFixed(1)} ${yBottom}L${b0.toFixed(1)} ${yBottom}Z" fill="#ffffff" opacity="0.075" />`,
+    );
+  }
+  return out;
+})();
+
+/** A bank of nearer grass across the bottom of the frame, out of focus. */
+const NEAR_BANK = (() => {
+  const rnd = seeded('cs2-bank');
+  const out: { x: number; y: number; s: number; dur: string; delay: string; hue: string }[] = [];
+  for (let i = 0; i < 34; i += 1) {
+    const y = 700 + rnd() * 380;
+    const depth = Math.min(1, (y - 700) / 380);
+    const bx = Math.round(-520 + rnd() * 2320);
+    out.push({
+      x: bx,
+      y: Math.round(y),
+      s: 1.5 + depth * 1.3,
+      dur: `${(3.4 + rnd() * 2.4).toFixed(1)}s`,
+      delay: `${(-((bx + 520) / 2840) * 2.8 - rnd() * 0.9).toFixed(2)}s`,
+      hue: depth > 0.5 ? '#2f7a3d' : '#398a41',
+    });
+  }
+  return out;
+})();
+
+/** Tufts and wild flowers at the near edge, so the grass has a surface. */
+const NEAR_FLORA = (() => {
+  const rnd = seeded('cs2-flora');
+  const out: { type: 'tuft' | 'flower'; x: number; y: number; s: number; dur: string; delay: string; hue: string }[] =
+    [];
+  for (let i = 0; i < 96; i += 1) {
+    const y = 486 + rnd() * 560;
+    const depth = Math.min(1, (y - 486) / 260);
+    const x = -420 + rnd() * 2120;
+    const dur = (3.2 + rnd() * 2.6).toFixed(1);
+    /*
+     * The delay follows x, so the gust travels across the field instead of
+     * every blade shaking on its own private clock.
+     */
+    const delay = (-(x + 420) / 2540 * 2.8 - rnd() * 0.9).toFixed(2);
+    out.push({
+      type: 'tuft',
+      x: Math.round(x),
+      y: Math.round(y),
+      s: 0.7 + depth * 1.9,
+      dur: `${dur}s`,
+      delay: `${delay}s`,
+      hue: depth > 0.5 ? '#3f8f45' : '#57a95b',
+    });
+  }
+  for (let i = 0; i < 12; i += 1) {
+    const y = 512 + rnd() * 420;
+    const fx = Math.round(-260 + rnd() * 1800);
+    out.push({
+      type: 'flower',
+      x: fx,
+      y: Math.round(y),
+      s: 0.9 + rnd() * 1.1,
+      dur: `${(3.6 + rnd() * 2).toFixed(1)}s`,
+      delay: `${(-((fx + 260) / 2060) * 2.8 - rnd() * 0.8).toFixed(2)}s`,
+      hue: ['#ffd85e', '#ff9ec2', '#fff3d0', '#c7a6ff'][Math.floor(rnd() * 4)],
+    });
+  }
+  return out;
+})();
+
+const inputs: CableSizeInputs = {
+  ...CABLE_SIZE_DEFAULTS,
+  candidateSizes: [...CABLE_SIZE_DEFAULTS.candidateSizes],
+};
+const evaluation = evaluateCableRun(inputs);
+const scene = buildSceneState(evaluation, {
+  systemType: inputs.systemType,
+  voltage: inputs.voltage,
+  loadType: inputs.loadType,
+});
+const visual = buildVisualState(evaluation, scene);
+const preset = getLoadPreset(scene.loadType);
+const status = statusCopy(scene.status, {
+  dropPercent: scene.voltageDropPercent,
+  dropVolts: scene.voltageDrop,
+  limitPercent: scene.dropLimitPercent,
+});
+
+/** Fraction of the source voltage that actually arrives — drives lamp brightness. */
+const delivered =
+  scene.sourceVoltage > 0 ? Math.min(1, Math.max(0, scene.voltageAtLoad / scene.sourceVoltage)) : 1;
+
+const sceneStyle =
+  `--cable-w:${visual.cableWidthPx};` +
+  `--thickness:${visual.thickness.toFixed(3)};` +
+  `--stress:${visual.stress.toFixed(3)};` +
+  `--flow:${visual.flowSeconds}s;` +
+  `--delivered:${delivered.toFixed(3)};`;
+
+const materialLabel = scene.material === 'copper' ? 'Copper' : 'Aluminium';
+const systemLabel = scene.systemType === 'dc' ? 'DC' : 'AC';
+---
+
+<div
+  id="cs2-scene-root"
+  class="cs2-scene ts-scene-scaler active"
+  data-load={scene.loadScene}
+  data-status={scene.status}
+  data-material={scene.material}
+  data-system={scene.systemType}
+  style={sceneStyle}
+>
+  <div id="cs2-scene-tilt" class="ts-scene-tilt">
+    <svg
+      id="cs2-scene-svg"
+      class="ts-scene-svg"
+      viewBox={`0 0 ${BASE_W} ${BASE_H}`}
+      preserveAspectRatio="xMidYMid slice"
+      role="img"
+      aria-labelledby="cs2-scene-title"
+      data-content-x0={SCENE_CONTENT.x0}
+      data-content-x1={SCENE_CONTENT.x1}
+      data-content-y0={SCENE_CONTENT.y0}
+      data-content-y1={SCENE_CONTENT.y1}
+    >
+      <title id="cs2-scene-title" data-scene-summary>
+        {`Electrical run: ${formatVoltage(scene.sourceVoltage)} ${systemLabel} source feeding a ${formatLoadPower(
+          scene.loadPowerWatts,
+        )} ${preset.name.toLowerCase()} load through ${scene.cableSize} mm² ${materialLabel.toLowerCase()} cable over ${formatLength(
+          scene.cableLength,
+        )}. Voltage drop ${formatVoltage(scene.voltageDrop)} (${formatPercent(
+          scene.voltageDropPercent,
+        )}) — ${status.label}.`}
+      </title>
+      <defs>
+        <!-- daylight: the run happens outside, in weather, on grass -->
+        <linearGradient id="cs2-sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#4aa8dd" />
+          <stop offset="0.52" stop-color="#9ed4f2" />
+          <stop offset="0.86" stop-color="#d8eefb" />
+          <stop offset="1" stop-color="#eef8fb" />
+        </linearGradient>
+        <linearGradient
+          id="cs2-ground"
+          gradientUnits="userSpaceOnUse"
+          x1="0"
+          y1="470"
+          x2="0"
+          y2="800"
+        >
+          <stop offset="0" stop-color="#79bd63" />
+          <stop offset="0.45" stop-color="#5da653" />
+          <stop offset="1" stop-color="#3f8743" />
+        </linearGradient>
+        <radialGradient id="cs2-sun">
+          <stop offset="0" stop-color="#fffdf0" stop-opacity="1" />
+          <stop offset="0.45" stop-color="#ffeaa6" stop-opacity="0.85" />
+          <stop offset="1" stop-color="#ffdf7a" stop-opacity="0" />
+        </radialGradient>
+        <linearGradient id="cs2-cloud" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#ffffff" stop-opacity="0.98" />
+          <stop offset="1" stop-color="#dfeeff" stop-opacity="0.85" />
+        </linearGradient>
+        <linearGradient id="cs2-hill-far" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#a9cfc4" />
+          <stop offset="1" stop-color="#8cbba9" />
+        </linearGradient>
+        <linearGradient id="cs2-hill-near" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#89c188" />
+          <stop offset="1" stop-color="#6aa96f" />
+        </linearGradient>
+        <linearGradient id="cs2-gravel-path" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#e6dcc4" />
+          <stop offset="1" stop-color="#cdbfa1" />
+        </linearGradient>
+        <linearGradient id="cs2-kiosk" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#f0f4f3" />
+          <stop offset="0.55" stop-color="#d3dfdd" />
+          <stop offset="1" stop-color="#aebfbd" />
+        </linearGradient>
+        <linearGradient id="cs2-shed-wall" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#fbedd2" />
+          <stop offset="1" stop-color="#e7d0ab" />
+        </linearGradient>
+        <linearGradient id="cs2-shed-roof" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#b1563c" />
+          <stop offset="1" stop-color="#8d3f2c" />
+        </linearGradient>
+        <linearGradient id="cs2-timber" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#a9773f" />
+          <stop offset="1" stop-color="#7c5330" />
+        </linearGradient>
+        <!-- one sun, high on the right: a warm rim on the faces it reaches -->
+        <linearGradient id="cs2-sunlit" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0.25" stop-color="#ffe9b8" stop-opacity="0" />
+          <stop offset="1" stop-color="#ffe9b8" stop-opacity="0.62" />
+        </linearGradient>
+        <linearGradient id="cs2-shaded" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#16321f" stop-opacity="0.42" />
+          <stop offset="0.5" stop-color="#16321f" stop-opacity="0.08" />
+          <stop offset="1" stop-color="#16321f" stop-opacity="0" />
+        </linearGradient>
+        <radialGradient id="cs2-cloud-shadow">
+          <stop offset="0" stop-color="#123a22" stop-opacity="0.34" />
+          <stop offset="0.65" stop-color="#123a22" stop-opacity="0.12" />
+          <stop offset="1" stop-color="#123a22" stop-opacity="0" />
+        </radialGradient>
+        <radialGradient id="cs2-bay-glow">
+          <stop offset="0" stop-color="#ffcb6b" stop-opacity="0.85" />
+          <stop offset="1" stop-color="#ffcb6b" stop-opacity="0" />
+        </radialGradient>
+        <linearGradient id="cs2-glass" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#e8f7ff" />
+          <stop offset="0.5" stop-color="#b9e1f2" />
+          <stop offset="1" stop-color="#8fc9e0" />
+        </linearGradient>
+        <linearGradient id="cs2-copper" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#ffd7a8" />
+          <stop offset="0.34" stop-color="#e2803a" />
+          <stop offset="0.72" stop-color="#a9451e" />
+          <stop offset="1" stop-color="#f6ad6a" />
+        </linearGradient>
+        <linearGradient id="cs2-aluminium" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#f8fafc" />
+          <stop offset="0.45" stop-color="#93a4b8" />
+          <stop offset="0.8" stop-color="#dbe5ef" />
+          <stop offset="1" stop-color="#728399" />
+        </linearGradient>
+        <linearGradient id="cs2-jacket" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#5c6b73" />
+          <stop offset="0.5" stop-color="#2c373d" />
+          <stop offset="1" stop-color="#161d21" />
+        </linearGradient>
+        <linearGradient id="cs2-panel" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#ffffff" />
+          <stop offset="1" stop-color="#dfe9f2" />
+        </linearGradient>
+        <radialGradient id="cs2-lamp">
+          <stop offset="0" stop-color="#ffd88a" stop-opacity="0.95" />
+          <stop offset="0.55" stop-color="#ffb347" stop-opacity="0.35" />
+          <stop offset="1" stop-color="#ffb347" stop-opacity="0" />
+        </radialGradient>
+        <radialGradient id="cs2-heat">
+          <stop offset="0" stop-color="#ff673d" stop-opacity="0.7" />
+          <stop offset="1" stop-color="#ff673d" stop-opacity="0" />
+        </radialGradient>
+        <pattern id="cs2-grid" width="44" height="44" patternUnits="userSpaceOnUse">
+          <path d="M44 0H0v44" fill="none" stroke="#ffffff" stroke-opacity="0.22" />
+        </pattern>
+        <filter id="cs2-soft">
+          <feGaussianBlur stdDeviation="9" />
+        </filter>
+        <filter id="cs2-lift">
+          <feDropShadow dx="0" dy="9" stdDeviation="10" flood-color="#1c3a24" flood-opacity="0.3" />
+        </filter>
+        <filter id="cs2-shadow-soft">
+          <feGaussianBlur stdDeviation="7" />
+        </filter>
+        <!-- atmosphere: one glow at the horizon, fog, and a frame vignette -->
+        <linearGradient id="cs2-horizon-glow" gradientUnits="userSpaceOnUse" x1="0" y1="330" x2="0" y2="470">
+          <stop offset="0%" stop-color="#fff4cf" stop-opacity="0" />
+          <stop offset="100%" stop-color="#fff6da" stop-opacity="0.4" />
+        </linearGradient>
+        <linearGradient id="cs2-fog" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.62" />
+          <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+        </linearGradient>
+        <radialGradient id="cs2-vignette" cx="50%" cy="46%" r="72%">
+          <stop offset="58%" stop-color="#0b2a1c" stop-opacity="0" />
+          <stop offset="100%" stop-color="#0b2a1c" stop-opacity="0.28" />
+        </radialGradient>
+        <radialGradient id="cs2-lamp-cone">
+          <stop offset="0%" stop-color="#ffd88a" stop-opacity="0.5" />
+          <stop offset="100%" stop-color="#ffd88a" stop-opacity="0" />
+        </radialGradient>
+        <path id="cs2-cable-path" d={CABLE_PATH} fill="none" />
+      </defs>
+
+      <!-- ══ THE WORLD: a summer afternoon, the run strung across a lawn ══ -->
+      <rect x="-760" y="-620" width="2800" height="1090" fill="url(#cs2-sky)" />
+      <rect x="0" y="0" width={BASE_W} height="470" fill="url(#cs2-grid)" />
+
+      <!-- sun: one warm disc, breathing slowly, high on the right -->
+      <g class="cs2-sun" aria-hidden="true">
+        <circle cx="1086" cy="92" r="132" fill="url(#cs2-sun)" class="cs2-sun-aura" />
+        <circle cx="1086" cy="92" r="30" fill="#fffdf2" />
+        <circle cx="1086" cy="92" r="30" fill="none" stroke="#fff3c4" stroke-opacity="0.9" stroke-width="3" />
+      </g>
+
+      <!-- clouds: three, each on its own slow crossing -->
+      <g class="cs2-clouds" aria-hidden="true" fill="url(#cs2-cloud)">
+        {
+          CLOUDS.map((cloud) => (
+            <g transform={`translate(${cloud.x} ${cloud.y}) scale(${cloud.s})`}>
+              <g class="cs2-cloud" style={`animation-duration:${cloud.dur};animation-delay:${cloud.delay}`}>
+                <g set:html={CLOUD_SHAPE} />
+              </g>
+            </g>
+          ))
+        }
+      </g>
+
+      <!-- birds gliding, so the sky is not a still life -->
+      <g class="cs2-birds" aria-hidden="true">
+        {
+          BIRDS.map((bird) => (
+            <g transform={`translate(-60 ${bird.y}) scale(${bird.s})`}>
+              <g class="cs2-bird" style={`animation-duration:${bird.dur};animation-delay:${bird.delay}`}>
+                <g class="cs2-flap" style={`animation-delay:${bird.delay}`}>
+                  <path d={BIRD_SHAPE} fill="none" stroke="#37536a" stroke-width="2.4" stroke-linecap="round" />
+                </g>
+              </g>
+            </g>
+          ))
+        }
+      </g>
+
+      <!-- distance: hazy hills, then the hedge line and trees, then the pylons -->
+      <g class="cs2-distance" aria-hidden="true">
+        <path
+          d="M-40 470V414q96 -34 190 -10q84 22 168 -6q96 -32 190 4q88 34 176 -8q92 -40 186 -4q78 30 170 6v74z"
+          fill="url(#cs2-hill-far)"
+          opacity="0.75"
+        />
+        <path
+          d="M-40 470V440q120 -26 232 -2q104 22 208 -10q112 -34 224 2q104 34 208 -4q76 -26 168 6v38z"
+          fill="url(#cs2-hill-near)"
+          opacity="0.85"
+        />
+        <path
+          d="M-40 470h1360v-9q-96 6 -190 -2q-104 -9 -208 4q-112 14 -224 -3q-104 -16 -208 3q-92 17 -170 -2z"
+          fill="#4f9a53"
+        />
+        <g set:html={TREES.join('')} />
+        <g set:html={PYLONS.join('')} />
+      </g>
+
+      <!-- pylons carry the network: two aircraft-warning beacons still blink -->
+      <g class="cs2-beacons" aria-hidden="true">
+        <circle cx="410" cy="392" r="3.4" class="cs2-beacon" style="animation-delay: 0s" />
+        <circle cx="842" cy="408" r="3" class="cs2-beacon" style="animation-delay: 1.1s" />
+      </g>
+
+      <!-- the lawn: gradient, mown stripes, then the near-edge flora -->
+      <path d="M-760 470h2800v1240H-760z" fill="url(#cs2-ground)" />
+      <g class="cs2-stripes" aria-hidden="true" set:html={STRIPES.join('')} />
+      <path d="M-760 470h2800" stroke="#2f7a3d" stroke-opacity="0.28" stroke-width="2" />
+      <!--
+        The span casts a shadow: offset away from the sun, softened, following the
+        sag. It is drawn on the grass, under everything, so the cable reads as
+        hanging in the air rather than painted on the lawn.
+      -->
+      <path
+        d={CABLE_PATH}
+        class="cs2-cast-shadow"
+        stroke="#123a22"
+        stroke-width="calc(var(--cable-w) * 0.9px + 6px)"
+        stroke-linecap="round"
+        opacity="0.22"
+        filter="url(#cs2-shadow-soft)"
+        transform="translate(-16 96)"
+        aria-hidden="true"
+      />
+      <!-- weather on the ground: two cloud shadows crossing the lawn, very slowly -->
+      <g class="cs2-cloud-shadows" aria-hidden="true">
+        <ellipse
+          class="cs2-cloud-shadow"
+          cx="330"
+          cy="548"
+          rx="330"
+          ry="72"
+          fill="url(#cs2-cloud-shadow)"
+          style="animation-duration:96s;animation-delay:-14s"
+        />
+        <ellipse
+          class="cs2-cloud-shadow"
+          cx="980"
+          cy="604"
+          rx="420"
+          ry="86"
+          fill="url(#cs2-cloud-shadow)"
+          style="animation-duration:132s;animation-delay:-70s"
+        />
+      </g>
+      <!-- gravel: deterministic speckle, denser toward the horizon like the real thing -->
+      <g class="cs2-gravel" aria-hidden="true">
+        {
+          GRAVEL.map((bit) => (
+            <circle cx={bit.x} cy={bit.y} r={bit.r} fill="#f2ede0" opacity={bit.o * 0.9} />
+          ))
+        }
+      </g>
+      <!-- near flora: tufts that sway, flowers that nod -->
+      <g class="cs2-flora" aria-hidden="true">
+        {
+          NEAR_FLORA.map((bit) =>
+            bit.type === 'tuft' ? (
+              <g class="cs2-flora-bit" transform={`translate(${bit.x} ${bit.y})`}>
+              <g class="cs2-tuft" style={`animation-duration:${bit.dur};animation-delay:${bit.delay}`}>
+                <path
+                  d={`M0 0q-1 -${(7 * bit.s).toFixed(1)} -4 -${(12 * bit.s).toFixed(1)}M0 0q0.5 -${(8 * bit.s).toFixed(1)} 1 -${(15 * bit.s).toFixed(1)}M0 0q${(2 * bit.s).toFixed(1)} -${(7 * bit.s).toFixed(1)} ${(5 * bit.s).toFixed(1)} -${(11 * bit.s).toFixed(1)}`}
+                  fill="none"
+                  stroke={bit.hue}
+                  stroke-width={(1.5 * bit.s).toFixed(2)}
+                  stroke-linecap="round"
+                />
+              </g>
+              </g>
+            ) : (
+              <g class="cs2-flora-bit" transform={`translate(${bit.x} ${bit.y})`}>
+              <g class="cs2-flower" style={`animation-duration:${bit.dur};animation-delay:${bit.delay}`}>
+                <path
+                  d={`M0 0v-${(14 * bit.s).toFixed(1)}`}
+                  stroke="#3f8f45"
+                  stroke-width="1.4"
+                  stroke-linecap="round"
+                />
+                <circle cx="0" cy={(-(14 * bit.s)).toFixed(1)} r={(2.6 * bit.s).toFixed(1)} fill={bit.hue} />
+                <circle cx="0" cy={(-(14 * bit.s)).toFixed(1)} r="1.1" fill="#ffffff" opacity="0.7" />
+              </g>
+              </g>
+            ),
+          )
+        }
+      </g>
+
+      <!-- nearer grass in the foreground: bigger blades, darker, out of focus -->
+      <g class="cs2-flora cs2-flora--near" aria-hidden="true" opacity="0.9">
+        {
+          NEAR_BANK.map((bit) => (
+            <g class="cs2-flora-bit" transform={`translate(${bit.x} ${bit.y})`}>
+            <g class="cs2-tuft" style={`animation-duration:${bit.dur};animation-delay:${bit.delay}`}>
+              <path
+                d={`M0 0q-2 -${(16 * bit.s).toFixed(1)} -8 -${(28 * bit.s).toFixed(1)}M0 0q0.6 -${(18 * bit.s).toFixed(1)} 2 -${(34 * bit.s).toFixed(1)}M0 0q${(4 * bit.s).toFixed(1)} -${(16 * bit.s).toFixed(1)} ${(10 * bit.s).toFixed(1)} -${(26 * bit.s).toFixed(1)}M0 0q${(9 * bit.s).toFixed(1)} -${(12 * bit.s).toFixed(1)} ${(16 * bit.s).toFixed(1)} -${(20 * bit.s).toFixed(1)}`}
+                fill="none"
+                stroke={bit.hue}
+                stroke-width={(2.6 * bit.s).toFixed(2)}
+                stroke-linecap="round"
+              />
+            </g>
+            </g>
+          ))
+        }
+      </g>
+
+      <!-- a bee working the flowers: the smallest moving thing in the frame -->
+      <g class="cs2-bee-group" aria-hidden="true" transform="translate(742 556)">
+        <g class="cs2-bee">
+          <ellipse cx="0" cy="0" rx="3.4" ry="2.2" fill="#f2c14e" />
+          <path d="M0 0h2.4" stroke="#2b2b2b" stroke-width="1.2" />
+          <ellipse cx="-0.6" cy="-2.6" rx="2.6" ry="1.4" fill="#ffffff" opacity="0.65" />
+        </g>
+      </g>
+
+      <!-- morning haze along the horizon, behind everything electrical -->
+      <g class="cs2-fog" aria-hidden="true">
+        {
+          FOG.map((band) => (
+            <ellipse
+              cx={band.cx}
+              cy={band.cy}
+              rx={band.rx}
+              ry={band.ry}
+              fill="url(#cs2-fog)"
+              opacity={band.o}
+              style={`animation-duration:${band.dur}`}
+            />
+          ))
+        }
+      </g>
+
+      <!-- shadows: the sun is high on the right, so everything leans left -->
+      <g class="cs2-contact-shadows" aria-hidden="true" fill="#123a22">
+        {
+          [
+            [96, 476, 26],
+            [252, 472, 20],
+            [1188, 474, 24],
+            [1304, 470, 18],
+            [452, 470, 15],
+            [868, 470, 16],
+          ].map(([x, y, r]) => (
+            <ellipse cx={x - 9} cy={y + 3} rx={r} ry={r * 0.22} opacity="0.3" filter="url(#cs2-shadow-soft)" />
+          ))
+        }
+      </g>
+
+      <g class="cs2-shadows" aria-hidden="true" fill="#1c4a2c">
+        <ellipse cx="168" cy="510" rx="140" ry="22" opacity="0.3" filter="url(#cs2-shadow-soft)" />
+        <ellipse cx="1092" cy="498" rx="128" ry="20" opacity="0.28" filter="url(#cs2-shadow-soft)" />
+      </g>
+
+      <!--
+        The scene used to open with a headline here — "ELECTRICAL RUN · SOURCE →
+        CABLE → LOAD / The cable is the variable / …" — authored at y=66..134,
+        well *above* the band the fit guarantees is in frame (y≈200..580). On a
+        tall, narrow frame the viewBox reaches up into it and the words appear
+        floating on the sky, which is what the page heading is for. The scene
+        keeps its own labels: SOURCE, LOAD, the cable pill and the readouts.
+      -->
+
+      <!-- ══ SOURCE: a distribution kiosk standing on its pad ═════════════ -->
+      <g class="cs2-node" filter="url(#cs2-lift)">
+        <!-- concrete pad, so the cabinet sits on the ground and not on nothing -->
+        <path d="M104 452h148l24 32H80z" fill="#dfe4e1" stroke="#b8c0bc" stroke-width="2" />
+        <path d="M104 452h148" stroke="#ffffff" stroke-opacity="0.7" stroke-width="1.5" />
+
+        <!-- hip lid, then the body: an outdoor enclosure, not a server rack -->
+        <path d="M56 250L178 208L300 250z" fill="#9fb1ad" stroke="#7b8d89" stroke-width="2" />
+        <rect x="52" y="246" width="252" height="12" rx="6" fill="#8b9d9a" />
+        <rect
+          x="70"
+          y="252"
+          width="216"
+          height="210"
+          rx="16"
+          fill="url(#cs2-kiosk)"
+          stroke="#7b8d89"
+          stroke-width="2"
+        />
+        <!-- one sun: the left face is shaded, the right face catches a warm rim -->
+        <rect x="72" y="254" width="62" height="206" rx="14" fill="url(#cs2-shaded)" />
+        <rect x="222" y="254" width="62" height="206" rx="14" fill="url(#cs2-sunlit)" />
+        <path d="M70 262h216" stroke="#ffffff" stroke-opacity="0.65" stroke-width="2" />
+        <text x="178" y="288" class="cs2-node-label" text-anchor="middle">SOURCE</text>
+
+        <!-- the nameplate carries the readout: dark plate, light digits -->
+        <rect x="98" y="298" width="160" height="88" rx="12" fill="#12324a" stroke="#0a1f31" stroke-width="2" />
+        <text x="178" y="346" class="cs2-big" id="cs2-source-volts" text-anchor="middle">
+          {formatVoltage(scene.sourceVoltage)}
+        </text>
+        <text x="178" y="372" class="cs2-micro cs2-micro--light" id="cs2-source-system" text-anchor="middle">
+          {systemLabel} supply
+        </text>
+        <path
+          d="M120 410h24l-14 26h26l-40 46 10-30H100z"
+          fill="#ffd166"
+          opacity="0.9"
+          transform="translate(126 268) scale(0.42)"
+        />
+
+        <!-- door seam, hinges and a lock, then the handle, vents and plates -->
+        <path d="M178 258v200" stroke="#7b8d89" stroke-opacity="0.4" stroke-width="1.5" />
+        <g fill="#5f6f6d">
+          <rect x="172" y="306" width="13" height="7" rx="2" />
+          <rect x="172" y="424" width="13" height="7" rx="2" />
+        </g>
+        <rect x="181" y="350" width="11" height="15" rx="2.5" fill="#4a5a58" />
+        <circle cx="186.5" cy="356" r="1.6" fill="#22302f" />
+        <path d="M186.5 358v4" stroke="#22302f" stroke-width="1.4" stroke-linecap="round" />
+        <rect x="234" y="330" width="8" height="26" rx="4" fill="#5f6f6d" />
+        <g class="cs2-vents" stroke="#7b8d89" stroke-opacity="0.6" stroke-width="3" stroke-linecap="round">
+          <path d="M112 404h34" />
+          <path d="M112 414h34" />
+          <path d="M112 424h34" />
+        </g>
+        <!--
+          The system badge: AC carries a sine, DC a battery. Both are drawn and
+          one is hidden by `data-system`, so flipping the toggle changes what
+          the source *is* and not merely the word under its readout (§30).
+        -->
+        <g class="cs2-system-badge" data-scene="ac" aria-hidden="true">
+          <rect x="150" y="400" width="58" height="26" rx="4" fill="#12324a" stroke="#0a1f31" stroke-width="1.5" />
+          <path d="M160 413q4.5 -6 9 0t9 0" fill="none" stroke="#ffd166" stroke-width="1.6" stroke-linecap="round" />
+          <text x="193" y="418" class="cs2-plate" text-anchor="middle">AC</text>
+        </g>
+        <g class="cs2-system-badge" data-scene="dc" aria-hidden="true">
+          <rect x="150" y="400" width="58" height="26" rx="4" fill="#12324a" stroke="#0a1f31" stroke-width="1.5" />
+          <rect x="159" y="407" width="15" height="12" rx="2" fill="none" stroke="#ffd166" stroke-width="1.5" />
+          <rect x="175" y="410" width="2.6" height="6" rx="1" fill="#ffd166" />
+          <text x="193" y="418" class="cs2-plate" text-anchor="middle">DC</text>
+        </g>
+        <!-- the rating plate reads the live voltage, not the default one -->
+        <rect x="212" y="400" width="60" height="26" rx="4" fill="#12324a" stroke="#0a1f31" stroke-width="1.5" />
+        <text x="242" y="418" class="cs2-plate" id="cs2-source-plate" text-anchor="middle">
+          {formatVoltage(scene.sourceVoltage)}
+        </text>
+        <path d="M120 436l16 26h-32z" fill="#ffcf3f" stroke="#24352f" stroke-width="2" />
+        <path d="M120 450l6 8-3 4 7-2 3 5-7-15z" fill="#24352f" />
+        <text x="178" y="458" class="cs2-micro" text-anchor="middle">origin of the run</text>
+
+        <!-- a bird on the post's cross-arm: the only creature that likes a warm transformer -->
+        <g transform="translate(459 392)" aria-hidden="true">
+          <ellipse cx="0" cy="-6" rx="7" ry="5" fill="#3d5a6c" />
+          <circle cx="6" cy="-12" r="3.6" fill="#3d5a6c" />
+          <path d="M9 -12l5 1.5-5 1.5z" fill="#e8a33d" />
+          <path d="M-7 -7l-8 3 8 2z" fill="#3d5a6c" />
+          <circle cx="7" cy="-13" r="0.9" fill="#f4f8fb" />
+        </g>
+
+        <!-- the run leaves through a conduit — with a gland where it enters — and the board is earthed -->
+        <path d="M286 424h18q10 0 10 10v44" stroke="#6f7f7d" stroke-width="5" fill="none" stroke-linecap="round" />
+        <rect x="292" y="418" width="12" height="12" rx="2" fill="#5f6f6d" />
+        <path d="M112 462v22" stroke="#8b9d9a" stroke-width="3" stroke-linecap="round" />
+        <path d="M100 488h24M106 494h12" stroke="#8b9d9a" stroke-width="2.5" stroke-linecap="round" />
+      </g>
+
+      <!-- ══ CABLE ═══════════════════════════════════════════════════════ -->
+      <!-- the span is carried: two posts, an insulator each, standing in the grass -->
+      <g class="cs2-posts" aria-hidden="true">
+        {
+          [
+            { x: 470, top: 392, bottom: 522 },
+            { x: 790, top: 388, bottom: 528 },
+          ].map((post) => (
+            <g>
+              <rect
+                x={post.x - 5}
+                y={post.top}
+                width="10"
+                height={post.bottom - post.top}
+                rx="3"
+                fill="url(#cs2-timber)"
+              />
+              <rect x={post.x - 5} y={post.top} width="3" height={post.bottom - post.top} fill="#d0a066" opacity="0.45" />
+              <path
+                d={`M${post.x - 18} ${post.top + 8}h36`}
+                stroke="#7c5330"
+                stroke-width="5"
+                stroke-linecap="round"
+              />
+              <ellipse cx={post.x} cy={post.bottom + 2} rx="14" ry="4" fill="#1c4a2c" opacity="0.32" />
+              <!-- ceramic insulator: the cable will sit in its groove -->
+              <path d={`M${post.x} ${post.top + 8}v-8`} stroke="#7c5330" stroke-width="3" />
+              <ellipse cx={post.x} cy={post.top - 8} rx="7" ry="6" fill="#eef4f7" stroke="#9fb1ad" stroke-width="1.5" />
+            </g>
+          ))
+        }
+      </g>
+      <g class="cs2-cable">
+        <path d={CABLE_PATH} class="cs2-cable-shadow" stroke="#050c17" stroke-width="calc(var(--cable-w) * 1px + 12px)" stroke-linecap="round" opacity="0.55" />
+        <path d={CABLE_PATH} stroke="url(#cs2-jacket)" stroke-width="calc(var(--cable-w) * 1px + 8px)" stroke-linecap="round" />
+        <path d={CABLE_PATH} class="cs2-cable-glow" stroke="url(#cs2-heat)" stroke-width="calc(var(--cable-w) * 1px + 26px)" stroke-linecap="round" filter="url(#cs2-soft)" />
+        <path
+          d={CABLE_PATH}
+          class="cs2-cable-core"
+          stroke={scene.material === 'copper' ? 'url(#cs2-copper)' : 'url(#cs2-aluminium)'}
+          stroke-width="calc(var(--cable-w) * 1px)"
+          stroke-linecap="round"
+        />
+        <!-- a highlight down one side: the cable is a cylinder, not a ribbon -->
+        <path
+          d={CABLE_PATH}
+          class="cs2-cable-sheen"
+          stroke="#f4fbff"
+          stroke-width="calc(var(--cable-w) * 0.22px)"
+          stroke-linecap="round"
+          transform="translate(0 -2)"
+        />
+        <!-- live shimmer: dashes marching toward the load while current flows -->
+        <path
+          d={CABLE_PATH}
+          class="cs2-cable-shimmer"
+          stroke="#bfe9ff"
+          stroke-width="calc(var(--cable-w) * 0.5px)"
+          stroke-linecap="round"
+          stroke-dasharray="10 26"
+        />
+        <!--
+          Current as travel: three markers walking the cable from source to load.
+          SMIL cannot read CSS custom properties, so the duration is written as a
+          literal here and re-timed by the engine on every repaint (see
+          `retimeFlow`). The negative `begin` staggers them; `xlink:href` is kept
+          alongside `href` for older SVG stacks.
+        -->
+        <g class="cs2-flow" aria-hidden="true">
+          <circle r="4.5" class="cs2-flow-dot cs2-ac-breath">
+            <animateMotion dur={`${visual.flowSeconds}s`} data-delay="0" repeatCount="indefinite">
+              <mpath href="#cs2-cable-path" xlink:href="#cs2-cable-path" />
+            </animateMotion>
+          </circle>
+          <circle r="4.5" class="cs2-flow-dot cs2-ac-breath">
+            <animateMotion
+              dur={`${visual.flowSeconds}s`}
+              begin="-0.7s"
+              data-delay="0.7"
+              repeatCount="indefinite"
+            >
+              <mpath href="#cs2-cable-path" xlink:href="#cs2-cable-path" />
+            </animateMotion>
+          </circle>
+          <circle r="4.5" class="cs2-flow-dot cs2-ac-breath">
+            <animateMotion
+              dur={`${visual.flowSeconds}s`}
+              begin="-1.4s"
+              data-delay="1.4"
+              repeatCount="indefinite"
+            >
+              <mpath href="#cs2-cable-path" xlink:href="#cs2-cable-path" />
+            </animateMotion>
+          </circle>
+        </g>
+      </g>
+
+      <!--
+        Terminations. The span used to stop in mid-air on both sides: it began
+        14 units clear of the cabinet and ended 24 short of the shed wall. The
+        path now reaches each building and a gland clamps it there, so the run
+        reads as one continuous circuit from source to load.
+      -->
+      <g class="cs2-connectors" aria-hidden="true">
+        <!-- source: a plate bolted to the cabinet cheek, then the cable gland -->
+        <g class="cs2-connector cs2-connector--source">
+          <rect x="280" y="336" width="26" height="32" rx="6" fill="#9aa9a6" stroke="#5f6f6d" stroke-width="1.8" />
+          <rect x="280" y="336" width="26" height="7" rx="3.5" fill="#ffffff" opacity="0.3" />
+          <circle cx="287" cy="343" r="2.1" fill="#5f6f6d" />
+          <circle cx="287" cy="361" r="2.1" fill="#5f6f6d" />
+          <rect x="302" y="342" width="18" height="20" rx="4" fill="#cdd8d5" stroke="#5f6f6d" stroke-width="1.6" />
+          <path d="M308 342v20M313 342v20" fill="none" stroke="#8b9d9a" stroke-width="1.4" />
+          <rect x="318" y="338" width="8" height="30" rx="2.5" fill="#b3c0bd" stroke="#5f6f6d" stroke-width="1.5" />
+        </g>
+        <!-- load: the same idea in timber, screwed to the shed wall -->
+        <g class="cs2-connector cs2-connector--load">
+          <rect x="946" y="336" width="26" height="32" rx="6" fill="#8a6a45" stroke="#5c4227" stroke-width="1.8" />
+          <rect x="946" y="336" width="26" height="7" rx="3.5" fill="#ffffff" opacity="0.22" />
+          <circle cx="953" cy="343" r="2.1" fill="#5c4227" />
+          <circle cx="953" cy="361" r="2.1" fill="#5c4227" />
+          <rect x="928" y="342" width="18" height="20" rx="4" fill="#cdd8d5" stroke="#5f6f6d" stroke-width="1.6" />
+          <path d="M934 342v20M939 342v20" fill="none" stroke="#8b9d9a" stroke-width="1.4" />
+          <rect x="920" y="338" width="8" height="30" rx="2.5" fill="#b3c0bd" stroke="#5f6f6d" stroke-width="1.5" />
+        </g>
+      </g>
+
+      <!-- ties: the cable is bound to each insulator, not floating past it -->
+      <g class="cs2-ties" aria-hidden="true" stroke="#2c373d" stroke-width="4" stroke-linecap="round">
+        <path d="M470 392v14" />
+        <path d="M790 388v14" />
+      </g>
+
+      <!-- cable label: always the true size, never the drawn width -->
+      <g class="cs2-pill">
+        <rect x="470" y="236" width="300" height="60" rx="18" />
+        <text x="620" y="262" class="cs2-pill-main" id="cs2-cable-label" text-anchor="middle">
+          {`${scene.cableSize} mm² ${materialLabel}`}
+        </text>
+        <text x="620" y="282" class="cs2-pill-sub" id="cs2-cable-sub" text-anchor="middle">
+          {`${formatLength(scene.cableLength)} one-way`}
+        </text>
+      </g>
+
+      <!-- drop budget: how much of the chosen limit this cable has spent -->
+      <g class="cs2-budget" aria-hidden="true">
+        <rect x="470" y="372" width="300" height="8" rx="4" class="cs2-budget-track" />
+        <rect x="470" y="372" width="300" height="8" rx="4" class="cs2-budget-fill" />
+        <path d="M470 386h300" class="cs2-budget-rule" />
+      </g>
+
+      <!-- ══ LOAD: a shed at the far end of the run, its bay open to us ═══ -->
+      <g class="cs2-node" filter="url(#cs2-lift)">
+        <!-- hard standing, then the shed: walls, roof, ridge and a weather vane -->
+        <path d="M1004 452h188l22 30H982z" fill="#dfe4e1" stroke="#b8c0bc" stroke-width="2" />
+        <rect x="964" y="252" width="256" height="212" rx="10" fill="url(#cs2-shed-wall)" stroke="#b0925f" stroke-width="2" />
+        <path d="M940 254L1092 186L1244 254z" fill="url(#cs2-shed-roof)" stroke="#7d3a29" stroke-width="2" />
+        <path d="M936 250h312v12H936z" rx="6" fill="#8d3f2c" />
+        <!-- gutter, bracket and downpipe into a water butt: rain has to go somewhere -->
+        <path d="M938 262h308v6H938z" fill="#6f5140" />
+        <path d="M1214 268v172" stroke="#6f5140" stroke-width="7" stroke-linecap="round" />
+        <path d="M1206 300h16M1206 380h16" stroke="#4b3628" stroke-width="3" stroke-linecap="round" />
+        <rect x="1192" y="436" width="46" height="34" rx="6" fill="#6f8f7a" stroke="#4e6a58" stroke-width="2" />
+        <path d="M1192 446h46" stroke="#4e6a58" stroke-opacity="0.5" stroke-width="2" />
+        <g stroke="#7d3a29" stroke-opacity="0.35" stroke-width="2">
+          <path d="M1010 246h164" />
+          <path d="M1030 236h124" />
+          <path d="M1056 226h72" />
+        </g>
+        <!-- weather vane: a cockerel would be showing off; an arrow is enough -->
+        <g transform="translate(1092 186)">
+        <g class="cs2-vane">
+          <path d="M0 0v-34" stroke="#5c6b73" stroke-width="2.5" stroke-linecap="round" />
+          <path d="M-13 -30h26" stroke="#5c6b73" stroke-width="2" stroke-linecap="round" />
+          <path d="M0 -40l16 6-16 6z" fill="#e2803a" stroke="#8c4a1e" stroke-width="1" />
+        </g>
+        </g>
+        <!-- timber: plank lines, a shaded left wall and a warm rim on the right -->
+        <g stroke="#b0925f" stroke-opacity="0.28" stroke-width="1.4">
+          <path d="M974 256v204M984 256v204M994 256v204M1196 256v204M1206 256v204M1216 256v204" />
+        </g>
+        <rect x="966" y="254" width="40" height="208" rx="8" fill="url(#cs2-shaded)" />
+        <rect x="1180" y="254" width="38" height="208" rx="8" fill="url(#cs2-sunlit)" />
+        <text x="1092" y="286" class="cs2-node-label" text-anchor="middle">LOAD</text>
+
+        <!-- the open bay: a shadowed interior the load stands in -->
+        <rect x="998" y="294" width="188" height="156" rx="8" fill="#3a2f26" stroke="#7c5a34" stroke-width="3" />
+        <path d="M998 294h188v14H998z" fill="#241d17" opacity="0.7" />
+        <!-- a shelf, a hanging hook and a few things on it: someone works in here -->
+        <ellipse class="cs2-bay-glow" cx="1092" cy="366" rx="128" ry="96" fill="url(#cs2-bay-glow)" />
+        <rect x="1006" y="386" width="172" height="7" rx="3" fill="#8a6a45" />
+        <path d="M1014 294v10" stroke="#8a6a45" stroke-width="3" />
+        <path d="M1170 294v16" stroke="#8a6a45" stroke-width="3" />
+        <path d="M1162 310q8 10 16 0" fill="none" stroke="#6f7f7d" stroke-width="2.5" />
+        <!-- a coil of cable on the hook, a jar and a tin on the shelf, a can by the door -->
+        <g fill="none" stroke="#c8b48a" stroke-width="2.4" stroke-linecap="round">
+          <ellipse cx="1014" cy="312" rx="9" ry="6" />
+          <ellipse cx="1014" cy="320" rx="9" ry="6" />
+        </g>
+        <rect x="1010" y="369" width="14" height="17" rx="2" fill="#7d9aa6" stroke="#4f6d78" stroke-width="1.4" />
+        <rect x="1158" y="374" width="18" height="12" rx="2" fill="#b8703c" stroke="#7d4a22" stroke-width="1.4" />
+        <g transform="translate(1172 424)">
+          <path d="M0 0h20l-3 20H3z" fill="#7f9aa6" stroke="#4f6d78" stroke-width="1.6" />
+          <path d="M20 3l9 -8" stroke="#4f6d78" stroke-width="2" stroke-linecap="round" />
+          <path d="M29 -5q6 1 4 7" fill="none" stroke="#4f6d78" stroke-width="2" stroke-linecap="round" />
+        </g>
+
+        <!-- lighting: a lamp that dims with the delivered voltage -->
+        <g class="cs2-load-variant" data-scene="lighting">
+          <ellipse cx="1092" cy="404" rx="52" ry="10" fill="url(#cs2-lamp-cone)" class="cs2-lamp-pool" />
+          <circle cx="1092" cy="336" r="76" class="cs2-lamp-halo" fill="url(#cs2-lamp)" />
+          <rect x="1066" y="270" width="52" height="8" rx="3" fill="#5d7690" />
+          <path d="M1092 278v44" stroke="#5d7690" stroke-width="2.5" />
+          <path d="M1058 322q34-52 68 0l-10 34h-48z" fill="#ffe7a4" stroke="#ffc45b" stroke-width="2" />
+          <path d="M1072 362h40M1079 374h26" stroke="#ffb34d" stroke-width="5" stroke-linecap="round" />
+          <rect x="1080" y="382" width="24" height="14" rx="4" fill="#c8d5e3" stroke="#5d7690" stroke-width="2" />
+          <text x="1092" y="416" class="cs2-variant-label" text-anchor="middle">LAMP</text>
+        </g>
+
+        <!-- fan: blades turn while the circuit is live -->
+        <g class="cs2-load-variant" data-scene="fan">
+          <rect x="1074" y="264" width="36" height="9" rx="3" fill="#5d7690" />
+          <path d="M1092 273v36" stroke="#5d7690" stroke-width="3" />
+          <circle cx="1092" cy="340" r="70" fill="#173049" stroke="#8fc9ee" stroke-width="2" />
+          <g class="cs2-blur" aria-hidden="true" stroke="#9fd8f5" fill="none" stroke-linecap="round">
+            <path d="M1052 356a48 48 0 0 1 80 0" stroke-opacity="0.18" stroke-width="6" />
+            <path d="M1064 366a34 34 0 0 0 56 0" stroke-opacity="0.12" stroke-width="4" />
+          </g>
+          <g class="cs2-spin" data-spin="4.5s">
+            <path d="M1092 340c0-40 14-52 22-54 4 14-2 44-22 54z" fill="#9fd8f5" opacity="0.9" />
+            <path d="M1092 340c34-20 48-14 52-6-12 8-42 8-52 6z" fill="#9fd8f5" opacity="0.75" />
+            <path d="M1092 340c-34 20-48 14-52 6 12-8 42-8 52-6z" fill="#9fd8f5" opacity="0.75" />
+          </g>
+          <circle cx="1092" cy="340" r="12" fill="#e2803a" />
+          <text x="1092" y="440" class="cs2-variant-label" text-anchor="middle">FAN</text>
+        </g>
+
+        <!-- motor: shaft indicator turns with the load -->
+        <g class="cs2-load-variant" data-scene="motor">
+          <g class="cs2-vibrate">
+            <rect x="1036" y="300" width="112" height="80" rx="14" fill="#1d3652" stroke="#8fc9ee" stroke-width="2" />
+            <!-- cooling fins and a terminal box: a motor, not a box -->
+            <g stroke="#8fc9ee" stroke-opacity="0.45" stroke-width="2" stroke-linecap="round">
+              <path d="M1048 312v56" />
+              <path d="M1058 312v56" />
+              <path d="M1126 312v56" />
+              <path d="M1136 312v56" />
+            </g>
+            <rect x="1066" y="286" width="52" height="16" rx="4" fill="#122a42" stroke="#8fc9ee" stroke-width="2" />
+            <circle cx="1092" cy="340" r="30" fill="#122a42" stroke="#8fc9ee" stroke-width="2" />
+            <g class="cs2-spin" data-spin="2.2s">
+              <path d="M1092 314v52" stroke="#e2803a" stroke-width="5" stroke-linecap="round" />
+            </g>
+            <rect x="1044" y="380" width="18" height="12" rx="3" fill="#5d7690" />
+            <rect x="1122" y="380" width="18" height="12" rx="3" fill="#5d7690" />
+          </g>
+          <!-- belt drive: the shaft drives something, which is why volts matter -->
+          <g class="cs2-belt" aria-hidden="true">
+            <path d="M1092 372v22" stroke="#5d7690" stroke-width="4" stroke-linecap="round" />
+            <path
+              d="M1064 400h56a10 10 0 0 1 0 20h-56a10 10 0 0 1 0-20z"
+              fill="none"
+              stroke="#7f9bb5"
+              stroke-opacity="0.7"
+              stroke-width="3"
+            />
+            <circle cx="1092" cy="410" r="9" fill="#122a42" stroke="#7f9bb5" stroke-width="2" />
+          </g>
+          <path d="M1046 424h92" stroke="#5d7690" stroke-width="5" stroke-linecap="round" />
+          <text x="1092" y="446" class="cs2-variant-label" text-anchor="middle">MOTOR</text>
+        </g>
+
+        <!-- heater: elements glow and heat lifts off -->
+        <g class="cs2-load-variant" data-scene="heater">
+          <rect x="1038" y="296" width="108" height="92" rx="12" fill="#dbe7f2" stroke="#6e9fc5" stroke-width="2" />
+          <g stroke="#8bb0cf" stroke-opacity="0.5" stroke-width="1.5">
+            <path d="M1054 312h76" />
+            <path d="M1054 380h76" />
+          </g>
+          <path d="M1054 320h76M1054 344h76M1054 368h76" stroke="#e2803a" stroke-width="6" stroke-linecap="round" class="cs2-element" />
+          <!-- thermostat: something has to decide when the elements stop -->
+          <circle cx="1140" cy="342" r="9" fill="#12283f" stroke="#6e9fc5" stroke-width="1.5" />
+          <path d="M1140 342l5-5" stroke="#ffd88a" stroke-width="2" stroke-linecap="round" />
+          <path d="M1046 388v14M1138 388v14" stroke="#5d7690" stroke-width="5" stroke-linecap="round" />
+          <g class="cs2-heatwaves" aria-hidden="true">
+            <path d="M1064 288q8-12 0-24" class="cs2-heatwave" />
+            <path d="M1092 286q8-14 0-26" class="cs2-heatwave" style="animation-delay:.4s" />
+            <path d="M1120 288q8-12 0-24" class="cs2-heatwave" style="animation-delay:.8s" />
+          </g>
+          <text x="1092" y="424" class="cs2-variant-label" text-anchor="middle">HEATER</text>
+        </g>
+
+        <!-- appliance: a generic socket-fed load -->
+        <g class="cs2-load-variant" data-scene="appliance">
+          <!-- a socket-outlet load: plate, plug and flex, not just a white box -->
+          <rect x="1004" y="300" width="34" height="46" rx="5" fill="#c3d5e6" stroke="#5d7690" stroke-width="2" />
+          <path d="M1013 314v10M1029 314v10" stroke="#5d7690" stroke-width="3" stroke-linecap="round" />
+          <circle cx="1021" cy="334" r="4" fill="#5d7690" />
+          <path d="M1038 323q16 4 12 16" stroke="#5d7690" stroke-width="4" fill="none" stroke-linecap="round" />
+          <rect x="1050" y="286" width="84" height="110" rx="10" fill="#e7eef7" stroke="#8bb0cf" stroke-width="2" />
+          <rect x="1062" y="300" width="60" height="34" rx="6" fill="#172b45" />
+          <path d="M1070 312h20M1070 320h34" stroke="#7fd8a8" stroke-width="2.5" stroke-linecap="round" opacity="0.8" />
+          <circle cx="1092" cy="360" r="14" fill="none" stroke="#5d7690" stroke-width="3" />
+          <circle cx="1092" cy="382" r="4" class="cs2-appliance-led cs2-blink" />
+          <text x="1092" y="424" class="cs2-variant-label" text-anchor="middle">APPLIANCE</text>
+        </g>
+
+        <!-- custom: your numbers, drawn as a generic load -->
+        <g class="cs2-load-variant" data-scene="custom">
+          <rect
+            x="1050"
+            y="292"
+            width="84"
+            height="100"
+            rx="10"
+            fill="#16293f"
+            stroke="#8bb0cf"
+            stroke-width="2"
+            stroke-dasharray="6 5"
+            class="cs2-custom-outline"
+          />
+          <path d="M1068 322h48M1068 342h48M1068 362h30" stroke="#7fb6d8" stroke-width="5" stroke-linecap="round" />
+          <text x="1092" y="398" class="cs2-variant-label" text-anchor="middle">YOUR NUMBERS</text>
+          <text x="1092" y="424" class="cs2-variant-label" text-anchor="middle">CUSTOM LOAD</text>
+        </g>
+
+        <!-- the load's own numbers, on a plaque under the bay -->
+        <rect x="998" y="452" width="188" height="46" rx="8" fill="#fffaf0" stroke="#b0925f" stroke-width="2" />
+        <text x="1092" y="472" class="cs2-load-power" id="cs2-load-power" text-anchor="middle">
+          {formatLoadPower(scene.loadPowerWatts)}
+        </text>
+        <text x="1092" y="490" class="cs2-micro" id="cs2-load-current" text-anchor="middle">
+          {`${formatCurrent(scene.designCurrent)} design current`}
+        </text>
+      </g>
+
+      <!-- leader: the meter belongs to the cable, and says so -->
+      <path
+        d="M620 388v20"
+        class="cs2-leader"
+        stroke="#7a5a34"
+        stroke-width="1.6"
+        stroke-dasharray="3 4"
+        aria-hidden="true"
+      />
+
+      <!-- delivered voltage readout: the consequence of the whole run -->
+      <g class="cs2-readout" transform="translate(964 506)">
+        <rect width="256" height="80" rx="14" fill="#ffffff" stroke="#b0925f" stroke-width="2" />
+        <text x="18" y="26" class="cs2-readout-head">AT THE LOAD</text>
+        <text x="18" y="50" class="cs2-readout-value" id="cs2-load-volts">{formatVoltage(scene.voltageAtLoad)}</text>
+        <text x="238" y="50" class="cs2-readout-note" id="cs2-drop-volts" text-anchor="end">
+          {formatVoltage(scene.voltageDrop)} drop
+        </text>
+        <text x="18" y="70" class="cs2-readout-note" id="cs2-drop-pct">
+          {`${formatPercent(scene.voltageDropPercent)} of ${formatPercent(scene.dropLimitPercent, 1)} limit`}
+        </text>
+      </g>
+
+      <!-- status: one lamp and a sentence, not a traffic light -->
+      <g class="cs2-status" transform="translate(470 306)">
+        <rect class="cs2-status-box" width="300" height="54" rx="16" />
+        <circle cx="30" cy="27" r="9" class="cs2-status-lamp" />
+        <text x="52" y="24" class="cs2-status-label" id="cs2-status-label">{status.label}</text>
+        <text x="52" y="42" class="cs2-status-note" id="cs2-status-note">{status.message}</text>
+      </g>
+
+      <!-- vignette last: the frame has depth, the numbers stay legible -->
+      <rect
+        x="-760"
+        y="-620"
+        width="2800"
+        height="1740"
+        fill="url(#cs2-vignette)"
+        class="cs2-vignette"
+        aria-hidden="true"
+      />
+    </svg>
+  </div>
+</div>
+
+<style>
+  .cs2-scene {
+    position: absolute;
+    inset: 0;
+    background: #a8d9f2;
+    color: #17384c;
+    font-family: var(--font-mono, monospace);
+    overflow: hidden;
+  }
+  /* every label is painted over scenery, so each one carries its own halo */
+  .cs2-node-label {
+    font: 800 11px var(--font-mono, monospace);
+    letter-spacing: 0.14em;
+    fill: #17314e;
+  }
+  .cs2-node-label--light {
+    fill: #cfe7fb;
+  }
+  .cs2-big {
+    font: 800 38px var(--font-display, sans-serif);
+    fill: #f4faff;
+  }
+  .cs2-micro {
+    font: 700 10px var(--font-mono, monospace);
+    fill: #4a6b7d;
+  }
+  .cs2-micro--light {
+    fill: #cfe7fb;
+  }
+  .cs2-variant-label {
+    font: 800 9px var(--font-mono, monospace);
+    letter-spacing: 0.14em;
+    fill: #f0dcb4;
+  }
+  .cs2-load-power {
+    font: 800 16px var(--font-display, sans-serif);
+    fill: #33240f;
+  }
+
+  /* ── the cable: thickness is the story (§11) ─────────────────────────── */
+  /*
+   * An open path is filled by default, and SVG's default fill is black. The
+   * cable is one long open curve, so the lens between the sagging span and the
+   * straight line joining its ends was being painted solid black — the "dark
+   * band above the wire". Everything in the span is stroke-only, no exceptions.
+   */
+  .cs2-cable path,
+  .cs2-cast-shadow {
+    fill: none;
+  }
+
+  .cs2-cable-core {
+    transition: stroke-width 0.32s cubic-bezier(0.3, 0.7, 0.2, 1);
+  }
+  .cs2-cable-shadow,
+  .cs2-cable-glow {
+    transition: stroke-width 0.32s cubic-bezier(0.3, 0.7, 0.2, 1), opacity 0.32s ease;
+  }
+  /* glow only earns its keep when the run is working hard (§14) */
+  .cs2-cable-glow {
+    opacity: calc(0.06 + var(--stress, 0) * 0.85);
+  }
+  .cs2-flow-dot {
+    fill: #a8e8ff;
+    opacity: calc(0.35 + var(--delivered, 1) * 0.5);
+  }
+
+  /* ── system variants: exactly one badge is drawn, chosen by data-system ── */
+  .cs2-system-badge {
+    display: none;
+  }
+  .cs2-scene[data-system='ac'] .cs2-system-badge[data-scene='ac'],
+  .cs2-scene[data-system='dc'] .cs2-system-badge[data-scene='dc'] {
+    display: block;
+  }
+
+  /*
+   * AC breathes — the current alternates and the markers pulse with it. DC
+   * simply runs, steady, the way a battery delivers. Gated on the animate
+   * switch as a whole: off means no animation at all, not a paused one, so the
+   * static opacity rule above stays in charge (§28, §30).
+   */
+  .cs2-scene[data-system='ac'][data-motion='on'] .cs2-ac-breath {
+    animation: cs2-ac-breathe 1.15s ease-in-out infinite;
+  }
+  .scene-paused .cs2-scene[data-system='ac'] .cs2-ac-breath {
+    animation: none;
+  }
+  @keyframes cs2-ac-breathe {
+    0%,
+    100% {
+      opacity: 0.5;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  /* ── labels ─────────────────────────────────────────────────────────── */
+  .cs2-pill rect {
+    fill: #fffaf0;
+    fill-opacity: 0.97;
+    stroke: #b0925f;
+    stroke-width: 2;
+    stroke-opacity: 0.95;
+  }
+  .cs2-pill-main {
+    font: 800 15px var(--font-display, sans-serif);
+    fill: #17384c;
+  }
+  .cs2-pill-sub {
+    font: 700 10px var(--font-mono, monospace);
+    fill: #5d7690;
+  }
+  .cs2-readout-head {
+    font: 800 9px var(--font-mono, monospace);
+    letter-spacing: 0.14em;
+    fill: #8a6a45;
+  }
+  .cs2-readout-value {
+    font: 800 20px var(--font-display, sans-serif);
+    fill: #10364c;
+  }
+  .cs2-readout-note {
+    font: 700 10px var(--font-mono, monospace);
+    fill: #4a6b7d;
+  }
+
+  /* ── status lamp: the only thing that turns colour (§21) ─────────────── */
+  .cs2-status-box {
+    fill: #fffaf0;
+    fill-opacity: 0.96;
+    stroke: #b0925f;
+    stroke-width: 2;
+  }
+  .cs2-status-lamp {
+    fill: #45e5a0;
+    transition: fill 0.3s ease;
+  }
+  .cs2-status-label {
+    font: 800 12px var(--font-mono, monospace);
+    letter-spacing: 0.12em;
+    fill: #17384c;
+  }
+  .cs2-status-note {
+    font: 500 10px var(--font-mono, monospace);
+    fill: #4a6b7d;
+  }
+  .cs2-scene[data-status='near-limit'] .cs2-status-lamp {
+    fill: #ffc85c;
+  }
+  .cs2-scene[data-status='fail'] .cs2-status-lamp {
+    fill: #ff6b57;
+  }
+
+  /* ── load variants: exactly one is drawn, chosen by data-load (§10) ──── */
+  .cs2-load-variant {
+    display: none;
+  }
+  .cs2-scene[data-load='lighting'] .cs2-load-variant[data-scene='lighting'],
+  .cs2-scene[data-load='fan'] .cs2-load-variant[data-scene='fan'],
+  .cs2-scene[data-load='motor'] .cs2-load-variant[data-scene='motor'],
+  .cs2-scene[data-load='heater'] .cs2-load-variant[data-scene='heater'],
+  .cs2-scene[data-load='appliance'] .cs2-load-variant[data-scene='appliance'],
+  .cs2-scene[data-load='custom'] .cs2-load-variant[data-scene='custom'] {
+    display: block;
+  }
+
+  /* lamp brightness follows the delivered voltage (§14) */
+  .cs2-lamp-halo {
+    opacity: calc(0.15 + var(--delivered, 1) * 0.85);
+    transition: opacity 0.35s ease;
+  }
+  .cs2-element {
+    opacity: calc(0.25 + var(--delivered, 1) * 0.7);
+    transition: opacity 0.35s ease;
+  }
+  .cs2-appliance-led {
+    fill: #45e5a0;
+    opacity: calc(0.3 + var(--delivered, 1) * 0.7);
+    transition: opacity 0.35s ease;
+  }
+  .cs2-heatwave {
+    fill: none;
+    stroke: #ff8a5c;
+    stroke-width: 3;
+    stroke-linecap: round;
+    opacity: 0;
+    animation: cs2-heat 3.2s ease-in-out infinite;
+  }
+  @keyframes cs2-heat {
+    0% {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    45% {
+      opacity: calc(0.25 + var(--delivered, 1) * 0.55);
+      transform: translateY(0);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+  }
+
+  /* rotation for the fan and the motor shaft */
+  .cs2-spin {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: cs2-rotate 4.5s linear infinite;
+  }
+  .cs2-spin[data-spin='2.2s'] {
+    animation-duration: 2.2s;
+  }
+  @keyframes cs2-rotate {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* ── scenery detail ──────────────────────────────────────────────────── */
+  .cs2-plate {
+    font: 700 9px var(--font-mono, monospace);
+    fill: #cfe7fb;
+    letter-spacing: 0.08em;
+  }
+  .cs2-gravel,
+  .cs2-fog,
+  .cs2-vignette,
+  .cs2-distance,
+  .cs2-blur,
+  .cs2-belt {
+    pointer-events: none;
+  }
+  .cs2-vignette {
+    opacity: 0.6;
+  }
+  .cs2-pylon {
+    fill: none;
+    stroke: #5b7f96;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    opacity: 0.72;
+  }
+  /* the lamp brightens with what actually arrives (§14) */
+  .cs2-lamp-halo {
+    opacity: calc(0.25 + var(--delivered, 1) * 0.75);
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: cs2-glow 3.6s ease-in-out infinite;
+    transition: opacity 0.35s ease;
+  }
+  .cs2-lamp-pool {
+    opacity: calc(0.15 + var(--delivered, 1) * 0.6);
+    transition: opacity 0.35s ease;
+  }
+  /* live shimmer along the run: present only while current is flowing */
+  .cs2-cable-shimmer {
+    opacity: calc(0.1 + var(--delivered, 1) * 0.28);
+    animation: cs2-shimmer 2.6s linear infinite;
+    transition: opacity 0.35s ease;
+  }
+  .cs2-cable-sheen {
+    opacity: 0.18;
+    transition: stroke-width 0.32s cubic-bezier(0.3, 0.7, 0.2, 1);
+  }
+
+  /* ── the drop budget: how much of the chosen limit this cable has spent ── */
+  .cs2-budget-track {
+    fill: #0b1a2c;
+    stroke: #33516e;
+    stroke-width: 1;
+  }
+  .cs2-budget-fill {
+    fill: #45e5a0;
+    transform-box: fill-box;
+    transform-origin: left center;
+    transform: scaleX(var(--budget, 0));
+    transition: transform 0.4s cubic-bezier(0.3, 0.7, 0.2, 1), fill 0.3s ease;
+  }
+  .cs2-budget-rule {
+    stroke: #4f789c;
+    stroke-width: 1;
+    stroke-opacity: 0.5;
+  }
+  /* near the limit it turns amber, past it red — the words still carry it (§21) */
+  .cs2-scene[data-status='near'] .cs2-budget-fill {
+    fill: #ffc45b;
+  }
+  .cs2-scene[data-status='fail'] .cs2-budget-fill {
+    fill: #ff7a6b;
+  }
+
+  /* ── animation ──────────────────────────────────────────────────────── */
+  @keyframes cs2-glow {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.045);
+    }
+  }
+  @keyframes cs2-shimmer {
+    to {
+      stroke-dashoffset: -72;
+    }
+  }
+  @keyframes cs2-fog-drift {
+    0% {
+      transform: translateX(-140px);
+    }
+    100% {
+      transform: translateX(140px);
+    }
+  }
+  .cs2-fog ellipse {
+    animation: cs2-fog-drift 60s ease-in-out infinite alternate;
+  }
+  @keyframes cs2-beacon {
+    0%,
+    72%,
+    100% {
+      opacity: 0.15;
+    }
+    80%,
+    92% {
+      opacity: 0.95;
+    }
+  }
+  .cs2-beacon {
+    fill: #ff6b5c;
+    animation: cs2-beacon 3.2s ease-in-out infinite;
+  }
+  @keyframes cs2-vibrate {
+    0%,
+    100% {
+      transform: translate(0, 0);
+    }
+    50% {
+      transform: translate(0.4px, 0.3px);
+    }
+  }
+  .cs2-vibrate {
+    animation: cs2-vibrate 0.5s linear infinite;
+  }
+  @keyframes cs2-blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.35;
+    }
+  }
+  .cs2-blink {
+    animation: cs2-blink 1.6s ease-in-out infinite;
+  }
+  @keyframes cs2-march {
+    to {
+      stroke-dashoffset: -22;
+    }
+  }
+  .cs2-custom-outline {
+    animation: cs2-march 2.4s linear infinite;
+  }
+  @keyframes cs2-status-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.45;
+    }
+  }
+  /* a failing run is worth a second glance — the lamp breathes, the page does
+     not become a traffic light (§22) */
+  .cs2-scene[data-status='fail'] .cs2-status-lamp {
+    animation: cs2-status-pulse 1.9s ease-in-out infinite;
+  }
+
+  /* rotation: the engine writes the period, so a starved motor turns slower
+     instead of the scene claiming everything is fine (§14) */
+  .cs2-spin {
+    animation-duration: var(--spin, 1.6s);
+  }
+  .cs2-load-variant[data-scene='motor'] .cs2-spin {
+    animation-duration: calc(var(--spin, 1.6s) * 0.7);
+  }
+
+  /* ── motion: off by request, and off for reduced-motion readers (§28) ── */
+  /* Motion off freezes what is moving — the run still reads as a run, it just
+     stops walking (the SMIL timeline itself is paused in `applyMotion`). */
+  /* ── the weather: clouds cross, birds glide, the sun breathes ─────────── */
+  .cs2-cloud {
+    animation-name: cs2-cloud-drift;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+  @keyframes cs2-cloud-drift {
+    from {
+      transform: translateX(-300px);
+    }
+    to {
+      transform: translateX(1460px);
+    }
+  }
+  .cs2-bird {
+    animation-name: cs2-bird-glide;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+  @keyframes cs2-bird-glide {
+    0% {
+      transform: translate(0, 0);
+    }
+    25% {
+      transform: translate(370px, -13px);
+    }
+    50% {
+      transform: translate(740px, 7px);
+    }
+    75% {
+      transform: translate(1110px, -9px);
+    }
+    100% {
+      transform: translate(1480px, 0);
+    }
+  }
+  .cs2-sun-aura {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: cs2-breathe 8.5s ease-in-out infinite;
+  }
+  @keyframes cs2-breathe {
+    0%,
+    100% {
+      transform: scale(1);
+      opacity: 0.9;
+    }
+    50% {
+      transform: scale(1.07);
+      opacity: 1;
+    }
+  }
+
+  /* ── the ground: crowns, tufts, flowers and the vane move in the wind ── */
+  .cs2-sway {
+    transform-box: fill-box;
+    transform-origin: 50% 92%;
+    animation: cs2-sway 7s ease-in-out infinite;
+  }
+  @keyframes cs2-sway {
+    0%,
+    100% {
+      transform: rotate(-1.7deg);
+    }
+    50% {
+      transform: rotate(1.7deg);
+    }
+  }
+  .cs2-tuft {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    animation: cs2-tuft 4.2s ease-in-out infinite;
+  }
+  @keyframes cs2-tuft {
+    0%,
+    100% {
+      transform: rotate(-5deg);
+    }
+    50% {
+      transform: rotate(5deg);
+    }
+  }
+  .cs2-flower {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    animation: cs2-nod 4.6s ease-in-out infinite;
+  }
+  @keyframes cs2-nod {
+    0%,
+    100% {
+      transform: rotate(-7deg);
+    }
+    50% {
+      transform: rotate(8deg);
+    }
+  }
+  .cs2-vane {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    animation: cs2-vane 9s ease-in-out infinite;
+  }
+  @keyframes cs2-vane {
+    0%,
+    100% {
+      transform: rotate(-11deg);
+    }
+    50% {
+      transform: rotate(11deg);
+    }
+  }
+  /* a bee works the flowers: the tiniest moving thing in the frame */
+  .cs2-bee {
+    transform-box: fill-box;
+    animation: cs2-bee 13s ease-in-out infinite;
+  }
+  /* weather on the ground, not in the sky: two cloud shadows crossing the lawn */
+  .cs2-cloud-shadow {
+    animation: cs2-cloud-drift 96s linear infinite;
+  }
+  /* wings: the bird is a stroke, so flattening it reads as a flap */
+  .cs2-flap {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: cs2-flap 0.52s ease-in-out infinite alternate;
+  }
+  @keyframes cs2-flap {
+    from {
+      transform: scaleY(1);
+    }
+    to {
+      transform: scaleY(0.32);
+    }
+  }
+  /*
+   * The bay is lit by day from the open side and by a lamp at night; the warm
+   * glow is only the night half of that, so it stays out of the daylight.
+   */
+  .cs2-bay-glow {
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  @keyframes cs2-bee {
+    0% {
+      transform: translate(0, 0) rotate(0deg);
+    }
+    20% {
+      transform: translate(46px, -18px) rotate(8deg);
+    }
+    40% {
+      transform: translate(96px, 6px) rotate(-6deg);
+    }
+    60% {
+      transform: translate(58px, 22px) rotate(10deg);
+    }
+    80% {
+      transform: translate(12px, 4px) rotate(-4deg);
+    }
+    100% {
+      transform: translate(0, 0) rotate(0deg);
+    }
+  }
+
+  .cs2-scene[data-motion='off'] .cs2-flow-dot {
+    opacity: calc(0.2 + var(--delivered, 1) * 0.25);
+  }
+  .cs2-scene[data-motion='off'] .cs2-heatwave,
+  .cs2-scene[data-motion='off'] .cs2-spin,
+  .cs2-scene[data-motion='off'] .cs2-lamp-halo,
+  .cs2-scene[data-motion='off'] .cs2-cable-shimmer,
+  .cs2-scene[data-motion='off'] .cs2-beacon,
+  .cs2-scene[data-motion='off'] .cs2-blink,
+  .cs2-scene[data-motion='off'] .cs2-vibrate,
+  .cs2-scene[data-motion='off'] .cs2-custom-outline,
+  .cs2-scene[data-motion='off'] .cs2-cloud,
+  .cs2-scene[data-motion='off'] .cs2-bird,
+  .cs2-scene[data-motion='off'] .cs2-sun-aura,
+  .cs2-scene[data-motion='off'] .cs2-sway,
+  .cs2-scene[data-motion='off'] .cs2-tuft,
+  .cs2-scene[data-motion='off'] .cs2-flower,
+  .cs2-scene[data-motion='off'] .cs2-vane,
+  .cs2-scene[data-motion='off'] .cs2-bee,
+  .cs2-scene[data-motion='off'] .cs2-flap,
+  .cs2-scene[data-motion='off'] .cs2-cloud-shadow,
+  .cs2-scene[data-motion='off'] .cs2-fog ellipse {
+    animation-play-state: paused;
+  }
+  /* the stage carries `.scene-paused` as well (the shared chrome sets it) */
+  .scene-paused .cs2-beacon,
+  .scene-paused .cs2-blink,
+  .scene-paused .cs2-vibrate,
+  .scene-paused .cs2-custom-outline,
+  .scene-paused .cs2-fog ellipse,
+  .scene-paused .cs2-cable-shimmer,
+  .scene-paused .cs2-lamp-halo,
+  .scene-paused .cs2-cloud,
+  .scene-paused .cs2-bird,
+  .scene-paused .cs2-sun-aura,
+  .scene-paused .cs2-sway,
+  .scene-paused .cs2-tuft,
+  .scene-paused .cs2-flower,
+  .scene-paused .cs2-vane,
+  .scene-paused .cs2-bee,
+  .scene-paused .cs2-flap,
+  .scene-paused .cs2-cloud-shadow,
+  .scene-paused .cs2-heatwave,
+  .scene-paused .cs2-spin {
+    animation-play-state: paused !important;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cs2-scene .cs2-flow-dot,
+    .cs2-scene .cs2-heatwave {
+      display: none;
+    }
+    .cs2-scene .cs2-spin,
+    .cs2-scene .cs2-lamp-halo,
+    .cs2-scene .cs2-cable-shimmer,
+    .cs2-scene .cs2-beacon,
+    .cs2-scene .cs2-blink,
+    .cs2-scene .cs2-vibrate,
+    .cs2-scene .cs2-custom-outline,
+    .cs2-scene .cs2-cloud,
+    .cs2-scene .cs2-bird,
+    .cs2-scene .cs2-sun-aura,
+    .cs2-scene .cs2-sway,
+    .cs2-scene .cs2-tuft,
+    .cs2-scene .cs2-flower,
+    .cs2-scene .cs2-vane,
+    .cs2-scene .cs2-bee,
+    .cs2-scene .cs2-flap,
+    .cs2-scene .cs2-cloud-shadow,
+    .cs2-scene .cs2-fog ellipse {
+      animation: none;
+    }
+    .cs2-scene * {
+      transition: none !important;
+    }
+  }
+
+  /* ── small screens: fewer blades, the same lawn ─────────────────────────
+     A phone shows the run much larger than a desktop does, so most of the
+     grass is sparse detail at the edges of the frame. Thinning it leaves the
+     frame budget for the cable, the lamp and the markers that carry the
+     answer — and the blades that stay keep swaying, so the scene never reads
+     as frozen. (Counted down rather than frozen: a hidden element has nothing
+     left to pause, which keeps every pause path honest.) */
+  @media (max-width: 820px) {
+    .cs2-flora-bit:nth-of-type(3n) {
+      display: none;
+    }
+  }
+  @media (max-width: 600px) {
+    .cs2-flora-bit:nth-of-type(3n + 1) {
+      display: none;
+    }
+    .cs2-bee {
+      animation-duration: 17s;
+    }
+  }
+
+  /* ── after dark: the same field, the same run, a colder light (§8) ───── */
+  :root[data-theme='dark'] .cs2-scene {
+    background: #0d1c2e;
+    color: #dcefff;
+  }
+  :root[data-theme='dark'] #cs2-sky stop:nth-child(1) {
+    stop-color: #071427;
+  }
+  :root[data-theme='dark'] #cs2-sky stop:nth-child(2) {
+    stop-color: #0e2740;
+  }
+  :root[data-theme='dark'] #cs2-sky stop:nth-child(3) {
+    stop-color: #143451;
+  }
+  :root[data-theme='dark'] #cs2-sky stop:nth-child(4) {
+    stop-color: #1b4064;
+  }
+  :root[data-theme='dark'] #cs2-ground stop:nth-child(1) {
+    stop-color: #24503a;
+  }
+  :root[data-theme='dark'] #cs2-ground stop:nth-child(2) {
+    stop-color: #1a4030;
+  }
+  :root[data-theme='dark'] #cs2-ground stop:nth-child(3) {
+    stop-color: #123024;
+  }
+  :root[data-theme='dark'] .cs2-pylon {
+    stroke: #7fa6c4;
+  }
+  :root[data-theme='dark'] .cs2-stripes {
+    opacity: 0.5;
+  }
+  :root[data-theme='dark'] .cs2-sun-aura {
+    opacity: 0.55;
+  }
+  :root[data-theme='dark'] .cs2-pill rect,
+  :root[data-theme='dark'] .cs2-status-box,
+  :root[data-theme='dark'] .cs2-readout rect {
+    fill: #102538;
+    stroke: #43688c;
+  }
+  :root[data-theme='dark'] .cs2-pill-main,
+  :root[data-theme='dark'] .cs2-readout-value,
+  :root[data-theme='dark'] .cs2-status-label {
+    fill: #eaf6ff;
+  }
+  :root[data-theme='dark'] .cs2-pill-sub,
+  :root[data-theme='dark'] .cs2-readout-note,
+  :root[data-theme='dark'] .cs2-status-note {
+    fill: #9fc0d6;
+  }
+  :root[data-theme='dark'] .cs2-readout-head {
+    fill: #7fc7e8;
+  }
+  /* the lamp is on inside the shed, so the bay is the warmest thing in the frame */
+  :root[data-theme='dark'] .cs2-bay-glow {
+    opacity: 0.5;
+  }
+  :root[data-theme='dark'] .cs2-sun-aura {
+    opacity: 0.4;
+  }
+  :root[data-theme='dark'] .cs2-contact-shadows,
+  :root[data-theme='dark'] .cs2-cloud-shadow,
+  :root[data-theme='dark'] .cs2-cast-shadow {
+    opacity: 0.5;
+  }
+</style>

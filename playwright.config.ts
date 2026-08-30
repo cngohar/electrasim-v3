@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { defineConfig, devices } from '@playwright/test';
 
 /**
@@ -15,8 +16,21 @@ import { defineConfig, devices } from '@playwright/test';
 const localBaseURL = 'http://127.0.0.1:3000';
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? localBaseURL;
 
+/**
+ * The Astro tool pages (landing, blog, /tools/*) are not served by the Vite dev
+ * server above — they only exist in the built site, which `scripts/preview-server.mjs`
+ * serves from dist/ on 8788. `cable-size.spec.ts` needs them, so start the preview
+ * server too whenever the site has been built. On a fresh checkout with no dist/
+ * the spec skips itself (see the guard at the top of the file).
+ */
+const localAstroURL = 'http://127.0.0.1:8788';
+const astroURL = process.env.PLAYWRIGHT_ASTRO_BASE_URL ?? localAstroURL;
+const astroBuilt = existsSync('dist/tools/cable-size-calculator/index.html');
+
 export default defineConfig({
   testDir: 'e2e',
+  // production / toolbox / scroll-lock run against the built site (e2e:production);
+  // cable-size runs here, against the preview server started below.
   testIgnore: /(production|toolbox|scroll-lock)\.spec\.ts/,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
@@ -38,15 +52,29 @@ export default defineConfig({
 
   webServer: process.env.PLAYWRIGHT_BASE_URL
     ? undefined
-    : {
-        // HMR off: a dev-server full-reload landing mid-test surfaced as a
-        // random "unexpected navigation" failure (seen in ohmageddon and
-        // challenge-mode specs under load). Nothing edits source during a
-        // run, so hot reload has no value here and only adds a race.
-        command: 'vite --port=3000 --strictPort --host=127.0.0.1',
-        env: { ...process.env, DISABLE_HMR: 'true' },
-        url: localBaseURL,
-        reuseExistingServer: !process.env.CI,
-        timeout: 60_000,
-      },
+    : [
+        {
+          // HMR off: a dev-server full-reload landing mid-test surfaced as a
+          // random "unexpected navigation" failure (seen in ohmageddon and
+          // challenge-mode specs under load). Nothing edits source during a
+          // run, so hot reload has no value here and only adds a race.
+          command: 'vite --port=3000 --strictPort --host=127.0.0.1',
+          env: { ...process.env, DISABLE_HMR: 'true' },
+          url: localBaseURL,
+          reuseExistingServer: !process.env.CI,
+          timeout: 60_000,
+        },
+        // Built site (Astro pages) for cable-size.spec.ts — only when it exists.
+        ...(astroBuilt
+          ? [
+              {
+                command: 'node scripts/preview-server.mjs',
+                env: { ...process.env, PORT: '8788' },
+                url: astroURL,
+                reuseExistingServer: !process.env.CI,
+                timeout: 60_000,
+              },
+            ]
+          : []),
+      ],
 });

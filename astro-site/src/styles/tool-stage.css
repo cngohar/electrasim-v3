@@ -35,6 +35,9 @@
   isolation: isolate;
   /* panels anchor inside the stage, so the stage owns the height budget */
   --ts-panel-w: min(336px, calc(50% - 1.75rem));
+  /* what a dock is allowed to grow to when its neighbour is folded — one
+     number, so the strip can clear a dock it did not size itself */
+  --ts-panel-w-open: min(430px, 46vw);
   --ts-gutter: 1.25rem;
 }
 /* The scene gets its own frame: the whole stage while floating, a banner above
@@ -80,6 +83,15 @@
   position: absolute;
   inset: 0;
   z-index: 24;
+  /*
+   * The wrap is a positioning box stretched over the whole stage: it must not
+   * swallow pointer events aimed at the scene underneath it. Its own children
+   * (panels, the strip, the drawer bar, the scrim) opt back in.
+   */
+  pointer-events: none;
+}
+.ts-panel-wrap > * {
+  pointer-events: auto;
 }
 .ts-panel {
   position: relative;
@@ -380,6 +392,18 @@
   background: var(--action-hover, #1d4ed8);
   color: var(--action-text, #fff);
 }
+/*
+ * The selected look must follow the *input*, not only a class the engine has to
+ * remember to move: any radio that is checked reads as selected, in every tool
+ * that uses this shell, with or without JavaScript.
+ */
+.ts-seg-btn:has(input:checked) {
+  background: var(--action-bg, #2563eb);
+  color: var(--action-text, #fff);
+}
+.ts-seg-btn:has(input:checked):hover {
+  background: var(--action-hover, #1d4ed8);
+}
 .ts-chip-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -409,6 +433,12 @@
   transform: scale(0.985);
 }
 .ts-chip.active {
+  border-color: var(--blue);
+  background: var(--blue-l);
+  color: var(--blue);
+  box-shadow: inset 0 0 0 1px var(--blue);
+}
+.ts-chip:has(input:checked) {
   border-color: var(--blue);
   background: var(--blue-l);
   color: var(--blue);
@@ -755,15 +785,31 @@
 
 /* ── Responsive tiers ──────────────────────────────────────────────────── */
 @media (min-width: 1600px) {
+  .ts-stage[data-stage="stackable"] {
+    --ts-panel-w: min(376px, 26vw);
+  }
   .ts-stage[data-stage="stackable"] .ts-panel--inputs,
   .ts-panel--results {
-    width: min(376px, 26vw);
+    width: var(--ts-panel-w);
   }
 }
 @media (max-width: 1279px) {
-  .ts-panel--inputs,
-  .ts-panel--results {
-    width: min(312px, calc(100vw - 2rem));
+  /*
+   * A floating panel is a column at the side of the scene, so it is capped by
+   * width. A *stacked* panel is a grid item below the scene and must be left to
+   * the grid — pinning it to 312px there is what turned a two-column form back
+   * into a narrow scroll column on every laptop under 1280.
+   */
+  .ts-stage:not([data-stage="stackable"]) .ts-panel--inputs,
+  .ts-stage:not([data-stage="stackable"]) .ts-panel--results,
+  .ts-stage[data-layout="float"] .ts-panel--inputs,
+  .ts-stage[data-layout="float"] .ts-panel--results {
+    width: var(--ts-panel-w);
+  }
+  /* keep the variable in step with the tier: the strip and anything else that
+     has to clear a dock measures the same number the dock is actually given */
+  .ts-stage[data-layout="float"] {
+    --ts-panel-w: min(312px, calc(100vw - 2rem));
   }
   .ts-hud--top {
     top: 0.9rem;
@@ -804,8 +850,14 @@
    being a viewport-height canvas. The scene becomes a banner and the panels flow
    beneath it in normal page scroll, so nothing is absolutely positioned and
    nothing can be clipped by a container again. */
-@media (max-width: 1360px), (max-height: 700px) {
-  .ts-stage[data-stage="stackable"] {
+/*
+ * The band below is the stacked layout. It must match `WIDE_STACK` in
+ * public/js/scene-stage.js and the band in ToolWorkspace.astro: the script sets
+ * `data-layout`, the CSS has to dress it. (Widened from 1360/700 — a 1440×900
+ * laptop is a stackable stage now, and its panels must flow, not float.)
+ */
+@media (max-width: 1500px), (max-height: 780px) {
+  .ts-stage[data-stage="stackable"][data-layout="stack"] {
     height: auto;
     min-height: 0;
     overflow: visible;
@@ -814,29 +866,37 @@
     gap: 0.9rem;
     padding: 0.9rem clamp(0.85rem, 3vw, 1.5rem) 1.4rem;
   }
-  .ts-stage[data-stage="stackable"] .ts-scene-frame {
+  .ts-stage[data-stage="stackable"][data-layout="stack"] .ts-scene-frame {
     position: relative;
     inset: auto;
-    height: clamp(230px, 34vh, 400px);
+    /* 34vh left a 2:1 composition as a 270px strip on a 768px-tall laptop; the
+       run needs enough height that the band fit can put the whole run in view */
+    height: clamp(268px, 42vh, 460px);
     flex: 0 0 auto;
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     box-shadow: 0 10px 30px -14px rgba(15, 23, 42, 0.3);
   }
-  .ts-stage[data-stage="stackable"] .ts-panel-wrap {
+  .ts-stage[data-stage="stackable"][data-layout="stack"] .ts-panel-wrap {
     position: static;
     inset: auto;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    /*
+     * Two panels side by side only once they can each be wide enough for a
+     * two-column form; below that they go full width, which is both wider and
+     * shorter than two cramped columns. (`auto-fit` was tried first: a strip
+     * spanning `1 / -1` in an implicit grid sized the tracks unpredictably.)
+     */
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.9rem;
     align-items: start;
     pointer-events: auto;
     width: 100%;
-    max-width: 1100px;
+    max-width: 1400px;
     margin: 0 auto;
   }
-  .ts-panel--inputs,
-  .ts-panel--results {
+  .ts-stage[data-layout="stack"] .ts-panel--inputs,
+  .ts-stage[data-layout="stack"] .ts-panel--results {
     position: static;
     inset: auto;
     width: auto;
@@ -845,19 +905,36 @@
   /* In the stacked flow the page scrolls, so the body must not. In the drawer it
      is the opposite: the sheet is fixed-height and *must* scroll, or its lower
      half is clipped by the panel and becomes unreachable. */
-  .ts-stage[data-stage="stackable"]:not([data-layout="drawer"]) .ts-panel-body {
+  .ts-stage[data-stage="stackable"][data-layout="stack"]:not([data-layout="drawer"])
+    .ts-panel-body {
     overflow: visible;
     max-height: none;
   }
-  .ts-stage[data-stage="stackable"][data-layout="drawer"] .ts-panel-body {
+  /* Stacked panels are page content, so they have to reach their full height:
+     with the body deliberately unscrollable here, the viewport-tall `max-height`
+     from the floating tiers made `.ts-panel`'s own `overflow: hidden` clip the
+     fields below the pinned footer with nothing left to scroll them into view
+     (cable length and the drop limit, on a 1024px-wide window). The drawer keeps
+     the cap: its sheets are sized against the viewport on purpose. */
+  .ts-stage[data-stage="stackable"][data-layout="stack"]:not([data-layout="drawer"]) .ts-panel {
+    max-height: none;
+  }
+  /* Two panels side by side once each can still hold a two-column form;
+     below that one full-width panel is both wider and shorter. */
+  @media (min-width: 1200px) {
+    .ts-stage[data-stage="stackable"][data-layout="stack"] .ts-panel-wrap {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .ts-stage[data-stage="stackable"][data-layout="stack"][data-layout="drawer"] .ts-panel-body {
     overflow-y: auto;
     max-height: none;
   }
-  .ts-stage[data-stage="stackable"] .ts-panel.can-scroll-down::after,
-  .ts-stage[data-stage="stackable"] .ts-panel.can-scroll-up::before {
+  .ts-stage[data-stage="stackable"][data-layout="stack"] .ts-panel.can-scroll-down::after,
+  .ts-stage[data-stage="stackable"][data-layout="stack"] .ts-panel.can-scroll-up::before {
     display: none;
   }
-  .ts-stage[data-stage="stackable"] .ts-hud-tools {
+  .ts-stage[data-stage="stackable"][data-layout="stack"] .ts-hud-tools {
     top: 1.5rem;
     z-index: 5;
     padding: 0.15rem 0.3rem;
@@ -865,7 +942,7 @@
     background: var(--surface-glass, rgba(255, 255, 255, 0.9));
     box-shadow: 0 6px 18px -8px rgba(15, 23, 42, 0.35);
   }
-  .ts-stage[data-stage="stackable"] .ts-tool-btn {
+  .ts-stage[data-stage="stackable"][data-layout="stack"] .ts-tool-btn {
     padding: 0.3rem 0.55rem;
     font-size: 0.68rem;
     border: none;
@@ -874,7 +951,7 @@
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
-  .ts-stage[data-stage="stackable"] .ts-tool-btn:hover {
+  .ts-stage[data-stage="stackable"][data-layout="stack"] .ts-tool-btn:hover {
     background: var(--bg-3);
   }
 }
@@ -925,7 +1002,7 @@
   /* the run is a wide composition: the banner has to be tall enough that fitting
      it by width (not by height) is what decides, or the scene arrives as a thin
      strip with dead room above and below */
-  height: clamp(214px, 44dvh, 360px);
+  height: clamp(238px, 46dvh, 380px);
 }
 .ts-stage[data-stage="stackable"][data-layout="drawer"] .ts-panel-wrap {
   position: static;
@@ -1004,4 +1081,64 @@
     justify-content: space-between;
     gap: 0.5rem;
   }
+}
+
+/* ── Collapsible docks ─────────────────────────────────────────────────────
+   A dock floating over the scene is only welcome while it is being used. On a
+   laptop the two panels and the run all want the same pixels, so each panel
+   folds to a rail that still says which one it is: the body goes, the header
+   stands on end, and the fit re-runs itself (scene-stage.js watches every panel
+   with a ResizeObserver) so the scenery grows into the freed space.
+   The drawer hides the toggle on purpose — a sheet already opens and closes. */
+/* `.ts-stage` is in the selector so these win over the width tiers above,
+   which are equally specific but come earlier in the file. */
+.ts-stage:not([data-layout="drawer"]) .ts-panel[data-collapsed="true"] {
+  /* a deliberate rail width: `width: auto` shrink-wraps to the header's
+     padding and the dock disappears instead of folding (measured: 2px) */
+  width: 3rem;
+  min-width: 0;
+  /* stop anchoring to the bottom: the rail is only as tall as its header */
+  bottom: auto;
+  max-height: none;
+  overflow: visible;
+}
+/* everything in the dock folds away except its header — the header holds the
+   button that brings it back */
+.ts-stage:not([data-layout="drawer"])
+  .ts-panel[data-collapsed="true"]
+  .ts-panel-shell
+  > :not(.ts-panel-header) {
+  display: none;
+}
+.ts-stage:not([data-layout="drawer"]) .ts-panel[data-collapsed="true"] .ts-panel-header {
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.8rem 0.5rem;
+}
+/* stacked under the icon, the label fits the rail; side by side it did not */
+.ts-stage:not([data-layout="drawer"]) .ts-panel[data-collapsed="true"] .ts-panel-title {
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.ts-stage:not([data-layout="drawer"]) .ts-panel[data-collapsed="true"] .ts-panel-title span {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  letter-spacing: 0.14em;
+  font-size: 0.72rem;
+}
+/* chevrons point the way their dock travels: the left dock folds left… */
+.ts-panel--inputs .ts-panel-collapse[aria-expanded="true"] .chevron,
+.ts-panel--results .ts-panel-collapse[aria-expanded="false"] .chevron {
+  transform: rotate(-90deg);
+}
+/* …and the right dock folds right */
+.ts-panel--results .ts-panel-collapse[aria-expanded="true"] .chevron,
+.ts-panel--inputs .ts-panel-collapse[aria-expanded="false"] .chevron {
+  transform: rotate(90deg);
+}
+/* with one dock folded, the other may take the width it freed */
+.ts-stage[data-layout="float"][data-docks="inputs"] .ts-panel--inputs,
+.ts-stage[data-layout="float"][data-docks="results"] .ts-panel--results {
+  width: var(--ts-panel-w-open);
 }

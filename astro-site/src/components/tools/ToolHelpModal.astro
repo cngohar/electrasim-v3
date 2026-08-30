@@ -140,105 +140,90 @@ const COPY: Record<string, Copy> = {
   },
 
   'cable-size': {
-    title: 'How Cable Sizing Works',
+    title: 'How this calculator sizes a cable',
     intro:
-      'A cable is sized by heat, not by appetite: it has to carry the load current without its conductor passing the insulation temperature limit, in the surroundings where it will actually be installed.',
+      'A source, a cable and a load. The cable has resistance, current through resistance loses voltage, and the smallest candidate that still keeps the loss inside your limit is the answer.',
     formulas: [
-      {
-        label: 'Design current',
-        expression: 'I<sub>b</sub> = P / (U · cos φ) &nbsp;— &nbsp;√3 · U for 3-Φ',
-      },
-      {
-        label: 'Capacity needed',
-        expression:
-          'I<sub>t</sub> = I<sub>n</sub> / (C<sub>a</sub> · C<sub>g</sub> · C<sub>i</sub> · C<sub>c</sub>)',
-      },
-      {
-        label: 'The rule',
-        expression: 'I<sub>b</sub> ≤ I<sub>n</sub> ≤ I<sub>z</sub> &nbsp;and&nbsp; ΔV ≤ ceiling',
-      },
+      { label: 'Resistance', expression: 'R = 2 · ρ · L / A  (round trip)' },
+      { label: 'Voltage drop', expression: 'ΔV = I · R' },
+      { label: 'Design current', expression: 'I = P / (U · cos φ) &nbsp;— &nbsp;P / U on DC' },
     ],
     formulaMeta: [
-      'I<sub>z</sub> = tabulated ampacity after derating — the cable as its real environment leaves it',
-      'The answer is the smallest IEC 60228 cross-section that passes both gates',
+      'ρ = 0.0172 Ω·mm²/m for copper, 0.0282 for aluminium (at 20 °C)',
+      'The recommendation is the smallest candidate with ΔV ≤ your limit',
     ],
     cards: [
       {
-        badge: 'METHOD C → A',
-        value: '20 A → 14.5 A',
-        unit: '1.5 mm²',
-        note: 'the same copper, clipped direct versus buried in loft insulation',
-        tone: 'neutral',
+        badge: '3 kW HEATER',
+        value: '2.5 mm²',
+        unit: '25 m · copper',
+        note: '13.0 A: 1.5 mm² drops 3.25% (fail), 2.5 mm² drops 1.95% (pass)',
+        tone: 'copper',
       },
       {
-        badge: 'GROUPING',
-        value: '× 0.65',
-        unit: '4 circuits',
-        note: 'one cable tray, four circuits — Cg lands on every one of them',
+        badge: 'SAME RUN, 40 m',
+        value: '4 mm²',
+        unit: 'the answer moves',
+        note: '2.5 mm² now drops 3.12% — nothing about the cable changed',
         tone: 'neutral',
       },
     ],
-    guidelinesTitle: 'What the run is telling you',
+    guidelinesTitle: 'Reading the scene',
     guidelines: [
       {
         tone: 'good',
-        badge: 'cable + arrows',
-        text: '<strong>Left to right, always.</strong> The power leaves the consumer unit, travels the cable and arrives at the appliance. The dots are the load current; the thicker the line, the more copper the answer needed.',
+        badge: 'thin cable',
+        text: '<strong>Small cross-section.</strong> High resistance for the length, so more of the source voltage is lost on the way and the load runs starved.',
       },
       {
         tone: 'good',
-        badge: 'heat rising',
-        text: '<strong>Heat escaping.</strong> Chevrons climb off the run when the method can shed what the load produces — so the gauge stays long and a smaller cable is legal.',
+        badge: 'thick cable',
+        text: '<strong>Large cross-section.</strong> Less resistance, a smaller drop, more of the source voltage arriving at the load — and more copper to pay for.',
       },
       {
         tone: 'warning',
-        badge: 'heat stalls',
-        text: '<strong>Heat straining.</strong> A hot loft, a shared conduit or extra neighbours: capacity drains towards the load line, the cable glows, and the answer steps up a size.',
+        badge: 'NEAR LIMIT',
+        text: '<strong>Inside the limit, but tight.</strong> A longer run, a heavier load or a warmer cable would push this over — worth one size up if anything about the job is uncertain.',
       },
       {
         tone: 'excessive',
-        badge: 'device trips',
-        text: '<strong>Nothing fits.</strong> The run glows end to end and the MCB goes red: even 95 mm² cannot shed what these conditions demand. Shorten the run, split the circuit, or let the cable breathe.',
-      },
-      {
-        tone: 'warning',
-        badge: 'appliance sags',
-        text: '<strong>The far end is the proof.</strong> A dim bulb, a slow motor or a weak shower is the volt drop you computed, drawn. The number under LOAD is volts actually delivered, not nominal.',
+        badge: 'FAIL',
+        text: '<strong>Cable too small for this calculated condition.</strong> The drop is over your selected limit. Upsize, shorten the run, raise the voltage, or choose a different limit deliberately.',
       },
       {
         tone: 'good',
-        badge: 'gate lights up',
-        text: '<strong>Which gate bit.</strong> The two lamps above the run say whether heat (Iz ≥ It) or volts (ΔV ≤ ceiling) decided the size — and the chart in the results panel shows where they cross.',
+        badge: 'recommended vs selected',
+        text: '<strong>Two different things.</strong> The recommendation is the smallest size that passes; you can inspect any other size in the strip without changing it.',
       },
     ],
-    notesTitle: 'Things that bite on site',
+    notesTitle: 'Things worth knowing',
     notes: [
       {
         icon: 'ruler',
-        text: '<strong>Method, not metres, moves the answer most.</strong> 1.5 mm² is 20 A clipped direct and 14.5 A enclosed in insulation — a 27% swing decided before the cable is bought.',
+        text: '<strong>Length is linear.</strong> Double the run and you double the drop — the length slider is the fastest way to see a comfortable cable become an uncomfortable one.',
       },
       {
-        icon: 'toolbox',
-        text: '<strong>Derating factors multiply, never add.</strong> 0.87 (40 °C) × 0.65 (4 circuits) is 0.57, not 0.76. Two mild conditions together make a severe one.',
+        icon: 'bolt',
+        text: '<strong>The load sets the current.</strong> A 100 W lamp draws 0.43 A and almost any cable copes; a 3 kW heater draws 13 A and starts making demands.',
       },
       {
         icon: 'warning',
-        text: '<strong>A BS 3036 semi-enclosed fuse costs another 0.725</strong> — common in older consumer units, and why a rewireable-fuse circuit needs a bigger cable than its MCB twin.',
+        text: '<strong>Voltage drop is not the only gate.</strong> Current-carrying capacity, derating for grouping and insulation, and the protective device all have to be checked separately for a real installation.',
       },
       {
-        icon: 'plug',
-        text: '<strong>The CPC has to keep up.</strong> Table 54.7 pairs each live size with a minimum protective conductor (10 mm² → 4 mm²); an undersized CPC is a routine EICR observation even when the live conductors are right.',
+        icon: 'gear',
+        text: '<strong>These are cold-cable figures.</strong> Resistance is taken at 20 °C; a conductor at its 70 °C working temperature carries roughly 20% more resistance and therefore more drop.',
       },
       {
-        icon: 'ice',
-        text: '<strong>Buried cable reads the ground, not the air.</strong> Method D assumes 20 °C soil at 1.0 K·m/W; dry sand, a shallow trench or several circuits in one run all cost capacity again.',
+        icon: 'flask',
+        text: '<strong>Copper or aluminium.</strong> Aluminium drops about 1.6× more voltage for the same cross-section — on the heater example, 4 mm² aluminium where 2.5 mm² copper would do.',
       },
       {
-        icon: 'search',
-        text: '<strong>Check both gates before ordering.</strong> A short heavy circuit is usually thermal-limited, a long light one volt-drop-limited — and a shower on a 40 m run can fail both for different reasons.',
+        icon: 'reset',
+        text: '<strong>Share a scenario.</strong> Every input lives in the URL, so "copy link" hands someone else exactly the run you were looking at.',
       },
     ],
-    tip: '<strong>Pro Tip:</strong> tabulated ampacities assume 30 °C air and 20 °C ground. A loft that sits at 40 °C in August is not a 30 °C environment — that one assumption is why compliant-on-paper circuits turn up warm on site. Start from a real-world preset: press one and the card says what the circuit is, what it draws, and which gate decides it.',
+    tip: '<strong>Pro Tip:</strong> switch Lighting → Heater and watch the scene — the load, the demand, the cable thickness, the drop and the verdict all move together. That chain of cause and effect is the whole subject.',
   },
 };
 

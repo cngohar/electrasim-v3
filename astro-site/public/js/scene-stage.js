@@ -220,6 +220,7 @@
     // viewport-relative, so a scrollbar appearing changes it).
     fit();
     setTimeout(schedule, 150);
+    if (useLayout) wireCollapse(stage);
 
     return {
       fit: schedule,
@@ -247,18 +248,39 @@
    *   drawer  phone width: panels fold into a bottom sheet with a grab handle
    * ──────────────────────────────────────────────────────────────────── */
   const LAYOUT = { drawerMaxWidth: 768, stackMaxWidth: 1360, stackMaxHeight: 700 };
+  /*
+   * A stage that opts into stacking (`data-stage="stackable"` — the cable
+   * calculator) no longer stacks. Stacking was the answer to a real problem —
+   * a floating inputs panel is ~336px wide, which turns a 1000px-tall form into
+   * a scroll column — but it moved the *results* off screen: on a 1024x700
+   * window the results panel started at y=1084, so reading the answer meant
+   * scrolling past the run that explains it. The panels now dock over a
+   * full-height scene and fold to a labelled rail (see `wireCollapse`), which
+   * keeps the answer AND the scenery on screen and leaves the choice of what
+   * gets the room to the reader.
+   *
+   * The stack thresholds are deliberately unreachable: they are kept so the
+   * stacked flow stays one edit away, and `layoutFor` only reaches `stack`
+   * below them.
+   */
+  const WIDE_STACK = { drawerMaxWidth: 768, stackMaxWidth: 0, stackMaxHeight: 0 };
 
-  function layoutFor(w, h) {
-    if (w <= LAYOUT.drawerMaxWidth) return 'drawer';
-    if (w <= LAYOUT.stackMaxWidth || h <= LAYOUT.stackMaxHeight) return 'stack';
+  function limitsFor(stage) {
+    return stage?.dataset?.stage === 'stackable' ? WIDE_STACK : LAYOUT;
+  }
+
+  function layoutFor(w, h, limits) {
+    const L = limits || LAYOUT;
+    if (w <= L.drawerMaxWidth) return 'drawer';
+    if (w <= L.stackMaxWidth || h <= L.stackMaxHeight) return 'stack';
     return 'float';
   }
 
-  function currentLayout() {
+  function currentLayout(stage) {
     const w =
       window.visualViewport?.width || window.innerWidth || document.documentElement.clientWidth;
     const h = window.visualViewport?.height || window.innerHeight || 0;
-    return layoutFor(w, h);
+    return layoutFor(w, h, limitsFor(stage));
   }
 
   /** The `.ts-stage` ancestor of a frame: the element that owns the layout mode. */
@@ -275,7 +297,7 @@
   function applyLayout(target) {
     const stage = stageHost(target);
     if (!stage || !stage.dataset) return '';
-    const next = currentLayout();
+    const next = currentLayout(stage);
     const prev = stage.dataset.layout || '';
     if (next !== prev) {
       stage.dataset.layout = next;
@@ -354,6 +376,63 @@
   /** True when the visitor asked for reduced motion (scenes then freeze). */
   function reducedMotion() {
     return Boolean(REDUCED_MOTION.matches);
+  }
+
+  /**
+   * Collapsible docks. A panel floating over the scene is only welcome while it
+   * is being used, so each one folds to a rail that still says what it is.
+   *
+   * No refit plumbing is needed: `watchPanels` puts a ResizeObserver on every
+   * panel, so a dock changing size re-runs the fit by itself and the scene grows
+   * into the space the dock handed back.
+   */
+  /**
+   * Two open docks are a luxury: at 312px each they leave the run a band of
+   * `width - 684px`, which is 136px on an 820px window — narrower than the
+   * comparison strip itself. Under the threshold the docks start folded, so the
+   * scenery gets the window on arrival and the rails say where the panels went.
+   * It is an *initial* state only: a later resize never fights the reader.
+   */
+  const NARROW_DOCKS = 1100;
+
+  function wireCollapse(target) {
+    // `attach` is handed the scene frame (that is the box the viewBox is fitted
+    // to), but the docks are siblings of it inside the stage proper
+    const stage = stageHost(target) || target;
+    if (!stage || stage.dataset.docks) return;
+    const panels = [...stage.querySelectorAll('.ts-panel')];
+    if (!panels.length) return;
+    // a drawer is already a folding panel: its sheets open and close on their
+    // own, and folding one here would open it empty
+    const startFolded =
+      currentLayout(stage) !== 'drawer' &&
+      (window.innerWidth || document.documentElement.clientWidth || 0) < NARROW_DOCKS;
+
+    for (const button of stage.querySelectorAll('.ts-panel-collapse')) {
+      const panel = button.closest('.ts-panel');
+      if (!panel) continue;
+      const name = (panel.querySelector('.ts-panel-title span')?.textContent || 'panel')
+        .trim()
+        .toLowerCase();
+      const fold = (on) => {
+        panel.dataset.collapsed = on ? 'true' : 'false';
+        button.setAttribute('aria-expanded', on ? 'false' : 'true');
+        button.setAttribute('aria-label', `${on ? 'Expand' : 'Collapse'} the ${name} panel`);
+        // publish which docks are open, so the survivor and the strip can take
+        // the width the folded one gave back
+        const open = panels.filter((p) => p.dataset.collapsed !== 'true');
+        if (open.length > 1) stage.dataset.docks = 'both';
+        else if (open.length === 1) {
+          stage.dataset.docks = open[0].classList.contains('ts-panel--results')
+            ? 'results'
+            : 'inputs';
+        } else stage.dataset.docks = 'none';
+      };
+      if (panel.dataset.collapsed !== 'true') panel.dataset.collapsed = 'false';
+      if (startFolded) fold(true);
+      button.addEventListener('click', () => fold(panel.dataset.collapsed !== 'true'));
+    }
+    if (!startFolded) stage.dataset.docks = 'both';
   }
 
   window.ElectraStage = {

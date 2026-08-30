@@ -11,6 +11,337 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Replaced — Session 2026-08-29: Cable Size Calculator v2 (source → cable → load)
+
+The cable-sizing tool has been **replaced**, not extended. v1 was a derating/ampacity form (installation
+method, ambient temperature, grouping, protective device) married to a cutaway diagram; v2 answers one
+question — *what is the smallest cable that keeps the voltage drop inside the limit I chose?* — and shows
+the run it is talking about.
+
+1. **One question, asked out loud.** Pick a load (Lighting 100 W, Fan 80 W, Motor 2.2 kW, Heater 3 kW,
+   Appliance 500 W, or your own watts and power factor), set the run (voltage 230 V, length 25 m, copper
+   or aluminium, drop limit 3% / 5% / custom) and the tool reports the smallest size on the ladder that
+   passes, the volts and percent it uses, the voltage arriving at the load, and PASS / NEAR LIMIT / FAIL.
+   The limit is presented as a **design choice with a disclaimer**, never as a regulatory verdict
+   (§24's do-not-add list — no MCB/RCD, no thermal derating, no grouping, no ambient temperature, no
+   three-phase, no manufacturer tables, no certificate).
+2. **All the electrical maths lives in one place.** `src/lib/tools/cable-size/` (`config`, `presets`,
+   `validation`, `evaluate`, `visual`, `explain`, `format`) wraps the shared
+   `voltage-drop/calculation.ts`; the UI and the scene never recompute a number. 65 domain tests pin the
+   ladder, the length/material sweeps, URL parsing and the failure copy.
+3. **The scene is the answer, not decoration** (`CableSizeScene.astro`): an isometric SVG run —
+   source pylon → cable → load — with a per-load drawing (lamp, fan, motor, heater, appliance, custom)
+   sharing the same source and cable infrastructure. Cable thickness follows a **controlled non-linear
+   scale** (`visual.ts`) so 1.5 mm² is visibly thinner than 10 mm² while the label always states the true
+   size. Selected and recommended are separate: clicking any candidate redraws the cable and the results
+   without ever moving the recommendation.
+4. **Repaint, don't rebuild.** The browser engine (`src/tools/cable-size/engine.ts`, bundled to
+   `public/js/cable-size-tool.js` by `scripts/build-tool-engines.mjs`) writes to server-rendered nodes;
+   the SVG is updated in place (`data-tag` proves it), so the first paint and every later paint come from
+   the same evaluation. 23 jsdom tests drive it end to end before a browser is involved.
+5. **Comparison strip + “Why this size?”.** Every candidate is scored FAIL/PASS with its volts and
+   percent; the recommended size is flagged, the inspected one is marked IN USE. The explanation is
+   generated from the result, so it changes with it — and an over-limit run is explained as teaching
+   (“a bigger cable…”, never an explosion or a disaster).
+6. **Mobile keeps the story.** Under the drawer layout the inputs live in a bottom sheet, the verdict
+   rides the handle, and SOURCE → CABLE → LOAD stays on screen; accessibility holds throughout (semantic
+   labels including the slider, keyboard-navigable radio group, status in words not colour, live region
+   announcements, reduced-motion + an explicit animate switch, no emoji glyphs in the tool UI).
+7. **Tests**: new `e2e/cable-size.spec.ts` (17 scenarios × 3 projects = **51 passing**) runs in the
+   **default** `npm run e2e` — `playwright.config.ts` now also starts the built-site preview server
+   (port 8788) beside the Vite dev server and the spec skips itself when `dist/` has not been built.
+   `e2e/toolbox.spec.ts` lost its ~40 v1 cable assertions; its two surviving cable tests were rewritten
+   to v2 markup, and its cropping detector now ignores deliberately clipped `sr-only` text and children
+   of horizontally scrollable strips. **51/51 toolbox tests pass.**
+8. **Removed**: `CableSizingPanels/Scene/Scene3d.astro`, `public/js/cable-size-tool.js` (v1) and
+   `cable-tables.js`, and the `src/lib/tools/cable-sizing/` ampacity/domain module and its tests — no
+   legacy route, no unused modules.
+9. **Verification**: `astro build` 135 pages · `astro check` **0 errors / 0 warnings** · `biome lint`
+   clean (505 files) · `tsc` clean for app, e2e and astro-site · **1123 unit tests** · 51 cable-size +
+   62 production-suite E2E passing.
+
+### Fixed & Enhanced — Session 2026-08-30 (part 7): Cable Size Calculator review — hot cables, honest controls
+
+A review of the cable-sizing implementation on its own, followed by fixes to what it got wrong.
+
+**The one that mattered: the tool sized cold cables.** Resistance was corrected to **20 °C**, but BS
+7671's voltage-drop figures — the tables this tool cites — are tabulated at the conductor's **maximum
+operating temperature, 70 °C for PVC under load**. A cable under load is not a cold cable, and
+`1 + 0.00393 × 50` is **1.1965**: every voltage drop the tool reported was about **20% low**, and
+under-sizing is the one failure this tool exists to prevent. The tool's own prose (the Voltage Drop
+checklist) was already telling readers to "size to the hot cable, not the cold one" while the Cable
+Size tool quietly did the opposite.
+
+1. **Conductor temperature is now an input**, defaulting to 70 °C, with 20 °C / 70 °C / 90 °C chips
+   (cold, thermoplastic under load, thermosetting under load), bounds −25…200 °C, and a `temp` share
+   parameter. The one field where a negative value is legal, so it has its own validation path.
+   Measured effect at the defaults: lighting 25 m goes 0.11% → **0.13%**; a 3 kW heater over 60 m
+   moves 4 mm² → **6 mm²**. Every figure in the results, the strip and the "why" follows.
+2. **The safety gap is now impossible to miss.** The tool sizes on voltage drop alone, so 10 kW at
+   230 V over one metre is 43.5 A and **1.5 mm² passes with a green PASS** — a cable that would
+   overheat. A permanent scope line now sits directly under the recommendation (not at the foot of
+   the panel, where it would be scrolled past) and **names the design current**: *"Voltage drop only.
+   At 43.5 A, also check the conductor's current-carrying capacity (Iz) against BS 7671 Appendix 4.
+   Inside the drop limit is not the same as big enough."* No rating figures are invented.
+3. **The form stopped promising physics it does not run.** The AC note claimed "the cable's reactance
+   counts toward the drop" while the engine passes `includeReactance: false`. The note now says what
+   happens — drop worked from resistance alone, reactance omitted, worth a few percent on the largest
+   sizes and nothing on the small ones.
+4. **The length slider no longer lies.** It stopped at 200 m while the field allows 1000 m, so a
+   500 m run showed a slider parked at 200. It now widens to the full range (with a hint) past 200 m,
+   and uses `step="any"` so a stepped track cannot report **501 m for a 500 m run** — the slider
+   snapping was the same dishonesty in a smaller hat. Drags are rounded to 0.5 m / 1 m.
+5. **A rejected input is marked stale.** Typing an out-of-range value used to leave the previous
+   result sitting there looking current; the panel is now dimmed with "showing the last run the tool
+   could evaluate".
+6. **Two rows of the results table were both labelled "Voltage drop"** (volts and percent). The
+   percentage row now reads "As a share of the supply".
+7. **The SEO worked example and resistivity paragraph** were quoting 20 °C figures (7.48 V / 3.25%,
+   4.49 V / 1.95%, 3.12%); they now match the tool (8.9 V / 3.89%, 5.4 V / 2.33%, 3.73%).
+
+**Verification:** `astro check` **0 errors / 0 warnings / 10 hints** · `biome lint` clean (511 files) ·
+`tsc` clean for app + e2e · **1149 unit tests** (15 new: temperature physics, negative temperatures,
+scope copy, stale marking) · cable-size E2E **99/99** (5 new scenarios × 3 projects) · 0 page errors
+at 1440×900, 1280×800, 1120×700, 1024×700, 900×700 and 390×844, with the collapse → expand dock
+regression still clean (21 fields, body not hidden).
+
+### Fixed — Session 2026-08-30 (part 6): the AC/DC toggle changed nothing but a greyed-out field
+
+Reported from the preview: *"when clicking on dc, toggle the voltage is stay same, wait everything is
+stay same except power factor and disabled and load type is (changed somewhat)"*. Confirmed by diffing
+**41 live values** before and after the toggle — 34 of them were byte-identical. With the default load
+(Lighting, PF 1.00) the current is `P ÷ V` either way, so flipping to DC moved **nothing at all**: same
+230 V, same 0.4 A, same 0.11% drop, same 1.5 mm² recommendation. The switch read as decoration.
+
+1. **Each system now carries its own voltage ladder.** `SYSTEM_VOLTAGE_PRESETS` in `config.ts` gives AC
+   120 / 230 / 400 V and DC 12 / 24 / 48 / 220 V, with a chip row under the voltage field that swaps
+   with the system (`cs2-volt-presets`, pressed chip marked). The field stays free-form — the chips are
+   shortcuts, not a value.
+2. **Flipping the toggle moves the supply.** DC lands on 48 V, AC back on 230 V. The teaching contrast
+   is the point: 100 W over 25 m at 230 V is **0.4 A and 1.5 mm²**; the same lamp at 12 V is **8.3 A and
+   25 mm²**. A voltage the reader typed outranks the suggestion and survives the toggle (a 600 V solar
+   string is not on either ladder); clicking a chip re-arms it.
+3. **Loads are described in the system's own words.** `LoadPreset.noteDc` + `loadNote()`: a motor on DC
+   is "a 2.2 kW DC motor — a traction or pump drive", not "a 2.2 kW **single-phase** motor".
+4. **The scene shows which supply it is.** The cabinet carries a system badge — a sine for AC, a battery
+   for DC — driven by `data-system`, which until now was set and read by nothing. The current markers
+   breathe on AC and run steady on DC, gated on the animate switch like every other animation.
+5. **The cabinet's rating plate was stamped 230 V forever.** It ignored the run entirely; it now reads
+   the live voltage (48 V on a DC run, 600 V if you asked for 600 V).
+6. **A shared link that names a system lands on that system's nominal** (`?system=dc` → 48 V); one that
+   names a voltage keeps it.
+
+**Verification**: `astro check` **0 errors / 0 warnings / 10 hints** · `biome lint` clean (505 files) ·
+`tsc` clean for app + e2e · **1141 unit tests** (9 new in `presets.test.ts`) · cable-size E2E **84/84**
+(3 new scenarios × 3 projects) · 0 page errors at 1440×900, 1280×800, 1120×700, 1024×700, 900×700 and
+390×844, with the chip row a single 19px line that never overflows the panel.
+
+### Fixed — Session 2026-08-30 (part 5): a dock that opens empty, and words floating on the sky
+
+Two defects reported from the same small preview window.
+
+1. **Opening a dock showed an empty panel.** Collapsing had **two owners**: the cable engine toggled
+   `body.hidden`, and `scene-stage.js` toggled `data-collapsed` (the rail, the widened neighbour, the
+   strip). They kept independent state, so a dock that *started* folded — every window under 1100px —
+   was one click out of phase: the CSS said expanded while the body was still `hidden`, and the panel
+   opened to a blank 430px rectangle. Measured at 1024×700: `data-collapsed="false"`, panel 430px wide,
+   body `display: none`, **0 fields**. One owner now (the shared stage runtime, which also owns the rail
+   and the refit) → **20 fields, body 548px, every readout visible**.
+2. **Words painted on the sky.** The scene carried a headline — "ELECTRICAL RUN · SOURCE → CABLE →
+   LOAD / The cable is the variable / …" — authored at y=66…134, well *above* the band the fit
+   guarantees is in frame (y≈200…580). On a tall, narrow frame the viewBox reaches up into it and the
+   sentence floats over the sky, duplicating the page heading. Removed, along with its dead CSS; the
+   scene keeps its own labels (SOURCE, LOAD, the cable pill, the readouts).
+
+Both are now covered by tests: unfolding a dock asserts the body is not left `hidden`, that its fields
+are visible and that the cable-length field is clickable; the scenery test asserts no scene text
+contains the old headline.
+
+**Verification**: `astro build` ✅ · `astro check` **0 errors / 0 warnings / 10 hints** · `biome lint`
+clean (504 files) · **1132 unit tests** · cable-size E2E **78/78** · production E2E 62 passed with the
+same 4 pre-existing sandbox failures.
+
+### Fixed — Session 2026-08-30 (part 4): the run is wired up, and the panels dock instead of hiding the answer
+
+Three defects reported from a screenshot of a small preview window, all confirmed by measurement in a
+real browser before anything was touched.
+
+1. **The cable was painting a black wedge over the scene.** Every path in the cable span is an *open*
+   path (`M288 352 Q 620 470 962 352`) carrying no `fill`, so SVG's default black fill applied: the lens
+   between the sagging span and the straight line joining its ends was filled solid `#000` — the "dark
+   black colour above the wire", and it grew with sag, so it was worst on exactly the long runs that
+   matter. Measured at 1024×700: **9,631 pixels of pure black**, in a band tracking the cable exactly.
+   `.cs2-cable path, .cs2-cast-shadow { fill: none }` → **0**. (The `<defs>` copy already had
+   `fill="none"`; the six drawn paths did not.)
+2. **The span ended in mid-air at both ends.** The path began at x=300 while the cabinet's right face is
+   at x=286, and stopped at x=940 with the shed wall at x=964 — gaps of **14 and 24 units** with nothing
+   bridging them. The path now reaches both buildings (288 → 962) and a termination clamps each end: a
+   bolted back plate, a threaded gland body and a locknut, galvanised on the cabinet and timber on the
+   shed. Both gaps measure 2 units now and are wholly covered by the plate.
+3. **The results panel was below the fold.** On a 1024×700 window the stacked layout put the results
+   panel at **y=1084**, so reading the answer meant scrolling past the run that explains it. The cable
+   stage no longer stacks: its panels **dock left and right over a full-height scene**, and each folds to
+   a labelled rail. With both folded the run spans **516px on a 1024px window instead of 209px**; at
+   1366×768 both docks are open, both wholly inside the viewport, and the scenery gets the window.
+
+Supporting work:
+
+4. **Docks that know the space they are in.** Folding one dock widens the other — and the comparison
+   strip — into the freed width. Below 1100px, where two open docks would leave the run a 136–340px
+   band, both start folded so the scenery gets the window on arrival (an *initial* state only; a later
+   resize never fights the reader). The refit needs no plumbing: a `ResizeObserver` already watches every
+   panel, so a dock changing size re-runs the fit by itself.
+5. **The strip lives between the docks.** Centred with a `min-width`, it slid under the inputs panel on a
+   narrow window and the panel's own legend swallowed clicks meant for the first candidate — **21 E2E
+   failures at 1440×900**. It now spans the free band and measures clear of both docks at every width
+   from 820 to 1600.
+6. **The drawer is untouched.** Folding a sheet would open it empty, so the rail styles and the
+   auto-fold are both scoped away from `[data-layout="drawer"]` — verified at 390×844: the sheet still
+   opens with its fields live.
+
+**Verification**: `astro build` ✅ · `astro check` **0 errors / 0 warnings / 10 hints** · `biome lint`
+clean (504 files) · **1132 unit tests** · cable-size E2E **78/78** (3 projects) · production E2E 62
+passed with the same 4 pre-existing sandbox failures. Two layout tests were rewritten to the new
+intent — the old ones asserted the stacked layout that is now gone.
+
+**Found the hard way**: Astro scopes component `<style>` selectors with the component's own
+`data-astro-cid`, so `.ts-stage[data-layout="float"] .cs2-strip` written inside `CableSizePanels.astro`
+compiled to a selector requiring the *panels'* id on the stage element — which belongs to
+`ToolWorkspace.astro` — and silently never matched. Cross-component selectors need `:global(…)`.
+
+### Enhanced — Session 2026-08-30 (part 3): the cable run gets a sun, a shadow and small props
+
+A detail pass on the cable-size scene (`CableSizeScene.astro`, 62 kB → 69 kB). Nothing electrical moved —
+only what the artwork does with the light.
+
+1. **One sun, kept honest.** The scene had flat fills, so nothing looked lit. Both buildings now carry a
+   lit face and a shaded face from the same direction (`cs2-sunlit` / `cs2-shaded` gradients), measured on
+   screen rather than eyeballed: kiosk shaded 180 vs sunlit 228, shed 174 vs 210 (luminance, 0–255). A
+   first attempt with narrow ramps measured *no* difference in either building, so the gradients and the
+   rects they paint were widened until the probe said otherwise.
+2. **Shadows that belong to things.** The cable span casts a shadow on the lawn (the cable path offset and
+   blurred, under everything: lawn 154 → shadow 143), the trees get soft contact shadows where they meet
+   the ground, and two cloud shadows drift across the field. The bay window glows after dark
+   (opacity 0 by day, 0.45 at night).
+3. **Ironmongery and shed props.** Kiosk: hinges, a lock with a keyhole, a gland where the conduit enters.
+   Shed: plank lines, a gutter on brackets, a downpipe, a water butt; a coil of cable on the hook, a jar
+   and a tin on the shelf, a can by the door.
+4. **Wind that travels.** Each tuft and flower used to shake on its own clock, so the field shimmered
+   instead of gusting. Sway delay is now a function of x, which makes a gust cross the field. Birds flap
+   (three of them, on the post cross-arm).
+5. **Every new animation obeys the switch.** `.cs2-flap` and `.cs2-cloud-shadow` were added to all three
+   pause lists (`[data-motion='off']`, `.scene-paused`, `prefers-reduced-motion`); with the animate switch
+   off, measured movement over 900 ms is zero for every one of them.
+
+**Verification**: `astro build` ✅ · `astro check` **0 errors / 0 warnings / 10 hints** · `biome lint`
+clean (504 files) · **1132 unit tests** · cable-size E2E **78/78** · production E2E 62 passed with the
+same 4 pre-existing sandbox failures.
+
+**Found while measuring**: the band fit crops the top of the artwork on a laptop — at 1440×900 the
+viewBox is `y 200 h 380`, so art above y≈200 is off-screen. A bird placed at y=208 sampled
+`rgb(NaN, NaN, NaN)`. It moved to `y 392`; the safe band for new props is **y ≈ 200–580**.
+
+### Fixed & Enhanced — Session 2026-08-30 (part 2): the form shows what is selected, and laptops stop being cramped
+
+1. **Picking a control did not move the selection.** The segmented buttons (AC/DC, Copper/Aluminium,
+   3%/5%/Custom) and the load cards are styled by an `.active` class that the engine only applied on a
+   full sync — first paint, reset and shared links. Clicking anything left the *previous* choice
+   highlighted while the new one did the work: pick DC and AC stayed blue. Measured before the fix,
+   after clicking DC: `checked=dc`, `.active=ac`. Two changes: the engine now mirrors every group after
+   every change (including changes it rejects), and the shared shell styles the selected look with
+   `:has(input:checked)` as well, so it follows the input in any tool, with or without JavaScript.
+2. **The scene was a thin strip on a laptop.** Stacked and drawer layouts had no panels to avoid, so
+   the scaler fitted the whole 1280×640 canvas into a 270 px banner and the run arrived as a smear.
+   The cable stage now opts into band fitting (`fitContentInBanner`), which puts SOURCE → CABLE → LOAD
+   where the space is: at 1366×768 the viewBox is `-136 200 1553 380` — the authored band, not the
+   canvas. The banner is taller too (`clamp(268px, 42vh, 460px)` stacked, `clamp(238px, 46dvh, 380px)`
+   in the drawer).
+3. **A 1440×900 window is a stacked stage now.** Its inputs panel is ~336 px wide while floating, which
+   turns a 1000 px-tall form into a scroll column — the "small PC screen" complaint. `scene-stage.js`
+   grew a per-stage band (`WIDE_STACK`: ≤1500 px wide or ≤780 px tall) so only the stages that opt into
+   stacking get it, and the CSS band in `ToolWorkspace.astro` and `tool-stage.css` was widened to match.
+   Other tools keep their old thresholds.
+4. **The form goes two-up when the panel is.** A container query on the inputs panel (`@container
+   (min-width: 34rem)`) puts the four fieldsets in two columns, so the panel is 744 px tall at 1440
+   instead of 1126, and nothing has to be scrolled inside a column at 1440, 1366, 1280, 1024 or 900.
+   Two panels sit side by side from 1200 px up; below that one full-width panel is both wider and
+   shorter. The `≤1279px` rule that pinned panels to 312 px was a floating-panel rule leaking into the
+   stacked layout — it is scoped to floating panels now.
+5. **Nothing was reachable at 1440 and 1366.** A pointer audit (is the control the topmost element at
+   its own centre?) found the size picker, cable length and Copper button covered by the pinned footer,
+   because the panel body had overflowed under it. With the form two-up the body no longer overflows:
+   every one of nine controls is now the topmost element at its centre, at every viewport from 390 to
+   1600, with no horizontal page overflow.
+6. **Small screens keep the motion they can see.** The phone draws 47 of the 142 grass clumps instead
+   of all of them (`display: none` on two of every three below 820 px and 600 px) — counted down rather
+   than frozen, so a hidden blade has nothing left to pause and every pause path stays honest. Clouds,
+   birds, the vane, the bee and the blades that remain all still move on a phone (measured: cloud
+   4.8 px, bird 12.8 px, vane 2.9 px, bee 8.7 px over 900 ms) and all still report
+   `animationPlayState: paused` with the switch off. Load cards go two-up on a phone as well.
+7. **Verification**: **1132 unit tests** (30 in the cable-size DOM suite, with a new one that moves the
+   selected look across all four groups and checks a rejected change still looks clicked) · **78
+   cable-size E2E** across three projects (26 scenarios, two new: the selection follows the click for
+   every control, and a 1366×768 window keeps every control on screen and reachable) · production suite
+   unchanged at 62 passed with the four pre-existing failures · `astro check` 0 errors / 0 warnings ·
+   biome clean over 504 files · app, e2e and astro-site `tsc` clean · no console errors at 390, 768 or
+   1366.
+
+### Fixed & Enhanced — Session 2026-08-30: the cable run moves outdoors, and the form answers back
+
+1. **The scene was a night drawing of a lab bench; it is now a summer afternoon.** `CableSizeScene.astro`
+   was restaged outdoors in daylight: a graded sky with a sun that breathes, three clouds on their own
+   slow crossings, three birds gliding, hazy hills, a hedge line with swaying trees, two lattice pylons
+   still blinking on the horizon, and a mown lawn whose stripes converge on the vanishing point. The
+   source became a **distribution kiosk** on a concrete pad (hip lid, louvred door, warning triangle,
+   rating plate, conduit and earth rod) and the load a **shed with a shingle roof, a weather vane and an
+   open bay** the load stands in. The cable is a span carried by two timber posts on ceramic insulators,
+   with ties over the top. Verified by sampling the rendered picture: sky `rgb(185,224,245)` (blue),
+   lawn `rgb(92,159,88)` (green), cable luminance 89 against it, plates luminance 220+; frame luminance
+   rose from dark to 173. Night mode is a real variant, not an afterthought — the same field at
+   `rgb(19,47,72)` sky and `rgb(30,63,49)` grass, with cream plates flipped to `#102538`.
+2. **The lawn now fills the frame at every aspect.** The old ground stopped at y 640 while the scaler
+   shows down to y ~1059 at wide stages, so the bottom of the picture was *sky*. The ground gradient is
+   pinned in user space and the lawn, its stripes, tufts, wild flowers and a near bank of out-of-focus
+   blades run off the bottom of the frame; the sky and vignette bleed far enough to cover the bleed box.
+3. **More animation, all of it optional.** Cloud drift, bird glide, sun breathing, crown/tuft/flower
+   sway, the weather vane turning and a bee working the flowers join the existing flow markers, cable
+   shimmer, fog, beacons, fan/motor spin, motor vibration, appliance LED and custom marching outline.
+   Every one is listed in the three pause paths (`[data-motion='off']`, `.scene-paused`,
+   `prefers-reduced-motion`) — measured: all ten sampled classes report `animationPlayState: paused`
+   with the switch off, and a paused cloud drifts 0 px in 500 ms.
+4. **DC did nothing you could see.** Switching to DC changes the current (a 2.2 kW motor draws 12.0 A on
+   AC at PF 0.8, 9.6 A on DC) but the drop lands within a rounding of the AC figure, so the tab looked
+   broken. The form now says what changed: a system note under the switch ("…current is simply P ÷ V…"),
+   the load summary shows `PF —`, and the power-factor field is **disabled** on a DC run because it has
+   no meaning there.
+5. **Choosing a load changed the picture but not the form.** Presets now write their numbers into the
+   custom fields, so selecting Heater puts 3000 W / PF 1 in the form and a live summary line reads
+   `Heater · 3 kW · PF 1.00 · 13.0 A at 230 V`; switching to **Custom** continues from the load you were
+   looking at instead of jumping back to 500 W.
+6. **Cable selection had no control in the form.** The inputs panel gained a size picker listing every
+   candidate with its verdict ("2.5 mm² · 1.95% drop · inside the limit — smallest that passes"), bound
+   two ways with the comparison strip: clicking a candidate moves the picker, choosing from the picker
+   moves the strip and marks the size IN USE / INSPECTING without ever touching the recommendation.
+7. **Error handling moved to the field that caused it.** A bad value now sets `aria-invalid` and
+   `aria-describedby` on the input, shows its own message under the box ("Cable length is required." for
+   an empty field, "…must be between 0.5 m and 1000 m." for an out-of-range one), announces which
+   control to look at in the live region, and clears itself on recovery — while the last good answer
+   stays on screen instead of blanking the tool.
+8. **The span was hidden behind its own instruments.** The status plate sat across the cable's low
+   point, so the middle of the run — the part whose thickness is the answer — was covered. The middle
+   band is now stacked clear of it (label plate → status → budget meter, with a dashed leader down to
+   the conductor), and a probe that samples 21 points along the path confirms the cable is the topmost
+   thing at every one of them, at 1440×900, 1024×768 and 390×844.
+9. **A transparent box was eating the stage.** `.ts-panel-wrap` is `position: absolute; inset: 0`, so
+   it covered the whole scene and answered every pointer query aimed at it — the scene could not be
+   reached underneath, and the overlay only looked innocent because it is invisible. The wrapper is now
+   `pointer-events: none` with its own children (panels, strip, drawer bar, scrim) opting back in.
+10. **Verification**: `astro build` clean · `tsc` clean · `astro check` 0 errors / 0 warnings · biome clean over 504 files · **1131 unit tests** (29 in the cable-size DOM
+   suite, up from 25) · **72 cable-size E2E** across chromium/mobile-chrome/tablet-safari (24 scenarios,
+   up from 19) · production suite unchanged at 62 passed with only the four pre-existing failures ·
+   a Chromium probe confirms the colours, the motion, the pause paths and every form journey, with no
+   console errors.
+
 ### Fixed & Enhanced — Session 2026-08-28 (part 10): The phone drawer actually reachable, voltage-drop framing + realism, honest 3D fallback
 
 1. **The drawer handle was pinned to the wrong box** — it worked, but it was `position: fixed; bottom: 0` against the *viewport*, so in a pane whose viewport is taller than what you can see (embed, preview, split screen) the only control that opens the drawer sat off-screen, and the page looked panel-less. It is now `position: sticky; bottom: 0` **inside the stage**: it sits directly under the scene it opens, always visible, and still rides along with the viewport while the stage fills it. Opening a sheet also scrolls the stage into view, so the sheet and the scene are never in different parts of the document.

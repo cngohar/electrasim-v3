@@ -7,15 +7,15 @@
  * instruments (slot `panels`); then the crawlable reference section. Scripts are
  * the shared stage runtime plus whichever tool engine the page asks for.
  *
- * Defaults render the voltage-drop landscape, so that page is untouched; cable
- * sizing passes its own scene, panels and engine. Both get the same
- * aspect-fitted stage (public/js/scene-stage.js), the same reduced-motion and
- * dark-mode behaviour, and the same responsive tiering.
+ * Defaults render the voltage-drop landscape, so that page is untouched; the
+ * cable size calculator passes its own scene, panels and engine. Both get the
+ * same aspect-fitted stage (public/js/scene-stage.js), the same reduced-motion
+ * and dark-mode behaviour, and the same responsive tiering.
  */
 import packageMetadata from '../../../../package.json';
 import type { ToolEntry } from '../../lib/tools/registry';
-import CableSizingPanels from './CableSizingPanels.astro';
-import CableSizingScene from './CableSizingScene.astro';
+import CableSizePanels from './CableSizePanels.astro';
+import CableSizeScene from './CableSizeScene.astro';
 import CommandPalette from './CommandPalette.astro';
 import ToolDrawer from './ToolDrawer.astro';
 import ToolHeader from './ToolHeader.astro';
@@ -29,7 +29,7 @@ interface Props {
   /** Tool engine shipped from public/js; the shared stage runtime is always loaded first. */
   toolScript?: string;
   /** Which tool family this stage renders — decides the default slot content. */
-  variant?: 'voltage-drop' | 'cable-sizing';
+  variant?: 'voltage-drop' | 'cable-size';
   /** Accessible title for the sr-only h1. */
   heading?: string;
 }
@@ -71,14 +71,14 @@ const version = packageMetadata.version;
   <div
     class="tool-interactive-stage ts-stage"
     id="interactive-stage"
-    data-stage={variant === 'cable-sizing' ? 'stackable' : 'fixed'}
+    data-stage={variant === 'cable-size' ? 'stackable' : 'fixed'}
   >
     <div class="ts-scene-frame" id="scene-frame">
       {
         hasSceneSlot ? (
           <slot name="scene" />
-        ) : variant === 'cable-sizing' ? (
-          <CableSizingScene />
+        ) : variant === 'cable-size' ? (
+          <CableSizeScene />
         ) : (
           <VoltageDropScene />
         )
@@ -88,8 +88,8 @@ const version = packageMetadata.version;
       {
         hasPanelsSlot ? (
           <slot name="panels" />
-        ) : variant === 'cable-sizing' ? (
-          <CableSizingPanels />
+        ) : variant === 'cable-size' ? (
+          <CableSizePanels />
         ) : (
           <VoltageDropPanels />
         )
@@ -110,7 +110,6 @@ const version = packageMetadata.version;
 <script is:inline defer src={`/js/tool-chrome.js?v=${version}`}></script>
 <script is:inline defer src={`/js/scene-stage.js?v=${version}`}></script>
 <script is:inline defer src={`/js/tool-share.js?v=${version}`}></script>
-<script is:inline defer src={`/js/cable-tables.js?v=${version}`}></script>
 <script is:inline defer src={`${toolScript}?v=${version}`}></script>
 
 <style>
@@ -148,6 +147,28 @@ const version = packageMetadata.version;
       height: calc(100vh - 3.75rem);
       height: calc(100dvh - 3.75rem);
       min-height: min(500px, calc(100dvh - 3.75rem));
+    }
+  }
+
+  /* A stackable stage stops floating below 1360px (or a 700px-tall window) and
+     its panels join the page flow — the viewport-height cap belongs to the
+     floating layout, where the panels are absolutely positioned *inside* the
+     stage. Capping a stacked stage let the panels spill out of it and, the stage
+     being z-index 20 against the article's 10, paint over the prose underneath.
+     The band is the one `scene-stage.js` calls `stack`: at 768px and below the
+     drawer takes over and keeps its own cap (see the rules below). */
+  /*
+   * Below ~1500 px wide (or on a short window) the floating panels stop being a
+   * help: the inputs panel is ~336 px wide and its fields have to be scrolled
+   * inside a narrow column, which reads as a broken form. Those sizes get the
+   * stacked layout instead — the run keeps a banner to itself and the panels sit
+   * underneath it, wide enough to put fields side by side.
+   */
+  /* keeps the CSS band in step with `WIDE_STACK` in public/js/scene-stage.js */
+  @media (min-width: 769px) and (max-width: 1500px), (min-width: 769px) and (max-height: 780px) {
+    .tool-interactive-stage[data-stage='stackable'][data-layout='stack'] {
+      height: auto;
+      min-height: 0;
     }
   }
 

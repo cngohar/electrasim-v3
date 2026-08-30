@@ -1,0 +1,1250 @@
+---
+/**
+ * CableSizePanels.astro — the floating instruments for the Cable Size Calculator.
+ *
+ * The scene is the calculator; these panels are how you talk to it. Three
+ * instruments, all sharing the `ts-*` stage shell with the other toolbox tools:
+ *
+ *   • **Inputs** (left) — source, load, cable and the drop limit. Compact on
+ *     purpose (§23): this is not an engineering submission form.
+ *   • **Results** (right) — the recommendation, the drop, and the *why* (§18, §19).
+ *   • **Comparison strip** (bottom) — the whole ladder at a glance; clicking a
+ *     size inspects it without touching the recommendation (§12, §20).
+ *
+ * Every number below is server-rendered from the same `evaluateCableRun()` call
+ * the browser engine makes, so the page is correct before JavaScript arrives and
+ * the first client paint is a no-op rather than a correction.
+ */
+import {
+  CABLE_SIZE_BOUNDS,
+  CABLE_SIZE_DEFAULTS,
+  type CableSizeInputs,
+  DROP_LIMIT_DISCLAIMER,
+  DROP_LIMIT_OPTIONS,
+  SYSTEM_VOLTAGE_PRESETS,
+  TEMPERATURE_PRESETS,
+} from '../../lib/tools/cable-size/config';
+import { evaluateCableRun } from '../../lib/tools/cable-size/evaluate';
+import { explainRecommendation, statusCopy } from '../../lib/tools/cable-size/explain';
+import { LOAD_PRESETS, getLoadPreset } from '../../lib/tools/cable-size/presets';
+import { formatLoadPower } from '../../lib/tools/cable-size/format';
+import {
+  formatCurrent,
+  formatPercent,
+  formatResistance,
+  formatVoltage,
+} from '../../lib/tools/voltage-drop/formatting';
+
+const inputs: CableSizeInputs = {
+  ...CABLE_SIZE_DEFAULTS,
+  candidateSizes: [...CABLE_SIZE_DEFAULTS.candidateSizes],
+};
+const r = evaluateCableRun(inputs);
+const recommended = r.recommendedCable;
+const selected = r.selected;
+const why = explainRecommendation(r);
+const status = statusCopy(r.status, {
+  dropPercent: selected?.voltageDropPercent ?? 0,
+  dropVolts: selected?.voltageDropVolts ?? 0,
+  limitPercent: r.dropLimitPercent,
+});
+const materialLabel = inputs.material === 'copper' ? 'Copper' : 'Aluminium';
+const preset = getLoadPreset(inputs.loadType);
+const ladder = r.candidates;
+const recommendedSize = recommended?.sizeMm2 ?? selected?.sizeMm2 ?? null;
+const selectionLabel =
+  r.selection === 'recommended'
+    ? 'Recommended size'
+    : r.selection === 'oversized'
+      ? 'Larger than needed'
+      : r.selection === 'too-small'
+        ? 'Too small for this run'
+        : '—';
+
+/** Inline icons — no emoji glyphs, so nothing depends on a colour font. */
+const LOAD_ICONS: Record<string, string> = {
+  lighting:
+    '<path d="M9.5 18h5"/><path d="M10.5 21h3"/><path d="M12 3a6 6 0 0 0-3.6 10.8V15h7.2v-1.2A6 6 0 0 0 12 3z"/>',
+  fan: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 10c0-4 1.4-6 3.2-6.4.6 3 0 5.4-3.2 6.4z"/><path d="M13.7 13.3c3.4 2.2 5.5 2 6.4.9-1.4-2.5-4-3.3-6.4-.9z"/><path d="M10.3 13.3c-3.4 2.2-5.5 2-6.4.9 1.4-2.5 4-3.3 6.4-.9z"/>',
+  motor:
+    '<rect x="3" y="7" width="13" height="11" rx="2"/><path d="M16 10.5h2.5a1.5 1.5 0 0 1 0 3H16"/><circle cx="9.5" cy="12.5" r="2.5"/><path d="M5 18.5h14"/>',
+  heater: '<rect x="3" y="4" width="18" height="14" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/>',
+  appliance:
+    '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M5 9h14"/><circle cx="9" cy="6" r="0.8"/><circle cx="9" cy="13" r="1.4"/>',
+  custom:
+    '<path d="M4 6h8M17 6h3M4 12h3M12 12h8M4 18h10M19 18h1"/><circle cx="14" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="16" cy="18" r="2"/>',
+};
+
+const candidateStatusLabel = (passes: boolean, limitUsage: number) =>
+  passes ? (limitUsage >= 0.85 ? 'TIGHT' : 'PASS') : 'FAIL';
+---
+
+<!-- Scene tools: one switch, because motion is a preference not a feature -->
+<div class="ts-hud-tools" id="cs2-view-tools">
+  <button
+    type="button"
+    class="ts-tool-btn active"
+    id="cs2-animate-toggle"
+    aria-pressed="true"
+    title="Pause or resume the scene animation"
+  >
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+      <polygon points="6 4 20 12 6 20 6 4"></polygon>
+    </svg>
+    <span>Animate</span>
+  </button>
+</div>
+
+<!-- ══ INPUTS ═══════════════════════════════════════════════════════════ -->
+<div class="ts-panel ts-panel--inputs" id="cs2-inputs-container">
+  <section class="ts-panel-shell" id="cs2-inputs-panel" aria-label="Cable sizing inputs">
+    <button
+      type="button"
+      class="ts-sheet-grabber"
+      aria-label="Drag the drawer up for more, or pull it down to close"
+    ></button>
+    <div class="ts-panel-header">
+      <div class="ts-panel-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+          <path d="M4 6h16M4 12h10M4 18h6"></path>
+        </svg>
+        <span>INPUTS</span>
+      </div>
+      <button type="button" class="ts-sheet-close" data-sheet-close="inputs" aria-label="Close the inputs drawer">×</button>
+      <button
+        type="button"
+        class="ts-panel-collapse"
+        id="cs2-collapse-inputs"
+        aria-expanded="true"
+        aria-label="Collapse the inputs panel"
+      >
+        <svg class="chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="18 15 12 9 6 15"></polyline>
+        </svg>
+      </button>
+    </div>
+
+    <div class="cs2-validation" id="cs2-validation" role="status" aria-live="polite" hidden>
+      <strong>Check this value</strong>
+      <p id="cs2-validation-message"></p>
+    </div>
+
+    <form class="ts-panel-body" id="cs2-inputs-body" name="cable-size" novalidate>
+      <!-- SOURCE -->
+      <fieldset class="cs2-field">
+        <legend class="ts-label">Source</legend>
+        <div class="ts-seg" role="group" aria-label="System type">
+          <label class="ts-seg-btn">
+            <input type="radio" name="cs2-system" value="ac" checked />
+            <span>AC</span>
+          </label>
+          <label class="ts-seg-btn">
+            <input type="radio" name="cs2-system" value="dc" />
+            <span>DC</span>
+          </label>
+        </div>
+        <div class="ts-field">
+          <label class="ts-label" for="cs2-voltage">Voltage</label>
+          <div class="ts-input-wrap">
+            <input
+              class="ts-input"
+              id="cs2-voltage"
+              name="voltage"
+              type="number"
+              inputmode="decimal"
+              min={CABLE_SIZE_BOUNDS.voltage.min}
+              max={CABLE_SIZE_BOUNDS.voltage.max}
+              step="1"
+              value={inputs.voltage}
+            />
+            <span class="ts-unit">V</span>
+          </div>
+          <p class="cs2-field-error" id="cs2-error-voltage" hidden></p>
+        </div>
+        <!--
+          Nominal-voltage shortcuts. The ladder belongs to the system that is
+          selected — 12/24/48/220 V on DC, 120/230/400 V on AC — so flipping the
+          toggle swaps these too, and the engine re-renders them (§30). They are
+          shortcuts, not a value: the number input stays free-form.
+        -->
+        <div
+          class="cs2-volt-presets"
+          id="cs2-volt-presets"
+          role="group"
+          aria-label="Common nominal voltages for this system"
+        >
+          {
+            SYSTEM_VOLTAGE_PRESETS[inputs.systemType].map((vpreset) => (
+              <button
+                type="button"
+                class="cs2-volt-chip"
+                data-volts={vpreset.volts}
+                title={vpreset.note}
+                aria-pressed={vpreset.volts === inputs.voltage ? 'true' : 'false'}
+              >
+                {vpreset.label}
+              </button>
+            ))
+          }
+        </div>
+        <p class="ts-note cs2-system-note" id="cs2-system-note">
+          AC: current is P ÷ (V × cos φ), and the cable's reactance counts toward the drop.
+        </p>
+      </fieldset>
+
+      <!-- LOAD -->
+      <fieldset class="cs2-field">
+        <legend class="ts-label">Load type</legend>
+        <div class="ts-chip-grid cs2-load-grid">
+          {
+            LOAD_PRESETS.map((preset) => (
+              <label class="ts-chip cs2-load-chip" data-load-chip={preset.id}>
+                <input
+                  type="radio"
+                  name="cs2-load"
+                  value={preset.id}
+                  checked={preset.id === inputs.loadType}
+                />
+                <span class="cs2-load-icon" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" set:html={LOAD_ICONS[preset.id]} />
+                </span>
+                <span class="ts-chip-name">{preset.name}</span>
+                <span class="ts-chip-meta">{preset.summary}</span>
+              </label>
+            ))
+          }
+        </div>
+        <p class="ts-note" id="cs2-load-note">{getLoadPreset(inputs.loadType).note}</p>
+        <p class="cs2-load-summary" id="cs2-load-summary" aria-live="off">
+          {getLoadPreset(inputs.loadType).name} · {formatLoadPower(preset.powerWatts)} · PF {preset.powerFactor.toFixed(2)}
+        </p>
+        <div class="cs2-custom" id="cs2-custom-fields" hidden>
+          <div class="ts-field-row">
+            <div class="ts-field">
+              <label class="ts-label" for="cs2-power">Load power</label>
+              <div class="ts-input-wrap">
+                <input
+                  class="ts-input"
+                  id="cs2-power"
+                  name="power"
+                  type="number"
+                  inputmode="decimal"
+                  min={CABLE_SIZE_BOUNDS.power.min}
+                  max={CABLE_SIZE_BOUNDS.power.max}
+                  step="10"
+                  value={inputs.customPowerWatts}
+                />
+                <span class="ts-unit">W</span>
+              </div>
+              <p class="cs2-field-error" id="cs2-error-power" hidden></p>
+            </div>
+            <div class="ts-field">
+              <label class="ts-label" for="cs2-pf">Power factor</label>
+              <div class="ts-input-wrap">
+                <input
+                  class="ts-input"
+                  id="cs2-pf"
+                  name="pf"
+                  type="number"
+                  inputmode="decimal"
+                  min={CABLE_SIZE_BOUNDS.powerFactor.min}
+                  max={CABLE_SIZE_BOUNDS.powerFactor.max}
+                  step="0.01"
+                  value={inputs.customPowerFactor}
+                />
+              </div>
+              <p class="cs2-field-error" id="cs2-error-pf" hidden></p>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- CABLE -->
+      <fieldset class="cs2-field">
+        <legend class="ts-label">Cable</legend>
+        <div class="ts-seg" role="group" aria-label="Conductor material">
+          <label class="ts-seg-btn">
+            <input type="radio" name="cs2-material" value="copper" checked />
+            <span>Copper</span>
+          </label>
+          <label class="ts-seg-btn">
+            <input type="radio" name="cs2-material" value="aluminium" />
+            <span>Aluminium</span>
+          </label>
+        </div>
+        <div class="ts-field">
+          <label class="ts-label" for="cs2-size">
+            Size to inspect <span class="ts-sublabel">the strip below does the same thing</span>
+          </label>
+          <div class="ts-input-wrap">
+            <select class="ts-input cs2-select" id="cs2-size" name="size">
+              {
+                ladder.map((candidate) => (
+                  <option value={candidate.sizeMm2} selected={candidate.sizeMm2 === recommendedSize}>
+                    {candidate.sizeMm2} mm² · {formatPercent(candidate.voltageDropPercent)} drop ·{' '}
+                    {candidate.status === 'pass' ? 'inside the limit' : 'over the limit'}
+                    {candidate.sizeMm2 === recommendedSize ? ' — smallest that passes' : ''}
+                  </option>
+                ))
+              }
+            </select>
+          </div>
+        </div>
+        <div class="ts-field">
+          <label class="ts-label" for="cs2-length">
+            One-way cable length <span class="ts-sublabel">source to load</span>
+          </label>
+          <div class="ts-input-wrap">
+            <input
+              class="ts-input"
+              id="cs2-length"
+              name="length"
+              type="number"
+              inputmode="decimal"
+              min={CABLE_SIZE_BOUNDS.length.min}
+              max={CABLE_SIZE_BOUNDS.length.max}
+              step="0.5"
+              value={inputs.lengthMeters}
+            />
+            <span class="ts-unit">m</span>
+          </div>
+          <label class="sr-only" for="cs2-length-range">Cable length (slider)</label>
+          <input
+            class="cs2-range"
+            id="cs2-length-range"
+            type="range"
+            min="1"
+            max="200"
+            step="any"
+            value={inputs.lengthMeters}
+            aria-describedby="cs2-length-hint"
+          />
+          <p class="cs2-range-hint" id="cs2-length-hint" hidden>
+            This run is past the slider's 200 m reach, so the track now covers the full 1–1000 m in coarser steps.
+          </p>
+          <p class="cs2-field-error" id="cs2-error-length" hidden></p>
+        </div>
+        <!--
+          Conductor temperature. Resistance rises about 0.4% per kelvin, so the
+          same run drops measurably more hot than cold; BS 7671's own voltage-drop
+          figures are tabulated at 70 °C for thermoplastic under load. It is an
+          input, not a constant, because a lightly loaded circuit really is cooler.
+        -->
+        <div class="ts-field">
+          <label class="ts-label" for="cs2-temp">
+            Conductor temperature <span class="ts-sublabel">sets the resistance</span>
+          </label>
+          <div class="ts-input-wrap">
+            <input
+              class="ts-input"
+              id="cs2-temp"
+              name="temp"
+              type="number"
+              inputmode="decimal"
+              min={CABLE_SIZE_BOUNDS.temperature.min}
+              max={CABLE_SIZE_BOUNDS.temperature.max}
+              step="1"
+              value={inputs.temperatureC}
+            />
+            <span class="ts-unit">°C</span>
+          </div>
+          <div
+            class="cs2-mini-chips"
+            id="cs2-temp-presets"
+            role="group"
+            aria-label="Common conductor temperatures"
+          >
+            {
+              TEMPERATURE_PRESETS.map((tpreset) => (
+                <button
+                  type="button"
+                  class="cs2-mini-chip cs2-temp-chip"
+                  data-celsius={tpreset.celsius}
+                  title={tpreset.note}
+                  aria-pressed={tpreset.celsius === inputs.temperatureC ? 'true' : 'false'}
+                >
+                  {tpreset.label}
+                </button>
+              ))
+            }
+          </div>
+          <p class="cs2-field-error" id="cs2-error-temp" hidden></p>
+        </div>
+      </fieldset>
+
+      <!-- LIMIT -->
+      <fieldset class="cs2-field">
+        <legend class="ts-label">Voltage-drop limit</legend>
+        <div class="ts-seg" role="group" aria-label="Voltage-drop limit">
+          {
+            DROP_LIMIT_OPTIONS.map((option) => (
+              <label class="ts-seg-btn">
+                <input
+                  type="radio"
+                  name="cs2-limit"
+                  value={option.id}
+                  checked={option.id === '3'}
+                  title={option.note}
+                />
+                <span>{option.label}</span>
+              </label>
+            ))
+          }
+        </div>
+        <div class="ts-field" id="cs2-limit-custom-field" hidden>
+          <label class="ts-label" for="cs2-limit-custom">Your limit</label>
+          <div class="ts-input-wrap">
+            <input
+              class="ts-input"
+              id="cs2-limit-custom"
+              name="limit"
+              type="number"
+              inputmode="decimal"
+              min={CABLE_SIZE_BOUNDS.dropLimit.min}
+              max={CABLE_SIZE_BOUNDS.dropLimit.max}
+              step="0.5"
+              value={inputs.dropLimitPercent}
+            />
+            <span class="ts-unit">%</span>
+          </div>
+          <p class="cs2-field-error" id="cs2-error-limit" hidden></p>
+        </div>
+        <p class="ts-note">{DROP_LIMIT_DISCLAIMER}</p>
+      </fieldset>
+    </form>
+
+    <div class="ts-panel-footer">
+      <button type="button" class="ts-button ts-button--ghost" id="cs2-reset">Reset</button>
+      <button type="button" class="ts-button" id="cs2-share">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"></path>
+          <path d="M12 3v13M8 7l4-4 4 4"></path>
+        </svg>
+        <span data-share-label>Copy link</span>
+      </button>
+    </div>
+  </section>
+</div>
+
+<div id="cs2-scrim" class="ts-scrim" hidden></div>
+
+<!-- ══ RESULTS ══════════════════════════════════════════════════════════ -->
+<div class="ts-panel ts-panel--results" id="cs2-results-container">
+  <section class="ts-panel-shell" id="cs2-results-panel" aria-label="Cable sizing results" tabindex="-1">
+    <button
+      type="button"
+      class="ts-sheet-grabber"
+      aria-label="Drag the drawer up for more, or pull it down to close"
+    ></button>
+    <div class="ts-panel-header">
+      <div class="ts-panel-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 19V5M4 19h16"></path>
+          <path d="M8 15l3.5-4 3 2.5L20 7"></path>
+        </svg>
+        <span>RESULTS</span>
+      </div>
+      <button type="button" class="ts-sheet-close" data-sheet-close="results" aria-label="Close the results drawer">×</button>
+      <button
+        type="button"
+        class="ts-panel-collapse"
+        id="cs2-collapse-results"
+        aria-expanded="true"
+        aria-label="Collapse the results panel"
+      >
+        <svg class="chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="18 15 12 9 6 15"></polyline>
+        </svg>
+      </button>
+    </div>
+
+    <div class="ts-panel-body" id="cs2-results-body">
+      <p class="cs2-stale-note" id="cs2-stale-note" hidden>
+        Showing the last run the tool could evaluate — fix the highlighted field for a fresh answer.
+      </p>
+      <div class="cs2-hero" data-status={r.status}>
+        <p class="cs2-hero-eyebrow">RECOMMENDED CABLE</p>
+        <p class="cs2-hero-size" id="cs2-recommended-size">
+          {recommended ? `${recommended.sizeMm2} mm²` : '—'}
+        </p>
+        <p class="cs2-hero-material" id="cs2-recommended-material">{materialLabel}</p>
+        <p class="cs2-badge" id="cs2-recommended-badge-wrap" data-status={r.status}>
+          <!-- status is carried by the words first; the icons are decoration (§27) -->
+          <svg class="cs2-badge-icon cs2-badge-icon--ok" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m4 12 5 5L20 6"></path>
+          </svg>
+          <svg class="cs2-badge-icon cs2-badge-icon--bad" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true">
+            <path d="M6 6l12 12M18 6 6 18"></path>
+          </svg>
+          <span id="cs2-recommended-badge">{recommended ? 'RECOMMENDED' : 'NO SIZE PASSES'}</span>
+        </p>
+      </div>
+
+      <!--
+        The tool sizes on voltage drop alone. Stated as a permanent line, and it
+        names the design current, because a drop-only answer can recommend a
+        conductor far too small to carry the load: 10 kW at 230 V over one metre
+        is 43.5 A, and 1.5 mm² passes the drop test easily. It sits directly under
+        the recommendation rather than at the foot of the panel, so the reader
+        meets it with the number it qualifies instead of after scrolling past it.
+        No rating figures are invented — the reader is pointed at the tables that
+        own them.
+      -->
+      <p class="cs2-scope" id="cs2-scope">
+        <strong>Voltage drop only.</strong> At{' '}
+        <strong id="cs2-scope-current">{formatCurrent(r.designCurrentAmps)}</strong>, also check the
+        conductor's current-carrying capacity (Iz) against BS 7671 Appendix 4. Inside the drop limit
+        is not the same as big enough.
+      </p>
+
+      <p class="cs2-selected-line">
+        Inspecting <strong id="cs2-selected-size">{selected ? `${selected.sizeMm2} mm²` : '—'}</strong>
+      </p>
+
+      <dl class="cs2-rows">
+        <div>
+          <dt>Voltage drop</dt>
+          <dd id="cs2-out-drop-v">{formatVoltage(selected?.voltageDropVolts ?? 0)}</dd>
+        </div>
+        <div>
+          <dt>As a share of the supply</dt>
+          <dd id="cs2-out-drop-pct">{formatPercent(selected?.voltageDropPercent ?? 0)}</dd>
+        </div>
+        <div>
+          <dt>Voltage at load</dt>
+          <dd id="cs2-out-load-v">{formatVoltage(selected?.voltageAtLoad ?? 0)}</dd>
+        </div>
+        <div>
+          <dt>Design current</dt>
+          <dd id="cs2-out-current">{formatCurrent(r.designCurrentAmps)}</dd>
+        </div>
+        <div>
+          <dt>Loop resistance</dt>
+          <dd id="cs2-out-resistance">{formatResistance(selected?.totalResistanceOhms ?? 0)}</dd>
+        </div>
+        <div>
+          <dt>Lost in the cable</dt>
+          <dd id="cs2-out-loss">{formatLoadPower(selected?.powerLossWatts ?? 0)}</dd>
+        </div>
+      </dl>
+
+      <ul class="cs2-checks">
+        <li>
+          <span>Drop limit</span>
+          <strong id="cs2-check-drop" data-status={r.status}>{status.label}</strong>
+        </li>
+        <li>
+          <span>Selection</span>
+          <strong id="cs2-check-selection">{selectionLabel}</strong>
+        </li>
+      </ul>
+
+      <div class="cs2-why">
+        <h3 id="cs2-why-heading">{why.heading}</h3>
+        <p id="cs2-why-body">{why.body}</p>
+      </div>
+
+
+      <p class="sr-only" id="cs2-live" role="status" aria-live="polite"></p>
+    </div>
+  </section>
+</div>
+
+<!-- ══ COMPARISON STRIP (§20) ═══════════════════════════════════════════ -->
+<section class="cs2-strip" id="cs2-strip" aria-label="Cable size comparison">
+  <div class="cs2-strip-head">
+    <h2>Cable comparison</h2>
+    <p class="cs2-strip-note" id="cs2-strip-note">
+      <span id="cs2-strip-note-text">Smallest size inside your {formatPercent(r.dropLimitPercent, 1)} limit:</span>
+      <strong id="cs2-strip-rec">{recommended ? `${recommended.sizeMm2} mm²` : 'none'}</strong>
+    </p>
+  </div>
+  <div class="cs2-strip-row" id="cs2-strip-row" role="group" aria-label="Choose a cable size to inspect">
+    {
+      r.candidates.map((candidate) => (
+        <button
+          type="button"
+          class="cs2-candidate"
+          data-size={candidate.sizeMm2}
+          data-status={candidate.status}
+          aria-pressed={candidate.sizeMm2 === r.selectedSizeMm2 ? 'true' : 'false'}
+        >
+          <span class="cs2-candidate-size">
+            {candidate.sizeMm2}
+            <span class="cs2-candidate-unit">mm²</span>
+          </span>
+          <span class="cs2-candidate-status" data-role="status">
+            {candidateStatusLabel(candidate.passes, candidate.limitUsage)}
+          </span>
+          <span class="cs2-candidate-volts" data-role="volts">
+            {formatVoltage(candidate.voltageDropVolts)}
+          </span>
+          <span class="cs2-candidate-pct" data-role="pct">
+            {formatPercent(candidate.voltageDropPercent)}
+          </span>
+          <span class="cs2-candidate-flag" data-role="flag">
+            {candidate.sizeMm2 === recommended?.sizeMm2 ? 'RECOMMENDED' : ''}
+          </span>
+        </button>
+      ))
+    }
+  </div>
+</section>
+
+<!-- ══ MOBILE / TOUCH DRAWER BAR (§26) ══════════════════════════════════ -->
+<div class="ts-mobile-bar" id="cs2-mobile-bar" role="group" aria-label="Calculator drawers">
+  <button type="button" class="ts-button ts-mobile-bar--inputs" id="cs2-mob-inputs" data-sheet="inputs">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+      <path d="M4 6h16M4 12h10M4 18h6"></path>
+    </svg>
+    <span>Inputs</span>
+  </button>
+  <button type="button" class="ts-mobile-bar--result" id="cs2-mob-results" data-sheet="results">
+    <span class="ts-mobile-out" id="cs2-mobile-size">
+      {selected ? `${selected.sizeMm2} mm²` : '—'}
+    </span>
+    <span class="cs2-mobile-sub" id="cs2-mobile-drop">
+      {`${formatPercent(selected?.voltageDropPercent ?? 0)} of ${formatPercent(r.dropLimitPercent, 1)}`}
+    </span>
+  </button>
+</div>
+
+<style>
+  /* ── fields ────────────────────────────────────────────────────────── */
+  /*
+   * Two columns of fields whenever the panel itself is wide enough — measured
+   * on the panel, not the viewport, because the panel's width is what decides
+   * whether a field has room. This halves the form's height on every stacked
+   * layout, so nothing has to be scrolled inside a narrow column, and the
+   * hairline rules between stacked sections go with the stacking.
+   */
+  #cs2-inputs-container {
+    container-type: inline-size;
+  }
+  @container (min-width: 34rem) {
+    #cs2-inputs-body {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: start;
+      column-gap: 1.15rem;
+      row-gap: 0.85rem;
+    }
+    #cs2-inputs-body > .cs2-field {
+      border-top: none;
+      padding-top: 0;
+    }
+    #cs2-inputs-body > .cs2-system-note,
+    #cs2-inputs-body > .cs2-validation {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .cs2-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    margin: 0;
+    padding: 0.7rem 0 0;
+    border: none;
+    border-top: 1px solid var(--border);
+    min-width: 0;
+  }
+  .cs2-field:first-child {
+    border-top: none;
+    padding-top: 0;
+  }
+  .cs2-field legend {
+    padding: 0;
+  }
+
+  /* Selection state without JS: the radio drives the chip/segment styling. */
+  .ts-seg-btn:has(input:checked),
+  .ts-chip:has(input:checked) {
+    color: var(--blue);
+    border-color: var(--blue);
+    background: var(--blue-l);
+  }
+  .ts-seg-btn input,
+  .cs2-load-chip input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .ts-seg-btn:focus-within,
+  .ts-chip:focus-within {
+    outline: 2px solid var(--blue, #2563eb);
+    outline-offset: 2px;
+  }
+
+  .cs2-load-grid {
+    /* two up in a narrow panel, three or four up once there is room for it */
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr));
+  }
+  .cs2-load-chip {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+  }
+  .cs2-load-icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    color: var(--text-mid);
+  }
+  .ts-chip:has(input:checked) .cs2-load-icon {
+    color: var(--blue);
+  }
+  .cs2-load-chip .ts-chip-name {
+    flex: 1 1 auto;
+  }
+  .cs2-load-chip .ts-chip-meta {
+    flex: 0 0 auto;
+    font-size: 0.68rem;
+  }
+
+  /*
+   * Mini chips: shortcuts into a free-form number field. The voltage row's
+   * ladder belongs to the system you picked, the temperature row's to the
+   * insulation you are sizing for — same control, different data.
+   */
+  .cs2-volt-presets,
+  .cs2-mini-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+  .cs2-volt-chip,
+  .cs2-mini-chip {
+    padding: 0.22rem 0.52rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface, #fff);
+    color: var(--text-mid);
+    font: inherit;
+    font-size: 0.7rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+  }
+  .cs2-volt-chip:hover,
+  .cs2-mini-chip:hover {
+    border-color: var(--blue);
+    color: var(--blue);
+  }
+  .cs2-volt-chip[aria-pressed='true'],
+  .cs2-mini-chip[aria-pressed='true'] {
+    color: var(--blue);
+    border-color: var(--blue);
+    background: var(--blue-l);
+  }
+  .cs2-volt-chip:focus-visible,
+  .cs2-mini-chip:focus-visible {
+    outline: 2px solid var(--blue, #2563eb);
+    outline-offset: 2px;
+  }
+
+  .cs2-range {
+    width: 100%;
+    margin-top: 0.35rem;
+    accent-color: var(--blue, #2563eb);
+  }
+  .cs2-range-hint {
+    margin: 0.25rem 0 0;
+    font-size: 0.66rem;
+    line-height: 1.35;
+    color: var(--text-mid);
+  }
+  .cs2-range-hint[hidden] {
+    display: none;
+  }
+  .cs2-custom {
+    display: flex;
+    flex-direction: column;
+  }
+  .cs2-validation {
+    margin: 0.55rem 0.9rem 0;
+    padding: 0.55rem 0.7rem;
+    border-radius: 0.6rem;
+    border: 1px solid #f3b0a3;
+    background: #fdf1ee;
+    color: #8a2f16;
+    font-size: 0.76rem;
+  }
+  .cs2-validation[hidden] {
+    display: none;
+  }
+  .cs2-validation p {
+    margin: 0.2rem 0 0;
+  }
+  :root[data-theme='dark'] .cs2-validation {
+    background: #3a1a12;
+    border-color: #7d3a26;
+    color: #ffcbbd;
+  }
+
+  /* the message sits under the control that caused it, not only at the top */
+  .cs2-field-error {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.28rem;
+    margin: 0.28rem 0 0;
+    color: #a4361c;
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+  .cs2-field-error::before {
+    content: '!';
+    flex: none;
+    width: 0.95rem;
+    height: 0.95rem;
+    margin-top: 0.02rem;
+    border-radius: 50%;
+    background: #a4361c;
+    color: #fff;
+    font-size: 0.62rem;
+    font-weight: 700;
+    line-height: 0.95rem;
+    text-align: center;
+  }
+  .cs2-field-error[hidden] {
+    display: none;
+  }
+  :root[data-theme='dark'] .cs2-field-error {
+    color: #ffb4a2;
+  }
+  .ts-input[aria-invalid='true'] {
+    border-color: #d8593c;
+    box-shadow: 0 0 0 3px rgb(216 89 60 / 0.16);
+  }
+
+  /* the two sentences that make the form feel alive */
+  .cs2-system-note,
+  .cs2-load-summary {
+    margin: 0.4rem 0 0;
+    font-size: 0.72rem;
+    line-height: 1.4;
+    color: var(--ink-4, #5b6472);
+  }
+  .cs2-load-summary {
+    padding: 0.34rem 0.5rem;
+    border-radius: 0.5rem;
+    border: 1px dashed #b9c3d3;
+    background: #f4f7fc;
+    font-variant-numeric: tabular-nums;
+  }
+  :root[data-theme='dark'] .cs2-load-summary {
+    border-color: #46506a;
+    background: rgb(255 255 255 / 0.04);
+  }
+  .cs2-select {
+    appearance: none;
+    cursor: pointer;
+    padding-right: 1.6rem;
+    background-image: linear-gradient(45deg, transparent 50%, var(--ink-4, #5b6472) 50%),
+      linear-gradient(135deg, var(--ink-4, #5b6472) 50%, transparent 50%);
+    background-position: calc(100% - 0.95rem) 0.72rem, calc(100% - 0.6rem) 0.72rem;
+    background-size: 0.35rem 0.35rem;
+    background-repeat: no-repeat;
+  }
+  .ts-field--disabled {
+    opacity: 0.5;
+  }
+
+  /* ── results ───────────────────────────────────────────────────────── */
+  .cs2-hero {
+    padding: 0.75rem 0.85rem;
+    border-radius: var(--radius, 0.75rem);
+    border: 1px solid var(--border);
+    background: var(--bg-2);
+    text-align: center;
+  }
+  .cs2-hero-eyebrow {
+    margin: 0;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    color: var(--text-mid);
+  }
+  .cs2-hero-size {
+    margin: 0.15rem 0 0;
+    font-family: var(--font-display, sans-serif);
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1.05;
+    color: var(--text);
+  }
+  .cs2-hero-material {
+    margin: 0;
+    font-size: 0.78rem;
+    color: var(--text-mid);
+  }
+  .cs2-badge-icon--bad {
+    display: none;
+  }
+  .cs2-badge[data-status='fail'] .cs2-badge-icon--ok {
+    display: none;
+  }
+  .cs2-badge[data-status='fail'] .cs2-badge-icon--bad {
+    display: inline-block;
+  }
+  .cs2-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin: 0.5rem 0 0;
+    padding: 0.22rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    border: 1px solid currentColor;
+    color: #15803d;
+  }
+  .cs2-badge[data-status='near-limit'] {
+    color: #a16207;
+  }
+  .cs2-badge[data-status='fail'] {
+    color: #b91c1c;
+  }
+  .cs2-selected-line {
+    margin: 0.6rem 0 0;
+    font-size: 0.78rem;
+    color: var(--text-mid);
+  }
+  .cs2-selected-line strong {
+    color: var(--text);
+  }
+
+  .cs2-rows {
+    margin: 0.65rem 0 0;
+    display: grid;
+    gap: 0.15rem;
+  }
+  .cs2-rows > div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.28rem 0;
+    border-bottom: 1px dashed var(--border);
+  }
+  .cs2-rows dt {
+    font-size: 0.74rem;
+    color: var(--text-mid);
+  }
+  .cs2-rows dd {
+    margin: 0;
+    font-size: 0.82rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+  }
+
+  .cs2-checks {
+    margin: 0.7rem 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.3rem;
+  }
+  .cs2-checks li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.35rem 0.6rem;
+    border-radius: 0.55rem;
+    background: var(--bg-2);
+    font-size: 0.76rem;
+  }
+  .cs2-checks strong {
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: #15803d;
+  }
+  .cs2-checks strong[data-status='near-limit'] {
+    color: #a16207;
+  }
+  .cs2-checks strong[data-status='fail'] {
+    color: #b91c1c;
+  }
+
+  .cs2-why {
+    margin: 0.8rem 0 0;
+    padding: 0.7rem 0.8rem;
+    border-radius: var(--radius, 0.75rem);
+    border: 1px solid var(--border);
+    background: var(--blue-l, #eff6ff);
+  }
+  .cs2-why h3 {
+    margin: 0 0 0.3rem;
+    font-family: var(--font-display, sans-serif);
+    font-size: 0.9rem;
+    color: var(--text);
+  }
+  .cs2-why p {
+    margin: 0;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: var(--text-mid);
+  }
+  /*
+   * The scope line is a safety boundary, not a footnote: it is the only place
+   * the reader is told that a drop-only answer can be undersized. Give it a
+   * rule and a tint so it reads as part of the result rather than small print.
+   */
+  .cs2-scope {
+    margin: 0.6rem 0 0;
+    padding: 0.5rem 0.6rem;
+    border: 1px solid var(--border);
+    border-left: 3px solid #d98b1f;
+    border-radius: 0 0.5rem 0.5rem 0;
+    background: rgb(217 139 31 / 0.07);
+    font-size: 0.7rem;
+    line-height: 1.45;
+    color: var(--text-mid);
+  }
+  .cs2-scope strong {
+    color: var(--text);
+  }
+  #cs2-scope-current {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  :root[data-theme='dark'] .cs2-scope {
+    background: rgb(217 139 31 / 0.12);
+  }
+
+  /*
+   * A rejected input leaves the last good run on screen, which is useful
+   * context but must not be mistaken for an answer to the value now in the
+   * field. Dim it and say so.
+   */
+  #cs2-results-container[data-stale='true'] .cs2-hero-size,
+  #cs2-results-container[data-stale='true'] .cs2-rows,
+  #cs2-results-container[data-stale='true'] .cs2-checks,
+  #cs2-results-container[data-stale='true'] .cs2-why {
+    opacity: 0.45;
+  }
+  .cs2-stale-note {
+    margin: 0.4rem 0 0;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #a4361c;
+  }
+  .cs2-stale-note[hidden] {
+    display: none;
+  }
+  :root[data-theme='dark'] .cs2-stale-note {
+    color: #ffb4a2;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* ── comparison strip (§20) ────────────────────────────────────────── */
+  .cs2-strip {
+    position: absolute;
+    left: 50%;
+    bottom: var(--ts-gutter, 1.25rem);
+    transform: translateX(-50%);
+    width: min(860px, calc(100% - 2 * var(--ts-panel-w, 336px) - 5rem));
+    min-width: min(420px, 60%);
+    padding: 0.6rem 0.8rem 0.7rem;
+    border-radius: var(--radius-lg, 1rem);
+    border: 1px solid var(--border);
+    background: var(--surface-glass, rgba(255, 255, 255, 0.96));
+    box-shadow: 0 16px 40px -10px rgba(15, 23, 42, 0.25);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    z-index: 22;
+  }
+  .cs2-strip-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.45rem;
+  }
+  .cs2-strip-head h2 {
+    margin: 0;
+    font-family: var(--font-display, sans-serif);
+    font-size: 0.82rem;
+    letter-spacing: 0.02em;
+    color: var(--text);
+  }
+  .cs2-strip-note {
+    margin: 0;
+    font-size: 0.7rem;
+    color: var(--text-mid);
+  }
+  .cs2-strip-note strong {
+    color: var(--blue, #2563eb);
+  }
+  .cs2-strip-row {
+    display: flex;
+    gap: 0.4rem;
+    overflow-x: auto;
+    padding-bottom: 0.15rem;
+    scrollbar-width: thin;
+  }
+  .cs2-candidate {
+    flex: 1 1 0;
+    min-width: 74px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1rem;
+    padding: 0.4rem 0.3rem;
+    border-radius: 0.7rem;
+    border: 1px solid var(--border);
+    background: var(--bg-2);
+    color: var(--text-mid);
+    font-family: inherit;
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+  .cs2-candidate:hover {
+    border-color: var(--border-bright, #94a3b8);
+    transform: translateY(-1px);
+  }
+  .cs2-candidate:focus-visible {
+    outline: 2px solid var(--blue, #2563eb);
+    outline-offset: 2px;
+  }
+  .cs2-candidate-size {
+    font-family: var(--font-display, sans-serif);
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .cs2-candidate-unit {
+    margin-left: 0.1rem;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--text-mid);
+  }
+  .cs2-candidate-status {
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    color: #15803d;
+  }
+  .cs2-candidate[data-status='near-limit'] .cs2-candidate-status {
+    color: #a16207;
+  }
+  .cs2-candidate[data-status='fail'] .cs2-candidate-status {
+    color: #b91c1c;
+  }
+  .cs2-candidate-volts,
+  .cs2-candidate-pct {
+    font-size: 0.66rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .cs2-candidate-pct {
+    color: var(--text-mid);
+  }
+  .cs2-candidate-flag {
+    font-size: 0.55rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: var(--blue, #2563eb);
+    min-height: 0.8rem;
+  }
+  /* selected = the cable being inspected; recommended = the answer */
+  .cs2-candidate[aria-pressed='true'] {
+    border-color: var(--blue, #2563eb);
+    background: var(--blue-l, #eff6ff);
+  }
+  .cs2-candidate[data-status='fail'] {
+    background: color-mix(in srgb, #b91c1c 8%, var(--bg-2, #f1f5f9));
+  }
+
+  /* ── responsive: the strip joins the flow when the panels stack (§26) ─
+     the band matches the stacked layout's (scene-stage.js WIDE_STACK) */
+  /*
+   * Out of the floating layout the strip is page content: static in the stacked
+   * grid, static in the drawer's column. `:not([data-layout="float"])` rather
+   * than a width query, because the cable stage floats at every laptop size
+   * now — it only stacks on paper, as the no-JS fallback.
+   */
+  @media (max-width: 1500px), (max-height: 780px) {
+    :global(.ts-stage:not([data-layout="float"])) .cs2-strip {
+      position: static;
+      transform: none;
+      width: 100%;
+      min-width: 0;
+      grid-column: 1 / -1;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+  }
+  /*
+   * Floating, the strip has to *fit between the docks*. Centred with a
+   * `min-width` of 420px it used to slide under a panel on a 1024px window,
+   * where the first candidate was unclickable — the panel's own legend took the
+   * click. Spanning the free band makes that impossible by construction.
+   */
+  :global(.ts-stage[data-layout="float"]) .cs2-strip {
+    left: calc(var(--ts-panel-w, 336px) + var(--ts-gutter, 1.25rem) * 1.5);
+    right: calc(var(--ts-panel-w, 336px) + var(--ts-gutter, 1.25rem) * 1.5);
+    width: auto;
+    min-width: 0;
+    transform: none;
+  }
+  /*
+   * A folded dock hands its width to the strip, exactly as it does the scene —
+   * and the dock that stayed open grows into the space, so the strip has to
+   * clear `--ts-panel-w-open` rather than the base tier. (Both are the same
+   * variable the dock itself is given, so the two cannot drift apart.)
+   */
+  :global(.ts-stage[data-layout="float"][data-docks="inputs"]) .cs2-strip {
+    left: calc(var(--ts-panel-w-open, min(430px, 46vw)) + var(--ts-gutter, 1.25rem) * 1.5);
+  }
+  :global(.ts-stage[data-layout="float"][data-docks="results"]) .cs2-strip {
+    right: calc(var(--ts-panel-w-open, min(430px, 46vw)) + var(--ts-gutter, 1.25rem) * 1.5);
+  }
+  :global(.ts-stage[data-layout="float"][data-docks="inputs"]) .cs2-strip,
+  :global(.ts-stage[data-layout="float"][data-docks="none"]) .cs2-strip {
+    right: calc(3rem + var(--ts-gutter, 1.25rem) * 1.5);
+  }
+  :global(.ts-stage[data-layout="float"][data-docks="results"]) .cs2-strip,
+  :global(.ts-stage[data-layout="float"][data-docks="none"]) .cs2-strip {
+    left: calc(3rem + var(--ts-gutter, 1.25rem) * 1.5);
+  }
+  @media (max-width: 768px) {
+    .cs2-strip {
+      padding: 0.55rem 0.6rem 0.6rem;
+    }
+    .cs2-candidate {
+      min-width: 68px;
+    }
+    /*
+     * Two chips per row, not one: six single-column cards push the cable and
+     * limit fields a full screen down inside the sheet. The name and the
+     * rating ("2.2 kW") still fit at half a phone's width.
+     */
+    .cs2-load-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cs2-candidate {
+      transition: none;
+    }
+  }
+</style>

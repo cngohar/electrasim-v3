@@ -11,13 +11,17 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "gen:og": "node scripts/generate-og-images.mjs"
+    "gen:og": "node scripts/generate-og-images.mjs",
+    "prebuild": "node scripts/build-tool-engines.mjs",
+    "predev": "node scripts/build-tool-engines.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
     "@astrojs/sitemap": "^3.7.3",
     "@types/three": "^0.174.0",
     "astro": "^7.2.4",
+    "esbuild": "^0.28.2",
     "gray-matter": "^4.0.3",
     "marked": "18.0.3",
     "sharp": "^0.35.4",

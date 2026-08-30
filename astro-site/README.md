@@ -66,7 +66,7 @@ over it. Three pieces make that reusable rather than copyable:
 
 `src/components/tools/ToolWorkspace.astro` wires them together (`variant` + `toolScript` + the
 `scene`/`panels` slots). Add a tool scene by authoring SVG on a fixed canvas, honouring the variable
-contract, and registering its actions — see `CableSizingScene.astro` for the reference example. Keep
+contract, and registering its actions — see `CableSizeScene.astro` for the reference example. Keep
 every fact a scene shows in text somewhere too: the drawing is decoration, not the only copy.
 
 ## Icons (no emoji)

@@ -208,93 +208,148 @@ export const TOOLBOX_REGISTRY: ToolEntry[] = [
     category: 'calculator',
     status: 'available',
     description:
-      'Find the minimum required conductor cross-sectional area (mm²) based on design current, installation method, derating factors, and BS 7671 or IEC 60364 voltage drop limits.',
-    badge: 'Essential',
+      'Pick a load, set the run and a voltage-drop limit, and see the smallest cable size (mm²) that keeps the voltage drop inside it — with a live source → cable → load scene that redraws the cable as you change it.',
+    badge: 'Interactive',
     icon: 'cable',
-    standards: ['uk-bs7671', 'iec-60364'],
-    metaTitle: 'Cable Size Calculator (BS 7671 / IEC 60364, mm²) | ElectraSim',
+    metaTitle: 'Cable Size Calculator — Smallest Cable That Passes Voltage Drop | ElectraSim',
     metaDescription:
-      'Calculate the correct electrical cable size (mm²) per BS 7671 (UK) or IEC 60364 (international). Accounts for installation methods, ambient temperature, grouping, insulation, and voltage drop.',
+      'Free interactive cable size calculator. Choose a load (lighting, fan, motor, heater, appliance or your own), set the run length, conductor and voltage-drop limit, and see the smallest mm² cable that passes — with a live electrical scene.',
     keywords: [
       'cable size calculator',
-      'wire gauge calculator',
-      'electrical conductor sizing',
-      'BS 7671 cable selection',
-      'IEC 60364-5-52 cable sizing',
-      'international cable size calculator',
+      'what size cable do i need',
+      'cable size by voltage drop',
+      'wire size calculator mm2',
       'mm2 cable calculator',
-      'cable current carrying capacity',
-      'installation method derating',
+      '1.5 vs 2.5 mm2 cable',
+      'cable size for 3kw heater',
+      'cable size calculator uk',
+      'copper vs aluminium cable size',
+      'voltage drop cable sizing',
+      'cable size for long run',
+      'electrical cable size chart',
     ],
     ogImage: 'https://electrasim.com/og-image.png',
     equations: [
       {
-        title: 'Design Current (Ib)',
-        formula: 'I_b = P / (V × cos φ)  [1-Φ]   or   P / (√3 × V × cos φ)  [3-Φ]',
-        description: 'Calculates the full continuous load current drawn by the connected circuit.',
+        title: 'Resistance of the run',
+        formula: 'R = 2 × ρ × L / A',
+        description:
+          'Resistance grows with length (L) and falls with cross-sectional area (A). ρ is the conductor resistivity — 0.0172 Ω·mm²/m for copper, 0.0282 Ω·mm²/m for aluminium at 20 °C. The factor 2 is the round trip: out on the line conductor, back on the neutral.',
       },
       {
-        title: 'Required Tabulated Current Capacity (It)',
-        formula: 'I_t ≥ I_n / (C_a × C_g × C_i × C_c)',
+        title: 'Voltage drop',
+        formula: 'ΔV = I × R   [AC: ΔV = 2 × I × L × (r cos φ + x sin φ)]',
         description:
-          'Derates the protective device rating (In) by ambient temperature (Ca), grouping (Cg), thermal insulation (Ci), and semi-enclosed fuse factor (Cc).',
+          'Ohm’s law applied to the whole loop. Every candidate cable size is scored with this by the shared voltage-drop engine, so the ladder and the answer can never disagree.',
       },
       {
-        title: 'Voltage Drop Verification',
-        formula: 'ΔV = (mV/A/m × I_b × L) / 1000 ≤ ΔV_max',
+        title: 'Design current',
+        formula: 'I = P / (V × cos φ)  [AC]   ·   I = P / V  [DC]',
         description:
-          'Ensures the chosen conductor does not exceed 3% (lighting) or 5% (power) voltage drop over the total run length.',
+          'The demand the load places on the run. A 3 kW heater at 230 V draws 13.0 A; a 100 W lighting load draws 0.43 A.',
+      },
+      {
+        title: 'Voltage actually delivered',
+        formula: 'V_load = V_source − ΔV',
+        description:
+          'What arrives at the far end. This is the number that matters to the lamp, the motor or the heater — not the nominal voltage at the origin.',
+      },
+      {
+        title: 'Drop as a percentage',
+        formula: 'ΔV% = ΔV / V_source × 100',
+        description:
+          'The figure the limit is compared against: 3% of 230 V is 6.9 V, 5% is 11.5 V.',
       },
     ],
     steps: [
       {
-        step: 'Specify Electrical Load & Circuit Voltage',
+        step: 'Set the source',
         instruction:
-          'Enter design power in Watts (or current in Amperes), system voltage, and power factor.',
+          'Choose AC or DC and the nominal voltage (230 V AC by default). Three-phase is out of scope in this version.',
       },
       {
-        step: 'Choose Installation Method',
+        step: 'Choose the load',
         instruction:
-          'Select how the cable is installed (Method A: in thermal insulation; Method B: in conduit/trunking; Method C: clipped direct; Method D: in ground).',
+          'Pick Lighting, Fan, Motor, Heater or Appliance — or Custom, where you enter the power in watts and the power factor yourself. The scene swaps to that load immediately.',
       },
       {
-        step: 'Set Environmental Derating Factors',
+        step: 'Describe the cable run',
         instruction:
-          'Specify ambient temperature, number of grouped circuits, and thermal insulation thickness.',
+          'Select copper or aluminium and enter the one-way cable length from source to load.',
       },
       {
-        step: 'Review Sized Conductor & Compliance Margin',
+        step: 'Choose a voltage-drop limit',
         instruction:
-          'The engine selects the smallest metric cross-section (mm²) that satisfies both thermal capacity (Iz ≥ It) and voltage drop limits.',
+          'Pick 3%, 5% or your own figure. Treat it as a design choice: 3% / 5% are the values most standards quote for a public LV supply, but local rules differ.',
+      },
+      {
+        step: 'Read the recommendation, then experiment',
+        instruction:
+          'The tool recommends the smallest candidate that passes. Click any size in the comparison strip to inspect it: the cable in the scene thickens or thins and every number follows.',
       },
     ],
     faqs: [
       {
-        question: 'How do you choose the right cable size under BS 7671?',
+        question: 'How does this calculator choose a cable size?',
         answer:
-          'Cable selection follows the golden rule: Ib ≤ In ≤ Iz, where Ib is design current, In is the nominal protective device rating, and Iz is the effective current-carrying capacity of the cable under installed conditions. The cable must also satisfy maximum permissible voltage drop (3% for lighting, 5% for other uses).',
+          'It evaluates every candidate cross-section with the shared voltage-drop engine and recommends the smallest one whose calculated drop stays inside the limit you selected. A 3 kW heater at 230 V draws 13.0 A; over 25 m of copper that is 7.48 V (3.25%) on 1.5 mm² — over a 3% limit — and 4.49 V (1.95%) on 2.5 mm², so 2.5 mm² is the recommendation. Push the same run to 40 m and 2.5 mm² reaches 3.12%, so the answer becomes 4 mm².',
       },
       {
-        question: 'What is the difference between installation methods A, B, and C?',
+        question: 'Why does a bigger cable reduce voltage drop?',
         answer:
-          'Method A covers cables enclosed in thermal insulation inside a wall (lowest heat dissipation). Method B covers cables enclosed in conduit or trunking on a wall. Method C covers cables clipped directly to a non-metallic surface in free air, which dissipates heat faster and carries higher current.',
+          'Because resistance is ρL/A: doubling the cross-sectional area halves the resistance of the run, and the drop is I × R. On the 25 m heater example, going from 1.5 mm² to 2.5 mm² takes the drop from 7.48 V to 4.49 V, and 10 mm² brings it down to 1.12 V.',
       },
       {
-        question: 'Why does grouping cables reduce their capacity?',
+        question: 'Is the 3% or 5% voltage-drop limit a legal requirement?',
         answer:
-          'When multiple loaded cables run close together in a conduit, trunking, or tray, mutual thermal heating prevents them from shedding heat effectively. A grouping factor (Cg) reduces permissible current capacity—for example, 4 grouped circuits reduce capacity to 65%.',
+          'It is a design parameter here, not a compliance certificate. 3% and 5% are the figures most commonly quoted for a public low-voltage supply (BS 7671 Reg 525.1 and IEC 60364-5-52 Annex G both band it that way), but the permitted drop depends on your supply, your local regulations and where the origin of the installation is taken to be. This calculator tells you what the physics does — it does not certify a design.',
+      },
+      {
+        question: 'Does this tool check current-carrying capacity or protective devices?',
+        answer:
+          'No. It sizes the cable by voltage drop only. Current-carrying capacity, ambient-temperature and grouping derating, MCB/RCD selection, fault-loop impedance and disconnection times are all out of scope, and a real design has to clear those gates separately.',
+      },
+      {
+        question: 'Copper or aluminium — how much difference does it make?',
+        answer:
+          'Aluminium’s resistivity is about 64% higher than copper (0.0282 vs 0.0172 Ω·mm²/m at 20 °C), so the same size drops about 1.6× more voltage. On the 3 kW heater over 25 m at a 3% limit, copper is comfortable on 2.5 mm² (1.95%) while aluminium needs 4 mm² (2.5 mm² aluminium drops 3.20% and fails).',
+      },
+      {
+        question: 'Why does my answer differ from a cable manufacturer’s table?',
+        answer:
+          'Two assumptions differ. (1) Temperature — this calculator uses the resistivity at 20 °C unless you reason about the hot cable, while tabulated mV/A/m figures are quoted at the conductor’s maximum operating temperature (70 °C for thermoplastic), roughly 20% higher resistance. (2) Power factor and reactance — the tables fold inductance in above 16 mm² and assume cos φ ≈ 0.8, where this tool models resistance with the power factor you set. Use the Voltage Drop calculator to explore the hot-cable case directly.',
+      },
+      {
+        question: 'What cable size do I need for a 3 kW heater?',
+        answer:
+          'At 230 V it draws 13.0 A. With copper and a 3% limit: 2.5 mm² up to about 38 m, 4 mm² up to about 61 m, and 6 mm² beyond that — rounding down, because a longer run spends the same 6.9 V budget faster. Switch to aluminium and each of those distances shrinks by roughly a third. Always confirm the size against current-carrying capacity and the protective device for the installation method you are actually using.',
+      },
+      {
+        question: 'Does length really matter that much?',
+        answer:
+          'Yes — drop is directly proportional to length. Double the run and you double the drop, so a cable that is comfortable at 20 m can fail at 40 m. That is why the length slider is one of the first things worth dragging in the scene: the cable does not change, but the verdict does.',
       },
     ],
     relatedGuides: [
       {
         title: 'Electrical Cable Sizes Explained (1.5mm² to 25mm²)',
         url: '/blog/electrical-cable-sizes-explained/',
-        description: 'Comprehensive guide to standard metric cable sizes and applications.',
+        description: 'What each standard metric cross-section is actually used for.',
       },
       {
         title: 'Voltage Drop Explained: How to Calculate It',
         url: '/blog/voltage-drop-explained-how-to-calculate-it/',
-        description: 'How to calculate millivolt-per-amp-per-meter voltage drop in cables.',
+        description: 'The physics behind the number this calculator compares against your limit.',
+      },
+      {
+        title: 'Ohm’s Law Explained: Voltage, Current & Resistance',
+        url: '/blog/ohms-law-explained-voltage-current-resistance/',
+        description: 'Why V = I × R is the whole story behind cable sizing.',
+      },
+      {
+        title: 'UK Voltage Drop Calculator (mm² / BS 7671)',
+        url: '/tools/voltage-drop-calculator/',
+        description: 'Inspect one cable in detail, including conductor temperature and reactance.',
       },
     ],
   },

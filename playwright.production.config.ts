@@ -5,6 +5,8 @@ const baseURL = remoteBaseURL ?? 'http://127.0.0.1:8788';
 
 export default defineConfig({
   testDir: 'e2e',
+  // `cable-size` is part of the default suite (playwright.config.ts starts the
+  // built-site preview server next to the dev server), so it is not matched here.
   testMatch: /(production|toolbox|scroll-lock)\.spec\.ts/,
   fullyParallel: false,
   forbidOnly: !!process.env.CI,

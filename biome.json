@@ -17,7 +17,8 @@
       ".wrangler",
       "astro-site/.astro",
       "src/App.legacy.tsx",
-      "**/*.md"
+      "**/*.md",
+      "astro-site/public/js/cable-size-tool.js"
     ]
   },
   "formatter": {

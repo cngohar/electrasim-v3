@@ -17,9 +17,11 @@ const structuredData = generateToolStructuredData(tool);
   structuredData={structuredData}
 >
   <!--
-    Same stage shell as the voltage-drop tool, different picture: the cutaway is
-    supplied by the workspace's `variant`, and the engine that paints it is the
-    cable sizer. See src/components/tools/ToolWorkspace.astro.
+    The scene is the calculator: SOURCE → CABLE → LOAD. The workspace supplies
+    the stage shell; the artwork (CableSizeScene) and the instruments
+    (CableSizePanels) are this tool's, and the engine
+    (public/js/cable-size-tool.js, bundled from src/tools/cable-size/engine.ts)
+    repaints both from one evaluation.
   -->
-  <ToolWorkspace currentTool={tool} variant="cable-sizing" toolScript="/js/cable-size-tool.js" />
+  <ToolWorkspace currentTool={tool} variant="cable-size" toolScript="/js/cable-size-tool.js" />
 </ToolLayout>
