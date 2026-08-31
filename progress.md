@@ -4254,3 +4254,58 @@ substitution; F6 optional `timeLimit`.
 
 **Gates**: 69/69 Playwright specs, `astro build` 133 pages, `astro check` 0 errors, biome clean (153 files), 1046 unit tests, `tsc` for app + e2e.
 
+
+## Session 2026-08-31 — Audit fixes, the 2.0.0 release, tool pruning, release popup
+
+**Audit first (read-only), then fixes.** A full-codebase regression analysis (both apps,
+PR-by-PR diffs of #13–#16 plus every executable gate) found five issues; all five fixed and
+verified in a real browser:
+
+1. **Deploy gate broken**: PR #15's Twemoji table sat statically in the entry chunk —
+   initial JS 264,592 B gzip vs the 250,000 B budget, so `npm run verify`/`deploy` could not
+   pass. The glyph table is now a lazy async chunk (`ensureEmojiGlyphs()` kicked from
+   `main.tsx`, surfaces re-render via `useSyncExternalStore`, sized placeholders while
+   loading, null-fallbacks unchanged). **264,592 → 232,033 B — check:perf green again.**
+2. `/experimental/` was a byte-identical, indexable duplicate of `/explore/` — deleted.
+3. Retired Light Explorer URLs (`/experimental/*`, `/explore/edison-bulb/*`) now 301 to
+   `/explore/` instead of 404ing.
+4. `public/_headers` gained strict marketing CSP entries for `/explore/*`,
+   `/experimental/*` and the previously-uncovered `/updates/*`.
+5. The coming-soon globe honoured `prefers-reduced-motion` with a no-op CSS rule; the rAF
+   loop now never starts under reduced motion (single static frame, live-toggle aware), and
+   three.js became a dynamic import — page script 490 KB → 5.8 KB.
+
+**Browser e2e unblocked without the Playwright CDN** (TLS-blocked here): the npm registry
+route — `@sparticuz/chromium`'s tarball binary + its `al2023` libs on `LD_LIBRARY_PATH`,
+driven by the repo's own `playwright-core` through a temporary config (deleted after).
+Default suite **83/83**; production suite 62 passed with **4 failures proven pre-existing**
+by a stash control (identical failures on the pre-change build): the 404 spec asserts the
+old "Page Not Found" heading, the phone-viewport spec re-queries the nav toggle whose
+accessible name flips Open→Close, and two Settings-modal specs fail before and after.
+Queue: diagnose those two modal failures.
+
+**v2.0.0 release.** Versions bumped (app + astro site — cache-bust strings and in-app badges
+follow); CHANGELOG `[Unreleased]` → `[2.0.0]` with a release preamble; README refreshed.
+New featured release post `/updates/electrasim-2-0-release/` (12 sections, OG card via
+`gen:og`). Homepage: the "What changed v1.4 → v1.6.1" history section became **"ElectraSim
+2.0 · What's inside"** — eight present-tense feature cards, hero untouched; "1000+ tests"
+stat replaced with **"8 guided circuits"**; the three section-divider pulse rails now run
+full-bleed to the screen edges (`margin-inline: calc(50% - 50vw)`; hero meter and in-
+illustration rails untouched; no horizontal scrollbar).
+
+**Tools pruned.** `/tools/max-zs-calculator/` and `/tools/us/voltage-drop-calculator/`
+deleted outright (no redirects — site not live yet): pages, panels, libs, tests, registry
+entries, SEO copy block, cross-links, e2e routes, sitemap entries. Zero dangling references
+(`check:links` green; both URLs 404 from the production server).
+
+**v2.0 release popup** (homepage only): 2 s after load, once per user (version-keyed
+localStorage, set at open), confetti falling from the top plus **continuous fireworks from
+random bottom positions** on ≥768 px (canvas never starts on smaller screens or under
+reduced motion; loop + canvas fully torn down on close), animated v2.0 lettering with
+sweeping shine and flickering bolt sparks, 3-line what's-new copy, "Continue exploring" +
+release-notes link, Esc/×/backdrop close, focus trap. Verified in Chromium at 1440×900 and
+390×844, including reload-suppression and byte-clean canvas teardown.
+
+**Gates:** tsc (app + e2e) ✓, biome ✓, astro check 0 errors ✓, **1135/1135 vitest** (−21
+deleted tool tests, +7 lazy-emoji contract tests), build **133 pages** ✓, check:perf all
+PASS ✓, check:links ✓, simulation benchmark unchanged (1.07 ms median @ 200 components).
