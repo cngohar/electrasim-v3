@@ -9,7 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [2.0.0] — 2026-08-31
+
+**ElectraSim 2.0** — the learning release. Everything below that was previously listed under
+_Unreleased_ ships in this version: the structured learning modes (Challenge, Diagnosis Lab,
+Ohmageddon), the deterministic challenge/fault generator underneath them, Guided Circuits,
+the Fault Lab, the multi-standard Electrical Toolbox (BS 7671 / IEC 60364 / US NEC) with the
+source→cable→load Cable Size Calculator, interactive onboarding tours, the redesigned workbench
+shell (command palette, command-hub menu, settings + portable backups), international default
+standard, cross-platform SVG icons, and a long list of correctness fixes — conductor-bypass
+validation, withheld fault narration, live symptom evidence, compound-fault verification, and
+the honest-cable temperature correction. Full release notes: [`/updates/electrasim-2-0-release/`](https://electrasim.com/updates/electrasim-2-0-release/).
 
 ### Replaced — Session 2026-08-29: Cable Size Calculator v2 (source → cable → load)
 

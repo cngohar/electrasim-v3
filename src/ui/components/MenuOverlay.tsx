@@ -11,7 +11,7 @@
  *   │  TOOLS & INFO                                                 │
  *   │  [Documentation] [Keyboard Shortcuts] [Import / Export]       │
  *   │  [Settings]      [Contact]            [About ElectraSim]      │
- *   │  v1.6.1 · local-first        ⌘K palette   ·   Esc to close   │
+ *   │  v2.0.0 · local-first        ⌘K palette   ·   Esc to close   │
  *   └───────────────────────────────────────────────────────────────┘
  *
  * Canvas/wiring actions (Clear All Wires, Clear All Components, Reset to

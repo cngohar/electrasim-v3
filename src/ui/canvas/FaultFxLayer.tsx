@@ -49,6 +49,7 @@ import {
 } from '../../domain';
 import { emojiDataUri } from '../../lib/emoji/emojiSvg';
 import { useUiStore } from '../../store';
+import { useEmojiGlyphsReady } from '../hooks/useEmojiGlyphsReady';
 import { type FaultFxItem, faultFxConfig } from './faultFx';
 import { buildWirePath } from './geometry';
 import type { CanvasTheme } from './types';
@@ -79,6 +80,9 @@ export function FaultFxLayer({
   wireWidth,
   orthogonalPaths,
 }: Props) {
+  // Flame/scissors chips use lazily-loaded Twemoji art; re-render once it
+  // arrives so fault effects gain their pictographs (no-op after first load).
+  useEmojiGlyphsReady();
   const pendingFx = useUiStore((s) => s.pendingFaultFx);
   const wiresById = new Map(wires.map((w) => [w.id, w]));
 

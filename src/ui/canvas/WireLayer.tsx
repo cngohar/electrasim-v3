@@ -7,6 +7,7 @@ import {
   getPortPos,
 } from '../../domain';
 import { emojiDataUri } from '../../lib/emoji/emojiSvg';
+import { useEmojiGlyphsReady } from '../hooks/useEmojiGlyphsReady';
 import { DenseWireLayer } from './DenseWireLayer';
 import { buildWirePath } from './geometry';
 import type { CanvasTheme } from './types';
@@ -137,6 +138,9 @@ function WirePath({
   onArmReroute,
   onContextMenu,
 }: WirePathProps) {
+  // Fault/flame/overload markers use lazily-loaded Twemoji art; re-render
+  // once the artwork table arrives (no-op after the first load).
+  useEmojiGlyphsReady();
   const from = componentsById.get(wire.fromComponentId);
   const to = componentsById.get(wire.toComponentId);
   if (!from || !to) return null;

@@ -19,15 +19,18 @@ import {
 import { emojiDataUri } from '../../lib/emoji/emojiSvg';
 import { useSettingsStore, useUiStore } from '../../store';
 import { getComponentIcon, getComponentImage } from '../components/componentImages';
+import { useEmojiGlyphsReady } from '../hooks/useEmojiGlyphsReady';
 import { getDefaultArt } from './componentArt';
 import type { CanvasTheme, PortLoc } from './types';
 
 const PORT_R = 5;
 
-/** Twemoji replicas for the fault/status badges drawn inside this SVG scene. */
-const SHORT_CIRCUIT_BADGE_URI = emojiDataUri('bolt', 11) ?? '';
-const TRIPPED_BADGE_URI = emojiDataUri('bolt', 24) ?? '';
-const BLOWN_BADGE_URI = emojiDataUri('boom', 24) ?? '';
+// Twemoji replicas for the fault/status badges drawn inside this SVG scene.
+// Resolved at render time (not module scope) because the artwork table loads
+// lazily, outside the initial bundle — see src/lib/emoji/emojiSvg.ts.
+const shortCircuitBadgeUri = () => emojiDataUri('bolt', 11) ?? '';
+const trippedBadgeUri = () => emojiDataUri('bolt', 24) ?? '';
+const blownBadgeUri = () => emojiDataUri('boom', 24) ?? '';
 
 /** Truncate a canvas label so it fits the component box without overflowing. */
 function fitLabel(label: string, fontSize: number): string {
@@ -190,6 +193,9 @@ export function ComponentNode({
   onHoverChange,
   onContextMenu,
 }: ComponentNodeProps) {
+  // Fault badges and pictograph icons come from the lazily-loaded Twemoji
+  // table; re-render once it arrives (no-op after the first load).
+  useEmojiGlyphsReady();
   const definition = COMPONENT_DEFS[component.type];
   // Catalogue labels embed a *default* rating ("RCBO (32A 30mA)"); an instance
   // may override it via `state.customMaxAmps`. Draw the instance's real rating
@@ -418,7 +424,7 @@ export function ComponentNode({
             />
             {fault === 'short-circuit' ? (
               <image
-                href={SHORT_CIRCUIT_BADGE_URI}
+                href={shortCircuitBadgeUri()}
                 x={COMP_W - 15.5}
                 y={0.5}
                 width={11}
@@ -610,7 +616,7 @@ export function ComponentNode({
                   component.type.includes('fuse'),
               );
               const label = isProtectionDevice ? 'TRIPPED' : 'BLOWN';
-              const iconUri = isProtectionDevice ? TRIPPED_BADGE_URI : BLOWN_BADGE_URI;
+              const iconUri = isProtectionDevice ? trippedBadgeUri() : blownBadgeUri();
               const badgeBg = isProtectionDevice ? '#d97706' : '#ef4444';
               const pulseColor = isProtectionDevice ? '#f59e0b' : '#ef4444';
 

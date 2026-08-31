@@ -31,7 +31,7 @@ import imgVariantSocketGfci from '../../assets/images/variant_socket_gfci_178678
 import imgVariantSocketUsb from '../../assets/images/variant_socket_usb_1786780587870.jpg';
 import imgVariantSpd from '../../assets/images/variant_spd_surge_1786780572651.jpg';
 import imgVariantTableFan from '../../assets/images/variant_table_fan.png';
-import { emojiDataUri, emojiTextSymbol } from '../../lib/emoji/emojiSvg';
+import { emojiDataUri, emojiGlyphsLoaded, emojiTextSymbol } from '../../lib/emoji/emojiSvg';
 
 /** Photorealistic component images registry with real photography assets */
 export const COMPONENT_IMAGES: Record<string, string> = {
@@ -345,6 +345,9 @@ export function getComponentIcon(type: string, fallback: string): string {
   // Legacy pictograph fallback: draw the official Twemoji artwork (inline SVG
   // data URI) so the canvas glyph matches the emoji pixel-for-pixel on every
   // platform, without ever touching an emoji font. Deliberate non-emoji
-  // symbols (⏚ earth-ground, ⑊) keep their plain text glyph instead.
+  // symbols (⏚ earth-ground, ⑊) keep their plain text glyph instead. While
+  // the artwork table is still loading, render nothing (the caller re-renders
+  // via useEmojiGlyphsReady) rather than flashing the raw icon key as text.
+  if (!emojiGlyphsLoaded()) return emojiTextSymbol(fallback) ?? '';
   return emojiDataUri(fallback) ?? emojiTextSymbol(fallback) ?? fallback;
 }

@@ -11,6 +11,7 @@ import {
 } from '../../domain';
 import { emojiDataUri, emojiTextSymbol } from '../../lib/emoji/emojiSvg';
 import { type PendingCustomPath, useSettingsStore, useUiStore } from '../../store';
+import { useEmojiGlyphsReady } from '../hooks/useEmojiGlyphsReady';
 import { WireEndpointHandles } from './WireLayer';
 import { getDefaultArt } from './componentArt';
 import { buildBezierPath, pointsToLinePath } from './geometry';
@@ -372,6 +373,9 @@ function DefinitionGlyph({
   cy: number;
   size: number;
 }) {
+  // Definition glyphs use lazily-loaded Twemoji art; re-render once it
+  // arrives (no-op after the first load).
+  useEmojiGlyphsReady();
   const uri = emojiDataUri(icon, size);
   if (uri) {
     return <image href={uri} x={cx - size / 2} y={cy - size / 2} width={size} height={size} />;

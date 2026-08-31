@@ -69,13 +69,16 @@ export const OG_BLOG_MANIFEST: Record<string, string> = {
   'why-has-my-socket-stopped-working': 'b094d66750',
 };
 export const OG_UPDATES_MANIFEST: Record<string, string> = {
+  'electrasim-2-0-release': '1a3785d2b6',
   'electrasim-new-components-rcd-contactor-timer-dimmer-distribution-board-bell': '656036cb16',
   'electrasim-v1-5-performance-accessibility-privacy-update': '5f57b58e4b',
   'electrasim-v1-6-dark-mode-rcbo-comparison-update': 'abe29d00b6',
   'fault-simulation-mode-open-circuit-reverse-polarity-earth-fault': '880f619881',
   'guided-circuits-electrasim-templates-checklists': '81baeb5f99',
 };
+
 export type OgKind = 'blog' | 'updates';
+
 export function ogCardUrl(slug: string, kind: OgKind = 'blog'): string {
   const map = kind === 'updates' ? OG_UPDATES_MANIFEST : OG_BLOG_MANIFEST;
   const v = map[slug];
