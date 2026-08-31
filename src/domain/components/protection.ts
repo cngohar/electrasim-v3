@@ -24,7 +24,7 @@ export const PROTECTION_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L-in' },
       { type: 'live', relX: 1, relY: 0.5, label: 'L-out' },
     ],
-    icon: '⚙️',
+    icon: 'gear',
   },
 
   'mcb-type-c': {
@@ -44,7 +44,7 @@ export const PROTECTION_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L-in' },
       { type: 'live', relX: 1, relY: 0.5, label: 'L-out' },
     ],
-    icon: '⚙️',
+    icon: 'gear',
   },
 
   'mcb-type-d': {
@@ -63,7 +63,7 @@ export const PROTECTION_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L-in' },
       { type: 'live', relX: 1, relY: 0.5, label: 'L-out' },
     ],
-    icon: '⚙️',
+    icon: 'gear',
   },
 
   mccb: {
@@ -81,7 +81,7 @@ export const PROTECTION_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L-in' },
       { type: 'live', relX: 1, relY: 0.5, label: 'L-out' },
     ],
-    icon: '⚙️',
+    icon: 'gear',
   },
 
   rcd: {
@@ -101,7 +101,7 @@ export const PROTECTION_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.35, label: 'L-out' },
       { type: 'neutral', relX: 1, relY: 0.65, label: 'N-out' },
     ],
-    icon: '🛡️',
+    icon: 'shield',
   },
 
   rcbo: {
@@ -122,7 +122,7 @@ export const PROTECTION_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.35, label: 'L-out' },
       { type: 'neutral', relX: 1, relY: 0.65, label: 'N-out' },
     ],
-    icon: '🛡️',
+    icon: 'shield',
   },
 
   afdd: {
@@ -144,7 +144,7 @@ export const PROTECTION_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.35, label: 'L-out' },
       { type: 'neutral', relX: 1, relY: 0.65, label: 'N-out' },
     ],
-    icon: '🔥',
+    icon: 'flame',
   },
 
   fuse: {
@@ -161,7 +161,7 @@ export const PROTECTION_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L-in' },
       { type: 'live', relX: 1, relY: 0.5, label: 'L-out' },
     ],
-    icon: '🧨',
+    icon: 'dynamite',
   },
 
   spd: {
@@ -178,7 +178,7 @@ export const PROTECTION_DEFS: Record<string, ComponentDef> = {
       { type: 'neutral', relX: 0, relY: 0.65, label: 'N-in' },
       { type: 'earth', relX: 0.5, relY: 1.0, label: 'PE' },
     ],
-    icon: '🛡️',
+    icon: 'shield',
   },
 
   'distribution-board': {
@@ -197,7 +197,7 @@ export const PROTECTION_DEFS: Record<string, ComponentDef> = {
       { type: 'neutral', relX: 1, relY: 0.68, label: 'N1' },
       { type: 'neutral', relX: 1, relY: 0.83, label: 'N2' },
     ],
-    icon: '🗄️',
+    icon: 'cabinet',
   },
 
   'main-switch': {
@@ -216,7 +216,7 @@ export const PROTECTION_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.35, label: 'L-out' },
       { type: 'neutral', relX: 1, relY: 0.65, label: 'N-out' },
     ],
-    icon: '🛡️',
+    icon: 'shield',
   },
 
   'fused-spur': {
@@ -236,6 +236,6 @@ export const PROTECTION_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.35, label: 'L-out' },
       { type: 'neutral', relX: 1, relY: 0.65, label: 'N-out' },
     ],
-    icon: '🎛️',
+    icon: 'knobs',
   },
 };

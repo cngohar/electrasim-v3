@@ -20,7 +20,7 @@ export const INDUSTRIAL_CONTROL_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.35, label: 'L1-out' },
       { type: 'live', relX: 1, relY: 0.65, label: 'L2-out' },
     ],
-    icon: '🔘',
+    icon: 'radio-button',
   },
 
   'switched-socket': {
@@ -37,7 +37,7 @@ export const INDUSTRIAL_CONTROL_DEFS: Record<string, ComponentDef> = {
       { type: 'neutral', relX: 0, relY: 0.5, label: 'N' },
       { type: 'earth', relX: 0, relY: 0.75, label: 'E' },
     ],
-    icon: '🔌',
+    icon: 'plug',
   },
 
   'isolator-switch': {
@@ -57,7 +57,7 @@ export const INDUSTRIAL_CONTROL_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.35, label: 'L-out' },
       { type: 'neutral', relX: 1, relY: 0.65, label: 'N-out' },
     ],
-    icon: '🛡️',
+    icon: 'shield',
   },
 
   'transformer-8v': {
@@ -72,7 +72,7 @@ export const INDUSTRIAL_CONTROL_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.35, label: '8V-A' },
       { type: 'neutral', relX: 1, relY: 0.65, label: '8V-B' },
     ],
-    icon: '⚡',
+    icon: 'bolt',
   },
 
   'transformer-12v': {
@@ -88,7 +88,7 @@ export const INDUSTRIAL_CONTROL_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.35, label: '12V+' },
       { type: 'neutral', relX: 1, relY: 0.65, label: '12V-' },
     ],
-    icon: '⚡',
+    icon: 'bolt',
   },
 
   'transformer-24v': {
@@ -105,7 +105,7 @@ export const INDUSTRIAL_CONTROL_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.35, label: '24V+' },
       { type: 'neutral', relX: 1, relY: 0.65, label: '24V-' },
     ],
-    icon: '⚡',
+    icon: 'bolt',
   },
 
   'step-up-down-transformer': {
@@ -122,7 +122,7 @@ export const INDUSTRIAL_CONTROL_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.35, label: 'Out-L' },
       { type: 'neutral', relX: 1, relY: 0.65, label: 'Out-N' },
     ],
-    icon: '⚡',
+    icon: 'bolt',
   },
 
   'relay-spst': {
@@ -137,7 +137,7 @@ export const INDUSTRIAL_CONTROL_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.35, label: 'COM' },
       { type: 'live', relX: 1, relY: 0.65, label: 'NO' },
     ],
-    icon: '🔧',
+    icon: 'wrench',
   },
 
   'relay-spdt': {
@@ -153,7 +153,7 @@ export const INDUSTRIAL_CONTROL_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.5, label: 'NO' },
       { type: 'live', relX: 1, relY: 0.75, label: 'NC' },
     ],
-    icon: '🔧',
+    icon: 'wrench',
   },
 
   'relay-dpdt': {
@@ -172,7 +172,7 @@ export const INDUSTRIAL_CONTROL_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.6, label: 'C2' },
       { type: 'live', relX: 1, relY: 0.8, label: 'NO2' },
     ],
-    icon: '🔧',
+    icon: 'wrench',
   },
 
   'control-relay': {
@@ -190,7 +190,7 @@ export const INDUSTRIAL_CONTROL_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.5, label: '14-NO' },
       { type: 'live', relX: 1, relY: 0.75, label: '12-NC' },
     ],
-    icon: '🔧',
+    icon: 'wrench',
   },
 
   'contactor-1p': {
@@ -206,7 +206,7 @@ export const INDUSTRIAL_CONTROL_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0.5, relY: 0, label: 'A1' },
       { type: 'neutral', relX: 0.5, relY: 1, label: 'A2' },
     ],
-    icon: '🔩',
+    icon: 'nut-bolt',
   },
 
   'contactor-2p': {
@@ -222,7 +222,7 @@ export const INDUSTRIAL_CONTROL_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.35, label: 'L-out' },
       { type: 'neutral', relX: 1, relY: 0.65, label: 'N-out' },
     ],
-    icon: '🔩',
+    icon: 'nut-bolt',
   },
 
   'contactor-3p': {
@@ -242,7 +242,7 @@ export const INDUSTRIAL_CONTROL_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.5, label: 'T2' },
       { type: 'live', relX: 1, relY: 0.75, label: 'T3' },
     ],
-    icon: '🔩',
+    icon: 'nut-bolt',
   },
 
   'contactor-4p': {
@@ -264,6 +264,6 @@ export const INDUSTRIAL_CONTROL_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.6, label: 'T3' },
       { type: 'neutral', relX: 1, relY: 0.8, label: 'N-out' },
     ],
-    icon: '🔩',
+    icon: 'nut-bolt',
   },
 };

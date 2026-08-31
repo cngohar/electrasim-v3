@@ -19,6 +19,7 @@ import {
   type ZsEarthArrangement,
   runZsChecks,
 } from '../../domain/zsCheck';
+import { emojiDataUri } from '../emoji/emojiSvg';
 
 export interface EicCircuitRow {
   ref: string;
@@ -110,6 +111,9 @@ export function renderEicHtml(data: EicReportData): string {
     dateStyle: 'full',
     timeStyle: 'short',
   });
+  // Twemoji printer pictograph as a self-contained data URI — the printable
+  // report must not depend on the visitor's emoji font.
+  const printerIcon = emojiDataUri('printer', 14) ?? '';
 
   const bodyRows = data.rows.length
     ? data.rows
@@ -168,7 +172,7 @@ export function renderEicHtml(data: EicReportData): string {
 <body>
   <div id="printbar">
     <span>ElectraSim — Mini Electrical Installation Certificate (print preview)</span>
-    <button type="button" onclick="window.print()">🖨 Print / Save as PDF</button>
+    <button type="button" onclick="window.print()"><img src="${printerIcon}" width="14" height="14" alt="" style="vertical-align:-0.15em;margin-right:5px">Print / Save as PDF</button>
   </div>
 
   <span class="badge">EDUCATIONAL SIMULATION OUTPUT — NOT A CERTIFICATE</span>

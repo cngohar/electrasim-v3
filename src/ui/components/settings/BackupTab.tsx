@@ -180,8 +180,8 @@ export function BackupTab() {
           description="Bundle the canvas circuit (components, wires, supply voltage) into the backup so a restore recreates your work in progress on any device."
           preview={
             includeCircuit
-              ? '📦 The backup carries your circuit alongside the preferences.'
-              : '⚙️ Preferences only — the file stays small and never touches your canvas.'
+              ? 'The backup carries your circuit alongside the preferences.'
+              : 'Preferences only — the file stays small and never touches your canvas.'
           }
           checked={includeCircuit}
           onChange={setIncludeCircuit}

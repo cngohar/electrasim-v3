@@ -31,6 +31,7 @@ import imgVariantSocketGfci from '../../assets/images/variant_socket_gfci_178678
 import imgVariantSocketUsb from '../../assets/images/variant_socket_usb_1786780587870.jpg';
 import imgVariantSpd from '../../assets/images/variant_spd_surge_1786780572651.jpg';
 import imgVariantTableFan from '../../assets/images/variant_table_fan.png';
+import { emojiDataUri, emojiTextSymbol } from '../../lib/emoji/emojiSvg';
 
 /** Photorealistic component images registry with real photography assets */
 export const COMPONENT_IMAGES: Record<string, string> = {
@@ -340,5 +341,10 @@ const VARIANT_ICON_TYPES = new Set([
 ]);
 
 export function getComponentIcon(type: string, fallback: string): string {
-  return VARIANT_ICON_TYPES.has(type) ? canvasIconSvg(type) : fallback;
+  if (VARIANT_ICON_TYPES.has(type)) return canvasIconSvg(type);
+  // Legacy pictograph fallback: draw the official Twemoji artwork (inline SVG
+  // data URI) so the canvas glyph matches the emoji pixel-for-pixel on every
+  // platform, without ever touching an emoji font. Deliberate non-emoji
+  // symbols (⏚ earth-ground, ⑊) keep their plain text glyph instead.
+  return emojiDataUri(fallback) ?? emojiTextSymbol(fallback) ?? fallback;
 }

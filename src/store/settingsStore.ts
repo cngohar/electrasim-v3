@@ -147,7 +147,7 @@ export interface UserSettings {
    */
   plugSystem: PlugSystemId;
   /**
-   * Ohmageddon Mode 😈 (plan §23, §24).
+   * Ohmageddon Mode (plan §23, §24).
    *
    * OFF by default and never enabled implicitly. When off the Diagnosis Lab
    * offers ordinary educational exercises only — no red herrings, no remote

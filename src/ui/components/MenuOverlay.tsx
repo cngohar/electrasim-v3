@@ -38,6 +38,7 @@ import { useSettingsStore, useUiStore } from '../../store';
 import { APP_VERSION } from '../../version';
 import { preloadChallengeMode, preloadSettings } from '../deferredSurfacePreloads';
 import { useDialogFocus } from '../hooks/useDialogFocus';
+import { EmojiGlyph } from './EmojiGlyph';
 
 interface Props {
   open: boolean;
@@ -202,7 +203,7 @@ export function MenuOverlay({ open, onClose }: Props) {
           <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-blue-500 via-blue-400 to-transparent" />
           <div className="flex items-center gap-3 pl-3">
             <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-blue-600 text-white shadow-sm shadow-blue-600/30">
-              <span className="text-sm font-bold">⚡</span>
+              <EmojiGlyph emoji="bolt" size={18} />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">

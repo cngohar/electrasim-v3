@@ -4,6 +4,7 @@ import { EDISON_1879_COMPONENTS } from './data/lampComponents';
 import { MANUFACTURING_STEPS } from './data/manufacturingSteps';
 import { HISTORICAL_DOCUMENTS } from './data/historicalNotes';
 import { LIGHT_EXPLORER_SOURCES } from './data/sources';
+import EmojiIcon from '../../components/EmojiIcon.astro';
 
 interface Props {
   initialView?: 'gateway' | 'laboratory';
@@ -18,7 +19,7 @@ const { initialView = 'gateway', initialEraId = 'edison-1879' } = Astro.props;
   <header class="lex-top-bar" role="banner">
     <div class="lex-bar-left">
       <a href="/" class="lex-brand" title="ElectraSim Home">
-        <span class="brand-bolt">⚡</span>
+        <span class="brand-bolt"><EmojiIcon name="bolt" /></span>
         <span class="brand-text">Electra<span class="brand-accent">Sim</span></span>
       </a>
       <span class="lex-badge">EXPERIMENTAL #001</span>
@@ -141,7 +142,7 @@ const { initialView = 'gateway', initialEraId = 'edison-1879' } = Astro.props;
                 </button>
               ) : (
                 <div class="era-locked-hint">
-                  <span>🔒 {era.statusLabel === 'COMING SOON' ? 'In Active Development' : 'Scheduled on Master Roadmap'}</span>
+                  <span><EmojiIcon name="lock" /> {era.statusLabel === 'COMING SOON' ? 'In Active Development' : 'Scheduled on Master Roadmap'}</span>
                 </div>
               )}
             </div>
@@ -203,7 +204,7 @@ const { initialView = 'gateway', initialEraId = 'edison-1879' } = Astro.props;
 
       <!-- Canvas Gesture Hint -->
       <div class="lex-canvas-hint" id="lex-canvas-hint">
-        <span>🖱 Left-drag: Rotate · Scroll: Zoom · Click part: Inspect · Space: Power</span>
+        <span><EmojiIcon name="mouse" /> Left-drag: Rotate · Scroll: Zoom · Click part: Inspect · Space: Power</span>
       </div>
 
       <!-- Floating Component Inspector HUD -->

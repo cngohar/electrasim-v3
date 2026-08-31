@@ -19,7 +19,7 @@ export const HVAC_SOUNDER_AND_DISTRIBUTION_DEFS: Record<string, ComponentDef> = 
       { type: 'live', relX: 0, relY: 0.5, label: 'L-in' },
       { type: 'live', relX: 1, relY: 0.5, label: 'L-out' },
     ],
-    icon: '🌡️',
+    icon: 'thermometer',
   },
 
   'heating-thermostat': {
@@ -36,7 +36,7 @@ export const HVAC_SOUNDER_AND_DISTRIBUTION_DEFS: Record<string, ComponentDef> = 
       { type: 'live', relX: 1, relY: 0.35, label: 'Load-L' },
       { type: 'neutral', relX: 1, relY: 0.65, label: 'Load-N' },
     ],
-    icon: '🌡️',
+    icon: 'thermometer',
   },
 
   'temperature-sensor': {
@@ -48,7 +48,7 @@ export const HVAC_SOUNDER_AND_DISTRIBUTION_DEFS: Record<string, ComponentDef> = 
       { type: 'live', relX: 0, relY: 0.5, label: 'T1' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'T2' },
     ],
-    icon: '👁️',
+    icon: 'eye',
   },
 
   'door-sensor': {
@@ -61,7 +61,7 @@ export const HVAC_SOUNDER_AND_DISTRIBUTION_DEFS: Record<string, ComponentDef> = 
       { type: 'live', relX: 0, relY: 0.5, label: 'C1' },
       { type: 'live', relX: 1, relY: 0.5, label: 'C2' },
     ],
-    icon: '👁️',
+    icon: 'eye',
   },
 
   'electric-buzzer': {
@@ -74,7 +74,7 @@ export const HVAC_SOUNDER_AND_DISTRIBUTION_DEFS: Record<string, ComponentDef> = 
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '🔔',
+    icon: 'bell',
   },
 
   'wireless-doorbell': {
@@ -87,7 +87,7 @@ export const HVAC_SOUNDER_AND_DISTRIBUTION_DEFS: Record<string, ComponentDef> = 
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '🔔',
+    icon: 'bell',
   },
 
   'alarm-siren': {
@@ -101,7 +101,7 @@ export const HVAC_SOUNDER_AND_DISTRIBUTION_DEFS: Record<string, ComponentDef> = 
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '🔔',
+    icon: 'bell',
   },
 
   // ─── Fire / safety detection (audit-report additions) ─────────────────
@@ -117,7 +117,7 @@ export const HVAC_SOUNDER_AND_DISTRIBUTION_DEFS: Record<string, ComponentDef> = 
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '🚨',
+    icon: 'siren',
   },
 
   'burglar-alarm': {
@@ -132,7 +132,7 @@ export const HVAC_SOUNDER_AND_DISTRIBUTION_DEFS: Record<string, ComponentDef> = 
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '🚨',
+    icon: 'siren',
   },
 
   'motor-3phase': {
@@ -148,7 +148,7 @@ export const HVAC_SOUNDER_AND_DISTRIBUTION_DEFS: Record<string, ComponentDef> = 
       { type: 'live', relX: 0, relY: 0.75, label: 'W' },
       { type: 'earth', relX: 1, relY: 0.5, label: 'PE' },
     ],
-    icon: '🌀',
+    icon: 'fan',
   },
 
   'water-pump': {
@@ -162,7 +162,7 @@ export const HVAC_SOUNDER_AND_DISTRIBUTION_DEFS: Record<string, ComponentDef> = 
       { type: 'neutral', relX: 0, relY: 0.65, label: 'N' },
       { type: 'earth', relX: 1, relY: 0.5, label: 'PE' },
     ],
-    icon: '🌀',
+    icon: 'fan',
   },
 
   'heating-element': {
@@ -175,7 +175,7 @@ export const HVAC_SOUNDER_AND_DISTRIBUTION_DEFS: Record<string, ComponentDef> = 
       { type: 'live', relX: 0, relY: 0.5, label: 'L' },
       { type: 'neutral', relX: 1, relY: 0.5, label: 'N' },
     ],
-    icon: '🔥',
+    icon: 'flame',
   },
 
   'distribution-box': {
@@ -191,7 +191,7 @@ export const HVAC_SOUNDER_AND_DISTRIBUTION_DEFS: Record<string, ComponentDef> = 
       { type: 'live', relX: 1, relY: 0.5, label: 'L2' },
       { type: 'neutral', relX: 1, relY: 0.75, label: 'N1' },
     ],
-    icon: '📦',
+    icon: 'box',
   },
 
   'distribution-board-3phase': {
@@ -210,6 +210,6 @@ export const HVAC_SOUNDER_AND_DISTRIBUTION_DEFS: Record<string, ComponentDef> = 
       { type: 'live', relX: 1, relY: 0.5, label: 'L2-out' },
       { type: 'live', relX: 1, relY: 0.75, label: 'L3-out' },
     ],
-    icon: '📦',
+    icon: 'box',
   },
 };

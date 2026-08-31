@@ -6,6 +6,7 @@ import {
   type WireInstance,
   getPortPos,
 } from '../../domain';
+import { emojiDataUri } from '../../lib/emoji/emojiSvg';
 import { buildWirePath } from './geometry';
 import type { CanvasTheme } from './types';
 
@@ -143,16 +144,13 @@ export function DenseWireLayer({
                 stroke="#ffffff"
                 strokeWidth={1}
               />
-              <text
-                x={midpoint.x}
-                y={midpoint.y + 3.5}
-                textAnchor="middle"
-                fontSize={9}
-                fontWeight="bold"
-                fill="#ffffff"
-              >
-                ⚠️
-              </text>
+              <image
+                href={emojiDataUri('warning', 9) ?? ''}
+                x={midpoint.x - 4.5}
+                y={midpoint.y - 4.5}
+                width={9}
+                height={9}
+              />
             </g>
           )}
           {broken && (

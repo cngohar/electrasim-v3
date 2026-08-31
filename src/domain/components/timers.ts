@@ -19,7 +19,7 @@ export const TIMER_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L-in' },
       { type: 'live', relX: 1, relY: 0.5, label: 'L-out' },
     ],
-    icon: '⏲️',
+    icon: 'timer',
   },
 
   'digital-weekly-timer': {
@@ -33,7 +33,7 @@ export const TIMER_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L-in' },
       { type: 'live', relX: 1, relY: 0.5, label: 'L-out' },
     ],
-    icon: '⏱️',
+    icon: 'stopwatch',
   },
 
   'staircase-timer': {
@@ -48,7 +48,7 @@ export const TIMER_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L-in' },
       { type: 'live', relX: 1, relY: 0.5, label: 'L-out' },
     ],
-    icon: '⏳',
+    icon: 'hourglass',
   },
 
   'countdown-timer': {
@@ -62,7 +62,7 @@ export const TIMER_DEFS: Record<string, ComponentDef> = {
       { type: 'neutral', relX: 0, relY: 0.65, label: 'N-in' },
       { type: 'live', relX: 1, relY: 0.5, label: 'L-out' },
     ],
-    icon: '⏱️',
+    icon: 'stopwatch',
   },
 
   'delay-timer': {
@@ -79,6 +79,6 @@ export const TIMER_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.35, label: '15-COM' },
       { type: 'live', relX: 1, relY: 0.65, label: '18-NO' },
     ],
-    icon: '⏳',
+    icon: 'hourglass',
   },
 };

@@ -9,6 +9,7 @@
 
 import { PartyPopper, Zap } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { EmojiGlyph } from '../components/EmojiGlyph';
 
 const DURATION_MS = 6500;
 const COLORS = ['#3b82f6', '#60a5fa', '#22d3ee', '#FFB800', '#fbbf24'];
@@ -257,7 +258,9 @@ export function TourCelebration({ onDone }: { onDone: () => void }) {
             onClick={() => doneRef.current()}
             className="mt-2 rounded-full bg-sky-600 px-5 py-1.5 text-xs font-bold text-white shadow-lg transition hover:bg-sky-500"
           >
-            Back to the bench ⚡
+            <span className="inline-flex items-center gap-1">
+              Back to the bench <EmojiGlyph emoji="bolt" size={13} />
+            </span>
           </button>
         </div>
       </div>

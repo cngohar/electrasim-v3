@@ -18,6 +18,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useCircuitStore } from '../../store/circuitStore';
 import { useSettingsStore } from '../../store/settingsStore';
 import { useUiStore } from '../../store/uiStore';
+import { EmojiGlyph } from '../components/EmojiGlyph';
 import { TourCelebration } from './TourCelebration';
 import { type CardPlacement, placeCard } from './placement';
 import { TOURS, type TourSnapshot, type TourStep, getTourSteps } from './steps';
@@ -583,8 +584,14 @@ function RestoreChoiceCard({
             )}
           </div>
           <div className="min-w-0">
-            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-              {completed ? 'Tutorial complete 🎉' : 'Tutorial ended'}
+            <h2 className="flex items-center gap-1.5 text-sm font-bold text-slate-900 dark:text-slate-100">
+              {completed ? (
+                <>
+                  <EmojiGlyph emoji="party" size={14} /> Tutorial complete
+                </>
+              ) : (
+                'Tutorial ended'
+              )}
             </h2>
             <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
               You had a circuit on the canvas before the tutorial

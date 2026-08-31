@@ -49,7 +49,7 @@
   <g>
     <rect x="48" y="270" width="64" height="100" rx="8" fill="#1e3a8a" stroke="#3b82f6" stroke-width="1.5" stroke-opacity="0.6"/>
     <text x="80" y="315" text-anchor="middle" font-size="11" fill="#93c5fd" font-family="ui-monospace,monospace">BATT</text>
-    <text x="80" y="330" text-anchor="middle" font-size="18" fill="#fbbf24" font-family="Arial">⚡</text>
+    <g transform="translate(71.8 320) scale(0.5556)"><path fill="#FFAC33" d="M32.938 15.651C32.792 15.26 32.418 15 32 15H19.925L26.89 1.458c.219-.426.106-.947-.271-1.243C26.437.071 26.218 0 26 0c-.233 0-.466.082-.653.243L18 6.588 3.347 19.243c-.316.273-.43.714-.284 1.105S3.582 21 4 21h12.075L9.11 34.542c-.219.426-.106.947.271 1.243.182.144.401.215.619.215.233 0 .466-.082.653-.243L18 29.412l14.653-12.655c.317-.273.43-.714.285-1.106z"/></g>
   </g>
   <!-- Switch -->
   <g>
@@ -75,7 +75,7 @@
   <!-- Brand zone -->
   <!-- Icon -->
   <rect x="520" y="90" width="56" height="56" rx="14" fill="#2563eb" />
-  <text x="548" y="130" text-anchor="middle" font-size="30" fill="white">⚡</text>
+  <g transform="translate(535.7 115) scale(0.8333)"><path fill="#FFAC33" d="M32.938 15.651C32.792 15.26 32.418 15 32 15H19.925L26.89 1.458c.219-.426.106-.947-.271-1.243C26.437.071 26.218 0 26 0c-.233 0-.466.082-.653.243L18 6.588 3.347 19.243c-.316.273-.43.714-.284 1.105S3.582 21 4 21h12.075L9.11 34.542c-.219.426-.106.947.271 1.243.182.144.401.215.619.215.233 0 .466-.082.653-.243L18 29.412l14.653-12.655c.317-.273.43-.714.285-1.106z"/></g>
 
   <!-- App name -->
   <text x="590" y="120" font-size="52" font-weight="bold" fill="white" font-family="ui-sans-serif,system-ui,sans-serif" letter-spacing="-1">ElectraSim</text>

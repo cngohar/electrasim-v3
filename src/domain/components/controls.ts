@@ -20,7 +20,7 @@ export const CONTROL_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L-in' },
       { type: 'live', relX: 1, relY: 0.5, label: 'L-out' },
     ],
-    icon: '🎛️',
+    icon: 'knobs',
   },
 
   'dimmer-switch': {
@@ -34,7 +34,7 @@ export const CONTROL_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L-in' },
       { type: 'live', relX: 1, relY: 0.5, label: 'L-out' },
     ],
-    icon: '🔆',
+    icon: 'bright',
   },
 
   'pir-sensor': {
@@ -51,7 +51,7 @@ export const CONTROL_DEFS: Record<string, ComponentDef> = {
       { type: 'neutral', relX: 0, relY: 0.65, label: 'N-in' },
       { type: 'live', relX: 1, relY: 0.5, label: 'L-out' },
     ],
-    icon: '👁️',
+    icon: 'eye',
   },
 
   thermostat: {
@@ -66,7 +66,7 @@ export const CONTROL_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 0, relY: 0.5, label: 'L-in' },
       { type: 'live', relX: 1, relY: 0.5, label: 'L-out' },
     ],
-    icon: '🌡️',
+    icon: 'thermometer',
   },
 
   'photocell-sensor': {
@@ -81,7 +81,7 @@ export const CONTROL_DEFS: Record<string, ComponentDef> = {
       { type: 'neutral', relX: 0, relY: 0.65, label: 'N-in' },
       { type: 'live', relX: 1, relY: 0.5, label: 'L-out' },
     ],
-    icon: '🌅',
+    icon: 'sunrise',
   },
 
   'smart-relay': {
@@ -96,6 +96,6 @@ export const CONTROL_DEFS: Record<string, ComponentDef> = {
       { type: 'neutral', relX: 0, relY: 0.65, label: 'N-in' },
       { type: 'live', relX: 1, relY: 0.5, label: 'L-out' },
     ],
-    icon: '📻',
+    icon: 'radio',
   },
 };

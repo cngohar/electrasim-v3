@@ -27,6 +27,7 @@ import {
   importJSON,
 } from '../../lib/exportImport';
 import { useCircuitStore, useUiStore } from '../../store';
+import { EmojiGlyph } from './EmojiGlyph';
 import { Modal } from './Modal';
 
 type Tab = 'export' | 'import';
@@ -242,7 +243,7 @@ export function ImportExportModal({ open, onClose, svgRef }: Props) {
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-white/95 px-6 backdrop-blur-sm dark:bg-slate-900/95">
             <div className="w-full space-y-3">
               <div className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                ⚡ Save Circuit As
+                <EmojiGlyph emoji="bolt" size={14} className="mr-1.5" /> Save Circuit As
               </div>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
                 Enter a filename for your circuit export.
@@ -276,7 +277,9 @@ export function ImportExportModal({ open, onClose, svgRef }: Props) {
                   onClick={confirmFilename}
                   className="flex-1 rounded-full bg-blue-600 py-1.5 text-xs font-semibold text-white shadow-sm shadow-blue-600/20 transition hover:bg-blue-700"
                 >
-                  ⬇ Download
+                  <span className="inline-flex items-center gap-1">
+                    <EmojiGlyph emoji="down-arrow" size={12} /> Download
+                  </span>
                 </button>
               </div>
             </div>

@@ -168,7 +168,7 @@ function canStartSimulation(state: UiState): boolean {
   if (hasDamagedOrTripped || hasBustedWire) {
     state.simRunning = false;
     state.faultAlert = {
-      title: '⚠️ UNRESOLVED ELECTRICAL FAULT',
+      title: 'UNRESOLVED ELECTRICAL FAULT',
       kind: 'trip',
       reason:
         'Cannot run simulation while components are tripped/blown or wires are melted. Please fix circuit parameter overload or click Repair.',
@@ -304,7 +304,7 @@ export const useUiStore = create<UiState>()(
         if (hasDamagedOrTripped || hasBusted) {
           s.simRunning = false;
           s.faultAlert = {
-            title: '⚠️ UNRESOLVED ELECTRICAL FAULT',
+            title: 'UNRESOLVED ELECTRICAL FAULT',
             kind: 'trip',
             reason:
               'Cannot run simulation while components are tripped/blown or wires are melted. Compliance overrides do not bypass physical faults.',

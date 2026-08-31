@@ -47,6 +47,7 @@ import {
   type WireInstance,
   getPortPos,
 } from '../../domain';
+import { emojiDataUri } from '../../lib/emoji/emojiSvg';
 import { useUiStore } from '../../store';
 import { type FaultFxItem, faultFxConfig } from './faultFx';
 import { buildWirePath } from './geometry';
@@ -221,14 +222,14 @@ function FaultIndicator({
             className="electrasim-fx-halo"
             style={{ animationDelay: '0.55s' }}
           />
-          <text
-            y={6}
-            textAnchor="middle"
-            fontSize={onWire ? 14 : 18}
+          <image
+            href={emojiDataUri('flame', onWire ? 14 : 18) ?? ''}
+            x={onWire ? -7 : -9}
+            y={onWire ? -7 : -9}
+            width={onWire ? 14 : 18}
+            height={onWire ? 14 : 18}
             className="electrasim-flame-flicker"
-          >
-            🔥
-          </text>
+          />
         </g>
       )}
 
@@ -577,9 +578,14 @@ function ArmingFx({
               />
             </g>
           ))}
-          <text y={6} textAnchor="middle" fontSize={15} className="electrasim-flame-flicker">
-            🔥
-          </text>
+          <image
+            href={emojiDataUri('flame', 15) ?? ''}
+            x={-7.5}
+            y={-7.5}
+            width={15}
+            height={15}
+            className="electrasim-flame-flicker"
+          />
         </>
       )}
 
@@ -595,9 +601,14 @@ function ArmingFx({
             strokeDasharray="4 3"
             className="electrasim-fx-arm-blink"
           />
-          <text y={5} textAnchor="middle" fontSize={15} className="electrasim-fx-arm-blink">
-            ✂️
-          </text>
+          <image
+            href={emojiDataUri('scissors', 15) ?? ''}
+            x={-7.5}
+            y={-7.5}
+            width={15}
+            height={15}
+            className="electrasim-fx-arm-blink"
+          />
         </>
       )}
 

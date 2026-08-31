@@ -145,7 +145,7 @@ const STUDENT_STEPS: TourStep[] = [
     id: 'live-canvas',
     target: '[data-circuit-canvas]',
     kind: 'look',
-    title: 'The circuit is live ⚡',
+    title: 'The circuit is live',
     body: 'Current animates along the energised wires and the bulb glows to its wattage. Try adding a Switch or an MCB into the Live path later — components react instantly while the simulation runs.',
   },
   {
@@ -159,7 +159,7 @@ const STUDENT_STEPS: TourStep[] = [
     id: 'student-finish',
     target: null,
     kind: 'look',
-    title: 'That is the core loop 🎉',
+    title: 'That is the core loop',
     body: 'Place → wire → run → break → fix. When you are ready for regional standards, compliance validation and diagnostics, take the Pro tour from the menu or press Ctrl+K and type “tour”.',
   },
 ];

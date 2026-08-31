@@ -6,6 +6,7 @@ import {
   type WireInstance,
   getPortPos,
 } from '../../domain';
+import { emojiDataUri } from '../../lib/emoji/emojiSvg';
 import { DenseWireLayer } from './DenseWireLayer';
 import { buildWirePath } from './geometry';
 import type { CanvasTheme } from './types';
@@ -324,15 +325,13 @@ function WirePath({
               strokeWidth={2}
               className="electrasim-flame-flicker"
             />
-            <text
-              x={midpoint.x}
-              y={midpoint.y + 4}
-              textAnchor="middle"
-              fontSize={12}
-              fontWeight="bold"
-            >
-              🔥
-            </text>
+            <image
+              href={emojiDataUri('flame', 12) ?? ''}
+              x={midpoint.x - 6}
+              y={midpoint.y - 6}
+              width={12}
+              height={12}
+            />
           </g>
         )}
         {/* Overloaded Heating Marker */}
@@ -356,16 +355,13 @@ function WirePath({
               stroke="#ffffff"
               strokeWidth={1}
             />
-            <text
-              x={midpoint.x}
-              y={midpoint.y + 3.5}
-              textAnchor="middle"
-              fontSize={10}
-              fontWeight="bold"
-              fill="#ffffff"
-            >
-              ⚡
-            </text>
+            <image
+              href={emojiDataUri('bolt', 10) ?? ''}
+              x={midpoint.x - 5}
+              y={midpoint.y - 5}
+              width={10}
+              height={10}
+            />
           </g>
         )}
         {/* Injected Wire Short Circuit Animated Marker */}
@@ -387,16 +383,13 @@ function WirePath({
               fill="#7f1d1d"
               className="electrasim-flame-flicker"
             />
-            <text
-              x={midpoint.x}
-              y={midpoint.y + 4}
-              textAnchor="middle"
-              fontSize={11}
-              fontWeight="bold"
-              fill="#ffffff"
-            >
-              ⚡
-            </text>
+            <image
+              href={emojiDataUri('bolt', 11) ?? ''}
+              x={midpoint.x - 5.5}
+              y={midpoint.y - 5.5}
+              width={11}
+              height={11}
+            />
           </g>
         )}
         {broken && !isBusted && (

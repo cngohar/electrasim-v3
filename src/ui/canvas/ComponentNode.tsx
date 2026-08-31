@@ -16,12 +16,18 @@ import {
   checkFastCompatibility,
   instanceLabel,
 } from '../../domain';
+import { emojiDataUri } from '../../lib/emoji/emojiSvg';
 import { useSettingsStore, useUiStore } from '../../store';
 import { getComponentIcon, getComponentImage } from '../components/componentImages';
 import { getDefaultArt } from './componentArt';
 import type { CanvasTheme, PortLoc } from './types';
 
 const PORT_R = 5;
+
+/** Twemoji replicas for the fault/status badges drawn inside this SVG scene. */
+const SHORT_CIRCUIT_BADGE_URI = emojiDataUri('bolt', 11) ?? '';
+const TRIPPED_BADGE_URI = emojiDataUri('bolt', 24) ?? '';
+const BLOWN_BADGE_URI = emojiDataUri('boom', 24) ?? '';
 
 /** Truncate a canvas label so it fits the component box without overflowing. */
 function fitLabel(label: string, fontSize: number): string {
@@ -410,23 +416,28 @@ export function ComponentNode({
               fill={faultColor ?? '#ef4444'}
               pointerEvents="none"
             />
-            <text
-              x={COMP_W - 10}
-              y={9}
-              textAnchor="middle"
-              fontSize="7"
-              fontWeight="bold"
-              fill="#fff"
-              style={{ userSelect: 'none', pointerEvents: 'none' }}
-            >
-              {fault === 'open-circuit'
-                ? '✂'
-                : fault === 'short-circuit'
-                  ? '⚡'
-                  : fault === 'reverse-polarity'
-                    ? '↔'
-                    : '⚠'}
-            </text>
+            {fault === 'short-circuit' ? (
+              <image
+                href={SHORT_CIRCUIT_BADGE_URI}
+                x={COMP_W - 15.5}
+                y={0.5}
+                width={11}
+                height={11}
+                style={{ userSelect: 'none', pointerEvents: 'none' }}
+              />
+            ) : (
+              <text
+                x={COMP_W - 10}
+                y={9}
+                textAnchor="middle"
+                fontSize="7"
+                fontWeight="bold"
+                fill="#fff"
+                style={{ userSelect: 'none', pointerEvents: 'none' }}
+              >
+                {fault === 'open-circuit' ? '✂' : fault === 'reverse-polarity' ? '↔' : '⚠'}
+              </text>
+            )}
           </>
         )}
         {isTripped && !fault && (
@@ -599,7 +610,7 @@ export function ComponentNode({
                   component.type.includes('fuse'),
               );
               const label = isProtectionDevice ? 'TRIPPED' : 'BLOWN';
-              const icon = isProtectionDevice ? '⚡' : '💥';
+              const iconUri = isProtectionDevice ? TRIPPED_BADGE_URI : BLOWN_BADGE_URI;
               const badgeBg = isProtectionDevice ? '#d97706' : '#ef4444';
               const pulseColor = isProtectionDevice ? '#f59e0b' : '#ef4444';
 
@@ -627,15 +638,14 @@ export function ComponentNode({
                     className="electrasim-shattered-cracks"
                   />
                   <circle cx={COMP_W / 2} cy={COMP_H / 2} r={24} fill={pulseColor} opacity={0.35} />
-                  <text
-                    x={COMP_W / 2}
-                    y={COMP_H / 2 + 7}
-                    textAnchor="middle"
-                    fontSize="24"
+                  <image
+                    href={iconUri}
+                    x={COMP_W / 2 - 12}
+                    y={COMP_H / 2 - 12}
+                    width={24}
+                    height={24}
                     style={{ userSelect: 'none' }}
-                  >
-                    {icon}
-                  </text>
+                  />
                   <rect
                     x={COMP_W / 2 - 27}
                     y={-9}
