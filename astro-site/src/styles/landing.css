@@ -620,6 +620,18 @@
   background: var(--bg-2);
   border-bottom: 1px solid var(--border);
 }
+
+/* Full-bleed signal rails: the horizontal current pulses on this page run to
+   the edges of the screen and off it — not to the .wrap container edge. The
+   hero's meter rail (.rail-meter) stays deliberately container-scoped and is
+   unaffected. body-level overflow-x hidden (global.css) clips the 100vw
+   scrollbar overlap, so this cannot introduce a horizontal scrollbar. */
+.rail-release,
+.rail-signal,
+.rail-bus {
+  margin-inline: calc(50% - 50vw);
+}
+
 .rail-release {
   margin-bottom: 2rem;
 }

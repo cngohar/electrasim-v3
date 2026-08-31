@@ -18,6 +18,11 @@ import { startSettingsPersistence, useSettingsStore } from './store/settingsStor
 import { useUiStore } from './store/uiStore';
 import { applyDocumentTheme, readThemeHint, resolveThemePreference } from './ui/themePreference';
 import './index.css';
+import { ensureEmojiGlyphs } from './lib/emoji/emojiSvg';
+
+// Twemoji artwork loads in parallel with app boot — outside the initial
+// bundle. UI surfaces re-render via useEmojiGlyphsReady when it arrives.
+void ensureEmojiGlyphs();
 
 applyDocumentTheme(readThemeHint() ?? resolveThemePreference('system'), false);
 

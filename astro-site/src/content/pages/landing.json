@@ -27,9 +27,9 @@
       "note": "Off-thread solver"
     },
     {
-      "value": "1000+",
-      "unit": "tests",
-      "note": "Circuit engine + unit coverage"
+      "value": "8",
+      "unit": "guided circuits",
+      "note": "Protected lamp to SPD board"
     },
     {
       "value": "0",
@@ -37,57 +37,57 @@
       "note": "Nothing leaves the device"
     }
   ],
-  "release_label": "What changed · v1.4 → v1.6.1",
-  "release_heading": "Everything that has landed since the last big update",
-  "release_description": "The simulator, the learning tools and the website have moved quickly. Here is the working feature set that is live today.",
+  "release_label": "ElectraSim 2.0 · What's inside",
+  "release_heading": "A workbench, a fault lab and a classroom in one tab",
+  "release_description": "The simulator is only half of it. Around the canvas sit the modes and references that turn a wiring drawing into something you can learn from, practise on and hand over.",
   "release_highlights": [
     {
-      "icon": "bolt",
-      "tag": "v1.6",
-      "title": "Dark mode across app & site",
-      "body": "Light, Dark or System in the simulator; a persistent theme toggle in the website navigation. Every panel, documentation screen and phone control follows your choice."
-    },
-    {
-      "icon": "cable",
-      "tag": "v1.6",
-      "title": "RCBO + a push button that holds",
-      "body": "Add a two-pole RCBO and a momentary Push Button for doorbells and control circuits. Newly placed protection devices start in their intended ready position."
-    },
-    {
-      "icon": "monitor",
-      "tag": "v1.6.1",
-      "title": "Guided Circuits with checklists",
-      "body": "Eight pre-built circuit templates land on the canvas — protected lamp, two-way staircase, RCD earth-fault demo, Pro SPD consumer unit and more — each with an in-app checklist."
+      "icon": "grid",
+      "tag": "Learn",
+      "title": "Guided Circuits",
+      "body": "Eight ready-made templates — protected lamp, two-way staircase, doorbell, RCBO socket, RCD earth-fault demo, Pro SPD consumer unit — each lands on the canvas with an in-app checklist that ticks off as you wire it correctly."
     },
     {
       "icon": "fault",
-      "tag": "v1.4",
-      "title": "Fault Simulation Mode",
-      "body": "Inject wire breaks, reverse polarity and missing earths, then watch the protective device respond. Reuse a seed to reproduce an identical diagnosis exercise."
+      "tag": "Practise",
+      "title": "Fault Lab",
+      "body": "Inject an open circuit, reversed polarity, an earth fault or an arc into any component or wire, then watch the right protective device respond live on the canvas — trip, blow or sit there blind, exactly as the physics says."
     },
     {
-      "icon": "route",
-      "tag": "v1.6",
-      "title": "Smart + custom wiring",
-      "body": "Two clicks gives a tidy right-angle run that avoids components, or switch to custom wiring to place every corner yourself. Existing wires keep their paths."
-    },
-    {
-      "icon": "share",
-      "tag": "v1.6",
-      "title": "Offline, exportable, shareable",
-      "body": "Install it as a PWA. Save locally, import/export schema-versioned JSON, SVG or 2× PNG, and share the whole circuit in one URL with no backend."
-    },
-    {
-      "icon": "grid",
-      "tag": "v1.5",
-      "title": "Keyboard & accessibility pass",
-      "body": "Full keyboard navigation, reduced-motion support, focus states and a colour-blind canvas preset. Larger circuits stay smooth with an off-thread solver."
+      "icon": "bolt",
+      "tag": "Teach",
+      "title": "Seedable exercises",
+      "body": "Every diagnosis exercise is deterministic from its seed. Copy it, paste it, get the identical circuit — so a lecturer can hand one code to the room and every learner faces the same fault."
     },
     {
       "icon": "standards",
-      "tag": "v1.6",
+      "tag": "Pro",
+      "title": "Compliance & reporting",
+      "body": "Pro mode gates your circuit against the chosen standard before energising, runs Zs / disconnection-time checks, and exports a mini Electrical Installation Certificate style report for print or PDF."
+    },
+    {
+      "icon": "cable",
+      "tag": "Reference",
       "title": "Electrical Toolbox",
-      "body": "BS 7671 voltage drop, cable sizing and Max Zs calculators sit next to the wiring guide, the comparison page and the release notes — free, no sign-up, no tracking."
+      "body": "Free calculators on the site: voltage drop and cable sizing against BS 7671 and IEC 60364 limits — each with a live scene, real presets and a shareable result URL. No sign-up, no tracking."
+    },
+    {
+      "icon": "route",
+      "tag": "Learn",
+      "title": "Interactive tours",
+      "body": "A spotlight Student tour builds your first circuit with you, step by step; the Pro tour walks the standards, diagnostics and fault tooling. Both advance by watching what you actually do."
+    },
+    {
+      "icon": "monitor",
+      "tag": "Everywhere",
+      "title": "Accessibility & dark mode",
+      "body": "Full keyboard control, reduced-motion support, a colour-blind canvas preset and a proper dark theme across the app and the site — the interface adapts to how you work, not the other way round."
+    },
+    {
+      "icon": "share",
+      "tag": "Workbench",
+      "title": "Portable & private",
+      "body": "Your settings travel as a profile backup file; circuits export as schema-versioned JSON, SVG or 2× PNG, or compress into a single share URL. Everything stays on your device — there is no account and no backend."
     }
   ],
   "features_label": "Way 01 · The workbench",

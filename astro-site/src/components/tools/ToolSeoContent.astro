@@ -87,24 +87,7 @@ const VARIANT_COPY: Record<string, ToolSeoCopy> = {
       '<strong>Reconsider the limit:</strong> 3% and 5% are the values most standards quote for a public LV supply, but where the limit is measured from and which rules apply are design decisions — make them deliberately, and check them against your local regulations.',
     ],
   },
-  'max-zs': {
-    introTitle: 'What is Earth Fault Loop Impedance (Zs)?',
-    introParagraphs: [
-      'During a line-to-earth fault, current must flow from the supply transformer, down the line conductor (R1), through the fault, back along the protective earth conductor (R2), and through the supply earthing path (Ze). The total impedance of this loop, <strong>Zs = Ze + (R1 + R2)</strong>, determines whether enough fault current flows to trip the protective device within the required disconnection time.',
-      'For final circuits up to 32 A at 230 V, both BS 7671 and IEC 60364-4-41 require automatic disconnection within <strong>0.4 seconds</strong>. Published BS 7671 Tables 41.2–41.4 already include the 0.95 Cmin voltage correction; IEC 60364-4-41 expresses the same physics directly as <strong>Zs × Ia ≤ U0</strong>.',
-      'Because published limits assume conductors at full operating temperature, a cold measurement has to stay under a derated ceiling: the <strong>IET GN3 80% rule</strong> in the UK, or the <strong>IEC 60364-6 ≈⅔ rule</strong> internationally. Pick your rule set with the standards selector above the inputs.',
-    ],
-    equationsTitle: 'Zs, Disconnection Time & Fault Current Equations',
-    stepsTitle: 'How to Verify Disconnection Times: Step-by-Step',
-    limitsTable: null,
-    checklistTitle: 'How to Bring a Failing Circuit Back into Compliance',
-    checklist: [
-      '<strong>Increase the CPC cross-section:</strong> A larger earth conductor lowers R2 and pulls total Zs below the ceiling.',
-      '<strong>Shorten the circuit run:</strong> R1 + R2 grows linearly with length; rerouting or splitting the circuit reduces it directly.',
-      '<strong>Fit a 30 mA RCD/RCBO:</strong> Under both BS 7671 and IEC 60364, residual-current protection permits far higher Zs (the 1667 Ω ceiling) for final circuits.',
-      '<strong>Measure Ze at the intake:</strong> Real supply impedance is often lower than the typical worst-case defaults (0.35 Ω TN-C-S / 0.8 Ω TN-S) — a measured Ze can reclaim margin legitimately.',
-    ],
-  },
+
 };
 
 const fallbackCopy: ToolSeoCopy = {

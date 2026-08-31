@@ -43,14 +43,21 @@ const {
 </section>
 
 <script>
-  import * as THREE from 'three';
+  // Type-only import: erased at build time, so three.js itself stays in the
+  // async chunk loaded below.
+  import type * as ThreeTypes from 'three';
 
-  function initComingSoonGlobe() {
+  async function initComingSoonGlobe() {
     try {
       const canvas = document.getElementById('cs-globe-canvas') as HTMLCanvasElement | null;
       const shell = document.getElementById('cs-shell');
 
       if (!canvas || !shell) return;
+
+      // Three.js is heavy (~490 KB) for a placeholder page — load it off the
+      // critical path so the copy paints first and the chunk failure path
+      // (below) keeps the readable page even if it never arrives.
+      const THREE = await import('three');
 
       let viewportWidth = shell.clientWidth || window.innerWidth;
       let viewportHeight = shell.clientHeight || window.innerHeight;
@@ -82,7 +89,7 @@ const {
       scene.add(globe);
 
       // Parchment / antique-paper surface drawn as a map texture.
-      function makeOldMapTexture(): THREE.CanvasTexture {
+      function makeOldMapTexture(): ThreeTypes.CanvasTexture {
         const mapCanvas = document.createElement('canvas');
         mapCanvas.width = 1024;
         mapCanvas.height = 512;
@@ -206,7 +213,7 @@ const {
         transparent: true,
         opacity: 0.55,
       });
-      const equatorPts: THREE.Vector3[] = [];
+      const equatorPts: ThreeTypes.Vector3[] = [];
       for (let i = 0; i <= 160; i += 1) {
         const angle = (i / 160) * Math.PI * 2;
         equatorPts.push(new THREE.Vector3(Math.cos(angle) * 1.2, 0, Math.sin(angle) * 1.2));
@@ -246,7 +253,17 @@ const {
       let frameId: number | null = null;
       let lastTime = performance.now();
 
+      // Reduced motion: the globe is drawn as a single static frame — the
+      // rotation, motes and flicker are animation, so they pause completely.
+      const reduceMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+      let reducedMotion = reduceMotionQuery.matches;
+
+      function renderStaticFrame() {
+        renderer.render(scene, camera);
+      }
+
       function update() {
+        if (reducedMotion) return;
         if (!visible || document.hidden) return;
         frameId = requestAnimationFrame(update);
 
@@ -262,6 +279,10 @@ const {
       }
 
       function start() {
+        if (reducedMotion) {
+          renderStaticFrame();
+          return;
+        }
         if (frameId === null) {
           lastTime = performance.now();
           update();
@@ -284,8 +305,22 @@ const {
           camera.updateProjectionMatrix();
           renderer.setSize(viewportWidth, viewportHeight, false);
           renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+          if (reducedMotion) renderStaticFrame();
         }
       }
+
+      // Honour a live reduced-motion preference change (OS setting toggled
+      // while the tab is open): pause the loop, or resume it.
+      const onMotionPreferenceChange = () => {
+        reducedMotion = reduceMotionQuery.matches;
+        if (reducedMotion) {
+          stop();
+          renderStaticFrame();
+        } else {
+          start();
+        }
+      };
+      reduceMotionQuery.addEventListener('change', onMotionPreferenceChange);
 
       const observer = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
@@ -494,9 +529,7 @@ const {
     }
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .cs-globe-canvas {
-      animation: none;
-    }
-  }
+  /* Reduced motion is honoured in the script above: the globe renders a
+     single static frame and the rAF loop never starts. There is no CSS
+     animation on this canvas to disable here. */
 </style>

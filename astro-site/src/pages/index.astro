@@ -4,6 +4,7 @@ import LandingBlogHighlights from '../components/landing/LandingBlogHighlights.a
 import LandingCoreSections from '../components/landing/LandingCoreSections.astro';
 import LandingCta from '../components/landing/LandingCta.astro';
 import LandingHero from '../components/landing/LandingHero.astro';
+import LandingReleasePopup from '../components/landing/LandingReleasePopup.astro';
 import LandingReleaseHighlights from '../components/landing/LandingReleaseHighlights.astro';
 import Base from '../layouts/Base.astro';
 import { HOMEPAGE_ARTICLE_IDS, selectPostsById } from '../lib/blog';
@@ -70,5 +71,6 @@ const blogHighlights = selectPostsById(
       description={d.cta_description}
       button={d.cta_button}
     />
+    <LandingReleasePopup />
   </main>
 </Base>

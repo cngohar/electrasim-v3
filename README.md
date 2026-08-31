@@ -2,7 +2,7 @@
 
 A browser-based interactive electrical-wiring simulator. Drag, drop, and wire real-world domestic components — switches, MCBs, RCBOs, fuses, sockets, bulbs, fans, motors — and watch the circuit come alive in real time. Built as a learning tool that's accurate enough for an apprentice and fun enough for a hobbyist.
 
-> **Current release:** **v1.6.1** (2026-07-21), live at [electrasim.com](https://electrasim.com/) from the verified deployment [`63e4c5d6`](https://63e4c5d6.electrasim.pages.dev/). The accessible SVG editor and Astro marketing site are built as one Pages artifact; see [`PLAN.md`](./PLAN.md) for future work and [`progress.md`](./progress.md) for the historical session log.
+> **Current release:** **v2.0.0** (2026-08-31), live at [electrasim.com](https://electrasim.com/) — the learning release: Challenge Mode, Diagnosis Lab, Ohmageddon, Guided Circuits, the Fault Lab and the multi-standard Electrical Toolbox. Release notes: [/updates/](https://electrasim.com/updates/). The accessible SVG editor and Astro marketing site are built as one Pages artifact; see [`PLAN.md`](./PLAN.md) for future work and [`progress.md`](./progress.md) for the historical session log.
 
 ---
 
@@ -383,6 +383,7 @@ A high-level view; the source of truth is [`PLAN.md`](./PLAN.md).
 | **v1.5.1** | **Reader-focused release notes and flickering-lights safety guide** | ✅ shipped |
 | **v1.6.0** | **RCBO, momentary push button, site-wide dark mode, comparison page, and clearer blog index** | ✅ shipped |
 | **v1.6.1** | **Guided doorbell and RCBO socket circuits, clearer simulation limits, improved onboarding, mobile guidance, and homepage SEO** | ✅ shipped |
+| **v2.0.0** | **The learning release — Challenge Mode, Diagnosis Lab, Ohmageddon, Guided Circuits, Fault Lab, tours, and the multi-standard Electrical Toolbox (BS 7671 / IEC 60364 / NEC)** | ✅ shipped |
 
 ### Future work
 
@@ -478,4 +479,4 @@ License terms are still TBD. The code is currently all-rights-reserved.
 
 ---
 
-_Last updated: 2026-07-21 for the verified v1.6.1 production release._
+_Last updated: 2026-08-31 for the v2.0.0 release._

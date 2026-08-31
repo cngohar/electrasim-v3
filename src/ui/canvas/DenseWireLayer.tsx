@@ -7,6 +7,7 @@ import {
   getPortPos,
 } from '../../domain';
 import { emojiDataUri } from '../../lib/emoji/emojiSvg';
+import { useEmojiGlyphsReady } from '../hooks/useEmojiGlyphsReady';
 import { buildWirePath } from './geometry';
 import type { CanvasTheme } from './types';
 
@@ -56,6 +57,8 @@ export function DenseWireLayer({
   onArmReroute,
   onContextMenu,
 }: DenseWireLayerProps) {
+  // Warning markers use lazily-loaded Twemoji art; re-render once it arrives.
+  useEmojiGlyphsReady();
   const batches = new Map<string, PaintBatch>();
   const renderedWires: DenseWire[] = [];
 

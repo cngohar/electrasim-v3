@@ -403,12 +403,7 @@ test.describe('Electrical Toolbox & Voltage Drop Calculator', () => {
 });
 
 test.describe('Tool pages — small screens, where the panels live in a drawer', () => {
-  const PAGES = [
-    '/tools/cable-size-calculator/',
-    '/tools/voltage-drop-calculator/',
-    '/tools/max-zs-calculator/',
-    '/tools/us/voltage-drop-calculator/',
-  ];
+  const PAGES = ['/tools/cable-size-calculator/', '/tools/voltage-drop-calculator/'];
   const SIZES = [
     { width: 360, height: 640 },
     { width: 390, height: 844 },

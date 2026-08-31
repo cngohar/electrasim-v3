@@ -5,13 +5,72 @@
  * (e.g. U+26A1 HIGH VOLTAGE SIGN, including VS16/ZWJ/flag sequences) and
  * receive the matching vector artwork, so no emoji font is ever involved in
  * rendering.
+ *
+ * The artwork table (`./glyphs`, ~90 KB of SVG paths) is loaded **lazily**:
+ * it is not part of the initial application chunk. `ensureEmojiGlyphs()`
+ * starts the fetch (called once from `src/main.tsx` at startup, in parallel
+ * with app boot), and every resolver degrades gracefully — returning null
+ * with the caller's existing fallback — until the table arrives. UI surfaces
+ * re-render when the artwork is ready via `subscribeToEmojiGlyphs` /
+ * `useEmojiGlyphsReady` (src/ui/hooks), so nothing flashes a wrong glyph.
  */
 
-import { EMOJI_GLYPHS, EMOJI_GLYPH_VIEWBOX } from './glyphs';
+type GlyphModule = typeof import('./glyphs');
 
 // U+FE0F variation selector (written as a code point so the built bundle
 // never ships a raw emoji variation selector character).
 const FE0F = String.fromCodePoint(0xfe0f);
+
+/**
+ * Twemoji artwork viewBox. Duplicated from `./glyphs` so that this module —
+ * and everything that imports it — stays out of the initial bundle; a unit
+ * test asserts the two constants never drift apart.
+ */
+export const EMOJI_GLYPH_VIEWBOX = '0 0 36 36';
+
+/** Lazily-loaded artwork table (null until `ensureEmojiGlyphs()` resolves). */
+let glyphsModule: GlyphModule | null = null;
+let loadPromise: Promise<void> | null = null;
+
+/** listeners notified exactly once, when the artwork table becomes available. */
+const readyListeners = new Set<() => void>();
+
+/**
+ * Load the Twemoji artwork table (idempotent). Resolves when resolvers can
+ * return artwork. Never rejects — a failed fetch keeps the text fallbacks.
+ */
+export function ensureEmojiGlyphs(): Promise<void> {
+  loadPromise ??= import('./glyphs')
+    .then((module) => {
+      glyphsModule = module;
+      for (const listener of readyListeners) listener();
+    })
+    .catch(() => {
+      // Allow a retry after a transient chunk failure (offline first load).
+      loadPromise = null;
+    });
+  return loadPromise;
+}
+
+/** True once the artwork table is loaded and resolvers can succeed. */
+export function emojiGlyphsLoaded(): boolean {
+  return glyphsModule !== null;
+}
+
+/**
+ * Subscribe to artwork readiness (for `useSyncExternalStore`). The listener
+ * fires once, immediately after the table loads; returns an unsubscribe fn.
+ */
+export function subscribeToEmojiGlyphs(listener: () => void): () => void {
+  if (emojiGlyphsLoaded()) {
+    listener();
+    return () => {};
+  }
+  readyListeners.add(listener);
+  return () => {
+    readyListeners.delete(listener);
+  };
+}
 
 /**
  * Non-emoji symbols kept as plain text glyphs (drawn by the UI text font,
@@ -43,14 +102,15 @@ export function emojiAssetKey(emoji: string): string | null {
 
 /** Resolve a semantic name (`'bolt'`) or an emoji character (U+26A1 etc.) to
  *  the inner SVG markup (paths/shapes only). Returns null when there is no
- *  vector replica, in which case callers should fall back to a plain text
- *  glyph. */
+ *  vector replica — including while the lazy table is still loading — in
+ *  which case callers should fall back to a plain text glyph. */
 export function emojiGlyphBody(key: string): string | null {
   const trimmed = key.trim();
-  if (!trimmed) return null;
-  if (EMOJI_GLYPHS[trimmed]) return EMOJI_GLYPHS[trimmed];
+  if (!trimmed || !glyphsModule) return null;
+  const table = glyphsModule.EMOJI_GLYPHS;
+  if (table[trimmed]) return table[trimmed];
   const asset = emojiAssetKey(trimmed);
-  if (asset && EMOJI_GLYPHS[asset]) return EMOJI_GLYPHS[asset];
+  if (asset && table[asset]) return table[asset];
   return null;
 }
 

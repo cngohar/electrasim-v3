@@ -6,7 +6,14 @@
  */
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
-import { afterEach } from 'vitest';
+import { afterEach, beforeAll } from 'vitest';
+import { ensureEmojiGlyphs } from '../lib/emoji/emojiSvg';
+
+// The Twemoji artwork table is lazy-loaded in the app; tests assert on the
+// rendered artwork synchronously, so load it once before every test file.
+beforeAll(async () => {
+  await ensureEmojiGlyphs();
+});
 
 afterEach(() => {
   cleanup();

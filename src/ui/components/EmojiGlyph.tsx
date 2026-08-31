@@ -13,8 +13,13 @@
  */
 
 import type { CSSProperties } from 'react';
-import { emojiGlyphBody, emojiTextSymbol } from '../../lib/emoji/emojiSvg';
-import { EMOJI_GLYPH_VIEWBOX } from '../../lib/emoji/glyphs';
+import {
+  EMOJI_GLYPH_VIEWBOX,
+  emojiGlyphBody,
+  emojiGlyphsLoaded,
+  emojiTextSymbol,
+} from '../../lib/emoji/emojiSvg';
+import { useEmojiGlyphsReady } from '../hooks/useEmojiGlyphsReady';
 
 interface EmojiGlyphProps {
   /** Icon name (e.g. "bolt") or emoji character (e.g. U+26A1); may be a
@@ -28,6 +33,10 @@ interface EmojiGlyphProps {
 
 /** Renders one or more Twemoji replicas sized to the surrounding text. */
 export function EmojiGlyph({ emoji, size = 20, className, style }: EmojiGlyphProps) {
+  // The artwork table loads lazily (outside the initial bundle); re-render
+  // once when it arrives so the vector replicas replace the placeholders.
+  useEmojiGlyphsReady();
+  const ready = emojiGlyphsLoaded();
   const parts = emoji.split(/\s+/).filter(Boolean);
   if (parts.length === 0) return null;
 
@@ -53,6 +62,17 @@ export function EmojiGlyph({ emoji, size = 20, className, style }: EmojiGlyphPro
               aria-hidden="true"
               // biome-ignore lint/security/noDangerouslySetInnerHtml: body is build-time Twemoji artwork from src/lib/emoji/glyphs.ts (never user input)
               dangerouslySetInnerHTML={{ __html: body }}
+            />
+          );
+        }
+        if (!ready) {
+          // Artwork table still loading — hold a sized, invisible placeholder
+          // so layout does not shift and no wrong glyph flashes.
+          return (
+            <span
+              key={index}
+              aria-hidden="true"
+              style={{ display: 'inline-block', width: size, height: size }}
             />
           );
         }
