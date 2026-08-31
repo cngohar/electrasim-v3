@@ -1,0 +1,39 @@
+---
+import Icon from '../Icon.astro';
+import type { LandingReleaseHighlight } from '../../types/pages';
+
+interface Props {
+  label: string;
+  heading: string;
+  description: string;
+  highlights: LandingReleaseHighlight[];
+}
+
+const { label, heading, description, highlights } = Astro.props;
+---
+
+<section class="sec release-section" id="whats-new" aria-labelledby="new-h" data-live>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="label">{label}</span>
+      <h2 class="section-title" id="new-h">{heading}</h2>
+      <p class="section-desc">{description}</p>
+    </div>
+    <div class="rail-x rail-release" aria-hidden="true"><span class="pulse-march"></span></div>
+    <div class="release-grid">
+      {highlights.map((item, i) => (
+        <article class="release-card">
+          <header class="card-head">
+            <span class="card-icon"><Icon name={item.icon} size={22} /></span>
+            <span class="ref-tag">{item.tag}</span>
+          </header>
+          <h3>{item.title}</h3>
+          <p>{item.body}</p>
+        </article>
+      ))}
+    </div>
+    <p class="release-more">
+      <a href="/updates/" class="btn-hero-secondary">Read the full release notes <Icon name="arrow" size={16} /></a>
+    </p>
+  </div>
+</section>

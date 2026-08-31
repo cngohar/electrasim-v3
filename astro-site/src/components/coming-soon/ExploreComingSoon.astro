@@ -1,0 +1,502 @@
+---
+import ExploreVintageProps from './ExploreVintageProps.astro';
+
+interface Props {
+  label?: string;
+  version?: string;
+  releaseLabel?: string;
+  title?: string;
+  description?: string;
+}
+
+const {
+  label = 'Experimental feature',
+  version = '2.1',
+  releaseLabel = 'Releases with v2.1',
+  title = 'Explore — Historical Electrical Laboratory',
+  description =
+    'Explore retraces the great electrical inventions of the past in an immersive laboratory. You will be able to open landmark devices, study their verified histories, inspect their components, and run experiments the way they were first demonstrated.',
+} = Astro.props;
+---
+
+<section class="cs-shell" id="cs-shell">
+  <canvas class="cs-globe-canvas" id="cs-globe-canvas" aria-hidden="true"></canvas>
+  <div class="cs-vignette" aria-hidden="true"></div>
+  <div class="cs-paper-grain" aria-hidden="true"></div>
+  <ExploreVintageProps />
+
+  <div class="cs-content">
+    <p class="cs-label">{label}</p>
+    <h1 class="cs-version">{version}</h1>
+    <p class="cs-release">{releaseLabel}</p>
+
+    <div class="cs-card">
+      <h2 class="cs-title">{title}</h2>
+      <p class="cs-desc">{description}</p>
+    </div>
+
+    <div class="cs-actions">
+      <a href="/" class="cs-btn cs-btn-primary">Back to ElectraSim <span aria-hidden="true">→</span></a>
+      <a href="/app/" class="cs-btn cs-btn-secondary">Launch the Simulator</a>
+    </div>
+  </div>
+</section>
+
+<script>
+  import * as THREE from 'three';
+
+  function initComingSoonGlobe() {
+    try {
+      const canvas = document.getElementById('cs-globe-canvas') as HTMLCanvasElement | null;
+      const shell = document.getElementById('cs-shell');
+
+      if (!canvas || !shell) return;
+
+      let viewportWidth = shell.clientWidth || window.innerWidth;
+      let viewportHeight = shell.clientHeight || window.innerHeight;
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(43, viewportWidth / viewportHeight, 0.1, 100);
+      camera.position.set(0, 0.2, 3.55);
+
+      const renderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: true,
+        alpha: true,
+        powerPreference: 'high-performance',
+      });
+      renderer.setSize(viewportWidth, viewportHeight, false);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+      // Warm, old-studio lighting so the globe reads as engraving, not neon.
+      scene.add(new THREE.AmbientLight(0xffe2b0, 0.85));
+      const key = new THREE.PointLight(0xffc878, 1.2, 0, 0);
+      key.position.set(2.5, 1.5, 2.5);
+      scene.add(key);
+      const rim = new THREE.PointLight(0x8d5d2d, 0.55, 0, 0);
+      rim.position.set(-2.6, -1.4, -2.2);
+      scene.add(rim);
+
+      const globe = new THREE.Group();
+      globe.rotation.z = THREE.MathUtils.degToRad(23.5);
+      scene.add(globe);
+
+      // Parchment / antique-paper surface drawn as a map texture.
+      function makeOldMapTexture(): THREE.CanvasTexture {
+        const mapCanvas = document.createElement('canvas');
+        mapCanvas.width = 1024;
+        mapCanvas.height = 512;
+        const ctx = mapCanvas.getContext('2d');
+
+        if (ctx) {
+          const base = ctx.createLinearGradient(0, 0, 0, 512);
+          base.addColorStop(0, '#f0dfbd');
+          base.addColorStop(0.5, '#e7d0a5');
+          base.addColorStop(1, '#d3b889');
+          ctx.fillStyle = base;
+          ctx.fillRect(0, 0, 1024, 512);
+
+          // Faded graticule, like a hand-drawn survey map.
+          ctx.strokeStyle = 'rgba(111, 78, 43, 0.28)';
+          ctx.lineWidth = 1;
+          for (let x = 0; x <= 1024; x += 32) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, 512);
+            ctx.stroke();
+          }
+          for (let y = 0; y <= 512; y += 32) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(1024, y);
+            ctx.stroke();
+          }
+
+          // Sepia continents — rough engraving blobs, not a modern satellite map.
+          const drawLand = (points: Array<[number, number]>, fill: string, stroke: string) => {
+            ctx.beginPath();
+            ctx.moveTo(points[0][0], points[0][1]);
+            for (let i = 1; i < points.length; i += 1) {
+              ctx.lineTo(points[i][0], points[i][1]);
+            }
+            ctx.closePath();
+            ctx.fillStyle = fill;
+            ctx.fill();
+            ctx.strokeStyle = stroke;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          };
+
+          const landFill = '#c8a371';
+          const landStroke = '#7d5834';
+
+          // North America
+          drawLand([
+            [70, 70], [150, 52], [245, 58], [305, 90], [290, 135],
+            [240, 150], [225, 200], [205, 218], [175, 192], [145, 205],
+            [115, 180], [80, 142], [55, 98],
+          ], landFill, landStroke);
+          // South America
+          drawLand([
+            [278, 235], [320, 258], [335, 330], [320, 408],
+            [287, 448], [268, 390], [260, 310], [275, 268],
+          ], landFill, landStroke);
+          // Europe + Africa
+          drawLand([
+            [468, 55], [520, 42], [568, 60], [575, 100], [548, 132],
+            [548, 170], [540, 210], [548, 250], [528, 310], [505, 360],
+            [478, 318], [462, 262], [468, 205], [452, 160], [470, 118],
+            [455, 82],
+          ], landFill, landStroke);
+          // Asia
+          drawLand([
+            [575, 42], [680, 30], [790, 42], [872, 78], [900, 128],
+            [838, 148], [812, 196], [786, 238], [742, 220], [712, 260],
+            [672, 236], [640, 250], [604, 215], [600, 160], [570, 110],
+          ], landFill, landStroke);
+          // Australia
+          drawLand([
+            [770, 300], [835, 292], [895, 325], [908, 375],
+            [856, 405], [800, 382], [756, 350],
+          ], landFill, landStroke);
+
+          // Worn edges / foxing for age.
+          const vignette = ctx.createRadialGradient(512, 256, 120, 512, 256, 620);
+          vignette.addColorStop(0, 'rgba(0,0,0,0)');
+          vignette.addColorStop(1, 'rgba(87, 55, 27, 0.22)');
+          ctx.fillStyle = vignette;
+          ctx.fillRect(0, 0, 1024, 512);
+        }
+
+        const texture = new THREE.CanvasTexture(mapCanvas);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.anisotropy = 4;
+        return texture;
+      }
+
+      const globeTexture = makeOldMapTexture();
+      const globeMesh = new THREE.Mesh(
+        new THREE.SphereGeometry(1.28, 64, 64),
+        new THREE.MeshPhongMaterial({
+          map: globeTexture,
+          color: 0xead6ad,
+          emissive: 0x2a190c,
+          emissiveIntensity: 0.25,
+          shininess: 18,
+        }),
+      );
+      globe.add(globeMesh);
+
+      // Brass armillary ring around the old world.
+      const brassMat = new THREE.MeshStandardMaterial({
+        color: 0xb4894c,
+        metalness: 0.8,
+        roughness: 0.45,
+      });
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(1.36, 0.008, 8, 128),
+        brassMat,
+      );
+      ring.rotation.x = Math.PI / 2;
+      scene.add(ring);
+
+      // Merchant log / compass marks around the equator.
+      const equatorMat = new THREE.LineBasicMaterial({
+        color: 0x6f4e2b,
+        transparent: true,
+        opacity: 0.55,
+      });
+      const equatorPts: THREE.Vector3[] = [];
+      for (let i = 0; i <= 160; i += 1) {
+        const angle = (i / 160) * Math.PI * 2;
+        equatorPts.push(new THREE.Vector3(Math.cos(angle) * 1.2, 0, Math.sin(angle) * 1.2));
+      }
+      const equator = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(equatorPts),
+        equatorMat,
+      );
+      globe.add(equator);
+
+      // Aged dust motes drifting in the workshop light.
+      const moteCount = 180;
+      const motePositions = new Float32Array(moteCount * 3);
+      for (let i = 0; i < moteCount; i += 1) {
+        const r = 2.1 + Math.random() * 2.7;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+        motePositions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+        motePositions[i * 3 + 1] = r * Math.cos(phi);
+        motePositions[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+      }
+      const moteGeo = new THREE.BufferGeometry();
+      moteGeo.setAttribute('position', new THREE.BufferAttribute(motePositions, 3));
+      const motes = new THREE.Points(
+        moteGeo,
+        new THREE.PointsMaterial({
+          color: 0x8a5b31,
+          size: 0.011,
+          transparent: true,
+          opacity: 0.5,
+          sizeAttenuation: true,
+        }),
+      );
+      scene.add(motes);
+
+      let visible = true;
+      let frameId: number | null = null;
+      let lastTime = performance.now();
+
+      function update() {
+        if (!visible || document.hidden) return;
+        frameId = requestAnimationFrame(update);
+
+        const now = performance.now();
+        const dt = Math.min((now - lastTime) / 1000, 0.05);
+        lastTime = now;
+
+        // Full globe rotation, as required.
+        globe.rotation.y += dt * 0.2;
+        motes.rotation.y -= dt * 0.008;
+
+        renderer.render(scene, camera);
+      }
+
+      function start() {
+        if (frameId === null) {
+          lastTime = performance.now();
+          update();
+        }
+      }
+
+      function stop() {
+        if (frameId !== null) {
+          cancelAnimationFrame(frameId);
+          frameId = null;
+        }
+      }
+
+      function resize() {
+        if (!shell) return;
+        viewportWidth = shell.clientWidth || window.innerWidth;
+        viewportHeight = shell.clientHeight || window.innerHeight;
+        if (viewportWidth > 0 && viewportHeight > 0) {
+          camera.aspect = viewportWidth / viewportHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(viewportWidth, viewportHeight, false);
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        }
+      }
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          visible = entry.isIntersecting;
+          if (visible) {
+            start();
+          } else {
+            stop();
+          }
+        });
+      }, { threshold: 0.05 });
+      observer.observe(shell);
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          stop();
+        } else if (visible) {
+          start();
+        }
+      });
+
+      window.addEventListener('resize', resize);
+      start();
+    } catch (error) {
+      // Keep the readable coming-soon copy even when WebGL is unavailable.
+      console.warn('[Explore Coming Soon] WebGL unavailable; using static background.', error);
+    }
+  }
+
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    initComingSoonGlobe();
+  } else {
+    document.addEventListener('DOMContentLoaded', initComingSoonGlobe);
+  }
+</script>
+
+<style>
+  .cs-shell {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: clamp(4.5rem, 8vh, 7rem) 1.25rem 3rem;
+    overflow: hidden;
+    isolation: isolate;
+    background:
+      radial-gradient(ellipse at 50% 42%, #f1e1c0 0%, #d7bd91 58%, #b59467 100%);
+  }
+  .cs-globe-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    display: block;
+    opacity: 0.8;
+  }
+  .cs-vignette {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse at 50% 45%, rgba(214, 183, 133, 0) 0%, rgba(156, 112, 65, 0.18) 52%, rgba(92, 62, 36, 0.42) 100%);
+  }
+  .cs-paper-grain {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.28;
+    mix-blend-mode: multiply;
+    background-image:
+      radial-gradient(circle at 12% 18%, rgba(92, 62, 36, 0.2) 0 1px, transparent 2px),
+      radial-gradient(circle at 28% 64%, rgba(92, 62, 36, 0.16) 0 1px, transparent 2px),
+      radial-gradient(circle at 53% 31%, rgba(92, 62, 36, 0.18) 0 1px, transparent 2px),
+      radial-gradient(circle at 71% 74%, rgba(92, 62, 36, 0.16) 0 1px, transparent 2px),
+      radial-gradient(circle at 87% 22%, rgba(92, 62, 36, 0.2) 0 1px, transparent 2px);
+    background-size: 260px 260px, 310px 310px, 280px 280px, 330px 330px, 300px 300px;
+  }
+  .cs-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.55rem;
+    max-width: 760px;
+    padding: 1.5rem;
+  }
+  .cs-label {
+    color: #6b3f16;
+    border: 1px double #8a5a2c;
+    background: rgba(240, 224, 194, 0.62);
+    padding: 0.45rem 1rem;
+    border-radius: 2px;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: clamp(0.74rem, 1.8vw, 0.92rem);
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 4px 14px rgba(96, 66, 34, 0.16);
+  }
+  .cs-version {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: clamp(7rem, 25vw, 17rem);
+    line-height: 0.9;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    color: #4b2d12;
+    margin: 0;
+    text-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.65),
+      0 8px 24px rgba(92, 62, 36, 0.28);
+  }
+  .cs-release {
+    font-family: Georgia, 'Times New Roman', serif;
+    color: #6b3f16;
+    font-size: clamp(0.8rem, 2vw, 1rem);
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin: 0 0 1.2rem;
+  }
+  .cs-card {
+    background: rgba(240, 224, 194, 0.86);
+    border: 1px solid #7d5834;
+    box-shadow:
+      0 0 0 4px rgba(240, 224, 194, 0.5),
+      0 0 0 5px rgba(125, 88, 52, 0.45),
+      0 18px 46px rgba(92, 62, 36, 0.22);
+    border-radius: 3px;
+    padding: 1.5rem 1.7rem;
+    max-width: 680px;
+  }
+  .cs-title {
+    color: #4b2d12;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0 0 0.7rem;
+  }
+  .cs-desc {
+    color: #623c1d;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: clamp(0.98rem, 2vw, 1.1rem);
+    line-height: 1.72;
+    margin: 0;
+  }
+  .cs-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.8rem;
+    margin-top: 1.3rem;
+  }
+  .cs-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.35rem;
+    border-radius: 3px;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 0.96rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+  }
+  .cs-btn:hover {
+    transform: translateY(-2px);
+  }
+  .cs-btn-primary {
+    color: #fff7e8;
+    background: linear-gradient(180deg, #9a6e3d 0%, #7d5834 55%, #674528 100%);
+    border: 1px solid #5a3c21;
+    box-shadow: 0 7px 18px rgba(92, 62, 36, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  .cs-btn-primary:hover {
+    box-shadow: 0 10px 26px rgba(92, 62, 36, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  .cs-btn-secondary {
+    color: #5a3c21;
+    background: rgba(240, 224, 194, 0.72);
+    border: 1px solid #8a5a2c;
+  }
+  .cs-btn-secondary:hover {
+    border-color: #674528;
+    box-shadow: 0 8px 18px rgba(92, 62, 36, 0.2);
+  }
+
+  @media (max-width: 640px) {
+    .cs-shell {
+      min-height: 100svh;
+      justify-content: flex-start;
+      padding-top: clamp(3.5rem, 7vh, 5rem);
+    }
+    .cs-content {
+      padding: 1rem 0.4rem;
+    }
+    .cs-card {
+      padding: 1.2rem 1.15rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cs-globe-canvas {
+      animation: none;
+    }
+  }
+</style>

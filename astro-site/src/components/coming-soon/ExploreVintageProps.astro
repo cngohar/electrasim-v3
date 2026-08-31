@@ -1,0 +1,145 @@
+---
+/**
+ * Decorative vintage electrical props for the Explore coming-soon page.
+ * Static, engraved-style SVG pieces so they look like catalogue illustrations
+ * from an early electrical workshop rather than a modern UI.
+ */
+const ICONS: Record<string, string> = {
+  bulb: `<svg viewBox="0 0 100 100" fill="none" stroke="#7b5633" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M50 12 C29 12 20 33 27 54 C31 64 38 70 38 81 L62 81 C62 70 69 64 73 54 C80 33 71 12 50 12 Z" />
+    <path d="M41 81 L59 81 L56 91 L44 91 Z" />
+    <path d="M50 28 L50 60 M42 47 L58 47 M50 60 L44 73 M50 60 L56 73" stroke-width="2.2" />
+    <circle cx="50" cy="17" r="2.7" fill="#7b5633" stroke="none" />
+  </svg>`,
+  key: `<svg viewBox="0 0 100 100" fill="none" stroke="#7b5633" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M22 42 C22 32 78 32 78 42 L78 50 L22 50 Z" />
+    <circle cx="50" cy="27" r="8" />
+    <path d="M34 42 L50 30 L66 42" stroke-width="2.4" />
+    <path d="M22 50 L22 70 M78 50 L78 70 M30 60 L30 70 M70 60 L70 70" stroke-width="2.2" />
+    <path d="M22 70 C22 82 78 82 78 70" />
+    <circle cx="36" cy="64" r="3" fill="#7b5633" stroke="none" />
+    <circle cx="64" cy="64" r="3" fill="#7b5633" stroke="none" />
+  </svg>`,
+  battery: `<svg viewBox="0 0 100 100" fill="none" stroke="#7b5633" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="30" y="26" width="40" height="58" rx="3" />
+    <path d="M39 26 L39 18 M61 26 L61 18 M39 18 L61 18" />
+    <circle cx="50" cy="18" r="3.4" fill="#7b5633" stroke="none" />
+    <path d="M50 42 L42 58 L50 58 L44 72" stroke-width="2.3" />
+  </svg>`,
+  coil: `<svg viewBox="0 0 100 100" fill="none" stroke="#7b5633" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M22 25 L22 75 M78 25 L78 75" />
+    <path d="M22 32 L78 38 M22 44 L78 50 M22 56 L78 62 M22 68 L78 74" stroke-width="2.3" />
+    <path d="M22 30 C22 45 78 45 78 30" />
+    <path d="M22 66 C22 81 78 81 78 66" />
+    <rect x="16" y="78" width="68" height="9" rx="2" />
+    <path d="M78 36 L92 30 L92 70 L78 72" />
+  </svg>`,
+  insulator: `<svg viewBox="0 0 100 100" fill="none" stroke="#7b5633" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M22 28 C22 14 78 14 78 28 L78 45 C60 56 40 56 22 45 Z" />
+    <path d="M26 42 C40 51 60 51 74 42" stroke-width="2.2" />
+    <rect x="32" y="50" width="36" height="12" rx="2" />
+    <rect x="38" y="62" width="24" height="18" rx="2" />
+    <path d="M50 14 L50 20 M32 24 L50 17 L68 24" stroke-width="2.2" />
+  </svg>`,
+  fuse: `<svg viewBox="0 0 100 100" fill="none" stroke="#7b5633" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="18" y="36" width="64" height="28" rx="12" />
+    <path d="M30 44 C42 44 42 56 50 56 C58 56 58 44 70 44" stroke-width="2.2" />
+    <path d="M50 36 L50 64" stroke-width="2.2" />
+    <path d="M38 36 L38 64 M62 36 L62 64" stroke-width="2.2" />
+    <circle cx="22" cy="50" r="4" fill="#7b5633" stroke="none" />
+    <circle cx="78" cy="50" r="4" fill="#7b5633" stroke="none" />
+  </svg>`,
+  spool: `<svg viewBox="0 0 100 100" fill="none" stroke="#7b5633" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="20" y="24" width="8" height="52" rx="2" />
+    <rect x="72" y="24" width="8" height="52" rx="2" />
+    <rect x="28" y="32" width="44" height="36" rx="2" />
+    <path d="M28 38 L72 38 M28 46 L72 46 M28 54 L72 54 M28 62 L72 62" stroke-width="2.2" />
+    <path d="M72 34 L90 24" />
+    <circle cx="92" cy="22" r="3.4" fill="#7b5633" stroke="none" />
+  </svg>`,
+  jar: `<svg viewBox="0 0 100 100" fill="none" stroke="#7b5633" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M33 30 C33 18 67 18 67 30 L67 70 L33 70 Z" />
+    <path d="M39 30 L39 70 M45 30 L45 70 M55 30 L55 70 M61 30 L61 70" stroke-width="2.2" />
+    <path d="M33 30 L67 30 M33 44 L67 44 M33 58 L67 58" stroke-width="2.2" />
+    <circle cx="50" cy="16" r="6" />
+    <path d="M50 22 L50 30" />
+  </svg>`,
+};
+
+const PROPS = [
+  { id: 'bulb', className: 'prop-bulb' },
+  { id: 'coil', className: 'prop-coil' },
+  { id: 'battery', className: 'prop-battery' },
+  { id: 'key', className: 'prop-key' },
+  { id: 'insulator', className: 'prop-insulator' },
+  { id: 'jar', className: 'prop-jar' },
+  { id: 'fuse', className: 'prop-fuse' },
+  { id: 'spool', className: 'prop-spool' },
+];
+---
+
+<div class="csp-wrap" aria-hidden="true">
+  {PROPS.map((prop) => (
+    <div class={`vintage-prop ${prop.className}`} data-prop={prop.id}>
+      <div class="vintage-prop-art" set:html={ICONS[prop.id]} />
+      <span class="vintage-prop-label">{prop.id}</span>
+    </div>
+  ))}
+</div>
+
+<style>
+  .csp-wrap {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .vintage-prop {
+    position: absolute;
+    width: clamp(56px, 7vw, 104px);
+    opacity: 0.48;
+    filter: sepia(0.35) contrast(0.92);
+  }
+  .vintage-prop-art {
+    width: 100%;
+    height: auto;
+  }
+  .vintage-prop-art :global(svg) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .vintage-prop-label {
+    display: block;
+    margin-top: 0.35rem;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: clamp(0.5rem, 1.2vw, 0.66rem);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    text-align: center;
+    color: #6b3f16;
+  }
+
+  .prop-bulb { left: 5%; top: 13%; transform: rotate(-8deg); }
+  .prop-coil { right: 5%; top: 11%; transform: rotate(7deg); }
+  .prop-battery { left: 3.5%; top: 45%; transform: rotate(-4deg); }
+  .prop-key { right: 3.5%; top: 43%; transform: rotate(5deg); }
+  .prop-insulator { left: 10%; bottom: 10%; transform: rotate(6deg); }
+  .prop-jar { right: 9%; bottom: 9%; transform: rotate(-7deg); }
+  .prop-fuse { right: 20%; top: 26%; transform: rotate(12deg); }
+  .prop-spool { left: 20%; bottom: 22%; transform: rotate(-13deg); }
+
+  /* Keep props out of the copy block on small screens. */
+  @media (max-width: 760px) {
+    .prop-coil,
+    .prop-key,
+    .prop-fuse,
+    .prop-spool {
+      display: none;
+    }
+    .prop-bulb { left: 2%; top: 7%; width: 64px; }
+    .prop-jar { right: 2%; bottom: 5%; width: 60px; }
+    .prop-battery { left: 7%; bottom: 6%; width: 58px; }
+    .prop-insulator { right: 7%; top: 8%; width: 58px; }
+  }
+</style>

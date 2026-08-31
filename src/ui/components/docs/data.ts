@@ -69,9 +69,10 @@ export const SITE_DESTINATIONS: Array<{
     icon: Shield,
   },
   {
-    label: 'Explore 3D — Edison bulb',
-    description: 'An interactive 3D tear-down of the 1879 carbon-filament lamp.',
-    href: 'https://electrasim.com/explore/edison-bulb/',
+    label: 'Explore — coming in v2.1',
+    description:
+      'The immersive 3D historical electrical laboratory is being rebuilt and returns in v2.1.',
+    href: 'https://electrasim.com/explore/',
     icon: Lightbulb,
   },
   {

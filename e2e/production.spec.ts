@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 const HOME_TITLE = 'ElectraSim — Free Online Electrical Wiring Simulator & Circuit Trainer';
 const HOME_DESCRIPTION =
-  'Build, energise and fault-find real domestic wiring in your browser. 115 components, live simulation, Challenge Mode and a seeded Diagnosis Lab. Free, offline-capable, no sign-up.';
+  'Build, energise and fault-find real domestic wiring in your browser. 115 components, live simulation, Guided Circuits, Challenge and Diagnosis modes, fault simulation and an electrical toolbox. Free, offline-capable, no sign-up.';
 const HOME_VISIBLE_KEYPHRASE = 'electrical';
 const COMPARE_CANONICAL = 'https://electrasim.com/compare/';
 const COMPARE_TITLE = 'ElectraSim vs Online Circuit Simulators (2026 Comparison)';

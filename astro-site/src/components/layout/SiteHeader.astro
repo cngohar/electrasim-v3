@@ -47,7 +47,7 @@ const MENU_LINKS = [
       {NAV_LINKS.map((link) => (
         <a href={link.href} class="hide-m nav-link-item" aria-current={current(link.href)}>
           <span>{link.label}</span>
-          {link.experimental && <span class="nav-ribbon-badge">Experimental</span>}
+          {link.experimental && <span class="nav-ribbon-badge">Coming soon</span>}
         </a>
       ))}
       <button
@@ -108,7 +108,7 @@ const MENU_LINKS = [
     {MENU_LINKS.map((link) => (
       <a href={link.href} aria-current={current(link.href)} class="nav-mobile-item">
         <span>{link.label}</span>
-        {link.experimental && <span class="nav-ribbon-badge">Experimental</span>}
+        {link.experimental && <span class="nav-ribbon-badge">Coming soon</span>}
       </a>
     ))}
     <button

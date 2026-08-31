@@ -68,9 +68,9 @@ describe('DocsContent', () => {
       'href',
       'https://electrasim.com/tools/voltage-drop-calculator/',
     );
-    expect(screen.getByRole('link', { name: /Explore 3D/ })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /Explore — coming in v2\.1/ })).toHaveAttribute(
       'href',
-      'https://electrasim.com/explore/edison-bulb/',
+      'https://electrasim.com/explore/',
     );
     expect(screen.getByRole('link', { name: /Blog & changelog/ })).toHaveAttribute(
       'href',

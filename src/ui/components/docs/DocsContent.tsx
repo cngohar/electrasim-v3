@@ -596,8 +596,8 @@ function OnTheWebsiteSection() {
       </SectionHeading>
       <p className="mb-3 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
         These pages are the long-form half of the documentation — step-by-step guides, the
-        voltage-drop calculator, the 3D history explorer and project news. Everything opens on
-        electrasim.com in a new tab.
+        voltage-drop calculator, the coming-soon historical explorer and project news. Everything
+        opens on electrasim.com in a new tab.
       </p>
       <div className="grid gap-3 sm:grid-cols-2">
         {SITE_DESTINATIONS.map((destination) => (
