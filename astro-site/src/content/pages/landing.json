@@ -1,6 +1,6 @@
 {
   "seo_title": "ElectraSim — Free Online Electrical Wiring Simulator & Circuit Trainer",
-  "seo_description": "Build, energise and fault-find real domestic wiring in your browser. 115 components, live simulation, Challenge Mode and a seeded Diagnosis Lab. Free, offline-capable, no sign-up.",
+  "seo_description": "Build, energise and fault-find real domestic wiring in your browser. 115 components, live simulation, Guided Circuits, Challenge and Diagnosis modes, fault simulation and an electrical toolbox. Free, offline-capable, no sign-up.",
   "hero_badge": "Free · No sign-up · Works offline",
   "hero_heading": "Real electrical wiring,",
   "hero_heading_highlight": "in your browser",
@@ -27,14 +27,67 @@
       "note": "Off-thread solver"
     },
     {
-      "value": "850",
+      "value": "1000+",
       "unit": "tests",
-      "note": "On the circuit engine"
+      "note": "Circuit engine + unit coverage"
     },
     {
       "value": "0",
       "unit": "accounts",
       "note": "Nothing leaves the device"
+    }
+  ],
+  "release_label": "What changed · v1.4 → v1.6.1",
+  "release_heading": "Everything that has landed since the last big update",
+  "release_description": "The simulator, the learning tools and the website have moved quickly. Here is the working feature set that is live today.",
+  "release_highlights": [
+    {
+      "icon": "bolt",
+      "tag": "v1.6",
+      "title": "Dark mode across app & site",
+      "body": "Light, Dark or System in the simulator; a persistent theme toggle in the website navigation. Every panel, documentation screen and phone control follows your choice."
+    },
+    {
+      "icon": "cable",
+      "tag": "v1.6",
+      "title": "RCBO + a push button that holds",
+      "body": "Add a two-pole RCBO and a momentary Push Button for doorbells and control circuits. Newly placed protection devices start in their intended ready position."
+    },
+    {
+      "icon": "monitor",
+      "tag": "v1.6.1",
+      "title": "Guided Circuits with checklists",
+      "body": "Eight pre-built circuit templates land on the canvas — protected lamp, two-way staircase, RCD earth-fault demo, Pro SPD consumer unit and more — each with an in-app checklist."
+    },
+    {
+      "icon": "fault",
+      "tag": "v1.4",
+      "title": "Fault Simulation Mode",
+      "body": "Inject wire breaks, reverse polarity and missing earths, then watch the protective device respond. Reuse a seed to reproduce an identical diagnosis exercise."
+    },
+    {
+      "icon": "route",
+      "tag": "v1.6",
+      "title": "Smart + custom wiring",
+      "body": "Two clicks gives a tidy right-angle run that avoids components, or switch to custom wiring to place every corner yourself. Existing wires keep their paths."
+    },
+    {
+      "icon": "share",
+      "tag": "v1.6",
+      "title": "Offline, exportable, shareable",
+      "body": "Install it as a PWA. Save locally, import/export schema-versioned JSON, SVG or 2× PNG, and share the whole circuit in one URL with no backend."
+    },
+    {
+      "icon": "grid",
+      "tag": "v1.5",
+      "title": "Keyboard & accessibility pass",
+      "body": "Full keyboard navigation, reduced-motion support, focus states and a colour-blind canvas preset. Larger circuits stay smooth with an off-thread solver."
+    },
+    {
+      "icon": "standards",
+      "tag": "v1.6",
+      "title": "Electrical Toolbox",
+      "body": "BS 7671 voltage drop, cable sizing and Max Zs calculators sit next to the wiring guide, the comparison page and the release notes — free, no sign-up, no tracking."
     }
   ],
   "features_label": "Way 01 · The workbench",

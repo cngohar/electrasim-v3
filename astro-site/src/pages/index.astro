@@ -4,6 +4,7 @@ import LandingBlogHighlights from '../components/landing/LandingBlogHighlights.a
 import LandingCoreSections from '../components/landing/LandingCoreSections.astro';
 import LandingCta from '../components/landing/LandingCta.astro';
 import LandingHero from '../components/landing/LandingHero.astro';
+import LandingReleaseHighlights from '../components/landing/LandingReleaseHighlights.astro';
 import Base from '../layouts/Base.astro';
 import { HOMEPAGE_ARTICLE_IDS, selectPostsById } from '../lib/blog';
 import '../styles/landing.css';
@@ -50,6 +51,12 @@ const blogHighlights = selectPostsById(
       trustItems={d.hero_trust_items}
       statsLabel={d.stats_label}
       stats={d.stats}
+    />
+    <LandingReleaseHighlights
+      label={d.release_label}
+      heading={d.release_heading}
+      description={d.release_description}
+      highlights={d.release_highlights}
     />
     <LandingCoreSections content={d} />
     <LandingBlogHighlights

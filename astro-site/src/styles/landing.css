@@ -615,6 +615,68 @@
   letter-spacing: -0.02em;
 }
 
+/* ── What changed / release highlights ──────────────────────────────────── */
+.release-section {
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+}
+.rail-release {
+  margin-bottom: 2rem;
+}
+.release-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+@media (min-width: 640px) {
+  .release-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1040px) {
+  .release-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.release-card {
+  position: relative;
+  padding: 1.7rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: border-color 0.22s, box-shadow 0.22s, transform 0.22s;
+}
+.release-card:hover {
+  border-color: var(--border-bright);
+  box-shadow: 0 12px 34px rgba(37, 99, 235, 0.12);
+  transform: translateY(-3px);
+}
+.release-card:hover .card-icon {
+  background: var(--live);
+  color: #fff;
+}
+.release-card h3 {
+  font-size: 1.12rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+.release-card p {
+  font-size: 0.9rem;
+  color: var(--text-mid);
+  line-height: 1.65;
+  margin: 0;
+}
+.release-more {
+  margin-top: 2rem;
+  text-align: center;
+}
+.release-more a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 /* ── Features ───────────────────────────────────────────────────────────── */
 .features-grid {
   display: grid;

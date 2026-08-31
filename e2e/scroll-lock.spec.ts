@@ -36,19 +36,19 @@ test.describe('scroll lock scoping', () => {
     expect(lock.scrollHeight).toBeGreaterThan(lock.clientHeight);
   });
 
-  test('the explore page still locks the viewport', async ({ page }) => {
+  test('the explore coming-soon page scrolls normally', async ({ page }) => {
     await page.goto('/explore/');
     const lock = await page.evaluate(() => {
       const html = getComputedStyle(document.documentElement);
       const body = getComputedStyle(document.body);
       return {
-        htmlOverflow: html.overflow,
-        bodyOverflow: body.overflow,
+        htmlOverflowY: html.overflowY,
+        bodyOverflowY: body.overflowY,
         explorerRoot: Boolean(document.querySelector('.light-explorer-root')),
       };
     });
-    expect(lock.explorerRoot).toBe(true);
-    expect(lock.htmlOverflow).toBe('hidden');
-    expect(lock.bodyOverflow).toBe('hidden');
+    expect(lock.explorerRoot).toBe(false);
+    expect(lock.htmlOverflowY).not.toBe('hidden');
+    expect(lock.bodyOverflowY).not.toBe('hidden');
   });
 });

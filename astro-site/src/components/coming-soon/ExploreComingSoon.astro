@@ -1,0 +1,419 @@
+---
+interface Props {
+  label?: string;
+  version?: string;
+  releaseLabel?: string;
+  title?: string;
+  description?: string;
+  secondary?: string;
+}
+
+const {
+  label = 'Experimental feature',
+  version = '2.1',
+  releaseLabel = 'Releases with v2.1',
+  title = 'Explore — Historical Electrical Laboratory',
+  description =
+    'Explore is ElectraSim’s immersive historical laboratory. It will let you step inside landmark electrical inventions in interactive 3D — dissect real components, read verified technical histories, and run live physics experiments without leaving your browser.',
+  secondary =
+    'The Explore Lab is being rebuilt away from the public site so it can ship complete, tested and properly polished. It is still in active development and will return here with v2.1.',
+} = Astro.props;
+---
+
+<section class="cs-shell" id="cs-shell">
+  <canvas class="cs-globe-canvas" id="cs-globe-canvas" aria-hidden="true"></canvas>
+  <div class="cs-vignette" aria-hidden="true"></div>
+
+  <div class="cs-content">
+    <p class="cs-label">{label}</p>
+    <h1 class="cs-version">{version}</h1>
+    <p class="cs-release">{releaseLabel}</p>
+
+    <div class="cs-card">
+      <h2 class="cs-title">{title}</h2>
+      <p class="cs-desc">{description}</p>
+      <p class="cs-secondary">{secondary}</p>
+    </div>
+
+    <div class="cs-actions">
+      <a href="/" class="cs-btn cs-btn-primary">Back to ElectraSim <span aria-hidden="true">→</span></a>
+      <a href="/app/" class="cs-btn cs-btn-secondary">Launch the Simulator</a>
+    </div>
+  </div>
+</section>
+
+<script>
+  import * as THREE from 'three';
+
+  function initComingSoonGlobe() {
+    try {
+    const canvas = document.getElementById('cs-globe-canvas') as HTMLCanvasElement | null;
+    const shell = document.getElementById('cs-shell');
+
+    if (!canvas || !shell) return;
+
+    let viewportWidth = shell.clientWidth || window.innerWidth;
+    let viewportHeight = shell.clientHeight || window.innerHeight;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, viewportWidth / viewportHeight, 0.1, 100);
+    camera.position.set(0, 0, 3.25);
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      alpha: true,
+      powerPreference: 'high-performance',
+    });
+    renderer.setSize(viewportWidth, viewportHeight, false);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const globe = new THREE.Group();
+    globe.rotation.z = THREE.MathUtils.degToRad(22);
+    scene.add(globe);
+
+    // Dark "old world" globe body.
+    const bodyMat = new THREE.MeshPhongMaterial({
+      color: 0x0b3a56,
+      emissive: 0x041019,
+      emissiveIntensity: 1.1,
+      transparent: true,
+      opacity: 0.86,
+      shininess: 18,
+    });
+    const sphere = new THREE.Mesh(new THREE.SphereGeometry(1.18, 56, 56), bodyMat);
+    globe.add(sphere);
+
+    // Cyan wireframe / survey grid that makes the sphere read as a globe.
+    const gridMat = new THREE.MeshBasicMaterial({
+      color: 0x22d3ee,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.16,
+    });
+    const grid = new THREE.Mesh(new THREE.SphereGeometry(1.195, 28, 28), gridMat);
+    globe.add(grid);
+
+    // Meridian accents.
+    const meridianMat = new THREE.LineBasicMaterial({
+      color: 0x67e8f9,
+      transparent: true,
+      opacity: 0.42,
+    });
+    for (let i = 0; i < 10; i += 1) {
+      const points: THREE.Vector3[] = [];
+      const angle = (i / 10) * Math.PI * 2;
+      for (let j = 0; j <= 80; j += 1) {
+        const theta = (j / 80) * Math.PI * 2;
+        points.push(
+          new THREE.Vector3(
+            Math.sin(theta) * 1.2,
+            -Math.cos(theta) * 1.2,
+            0,
+          ),
+        );
+      }
+      const line = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(points),
+        meridianMat,
+      );
+      line.rotation.y = angle;
+      globe.add(line);
+    }
+
+    // Soft atmosphere halo.
+    const glowCanvas = document.createElement('canvas');
+    glowCanvas.width = 256;
+    glowCanvas.height = 256;
+    const glowCtx = glowCanvas.getContext('2d');
+    if (glowCtx) {
+      const halo = glowCtx.createRadialGradient(128, 128, 40, 128, 128, 128);
+      halo.addColorStop(0, 'rgba(34, 211, 238, 0.28)');
+      halo.addColorStop(0.45, 'rgba(14, 116, 144, 0.14)');
+      halo.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      glowCtx.fillStyle = halo;
+      glowCtx.fillRect(0, 0, 256, 256);
+    }
+    const glowTexture = new THREE.CanvasTexture(glowCanvas);
+    const glowSprite = new THREE.Sprite(
+      new THREE.SpriteMaterial({
+        map: glowTexture,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      }),
+    );
+    glowSprite.position.set(0, 0, 0);
+    glowSprite.scale.set(4.2, 4.2, 1);
+    globe.add(glowSprite);
+
+    // Sparse star / electric dust field for depth.
+    const stars: THREE.Points[] = [];
+    const starCount = 420;
+    const starPositions = new Float32Array(starCount * 3);
+    for (let i = 0; i < starCount; i += 1) {
+      const r = 2.4 + Math.random() * 2.4;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      starPositions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      starPositions[i * 3 + 1] = r * Math.cos(phi);
+      starPositions[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+    }
+    const starGeo = new THREE.BufferGeometry();
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+    const starMat = new THREE.PointsMaterial({
+      color: 0x7dd3fc,
+      size: 0.012,
+      transparent: true,
+      opacity: 0.7,
+      sizeAttenuation: true,
+    });
+    const starField = new THREE.Points(starGeo, starMat);
+    scene.add(starField);
+    stars.push(starField);
+
+    let visible = true;
+    let frameId: number | null = null;
+    let lastTime = performance.now();
+
+    function update() {
+      if (!visible || document.hidden) return;
+      frameId = requestAnimationFrame(update);
+
+      const now = performance.now();
+      const dt = Math.min((now - lastTime) / 1000, 0.05);
+      lastTime = now;
+
+      // Full globe rotation is required for this page.
+      globe.rotation.y += dt * 0.22;
+      starField.rotation.y -= dt * 0.012;
+
+      renderer.render(scene, camera);
+    }
+
+    function start() {
+      if (frameId === null) {
+        lastTime = performance.now();
+        update();
+      }
+    }
+
+    function stop() {
+      if (frameId !== null) {
+        cancelAnimationFrame(frameId);
+        frameId = null;
+      }
+    }
+
+    function resize() {
+      if (!shell) return;
+      viewportWidth = shell.clientWidth || window.innerWidth;
+      viewportHeight = shell.clientHeight || window.innerHeight;
+      if (viewportWidth > 0 && viewportHeight > 0) {
+        camera.aspect = viewportWidth / viewportHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(viewportWidth, viewportHeight, false);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      }
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        visible = entry.isIntersecting;
+        if (visible) {
+          start();
+        } else {
+          stop();
+        }
+      });
+    }, { threshold: 0.05 });
+    observer.observe(shell);
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        stop();
+      } else if (visible) {
+        start();
+      }
+    });
+
+    window.addEventListener('resize', resize);
+    start();
+    } catch (error) {
+      // Keep the readable coming-soon copy even when WebGL is unavailable.
+      console.warn('[Explore Coming Soon] WebGL unavailable; using static background.', error);
+    }
+  }
+
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    initComingSoonGlobe();
+  } else {
+    document.addEventListener('DOMContentLoaded', initComingSoonGlobe);
+  }
+</script>
+
+<style>
+  .cs-shell {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: clamp(4.5rem, 8vh, 7rem) 1.25rem 3rem;
+    overflow: hidden;
+    background: radial-gradient(ellipse at 50% 38%, #092d43 0%, #04101e 58%, #02070f 100%);
+    isolation: isolate;
+  }
+  .cs-globe-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    display: block;
+  }
+  .cs-vignette {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse at 50% 46%, rgba(2, 14, 25, 0) 0%, rgba(2, 14, 25, 0.22) 52%, rgba(1, 7, 15, 0.74) 100%);
+  }
+  .cs-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.55rem;
+    max-width: 760px;
+    padding: 1.5rem;
+  }
+  .cs-label {
+    color: #7dd3fc;
+    border: 1px solid rgba(103, 232, 249, 0.45);
+    background: rgba(8, 47, 73, 0.7);
+    box-shadow: 0 0 24px rgba(34, 211, 238, 0.16);
+    padding: 0.45rem 1rem;
+    border-radius: 999px;
+    font-family: var(--font-mono, monospace);
+    font-size: clamp(0.72rem, 1.8vw, 0.9rem);
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    backdrop-filter: blur(8px);
+  }
+  .cs-version {
+    font-family: var(--font-display, 'Space Grotesk', sans-serif);
+    font-size: clamp(7rem, 25vw, 18rem);
+    line-height: 0.88;
+    font-weight: 900;
+    letter-spacing: -0.06em;
+    color: #ffffff;
+    text-shadow:
+      0 0 24px rgba(34, 211, 238, 0.42),
+      0 0 90px rgba(14, 165, 233, 0.3),
+      0 8px 42px rgba(0, 0, 0, 0.55);
+    margin: 0;
+  }
+  .cs-release {
+    font-family: var(--font-mono, monospace);
+    color: #67e8f9;
+    font-size: clamp(0.8rem, 2vw, 1rem);
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin: 0 0 1.15rem;
+  }
+  .cs-card {
+    background: rgba(3, 25, 44, 0.78);
+    border: 1px solid rgba(103, 232, 249, 0.28);
+    border-radius: 1.1rem;
+    padding: 1.4rem 1.6rem;
+    max-width: 680px;
+    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(14px);
+  }
+  .cs-title {
+    color: #f0f9ff;
+    font-family: var(--font-display, 'Space Grotesk', sans-serif);
+    font-size: clamp(1.35rem, 3vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0 0 0.65rem;
+  }
+  .cs-desc {
+    color: #c9e7f7;
+    font-size: clamp(0.98rem, 2vw, 1.12rem);
+    line-height: 1.65;
+    margin: 0 0 0.75rem;
+  }
+  .cs-secondary {
+    color: #8fb0c6;
+    font-size: clamp(0.88rem, 1.7vw, 0.98rem);
+    line-height: 1.6;
+    margin: 0;
+  }
+  .cs-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.8rem;
+    margin-top: 1.25rem;
+  }
+  .cs-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.35rem;
+    border-radius: 0.72rem;
+    font-family: var(--font-display, 'Space Grotesk', sans-serif);
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+  }
+  .cs-btn:hover {
+    transform: translateY(-2px);
+  }
+  .cs-btn-primary {
+    color: #05131f;
+    background: linear-gradient(135deg, #67e8f9 0%, #22d3ee 100%);
+    box-shadow: 0 10px 32px rgba(34, 211, 238, 0.25);
+  }
+  .cs-btn-primary:hover {
+    box-shadow: 0 14px 42px rgba(34, 211, 238, 0.34);
+  }
+  .cs-btn-secondary {
+    color: #e6f7ff;
+    background: rgba(8, 47, 73, 0.72);
+    border: 1px solid rgba(103, 232, 249, 0.4);
+  }
+  .cs-btn-secondary:hover {
+    border-color: #67e8f9;
+    box-shadow: 0 12px 28px rgba(34, 211, 238, 0.16);
+  }
+
+  @media (max-width: 640px) {
+    .cs-shell {
+      min-height: 100svh;
+      justify-content: flex-start;
+      padding-top: clamp(3.5rem, 7vh, 5rem);
+    }
+    .cs-content {
+      padding: 1rem 0.4rem;
+    }
+    .cs-card {
+      padding: 1.15rem 1.1rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cs-globe-canvas {
+      animation: none;
+    }
+  }
+</style>

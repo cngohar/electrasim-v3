@@ -18,6 +18,10 @@ export type ModeSpec = {
   points: string[];
 };
 
+export type LandingReleaseHighlight = ContentCard & {
+  tag: string;
+};
+
 export type LandingPage = {
   seo_title: string;
   seo_description: string;
@@ -30,6 +34,10 @@ export type LandingPage = {
   hero_trust_items: string[];
   stats_label: string;
   stats: StatSpec[];
+  release_label: string;
+  release_heading: string;
+  release_description: string;
+  release_highlights: LandingReleaseHighlight[];
   modes_label: string;
   modes_heading: string;
   modes_description: string;
