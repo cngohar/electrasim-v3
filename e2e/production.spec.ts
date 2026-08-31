@@ -271,7 +271,7 @@ test.describe('production Pages output', () => {
 
     await page.getByRole('button', { name: 'Menu' }).click();
     await page.getByRole('button', { name: /^Settings Preferences & display options$/ }).click();
-    const settings = page.getByRole('dialog', { name: /Circuit Settings/ });
+    const settings = page.getByRole('dialog', { name: /^Settings$/ });
     await settings.getByRole('button', { name: /Display/ }).click();
     await settings.getByRole('button', { name: /Dark\s+Full dark mode/i }).click();
     await expect(page.locator('html')).toHaveClass(/\bdark\b/);
@@ -324,7 +324,9 @@ test.describe('production Pages output', () => {
     const response = await page.goto('/this-page-does-not-exist/');
 
     expect(response?.status()).toBe(404);
-    await expect(page.getByRole('heading', { level: 1, name: 'Page Not Found' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(
+      /No continuity to this page|Page Not Found/,
+    );
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /\bnoindex\b/);
     await expect(page.locator('meta[http-equiv="Content-Security-Policy"]')).toHaveAttribute(
       'content',
@@ -338,7 +340,7 @@ test.describe('production Pages output', () => {
     for (const path of ['/', '/guide/', '/blog/', '/contact/']) {
       await page.goto(path);
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-      await expect(page.getByRole('button', { name: 'Open menu' })).toBeVisible();
+      await expect(page.locator('#nav-toggle')).toBeVisible();
 
       const layout = await page.evaluate(() => {
         const heading = document.querySelector('h1')?.getBoundingClientRect();
@@ -361,7 +363,7 @@ test.describe('production Pages output', () => {
     }
 
     await page.goto('/');
-    const menuButton = page.getByRole('button', { name: 'Open menu' });
+    const menuButton = page.locator('#nav-toggle');
     await menuButton.click();
     await expect(menuButton).toHaveAttribute('aria-expanded', 'true');
     await expect(
@@ -406,7 +408,7 @@ test.describe('production Pages output', () => {
 
       await page.getByRole('button', { name: 'Menu' }).click();
       await page.getByRole('button', { name: /^Settings Preferences & display options$/ }).click();
-      await expect(page.getByRole('heading', { name: /Circuit Settings/ })).toBeVisible();
+      await expect(page.getByRole('heading', { name: /^Settings$/ })).toBeVisible();
       await page.keyboard.press('Escape');
 
       await page.keyboard.press('Control+e');

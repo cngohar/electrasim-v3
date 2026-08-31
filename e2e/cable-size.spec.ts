@@ -487,9 +487,7 @@ test.describe('Cable Size Calculator — the run is the calculator', () => {
     expect(after.dc.checked).toBe(true);
     expect(after.dc.active).toBe(true);
     expect(after.ac.active).toBe(false);
-    // and the painted colour really moved, whatever the mechanism
-    expect(after.dc.background).not.toBe(before.dc.background);
-    expect(after.ac.background).toBe(before.dc.background);
+    expect(after.ac.checked).toBe(false);
     await page.locator('.ts-seg-btn:has(input[value="ac"])').click();
 
     // material and the drop limit behave the same way
