@@ -15,7 +15,8 @@
 
 import { ArrowRight, Check, History, RotateCcw, Sparkles, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useCircuitStore } from '../../store/circuitStore';
+import { COMPONENT_DEFS, getPortPos } from '../../domain';
+import { useCircuitStore, useViewportStore } from '../../store';
 import { useSettingsStore } from '../../store/settingsStore';
 import { useUiStore } from '../../store/uiStore';
 import { EmojiGlyph } from '../components/EmojiGlyph';
@@ -30,6 +31,8 @@ const SPOT_PAD = 6;
 const MISSING_TARGET_GRACE_MS = 700;
 const SUCCESS_LINGER_MS = 550;
 const POLL_MS = 250;
+const VIEW_W = 1200;
+const VIEW_H = 720;
 
 type Phase = 'tour' | 'celebration' | 'choice';
 
@@ -37,6 +40,10 @@ function buildSnapshot(): TourSnapshot {
   const ui = useUiStore.getState();
   const settings = useSettingsStore.getState();
   const circuit = useCircuitStore.getState();
+  const componentTypeCounts: Record<string, number> = {};
+  for (const component of circuit.components) {
+    componentTypeCounts[component.type] = (componentTypeCounts[component.type] ?? 0) + 1;
+  }
   return {
     appMode: settings.appMode,
     regulationStandard: settings.regulationStandard,
@@ -52,6 +59,7 @@ function buildSnapshot(): TourSnapshot {
     placingType: ui.placingType,
     standardPopoverOpen:
       typeof document !== 'undefined' && !!document.querySelector('[data-tour="standard-popover"]'),
+    componentTypeCounts,
   };
 }
 
@@ -409,7 +417,9 @@ export function TourOverlay({ isPhone }: Props) {
         className={[
           'pointer-events-auto rounded-xl border border-slate-200 bg-white p-4 shadow-2xl outline-none ring-1 ring-slate-900/10',
           'dark:border-slate-700 dark:bg-slate-900 dark:ring-slate-700/60',
-          reducedMotion ? '' : 'animate-dialog-fade-in',
+          // Opacity-only entrance: the card is centred/anchored by an inline
+          // transform, which `animate-dialog-fade-in`'s keyframes would override.
+          reducedMotion ? '' : 'animate-fade-in-only',
         ].join(' ')}
         style={cardStyle}
       >
@@ -539,7 +549,134 @@ export function TourOverlay({ isPhone }: Props) {
           next
         </div>
       </div>
+
+      {/* Wiring arrows for the "Wire the circuit" step — draw over the canvas
+          in world coordinates so they pan/zoom with the circuit. */}
+      <TourWireHints active={step.id === 'wire-ports'} />
     </div>
+  );
+}
+
+/**
+ * TourWireHints — visual guide for the student tour's wiring step.
+ *
+ * Once the bulb, Live and Neutral terminals are on the canvas, draws two
+ * animated dashed arrows between the exact ports the learner must click:
+ * Live L-out → bulb L, and bulb N → Neutral N-out. Rendered in the same
+ * 1200×720 world space (with the viewport pan/zoom applied) as the canvas,
+ * so the arrows stay glued to the components as the user pans/zooms.
+ */
+function TourWireHints({ active }: { active: boolean }) {
+  const components = useCircuitStore((s) => s.components);
+  const pan = useViewportStore((s) => s.pan);
+  const zoom = useViewportStore((s) => s.zoom);
+
+  const live = components.find((c) => c.type === 'live-terminal');
+  const neutral = components.find((c) => c.type === 'neutral-terminal');
+  const bulb = components.find((c) => c.type === 'bulb');
+
+  const pairs = useMemo(() => {
+    if (!live || !neutral || !bulb) return [];
+    const liveOut = getPortPos(live, 0, COMPONENT_DEFS);
+    const bulbL = getPortPos(bulb, 0, COMPONENT_DEFS);
+    const bulbN = getPortPos(bulb, 1, COMPONENT_DEFS);
+    const neutralOut = getPortPos(neutral, 0, COMPONENT_DEFS);
+    return [
+      { from: liveOut, to: bulbL, label: '1 · L→L' },
+      { from: bulbN, to: neutralOut, label: '2 · N→N' },
+    ];
+  }, [live, neutral, bulb]);
+
+  if (!active || pairs.length === 0) return null;
+
+  return (
+    <svg
+      viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+      preserveAspectRatio="xMidYMid meet"
+      className="absolute inset-0 block h-full w-full"
+      aria-hidden="true"
+      style={{ pointerEvents: 'none' }}
+    >
+      <defs>
+        <marker
+          id="tour-wire-arrow"
+          viewBox="0 0 10 10"
+          refX="8"
+          refY="5"
+          markerWidth="7"
+          markerHeight="7"
+          orient="auto-start-reverse"
+        >
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#0ea5e9" />
+        </marker>
+      </defs>
+      <g transform={`translate(${pan.x} ${pan.y}) scale(${zoom})`}>
+        {pairs.map(({ from, to, label }) => (
+          <g key={label}>
+            {/* Glow underlay so the arrow reads over the dim layer */}
+            <path
+              d={`M ${from.x} ${from.y} L ${to.x} ${to.y}`}
+              fill="none"
+              stroke="rgba(255,255,255,0.85)"
+              strokeWidth="7"
+              strokeLinecap="round"
+            />
+            <path
+              d={`M ${from.x} ${from.y} L ${to.x} ${to.y}`}
+              fill="none"
+              stroke="#0284c7"
+              strokeWidth="3.5"
+              strokeDasharray="9 7"
+              strokeLinecap="round"
+              markerEnd="url(#tour-wire-arrow)"
+              className="challenge-hint-line"
+            />
+            {/* Pulsing endpoint rings on the two ports to click */}
+            <circle
+              cx={from.x}
+              cy={from.y}
+              r="11"
+              fill="none"
+              stroke="#0ea5e9"
+              strokeWidth="2.5"
+              className="challenge-hint-target"
+            />
+            <circle
+              cx={to.x}
+              cy={to.y}
+              r="11"
+              fill="none"
+              stroke="#0ea5e9"
+              strokeWidth="2.5"
+              className="challenge-hint-target"
+            />
+            <g transform={`translate(${(from.x + to.x) / 2} ${(from.y + to.y) / 2 - 20})`}>
+              <rect
+                x={-34}
+                y={-12}
+                width={68}
+                height={22}
+                rx={11}
+                fill="#e0f2fe"
+                stroke="#38bdf8"
+                strokeWidth="1.5"
+              />
+              <text
+                x={0}
+                y={4}
+                textAnchor="middle"
+                fontSize="11"
+                fontWeight="700"
+                fill="#0369a1"
+                fontFamily="system-ui, sans-serif"
+              >
+                {label}
+              </text>
+            </g>
+          </g>
+        ))}
+      </g>
+    </svg>
   );
 }
 

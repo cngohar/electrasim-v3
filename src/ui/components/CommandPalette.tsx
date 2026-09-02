@@ -260,6 +260,7 @@ export function CommandPalette() {
       <dialog
         open
         className="m-0 w-[min(560px,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/20 ring-1 ring-slate-900/5 dark:border-slate-700 dark:bg-slate-900 dark:ring-slate-700/50"
+        style={{ marginInline: 'auto' }}
         onMouseDown={(e) => e.stopPropagation()}
         aria-label="Command palette"
       >

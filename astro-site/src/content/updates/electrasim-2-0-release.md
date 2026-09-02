@@ -97,8 +97,10 @@ Version 2.0.1 brings helpful visual polish, smarter navigation, and bug fixes ac
 - **Continuous glowing release popup:** Re-engineered the animated release text with a seamless gradient sweep so the glow animates continuously without stopping or stuttering.
 - **One tip per visit on calculators:** The Voltage Drop Calculator now greets you with a single, clear tip when the page loads, rather than continuously cycling tips in the background. Refreshing the page brings up another helpful tip.
 - **Direct circuit loading from guides:** When clicking a circuit guide link from the website, ElectraSim now asks if you'd like to load the circuit onto your workbench immediately.
-- **Balanced tutorial walkthroughs:** Centered the initial tutorial step on both mobile and desktop screens, and fixed a step transition so no steps are skipped.
-- **Centered settings window:** Adjusted the settings panel so it stays neatly centered on your screen, and cleaned up the About tab.
+- **Balanced tutorial walkthroughs:** Centered the initial tutorial step on both mobile and desktop screens, fixed a step transition so no steps are skipped, and stopped the walkthrough from spotlighting the same palette tile twice — after you place the Live terminal, the spotlight now moves on to the Neutral terminal so the next step is always obvious.
+- **Guided wiring with on-canvas arrows:** The Student tour's wiring step now draws animated arrows straight onto the canvas — Live → L and N → Neutral — so it shows you exactly which ports to click instead of relying on text alone.
+- **Centered command palette:** The Ctrl+K command palette used to open at the top-left of the window; it now opens centred in your viewport.
+- **Centered settings window:** Adjusted the settings panel so it stays neatly centered on your screen with a sensible width — no more full-width stretch on wide monitors — and cleaned up the About tab.
 - **Neat component labels:** Adjusted label padding and font sizes so component names and ratings fit inside their boxes without overflowing.
 - **Seamless page transitions & faster prefetching:** Enabled instant view transitions and background prefetching for rapid navigation across articles, guides, and tools.
 - **New interactive calculator guide:** Published an in-depth visual guide on how to calculate cable sizes and voltage drop interactively.

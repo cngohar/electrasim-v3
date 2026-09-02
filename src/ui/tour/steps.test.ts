@@ -30,6 +30,7 @@ function snap(overrides: Partial<TourSnapshot> = {}): TourSnapshot {
     validationReport: null,
     standardPopoverOpen: false,
     placingType: null,
+    componentTypeCounts: {},
     ...overrides,
   };
 }
@@ -80,13 +81,27 @@ describe('tour step scripts', () => {
     // Wiring step needs BOTH the feed and the return wire (entry + 2).
     expect(byId('student', 'wire-ports').advanceWhen?.(snap({ wireCount: 5 }), entry)).toBe(true);
     expect(byId('student', 'wire-ports').advanceWhen?.(snap({ wireCount: 4 }), entry)).toBe(false);
-    // Supply step needs both terminals placed.
-    expect(byId('student', 'add-supply').advanceWhen?.(snap({ componentCount: 6 }), entry)).toBe(
-      true,
-    );
-    expect(byId('student', 'add-supply').advanceWhen?.(snap({ componentCount: 5 }), entry)).toBe(
-      false,
-    );
+    // Place-Live advances when a live terminal lands on the canvas.
+    expect(
+      byId('student', 'place-live').advanceWhen?.(
+        snap({ componentTypeCounts: { 'live-terminal': 1 } }),
+        entry,
+      ),
+    ).toBe(true);
+    expect(byId('student', 'place-live').advanceWhen?.(snap(), entry)).toBe(false);
+    // Place-Neutral advances only after BOTH terminals are present.
+    expect(
+      byId('student', 'place-neutral').advanceWhen?.(
+        snap({ componentTypeCounts: { 'neutral-terminal': 1, 'live-terminal': 1 } }),
+        entry,
+      ),
+    ).toBe(true);
+    expect(
+      byId('student', 'place-neutral').advanceWhen?.(
+        snap({ componentTypeCounts: { 'neutral-terminal': 1 } }),
+        entry,
+      ),
+    ).toBe(false);
     expect(byId('student', 'run-sim').advanceWhen?.(snap({ simRunning: true }), entry)).toBe(true);
   });
 
@@ -112,13 +127,30 @@ describe('tour step scripts', () => {
     );
     expect(byId('student', 'place-component').targetWhen?.(snap())).toBeNull();
 
-    expect(byId('student', 'add-supply').targetWhen?.(snap({ placingType: 'live-terminal' }))).toBe(
+    // Place-Live spotlights the Supply-section Live tile, then follows the
+    // armed tile onto the canvas once the user clicks it.
+    const supplyLive = '[data-palette-category="supply"] [data-palette-type="live-terminal"]';
+    expect(byId('student', 'place-live').targetWhen?.(snap())).toBe(supplyLive);
+    expect(byId('student', 'place-live').targetWhen?.(snap({ placingType: 'live-terminal' }))).toBe(
       '[data-circuit-canvas]',
     );
+    // Once a live terminal exists the spotlight stays on the canvas (the
+    // user is dropping it) instead of bouncing back to the tile.
     expect(
-      byId('student', 'add-supply').targetWhen?.(snap({ placingType: 'neutral-terminal' })),
+      byId('student', 'place-live').targetWhen?.(
+        snap({ componentTypeCounts: { 'live-terminal': 1 } }),
+      ),
     ).toBe('[data-circuit-canvas]');
-    expect(byId('student', 'add-supply').targetWhen?.(snap({ placingType: 'bulb' }))).toBeNull();
+
+    // Place-Neutral spotlights the Supply-section Neutral tile until armed.
+    const supplyNeutral = '[data-palette-category="supply"] [data-palette-type="neutral-terminal"]';
+    expect(byId('student', 'place-neutral').targetWhen?.(snap())).toBe(supplyNeutral);
+    expect(
+      byId('student', 'place-neutral').targetWhen?.(snap({ placingType: 'neutral-terminal' })),
+    ).toBe('[data-circuit-canvas]');
+    expect(byId('student', 'place-neutral').targetWhen?.(snap({ placingType: 'bulb' }))).toBe(
+      supplyNeutral,
+    );
   });
 
   it('pro: regional step advances on standard change, plug change, or popover close', () => {

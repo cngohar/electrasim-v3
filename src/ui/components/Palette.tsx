@@ -536,7 +536,11 @@ export function Palette({ open, isPhone }: Props) {
             {filtered.map((cat) => {
               const catCollapsed = isCollapsed(cat.category);
               return (
-                <div key={cat.category} className="mb-4">
+                <div
+                  key={cat.category}
+                  data-palette-category={cat.category.toLowerCase()}
+                  className="mb-4"
+                >
                   <SectionHeader
                     label={cat.category}
                     count={cat.items.length}
@@ -791,7 +795,11 @@ export function Palette({ open, isPhone }: Props) {
         {filtered.map((cat) => {
           const catCollapsed = isCollapsed(cat.category);
           return (
-            <div key={cat.category} className="mb-3">
+            <div
+              key={cat.category}
+              data-palette-category={cat.category.toLowerCase()}
+              className="mb-3"
+            >
               <SectionHeader
                 label={cat.category}
                 count={cat.items.length}

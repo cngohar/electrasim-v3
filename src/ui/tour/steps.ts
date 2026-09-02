@@ -44,6 +44,9 @@ export interface TourSnapshot {
   standardPopoverOpen: boolean;
   /** Component type currently armed for placement (null when idle). */
   placingType: string | null;
+  /** Count of placed components per type — lets steps react to the actual
+   *  circuit (e.g. spotlight the Neutral tile only after Live is placed). */
+  componentTypeCounts: Record<string, number>;
 }
 
 export interface TourStep {
@@ -110,24 +113,39 @@ const STUDENT_STEPS: TourStep[] = [
     advanceWhen: (snap, entry) => snap.componentCount > entry.componentCount,
   },
   {
-    id: 'add-supply',
-    target: '[data-palette-type="live-terminal"]',
+    id: 'place-live',
+    target: '[data-palette-category="supply"] [data-palette-type="live-terminal"]',
     targetWhen: (snap) =>
-      snap.placingType === 'live-terminal' || snap.placingType === 'neutral-terminal'
+      snap.placingType === 'live-terminal' || snap.componentTypeCounts['live-terminal']
         ? '[data-circuit-canvas]'
-        : null,
+        : '[data-palette-category="supply"] [data-palette-type="live-terminal"]',
     kind: 'do',
-    title: 'Give it power: Live and Neutral',
-    body: 'A load only works with a feed and a return. From the Supply section, place a Live (L) terminal on the left of the bulb and a Neutral (N) terminal on the right.',
-    action: 'Place both supply terminals',
-    advanceWhen: (snap, entry) => snap.componentCount >= entry.componentCount + 2,
+    title: 'Give it power: the Live feed',
+    body: 'A load only works with a feed and a return. From the Supply section, click Live Terminal (L), then click the canvas just left of the bulb to place it.',
+    action: 'Place the Live terminal',
+    advanceWhen: (snap, entry) => (snap.componentTypeCounts['live-terminal'] ?? 0) > 0,
+  },
+  {
+    id: 'place-neutral',
+    target: '[data-palette-category="supply"] [data-palette-type="neutral-terminal"]',
+    targetWhen: (snap) =>
+      snap.placingType === 'neutral-terminal'
+        ? '[data-circuit-canvas]'
+        : '[data-palette-category="supply"] [data-palette-type="neutral-terminal"]',
+    kind: 'do',
+    title: 'Give it power: the Neutral return',
+    body: 'Now the return path: from the Supply section, click Neutral Terminal (N), then place it just right of the bulb. Like connects to like — L on the left, N on the right.',
+    action: 'Place the Neutral terminal',
+    advanceWhen: (snap, entry) =>
+      (snap.componentTypeCounts['neutral-terminal'] ?? 0) > 0 &&
+      (snap.componentTypeCounts['live-terminal'] ?? 0) > 0,
   },
   {
     id: 'wire-ports',
     target: '[data-circuit-canvas]',
     kind: 'do',
     title: 'Wire the circuit',
-    body: 'Ports are the small dots on component edges. Click the Live terminal\u2019s port, then the bulb\u2019s L port to draw the first wire. Then connect the bulb\u2019s N port to the Neutral terminal. Like connects to like: L\u2192L, N\u2192N.',
+    body: 'Follow the arrows: click the Live terminal\u2019s L-out port, then the bulb\u2019s L port to draw the feed wire. Then draw the return from the bulb\u2019s N port to the Neutral terminal. Like connects to like: L\u2192L, N\u2192N.',
     action: 'Draw both wires (feed and return)',
     advanceWhen: (snap, entry) => snap.wireCount >= entry.wireCount + 2,
   },

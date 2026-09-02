@@ -924,6 +924,22 @@
   }
 }
 
+/* Opacity-only panel entrance — for surfaces whose positioning relies on an
+   inline transform (e.g. translate(-50%, -50%)); the transform-based
+   `animate-dialog-fade-in` would override it via its keyframes. */
+@keyframes electrasim-fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in-only {
+  animation: electrasim-fade-in 0.2s ease-out forwards;
+}
+
 .animate-dialog-fade-in,
 .animate-modal-panel-in,
 .animate-scaleUp {
@@ -1316,7 +1332,8 @@
   .animate-fadeIn,
   .animate-fadeOut,
   .animate-fade-in,
-  .animate-fade-out {
+  .animate-fade-out,
+  .animate-fade-in-only {
     animation: none !important;
   }
 
