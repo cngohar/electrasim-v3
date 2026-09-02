@@ -16,9 +16,9 @@
 import packageMetadata from '../../../package.json';
 import Icon from '../Icon.astro';
 
-const raw = packageMetadata.version; // e.g. "2.0.0"
-const [major, minor] = raw.split('.');
-const displayVersion = `${major}.${minor}`; // "2.0"
+const raw = packageMetadata.version; // e.g. "2.0.1"
+const [major, minor, patch] = raw.split('.');
+const displayVersion = patch && patch !== '0' ? `${major}.${minor}.${patch}` : `${major}.${minor}`;
 const storageKey = `electrasim:release-popup:${raw}`;
 ---
 
@@ -436,7 +436,7 @@ const storageKey = `electrasim:release-popup:${raw}`;
 
   /* ── The big version, lit by electrical pulses ── */
   .rp-version {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.35em;
@@ -446,19 +446,26 @@ const storageKey = `electrasim:release-popup:${raw}`;
     line-height: 1;
     letter-spacing: -0.03em;
     margin: 0.2rem 0 1.1rem;
+    filter: drop-shadow(0 0 20px rgba(37, 99, 235, 0.4));
   }
   .rp-vtext {
+    display: inline-block;
     background: linear-gradient(
-      100deg,
-      #1d4ed8 0%, #2563eb 22%, #93c5fd 38%, #ffffff 50%,
-      #fde68a 62%, #f59e0b 78%, #b45309 100%
+      110deg,
+      #1d4ed8 0%,
+      #2563eb 30%,
+      #60a5fa 44%,
+      #ffffff 50%,
+      #f59e0b 56%,
+      #2563eb 70%,
+      #1d4ed8 100%
     );
-    background-size: 220% 100%;
+    background-size: 200% 100%;
     -webkit-background-clip: text;
     background-clip: text;
+    -webkit-text-fill-color: transparent;
     color: transparent;
-    filter: drop-shadow(0 0 18px rgba(37, 99, 235, 0.35));
-    animation: rp-sweep 3.2s linear infinite, rp-pulse 1.15s ease-in-out infinite;
+    animation: rp-sweep 3s linear infinite;
   }
   .rp-spark {
     color: #f59e0b;
@@ -473,16 +480,11 @@ const storageKey = `electrasim:release-popup:${raw}`;
     animation-delay: -1.1s;
   }
   @keyframes rp-sweep {
-    to {
-      background-position: -220% 0;
+    0% {
+      background-position: 100% 0;
     }
-  }
-  @keyframes rp-pulse {
-    0%, 100% {
-      filter: drop-shadow(0 0 10px rgba(37, 99, 235, 0.28));
-    }
-    50% {
-      filter: drop-shadow(0 0 26px rgba(245, 158, 11, 0.5));
+    100% {
+      background-position: -100% 0;
     }
   }
   @keyframes rp-flicker {

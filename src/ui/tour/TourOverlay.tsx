@@ -309,20 +309,30 @@ export function TourOverlay({ isPhone }: Props) {
       ? placeCard(spot, { width: CARD_W, height: cardH }, { width: vw, height: vh })
       : null;
 
-  const cardStyle: React.CSSProperties = isPhone
-    ? { position: 'fixed', left: 8, right: 8, bottom: 8, width: 'auto' }
-    : placement
-      ? { position: 'fixed', top: placement.top, left: placement.left, width: CARD_W }
-      : {
-          position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: CARD_W,
-        };
+  const isCentered = !spot || tourStep === 0 || !step.target;
+  const cardStyle: React.CSSProperties = isCentered
+    ? {
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: 'min(400px, calc(100vw - 32px))',
+        maxWidth: 'calc(100vw - 32px)',
+      }
+    : isPhone
+      ? { position: 'fixed', left: 8, right: 8, bottom: 8, width: 'auto' }
+      : placement
+        ? { position: 'fixed', top: placement.top, left: placement.left, width: CARD_W }
+        : {
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 'min(380px, calc(100vw - 32px))',
+          };
 
   const arrowStyle: React.CSSProperties | null =
-    placement && spot
+    !isCentered && placement && spot
       ? placement.side === 'bottom'
         ? { top: -6, left: placement.arrow - 6 }
         : placement.side === 'top'

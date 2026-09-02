@@ -92,13 +92,12 @@ const STUDENT_STEPS: TourStep[] = [
   },
   {
     id: 'open-palette',
-    target: '[data-tour="open-palette"]',
-    kind: 'do',
-    title: 'Open the component palette',
-    body: 'Every part you can place — supplies, protection, switches, loads — lives in the palette.',
-    action: 'Click to open the palette',
-    skipIf: (snap) => snap.paletteOpen,
-    advanceWhen: (snap) => snap.paletteOpen,
+    target: '[data-tour="palette"]',
+    targetWhen: (snap) =>
+      snap.paletteOpen ? '[data-tour="palette"]' : '[data-tour="open-palette"]',
+    kind: 'look',
+    title: 'The Component Palette',
+    body: 'Every part you can place — power supplies, circuit breakers, switches, and loads — lives in the palette on the left. You can browse categories or search for specific parts.',
   },
   {
     id: 'place-component',

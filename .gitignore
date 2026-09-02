@@ -70,3 +70,6 @@ playwright-report/
 
 # Command Code agent state (never committed)
 .commandcode/
+
+# Local workspace planning notes
+v2 planning/

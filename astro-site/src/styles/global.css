@@ -1510,6 +1510,7 @@ h5 {
   line-height: 1;
   display: inline-block;
 }
+:root[data-theme="dark"] .nav-badge-exp,
 :root[data-resolved-theme="dark"] .nav-badge-exp {
   background: rgba(245, 158, 11, 0.22);
   color: #fbbf24;

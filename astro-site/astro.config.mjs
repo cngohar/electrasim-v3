@@ -17,6 +17,10 @@ export default defineConfig({
   // styles instead, and the current corpus does not use language-tagged fences.
   markdown: { syntaxHighlight: false },
   devToolbar: { enabled: false },
+  prefetch: {
+    prefetchAll: true,
+    defaultStrategy: 'hover',
+  },
   vite: {
     server: {
       // Allow sandboxed/remote dev previews (e.g. *.e2b.app) to reach the dev server.

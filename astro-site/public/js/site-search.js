@@ -297,9 +297,40 @@
 
     if (!trimmed) {
       showStatus(null);
-      currentResults = QUICK_LINKS;
-      if (emptyEl) emptyEl.hidden = true;
-      if (quickLinksEl) quickLinksEl.hidden = false;
+      let itemsToRender = QUICK_LINKS;
+      if (activeFilter !== 'all') {
+        if (searchIndex && searchIndex.length > 0) {
+          itemsToRender = searchIndex.filter((item) => item.type === activeFilter);
+        } else {
+          itemsToRender = QUICK_LINKS.filter((item) => item.type === activeFilter);
+          loadSearchIndex().then(() => {
+            const dialogEl = document.getElementById('site-search-dialog');
+            if (dialogEl?.open && !input?.value.trim()) {
+              updateResultsView(dialogEl, '');
+            }
+          });
+        }
+      }
+      currentResults = itemsToRender;
+      if (emptyEl) {
+        emptyEl.hidden = itemsToRender.length > 0;
+        const queryDisplay = emptyEl.querySelector('#search-empty-query');
+        if (queryDisplay) queryDisplay.textContent = `category: ${activeFilter}`;
+      }
+      if (quickLinksEl) {
+        quickLinksEl.hidden = itemsToRender.length === 0;
+        const groupTitle = quickLinksEl.querySelector('span');
+        if (groupTitle) {
+          const filterLabels = {
+            all: 'POPULAR & QUICK ACCESS',
+            tool: 'ELECTRICAL CALCULATORS & TOOLS',
+            article: 'EDUCATIONAL ARTICLES & TUTORIALS',
+            guide: 'CIRCUIT GUIDES & SCHEMATICS',
+            update: 'PRODUCT UPDATES & CHANGELOGS',
+          };
+          groupTitle.textContent = filterLabels[activeFilter] || 'FILTERED ITEMS';
+        }
+      }
       listEl.innerHTML = currentResults
         .map((item, idx) => renderItem(item, '', idx === activeIndex, idx))
         .join('');

@@ -11,8 +11,6 @@ const ROADMAP: Array<[icon: string, item: string, status: string]> = [
   ['tick', 'Dark mode + PWA + offline support', 'shipped'],
   ['tick', 'Import / Export / Share URL', 'shipped'],
   ['tick', '6 new components (RCD, Contactor, Timer, Dimmer, DB, Bell)', 'shipped'],
-  ['crystal', 'Cloud save + accounts', 'v2.0'],
-  ['crystal', 'AI assistant', 'v2.0'],
 ];
 
 export function AboutTab() {

@@ -840,10 +840,23 @@ export const useUiStore = create<UiState>()(
           : null;
 
       set((s) => {
-        // A tour needs the canvas: close blocking first-run dialogs first.
+        // A tour needs the canvas: close all blocking dialogs, pickers and guides.
         if (s.welcomeOpen) markWelcomed();
         s.welcomeOpen = false;
         s.commandPaletteOpen = false;
+        s.templatesOpen = false;
+        s.activeGuideId = null;
+        s.settingsOpen = false;
+        s.docsOpen = false;
+        s.faultLabOpen = false;
+        s.challengeOpen = false;
+        s.diagnosisOpen = false;
+        s.importExportOpen = false;
+        s.menuOpen = false;
+        s.contactOpen = false;
+        s.whatHappenedOpen = false;
+        s.shortcutsOpen = false;
+        s.mobileSuitabilityOpen = false;
         s.simRunning = false;
         s.tourId = id;
         s.tourStep = 0;

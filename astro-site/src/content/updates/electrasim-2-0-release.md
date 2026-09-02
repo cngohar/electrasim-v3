@@ -4,8 +4,8 @@ description: "ElectraSim 2.0 is the learning release: three structured learning 
 pubDate: 2026-08-31
 author: ElectraSim
 category: App Update
-version: "v2.0.0"
-tags: [ElectraSim, v2.0, release notes, challenge mode, diagnosis lab, ohmageddon, guided circuits, fault lab, electrical toolbox, cable sizing, voltage drop, circuit simulator]
+version: "v2.0.1"
+tags: [ElectraSim, v2.0, v2.0.1, release notes, challenge mode, diagnosis lab, ohmageddon, guided circuits, fault lab, electrical toolbox, cable sizing, voltage drop, circuit simulator]
 featured: true
 ---
 
@@ -14,6 +14,8 @@ ElectraSim 2.0 is about one thing: **turning a wiring drawing into something you
 This post is the complete tour. Everything linked below is live today, free, with no account and no tracking.
 
 [Open ElectraSim 2.0 →](/app/)
+
+> **v2.0.1 Maintenance Update:** We've polished the welcome popup with seamless animations, unified the "Coming Soon" badges across navigation and footer, optimized page loading speeds so preview graphics load only when needed, and fine-tuned menu interactions across the site.
 
 ---
 
@@ -87,9 +89,19 @@ Strict per-route Content-Security-Policies, security headers everywhere, 301 red
 
 **About Explore:** the 3D historical laboratory is being rebuilt for v2.1. The old URLs redirect cleanly, and [/explore/](/explore/) now says exactly that — coming soon, no teasers pretending otherwise.
 
-## Verification
+## 11. What's new in v2.0.1: Bug fixes & user experience refinements
 
-Every change above went through the full gate: typecheck, lint, **1,150+ unit tests**, the four stress harnesses, production builds, internal-link checks, size budgets, and browser end-to-end suites across the app and the built site. The engine benchmark still solves a 200-component, 396-wire circuit in ~1 ms median (~2.6 ms p95), off the main thread.
+Version 2.0.1 brings helpful visual polish, smarter navigation, and bug fixes across both the website and the circuit simulator:
+
+- **Instant search category filters:** Clicking any category filter (Calculators, Guides, Articles, Updates) inside the search dialog now filters the list immediately even before you start typing.
+- **Continuous glowing release popup:** Re-engineered the animated release text with a seamless gradient sweep so the glow animates continuously without stopping or stuttering.
+- **One tip per visit on calculators:** The Voltage Drop Calculator now greets you with a single, clear tip when the page loads, rather than continuously cycling tips in the background. Refreshing the page brings up another helpful tip.
+- **Direct circuit loading from guides:** When clicking a circuit guide link from the website, ElectraSim now asks if you'd like to load the circuit onto your workbench immediately.
+- **Balanced tutorial walkthroughs:** Centered the initial tutorial step on both mobile and desktop screens, and fixed a step transition so no steps are skipped.
+- **Centered settings window:** Adjusted the settings panel so it stays neatly centered on your screen, and cleaned up the About tab.
+- **Neat component labels:** Adjusted label padding and font sizes so component names and ratings fit inside their boxes without overflowing.
+- **Seamless page transitions & faster prefetching:** Enabled instant view transitions and background prefetching for rapid navigation across articles, guides, and tools.
+- **New interactive calculator guide:** Published an in-depth visual guide on how to calculate cable sizes and voltage drop interactively.
 
 ---
 

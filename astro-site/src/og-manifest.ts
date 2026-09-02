@@ -25,6 +25,7 @@ export const OG_BLOG_MANIFEST: Record<string, string> = {
   'how-to-test-a-ring-final-circuit': 'e24074cd02',
   'how-to-trace-an-electrical-fault-safely': 'ee208e5172',
   'how-to-use-a-multimeter-electrical-testing-guide': 'e8d6dcc3d8',
+  'how-to-use-interactive-cable-size-and-voltage-drop-calculators': '9b66139cfd',
   'how-to-wire-a-bathroom-zone-by-zone-uk-guide': '1d74fe8de7',
   'how-to-wire-a-ceiling-rose-and-light-fitting': 'c1f9fc6685',
   'how-to-wire-a-cooker-electric-oven-uk': 'bea2581159',

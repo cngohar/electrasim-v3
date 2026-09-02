@@ -73,36 +73,37 @@ describe('TourOverlay', () => {
   });
 
   it('advances a do-step only when the real store state changes', async () => {
-    // Jump straight to the open-palette do-step.
+    // Jump straight to the place-component do-step (index 4).
     act(() => {
-      useUiStore.setState({ tourStep: 3, paletteOpen: false });
-    });
-    render(<TourOverlay isPhone={false} />);
-
-    await waitFor(() =>
-      expect(screen.getByRole('dialog', { name: /Open the component palette/ })).toBeVisible(),
-    );
-    // No Next button while waiting on a do-step.
-    expect(screen.queryByRole('button', { name: 'Next' })).toBeNull();
-
-    // The user performs the real action.
-    act(() => {
-      useUiStore.setState({ paletteOpen: true });
-    });
-
-    await waitFor(
-      () => expect(screen.getByRole('dialog', { name: /Place a bulb/ })).toBeVisible(),
-      { timeout: 2500 },
-    );
-  });
-
-  it('skips an already-satisfied do-step immediately', async () => {
-    act(() => {
-      useUiStore.setState({ tourStep: 3, paletteOpen: true });
+      useUiStore.setState({ tourStep: 4 });
     });
     render(<TourOverlay isPhone={false} />);
 
     await waitFor(() => expect(screen.getByRole('dialog', { name: /Place a bulb/ })).toBeVisible());
+    // No Next button while waiting on a do-step.
+    expect(screen.queryByRole('button', { name: 'Next' })).toBeNull();
+
+    // The user performs the real action (placing a component).
+    act(() => {
+      useCircuitStore.setState((s) => ({
+        components: [
+          ...s.components,
+          {
+            id: 'bulb-1',
+            type: 'bulb',
+            x: 100,
+            y: 100,
+            ports: [],
+            state: {},
+          },
+        ],
+      }));
+    });
+
+    await waitFor(
+      () => expect(screen.getByRole('dialog', { name: /Give it power/ })).toBeVisible(),
+      { timeout: 2500 },
+    );
   });
 
   it('ends without marking done on Esc', async () => {

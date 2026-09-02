@@ -293,7 +293,7 @@
     showTips: true,
     threeD: false,
     parallax: { x: 0, y: 0 },
-    tipIndex: 0,
+    tipIndex: Math.floor(Math.random() * (typeof TIPS !== 'undefined' ? TIPS.length : 18)),
   };
 
   // Shareable calculation URLs: state is mirrored into the query string on
@@ -331,8 +331,12 @@
     if (!values) return;
     Object.assign(state, values, { voltsUnit: 'V', preset: '' });
     const fields = {
-      voltage: 'input-voltage', current: 'input-current', length: 'input-length',
-      size: 'input-size', pf: 'input-pf', temp: 'input-temp',
+      voltage: 'input-voltage',
+      current: 'input-current',
+      length: 'input-length',
+      size: 'input-size',
+      pf: 'input-pf',
+      temp: 'input-temp',
     };
     for (const [key, id] of Object.entries(fields)) {
       const el = document.getElementById(id);
@@ -1837,18 +1841,6 @@
     if (btnTipPrev) btnTipPrev.addEventListener('click', () => stepTip(-1));
     if (btnTipNext) btnTipNext.addEventListener('click', () => stepTip(1));
     paintTip(false);
-
-    // Auto-advance, but the timer restarts whenever the reader pages by hand or
-    // is hovering the tip (so nobody loses a sentence mid-read).
-    setInterval(() => {
-      if (!state.showTips || !tipsText || document.hidden || REDUCED_MOTION.matches) return;
-      if (tipsHold) return;
-      tipsRotation += 1;
-      if (tipsRotation * 1000 < TIP_ROTATE_MS) return;
-      tipsRotation = 0;
-      state.tipIndex = (state.tipIndex + 1) % TIPS.length;
-      paintTip();
-    }, 1000);
 
     // 14. Mobile Bottom Sheet Handlers
     const btnMobInputs = document.getElementById('btn-mobile-open-inputs');

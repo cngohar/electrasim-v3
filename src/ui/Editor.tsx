@@ -2,6 +2,8 @@
 
 import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
 import { isGuidedCircuitId } from '../domain/guidedCircuitIds';
+import { getGuidedCircuitTemplate } from '../domain/templates';
+import { loadGuidedCircuitIntoEditor } from '../lib/guidedCircuitLoader';
 import { useDevice } from '../lib/useDevice';
 import {
   releaseMomentarySwitches,
@@ -168,9 +170,26 @@ export function Editor() {
   }, []);
 
   useEffect(() => {
-    const templateId = new URLSearchParams(window.location.search).get('template');
+    const params = new URLSearchParams(window.location.search);
+    const templateId = params.get('template');
     if (templateId && isGuidedCircuitId(templateId)) {
-      useUiStore.getState().setTemplatesOpen(true);
+      const template = getGuidedCircuitTemplate(templateId);
+      if (template) {
+        // Clean URL so refresh won't re-trigger prompt
+        const nextUrl = new URL(window.location.href);
+        nextUrl.searchParams.delete('template');
+        window.history.replaceState({}, '', nextUrl.pathname + nextUrl.search + nextUrl.hash);
+
+        const circuit = useCircuitStore.getState();
+        const hasCircuit = circuit.components.length > 0 || circuit.wires.length > 0;
+        const promptMsg = hasCircuit
+          ? `Load Guided Circuit "${template.title}"?\n\nThis will replace the current canvas with the guided circuit.`
+          : `Load Guided Circuit "${template.title}" onto the canvas?`;
+
+        if (window.confirm(promptMsg)) {
+          loadGuidedCircuitIntoEditor(template);
+        }
+      }
     }
   }, []);
 

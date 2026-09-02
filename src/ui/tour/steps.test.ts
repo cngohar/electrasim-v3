@@ -63,12 +63,12 @@ describe('tour step scripts', () => {
     }
   });
 
-  it('student: palette step skips when already open and advances when opened', () => {
+  it('student: palette step introduces the component palette without skipping', () => {
     const step = byId('student', 'open-palette');
-    expect(step.skipIf?.(snap({ paletteOpen: true }))).toBe(true);
-    expect(step.skipIf?.(snap({ paletteOpen: false }))).toBe(false);
-    expect(step.advanceWhen?.(snap({ paletteOpen: true }), snap())).toBe(true);
-    expect(step.advanceWhen?.(snap({ paletteOpen: false }), snap())).toBe(false);
+    expect(step.kind).toBe('look');
+    expect(step.skipIf).toBeUndefined();
+    expect(step.targetWhen?.(snap({ paletteOpen: true }))).toBe('[data-tour="palette"]');
+    expect(step.targetWhen?.(snap({ paletteOpen: false }))).toBe('[data-tour="open-palette"]');
   });
 
   it('student: placement/wiring/run steps advance on real state changes only', () => {

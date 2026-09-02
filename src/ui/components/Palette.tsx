@@ -523,7 +523,9 @@ export function Palette({ open, isPhone }: Props) {
                             icon={item.icon}
                             isLighting={isLighting}
                           />
-                          <span className="w-full truncate text-center">{item.label}</span>
+                          <span className="block w-full min-w-0 truncate text-center leading-tight px-1">
+                            {item.label}
+                          </span>
                         </button>
                       );
                     })}
@@ -714,7 +716,9 @@ export function Palette({ open, isPhone }: Props) {
                       icon={def.icon}
                       isLighting={isLighting}
                     />
-                    <span className="truncate text-center w-full px-1">{def.label}</span>
+                    <span className="block w-full min-w-0 truncate text-center text-[10px] leading-tight px-1">
+                      {def.label}
+                    </span>
                   </button>
                 );
               })}
@@ -837,7 +841,9 @@ export function Palette({ open, isPhone }: Props) {
                             icon={it.icon}
                             isLighting={isLighting}
                           />
-                          <span className="truncate text-center w-full px-1">{it.label}</span>
+                          <span className="block w-full min-w-0 truncate text-center text-[10px] leading-tight px-1">
+                            {it.label}
+                          </span>
                         </button>
                         <button
                           type="button"

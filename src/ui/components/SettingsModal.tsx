@@ -41,7 +41,7 @@ export function SettingsModal({ open, onClose, initialTab }: Props) {
       onClose={onClose}
       title="Settings"
       description="Preferences are stored locally on this device. Use the Backup tab to take them — and your circuit — to another computer."
-      widthClass="max-w-3xl"
+      widthClass="max-w-2xl"
       footer={
         <>
           <button

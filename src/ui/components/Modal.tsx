@@ -106,7 +106,7 @@ export function Modal({
       <div
         ref={panelRef}
         tabIndex={-1}
-        className={`relative min-w-0 w-full ${widthClass} max-h-[calc(100dvh-2rem)] max-w-[calc(100vw-2rem)] overflow-y-auto rounded-2xl border border-slate-200/90 bg-white shadow-2xl shadow-slate-950/40 ring-1 ring-slate-900/10 outline-none dark:border-slate-700/80 dark:bg-slate-900 dark:ring-slate-700/50 ${
+        className={`relative mx-auto my-auto min-w-0 w-full ${widthClass} max-h-[calc(100dvh-2rem)] max-w-[calc(100vw-2rem)] overflow-y-auto rounded-2xl border border-slate-200/90 bg-white shadow-2xl shadow-slate-950/40 ring-1 ring-slate-900/10 outline-none dark:border-slate-700/80 dark:bg-slate-900 dark:ring-slate-700/50 ${
           isClosing ? 'animate-modal-panel-out' : 'animate-modal-panel-in'
         }`}
       >

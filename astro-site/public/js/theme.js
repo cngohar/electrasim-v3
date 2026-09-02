@@ -33,6 +33,7 @@
   const applyPreference = (preference) => {
     const resolved = resolvePreference(preference);
     root.dataset.theme = resolved;
+    root.dataset.resolvedTheme = resolved;
     root.style.colorScheme = resolved;
     document
       .querySelector('meta[name="theme-color"]')
