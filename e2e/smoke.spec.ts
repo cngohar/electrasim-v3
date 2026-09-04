@@ -166,7 +166,16 @@ test.describe('app shell', () => {
       /:to$/,
     );
 
-    const targetPort = page.locator('[data-component-id^="fuse-"] [data-port-index="0"]').first();
+    /*
+     * Re-terminate the wire on the socket's Live port. Two things moved here:
+     * the demo bench no longer ships a `fuse-*` component, and the focusable
+     * port element is the expanded touch target inside the port group — the
+     * `data-port-index` circle is the visual pin, with `pointer-events: none`
+     * and no tabIndex, so focusing it did nothing.
+     */
+    const targetPort = page
+      .locator('[data-component-id^="socket-"] [data-port-group="0"] [data-port-touch-target]')
+      .first();
     await targetPort.focus();
     await targetPort.press('Enter');
     await expect(page.locator('[data-circuit-canvas]')).not.toHaveAttribute(

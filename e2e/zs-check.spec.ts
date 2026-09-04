@@ -24,11 +24,13 @@ test.describe('zs check panel', () => {
   test('shows per-device Zs verdicts with BS 7671 max-Zs values, reactive to Ze', async ({
     page,
   }) => {
+    // `?template=` deep-links the guide straight onto the canvas (both confirm
+    // prompts are auto-accepted above); the Guided Circuits picker is not
+    // involved. The checklist panel is a lazily-imported chunk.
     await page.goto(`/?template=${RCBO_TEMPLATE}`);
-    const card = page
-      .getByRole('article')
-      .filter({ has: page.getByRole('heading', { name: 'RCBO-Protected Socket' }) });
-    await card.getByRole('button', { name: 'Load guide' }).click();
+    await expect(page.getByRole('heading', { name: 'RCBO-Protected Socket' })).toBeVisible({
+      timeout: 15_000,
+    });
 
     await page.getByRole('button', { name: 'Circuit Safety & Validation' }).click();
 

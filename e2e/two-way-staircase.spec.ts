@@ -16,12 +16,10 @@ test.describe('Two-Way Staircase guide', () => {
     page.on('dialog', (dialog) => dialog.accept());
     const isPhone = (page.viewportSize()?.width ?? 0) < 640;
 
+    // `?template=` is a deep link that confirms, then drops the guide straight
+    // onto the canvas — it does not open the Guided Circuits picker. Both
+    // `window.confirm` prompts are auto-accepted by the handler above.
     await page.goto(`/?template=${templateId}`);
-
-    const guide = page
-      .getByRole('article')
-      .filter({ has: page.getByRole('heading', { name: 'Two-Way Staircase Light' }) });
-    await guide.getByRole('button', { name: 'Load guide' }).click();
 
     const guideHeading = page.getByRole('heading', { name: 'Two-Way Staircase Light' });
     const switchA = switchControl(page.locator(`[data-component-id="${templateId}-switch-a"]`));
@@ -30,7 +28,8 @@ test.describe('Two-Way Staircase guide', () => {
     // StatusPill (current design): "6 comps • 6 wires • N energized".
     const status = page.getByText(/6\s*comps\s*•\s*6\s*wires\s*•\s*\d+\s*energized/);
 
-    await expect(guideHeading).toBeVisible();
+    // The checklist panel is a lazily-imported chunk.
+    await expect(guideHeading).toBeVisible({ timeout: 15_000 });
     await expectSwitchPosition(switchA, 'L1');
     await expectSwitchPosition(switchB, 'L1');
     await assertTerminalLabels(page, 'switch-a');

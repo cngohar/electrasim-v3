@@ -68,6 +68,14 @@ function unprotectedSocketShareUrl(): string {
 // don't overlap the canvas bulbs we need to click in the tests.
 test.use({ viewport: { width: 1680, height: 1000 } });
 
+/**
+ * The sub-header Fault Lab toggle. Matching on the accessible name is ambiguous
+ * in Pro mode — the Inspector also owns a "Fault Lab (manual fault injection)"
+ * tab — and the toggle's own name grows an "Active" suffix once armed, so key
+ * off the tooltip, which is stable and unique to the bar.
+ */
+const faultLabToggle = (page: Page) => page.getByTitle(/^Toggle the Fault Lab/);
+
 async function ensureProMode(page: Page) {
   // The mode toggle always renders either "Student" (basic, emerald) or
   // "Pro" (pro, purple). If the button currently shows "Student", click it
@@ -77,7 +85,7 @@ async function ensureProMode(page: Page) {
     await studentToggle.click({ force: true });
   }
   // Wait until Pro-only chrome appears (the Fault Lab button in the app bar).
-  await expect(page.getByRole('button', { name: /Fault Lab/ })).toBeVisible();
+  await expect(faultLabToggle(page)).toBeVisible();
 }
 
 test.describe('Dual standard & pro features', () => {
@@ -118,7 +126,7 @@ test.describe('Dual standard & pro features', () => {
 
     // The Fault Lab button is the single dedicated fault entry point (the old
     // sub-header "Faults" master toggle was removed as redundant).
-    const faultLab = page.getByRole('button', { name: /Fault Lab/ });
+    const faultLab = faultLabToggle(page);
     await expect(faultLab).toBeVisible();
 
     // Fault mode now lives in the Inspector: opening it arms manual fault
@@ -131,12 +139,11 @@ test.describe('Dual standard & pro features', () => {
      * buttons with canvas animations (the old "Manual Fault Simulation"
      * block in Properties is gone). Target the switch by id rather than by
      * viewport coordinates: the old hardcoded point sat beyond the right
-     * edge of narrower (tablet) viewports and clicked nothing.
+     * edge of narrower (tablet) viewports and clicked nothing. `two-5` is the
+     * first staircase switch of the Pro demo bench, and a switch target is
+     * what surfaces the switch-scoped "Switched Neutral" fault below.
      */
-    await page
-      .locator('[data-component-id="single-10"]')
-      .locator(':scope > g[role="button"]')
-      .click();
+    await page.locator('[data-component-id="two-5"]').locator(':scope > g[role="button"]').click();
     await page.waitForTimeout(300);
     const panel = page.getByLabel('Fault Lab panel');
     await expect(panel.getByRole('button', { name: /Short Circuit/ })).toBeEnabled();
@@ -273,22 +280,18 @@ test.describe('Dual standard & pro features', () => {
 
   test('recommended protection badge appears for a load in pro mode', async ({ page }) => {
     await ensureProMode(page);
-    // The default seed circuit places bulbs across the canvas. Click around
-    // the centre where nothing overlaps, then confirm the badge rendered.
-    // We try a handful of candidate points because bulb positions vary with
-    // the viewport.
-    // Seed-circuit screen-space centres (derived for a 1680 px viewport).
-    // motor-16 reliably renders the Recommended Protection badge; switches
-    // exercise the Manual Fault Simulation panel.
-    const candidates = [
-      [659, 847], // motor-16
-      [937, 347], // single-way switch
-      [1187, 569], // push button
-      [409, 208], // mcb-4
-    ];
+    /*
+     * Target loads by id rather than by screen coordinates — the demo bench is
+     * mode-specific now, and the old hardcoded points (derived from a bench
+     * with a `motor-16`) landed on empty canvas. The Pro bench's motor-starter
+     * and socket branches both sit clear of the palette and the Inspector.
+     */
     let found = false;
-    for (const [x, y] of candidates) {
-      await page.mouse.click(x, y);
+    for (const id of ['motor-12', 'socket-9']) {
+      await page
+        .locator(`[data-component-id="${id}"]`)
+        .locator(':scope > g[role="button"]')
+        .click({ force: true });
       await page.waitForTimeout(250);
       if (
         await page

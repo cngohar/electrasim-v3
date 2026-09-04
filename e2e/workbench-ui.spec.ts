@@ -15,6 +15,15 @@ import { expect, test } from '@playwright/test';
 
 test.use({ viewport: { width: 1680, height: 1000 } });
 
+/**
+ * The sub-header Fault Lab toggle. `getByRole('button', { name: /Fault Lab/ })`
+ * is ambiguous in Pro mode — the Inspector also owns a "Fault Lab (manual fault
+ * injection)" tab — and the toggle's own accessible name grows an "Active"
+ * suffix once armed. The tooltip is stable in both states and unique to the bar.
+ */
+const faultLabToggle = (page: import('@playwright/test').Page) =>
+  page.getByTitle(/^Toggle the Fault Lab/);
+
 test.describe('workbench shell', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
@@ -27,9 +36,10 @@ test.describe('workbench shell', () => {
 
   test('top application bar renders all primary controls', async ({ page }) => {
     await expect(page.locator('header').getByText('ElectraSim', { exact: true })).toBeVisible();
-    // Undo / Redo are icon buttons (aria titles).
-    await expect(page.getByTitle(/Undo \(Ctrl\+Z\)/)).toBeVisible();
-    await expect(page.getByTitle(/Redo \(Ctrl\+Shift\+Z\)/)).toBeVisible();
+    // Undo / Redo are icon buttons (aria titles). The shortcut label is
+    // platform-remapped — "Ctrl+Z" on Windows/Linux, "⌘Z" on macOS/iPadOS.
+    await expect(page.getByTitle(/Undo \((Ctrl\+|⌘)Z\)/)).toBeVisible();
+    await expect(page.getByTitle(/Redo \((Ctrl\+|⌘)Shift\+Z\)/)).toBeVisible();
     // Primary run action.
     await expect(page.getByRole('button', { name: /^Run Simulation$/ })).toBeVisible();
     // Fault Lab is a Pro-only entry point; switch to Pro to see it.
@@ -37,7 +47,7 @@ test.describe('workbench shell', () => {
     if (await studentToggle.isVisible().catch(() => false)) {
       await studentToggle.click({ force: true });
     }
-    await expect(page.getByRole('button', { name: /Fault Lab/ })).toBeVisible();
+    await expect(faultLabToggle(page)).toBeVisible();
     // Theme + Settings + Menu (scoped to the top app bar header).
     await expect(page.locator('header').getByTitle(/Light Theme|Dark Theme/)).toBeVisible();
     await expect(page.locator('header').getByTitle('Settings')).toBeVisible();
@@ -126,9 +136,12 @@ test.describe('workbench shell', () => {
     expect(bodyBefore > 0 || hasBody || hasEntry).toBe(true);
   });
 
-  test('status bar shows mode and zoom', async ({ page }) => {
+  test('status bar shows mode, snap, grid and the zoom readout', async ({ page }) => {
     await expect(page.getByText(/Mode:/)).toBeVisible();
-    await expect(page.getByText(/Zoom:/)).toBeVisible();
+    // Zoom is no longer a "Zoom: 100%" label — the status bar now pairs a
+    // zoom-to-fit shortcut with a percentage readout that resets the view.
+    await expect(page.getByTitle('Zoom to fit (F)')).toBeVisible();
+    await expect(page.getByTitle('Click to reset zoom to 100%')).toHaveText(/^\d+%$/);
     await expect(page.getByText(/Snap:/)).toBeVisible();
     await expect(page.getByText(/Grid:/)).toBeVisible();
   });
@@ -145,7 +158,7 @@ test.describe('workbench shell', () => {
     if (await studentToggle.isVisible().catch(() => false)) {
       await studentToggle.click({ force: true });
     }
-    await page.getByRole('button', { name: /Fault Lab/ }).click();
+    await faultLabToggle(page).click();
     // The dedicated Fault Lab panel appears.
     const panel = page.getByLabel('Fault Lab panel');
     await expect(panel).toBeVisible();
@@ -161,11 +174,13 @@ test.describe('workbench shell', () => {
     if (await studentToggle.isVisible().catch(() => false)) {
       await studentToggle.click({ force: true });
     }
-    await page.getByRole('button', { name: /Fault Lab/ }).click();
-    // Select a non-source load component on the canvas (a bulb) that sits on
-    // the right side, away from the left-positioned Fault Lab panel.
-    const bulbBody = page.locator('[data-component-id^="bulb"] > g[role="button"]').nth(1);
-    await bulbBody.click({ force: true });
+    await faultLabToggle(page).click();
+    // Select a non-source load away from both panels. The Fault Lab now lives
+    // in the right-hand Inspector, so the Pro bench's bulb (far right of the
+    // staircase branch) sits *under* it — the motor-starter branch is clear of
+    // the left palette and the Inspector alike.
+    const loadBody = page.locator('[data-component-id^="motor-"] > g[role="button"]').first();
+    await loadBody.click({ force: true });
     await page.waitForTimeout(300);
     const shortBtn = page.getByRole('button', { name: /Short Circuit/ });
     await expect(shortBtn).toBeEnabled();

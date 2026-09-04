@@ -53,7 +53,21 @@ test.describe('new Guided Circuits', () => {
   });
 
   test('the guided circuits window has a visible close control and closes', async ({ page }) => {
-    await page.goto('/?template=simple-lamp');
+    await page.goto('/');
+    await page.locator('[data-circuit-canvas]').waitFor({ state: 'attached' });
+
+    /*
+     * Open the picker from the command hub rather than the sub-header "Guides"
+     * button: at tablet widths the header's left zone is sized to its own
+     * content and overflows on top of the centre cluster, so a click aimed at
+     * that button lands on the active-standard chip instead. The Menu tile sits
+     * in the right zone and is reachable on every viewport.
+     */
+    await page.getByRole('button', { name: 'Menu' }).click();
+    await page
+      .getByRole('button', { name: /^Guided Circuits/ })
+      .first()
+      .click();
 
     const dialog = page.getByRole('dialog', { name: 'Guided Circuits' });
     await expect(dialog).toBeVisible();
@@ -66,35 +80,46 @@ test.describe('new Guided Circuits', () => {
   test('loads a Pro guide, switches to Pro mode, and can end the guide', async ({ page }) => {
     await loadGuide(page, 'pro-ev-charger-circuit', 'EV Charger Dedicated Circuit');
 
+    // Scope to the guide panel: the command hub renders its tiles (including a
+    // "Challenge Mode" one) into the DOM up front, so page-wide text asserts
+    // pick up chrome that has nothing to do with the guide.
+    const guidePanel = page
+      .getByRole('complementary')
+      .filter({ has: page.getByRole('heading', { name: 'EV Charger Dedicated Circuit' }) });
+
     // The guide checklist opens with the EV charger template.
-    await expect(page.getByText(/Advanced · Heavy fixed loads/)).toBeVisible();
+    await expect(guidePanel.getByText(/Advanced · Heavy fixed loads/)).toBeVisible();
 
     // Guided circuits present as a guide checklist — not as Challenge Mode.
-    await expect(page.getByText('Checklist')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Next guide' })).toBeVisible();
-    await expect(page.getByText(/challenge/i)).toHaveCount(0);
+    await expect(guidePanel.getByText('Checklist', { exact: true })).toBeVisible();
+    await expect(guidePanel.getByRole('button', { name: 'Next guide' })).toBeVisible();
+    await expect(guidePanel.getByText(/challenge/i)).toHaveCount(0);
 
     // Loading a Pro guide promotes the workbench to Pro mode.
     const studentToggle = page.getByRole('button', { name: /^student$/i });
     await expect(studentToggle).toBeHidden({ timeout: 5000 });
 
     // End guide closes the checklist but keeps the circuit on the canvas.
-    await page.getByRole('button', { name: 'End guide' }).click();
+    await guidePanel.getByRole('button', { name: 'End guide' }).click();
     await expect(page.getByRole('heading', { name: 'EV Charger Dedicated Circuit' })).toBeHidden();
     await expect(page.locator('[data-component-id="pro-ev-charger-circuit-ev"]')).toBeVisible();
   });
 });
 
 async function loadGuide(page: Page, templateId: string, title: string): Promise<void> {
+  /*
+   * `?template=<id>` is a deep link, not a shortcut into the Guided Circuits
+   * picker: the editor confirms the replacement and drops the guide straight
+   * onto the canvas (two `window.confirm` prompts — the deep-link prompt and
+   * the loader's own — both auto-accepted in `beforeEach`). The picker is a
+   * separate entry point, covered by its own test above.
+   */
   await page.goto(`/?template=${templateId}`);
 
-  const guideCard = page
-    .getByRole('article')
-    .filter({ has: page.getByRole('heading', { name: title }) });
-  await expect(guideCard).toBeVisible();
-  await guideCard.getByRole('button', { name: 'Load guide' }).click();
-
-  await expect(page.getByRole('heading', { name: title })).toBeVisible();
+  // The checklist panel is a lazily-imported chunk, so the guide title only
+  // appears once that module has been fetched — slow enough under a parallel
+  // dev-server run to outlast the default expect timeout.
+  await expect(page.getByRole('heading', { name: title })).toBeVisible({ timeout: 15_000 });
 
   /*
    * Below `lg` the component palette is a fixed overlay over the left of the

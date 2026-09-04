@@ -20,10 +20,17 @@ async function openChallengeMode(page: Page) {
   await page.getByRole('button', { name: 'Start Challenge Mode' }).click();
   await expect(page.getByRole('heading', { name: 'How Challenge Mode works' })).toBeHidden();
   const missionOffer = page.getByRole('heading', { name: 'Start with a quick mission?' });
-  if (await missionOffer.isVisible().catch(() => false)) {
-    await page.getByRole('button', { name: 'Skip to Challenges' }).click();
-    await expect(missionOffer).toBeHidden();
-  }
+  /*
+   * The first-run Mission 0 offer is raised from an effect that waits on the
+   * persisted-progress load, so it lands a beat *after* the explainer closes.
+   * A one-shot `isVisible()` probe raced it and left the offer's modal backdrop
+   * swallowing the first click aimed at the Learn hub behind it.
+   */
+  await expect(missionOffer).toBeVisible();
+  await page.getByRole('button', { name: 'Skip to Challenges' }).click();
+  // `toBeHidden` also outlasts the modal's 200 ms exit transition, so the
+  // backdrop is gone before the caller clicks anything underneath it.
+  await expect(missionOffer).toBeHidden();
   await expect(panel(page)).toBeVisible();
   // The menu item's action closes the overlay; assert the overlay panel is
   // inert before moving on (phones: z-[70] above every docked panel).
@@ -121,7 +128,21 @@ async function placeComponent(page: Page, type: string) {
  * Click two ports to wire them (port-click-port FSM). Ports are real buttons
  * (tabIndex=0, Enter activates), so keyboard activation sidesteps panel
  * occlusion entirely — the same pattern smoke.spec.ts uses for rerouting.
+ *
+ * The focusable element is the expanded touch target (`data-port-touch-target`)
+ * inside the port group, NOT the `data-port-index` circle — that one is the
+ * visual pin and carries `pointer-events: none` with no tabIndex, so focusing
+ * it silently did nothing and no wire was ever drawn.
  */
+function port(page: Page, type: string, index: number) {
+  const prefix = type.split('-')[0];
+  return page
+    .locator(
+      `[data-component-id^="${prefix}-"] [data-port-group="${index}"] [data-port-touch-target]`,
+    )
+    .first();
+}
+
 async function wirePorts(
   page: Page,
   fromType: string,
@@ -129,14 +150,8 @@ async function wirePorts(
   toType: string,
   toPort: number,
 ) {
-  const fromPrefix = fromType.split('-')[0];
-  const toPrefix = toType.split('-')[0];
-  const from = page
-    .locator(`[data-component-id^="${fromPrefix}-"] [data-port-index="${fromPort}"]`)
-    .first();
-  const to = page
-    .locator(`[data-component-id^="${toPrefix}-"] [data-port-index="${toPort}"]`)
-    .first();
+  const from = port(page, fromType, fromPort);
+  const to = port(page, toType, toPort);
   await from.focus();
   await from.press('Enter');
   await to.focus();
@@ -144,8 +159,15 @@ async function wirePorts(
 }
 
 test.describe('Challenge Mode', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page }, testInfo) => {
     placeCounter = 0;
+    /*
+     * The build-and-check challenges place five components, wire four pairs and
+     * run the evaluator — around 25 s on WebKit even when it has the machine to
+     * itself, which overruns the 30 s budget as soon as workers compete. Widen
+     * the budget on the iPad project rather than thinning the coverage.
+     */
+    test.slow(testInfo.project.name === 'tablet-safari');
     await page.addInitScript(() => {
       window.localStorage.setItem('electrasim:welcomed', '1');
       window.localStorage.setItem('electrasim:mobile-suitability:v1', '1');
@@ -180,12 +202,12 @@ test.describe('Challenge Mode', () => {
     await startChallenge(page, 'Build a Protected Lamp');
 
     await page.getByRole('button', { name: 'Pause challenge' }).click();
-    await expect(page.locator('[data-challenge-paused]')).toBeVisible();
+    await expect(page.getByLabel('Challenge paused')).toBeVisible();
     await expect(page.locator('[data-circuit-canvas]')).toHaveAttribute('aria-disabled', 'true');
     await expect(page.getByRole('button', { name: 'Resume challenge' }).first()).toBeVisible();
 
     await page.getByRole('button', { name: 'Resume challenge' }).first().click();
-    await expect(page.locator('[data-challenge-paused]')).toBeHidden();
+    await expect(page.getByLabel('Challenge paused')).toBeHidden();
     await expect(page.locator('[data-circuit-canvas]')).toHaveAttribute('aria-disabled', 'false');
   });
 
@@ -207,14 +229,16 @@ test.describe('Challenge Mode', () => {
       panel(page).getByText('The lighting circuit is not yet protected by an MCB.').first(),
     ).toBeVisible();
     // The outcome requirements are shown, not a "Place a Live supply terminal"
-    // style construction checklist.
+    // style construction checklist. Match exactly: the feedback paragraphs
+    // quote the same wording ("…is not yet protected by an MCB."), so a
+    // substring match would resolve to several nodes.
     for (const requirement of [
       'Protected by an MCB',
       'Switch controls the lamp',
       'Complete return path',
       'Lamp operates correctly',
     ]) {
-      await expect(panel(page).getByText(requirement)).toBeVisible();
+      await expect(panel(page).getByText(requirement, { exact: true })).toBeVisible();
     }
     await expect(panel(page).getByText(/All steps/i)).toBeHidden();
     await expect(panel(page).getByText(/Place a Live supply terminal/i)).toBeHidden();
@@ -332,7 +356,13 @@ test.describe('Challenge Mode', () => {
       .getByRole('button', { name: /Check circuit/ })
       .click();
     await expect(completePanel(page).getByText(/COMPLETE!/i)).toBeVisible();
-    await expect(completePanel(page).getByText(/momentary contact/i)).toBeVisible();
+    // The panel now explains the momentary contact twice — the "you used…"
+    // verdict and a standing teaching note — so take the first match.
+    await expect(
+      completePanel(page)
+        .getByText(/momentary contact/i)
+        .first(),
+    ).toBeVisible();
   });
 
   test('RCBO: missing earth is rejected (plan §25, §38-6)', async ({ page }) => {

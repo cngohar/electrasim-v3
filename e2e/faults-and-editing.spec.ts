@@ -4,8 +4,7 @@ import { type Locator, type Page, expect, test } from '@playwright/test';
  * Fault-injection → protection-trip → reset flows, plus the editing
  * fundamentals (delete+confirm+undo, copy/paste, fault undo, JSON export)
  * that the original smoke/guide specs never exercised. Every assertion here
- * encodes behaviour first verified live in the browser (see
- * scripts/probe5-post-trip.mjs).
+ * encodes behaviour first verified live in the browser.
  */
 
 const STAIRCASE = 'two-way-staircase-light';
@@ -20,18 +19,34 @@ function hitboxIn(node: Locator): Locator {
   return node.locator('> g[role="button"]');
 }
 
-async function loadGuide(page: Page, templateId: string, title: string) {
-  await page.goto(`/?template=${templateId}`);
-  const card = page
-    .getByRole('article')
-    .filter({ has: page.getByRole('heading', { name: title }) });
-  await card.getByRole('button', { name: 'Load guide' }).click();
-  // Fault injection is a Pro-mode feature; ensure the harness runs in Pro.
+/**
+ * Fault injection is Pro-only, so every guide here is loaded into Pro mode.
+ *
+ * The switch does NOT go through the sub-header mode toggle: at tablet widths
+ * the header's left zone is sized to its own content (`justify-self-start` in a
+ * `1fr` track) and overflows on top of the centre cluster, so a click aimed at
+ * the toggle lands on the active-standard chip instead. The chip is the topmost
+ * element on every viewport and its "Locked in Student mode" popover offers the
+ * same switch, so drive it from there.
+ */
+async function ensureProMode(page: Page) {
   const studentToggle = page.getByRole('button', { name: /^student$/i });
-  if (await studentToggle.isVisible().catch(() => false)) {
-    await studentToggle.click({ force: true });
-    await page.waitForTimeout(250);
-  }
+  if (!(await studentToggle.isVisible().catch(() => false))) return;
+  await page.locator('[data-standard-selector][data-standard-readonly]').click();
+  await page.getByRole('button', { name: 'Switch to Pro mode' }).click();
+  await expect(studentToggle).toBeHidden();
+}
+
+async function loadGuide(page: Page, templateId: string, title: string) {
+  /*
+   * `?template=<id>` deep-links the guide straight onto the canvas — it does
+   * not open the Guided Circuits picker. Both `window.confirm` prompts (the
+   * deep-link one and the loader's own) are auto-accepted in `beforeEach`. The
+   * checklist panel is a lazily-imported chunk, hence the generous timeout.
+   */
+  await page.goto(`/?template=${templateId}`);
+  await expect(page.getByRole('heading', { name: title })).toBeVisible({ timeout: 15_000 });
+  await ensureProMode(page);
   await collapsePalette(page);
 }
 
@@ -94,7 +109,13 @@ test.describe('faults & editing', () => {
       (page.viewportSize()?.width ?? 0) < 640,
       'fault injection uses the context menu, which has no phone affordance',
     );
-    void testInfo;
+    /*
+     * WebKit walks the fault choreography far slower than Chromium. The full
+     * trip → reset → re-trip → clear → clean-run flows sit at ~23 s solo on the
+     * iPad project, so they blow the 30 s budget the moment workers compete for
+     * the CPU. Widen the budget there rather than trimming the coverage.
+     */
+    test.slow(testInfo.project.name === 'tablet-safari');
     await page.addInitScript(() => {
       window.localStorage.setItem('electrasim:welcomed', '1');
       window.localStorage.setItem('electrasim:mobile-suitability:v1', '1');
@@ -294,6 +315,10 @@ test.describe('faults & editing', () => {
     await confirm.getByRole('button', { name: 'Delete', exact: true }).click();
     await expect(page.locator(`[data-component-id="${bulbId}"]`)).toHaveCount(0);
 
+    // Editor shortcuts deliberately stand down while focus sits inside a
+    // dialog, and the modal plays a 200 ms exit transition after confirming —
+    // so wait for it to unmount before reaching for Ctrl+Z.
+    await expect(confirm).toHaveCount(0);
     await page.keyboard.press('Control+z');
     await expect(page.locator(`[data-component-id="${bulbId}"]`)).toHaveCount(1);
   });

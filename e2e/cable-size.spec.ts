@@ -508,12 +508,20 @@ test.describe('Cable Size Calculator — the run is the calculator', () => {
     await loadChip(page, 'motor').click();
     await page.mouse.move(0, 0);
     await page.waitForTimeout(300);
-    const motor = await paint('.cs2-load-chip:has(input[value="motor"])');
+    const motorSelector = '.cs2-load-chip:has(input[value="motor"])';
+    const motor = await paint(motorSelector);
     const lighting = await paint('.cs2-load-chip:has(input[value="lighting"])');
     expect(motor.checked).toBe(true);
     expect(motor.active).toBe(true);
     expect(lighting.active).toBe(false);
-    expect(motor.border).not.toBe(lighting.border);
+    // The selected border arrives on a 150 ms transition. Poll it rather than
+    // trusting the sleep above: a slow style recalc under load reads both chips
+    // still sitting on the idle border colour.
+    await expect
+      .poll(async () => (await paint(motorSelector)).border, {
+        message: 'the selected load chip takes its own border colour',
+      })
+      .not.toBe(lighting.border);
   });
 
   test('a laptop window docks both panels beside a full-height scene (§26)', async ({ page }) => {
@@ -612,19 +620,32 @@ test.describe('Cable Size Calculator — the run is the calculator', () => {
       page.evaluate((sel) => (document.getElementById(sel) as HTMLButtonElement).click(), id);
 
     await click('cs2-collapse-inputs');
-    await page.waitForTimeout(420);
-    const railWidth = await page
-      .locator('#cs2-inputs-container')
-      .evaluate((el) => Math.round(el.getBoundingClientRect().width));
-    expect(railWidth, 'a folded dock is a rail, not a panel').toBeLessThan(110);
     await expect(page.locator('#cs2-collapse-inputs')).toHaveAttribute('aria-expanded', 'false');
-    const unfolded = await span();
-    expect(unfolded, 'the run grows when a dock folds away').toBeGreaterThan(docked);
+    /*
+     * Folding and unfolding a dock is a CSS transition, and WebKit overruns a
+     * fixed sleep for it once workers compete for the machine. Poll the widths
+     * instead of waiting a fixed 420 ms and reading whatever has landed.
+     */
+    await expect
+      .poll(
+        () =>
+          page
+            .locator('#cs2-inputs-container')
+            .evaluate((el) => Math.round(el.getBoundingClientRect().width)),
+        { message: 'a folded dock is a rail, not a panel' },
+      )
+      .toBeLessThan(110);
+    await expect
+      .poll(span, { message: 'the run grows when a dock folds away' })
+      .toBeGreaterThan(docked);
 
     await click('cs2-collapse-inputs');
-    await page.waitForTimeout(420);
     await expect(page.locator('#cs2-collapse-inputs')).toHaveAttribute('aria-expanded', 'true');
-    expect(Math.abs((await span()) - docked)).toBeLessThan(8);
+    await expect
+      .poll(async () => Math.abs((await span()) - docked), {
+        message: 'unfolding the dock hands the width back',
+      })
+      .toBeLessThan(8);
   });
 
   test('the run is staged outdoors, and the weather stops with the switch (§10, §28)', async ({

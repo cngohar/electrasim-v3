@@ -15,7 +15,15 @@ import { expect, test } from '@playwright/test';
 
 const SETTINGS_KEY = 'electrasim:settings:v2';
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ page }, testInfo) => {
+  /*
+   * Ohmageddon generates and re-simulates compound-fault scenarios, which is
+   * the heaviest work in the suite. WebKit takes minutes over it, and the
+   * per-test budgets below (180 s / test.slow()) only hold when the iPad
+   * project has the machine to itself — widen them again there so a full
+   * three-project run cannot time these out.
+   */
+  test.slow(testInfo.project.name === 'tablet-safari');
   await page.addInitScript(() => {
     localStorage.setItem('electrasim:welcomed', '1');
     localStorage.setItem('electrasim:mobile-suitability:v1', '1');
@@ -61,8 +69,13 @@ test.describe('Rage 4 — compound faults (§26, §27)', () => {
    * test (§14 hides it), so it walks the answer grid until the panel's own
    * repair action changes what the panel reports.
    */
-  test('the reported symptom follows the real circuit as faults are cleared', async ({ page }) => {
+  test('the reported symptom follows the real circuit as faults are cleared', async ({
+    page,
+  }, testInfo) => {
     test.setTimeout(180_000);
+    // `setTimeout` replaces the budget outright, so re-apply the WebKit
+    // allowance the beforeEach hook granted (see the note there).
+    test.slow(testInfo.project.name === 'tablet-safari');
     await page.goto('/');
     await enableOhmageddon(page);
     await openDiagnosisLab(page);
