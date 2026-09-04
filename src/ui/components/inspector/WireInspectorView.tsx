@@ -5,7 +5,7 @@
 
 import { AlertTriangle, Flame, RefreshCw, Trash2 } from 'lucide-react';
 import type { InstallationMethod, SimulationResult, WireInstance } from '../../../domain';
-import { getCableAmpacity } from '../../../domain/simulation/tripCurves';
+import { awgToMm2, getStandardCableAmpacity } from '../../../domain/electricalCalculations';
 import { useCircuitStore, useUiStore } from '../../../store';
 import { requestDeleteWire } from '../../canvas-actions';
 
@@ -58,8 +58,12 @@ export function WireInspectorView({
 
   const handleDeleteWire = () => requestDeleteWire(wire.id);
 
-  /** Base (pre-Cg) ampacity for the current size + reference method — BS 7671. */
-  const baseAmpacity = getCableAmpacity(currentGauge, currentMethod);
+  /** Base (pre-Cg) ampacity for the current size, method and material — BS 7671. */
+  const baseAmpacity = getStandardCableAmpacity(
+    currentGauge,
+    wire.material ?? 'copper',
+    currentMethod,
+  );
 
   return (
     <div className="p-3.5 space-y-4 text-xs">
@@ -360,12 +364,13 @@ export function WireInspectorView({
         </p>
       </div>
 
-      {/* Wire Gauge (AWG) */}
+      {/* Wire Gauge (AWG) — writes the equivalent mm² so the engine, validator,
+          compliance rules and Zs check all keep reading one size field. */}
       <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-3 dark:border-slate-800 dark:bg-slate-950/60 space-y-2">
         <div className="flex items-center justify-between">
           <span className="font-bold text-slate-800 dark:text-slate-200">Wire Gauge (AWG)</span>
           <span className="font-mono text-xs font-bold text-cyan-600 dark:text-cyan-400">
-            {wire.gauge ?? 14} AWG
+            {wire.gauge ? `${wire.gauge} AWG` : '—'}
           </span>
         </div>
         <div className="flex flex-wrap gap-1">
@@ -374,7 +379,10 @@ export function WireInspectorView({
               key={awg}
               type="button"
               onClick={() =>
-                useCircuitStore.getState().updateWireProperties(wire.id, { gauge: awg })
+                useCircuitStore.getState().updateWireProperties(wire.id, {
+                  gauge: awg,
+                  customCableMm2: awgToMm2(awg),
+                })
               }
               className={`rounded border px-2 py-1 text-[10px] font-semibold font-mono transition ${
                 wire.gauge === awg
@@ -387,7 +395,8 @@ export function WireInspectorView({
           ))}
         </div>
         <p className="text-[10px] text-slate-500 dark:text-slate-400">
-          Lower AWG = thicker wire = higher ampacity
+          Lower AWG = thicker wire = higher ampacity. Selecting a gauge sets the cross-section above
+          to the metric equivalent.
         </p>
       </div>
 

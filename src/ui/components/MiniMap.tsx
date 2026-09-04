@@ -9,7 +9,7 @@
  * components + viewport. No per-frame work outside those subscriptions.
  */
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { COMP_H, COMP_W } from '../../domain';
 import { useCircuitStore, useUiStore, useViewportStore } from '../../store';
 
@@ -35,11 +35,22 @@ function worldToMiniMap(
 export function MiniMap({ consoleOffset = 'none' }: Props) {
   const components = useCircuitStore((s) => s.components);
   const selectedComponentIds = useCircuitStore((s) => s.selectedComponentIds);
-  const selectedWireIds = useCircuitStore((s) => s.selectedWireIds);
-  const hasSelection = selectedComponentIds.length > 0 || selectedWireIds.length > 0;
+  const selectedComponentId = useCircuitStore((s) => s.selectedComponentId);
   const inspectorCollapsed = useUiStore((s) => s.inspectorCollapsed);
   const { pan, zoom } = useViewportStore();
   const svgRef = useRef<SVGSVGElement | null>(null);
+
+  /* Selection was read here but never rendered. On a circuit large enough to
+     need a mini-map, "where is the thing I just selected?" is exactly the
+     question the mini-map should answer, so selected components are drawn in
+     the accent colour at full opacity instead of the same blue as everything
+     else. Includes the single-selection id, which is set by a plain click and
+     is not mirrored into `selectedComponentIds`. */
+  const selectedIds = useMemo(() => {
+    const ids = new Set(selectedComponentIds);
+    if (selectedComponentId) ids.add(selectedComponentId);
+    return ids;
+  }, [selectedComponentIds, selectedComponentId]);
 
   const handleClick = useCallback(
     (e: React.MouseEvent<SVGSVGElement>) => {
@@ -111,9 +122,11 @@ export function MiniMap({ consoleOffset = 'none' }: Props) {
         aria-label="Mini-map — click to pan"
       >
         <title>Mini-map — click to pan</title>
-        {/* Component rects */}
+        {/* Component rects — selected ones in the accent colour so the mini-map
+            answers "where did my selection go?" on a large circuit. */}
         {components.map((c) => {
           const p = worldToMiniMap(c.x - COMP_W / 2, c.y - COMP_H / 2, bounds);
+          const isSelected = selectedIds.has(c.id);
           return (
             <rect
               key={c.id}
@@ -122,8 +135,8 @@ export function MiniMap({ consoleOffset = 'none' }: Props) {
               width={Math.max(2, COMP_W * scaleX)}
               height={Math.max(2, COMP_H * scaleY)}
               rx={1}
-              fill="#3b82f6"
-              fillOpacity={0.5}
+              fill={isSelected ? '#f59e0b' : '#3b82f6'}
+              fillOpacity={isSelected ? 1 : 0.5}
             />
           );
         })}

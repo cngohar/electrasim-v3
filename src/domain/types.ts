@@ -420,9 +420,32 @@ export interface SimulationResult {
   trippedComponents?: {
     id: string;
     label: string;
+    /**
+     * Machine-readable cause, matching {@link ComponentState.tripReason}.
+     *
+     * Kept separate from {@link reason}: the overcurrent branch puts a full
+     * sentence in `reason`, and that string was being written straight into
+     * `state.tripReason`, producing a circuit that failed its own import
+     * validation on export/re-import.
+     */
+    cause: 'overload' | 'short-circuit' | 'ground-fault' | 'arc-fault';
+    /** Human-readable explanation shown in the fault alert. */
     reason: string;
     currentAmps: number;
     ratingAmps: number;
+    /**
+     * Standards-derived clearing time in seconds, where the operating
+     * mechanism has a defined one:
+     *   - MCB/RCBO overload → IEC 60898-1 time–current curve
+     *   - MCB/RCBO short circuit → instantaneous magnetic band
+     *   - RCD/RCBO earth leakage → IEC 61008-1 maximum break time
+     * Omitted for mechanisms the engine does not time (e.g. arc detection).
+     */
+    clearingTimeSeconds?: number;
+    /** Which mechanism operated — drives the UI's explanation of *why*. */
+    mechanism?: 'thermal' | 'magnetic' | 'residual' | 'arc';
+    /** I/In for overcurrent trips; I/IΔn for residual trips. */
+    currentMultiple?: number;
   }[];
   /** Wire melt/busted events in this simulation pass */
   wireMeltEvents?: {

@@ -82,12 +82,6 @@ export const SITE_DESTINATIONS: Array<{
     icon: Globe,
   },
   {
-    label: 'Compare ElectraSim',
-    description: 'How the simulator compares with alternatives and real tooling.',
-    href: 'https://electrasim.com/compare/',
-    icon: Cpu,
-  },
-  {
     label: 'About & contact',
     description: 'The project, its roadmap, and how to report bugs or feedback.',
     href: 'https://electrasim.com/about/',

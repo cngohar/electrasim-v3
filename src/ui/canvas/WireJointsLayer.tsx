@@ -47,16 +47,14 @@ function orientation(a: Point, b: Point, c: Point): number {
   return val > 0 ? 1 : 2;
 }
 
-function onSegment(a: Point, b: Point, c: Point): boolean {
-  return (
-    Math.min(a.x, b.x) - 1e-6 <= c.x &&
-    c.x <= Math.max(a.x, b.x) + 1e-6 &&
-    Math.min(a.y, b.y) - 1e-6 <= c.y &&
-    c.y <= Math.max(a.y, b.y) + 1e-6
-  );
-}
-
-/** Return the intersection point of segments ab and cd, or null. */
+/**
+ * Return the intersection point of segments ab and cd, or null.
+ *
+ * Only proper crossings are reported. Collinear overlap (two wires running along
+ * the same line for a stretch) is deliberately not a junction: there is no single
+ * point to mark, and a dot in the middle of a shared run would read as a
+ * connection the circuit does not have.
+ */
 function segIntersect(a: Point, b: Point, c: Point, d: Point): Point | null {
   const o1 = orientation(a, b, c);
   const o2 = orientation(a, b, d);

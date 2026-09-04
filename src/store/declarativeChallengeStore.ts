@@ -40,7 +40,6 @@ import {
   loadReturnWorkspace,
   recordChallengeProgress,
   saveActiveDeclarativeChallenge,
-  saveChallengeCircuit,
   saveReturnWorkspace,
 } from './declarativeChallengePersistence';
 import { useSettingsStore } from './settingsStore';

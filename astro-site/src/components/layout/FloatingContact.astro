@@ -1,3 +1,11 @@
+---
+interface Props {
+  assetVersion: string;
+}
+
+const { assetVersion } = Astro.props;
+---
+
 <details class="floating-contact">
   <summary class="floating-contact-toggle" aria-label="Open contact options">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -20,20 +28,4 @@
     </a>
   </div>
 </details>
-
-<script>
-  const details = document.querySelector('details.floating-contact') as HTMLDetailsElement | null;
-  if (details) {
-    document.addEventListener('click', (e) => {
-      if (details.open && !details.contains(e.target as Node)) {
-        details.open = false;
-      }
-    });
-    details.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && details.open) {
-        details.open = false;
-        details.querySelector('summary')?.focus();
-      }
-    });
-  }
-</script>
+<script is:inline defer src={`/js/floating-contact.js?v=${assetVersion}`}></script>

@@ -29,7 +29,7 @@ import EmojiIcon from '../EmojiIcon.astro';
         />
       </div>
       <button type="button" id="site-search-close-btn" class="search-close-btn" aria-label="Close search (Escape)">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <line x1="18" y1="6" x2="6" y2="18" />
           <line x1="6" y1="6" x2="18" y2="18" />
         </svg>
@@ -170,11 +170,21 @@ import EmojiIcon from '../EmojiIcon.astro';
     font-size: 1.05rem;
     font-weight: 600;
     color: var(--text);
+    /* The field is the modal's initial focus target and the whole search row
+       reads as one control, so the ring goes on the row instead of the bare
+       input. Removing it here without a replacement left the primary search
+       field with no visible focus state at all. */
     outline: none;
   }
 
+  .search-input-wrap:focus-within {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm, 0.5rem);
+  }
+
   .site-search-input::placeholder {
-    color: var(--text-dim, #94a3b8);
+    color: var(--text-dim, #5f6b7f);
     font-weight: 500;
   }
 
@@ -239,7 +249,7 @@ import EmojiIcon from '../EmojiIcon.astro';
     font-size: 0.68rem;
     font-weight: 800;
     letter-spacing: 0.08em;
-    color: var(--text-dim, #94a3b8);
+    color: var(--text-dim, #5f6b7f);
   }
 
   /* ── Results Container & Items ── */
@@ -299,19 +309,36 @@ import EmojiIcon from '../EmojiIcon.astro';
     color: var(--blue, #2563eb);
   }
 
+  /* Badge inks are darkened for light mode: the saturated brand hues sit at
+     1.9–3.7:1 against their own 15% tint (article 2.19, guide 1.91, update
+     3.53). The darkened pair clears AA at 6.3–7.5:1 and keeps the same hue
+     family. Dark mode restores the bright hues, which are already compliant
+     against the dark surface. */
   :global(.type-badge-article) {
     background: rgba(16, 185, 129, 0.15);
-    color: #10b981;
+    color: #065f46;
   }
 
   :global(.type-badge-guide) {
     background: rgba(245, 158, 11, 0.15);
-    color: #f59e0b;
+    color: #92400e;
   }
 
   :global(.type-badge-update) {
     background: rgba(139, 92, 246, 0.15);
-    color: #8b5cf6;
+    color: #5b21b6;
+  }
+
+  :global(:root[data-theme='dark']) .search-results-list :global(.type-badge-article) {
+    color: #34d399;
+  }
+
+  :global(:root[data-theme='dark']) .search-results-list :global(.type-badge-guide) {
+    color: #fbbf24;
+  }
+
+  :global(:root[data-theme='dark']) .search-results-list :global(.type-badge-update) {
+    color: #c4b5fd;
   }
 
   :global(.type-badge-page) {
@@ -321,7 +348,7 @@ import EmojiIcon from '../EmojiIcon.astro';
 
   :global(.search-category-tag) {
     font-size: 0.72rem;
-    color: var(--text-dim, #94a3b8);
+    color: var(--text-dim, #5f6b7f);
     font-weight: 600;
   }
 
@@ -419,7 +446,7 @@ import EmojiIcon from '../EmojiIcon.astro';
     border-top: 1px solid var(--border);
     background: var(--bg-2, #f8fafc);
     font-size: 0.74rem;
-    color: var(--text-dim, #94a3b8);
+    color: var(--text-dim, #5f6b7f);
   }
 
   :global(:root[data-theme="dark"]) .search-modal-footer {

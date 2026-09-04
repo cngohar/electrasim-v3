@@ -1,5 +1,15 @@
 {
   "extends": "astro/tsconfigs/strict",
   "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist"]
+  "exclude": ["dist"],
+  "compilerOptions": {
+    // Mirrors the `@` alias in the repository-root vitest.config.ts so tsc
+    // resolves the same modules the test runner does. The marketing site stays
+    // independent of app internals; this alias is retained for shared tooling
+    // and future source-backed checks.
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["../*"]
+    }
+  }
 }

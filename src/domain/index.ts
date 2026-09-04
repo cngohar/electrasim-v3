@@ -17,6 +17,7 @@ export * from './electricalCalculations';
 export * from './componentHelp';
 export * from './circuitValidation';
 export * from './electrical';
+export * from './protectionRoles';
 
 /**
  * NOT re-exported: `./challenges`.

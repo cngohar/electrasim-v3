@@ -5,7 +5,7 @@
  */
 
 import { COMPONENT_DEFS } from '../components';
-import type { Circuit, ComponentInstance, WireInstance } from '../types';
+import type { Circuit, ComponentInstance } from '../types';
 
 export interface TopologySummary {
   hasSupplySource: boolean;

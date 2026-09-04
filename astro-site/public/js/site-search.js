@@ -2,6 +2,11 @@
  * site-search.js
  * Instant Search & Command Palette for ElectraSim
  * Pure Vanilla JavaScript • Zero Runtime Dependencies • Accessible & Fast
+ *
+ * Lifecycle: re-binds after every view transition (see boot.js). The fetched
+ * index is module-scoped and deliberately survives navigations — it is the
+ * same 60 KB payload for every page, so re-fetching it per soft nav would be
+ * pure waste.
  */
 
 (() => {
@@ -33,13 +38,6 @@
       url: '/blog/what-is-an-rcbo-difference-between-rcd-mcb-rcbo/',
       type: 'article',
       category: 'Regulations',
-    },
-    {
-      title: 'ElectraSim vs Online Circuit Simulators',
-      description: 'Compare ElectraSim with Tinkercad, CircuitLab, Falstad, and EveryCircuit.',
-      url: '/compare/',
-      type: 'page',
-      category: 'Pages',
     },
   ];
 
@@ -278,6 +276,22 @@
     `;
   }
 
+  /**
+   * Keeps the combobox's `aria-activedescendant` pointing at the highlighted
+   * option. `updateResultsView` re-renders the whole list, so without this the
+   * initially-selected row (activeIndex 0) was visually highlighted but never
+   * announced, and a stale id lingered when results emptied out.
+   */
+  function syncActiveDescendant() {
+    const input = document.querySelector('#site-search-input');
+    if (!input) return;
+    if (currentResults.length > 0 && activeIndex >= 0 && activeIndex < currentResults.length) {
+      input.setAttribute('aria-activedescendant', `search-opt-${activeIndex}`);
+    } else {
+      input.removeAttribute('aria-activedescendant');
+    }
+  }
+
   function updateResultsView(dialog, query) {
     const listEl = dialog.querySelector('#site-search-results');
     const emptyEl = dialog.querySelector('#site-search-empty');
@@ -305,7 +319,11 @@
           itemsToRender = QUICK_LINKS.filter((item) => item.type === activeFilter);
           loadSearchIndex().then(() => {
             const dialogEl = document.getElementById('site-search-dialog');
-            if (dialogEl?.open && !input?.value.trim()) {
+            // `input` is not in this scope — read the live field off the dialog.
+            // Getting this wrong threw a ReferenceError whenever a filter pill
+            // was clicked while /search.json was still in flight.
+            const inputEl = dialogEl?.querySelector('#site-search-input');
+            if (dialogEl?.open && !inputEl?.value.trim()) {
               updateResultsView(dialogEl, '');
             }
           });
@@ -334,6 +352,7 @@
       listEl.innerHTML = currentResults
         .map((item, idx) => renderItem(item, '', idx === activeIndex, idx))
         .join('');
+      syncActiveDescendant();
       return;
     }
 
@@ -343,6 +362,7 @@
     if (!searchIndex) {
       currentResults = [];
       listEl.innerHTML = '';
+      syncActiveDescendant();
       if (isFetching) {
         showStatus('loading');
       } else if (fetchError) {
@@ -369,6 +389,7 @@
         .map((item, idx) => renderItem(item, trimmed, idx === activeIndex, idx))
         .join('');
     }
+    syncActiveDescendant();
   }
 
   function selectOption(index) {
@@ -389,10 +410,7 @@
       }
     });
 
-    const input = document.querySelector('#site-search-input');
-    if (input) {
-      input.setAttribute('aria-activedescendant', `search-opt-${activeIndex}`);
-    }
+    syncActiveDescendant();
   }
 
   function navigateToActive() {
@@ -442,7 +460,7 @@
     dialog.querySelector('#site-search-input')?.setAttribute('aria-expanded', 'false');
   }
 
-  function init() {
+  function init({ signal }) {
     const dialog = document.getElementById('site-search-dialog');
     if (!dialog) return;
 
@@ -453,108 +471,143 @@
     // Trigger button listeners
     const triggers = document.querySelectorAll('[data-search-trigger]');
     triggers.forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        openSearchModal();
-      });
+      btn.addEventListener(
+        'click',
+        (e) => {
+          e.preventDefault();
+          openSearchModal();
+        },
+        { signal },
+      );
     });
 
     // Close button
     if (closeBtn) {
-      closeBtn.addEventListener('click', closeSearchModal);
+      closeBtn.addEventListener('click', closeSearchModal, { signal });
     }
 
     // Retry after a failed index fetch
     const retryBtn = dialog.querySelector('#site-search-retry-btn');
-    retryBtn?.addEventListener('click', () => {
-      const currentInput = dialog.querySelector('#site-search-input');
-      const value = currentInput ? currentInput.value : '';
-      updateResultsView(dialog, value);
-      loadSearchIndex().then(() => {
-        const dialogEl = document.getElementById('site-search-dialog');
-        if (dialogEl?.open) updateResultsView(dialogEl, value);
-      });
-    });
+    retryBtn?.addEventListener(
+      'click',
+      () => {
+        const currentInput = dialog.querySelector('#site-search-input');
+        const value = currentInput ? currentInput.value : '';
+        updateResultsView(dialog, value);
+        loadSearchIndex().then(() => {
+          const dialogEl = document.getElementById('site-search-dialog');
+          if (dialogEl?.open) updateResultsView(dialogEl, value);
+        });
+      },
+      { signal },
+    );
 
     // Light-dismiss fallback for browsers without native closedby support
     if (!('closedBy' in HTMLDialogElement.prototype)) {
-      dialog.addEventListener('click', (event) => {
-        if (event.target !== dialog) return;
-        const rect = dialog.getBoundingClientRect();
-        const isDialogContent =
-          rect.top <= event.clientY &&
-          event.clientY <= rect.top + rect.height &&
-          rect.left <= event.clientX &&
-          event.clientX <= rect.left + rect.width;
+      dialog.addEventListener(
+        'click',
+        (event) => {
+          if (event.target !== dialog) return;
+          const rect = dialog.getBoundingClientRect();
+          const isDialogContent =
+            rect.top <= event.clientY &&
+            event.clientY <= rect.top + rect.height &&
+            rect.left <= event.clientX &&
+            event.clientX <= rect.left + rect.width;
 
-        if (!isDialogContent) {
-          closeSearchModal();
-        }
-      });
+          if (!isDialogContent) {
+            closeSearchModal();
+          }
+        },
+        { signal },
+      );
     }
 
     // Input typing & keyboard navigation
     if (input) {
       let debounceTimer;
-      input.addEventListener('input', () => {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-          activeIndex = 0;
-          updateResultsView(dialog, input.value);
-        }, 50);
-      });
+      input.addEventListener(
+        'input',
+        () => {
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(() => {
+            activeIndex = 0;
+            updateResultsView(dialog, input.value);
+          }, 50);
+        },
+        { signal },
+      );
 
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          selectOption(activeIndex + 1);
-        } else if (e.key === 'ArrowUp') {
-          e.preventDefault();
-          selectOption(activeIndex - 1);
-        } else if (e.key === 'Enter') {
-          e.preventDefault();
-          navigateToActive();
-        } else if (e.key === 'Escape') {
-          closeSearchModal();
-        }
-      });
+      input.addEventListener(
+        'keydown',
+        (e) => {
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            selectOption(activeIndex + 1);
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            selectOption(activeIndex - 1);
+          } else if (e.key === 'Enter') {
+            e.preventDefault();
+            navigateToActive();
+          } else if (e.key === 'Escape') {
+            closeSearchModal();
+          }
+        },
+        { signal },
+      );
     }
 
     // Filter pill buttons
     filterBtns.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        filterBtns.forEach((b) => {
-          b.classList.remove('active');
-          b.setAttribute('aria-pressed', 'false');
-        });
-        btn.classList.add('active');
-        btn.setAttribute('aria-pressed', 'true');
-        activeFilter = btn.getAttribute('data-filter') || 'all';
-        activeIndex = 0;
-        if (input) {
-          updateResultsView(dialog, input.value);
-        }
-      });
+      btn.addEventListener(
+        'click',
+        () => {
+          filterBtns.forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-pressed', 'false');
+          });
+          btn.classList.add('active');
+          btn.setAttribute('aria-pressed', 'true');
+          activeFilter = btn.getAttribute('data-filter') || 'all';
+          activeIndex = 0;
+          if (input) {
+            updateResultsView(dialog, input.value);
+          }
+        },
+        { signal },
+      );
     });
 
     // Global keyboard shortcuts: Cmd+K, Ctrl+K, or "/"
-    window.addEventListener('keydown', (e) => {
-      const isCmdK = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k';
-      const isSlash =
-        e.key === '/' &&
-        !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName || '');
+    window.addEventListener(
+      'keydown',
+      (e) => {
+        const isCmdK = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k';
+        const isSlash =
+          e.key === '/' &&
+          !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName || '');
 
-      if (isCmdK || isSlash) {
-        e.preventDefault();
-        if (dialog.open) {
-          closeSearchModal();
-        } else {
-          openSearchModal();
+        if (isCmdK || isSlash) {
+          e.preventDefault();
+          if (dialog.open) {
+            closeSearchModal();
+          } else {
+            openSearchModal();
+          }
         }
-      }
-    });
+      },
+      { signal },
+    );
 
-    // Preload index on idle or initial hover
+    // Filter state belongs to the dialog instance, not the session — a soft
+    // navigation gives us a fresh dialog with "All" pre-selected in markup.
+    activeFilter =
+      dialog.querySelector('.search-filter-pill.active')?.getAttribute('data-filter') || 'all';
+    activeIndex = 0;
+    currentResults = [];
+
+    // Preload index on idle or initial hover (only once — the fetch memoises).
     if ('requestIdleCallback' in window) {
       window.requestIdleCallback(() => loadSearchIndex(), { timeout: 3000 });
     } else {
@@ -562,9 +615,5 @@
     }
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+  window.ElectraSim.onReady(init);
 })();

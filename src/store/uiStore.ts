@@ -16,9 +16,8 @@ import { immer } from 'zustand/middleware/immer';
 import {
   COMPONENT_DEFS,
   type Circuit,
-  type ComponentInstance,
   type FaultType,
-  type WireInstance,
+  VIEW_CENTER,
   getPortPos,
   isWireFaultType,
 } from '../domain';
@@ -82,21 +81,11 @@ export const FAULT_ARM_MS: Partial<Record<FaultType, number>> = {
 const FAULT_ARM_DEFAULT_MS = 600;
 
 /**
- * Canvas viewBox centre (matches CircuitCanvas VIEW_W/VIEW_H) — used to
- * re-centre the viewport on a fault target so the injection animation is
- * never played off-screen.
- */
-const VIEW_CENTER = { x: 600, y: 360 };
-
-/**
- * If the fault target sits outside the visible world rect, snap the viewport
- * so the injection animation is actually seen. Deliberately only used for
- * manual Fault Lab injections — auto-injected faults (Diagnosis Lab,
- * challenges) must never yank the learner's view.
- */
-/**
  * Centre the viewport on a world point, keeping the current zoom. Used by
- * the Fault Lab (auto-reveal on injection; the per-fault Focus buttons).
+ * the Fault Lab (auto-reveal on injection; the per-fault Focus buttons) so the
+ * injection animation is never played off-screen. Deliberately only used for
+ * manual injections — auto-injected faults (Diagnosis Lab, challenges) must
+ * never yank the learner's view.
  */
 function centreOnWorldPoint(x: number, y: number): void {
   const { zoom, setPan } = useViewportStore.getState();

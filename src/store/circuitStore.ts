@@ -15,20 +15,7 @@
 import { temporal } from 'zundo';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import {
-  COMPONENT_DEFS,
-  type Circuit,
-  type ComponentGroup,
-  type ComponentInstance,
-  type FaultTarget,
-  type FaultType,
-  type InjectedFault,
-  type WireFaultType,
-  type WireInstance,
-  createInjectedFault,
-  isWireFaultType,
-  validateFaultCoexistence,
-} from '../domain';
+import { COMPONENT_DEFS, type ComponentInstance, type WireInstance } from '../domain';
 import { createFaultActions } from './circuitStore.faultActions';
 import { componentsForHistory } from './circuitStore.history';
 import type { CircuitState } from './circuitStore.types';

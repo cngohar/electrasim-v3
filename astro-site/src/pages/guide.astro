@@ -35,24 +35,28 @@ const guidedTemplates = data.guided_templates as GuidedTemplate[];
     })} />
   </Fragment>
 
-  <GuideHero
-    heading={data.hero_heading}
-    description={data.hero_description}
-    primaryCta={data.hero_cta_primary}
-    secondaryCta={data.hero_cta_secondary}
-    circuits={circuits}
-  />
+  <!-- `<main>` wraps the hero so the breadcrumb and <h1> sit inside the main
+       landmark and the skip link does not jump past the page title. -->
+  <main id="main-content">
+    <GuideHero
+      heading={data.hero_heading}
+      description={data.hero_description}
+      primaryCta={data.hero_cta_primary}
+      secondaryCta={data.hero_cta_secondary}
+      circuits={circuits}
+    />
 
-  <main id="main-content" class="guide-main" data-live>
-    <div class="wrap">
-      <GuideOverview features={latestFeatures} templates={guidedTemplates} />
-      {circuits.map((circuit) => <GuideCircuitCard circuit={circuit} />)}
-      <GuideCta
-        heading={data.cta_heading}
-        description={data.cta_description}
-        primary={data.cta_primary}
-        secondary={data.cta_secondary}
-      />
+    <div class="guide-main" data-live>
+      <div class="wrap">
+        <GuideOverview features={latestFeatures} templates={guidedTemplates} />
+        {circuits.map((circuit) => <GuideCircuitCard circuit={circuit} />)}
+        <GuideCta
+          heading={data.cta_heading}
+          description={data.cta_description}
+          primary={data.cta_primary}
+          secondary={data.cta_secondary}
+        />
+      </div>
     </div>
   </main>
 </Base>

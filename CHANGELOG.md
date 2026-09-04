@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.2] — 2026-09-04
+
+### Added
+- **The comparison bench is rebuilt from the ground up.** `/compare/` now combines a custom SVG
+  research map, task-fit signal plots, a filterable and sortable matrix built from accessible grid
+  rows (not a generic HTML table), selectable tool profiles, pinning, source trails and a dated
+  methodology. The bench covers ElectraSim, two direct wiring tools, electronics-analysis tools,
+  classroom platforms and an open circuit-theory option.
+- **First-party research ledger.** `astro-site/src/lib/competitor-bench.ts` records the six
+  dimensions, evidence notes and official source links reviewed on 2026-09-04. “Not confirmed” is
+  used wherever a public provider page does not document a capability.
+- **Live browser coverage.** The production suite now checks the rebuilt route, its SVG and radar
+  plots, interactive filtering and sitemap entry.
+
+### Changed
+- **Documentation and metadata** now describe the comparison bench and its evidence-led task-fit
+  model. Historical release notes retain the v1.6 context but point readers to the current bench.
+
+---
+
 ## [2.0.0] — 2026-08-31
 
 **ElectraSim 2.0** — the learning release. Everything below that was previously listed under
@@ -1223,7 +1243,7 @@ Foundation for the ElectraSim v2 learning modes (Circuit Generator → Challenge
 
 ### Added
 - **RCBO component** — a two-pole protection device with separate Live and Neutral input/output paths joins the simulator palette and component reference.
-- **Circuit-simulator comparison** — the new `/compare/` route compares ElectraSim with CircuitLab, Tinkercad Circuits, EveryCircuit, Falstad/CircuitJS, and DCACLab by task using dated official sources, visible methodology, candid limitations, responsive tables, FAQs, and complete canonical/structured metadata.
+- **Circuit-simulator comparison** — the original `/compare/` route established the sourced comparison direction. The current route is the rebuilt research bench described under v2.0.2: SVG mapping, task signals, interactive matrix, source ledger and complete canonical/structured metadata.
 - **Plain-language v1.6 release article** — `electrasim-v1-6-dark-mode-rcbo-comparison-update.md` explains the day's changes without internal implementation or benchmark terminology.
 - **Push Button learning guide** — `how-does-a-push-button-switch-work.md` explains momentary and maintained actions, NO and NC contacts, doorbell circuits, contactor holding logic, emergency-stop boundaries, and the simulator's true press-and-hold behavior. A responsive original illustration is included in AVIF and WebP formats.
 

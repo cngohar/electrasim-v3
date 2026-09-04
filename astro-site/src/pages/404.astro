@@ -120,8 +120,11 @@ const SSR_RIDDLE = {
           <a href="/tools/" class="btn-secondary">Test the calculators</a>
         </div>
 
-        <!-- Bench riddle: weird but physically possible electrical question -->
-        <section class="nf-riddle" aria-label="Electrician's riddle">
+        <!-- Bench riddle: weird but physically possible electrical question.
+             aria-live because not-found.js swaps the question and answer text
+             900 ms after load and on every "ask another" press — without it the
+             swap is silent for screen-reader users. -->
+        <section class="nf-riddle" aria-label="Electrician's riddle" aria-live="polite">
           <p class="nf-riddle-chip">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />

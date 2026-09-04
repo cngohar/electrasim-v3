@@ -5,6 +5,6 @@
 
 export { getCableAmpacity } from './tripCurves';
 export type { RCDTripResult, TripCurveResult } from './tripCurves';
-export { calculateMCBTrip, calculateRCDTrip } from './tripCurves';
+export { calculateMCBTrip, calculateRCDTrip, formatClearingTime } from './tripCurves';
 export { simulate } from './simulate';
 export type { SimulateOptions } from './simulate';

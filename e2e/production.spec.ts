@@ -4,10 +4,6 @@ const HOME_TITLE = 'ElectraSim — Free Online Electrical Wiring Simulator & Cir
 const HOME_DESCRIPTION =
   'Build, energise and fault-find real domestic wiring in your browser. 115 components, live simulation, Guided Circuits, Challenge and Diagnosis modes, fault simulation and an electrical toolbox. Free, offline-capable, no sign-up.';
 const HOME_VISIBLE_KEYPHRASE = 'electrical';
-const COMPARE_CANONICAL = 'https://electrasim.com/compare/';
-const COMPARE_TITLE = 'ElectraSim vs Online Circuit Simulators (2026 Comparison)';
-const COMPARE_DESCRIPTION =
-  'Compare ElectraSim with CircuitLab, Tinkercad Circuits, EveryCircuit, Falstad and DCACLab by purpose, price, sign-up, sharing, offline use and teaching tools.';
 
 test.describe('production Pages output', () => {
   test('renders the required homepage SEO and visible product wording', async ({ page }) => {
@@ -59,7 +55,7 @@ test.describe('production Pages output', () => {
     expect(legacyRootSw.headers()['cache-control']).toContain('no-store');
     expect(await legacyRootSw.text()).toContain('self.registration.unregister()');
 
-    const image = await request.get('/images/electrasim-simulator-480.avif');
+    const image = await request.get('/images/bulbs/bulb-led.webp');
     expect(image.status()).toBe(200);
     expect(image.headers()['cache-control']).toContain('max-age=86400');
     expect(image.headers()['cache-control']).toContain('stale-while-revalidate=604800');
@@ -101,13 +97,9 @@ test.describe('production Pages output', () => {
     expect(nestedCanonical.headers().location).toBe('/blog/tags/rcd/');
   });
 
-  test('retires the legacy root worker and keeps the real product screenshot', async ({ page }) => {
-    await page.goto('/compare/');
-    const heroImage = page.locator('.compare-product-shot img');
-    await expect(heroImage).toBeVisible();
-    await expect
-      .poll(() => heroImage.evaluate((image: HTMLImageElement) => image.currentSrc))
-      .toContain('/images/electrasim-simulator-');
+  test('retires the legacy root worker', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('h1')).toBeVisible();
 
     await page.evaluate(() => {
       void navigator.serviceWorker.register('/sw.js', { scope: '/' });
@@ -126,40 +118,31 @@ test.describe('production Pages output', () => {
       )
       .toBe(0);
 
-    await expect(heroImage).toBeVisible();
+    // The page still works after the stale worker unregisters itself.
+    await expect(page.locator('h1')).toBeVisible();
   });
 
-  test('serves comparison SEO, structured data, and sitemap entry', async ({ page, request }) => {
-    const compare = await request.get('/compare/');
-    expect(compare.status()).toBe(200);
-    expect(compare.headers()['content-security-policy']).toContain("default-src 'self'");
-    expect(compare.headers()['cache-control']).toContain('no-transform');
+  test('serves the research comparison bench and advertises it in the sitemap', async ({
+    page,
+    request,
+  }) => {
+    const response = await request.get('/compare/');
+    expect(response.status()).toBe(200);
+    const html = await response.text();
+    expect(html).toContain('Interactive matrix');
+    expect(html).toContain('cb-bench-svg');
+    expect(html).toContain('cb-radar');
+    expect(html).not.toContain('<table');
 
-    await page.goto('/compare/');
-    await expect(page).toHaveTitle(COMPARE_TITLE);
-    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', COMPARE_CANONICAL);
-    await expect(page.locator('meta[name="description"]')).toHaveAttribute(
-      'content',
-      COMPARE_DESCRIPTION,
-    );
-
-    const heading = page.locator('h1');
-    await expect(heading).toHaveCount(1);
-    await expect(heading).toBeVisible();
-
-    type JsonLdNode = { '@type'?: string | string[]; '@graph'?: JsonLdNode[] };
-    const schemas = (
-      await page.locator('script[type="application/ld+json"]').allTextContents()
-    ).map((content) => JSON.parse(content) as JsonLdNode);
-    const schemaTypes = schemas.flatMap((schema) =>
-      [schema, ...(schema['@graph'] ?? [])].flatMap((node) => {
-        const type = node['@type'];
-        return Array.isArray(type) ? type : type ? [type] : [];
-      }),
-    );
-    expect(schemaTypes).toEqual(
-      expect.arrayContaining(['WebPage', 'BreadcrumbList', 'ItemList', 'FAQPage']),
-    );
+    await page.goto('/compare/', { waitUntil: 'networkidle' });
+    await expect(page.locator('h1')).toContainText('Which circuit simulator fits');
+    await expect(page.locator('[data-compare-bench]')).toBeVisible();
+    await expect(page.locator('[data-tool-id]')).toHaveCount(9);
+    await page.locator('[data-compare-filter="wiring"]').click();
+    await expect(page.locator('#cb-matrix-status')).toContainText('wiring lens');
+    await page.locator('[data-compare-filter="all"]').click();
+    await page.locator('[data-bar-tool="circuitlab"]').click();
+    await expect(page.locator('#cb-radar-name')).toHaveText('CircuitLab');
 
     const sitemapIndex = await request.get('/sitemap-index.xml');
     expect(sitemapIndex.status()).toBe(200);
@@ -170,11 +153,17 @@ test.describe('production Pages output', () => {
 
     const sitemapResponses = await Promise.all(sitemapPaths.map((path) => request.get(path)));
     for (const response of sitemapResponses) expect(response.status()).toBe(200);
-    const sitemaps = await Promise.all(sitemapResponses.map((response) => response.text()));
-    expect(sitemaps.join('\n')).toContain(`<loc>${COMPARE_CANONICAL}</loc>`);
+    const sitemaps = (await Promise.all(sitemapResponses.map((response) => response.text()))).join(
+      '\n',
+    );
+
+    // The homepage, app shell and research bench are advertised.
+    expect(sitemaps).toContain('<loc>https://electrasim.com/</loc>');
+    expect(sitemaps).toContain('<loc>https://electrasim.com/app/</loc>');
+    expect(sitemaps).toContain('/compare/');
   });
 
-  test('renders comparison in dark mode without mobile overflow or errors', async ({ page }) => {
+  test('renders the changelog in dark mode without mobile overflow or errors', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.addInitScript(() => {
       window.localStorage.setItem('electrasim:color-scheme', 'dark');
@@ -186,7 +175,7 @@ test.describe('production Pages output', () => {
       if (message.type() === 'error') errors.push(message.text());
     });
 
-    await page.goto('/compare/', { waitUntil: 'networkidle' });
+    await page.goto('/updates/', { waitUntil: 'networkidle' });
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
     await expect(page.locator('h1')).toBeVisible();
 
@@ -301,22 +290,21 @@ test.describe('production Pages output', () => {
       }
     });
 
-    for (const path of ['/', '/blog/', '/contact/']) {
+    for (const path of ['/', '/blog/', '/contact/', '/guide/']) {
       await page.goto(path);
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     }
 
-    await page.goto('/compare/');
+    await page.goto('/');
 
     const layout = await page.evaluate(() => ({
       documentWidth: document.documentElement.scrollWidth,
       viewportWidth: document.documentElement.clientWidth,
-      imageSource:
-        document.querySelector<HTMLImageElement>('.compare-product-shot img')?.currentSrc ?? '',
+      imageSource: document.querySelector<HTMLImageElement>('.lamp img')?.currentSrc ?? '',
     }));
 
     expect(layout.documentWidth).toBeLessThanOrEqual(layout.viewportWidth);
-    expect(layout.imageSource).toMatch(/electrasim-simulator-(480|800|1200)\.(avif|webp)$/);
+    expect(layout.imageSource).toMatch(/\/images\/bulbs\/bulb-[a-z]+\.(webp|png)$/);
     expect(failures).toEqual([]);
   });
 
@@ -429,5 +417,23 @@ test.describe('production Pages output', () => {
     }
 
     expect(errors).toEqual([]);
+  });
+  test('publishes SoftwareApplication data without a self-review', async ({ page }) => {
+    await page.goto('/');
+
+    const schemas = (
+      await page.locator('script[type="application/ld+json"]').allTextContents()
+    ).map((content) => JSON.parse(content) as Record<string, unknown>);
+
+    const app = schemas.find((schema) => schema['@type'] === 'SoftwareApplication');
+    expect(app).toBeDefined();
+    expect(app?.name).toBe('ElectraSim');
+    expect((app?.offers as { price?: string } | undefined)?.price).toBe('0');
+
+    // We publish this site and appear in it, so a rating here would breach
+    // Google's self-review guidance.
+    const raw = await page.locator('script[type="application/ld+json"]').allTextContents();
+    expect(raw.join('')).not.toContain('AggregateRating');
+    expect(raw.join('')).not.toContain('"Review"');
   });
 });

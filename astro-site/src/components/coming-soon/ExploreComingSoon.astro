@@ -350,10 +350,58 @@ const {
     }
   }
 
+  /**
+   * Gate the 170 KB gzip three.js chunk on the globe actually being worth
+   * drawing. Previously `initComingSoonGlobe()` ran unconditionally at
+   * DOMContentLoaded, so every visit to a coming-soon page downloaded the whole
+   * of three.js for a decorative sepia globe — including visitors who prefer
+   * reduced motion, who then got one static frame for the full download, and
+   * phones, where the CSS gradient behind the canvas already carries the look.
+   *
+   * The gates, cheapest first:
+   *   1. prefers-reduced-motion → skip entirely (the gradient stands in).
+   *   2. narrow viewport → skip (the canvas is 80% opacity decoration).
+   *   3. deviceMemory ≤ 1 GB / saveData → skip.
+   *   4. otherwise wait for the canvas to intersect before importing.
+   */
+  function shouldLoadGlobe() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+    if (window.matchMedia('(max-width: 720px)').matches) return false;
+    const connection = (
+      navigator as Navigator & { connection?: { saveData?: boolean } }
+    ).connection;
+    if (connection?.saveData) return false;
+    const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
+    if (typeof memory === 'number' && memory <= 1) return false;
+    return true;
+  }
+
+  function scheduleGlobe() {
+    if (!shouldLoadGlobe()) return;
+
+    const canvas = document.getElementById('cs-globe-canvas');
+    if (!canvas) return;
+
+    if (!('IntersectionObserver' in window)) {
+      initComingSoonGlobe();
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        observer.disconnect();
+        initComingSoonGlobe();
+      },
+      { rootMargin: '200px' },
+    );
+    observer.observe(canvas);
+  }
+
   if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    initComingSoonGlobe();
+    scheduleGlobe();
   } else {
-    document.addEventListener('DOMContentLoaded', initComingSoonGlobe);
+    document.addEventListener('DOMContentLoaded', scheduleGlobe);
   }
 </script>
 

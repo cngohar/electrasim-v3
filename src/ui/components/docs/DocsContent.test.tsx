@@ -44,8 +44,6 @@ describe('DocsContent', () => {
     render(<DocsContent groups={buildComponentGroups()} />);
 
     // "Simple Protected Lamp" is the first basic guide row.
-    const rows = screen.getAllByText('Simple Protected Lamp');
-    const row = rows[0]?.closest('div')?.parentElement;
     const openButton = screen.getAllByRole('button', { name: 'Open guide' })[0];
     expect(openButton).toBeDefined();
 

@@ -8,6 +8,15 @@ interface Props {
 }
 
 const { circuit } = Astro.props;
+
+/* Spoken form of the ASCII schematic: newlines become "; then" so a branching
+   diagram reads as separate paths rather than one run-on sentence, and runs of
+   alignment padding collapse to a single space. */
+const diagramLabel = circuit.diagram
+  .split('\n')
+  .map((line) => line.replace(/\s+/g, ' ').trim())
+  .filter(Boolean)
+  .join('; then ');
 ---
 
 <article class="circuit-card" id={circuit.id}>
@@ -33,7 +42,13 @@ const { circuit } = Astro.props;
       </div>
 
       <h3 class="circuit-diagram-heading">Circuit Diagram</h3>
-      <div class="diagram-box"><pre>{circuit.diagram}</pre></div>
+      <!-- role="img" + a spoken label: an ASCII schematic read character by
+           character ("hyphen hyphen greater-than") is noise. The <pre> stays
+           for sighted readers and for copy/paste. Multi-line diagrams collapse
+           to semicolon-separated branches so the arrows still read as a path. -->
+      <div class="diagram-box">
+        <pre role="img" aria-label={`Circuit path: ${diagramLabel}`}>{circuit.diagram}</pre>
+      </div>
     </div>
 
     <div class="card-col">

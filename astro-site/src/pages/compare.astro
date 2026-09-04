@@ -1,26 +1,68 @@
 ---
-import CompareFaq from '../components/compare/CompareFaq.astro';
-import CompareHero from '../components/compare/CompareHero.astro';
-import ComparisonTable from '../components/compare/ComparisonTable.astro';
-import TaskFitList from '../components/compare/TaskFitList.astro';
-import ToolProfiles from '../components/compare/ToolProfiles.astro';
+import Icon from '../components/Icon.astro';
 import Base from '../layouts/Base.astro';
 import {
-  closeWiringAlternatives,
-  comparisonFaqs,
-  comparisonReviewedIso,
-  comparisonReviewedLabel,
-  comparisonTools,
-  taskFits,
-} from '../lib/compare';
-import '../styles/compare.css';
+  benchDimensions,
+  benchFaqs,
+  benchReviewedIso,
+  benchReviewedLabel,
+  benchSourceCount,
+  benchTools,
+  type BenchLevel,
+} from '../lib/competitor-bench';
+import '../styles/compare-bench.css';
+import packageMetadata from '../../../package.json';
 
 const canonical = 'https://electrasim.com/compare/';
-const title = 'ElectraSim vs Online Circuit Simulators (2026 Comparison)';
+const title = 'Circuit Simulator Comparison Bench | ElectraSim';
 const description =
-  'Compare ElectraSim with CircuitLab, Tinkercad Circuits, EveryCircuit, Falstad and DCACLab by purpose, price, sign-up, sharing, offline use and teaching tools.';
+  'A first-party, task-based comparison of ElectraSim, practical wiring trainers, SPICE tools, animated circuit labs and classroom simulators. Reviewed 4 September 2026.';
 
-const pageSchema = {
+const levelLabel = (level: BenchLevel) => {
+  switch (level) {
+    case 'strong':
+      return 'Strong fit';
+    case 'useful':
+      return 'Useful';
+    case 'limited':
+      return 'Limited';
+    default:
+      return 'Not confirmed';
+  }
+};
+
+const scoreAverage = (tool: (typeof benchTools)[number]) =>
+  benchDimensions.reduce((sum, dimension) => sum + tool.scores[dimension.id], 0) /
+  benchDimensions.length;
+
+const scoreLabel = (value: number) => `${value.toFixed(1)} / 5`;
+
+const radarPoint = (index: number, value: number, radius = 112) => {
+  const angle = -Math.PI / 2 + (Math.PI * 2 * index) / benchDimensions.length;
+  const x = 170 + Math.cos(angle) * radius * (value / 5);
+  const y = 170 + Math.sin(angle) * radius * (value / 5);
+  return `${x.toFixed(1)},${y.toFixed(1)}`;
+};
+
+const radarPoints = (tool: (typeof benchTools)[number], scale = 1) =>
+  benchDimensions
+    .map((dimension, index) => radarPoint(index, tool.scores[dimension.id], 112 * scale))
+    .join(' ');
+
+const radarRing = (scale: number) =>
+  benchDimensions.map((_, index) => radarPoint(index, 5, 112 * scale)).join(' ');
+
+const filterTags = (tool: (typeof benchTools)[number]) => {
+  const tags = new Set<string>([tool.category, 'all']);
+  if (tool.scores.wiring >= 4) tags.add('wiring');
+  if (tool.scores.analysis >= 4) tags.add('analysis');
+  if (tool.scores.teaching >= 4) tags.add('teaching');
+  if (tool.scores.access >= 4 || tool.scores.offline >= 4) tags.add('access');
+  return [...tags].join(',');
+};
+
+const sourceCount = benchSourceCount;
+const schema = {
   '@context': 'https://schema.org',
   '@graph': [
     {
@@ -29,53 +71,26 @@ const pageSchema = {
       url: canonical,
       name: title,
       description,
-      dateModified: comparisonReviewedIso,
+      dateModified: benchReviewedIso,
       inLanguage: 'en-GB',
-      isPartOf: {
-        '@type': 'WebSite',
-        '@id': 'https://electrasim.com/#website',
-        name: 'ElectraSim',
-        url: 'https://electrasim.com/',
-      },
-      publisher: {
-        '@type': 'Organization',
-        name: 'ElectraSim',
-        url: 'https://electrasim.com/',
-      },
-      primaryImageOfPage: {
-        '@type': 'ImageObject',
-        url: 'https://electrasim.com/images/electrasim-simulator-1200.webp',
-        width: 1200,
-        height: 750,
-      },
+      isPartOf: { '@id': 'https://electrasim.com/#website' },
+      about: { '@id': `${canonical}#bench` },
       breadcrumb: { '@id': `${canonical}#breadcrumb` },
-      mainEntity: [{ '@id': `${canonical}#tools` }, { '@id': `${canonical}#faq` }],
     },
     {
       '@type': 'BreadcrumbList',
       '@id': `${canonical}#breadcrumb`,
       itemListElement: [
-        {
-          '@type': 'ListItem',
-          position: 1,
-          name: 'Home',
-          item: 'https://electrasim.com/',
-        },
-        {
-          '@type': 'ListItem',
-          position: 2,
-          name: 'Compare circuit simulators',
-          item: canonical,
-        },
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://electrasim.com/' },
+        { '@type': 'ListItem', position: 2, name: 'Comparison bench', item: canonical },
       ],
     },
     {
       '@type': 'ItemList',
-      '@id': `${canonical}#tools`,
-      name: 'Online circuit simulators compared with ElectraSim',
-      itemListOrder: 'https://schema.org/ItemListUnordered',
-      numberOfItems: comparisonTools.length,
-      itemListElement: comparisonTools.map((tool, index) => ({
+      '@id': `${canonical}#bench`,
+      name: 'Circuit simulators compared by task fit',
+      numberOfItems: benchTools.length,
+      itemListElement: benchTools.map((tool, index) => ({
         '@type': 'ListItem',
         position: index + 1,
         item: {
@@ -89,13 +104,10 @@ const pageSchema = {
     {
       '@type': 'FAQPage',
       '@id': `${canonical}#faq`,
-      mainEntity: comparisonFaqs.map((faq) => ({
+      mainEntity: benchFaqs.map((faq) => ({
         '@type': 'Question',
         name: faq.question,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: faq.answer,
-        },
+        acceptedAnswer: { '@type': 'Answer', text: faq.answer },
       })),
     },
   ],
@@ -104,200 +116,451 @@ const pageSchema = {
 
 <Base title={title} description={description} canonical={canonical}>
   <Fragment slot="head">
-    <script is:inline type="application/ld+json" set:html={JSON.stringify(pageSchema)} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(schema)} />
+    <script is:inline defer src={`/js/compare-bench.js?v=${packageMetadata.version}`}></script>
   </Fragment>
 
-  <CompareHero />
+  <main id="main-content" class="cb-page" data-compare-bench>
+    <header class="cb-hero" data-live>
+      <div class="wrap cb-hero-wrap">
+        <nav class="cb-crumbs" aria-label="Breadcrumb">
+          <a href="/">Home</a>
+          <span aria-hidden="true">/</span>
+          <span aria-current="page">Comparison bench</span>
+        </nav>
 
-  <main id="main-content" class="compare-main" data-live>
-    <section class="compare-section" id="quick-comparison" aria-labelledby="quick-comparison-h">
+        <div class="cb-hero-grid">
+          <div class="cb-hero-copy">
+            <p class="cb-kicker"><span class="cb-kicker-dot" aria-hidden="true"></span>Test bench / 2026.09</p>
+            <h1>Which circuit simulator fits the work you need to do?</h1>
+            <p class="cb-hero-lede">
+              Nine tools, six jobs, one honest readout. Compare practical wiring, engineering analysis,
+              guided teaching, sharing, offline work and the friction between you and a first circuit.
+            </p>
+            <div class="cb-hero-actions">
+              <a class="btn-primary" href="/app/"><Icon name="bolt" size={18} stroke={2.2} />Try ElectraSim</a>
+              <a class="btn-outline" href="#cb-matrix"><Icon name="chart" size={18} stroke={2} />Open the matrix</a>
+            </div>
+            <p class="cb-research-stamp">
+              <span class="cb-stamp-mark" aria-hidden="true">R-01</span>
+              First-party research reviewed <time datetime={benchReviewedIso}>{benchReviewedLabel}</time>
+              <span aria-hidden="true">&middot;</span> {benchTools.length} tools <span aria-hidden="true">&middot;</span> {sourceCount} source pages
+            </p>
+          </div>
+
+          <figure class="cb-hero-art">
+            <svg class="cb-bench-svg" viewBox="0 0 760 440" role="img" aria-labelledby="cb-bench-title cb-bench-desc">
+              <title id="cb-bench-title">A schematic test bench connecting ElectraSim to different simulator categories</title>
+              <desc id="cb-bench-desc">A central ElectraSim terminal feeds three coloured rails labelled wiring, analysis and teaching, with competitor terminals connected around it.</desc>
+              <defs>
+                <pattern id="cb-grid" width="24" height="24" patternUnits="userSpaceOnUse">
+                  <path d="M 24 0 L 0 0 0 24" class="cb-svg-grid" fill="none" />
+                </pattern>
+                <linearGradient id="cb-live-gradient" x1="0" x2="1">
+                  <stop offset="0" stop-color="#2563eb" />
+                  <stop offset="0.55" stop-color="#60a5fa" />
+                  <stop offset="1" stop-color="#ffb800" />
+                </linearGradient>
+              </defs>
+              <rect x="0" y="0" width="760" height="440" class="cb-svg-board" />
+              <rect x="0" y="0" width="760" height="440" fill="url(#cb-grid)" opacity="0.8" />
+
+              <g class="cb-svg-dim" aria-hidden="true">
+                <path d="M44 34 H716" />
+                <path d="M44 406 H716" />
+                <path d="M44 28 v12 M716 28 v12 M44 400 v12 M716 400 v12" />
+                <text x="44" y="22">FIELD 760</text>
+                <text x="716" y="428" text-anchor="end">LIVE RESEARCH MAP</text>
+              </g>
+
+              <g class="cb-svg-rail cb-svg-rail-blue" aria-hidden="true">
+                <path d="M120 116 H282 Q300 116 316 132 L342 158" />
+                <path d="M120 324 H282 Q300 324 316 308 L342 282" />
+                <path d="M418 158 L444 132 Q460 116 478 116 H640" />
+                <path d="M418 282 L444 308 Q460 324 478 324 H640" />
+                <path d="M380 104 V158 M380 282 V336" />
+              </g>
+              <g class="cb-svg-rail cb-svg-rail-amber" aria-hidden="true">
+                <path d="M120 116 H282 Q300 116 316 132 L342 158" />
+                <path d="M418 282 L444 308 Q460 324 478 324 H640" />
+              </g>
+              <g class="cb-svg-pulses" aria-hidden="true">
+                <circle class="cb-svg-pulse cb-svg-pulse-a" r="5" cx="120" cy="116" />
+                <circle class="cb-svg-pulse cb-svg-pulse-b" r="5" cx="640" cy="324" />
+                <circle class="cb-svg-pulse cb-svg-pulse-c" r="4" cx="380" cy="104" />
+              </g>
+
+              <g class="cb-svg-terminal cb-svg-terminal--electrasim">
+                <rect x="300" y="158" width="160" height="124" rx="8" />
+                <rect x="312" y="170" width="136" height="100" rx="4" class="cb-svg-terminal-face" />
+                <path d="M365 188 L344 223 H359 L354 246 L382 210 H367 Z" class="cb-svg-bolt" />
+                <text x="380" y="260" text-anchor="middle" class="cb-svg-terminal-name">ELECTRASIM</text>
+                <text x="380" y="300" text-anchor="middle" class="cb-svg-terminal-meta">PRACTICAL WIRING</text>
+              </g>
+
+              <g class="cb-svg-node cb-svg-node--wiring">
+                <circle cx="92" cy="116" r="28" />
+                <text x="92" y="112" text-anchor="middle" class="cb-svg-node-id">W-01</text>
+                <text x="92" y="132" text-anchor="middle" class="cb-svg-node-label">MECHSIM</text>
+              </g>
+              <g class="cb-svg-node cb-svg-node--wiring">
+                <circle cx="92" cy="324" r="28" />
+                <text x="92" y="320" text-anchor="middle" class="cb-svg-node-id">W-02</text>
+                <text x="92" y="340" text-anchor="middle" class="cb-svg-node-label">UK SIM</text>
+              </g>
+              <g class="cb-svg-node cb-svg-node--analysis">
+                <circle cx="668" cy="116" r="28" />
+                <text x="668" y="112" text-anchor="middle" class="cb-svg-node-id">A-01</text>
+                <text x="668" y="132" text-anchor="middle" class="cb-svg-node-label">CIRCUITLAB</text>
+              </g>
+              <g class="cb-svg-node cb-svg-node--analysis">
+                <circle cx="668" cy="324" r="28" />
+                <text x="668" y="320" text-anchor="middle" class="cb-svg-node-id">A-02</text>
+                <text x="668" y="340" text-anchor="middle" class="cb-svg-node-label">EVERYCIRCUIT</text>
+              </g>
+              <g class="cb-svg-node cb-svg-node--open">
+                <circle cx="204" cy="52" r="24" />
+                <text x="204" y="49" text-anchor="middle" class="cb-svg-node-id">O-01</text>
+                <text x="204" y="66" text-anchor="middle" class="cb-svg-node-label">FALSTAD</text>
+              </g>
+              <g class="cb-svg-node cb-svg-node--teaching">
+                <circle cx="556" cy="52" r="24" />
+                <text x="556" y="49" text-anchor="middle" class="cb-svg-node-id">T-01</text>
+                <text x="556" y="66" text-anchor="middle" class="cb-svg-node-label">TINKERCAD</text>
+              </g>
+              <g class="cb-svg-node cb-svg-node--teaching">
+                <circle cx="204" cy="388" r="24" />
+                <text x="204" y="385" text-anchor="middle" class="cb-svg-node-id">T-02</text>
+                <text x="204" y="402" text-anchor="middle" class="cb-svg-node-label">DCACLAB</text>
+              </g>
+              <g class="cb-svg-node cb-svg-node--analysis">
+                <circle cx="556" cy="388" r="24" />
+                <text x="556" y="385" text-anchor="middle" class="cb-svg-node-id">A-03</text>
+                <text x="556" y="402" text-anchor="middle" class="cb-svg-node-label">MULTISIM</text>
+              </g>
+
+              <g class="cb-svg-legend" aria-hidden="true">
+                <circle cx="302" cy="370" r="5" class="cb-svg-key cb-svg-key-blue" />
+                <text x="314" y="374">WIRING-FIRST</text>
+                <circle cx="418" cy="370" r="5" class="cb-svg-key cb-svg-key-amber" />
+                <text x="430" y="374">CLASSROOM</text>
+              </g>
+            </svg>
+            <figcaption><span>FIG. 01</span> The map shows product intent, not a performance league table.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </header>
+
+    <section class="cb-snapshot" aria-labelledby="cb-snapshot-title" data-live>
       <div class="wrap">
-        <div class="compare-section-heading">
-          <p class="compare-overline">Quick comparison</p>
-          <h2 id="quick-comparison-h">The right tool depends on the circuit you want to understand</h2>
-          <p>
-            ElectraSim is the practical-wiring option in this group. The other tools bring real
-            strengths in engineering analysis, microcontrollers, animated electronics, circuit
-            theory or managed classroom work.
-          </p>
+        <div class="cb-section-head cb-section-head--split">
+          <div>
+            <p class="cb-kicker"><span class="cb-kicker-dot" aria-hidden="true"></span>Signal snapshot</p>
+            <h2 id="cb-snapshot-title">Different tools light up different parts of the board.</h2>
+          </div>
+          <p>These are the clearest task-fit signals from the official product pages. They are deliberately narrower than an overall ranking.</p>
         </div>
 
-        <aside class="compare-disclosure" aria-label="Comparison disclosure">
-          <strong>A transparent comparison</strong>
-          <p>
-            ElectraSim publishes this page. We therefore show its limitations as well as its
-            strengths, use official provider pages for competing products, and avoid treating an
-            undocumented feature as absent.
-          </p>
+        <div class="cb-signal-grid">
+          <article class="cb-signal-card cb-signal-card--blue">
+            <div class="cb-signal-card-top"><span class="cb-ref">S-01</span><span class="cb-signal-badge">WIRING</span></div>
+            <h3>Practical installation work</h3>
+            <p class="cb-signal-lead">ElectraSim + MechSimulator</p>
+            <div class="cb-mini-meter" aria-label="Strong practical wiring fit"><span class="cb-mini-meter-fill cb-mini-meter-fill--5"></span></div>
+            <p class="cb-signal-note">Recognisable protection, conductors, switching and domestic layouts are the centre of gravity.</p>
+          </article>
+          <article class="cb-signal-card cb-signal-card--coral">
+            <div class="cb-signal-card-top"><span class="cb-ref">S-02</span><span class="cb-signal-badge">ANALYSIS</span></div>
+            <h3>Engineering numbers</h3>
+            <p class="cb-signal-lead">CircuitLab + Multisim Live</p>
+            <div class="cb-mini-meter" aria-label="Strong numeric analysis fit"><span class="cb-mini-meter-fill cb-mini-meter-fill--5"></span></div>
+            <p class="cb-signal-note">SPICE, frequency-domain work, plots and component-level analysis are their natural territory.</p>
+          </article>
+          <article class="cb-signal-card cb-signal-card--amber">
+            <div class="cb-signal-card-top"><span class="cb-ref">S-03</span><span class="cb-signal-badge">TEACHING</span></div>
+            <h3>Managed learning</h3>
+            <p class="cb-signal-lead">Tinkercad + DCACLab</p>
+            <div class="cb-mini-meter" aria-label="Strong guided teaching fit"><span class="cb-mini-meter-fill cb-mini-meter-fill--5"></span></div>
+            <p class="cb-signal-note">Lessons, assignments, classrooms and beginner electronics make the teaching workflow explicit.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="cb-matrix-section" id="cb-matrix" aria-labelledby="cb-matrix-title" data-live>
+      <div class="wrap">
+        <div class="cb-section-head cb-section-head--split">
+          <div>
+            <p class="cb-kicker"><span class="cb-kicker-dot" aria-hidden="true"></span>Interactive matrix</p>
+            <h2 id="cb-matrix-title">Tune the bench to your task.</h2>
+          </div>
+          <p>Use the lens buttons to isolate a job, sort the readout, then inspect any tool for the evidence behind its signal.</p>
+        </div>
+
+        <div class="cb-controls" aria-label="Comparison controls">
+          <div class="cb-filter-group" role="group" aria-label="Filter by task">
+            <button type="button" class="cb-filter is-active" data-compare-filter="all" aria-pressed="true">All jobs</button>
+            <button type="button" class="cb-filter" data-compare-filter="wiring" aria-pressed="false"><span class="cb-filter-led cb-filter-led--blue" aria-hidden="true"></span>Wiring</button>
+            <button type="button" class="cb-filter" data-compare-filter="analysis" aria-pressed="false"><span class="cb-filter-led cb-filter-led--coral" aria-hidden="true"></span>Analysis</button>
+            <button type="button" class="cb-filter" data-compare-filter="teaching" aria-pressed="false"><span class="cb-filter-led cb-filter-led--amber" aria-hidden="true"></span>Teaching</button>
+            <button type="button" class="cb-filter" data-compare-filter="access" aria-pressed="false"><span class="cb-filter-led cb-filter-led--green" aria-hidden="true"></span>Access</button>
+            <button type="button" class="cb-filter" data-compare-filter="pinned" aria-pressed="false"><Icon name="pin" size={14} stroke={2} />Pinned</button>
+          </div>
+          <label class="cb-sort-label" for="cb-sort">Order
+            <select id="cb-sort" data-compare-sort>
+              <option value="fit">Task-fit signal</option>
+              <option value="name">Name A-Z</option>
+              <option value="wiring">Practical wiring</option>
+              <option value="analysis">Numeric analysis</option>
+              <option value="teaching">Guided teaching</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="cb-legend" aria-label="Signal legend">
+          <span><i class="cb-legend-dot cb-legend-dot--strong" aria-hidden="true"></i>Strong fit</span>
+          <span><i class="cb-legend-dot cb-legend-dot--useful" aria-hidden="true"></i>Useful</span>
+          <span><i class="cb-legend-dot cb-legend-dot--limited" aria-hidden="true"></i>Limited</span>
+          <span><i class="cb-legend-dot cb-legend-dot--unknown" aria-hidden="true"></i>Not confirmed</span>
+          <span class="cb-legend-note">Scores describe documented fit, not quality.</span>
+        </div>
+
+        <p class="cb-matrix-status" id="cb-matrix-status" role="status" aria-live="polite">Showing all {benchTools.length} tools.</p>
+        <div class="cb-matrix-scroll" tabindex="0" aria-label="Scrollable simulator comparison matrix">
+          <div class="cb-matrix" role="table" aria-describedby="cb-matrix-status">
+            <div class="cb-matrix-head" role="row">
+              <div class="cb-tool-head" role="columnheader">Tool / intent</div>
+              {benchDimensions.map((dimension) => (
+                <div class="cb-dimension-head" role="columnheader" title={dimension.description}>
+                  <span>{dimension.shortLabel}</span>
+                  <small>{dimension.id === 'access' ? 'start' : dimension.id}</small>
+                </div>
+              ))}
+              <div class="cb-action-head" role="columnheader">Bench</div>
+            </div>
+
+            <div id="cb-tool-rows" class="cb-tool-rows">
+              {benchTools.map((tool) => (
+                <div
+                  class:list={['cb-matrix-row', tool.id === 'electrasim' && 'cb-matrix-row--featured']}
+                  role="row"
+                  data-tool-id={tool.id}
+                  data-tool-name={tool.name}
+                  data-filter-tags={filterTags(tool)}
+                  data-fit-score={scoreAverage(tool).toFixed(3)}
+                  data-scores={benchDimensions.map((dimension) => tool.scores[dimension.id]).join(',')}
+                  data-pinned={tool.id === 'electrasim' ? 'true' : 'false'}
+                  tabindex="0"
+                >
+                  <div class="cb-tool-cell" role="rowheader">
+                    <div class:list={['cb-tool-avatar', `cb-tool-avatar--${tool.accent}`]} aria-hidden="true">{tool.shortName.slice(0, 1)}</div>
+                    <div class="cb-tool-copy">
+                      <strong>{tool.name}</strong>
+                      <span>{tool.categoryLabel}</span>
+                    </div>
+                    {tool.id === 'electrasim' && <span class="cb-ours-mark">This bench</span>}
+                  </div>
+                  {benchDimensions.map((dimension) => {
+                    const current = tool.signals[dimension.id];
+                    return (
+                      <div class:list={['cb-signal-cell', `cb-signal-cell--${current.level}`]} role="cell" data-dimension={dimension.id}>
+                        <span class="cb-signal-word">{levelLabel(current.level)}</span>
+                        <span class="cb-dots" aria-hidden="true">
+                          {[0, 1, 2, 3, 4].map((dot) => <i class:list={{ 'is-on': dot < tool.scores[dimension.id] }}></i>)}
+                        </span>
+                        <span class="sr-only">{current.note}</span>
+                      </div>
+                    );
+                  })}
+                  <div class="cb-action-cell" role="cell">
+                    <button type="button" class="cb-pin" data-pin-tool={tool.id} aria-pressed={tool.id === 'electrasim' ? 'true' : 'false'} aria-label={`Pin ${tool.name}`} title="Pin this tool">
+                      <Icon name="pin" size={15} stroke={2} />
+                    </button>
+                    <button type="button" class="cb-inspect" data-select-tool={tool.id} aria-controls="cb-inspector">
+                      Inspect <span aria-hidden="true">-&gt;</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div class="cb-inspector-wrap">
+          <aside class="cb-inspector" id="cb-inspector" aria-label="Selected tool details" aria-live="polite">
+            {benchTools.map((tool, index) => (
+              <article class="cb-profile" data-profile-for={tool.id} hidden={index !== 0}>
+                <div class="cb-profile-main">
+                  <div class="cb-profile-heading">
+                    <span class:list={['cb-profile-tag', `cb-profile-tag--${tool.accent}`]}>{tool.categoryLabel}</span>
+                    <h3>{tool.name}</h3>
+                    <p>{tool.tagline}</p>
+                  </div>
+                  <p class="cb-profile-summary">{tool.summary}</p>
+                  {tool.status && <p class="cb-profile-status"><span aria-hidden="true">!</span>{tool.status}</p>}
+                  <p class="cb-profile-access"><strong>Access signal</strong> {tool.accessLine}</p>
+                </div>
+                <div class="cb-profile-side">
+                  <div class="cb-profile-score">
+                    <span class="cb-ref">FIT VECTOR</span>
+                    <strong>{scoreLabel(scoreAverage(tool))}</strong>
+                    <span>six documented jobs</span>
+                  </div>
+                  <div class="cb-profile-links">
+                    <a href={tool.officialUrl} target="_blank" rel="noopener noreferrer">Official product page <span aria-hidden="true">-&gt;</span></a>
+                    <button type="button" class="cb-source-jump" data-source-jump={tool.id}>Show source trail <span aria-hidden="true">↓</span></button>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="cb-charts-section" id="cb-profile" aria-labelledby="cb-charts-title" data-live>
+      <div class="wrap">
+        <div class="cb-section-head cb-section-head--split">
+          <div>
+            <p class="cb-kicker"><span class="cb-kicker-dot" aria-hidden="true"></span>Instrument view</p>
+            <h2 id="cb-charts-title">See the shape, not just the score.</h2>
+          </div>
+          <p>The radar keeps the selected tool's trade-offs visible. The bars below show why a single overall winner would be a poor conclusion.</p>
+        </div>
+
+        <div class="cb-chart-grid">
+          <figure class="cb-chart-panel cb-radar-panel">
+            <div class="cb-chart-panel-head"><span class="cb-ref">PLOT A</span><strong id="cb-radar-name">ElectraSim</strong><span id="cb-radar-sub">selected profile</span></div>
+            <svg id="cb-radar" class="cb-radar" viewBox="0 0 340 340" role="img" aria-labelledby="cb-radar-title cb-radar-desc">
+              <title id="cb-radar-title">Selected simulator fit vector</title>
+              <desc id="cb-radar-desc">A radar chart comparing wiring, analysis, teaching, sharing, offline and access signals from zero to five.</desc>
+              <g class="cb-radar-grid" aria-hidden="true">
+                <polygon points={radarRing(0.25)}></polygon>
+                <polygon points={radarRing(0.5)}></polygon>
+                <polygon points={radarRing(0.75)}></polygon>
+                <polygon points={radarRing(1)}></polygon>
+                {benchDimensions.map((_, index) => <line x1="170" y1="170" x2={radarPoint(index, 5).split(',')[0]} y2={radarPoint(index, 5).split(',')[1]}></line>)}
+              </g>
+              <polygon id="cb-radar-area" class="cb-radar-area" points={radarPoints(benchTools[0])}></polygon>
+              <g id="cb-radar-dots" class="cb-radar-dots" aria-hidden="true">
+                {benchDimensions.map((dimension, index) => {
+                  const [x, y] = radarPoint(index, benchTools[0].scores[dimension.id]).split(',');
+                  return <circle data-radar-dot={dimension.id} cx={x} cy={y} r="4"></circle>;
+                })}
+              </g>
+              <g class="cb-radar-labels" aria-hidden="true">
+                <text x="170" y="22" text-anchor="middle">WIRING</text>
+                <text x="290" y="92" text-anchor="start">ANALYSIS</text>
+                <text x="265" y="270" text-anchor="start">TEACHING</text>
+                <text x="75" y="270" text-anchor="end">SHARING</text>
+                <text x="50" y="92" text-anchor="end">OFFLINE</text>
+                <text x="170" y="326" text-anchor="middle">ACCESS</text>
+              </g>
+            </svg>
+            <figcaption>Signals are normalised to 0-5 from the matrix. Hover or focus a row to change the instrument.</figcaption>
+          </figure>
+
+          <figure class="cb-chart-panel cb-bars-panel">
+            <div class="cb-chart-panel-head"><span class="cb-ref">PLOT B</span><strong>Documented fit vectors</strong><span>average of six signals</span></div>
+            <div class="cb-bars" role="img" aria-label="Average fit signal for every simulator">
+              {benchTools.map((tool) => {
+                const average = scoreAverage(tool);
+                return (
+                  <button type="button" class:list={['cb-bar-row', tool.id === 'electrasim' && 'is-selected']} data-bar-tool={tool.id} data-select-tool={tool.id}>
+                    <span class="cb-bar-name">{tool.shortName}</span>
+                    <span class="cb-bar-track"><span class:list={['cb-bar-fill', `cb-bar-fill--${tool.accent}`, `cb-bar-fill--${Math.round(average)}`]}></span></span>
+                    <strong>{scoreLabel(average)}</strong>
+                  </button>
+                );
+              })}
+            </div>
+            <figcaption>Use the matrix to see which dimensions make up each average; no bar is a universal verdict.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="cb-source-section" id="cb-sources" aria-labelledby="cb-sources-title" data-live>
+      <div class="wrap">
+        <div class="cb-section-head cb-section-head--split">
+          <div>
+            <p class="cb-kicker"><span class="cb-kicker-dot" aria-hidden="true"></span>Source ledger</p>
+            <h2 id="cb-sources-title">Every signal has a paper trail.</h2>
+          </div>
+          <p>We checked product pages, documentation, pricing or subscription pages, classroom material and official repositories. “Not confirmed” means the reviewed public source did not say.</p>
+        </div>
+
+        <div class="cb-source-list">
+          {benchTools.map((tool, index) => (
+            <details class="cb-source-entry" data-source-entry={tool.id} open={index === 0}>
+              <summary>
+                <span class:list={['cb-source-index', `cb-source-index--${tool.accent}`]}>{String(index + 1).padStart(2, '0')}</span>
+                <span class="cb-source-name">{tool.name}</span>
+                <span class="cb-source-kind">{tool.categoryLabel}</span>
+                <span class="cb-source-toggle" aria-hidden="true">+</span>
+              </summary>
+              <div class="cb-source-body">
+                <p>{tool.summary}</p>
+                <ul>
+                  {tool.sources.map((source) => <li><a href={source.url} target="_blank" rel="noopener noreferrer">{source.label}<span aria-hidden="true">-&gt;</span></a></li>)}
+                </ul>
+              </div>
+            </details>
+          ))}
+        </div>
+
+        <div class="cb-method-grid">
+          <div>
+            <p class="cb-ref">METHOD / M-01</p>
+            <h3>How to read this bench</h3>
+          </div>
+          <ol>
+            <li><strong>Primary sources first.</strong> Claims come from the providers' own public product, documentation, pricing, classroom or repository pages.</li>
+            <li><strong>Task-based signals.</strong> A five means “strongly aligned with this job,” not “better software.”</li>
+            <li><strong>No silent negatives.</strong> An undocumented capability is marked “Not confirmed,” never assumed absent.</li>
+            <li><strong>Freshness matters.</strong> Prices, limits and availability can change; revisit the linked source before making a purchasing or curriculum decision.</li>
+          </ol>
+        </div>
+        <aside class="cb-safety-note">
+          <Icon name="fault" size={20} stroke={2} />
+          <p><strong>Educational boundary.</strong> No simulator in this comparison certifies a real installation. Use competent design, safe isolation, manufacturer instructions, applicable regulations, inspection and calibrated testing for real work.</p>
         </aside>
-
-        <ComparisonTable tools={comparisonTools} />
       </div>
     </section>
 
-    <section class="compare-section compare-section-muted" aria-labelledby="difference-h">
-      <div class="wrap">
-        <div class="compare-section-heading compare-section-heading-left">
-          <p class="compare-overline">ElectraSim's focus</p>
-          <h2 id="difference-h">Practical wiring without setup friction</h2>
-          <p>
-            The product is deliberately narrower than a general electronics laboratory. That
-            narrower scope makes common electrical components, conductor roles and switching logic
-            easier to recognise from the start.
-          </p>
+    <section class="cb-faq-section" id="cb-faq" aria-labelledby="cb-faq-title">
+      <div class="wrap cb-faq-grid">
+        <div class="cb-section-head cb-section-head--left">
+          <p class="cb-kicker"><span class="cb-kicker-dot" aria-hidden="true"></span>Bench notes</p>
+          <h2 id="cb-faq-title">Questions that change the choice.</h2>
+          <p>Short answers for the moments when two tools look similar on a feature list.</p>
         </div>
-
-        <div class="compare-difference-grid">
-          <article>
-            <h3>Installation-first components</h3>
-            <p>
-              Build with protection, switches, sockets and connected loads instead of translating
-              every exercise into generic electronic symbols.
-            </p>
-          </article>
-          <article>
-            <h3>Private by default</h3>
-            <p>
-              Circuits are stored locally. There is no account database, advertising profile or
-              cloud workspace to configure before learning.
-            </p>
-          </article>
-          <article>
-            <h3>Faults you can see</h3>
-            <p>
-              Energised paths animate and fault states are surfaced visually, helping learners move
-              from memorising a diagram to tracing its behaviour.
-            </p>
-          </article>
+        <div class="cb-faq-list">
+          {benchFaqs.map((faq, index) => (
+            <details class="cb-faq-item" open={index === 0}>
+              <summary><span class="cb-faq-no">Q-{String(index + 1).padStart(2, '0')}</span>{faq.question}<span class="cb-faq-plus" aria-hidden="true">+</span></summary>
+              <p>{faq.answer}</p>
+            </details>
+          ))}
         </div>
-
-        <p class="compare-inline-links">
-          See the <a href="/guide/">current simulator guide</a>, follow the
-          <a href="/blog/getting-started-with-electrasim/">five-minute getting-started lesson</a>,
-          or read how <a href="/blog/how-household-wiring-works/">household wiring works</a>.
-        </p>
       </div>
     </section>
 
-    <section class="compare-section" aria-labelledby="task-fit-h">
-      <div class="wrap">
-        <div class="compare-section-heading">
-          <p class="compare-overline">Choose by task</p>
-          <h2 id="task-fit-h">Which circuit simulator fits your goal?</h2>
-          <p>
-            These recommendations are based on each provider's stated product focus, not an overall
-            ranking.
-          </p>
+    <section class="cb-cta" aria-labelledby="cb-cta-title" data-live>
+      <div class="wrap cb-cta-inner">
+        <div>
+          <p class="cb-kicker"><span class="cb-kicker-dot" aria-hidden="true"></span>Close the loop</p>
+          <h2 id="cb-cta-title">Try the wiring-first path on your own circuit.</h2>
+          <p>Open a guided circuit, change a conductor or protective device, and watch the state move. No account and no download required.</p>
         </div>
-        <TaskFitList items={taskFits} />
+        <div class="cb-cta-actions">
+          <a class="btn-primary" href="/app/"><Icon name="bolt" size={18} stroke={2.2} />Launch ElectraSim</a>
+          <a class="btn-outline" href="/guide/"><Icon name="teacher" size={18} stroke={2} />Read the simulator guide</a>
+        </div>
       </div>
     </section>
 
-    <section class="compare-section compare-section-muted" aria-labelledby="profiles-h">
-      <div class="wrap">
-        <div class="compare-section-heading compare-section-heading-left">
-          <p class="compare-overline">Detailed comparisons</p>
-          <h2 id="profiles-h">Where each simulator is strongest</h2>
-          <p>
-            Each profile separates the product's documented strength from the boundary that matters
-            when choosing it for practical wiring education.
-          </p>
-        </div>
-        <ToolProfiles tools={comparisonTools} />
-      </div>
-    </section>
-
-    <section class="compare-section" aria-labelledby="wiring-options-h">
-      <div class="wrap">
-        <div class="compare-section-heading compare-section-heading-left">
-          <p class="compare-overline">Other wiring-focused options</p>
-          <h2 id="wiring-options-h">More direct electrical-training alternatives</h2>
-          <p>
-            Two additional products are closer to ElectraSim's practical-wiring subject area, but
-            they use different access models and are not direct replacements for a free browser PWA.
-          </p>
-        </div>
-        <ToolProfiles tools={closeWiringAlternatives} compact />
-      </div>
-    </section>
-
-    <section class="compare-section compare-section-method" aria-labelledby="method-h">
-      <div class="wrap compare-method-grid">
-        <div class="compare-section-heading compare-section-heading-left">
-          <p class="compare-overline">Methodology</p>
-          <h2 id="method-h">How this comparison was researched</h2>
-          <p>
-            Product access, prices and features can change. This page records what the providers
-            themselves published when the research was reviewed on
-            <time datetime={comparisonReviewedIso}>{comparisonReviewedLabel}</time>.
-          </p>
-        </div>
-        <ol class="compare-method-list">
-          <li>
-            <strong>Primary sources only.</strong> Product pages, documentation, help centres,
-            official pricing pages and first-party app-store listings.
-          </li>
-          <li>
-            <strong>Task-based criteria.</strong> Primary purpose, platform, price, account access,
-            practical-wiring relevance, saving, sharing, export and teaching workflows.
-          </li>
-          <li>
-            <strong>No invented negatives.</strong> When a provider does not publicly document a
-            capability, this page says it is not confirmed rather than claiming it does not exist.
-          </li>
-          <li>
-            <strong>No performance ranking.</strong> Simulation accuracy and speed are not compared
-            because equivalent public benchmarks were not available across all tools.
-          </li>
-        </ol>
-      </div>
-      <div class="wrap">
-        <aside class="compare-safety-note">
-          <strong>Educational scope</strong>
-          <p>
-            No simulator on this page should be treated as proof that a real installation is safe or
-            compliant. Use competent design, safe isolation, inspection, calibrated testing,
-            manufacturer instructions and the regulations that apply to the work.
-          </p>
-        </aside>
-      </div>
-    </section>
-
-    <section class="compare-section" aria-labelledby="faq-h">
-      <div class="wrap compare-faq-layout">
-        <div class="compare-section-heading compare-section-heading-left">
-          <p class="compare-overline">Questions</p>
-          <h2 id="faq-h">Circuit simulator comparison FAQ</h2>
-          <p>
-            Short answers to the questions that matter most when comparing a household wiring
-            simulator with a general electronics tool.
-          </p>
-        </div>
-        <CompareFaq faqs={comparisonFaqs} />
-      </div>
-    </section>
-
-    <section class="compare-cta" aria-labelledby="compare-cta-h">
-      <div class="wrap">
-        <p class="compare-overline">Start without an account</p>
-        <h2 id="compare-cta-h">Try the practical-wiring option for yourself</h2>
-        <p>
-          Open ElectraSim, load a guided circuit, change the wiring and watch the circuit respond.
-          Nothing needs to be installed or registered.
-        </p>
-        <div class="compare-hero-actions">
-          <a class="btn-primary" href="/app/">Launch ElectraSim free</a>
-          <a class="btn-outline" href="/updates/fault-simulation-mode-open-circuit-reverse-polarity-earth-fault/">
-            Learn about fault simulation
-          </a>
-        </div>
-        <p class="compare-trademark-note">
-          ElectraSim is not affiliated with the other providers listed. Product names and trademarks
-          belong to their respective owners. Confirm current prices and terms on each official site.
-          Learn more about <a href="/about/">ElectraSim</a> and its
-          <a href="/privacy/">local-data approach</a>.
-        </p>
-      </div>
-    </section>
+    <p class="cb-trademark-note wrap">ElectraSim is not affiliated with the providers listed above. Product names and trademarks belong to their respective owners. Research reviewed {benchReviewedLabel}; confirm current terms on each official source.</p>
   </main>
 </Base>

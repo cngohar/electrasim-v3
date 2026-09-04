@@ -1,7 +1,6 @@
 import {
   AlertTriangle,
   BookOpen,
-  CheckCircle2,
   Crosshair,
   Info,
   Lightbulb,

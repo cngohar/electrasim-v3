@@ -150,8 +150,9 @@ export function InspectorAnalyticsView({ simResult, selectedComp }: Props) {
     : 0.0;
 
   // Real-time sparklines for Calculated Live Measurements cards
+  /* Stroke colour is set on the <path> by the caller, so this only produces
+     geometry — the old `color` first argument was never read. */
   const generateSineSparkline = (
-    color: string,
     omega = 0.12,
     speed = 4,
     phaseOffset = 0,
@@ -302,7 +303,7 @@ export function InspectorAnalyticsView({ simResult, selectedComp }: Props) {
               <svg className="w-full h-full overflow-visible" viewBox="0 0 120 24">
                 <title>Voltage Waveform</title>
                 <path
-                  d={generateSineSparkline('#3b82f6', 0.12, 3, 0, 120, 24)}
+                  d={generateSineSparkline(0.12, 3, 0, 120, 24)}
                   fill="none"
                   stroke="#3b82f6"
                   strokeWidth="2.2"
@@ -322,7 +323,7 @@ export function InspectorAnalyticsView({ simResult, selectedComp }: Props) {
               <svg className="w-full h-full overflow-visible" viewBox="0 0 120 24">
                 <title>Current Waveform</title>
                 <path
-                  d={generateSineSparkline('#22c55e', 0.12, 3, -0.35, 120, 24)}
+                  d={generateSineSparkline(0.12, 3, -0.35, 120, 24)}
                   fill="none"
                   stroke="#22c55e"
                   strokeWidth="2.2"
@@ -362,7 +363,7 @@ export function InspectorAnalyticsView({ simResult, selectedComp }: Props) {
               <svg className="w-full h-full overflow-visible" viewBox="0 0 120 24">
                 <title>Power Factor Waveform</title>
                 <path
-                  d={generateSineSparkline('#a855f7', 0.14, 2.6, 0.4, 120, 24)}
+                  d={generateSineSparkline(0.14, 2.6, 0.4, 120, 24)}
                   fill="none"
                   stroke="#a855f7"
                   strokeWidth="2.2"

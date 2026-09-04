@@ -28,7 +28,6 @@ import {
   __CHALLENGE2_ACTIVE_KEY,
   __CHALLENGE2_PROGRESS_KEY,
   __CHALLENGE2_RETURN_KEY,
-  saveChallengeCircuit,
 } from './declarativeChallengePersistence';
 import { useDeclarativeChallengeStore } from './declarativeChallengeStore';
 import { startAutosave } from './persistence';

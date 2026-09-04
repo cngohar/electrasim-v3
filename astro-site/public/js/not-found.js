@@ -6,8 +6,12 @@
  *   3. Freezes SMIL electron motion when the user prefers reduced motion
  *      (CSS covers the CSS keyframes; SVG pauseAnimations covers SMIL).
  *   4. Reports the broken path to the readout (progressive, reversible).
+ *
+ * Lifecycle: re-runs after every view transition (see boot.js), and the arc
+ * scheduler's pending timeout is cancelled on cleanup so a self-rescheduling
+ * chain cannot outlive the page it animates.
  */
-(() => {
+window.ElectraSim.onReady(({ signal, onCleanup }) => {
   const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   // NOTE: keep index 0 in sync with the SSR fallback riddle in 404.astro.
@@ -91,7 +95,7 @@
     };
     if (animate && section && !REDUCED_MOTION.matches) {
       section.classList.add('is-swapping');
-      window.setTimeout(apply, 190);
+      later(apply, 190);
     } else {
       apply();
     }
@@ -106,13 +110,27 @@
     return idx;
   }
 
+  const timers = new Set();
+  const later = (fn, delay) => {
+    const id = window.setTimeout(() => {
+      timers.delete(id);
+      fn();
+    }, delay);
+    timers.add(id);
+    return id;
+  };
+  onCleanup(() => {
+    for (const id of timers) window.clearTimeout(id);
+    timers.clear();
+  });
+
   if (section && qEl && aEl) {
     // Swap the SSR riddle for a random one once the page has painted.
-    window.setTimeout(() => showRiddle(nextIndex(current), true), 900);
+    later(() => showRiddle(nextIndex(current), true), 900);
 
     if (nextBtn) {
       nextBtn.hidden = false;
-      nextBtn.addEventListener('click', () => showRiddle(nextIndex(current), true));
+      nextBtn.addEventListener('click', () => showRiddle(nextIndex(current), true), { signal });
     }
   }
 
@@ -121,9 +139,9 @@
   function scheduleArc() {
     if (!spark || REDUCED_MOTION.matches) return;
     const delay = 1600 + Math.random() * 3800;
-    window.setTimeout(() => {
+    later(() => {
       spark.classList.add('arc-burst');
-      window.setTimeout(() => spark.classList.remove('arc-burst'), 480);
+      later(() => spark.classList.remove('arc-burst'), 480);
       scheduleArc();
     }, delay);
   }
@@ -146,4 +164,4 @@
     if (caret) readout.insertBefore(missing, caret);
     else readout.appendChild(missing);
   }
-})();
+});

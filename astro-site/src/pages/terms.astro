@@ -13,15 +13,19 @@ const bodyHtml = marked.parse(data.content);
   description={data.seo_description}
   canonical="https://electrasim.com/terms/"
 >
-  <div class="legal-hero" data-live>
-    <div class="wrap">
-      <span class="label">Legal</span>
-      <h1>Terms of Use</h1>
-      <p>Last updated: {lastUpdated}</p>
+  <!-- `<main>` wraps the hero so the skip link lands before the <h1>, not
+       past it. `<main>` itself is unstyled; `.legal-wrap` moved to a <div>. -->
+  <main id="main-content">
+    <div class="legal-hero" data-live>
+      <div class="wrap">
+        <span class="label">Legal</span>
+        <h1>Terms of Use</h1>
+        <p>Last updated: {lastUpdated}</p>
+      </div>
     </div>
-  </div>
 
-  <main id="main-content" class="legal-wrap">
-    <Fragment set:html={bodyHtml} />
+    <div class="legal-wrap">
+      <Fragment set:html={bodyHtml} />
+    </div>
   </main>
 </Base>

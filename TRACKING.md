@@ -74,7 +74,7 @@ content comes from:
 |---|---|
 | Homepage | `astro-site/src/content/pages/landing.json` |
 | Guide | `astro-site/src/content/pages/guide.json` |
-| Simulator comparison | `astro-site/src/pages/compare.astro` and `astro-site/src/lib/compare.ts` |
+| Simulator comparison bench | `astro-site/src/pages/compare.astro`, `astro-site/src/lib/competitor-bench.ts`, and `astro-site/src/styles/compare-bench.css` |
 | Blog index | `astro-site/src/content/pages/blog-index.json` |
 | About, contact, privacy, terms | matching JSON file under `astro-site/src/content/pages/` |
 | Blog article | frontmatter and Markdown under `astro-site/src/content/blog/` |
@@ -90,7 +90,6 @@ astro-site/src/
 │   ├── layout/       Header, footer, background, contact, scroll-to-top
 │   ├── landing/      Homepage sections and responsive hero
 │   ├── guide/        Guide overview, circuit cards, CTA
-│   ├── compare/      Comparison hero, table, task fit, profiles, FAQ
 │   └── blog/         Post cards, grids, topic navigation, pagination
 ├── content/
 │   ├── blog/         Markdown articles
@@ -102,7 +101,7 @@ astro-site/src/
 ├── pages/            Astro routes
 └── styles/
     ├── global.css
-    ├── compare.css
+    ├── compare-bench.css
     ├── landing.css
     ├── guide.css
     └── blog/         Index, article, and tag styles

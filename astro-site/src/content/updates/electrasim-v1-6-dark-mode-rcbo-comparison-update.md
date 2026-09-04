@@ -47,9 +47,9 @@ Clear Pressed and Released labels make the current state easier to understand.
 
 Different circuit simulators are designed for different jobs. Some focus on electronic calculations, some on breadboards and microcontrollers, and others on classroom experiments.
 
-The new [online circuit simulator comparison](/compare/) explains those differences in plain language. It compares ElectraSim with CircuitLab, Tinkercad Circuits, EveryCircuit, Falstad, and DCACLab using information from their official websites.
+The comparison guidance introduced here has since been rebuilt for v2.0.2 as a current [circuit simulator comparison bench](/compare/). It now covers nine tools across six practical jobs, with an interactive matrix, SVG research map, charts, source trails, and a dated first-party evidence ledger.
 
-It also explains ElectraSim's limits. ElectraSim is designed for learning practical electrical wiring. It does not replace professional circuit-design software, safe isolation, inspection, testing, or work by a qualified electrician.
+The point it made still stands, and it is worth repeating here: ElectraSim is designed for learning practical electrical wiring. It does not replace professional circuit-design software, safe isolation, inspection, testing, or work by a qualified electrician.
 
 ## App Updates and Learning Articles Are Easier to Find
 
@@ -67,6 +67,6 @@ New protection components also begin in their intended ready position, so a newl
 
 Open the simulator, add an RCBO, connect a Push Button to a bell or lamp, and try the circuit in light or dark mode.
 
-For help with the controls, visit the [simulator guide](/guide/). To decide whether ElectraSim is the right tool for your task, read the [circuit simulator comparison](/compare/).
+For help with the controls, visit the [simulator guide](/guide/).
 
 [Open ElectraSim v1.6 ->](/app/)

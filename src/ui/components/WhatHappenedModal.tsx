@@ -13,6 +13,7 @@ import { COMPONENT_DEFS } from '../../domain';
 import { useCircuitStore, useUiStore } from '../../store';
 import { useSettingsStore } from '../../store/settingsStore';
 import { useDialogFocus } from '../hooks/useDialogFocus';
+import { MECHANISM_LABEL, formatClearingTime } from './faultAlertFormat';
 
 export function WhatHappenedModal() {
   const whatHappenedOpen = useUiStore((s) => s.whatHappenedOpen);
@@ -170,13 +171,26 @@ export function WhatHappenedModal() {
               </p>
 
               {activeAlert.currentAmps > 0 && (
-                <div className="mt-3 flex items-center gap-4 text-xs font-mono">
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-mono">
                   <span className="rounded bg-white/80 px-2 py-1 text-red-700 dark:bg-slate-900 dark:text-red-400 border border-slate-200 dark:border-slate-800">
                     Measured Current: <strong>{activeAlert.currentAmps.toFixed(1)} A</strong>
+                    {activeAlert.currentMultiple !== undefined && (
+                      <> ({activeAlert.currentMultiple.toFixed(2)}×)</>
+                    )}
                   </span>
                   {activeAlert.limitAmps > 0 && (
                     <span className="rounded bg-white/80 px-2 py-1 text-emerald-700 dark:bg-slate-900 dark:text-emerald-400 border border-slate-200 dark:border-slate-800">
                       Safe Rating Limit: <strong>{activeAlert.limitAmps.toFixed(1)} A</strong>
+                    </span>
+                  )}
+                  {/* Timing is the other half of a trip: the same 26 A on the
+                      same 16 A breaker is a nuisance trip at 21 minutes and a
+                      cleared fault at 40 ms. */}
+                  {activeAlert.clearingTimeSeconds !== undefined && (
+                    <span className="rounded bg-white/80 px-2 py-1 text-amber-700 dark:bg-slate-900 dark:text-amber-400 border border-slate-200 dark:border-slate-800">
+                      Cleared in:{' '}
+                      <strong>{formatClearingTime(activeAlert.clearingTimeSeconds)}</strong>
+                      {activeAlert.mechanism && <> ({MECHANISM_LABEL[activeAlert.mechanism]})</>}
                     </span>
                   )}
                 </div>

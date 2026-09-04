@@ -371,7 +371,6 @@ export function Inspector({
             <InspectorPropertiesContent
               selectionState={selectionState}
               simResult={simResult}
-              setIsCollapsed={setIsCollapsed}
               runCircuitValidation={runCircuitValidation}
             />
           )}
@@ -395,7 +394,6 @@ export function Inspector({
               <InspectorPropertiesContent
                 selectionState={selectionState}
                 simResult={simResult}
-                setIsCollapsed={setIsCollapsed}
                 runCircuitValidation={runCircuitValidation}
               />
             ))}

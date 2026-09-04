@@ -60,28 +60,31 @@ const blogSchema = {
     {pageCount > 1 && <link rel="next" href="https://electrasim.com/blog/2/" />}
   </Fragment>
 
-  <div class="page-hero blog-index-hero" data-live>
-    <div class="wrap">
-      <span class="label">{p.page_label}</span>
-      <h1>{p.page_heading}</h1>
-      <p>{p.page_description}</p>
+  <!-- `<main>` wraps the hero so the skip link lands before the <h1>. -->
+  <main id="main-content">
+    <div class="page-hero blog-index-hero" data-live>
+      <div class="wrap">
+        <span class="label">{p.page_label}</span>
+        <h1>{p.page_heading}</h1>
+        <p>{p.page_description}</p>
+      </div>
     </div>
-  </div>
 
-  <main id="main-content" class="blog-sec">
-    <div class="wrap">
-      {allPosts.length === 0 ? (
-        <div class="empty">
-          <p>No posts published yet. Check back soon!</p>
-          <a href="/" class="btn-outline">← Back to Home</a>
-        </div>
-      ) : (
-        <>
-          <BlogTopicNav topics={topics} />
-          <BlogIndexSections posts={posts} />
-          <BlogPagination currentPage={1} totalPages={pageCount} />
-        </>
-      )}
+    <div class="blog-sec">
+      <div class="wrap">
+        {allPosts.length === 0 ? (
+          <div class="empty">
+            <p>No posts published yet. Check back soon!</p>
+            <a href="/" class="btn-outline">← Back to Home</a>
+          </div>
+        ) : (
+          <>
+            <BlogTopicNav topics={topics} />
+            <BlogIndexSections posts={posts} />
+            <BlogPagination currentPage={1} totalPages={pageCount} />
+          </>
+        )}
+      </div>
     </div>
   </main>
 

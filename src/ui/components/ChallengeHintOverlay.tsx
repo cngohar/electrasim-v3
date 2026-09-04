@@ -1,11 +1,15 @@
 import { useMemo } from 'react';
-import { COMPONENT_DEFS, type ComponentInstance, type Point2D, getPortPos } from '../../domain';
+import {
+  COMPONENT_DEFS,
+  type ComponentInstance,
+  type Point2D,
+  VIEW_H,
+  VIEW_W,
+  getPortPos,
+} from '../../domain';
 import type { ChallengeVisualTarget } from '../../domain/challenges/declarative';
 import { useCircuitStore, useViewportStore } from '../../store';
 import { useDeclarativeChallengeStore } from '../../store/declarativeChallengeStore';
-
-const VIEW_W = 1200;
-const VIEW_H = 720;
 
 export type ResolvedVisual =
   | { kind: 'point'; point: Point2D; label: string }

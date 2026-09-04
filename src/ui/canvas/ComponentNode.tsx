@@ -15,9 +15,10 @@ import {
   type SimulationResult,
   checkFastCompatibility,
   instanceLabel,
+  isAutomaticProtection,
 } from '../../domain';
 import { emojiDataUri } from '../../lib/emoji/emojiSvg';
-import { useSettingsStore, useUiStore } from '../../store';
+import { useSettingsStore } from '../../store';
 import { getComponentIcon, getComponentImage } from '../components/componentImages';
 import { useEmojiGlyphsReady } from '../hooks/useEmojiGlyphsReady';
 import { getDefaultArt } from './componentArt';
@@ -609,12 +610,11 @@ export function ComponentNode({
               <circle cx={COMP_W / 2 + 11} cy={14} r={4} />
             </g>
             {(() => {
-              const isProtectionDevice = Boolean(
-                definition.isProtection ||
-                  component.type.includes('mcb') ||
-                  component.type.includes('rcd') ||
-                  component.type.includes('fuse'),
-              );
+              // "TRIPPED" vs "BLOWN": a device that automatically interrupts a
+              // fault has operated and can be reset; anything else has failed.
+              // An isolator is `isProtection` but does not trip, so the flag
+              // alone would mislabel it.
+              const isProtectionDevice = isAutomaticProtection(component.type);
               const label = isProtectionDevice ? 'TRIPPED' : 'BLOWN';
               const iconUri = isProtectionDevice ? trippedBadgeUri() : blownBadgeUri();
               const badgeBg = isProtectionDevice ? '#d97706' : '#ef4444';

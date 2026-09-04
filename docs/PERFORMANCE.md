@@ -24,9 +24,8 @@ use the same threshold. This keeps the static output bounded as the article corp
 
 ## Interaction baseline
 
-Use the development stress control to inspect the production SVG renderer at 50, 100, and roughly
-200 components. `npm run benchmark:browser` adds the largest stress fixture (currently 202
-components and 300 wires), runs the simulation, dispatches frame-paced pan and component-drag
+`npm run benchmark:browser` builds its own dense fixture (currently 202 components and 300 wires)
+from a share URL, runs the simulation, dispatches frame-paced pan and component-drag
 gestures, measures pointer-handler and release-commit CPU time, and records
 `requestAnimationFrame` intervals in headless Chromium. The strict gate covers application-owned
 CPU work and the static-scene frame baseline. Gesture paint intervals remain attached telemetry:

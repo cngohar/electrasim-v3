@@ -4,14 +4,13 @@ import {
   COMPONENT_DEFS,
   type ComponentInstance,
   type Point2D,
+  VIEW_H,
+  VIEW_W,
   type WireInstance,
   getPortPos,
 } from '../../domain';
 import type { RuleTarget } from '../../domain/challenges/declarative';
 import { useCircuitStore, useUiStore, useViewportStore } from '../../store';
-
-const VIEW_W = 1200;
-const VIEW_H = 720;
 
 function pointForTarget(
   target: RuleTarget,

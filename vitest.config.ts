@@ -28,6 +28,15 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     css: true,
+    /*
+     * The default 5 s is not enough headroom for the heaviest render tests when
+     * the whole suite runs in parallel. `DocsContent` alone mounts all 18 guided
+     * circuits plus the generated component reference — ~2.1 s on an idle
+     * machine, which tips over 5 s once every worker is competing for CPU. That
+     * produced an intermittent failure in `npm run check` that had nothing to do
+     * with the code under test.
+     */
+    testTimeout: 20_000,
     include: ['src/**/*.{test,spec}.{ts,tsx}', 'astro-site/src/**/*.{test,spec}.{ts,tsx}'],
     exclude: ['node_modules', 'dist', 'e2e'],
     coverage: {

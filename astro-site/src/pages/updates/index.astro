@@ -85,7 +85,11 @@ const ogImage = ogCardUrl(updates[0]?.id ?? '', 'updates');
                   <span class="upd-line"></span>
                 </div>
                 <article class="upd-card">
-                  <a href={`/updates/${upd.id}/`} class="upd-thumb-link" tabindex="-1" aria-hidden="true">
+                  {/* A decorative thumbnail, not a second link to the same page.
+                      It was an <a tabindex="-1" aria-hidden="true"> — an anchor
+                      with a live href and no accessible name, which is invalid
+                      ARIA. The real link is the title below. */}
+                  <div class="upd-thumb-link">
                     <img
                       class="upd-thumb"
                       src={ogCardUrl(upd.id, 'updates')}
@@ -95,7 +99,7 @@ const ogImage = ogCardUrl(updates[0]?.id ?? '', 'updates');
                       loading="lazy"
                       decoding="async"
                     />
-                  </a>
+                  </div>
                   <div class="upd-body">
                     <div class="upd-meta">
                       {upd.data.version && <span class="upd-version">{upd.data.version}</span>}

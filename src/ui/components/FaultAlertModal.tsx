@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { COMPONENT_DEFS } from '../../domain';
 import { useCircuitStore, useSettingsStore, useUiStore } from '../../store';
 import { useDialogFocus } from '../hooks/useDialogFocus';
+import { MECHANISM_LABEL, formatClearingTime } from './faultAlertFormat';
 
 export function FaultAlertModal() {
   const faultAlert = useUiStore((s) => s.faultAlert);
@@ -179,6 +180,11 @@ export function FaultAlertModal() {
               </span>
               <span className="text-base font-extrabold font-mono text-red-600 dark:text-red-400">
                 {currentAlert.currentAmps.toFixed(1)} A
+                {currentAlert.currentMultiple !== undefined && (
+                  <span className="ml-1 text-xs font-bold text-slate-500 dark:text-slate-400">
+                    {currentAlert.currentMultiple.toFixed(2)}×
+                  </span>
+                )}
               </span>
             </div>
             <div>
@@ -189,6 +195,19 @@ export function FaultAlertModal() {
                 {currentAlert.limitAmps.toFixed(1)} A
               </span>
             </div>
+            {/* Timing turns "over its rating" into a real disconnection-time
+                answer, and names which element inside the device operated. */}
+            {currentAlert.clearingTimeSeconds !== undefined && (
+              <div className="col-span-2 border-t border-slate-200 pt-2 dark:border-slate-800">
+                <span className="block text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                  Disconnection Time
+                  {currentAlert.mechanism && ` — ${MECHANISM_LABEL[currentAlert.mechanism]}`}
+                </span>
+                <span className="text-base font-extrabold font-mono text-amber-600 dark:text-amber-400">
+                  {formatClearingTime(currentAlert.clearingTimeSeconds)}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Action Hint */}

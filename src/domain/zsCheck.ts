@@ -28,6 +28,7 @@
  */
 
 import { COMPONENT_DEFS } from './components';
+import { isResidualDevice } from './protectionRoles';
 import { connectedNetworkComponents } from './simulation/faultPropagation';
 import type { Circuit, ComponentInstance, WireInstance } from './types';
 
@@ -237,10 +238,8 @@ export function checkDeviceDisconnection(
     passCold: zs <= maxZs * ZS_COLD_RULE,
     disconnectionSeconds: 0.4,
     furthestComponentLabel: furthestLabel,
-    rcdType:
-      device.type.includes('rcd') || device.type.includes('rcbo') || device.type.includes('afdd')
-        ? (device.state.rcdType ?? 'A')
-        : undefined,
+    // Residual sensing is a rating-field fact (`ratedLeakage_mA`), not a name.
+    rcdType: isResidualDevice(device.type) ? (device.state.rcdType ?? 'A') : undefined,
   };
 }
 

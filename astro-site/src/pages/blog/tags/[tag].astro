@@ -45,31 +45,35 @@ const breadcrumbSchema = {
     <script is:inline type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
   </Fragment>
 
-  <div class="tag-hero page-hero" data-live>
-    <div class="wrap">
-      <div class="bc-wrap tag-breadcrumb">
-        <nav class="bc" aria-label="Breadcrumb">
-          <a href="/">Home</a>
-          <span class="bc-sep" aria-hidden="true">›</span>
-          <a href="/blog/">Blog</a>
-          <span class="bc-sep" aria-hidden="true">›</span>
-          <span aria-current="page">#{tagLabel}</span>
-        </nav>
+  <!-- `<main>` wraps the hero so the breadcrumb and <h1> sit inside the main
+       landmark and the skip link does not jump past the page title. -->
+  <main id="main-content">
+    <div class="tag-hero page-hero" data-live>
+      <div class="wrap">
+        <div class="bc-wrap tag-breadcrumb">
+          <nav class="bc" aria-label="Breadcrumb">
+            <a href="/">Home</a>
+            <span class="bc-sep" aria-hidden="true">›</span>
+            <a href="/blog/">Blog</a>
+            <span class="bc-sep" aria-hidden="true">›</span>
+            <span aria-current="page">#{tagLabel}</span>
+          </nav>
+        </div>
+        <span class="tag-pill">#{tagLabel}</span>
+        <h1>{posts.length} post{posts.length !== 1 ? 's' : ''} tagged "{tagLabel}"</h1>
+        <p>Browse all ElectraSim articles about {tagLabel.toLowerCase()}.</p>
       </div>
-      <span class="tag-pill">#{tagLabel}</span>
-      <h1>{posts.length} post{posts.length !== 1 ? 's' : ''} tagged "{tagLabel}"</h1>
-      <p>Browse all ElectraSim articles about {tagLabel.toLowerCase()}.</p>
     </div>
-  </div>
 
-  <main id="main-content" class="tags-sec">
-    <div class="wrap">
+    <div class="tags-sec">
+      <div class="wrap">
 
-      <BlogTopicNav topics={topics} activeSlug={tag} />
-      <BlogPostGrid posts={posts} />
+        <BlogTopicNav topics={topics} activeSlug={tag} />
+        <BlogPostGrid posts={posts} />
 
-      <div class="tag-all-articles">
-        <a href="/blog/" class="btn-outline">← All Articles</a>
+        <div class="tag-all-articles">
+          <a href="/blog/" class="btn-outline">← All Articles</a>
+        </div>
       </div>
     </div>
   </main>

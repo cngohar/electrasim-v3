@@ -1,20 +1,14 @@
 import { runComplianceChecks } from './compliance';
 import { COMPONENT_DEFS } from './components';
 import { getStandardCableAmpacity } from './electricalCalculations';
+import { isOvercurrentDevice, isResidualDevice } from './protectionRoles';
 import { getStandard } from './standards';
 import type { StandardId } from './standards';
 import type { Circuit, ComponentInstance, SimulationResult, WireInstance } from './types';
 
-import type {
-  DetailedBreakdown,
-  DetailedStep,
-  PassedCheck,
-  QuickFixAction,
-  QuickFixType,
-  ValidationIssue,
-  ValidationReport,
-  ValidationSeverity,
-} from './circuitValidationTypes';
+// Types used by this module's own signatures. The rest of the moved type set is
+// re-exported below straight from its new home, so it needs no local binding.
+import type { PassedCheck, ValidationIssue, ValidationReport } from './circuitValidationTypes';
 
 // Re-export the moved types so existing imports keep working.
 export type {
@@ -479,16 +473,10 @@ export function validateCircuit(
   }
 
   // 5. PROTECTION DEVICE & CABLE AMPACITY CHECKS
-  const protectionComps = components.filter((c) => {
-    const def = COMPONENT_DEFS[c.type];
-    return (
-      def?.isProtection ||
-      c.type.includes('mcb') ||
-      c.type.includes('fuse') ||
-      c.type.includes('rcd') ||
-      c.type.includes('rcbo')
-    );
-  });
+  // Overcurrent devices only: the In ≤ Iz check below compares a *breaker*
+  // rating against cable ampacity, which is meaningless for a plain RCD (no
+  // overcurrent element), an SPD, or a main switch.
+  const protectionComps = components.filter((c) => isOvercurrentDevice(c.type));
 
   const overratedBreakers: {
     comp: ComponentInstance;
@@ -726,9 +714,9 @@ export function validateCircuit(
   });
 
   if (socketsAndWetComps.length > 0) {
-    const hasRCD = components.some(
-      (c) => c.type.includes('rcd') || c.type.includes('rcbo') || c.type === 'socket-gfci',
-    );
+    // Substring matching missed the AFDD entirely — it is an RCBO with arc
+    // detection, so a correctly-protected circuit was told it had no RCD.
+    const hasRCD = components.some((c) => isResidualDevice(c.type));
     if (!hasRCD) {
       issues.push({
         id: 'missing_rcd_sockets',

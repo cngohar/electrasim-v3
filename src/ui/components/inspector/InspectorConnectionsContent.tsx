@@ -3,7 +3,7 @@
  * verbatim from the previous monolithic `Inspector.tsx`.
  */
 
-import { ArrowRightLeft, ChevronRight, Eye, Route, Terminal } from 'lucide-react';
+import { ArrowRightLeft, ChevronRight, Eye, Route } from 'lucide-react';
 import { COMPONENT_DEFS, type ComponentInstance, type WireInstance } from '../../../domain';
 import { useCircuitStore, useUiStore } from '../../../store';
 import type { InspectorSelectionState } from './useInspectorSelectionState';

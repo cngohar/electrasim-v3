@@ -9,6 +9,9 @@ interface Props {
 
 const { topics, activeSlug } = Astro.props;
 const visibleTopics = selectTopicArchives(topics, activeSlug);
+/* This nav shows at most 12 of the archives; the rest were only reachable by
+   guessing a URL until /blog/tags/ existed. */
+const hasMore = topics.length > visibleTopics.length;
 ---
 
 {visibleTopics.length > 0 && (
@@ -23,6 +26,11 @@ const visibleTopics = selectTopicArchives(topics, activeSlug);
           {topic.label} <span>{topic.posts.length}</span>
         </a>
       ))}
+      {hasMore && (
+        <a href="/blog/tags/" class="topic-link-all">
+          All {topics.length} topics <span aria-hidden="true">→</span>
+        </a>
+      )}
     </div>
   </nav>
 )}

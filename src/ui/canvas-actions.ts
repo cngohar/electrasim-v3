@@ -32,6 +32,40 @@ export interface PortLoc {
 
 let wireSeq = 0;
 
+/**
+ * Monotonic, collision-free wire id.
+ *
+ * `Date.now()` alone is not enough: two wires created inside the same
+ * millisecond (paste, template load, generated challenge) would collide, which
+ * is why the sequence counter is part of the id.
+ */
+function nextWireId(): string {
+  return `w-${Date.now().toString(36)}-${(++wireSeq).toString(36)}`;
+}
+
+/**
+ * Is this exact port→port connection already wired?
+ *
+ * Direction-agnostic: a wire from A:0 to B:1 and one from B:1 to A:0 are the
+ * same physical conductor, and adding the second would silently double the
+ * connection.
+ */
+function findDuplicateWire(from: PortLoc, to: PortLoc): WireInstance | undefined {
+  return useCircuitStore
+    .getState()
+    .wires.find(
+      (w) =>
+        (w.fromComponentId === from.componentId &&
+          w.fromPortIndex === from.portIndex &&
+          w.toComponentId === to.componentId &&
+          w.toPortIndex === to.portIndex) ||
+        (w.fromComponentId === to.componentId &&
+          w.fromPortIndex === to.portIndex &&
+          w.toComponentId === from.componentId &&
+          w.toPortIndex === from.portIndex),
+    );
+}
+
 /** Surface any non-blocking connection warnings to the log panel. */
 function logConnectionWarnings(
   validation: ConnectionValidationResult,
@@ -104,20 +138,7 @@ export function handlePortClick(
   logConnectionWarnings(validation, ui.addLog);
 
   // Duplicate guard: skip if this exact port→port connection already exists.
-  const existingWires = useCircuitStore.getState().wires;
-  const duplicate = existingWires.find(
-    (w) =>
-      (w.fromComponentId === pending.componentId &&
-        w.fromPortIndex === pending.portIndex &&
-        w.toComponentId === compId &&
-        w.toPortIndex === portIndex) ||
-      (w.fromComponentId === compId &&
-        w.fromPortIndex === portIndex &&
-        w.toComponentId === pending.componentId &&
-        w.toPortIndex === pending.portIndex),
-  );
-  if (duplicate) {
-    console.log('[ElectraSim] Wire already exists between these ports — skipping.');
+  if (findDuplicateWire(pending, { componentId: compId, portIndex })) {
     ui.addLog('Wire already exists between these ports.', 'info');
     ui.setPendingWireFrom(null);
     ui.setMode('idle');
@@ -127,7 +148,7 @@ export function handlePortClick(
   // smart-routing default flips on without touching existing wires.
   const routingStyle = useSettingsStore.getState().routingStyle;
   const wire: WireInstance = {
-    id: `w-${Date.now().toString(36)}-${(++wireSeq).toString(36)}`,
+    id: nextWireId(),
     fromComponentId: pending.componentId,
     fromPortIndex: pending.portIndex,
     toComponentId: compId,
@@ -313,27 +334,14 @@ export function commitCustomPath(destCompId: string, destPortIndex: number): boo
     return false;
   }
   logConnectionWarnings(validation, ui.addLog);
-  const existingWiresC = useCircuitStore.getState().wires;
-  const duplicateC = existingWiresC.find(
-    (w) =>
-      (w.fromComponentId === path.from.componentId &&
-        w.fromPortIndex === path.from.portIndex &&
-        w.toComponentId === destCompId &&
-        w.toPortIndex === destPortIndex) ||
-      (w.fromComponentId === destCompId &&
-        w.fromPortIndex === destPortIndex &&
-        w.toComponentId === path.from.componentId &&
-        w.toPortIndex === path.from.portIndex),
-  );
-  if (duplicateC) {
-    console.log('[ElectraSim] Wire already exists between these ports — skipping.');
+  if (findDuplicateWire(path.from, { componentId: destCompId, portIndex: destPortIndex })) {
     ui.addLog('Wire already exists between these ports.', 'info');
     ui.cancelCustomPath();
     return false;
   }
   const routingStyle = useSettingsStore.getState().routingStyle;
-  const wire: import('../domain').WireInstance = {
-    id: `w-${Date.now().toString(36)}-${(++wireSeq).toString(36)}`,
+  const wire: WireInstance = {
+    id: nextWireId(),
     fromComponentId: path.from.componentId,
     fromPortIndex: path.from.portIndex,
     toComponentId: destCompId,

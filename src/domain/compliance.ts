@@ -15,6 +15,7 @@
 import type { ValidationIssue } from './circuitValidationTypes';
 import { COMPONENT_DEFS } from './components';
 import { getMillivoltAmpMeter } from './electricalCalculations';
+import { isResidualDevice } from './protectionRoles';
 import {
   type StandardId,
   getStandard,
@@ -166,9 +167,7 @@ function checkUnswitchedSocketRcd(circuit: Circuit, standardId: StandardId): Com
   const issues: ComplianceIssue[] = [];
   const byId = new Map(components.map((c) => [c.id, c]));
 
-  const rcdTypes = new Set(['rcd', 'rcbo', 'socket-gfci', 'afdd']);
-  const isRcd = (c: ComponentInstance | undefined) =>
-    Boolean(c && (rcdTypes.has(c.type) || c.type.includes('rcd') || c.type.includes('gfci')));
+  const isRcd = (c: ComponentInstance | undefined) => Boolean(c && isResidualDevice(c.type));
 
   for (const comp of components) {
     const def = COMPONENT_DEFS[comp.type];

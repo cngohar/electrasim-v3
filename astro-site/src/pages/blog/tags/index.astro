@@ -1,0 +1,109 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import { MIN_TAG_POSTS, getTagArchives, sortBlogPosts } from '../../../lib/blog';
+import '../../../styles/blog/blog-index.css';
+import '../../../styles/blog/blog-tags.css';
+
+/**
+ * /blog/tags/ — the index the 38 tag archives were missing.
+ *
+ * `/blog/tags/<tag>/` existed for every qualifying tag, but a visitor who
+ * trimmed the URL back to `/blog/tags/` hit a 404, and there was no single page
+ * linking the archives together — so they were only reachable through the
+ * 12-chip topic nav. Listing all of them gives the archives one internal hub
+ * instead of leaving 26 of them orphaned.
+ */
+
+const allPosts = sortBlogPosts(await getCollection('blog', ({ data }) => !data.draft), false);
+const topics = getTagArchives(allPosts);
+const canonical = 'https://electrasim.com/blog/tags/';
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://electrasim.com/' },
+    { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://electrasim.com/blog/' },
+    { '@type': 'ListItem', position: 3, name: 'Topics', item: canonical },
+  ],
+};
+
+const collectionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'ElectraSim Blog Topics',
+  url: canonical,
+  description: `Every topic in the ElectraSim blog, with ${allPosts.length} articles across ${topics.length} tags.`,
+  mainEntity: {
+    '@type': 'ItemList',
+    numberOfItems: topics.length,
+    itemListElement: topics.map((topic, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: topic.label,
+      url: `https://electrasim.com/blog/tags/${topic.slug}/`,
+    })),
+  },
+};
+---
+
+<Base
+  title="All Blog Topics — ElectraSim"
+  description={`Browse every ElectraSim blog topic: ${topics.length} tags covering ${allPosts.length} wiring guides, regulation explainers and safety articles.`}
+  canonical={canonical}
+>
+  <Fragment slot="head">
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(collectionSchema)} />
+  </Fragment>
+
+  <main id="main-content">
+    <div class="tag-hero page-hero" data-live>
+      <div class="wrap">
+        <div class="bc-wrap tag-breadcrumb">
+          <nav class="bc" aria-label="Breadcrumb">
+            <a href="/">Home</a>
+            <span class="bc-sep" aria-hidden="true">›</span>
+            <a href="/blog/">Blog</a>
+            <span class="bc-sep" aria-hidden="true">›</span>
+            <span aria-current="page">Topics</span>
+          </nav>
+        </div>
+        <span class="tag-pill">Topics</span>
+        <h1>{topics.length} topics across {allPosts.length} articles</h1>
+        <p>Every tag with {MIN_TAG_POSTS} or more articles has its own archive. Pick a topic to read straight through it.</p>
+      </div>
+    </div>
+
+    <div class="tags-sec">
+      <div class="wrap">
+        <nav class="topic-nav topic-nav-full" aria-label="All blog topics" data-live>
+          <span class="topic-nav-label">All topics</span>
+          <div class="topic-links">
+            {topics.map((topic) => (
+              <a href={`/blog/tags/${topic.slug}/`}>
+                {topic.label} <span>{topic.posts.length}</span>
+              </a>
+            ))}
+          </div>
+        </nav>
+
+        <div class="tag-all-articles">
+          <a href="/blog/" class="btn-outline">← All Articles</a>
+        </div>
+      </div>
+    </div>
+  </main>
+</Base>
+
+<style>
+  /* The 12-chip nav on index pages is a teaser; this is the full set, so it
+     needs to breathe rather than sit in one dense strip. */
+  .topic-nav-full {
+    margin-bottom: 0;
+  }
+  .topic-nav-full :global(.topic-links) {
+    gap: 0.6rem;
+  }
+</style>

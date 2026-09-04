@@ -10,10 +10,9 @@
  * Canvas items: Paste (placeholder for Phase 6.2).
  */
 
-import { X } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { setMomentarySwitchState, useUiStore } from '../../store';
-import { type MenuEntry, buildItems, isSeparator } from './contextMenuItems';
+import { buildItems, isSeparator } from './contextMenuItems';
 
 export function ContextMenu() {
   const contextMenu = useUiStore((s) => s.contextMenu);

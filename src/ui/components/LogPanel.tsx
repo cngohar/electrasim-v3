@@ -5,7 +5,7 @@
  * Shows error/warning/info counts in the collapsed header when present.
  */
 
-import { ChevronUp, X } from 'lucide-react';
+import { ChevronUp } from 'lucide-react';
 import type { LogEntry } from '../../domain';
 import { useUiStore } from '../../store';
 
@@ -28,7 +28,6 @@ export function LogPanel({ isPhone, open, simRunning, logs }: Props) {
 
   const errors = logs.filter((l) => l.type === 'error').length;
   const warnings = logs.filter((l) => l.type === 'warning').length;
-  const infos = logs.filter((l) => l.type === 'info').length;
   const issues = errors + warnings;
 
   return (

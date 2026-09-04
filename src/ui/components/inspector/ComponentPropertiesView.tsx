@@ -11,15 +11,9 @@ import {
   RotateCcw,
   RotateCw,
   ShieldCheck,
-  Sliders,
   Trash2,
 } from 'lucide-react';
-import {
-  COMPONENT_DEFS,
-  type ComponentInstance,
-  type SimulationResult,
-  getComponentHelp,
-} from '../../../domain';
+import { COMPONENT_DEFS, type ComponentInstance, type SimulationResult } from '../../../domain';
 import { getStandard, recommendCurveForLoad, recommendMcbrating } from '../../../domain/standards';
 import {
   setMomentarySwitchState,
@@ -45,7 +39,6 @@ export function ComponentPropertiesView({
 
   const isOn = selectedComp.state.on === true;
   const setPreviewVariant = useUiStore((s) => s.setPreviewVariant);
-  const helpData = getComponentHelp(selectedComp.type, def.category);
   const simRunning = useUiStore((s) => s.simRunning);
   const globalVoltage = useCircuitStore((s) => s.globalVoltage);
 
@@ -90,8 +83,6 @@ export function ComponentPropertiesView({
   const livePower = compCalc?.powerWatts ?? 0;
 
   // Determine fault state for visual feedback
-  const isFaulted =
-    selectedComp.state.isBlown || selectedComp.state.isTripped || selectedComp.state.fault;
   const isOvervoltage = liveVoltage > (selectedComp.state.customMaxVolts ?? def.maxVolts ?? 250);
   const isOvercurrent = liveCurrent > (selectedComp.state.customMaxAmps ?? def.maxAmps ?? 16);
   const isOverload = livePower > (selectedComp.state.customPowerWatts ?? def.powerWatts ?? 1000);

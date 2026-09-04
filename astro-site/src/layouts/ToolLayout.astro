@@ -2,6 +2,10 @@
 import { ClientRouter } from 'astro:transitions';
 import EmojiIcon from '../components/EmojiIcon.astro';
 import '../styles/global.css';
+/* Shared full-bleed stage + instrument-panel shell for the Electrical Toolbox.
+   Previously imported from global.css, which pushed 35.8 KB of `.ts-*` geometry
+   onto all 134 routes when only the two tool pages use it. */
+import '../styles/tool-stage.css';
 import packageMetadata from '../../../package.json';
 
 export interface Props {

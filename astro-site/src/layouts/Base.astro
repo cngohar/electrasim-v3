@@ -107,6 +107,9 @@ const websiteSchema = {
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="apple-touch-icon" href="/pwa-192.svg" />
 
+  <!-- Feed discovery: readers and aggregators look for this on every page -->
+  <link rel="alternate" type="application/rss+xml" title="ElectraSim — Wiring Guides &amp; Product Updates" href="/rss.xml" />
+
   <!-- Self-hosted display + body fonts (CSP: font-src 'self') -->
   <link rel="preload" as="font" type="font/woff2" href="/fonts/plus-jakarta-sans-latin.woff2" crossorigin />
   <link rel="preload" as="font" type="font/woff2" href="/fonts/space-grotesk-latin.woff2" crossorigin />
@@ -114,6 +117,13 @@ const websiteSchema = {
   <!-- WebSite structured data (sitelinks searchbox + brand entity) -->
   <script is:inline type="application/ld+json" set:html={JSON.stringify(websiteSchema)} />
   <ClientRouter />
+  <!--
+    boot.js defines the ElectraSim.onReady() lifecycle every other hand-written
+    script depends on. Classic deferred scripts run in document order, so this
+    must stay ahead of them — and it must sit after <ClientRouter /> is declared
+    so the astro:page-load / astro:before-swap listeners have a router to hear.
+  -->
+  <script is:inline defer src={`/js/boot.js?v=${packageMetadata.version}`}></script>
   <slot name="head" />
 </head>
 <body>
@@ -123,7 +133,7 @@ const websiteSchema = {
 
   <slot />
 
-  <FloatingContact />
+  <FloatingContact assetVersion={packageMetadata.version} />
   <SiteFooter />
   <ScrollTop assetVersion={packageMetadata.version} />
   <SiteSearchModal />

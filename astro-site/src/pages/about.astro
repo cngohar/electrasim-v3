@@ -29,23 +29,27 @@ const richText = (value: string) =>
     })} />
   </Fragment>
 
-  <header class="about-page-hero" data-live>
-    <div class="wrap">
-      <span class="about-eyebrow">
-        <span aria-hidden="true"></span>
-        About ElectraSim
-      </span>
-      <h1 set:html={data.hero_heading.replace('\n', '<br>')}></h1>
-      <p>{data.hero_sub}</p>
-      <div class="about-hero-actions">
-        <a href="/app/" class="btn-primary">Open the Simulator</a>
-        <a href="/guide/" class="btn-outline">Read the Guide</a>
+  <!-- `<main>` wraps the hero so the skip link lands *before* the <h1> rather
+       than past it. `<main>` carries no styles of its own (all page layout is
+       class-based), so this is a purely structural change. -->
+  <main id="main-content">
+    <header class="about-page-hero" data-live>
+      <div class="wrap">
+        <span class="about-eyebrow">
+          <span aria-hidden="true"></span>
+          About ElectraSim
+        </span>
+        <h1 set:html={data.hero_heading.replace('\n', '<br>')}></h1>
+        <p>{data.hero_sub}</p>
+        <div class="about-hero-actions">
+          <a href="/app/" class="btn-primary">Open the Simulator</a>
+          <a href="/guide/" class="btn-outline">Read the Guide</a>
+        </div>
       </div>
-    </div>
-  </header>
+    </header>
 
-  <main id="main-content" class="about-main" data-live>
-    <div class="wrap">
+    <div class="about-main" data-live>
+      <div class="wrap">
 
       <section class="about-intro" aria-labelledby="mission-h">
         <div class="about-prose about-prose-feature">
@@ -105,6 +109,7 @@ const richText = (value: string) =>
         <a href="/app/" class="btn-primary"><EmojiIcon name="bolt" /> Launch the Simulator</a>
       </div>
 
-    </div><!-- /.wrap -->
+      </div><!-- /.wrap -->
+    </div><!-- /.about-main -->
   </main>
 </Base>

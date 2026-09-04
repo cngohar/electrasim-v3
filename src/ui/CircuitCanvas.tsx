@@ -6,6 +6,8 @@ import {
   type Circuit,
   type ComponentInstance,
   type SimulationResult,
+  VIEW_H,
+  VIEW_W,
   getPortPos,
 } from '../domain';
 import { useCircuitStore, useSettingsStore, useUiStore, useViewportStore } from '../store';
@@ -23,7 +25,7 @@ import { WireJointsLayer } from './canvas/WireJointsLayer';
 import { WireLayer } from './canvas/WireLayer';
 import { collectFaultFx, severedWireIdSet } from './canvas/faultFx';
 import { buildOrthogonalPath, screenToSvg, svgToWorld } from './canvas/geometry';
-import type { CanvasTheme, PortLoc } from './canvas/types';
+import type { CanvasTheme } from './canvas/types';
 import { useCanvasGestureStart } from './canvas/useCanvasGestureStart';
 import {
   type CanvasDragRect,
@@ -33,9 +35,6 @@ import {
 } from './canvas/useCanvasPointerWindow';
 
 export type { CanvasTheme } from './canvas/types';
-
-const VIEW_W = 1200;
-const VIEW_H = 720;
 const REDUCED_EFFECTS_AUTO_THRESHOLD = 50;
 const LIVE_DRAG_CIRCUIT_LIMIT = 80;
 const LIVE_DRAG_WIRE_LIMIT = 32;
@@ -272,7 +271,6 @@ export function CircuitCanvas({
     pendingPanRef,
     panPreviewRef,
     panDidMoveRef,
-    circuit,
     customWiringMode,
     onSelect,
     pendingWireFrom,

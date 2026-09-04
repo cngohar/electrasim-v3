@@ -41,6 +41,28 @@ export function InspectorSimulationContent({
 
     return (
       <div className="p-3.5 space-y-3.5 text-xs">
+        {/* Energisation badge — the component panel already had one, and the
+            wire panel needs it more: every metric below reads 0.00 both when a
+            conductor is dead and when it is live with no load behind it, so
+            without this the two states are indistinguishable. */}
+        <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-2xs dark:border-slate-800 dark:bg-slate-900 flex items-center justify-between">
+          <div>
+            <div className="font-bold text-slate-800 dark:text-slate-200">Conductor</div>
+            <div className="text-[10px] text-slate-500 dark:text-slate-400">
+              Cable Operating Telemetry
+            </div>
+          </div>
+          <span
+            className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase font-mono ${
+              isEnergized
+                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300'
+                : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+            }`}
+          >
+            {isEnergized ? 'ENERGIZED' : 'DEAD / OPEN'}
+          </span>
+        </div>
+
         {/* Telemetry Metrics Grid */}
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-2.5 dark:border-slate-800 dark:bg-slate-950/60">

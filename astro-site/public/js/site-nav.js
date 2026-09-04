@@ -1,4 +1,11 @@
-(() => {
+/**
+ * site-nav.js — burger menu open/close, focus handling and dismissal.
+ *
+ * Re-binds after every view transition (see boot.js). All listeners carry the
+ * run's AbortSignal, including the `matchMedia` change listener, so repeated
+ * navigations cannot stack duplicate handlers that fight over `body.overflow`.
+ */
+window.ElectraSim.onReady(({ signal, onCleanup }) => {
   const button = document.getElementById('nav-toggle');
   const menu = document.getElementById('nav-mobile-menu');
   if (!button || !menu) return;
@@ -24,21 +31,39 @@
     if (restoreFocus) button.focus();
   };
 
-  button.addEventListener('click', () => setOpen(!isOpen()));
+  button.addEventListener('click', () => setOpen(!isOpen()), { signal });
 
   menu.querySelectorAll('a').forEach((link) => {
-    link.addEventListener('click', () => close(false));
+    link.addEventListener('click', () => close(false), { signal });
   });
 
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') close(true);
-  });
+  document.addEventListener(
+    'keydown',
+    (e) => {
+      if (e.key === 'Escape') close(true);
+    },
+    { signal },
+  );
 
-  document.addEventListener('pointerdown', (e) => {
-    if (!menu.contains(e.target) && !button.contains(e.target)) close(false);
-  });
+  document.addEventListener(
+    'pointerdown',
+    (e) => {
+      if (!menu.contains(e.target) && !button.contains(e.target)) close(false);
+    },
+    { signal },
+  );
 
-  window.matchMedia('(min-width: 681px)').addEventListener('change', (e) => {
-    if (e.matches) close(false);
+  window.matchMedia('(min-width: 681px)').addEventListener(
+    'change',
+    (e) => {
+      if (e.matches) close(false);
+    },
+    { signal },
+  );
+
+  // A soft navigation while the menu is open would otherwise leave the scroll
+  // lock applied to the incoming page.
+  onCleanup(() => {
+    document.body.style.overflow = '';
   });
-})();
+});

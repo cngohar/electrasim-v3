@@ -10,8 +10,14 @@
  * - `prefers-reduced-motion` renders one static, fully-lit frame and stops.
  * - Nothing here touches layout: only canvas paint plus `filter`/`opacity`
  *   on four <img> elements.
+ *
+ * LIFECYCLE
+ * Re-runs after every view transition (see boot.js). Returning to `/` by soft
+ * navigation gives a fresh <canvas> at its unsized 300×150 default, so without
+ * a re-run the hero painted into the wrong buffer. The rAF loop, interval timer
+ * and observers are all torn down on cleanup before the next run starts.
  */
-(() => {
+window.ElectraSim.onReady(({ signal, onCleanup }) => {
   const canvas = document.getElementById('circuit-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d', { alpha: true });
@@ -527,33 +533,48 @@
         if (reduceMotion || !rafId) staticFrame();
       }, 150);
     },
-    { passive: true },
+    { passive: true, signal },
   );
 
   if (reduceMotion) {
     staticFrame();
   } else if ('IntersectionObserver' in window) {
     staticFrame();
-    new IntersectionObserver(([entry]) => (entry.isIntersecting ? start() : stop()), {
+    const io = new IntersectionObserver(([entry]) => (entry.isIntersecting ? start() : stop()), {
       threshold: 0,
-    }).observe(canvas);
-    document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
+    });
+    io.observe(canvas);
+    onCleanup(() => io.disconnect());
+    document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()), {
+      signal,
+    });
   } else {
     start();
   }
+
+  // Cancel the rAF loop, the flipper interval and the pending resize timer
+  // before the next navigation swaps this canvas away.
+  onCleanup(() => {
+    stop();
+    clearTimeout(resizeTimer);
+  });
 
   /* ── Main breaker ──────────────────────────────────────────────────────── */
   const btn = document.getElementById('mcb-toggle');
   const box = document.getElementById('mcb-box');
   const state = document.getElementById('mcb-text');
   if (btn && box && state) {
-    btn.addEventListener('click', () => {
-      powerOn = !powerOn;
-      box.classList.toggle('off', !powerOn);
-      state.classList.toggle('off', !powerOn);
-      state.textContent = powerOn ? 'Closed' : 'Tripped';
-      btn.setAttribute('aria-pressed', String(powerOn));
-      if (!rafId) draw(false);
-    });
+    btn.addEventListener(
+      'click',
+      () => {
+        powerOn = !powerOn;
+        box.classList.toggle('off', !powerOn);
+        state.classList.toggle('off', !powerOn);
+        state.textContent = powerOn ? 'Closed' : 'Tripped';
+        btn.setAttribute('aria-pressed', String(powerOn));
+        if (!rafId) draw(false);
+      },
+      { signal },
+    );
   }
-})();
+});

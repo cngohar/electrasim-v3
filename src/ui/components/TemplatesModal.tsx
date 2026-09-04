@@ -17,7 +17,6 @@ import { useMemo, useRef, useState } from 'react';
 import { GUIDED_CIRCUIT_TEMPLATES, type GuidedCircuitTemplate } from '../../domain/templates';
 import { isGuideCompleted } from '../../lib/guideProgressPersistence';
 import { loadGuidedCircuitIntoEditor } from '../../lib/guidedCircuitLoader';
-import { useUiStore } from '../../store';
 import { useDialogFocus } from '../hooks/useDialogFocus';
 
 interface Props {

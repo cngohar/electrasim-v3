@@ -27,12 +27,14 @@ const NAV_LINKS = [
    complete: hubs first, secondary destinations after. */
 const MENU_LINKS = [
   ...NAV_LINKS,
-  { href: '/compare/', label: 'Compare' },
   { href: '/about/', label: 'About' },
   { href: '/contact/', label: 'Contact' },
 ];
 ---
 
+<!-- <header> gives every page a `banner` landmark. A bare <nav> did not, so
+     screen-reader landmark lists jumped straight from "skip link" to "main". -->
+<header class="site-banner">
 <nav class="nav" aria-label="Main navigation">
   <div class="nav-in">
     <a href="/" class="logo">
@@ -125,4 +127,5 @@ const MENU_LINKS = [
     <a href="/app/" class="btn-nav">Launch App →</a>
   </div>
 </nav>
+</header>
 <script is:inline defer src={`/js/site-nav.js?v=${assetVersion}`}></script>

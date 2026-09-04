@@ -7,8 +7,9 @@
  */
 
 import { COMPONENT_DEFS } from '../components';
-import { calculateElectricalValues } from '../electricalCalculations';
+import { calculateElectricalValues, getStandardCableAmpacity } from '../electricalCalculations';
 import { FAULT_REGISTRY } from '../faults';
+import { isArcFaultDevice, isResidualDevice } from '../protectionRoles';
 import { type StandardId, getStandard } from '../standards';
 import type {
   Circuit,
@@ -20,7 +21,7 @@ import type {
 import { findProtectionDevicesInNetwork } from './faultPropagation';
 import { indexCircuit, portKey } from './indexing';
 import { traverseSources } from './traversal';
-import { getCableAmpacity } from './tripCurves';
+import { calculateMCBTrip, calculateRCDTrip, formatClearingTime } from './tripCurves';
 
 // ─── Public entry point ────────────────────────────────────────────────────
 
@@ -57,13 +58,7 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
   const overloadedWires = new Set<string>();
   const bustedWires = new Set<string>();
   const wireHeatRatios: Record<string, number> = {};
-  const trippedComponents: {
-    id: string;
-    label: string;
-    reason: string;
-    currentAmps: number;
-    ratingAmps: number;
-  }[] = [];
+  const trippedComponents: NonNullable<SimulationResult['trippedComponents']> = [];
   const wireMeltEvents: {
     wireId: string;
     currentAmps: number;
@@ -119,16 +114,34 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
         // instantaneous magnetic zone of any IEC 60898-1 / UL 489 curve.
         const faultLoopOhms = 0.5;
         const prospectiveAmps = Math.round(supplyVoltage / faultLoopOhms);
+        /* Ask the IEC 60898-1 curve rather than asserting "<0.1 s": for a
+           Type D device at 32 A the 20×In magnetic threshold is 640 A, and a
+           460 A prospective current lands in the *thermal* region, where the
+           real clearing time is seconds, not milliseconds. That distinction is
+           the whole point of curve selection, so the message now reports what
+           the curve says. */
+        const curve = calculateMCBTrip(
+          prospectiveAmps,
+          rating,
+          devDef?.mcbType ?? 'B',
+          Number.POSITIVE_INFINITY,
+        );
         trippedComponents.push({
           id: dev.id,
           label,
+          cause: 'short-circuit',
           reason: 'short-circuit',
           currentAmps: prospectiveAmps,
           ratingAmps: rating,
+          ...(curve.timeToTrip !== undefined ? { clearingTimeSeconds: curve.timeToTrip } : {}),
+          ...(curve.tripReason ? { mechanism: curve.tripReason } : {}),
+          currentMultiple: curve.currentMultiple,
         });
         // Names the fault kind ("bolted short circuit") — must be withholdable.
         pushFaultNarrationError(
-          `${label} TRIPPED: bolted short circuit — prospective ${prospectiveAmps} A ≫ magnetic zone (${rating} A device), cleared in <0.1 s per IEC 60898-1 / UL 489.`,
+          curve.tripReason === 'magnetic'
+            ? `${label} TRIPPED: bolted short circuit — prospective ${prospectiveAmps} A is ${curve.currentMultiple.toFixed(1)}×In, inside the instantaneous magnetic band of a Type ${devDef?.mcbType ?? 'B'} ${rating} A device; cleared in ≤${formatClearingTime(curve.timeToTrip ?? 0.1)} per IEC 60898-1 / UL 489.`
+            : `${label} TRIPPED: bolted short circuit — prospective ${prospectiveAmps} A is only ${curve.currentMultiple.toFixed(1)}×In, BELOW the Type ${devDef?.mcbType ?? 'B'} instantaneous band, so the thermal element cleared it in ≈${formatClearingTime(curve.timeToTrip ?? 0)} per IEC 60898-1. A lower-numbered curve would have cleared it instantly.`,
         );
       } else if (kind === 'ground-fault') {
         // Ground / earth-leakage fault: the residual device trips on the
@@ -136,16 +149,30 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
         // active region — a Class A GFCI trips at ≤6 mA (US), an RCD at
         // 30 mA (most other regions).
         const leakAmps = Math.max(residualThresholdMa / 1000 + 0.015, 0.045);
+        /* Break time from IEC 61008-1 rather than a bare assertion — the
+           standard's own stepped maximums (300/150/40 ms at 1/2/5×IΔn) are what
+           makes "the RCD disconnected in time" a checkable statement. */
+        const residual = calculateRCDTrip(
+          leakAmps * 1000,
+          devDef?.ratedLeakage_mA ?? residualThresholdMa,
+          Number.POSITIVE_INFINITY,
+        );
         trippedComponents.push({
           id: dev.id,
           label,
+          cause: 'ground-fault',
           reason: 'ground-fault',
           currentAmps: leakAmps,
           ratingAmps: residualThresholdMa / 1000,
+          ...(residual.timeToTrip !== undefined
+            ? { clearingTimeSeconds: residual.timeToTrip }
+            : {}),
+          mechanism: 'residual',
+          currentMultiple: residual.leakageMultiple,
         });
         // Names the fault kind ("residual leakage") — must be withholdable.
         pushFaultNarrationError(
-          `${label} TRIPPED: ${residualName} operated on ${Math.round(leakAmps * 1000)} mA residual leakage (threshold ${residualThresholdMa} mA) — supply disconnected.`,
+          `${label} TRIPPED: ${residualName} operated on ${Math.round(leakAmps * 1000)} mA residual leakage (threshold ${residualThresholdMa} mA) — supply disconnected in ≤${formatClearingTime(residual.timeToTrip ?? 0.3)} per IEC 61008-1.`,
         );
       } else {
         // Arc fault: current floats around load level — far below the device
@@ -154,9 +181,11 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
         trippedComponents.push({
           id: dev.id,
           label,
+          cause: 'arc-fault',
           reason: 'arc-fault',
           currentAmps: 3,
           ratingAmps: rating,
+          mechanism: 'arc',
         });
         // Names the fault kind ("arc-fault signature") — must be withholdable.
         pushFaultNarrationError(
@@ -243,6 +272,46 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
   for (const w of live.energisedWires) energizedWires.add(w);
   for (const w of neutral.energisedWires) energizedWires.add(w);
 
+  /*
+   * Components the load current actually flows *through*.
+   *
+   * `energizedComponents` requires BOTH rails to reach a component, which is
+   * the right test for "is this device live and working". It is the wrong test
+   * for "is this device carrying the circuit current", because a single-pole
+   * device only ever touches one rail: an MCB, a fuse and a light switch have
+   * L-in/L-out and no neutral port at all, so they were never in the set — and
+   * the overcurrent check below therefore skipped every single-pole protective
+   * device in the catalogue. A 6 A MCB feeding a 6 kW heater did nothing.
+   *
+   * Series membership is instead the honest question, and it has a purely
+   * topological answer: current can only pass through a device if it enters by
+   * one port and leaves by another, so a device is in the current path when at
+   * least two of its distinct ports sit on energised wires. A dead-end MCB
+   * spurred off a live rail has exactly one, and is correctly excluded.
+   */
+  const energisedPortsByComponent = new Map<string, Set<number>>();
+  for (const wire of circuit.wires) {
+    if (!energizedWires.has(wire.id)) continue;
+    for (const [compId, portIdx] of [
+      [wire.fromComponentId, wire.fromPortIndex],
+      [wire.toComponentId, wire.toPortIndex],
+    ] as const) {
+      const ports = energisedPortsByComponent.get(compId);
+      if (ports) ports.add(portIdx);
+      else energisedPortsByComponent.set(compId, new Set([portIdx]));
+    }
+  }
+  const currentCarryingComponents = new Set<string>();
+  for (const c of circuit.components) {
+    if (energizedComponents.has(c.id)) {
+      currentCarryingComponents.add(c.id);
+      continue;
+    }
+    if ((energisedPortsByComponent.get(c.id)?.size ?? 0) >= 2) {
+      currentCarryingComponents.add(c.id);
+    }
+  }
+
   const totalLoadAmps = circuit.components.reduce((total, c) => {
     if (!energizedComponents.has(c.id)) return total;
     const def = defs[c.type];
@@ -291,50 +360,87 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
 
     // 2. Pass-through / protection / wire overcurrent check
     if (totalCircuitAmps > 0) {
-      // Determine if active circuit protection devices exist in energized paths
-      const activeProtection = circuit.components.filter((c) => {
-        if (!energizedComponents.has(c.id) || c.state.isBlown) return false;
-        const def = defs[c.type];
-        return Boolean(
-          def?.isProtection ||
-            c.type.includes('mcb') ||
-            c.type.includes('rcd') ||
-            c.type.includes('rcbo') ||
-            c.type.includes('fuse') ||
-            c.type.includes('mccb') ||
-            c.type.includes('fused-spur'),
-        );
+      /*
+       * Is there a live protective device in the current path?
+       *
+       * `currentCarryingComponents` rather than `energizedComponents`, and
+       * `def.isProtection` rather than substring-sniffing the type name: an MCB
+       * is single-pole, so it was never in `energizedComponents`, which meant a
+       * circuit *with* a correctly-fitted breaker was told it had "NO active
+       * circuit protection" and its cable was melted anyway.
+       */
+      const hasProtection = circuit.components.some((c) => {
+        if (!currentCarryingComponents.has(c.id) || c.state.isBlown || c.state.isTripped) {
+          return false;
+        }
+        return Boolean(defs[c.type]?.isProtection);
       });
-      const hasProtection = activeProtection.length > 0;
 
       for (const c of circuit.components) {
-        if (!energizedComponents.has(c.id) || c.state.isBlown) continue;
+        if (!currentCarryingComponents.has(c.id) || c.state.isBlown) continue;
         const def = defs[c.type];
         if (!def || def.isSource) continue;
 
         const deviceMaxAmps = c.state.customMaxAmps ?? def.maxAmps ?? 32;
         const cableMm2 = c.state.customCableMm2 ?? def.recommendedCableMm2 ?? 2.5;
-        const cableCap = getCableAmpacity(cableMm2);
+        // Copper: no wire is selected here, so there is no material to read.
+        const cableCap = getStandardCableAmpacity(cableMm2, 'copper');
         const effectiveLimit = Math.min(deviceMaxAmps, cableCap);
 
-        if (
-          totalCircuitAmps > effectiveLimit &&
-          (def.isProtection || def.isSwitch || def.isPassThrough)
-        ) {
-          blownComponents.push({ id: c.id, reason: 'overcurrent' });
-          errorComponents.add(c.id);
-          const reason = `Circuit current (${totalCircuitAmps.toFixed(1)} A) exceeded rated limit (${effectiveLimit} A).`;
-          trippedComponents.push({
-            id: c.id,
-            label: def.label,
-            reason,
-            currentAmps: totalCircuitAmps,
-            ratingAmps: effectiveLimit,
-          });
-          errors.push(
-            `PROTECTION TRIPPED: ${def.label} tripped! Load current (${totalCircuitAmps.toFixed(1)} A) exceeded capacity (${effectiveLimit} A).`,
-          );
-        }
+        if (!(def.isProtection || def.isSwitch || def.isPassThrough)) continue;
+
+        /*
+         * A breaker's rating is not a trip threshold.
+         *
+         * IEC 60898-1 defines Inf = 1.13×In as the *conventional non-tripping
+         * current*: a 16 A Type B MCB must carry 18.08 A for a full hour
+         * without operating, and only has to trip within the hour at
+         * If = 1.45×In. This block used to trip on any excess at all, so a 16 A
+         * breaker "tripped" at 16.1 A — which is both wrong and pedagogically
+         * backwards, because tolerating a modest overload for a long time is
+         * exactly what makes cable sizing (Iz ≥ In) matter.
+         *
+         * The engine has no time axis; it answers the steady-state question
+         * "if this current persists, does the device operate?" — hence
+         * elapsedSeconds = ∞ — and reports how long the standard says it would
+         * take, which is the number the UI now shows.
+         *
+         * Devices with a published curve (`mcbType`) get the curve. Everything
+         * else in this branch — plain switches, fuses, pass-through accessories
+         * — has no time–current characteristic to consult, so it keeps the
+         * simple "carrying more than it is rated for" damage rule.
+         */
+        const curve = def.mcbType
+          ? calculateMCBTrip(
+              totalCircuitAmps,
+              effectiveLimit,
+              def.mcbType,
+              Number.POSITIVE_INFINITY,
+            )
+          : null;
+        const operates = curve ? curve.shouldTrip : totalCircuitAmps > effectiveLimit;
+        if (!operates) continue;
+
+        blownComponents.push({ id: c.id, reason: 'overcurrent' });
+        errorComponents.add(c.id);
+        const clearingText = curve?.timeToTrip
+          ? ` Type ${def.mcbType} curve clears ${curve.currentMultiple.toFixed(2)}×In in ≈${formatClearingTime(curve.timeToTrip)}.`
+          : '';
+        const reason = `Circuit current (${totalCircuitAmps.toFixed(1)} A) exceeded rated limit (${effectiveLimit} A).${clearingText}`;
+        trippedComponents.push({
+          id: c.id,
+          label: def.label,
+          cause: 'overload',
+          reason,
+          currentAmps: totalCircuitAmps,
+          ratingAmps: effectiveLimit,
+          ...(curve?.timeToTrip !== undefined ? { clearingTimeSeconds: curve.timeToTrip } : {}),
+          ...(curve?.tripReason ? { mechanism: curve.tripReason } : {}),
+          ...(curve ? { currentMultiple: curve.currentMultiple } : {}),
+        });
+        errors.push(
+          `PROTECTION TRIPPED: ${def.label} tripped! Load current (${totalCircuitAmps.toFixed(1)} A) exceeded capacity (${effectiveLimit} A).${clearingText}`,
+        );
       }
 
       // Check cable current capacity & thermal heating on energised wires
@@ -352,7 +458,16 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
         const toCable = toComp.state.customCableMm2 ?? toDef?.recommendedCableMm2 ?? 2.5;
 
         const cableMm2 = Math.min(fromCable, toCable);
-        const cableCap = getCableAmpacity(cableMm2, wire.installationMethod ?? 'C');
+        /* Aluminium is derated by the same 0.78 conductivity factor the
+           validator and wire inspector already apply. The engine previously
+           called the raw copper table here, so an aluminium conductor was
+           flagged as over capacity by the validator while the engine happily
+           declared it fine — the two disagreed about the same wire. */
+        const cableCap = getStandardCableAmpacity(
+          cableMm2,
+          wire.material ?? 'copper',
+          wire.installationMethod ?? 'C',
+        );
         const heatRatio = totalCircuitAmps / cableCap;
         wireHeatRatios[wire.id] = heatRatio;
 
@@ -366,7 +481,15 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
           );
         }
 
-        // If NO protection device is present in circuit, or current severely exceeds cable ampacity, wire BUSTS & MELTS
+        /*
+         * Cable damage. Two routes:
+         *   - no protective device in the path at all, and the conductor is
+         *     over its rating (>1.05×Iz);
+         *   - a device is present but the current is far past what the cable
+         *     can take (>1.4×Iz), i.e. the device is rated above the cable —
+         *     the classic In > Iz mis-coordination, where the insulation
+         *     reaches damage temperature before the breaker decides to act.
+         */
         if ((!hasProtection && heatRatio > 1.05) || heatRatio > 1.4) {
           bustedWires.add(wire.id);
           errorWires.add(wire.id);
@@ -376,8 +499,13 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
             capacityAmps: cableCap,
             cableMm2,
           });
+          // Say which of the two it was. Claiming "NO active circuit
+          // protection" while a breaker sits in the circuit is simply untrue,
+          // and it hides the actual lesson (In must not exceed Iz).
           errors.push(
-            `CABLE BUSTED & MELTED: ${cableMm2} mm² wire burned out carrying ${totalCircuitAmps.toFixed(1)} A (Capacity: ${cableCap} A) with NO active circuit protection!`,
+            hasProtection
+              ? `CABLE BUSTED & MELTED: ${cableMm2} mm² wire (${cableCap} A) burned out carrying ${totalCircuitAmps.toFixed(1)} A — the protective device is rated ABOVE the cable, so the conductor reached damage temperature before the device operated. BS 7671 requires In ≤ Iz.`
+              : `CABLE BUSTED & MELTED: ${cableMm2} mm² wire burned out carrying ${totalCircuitAmps.toFixed(1)} A (Capacity: ${cableCap} A) with NO active circuit protection!`,
           );
         }
       }
@@ -405,6 +533,13 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
       lengthMeters: wire.lengthMeters,
       deratingFactor: wire.deratingFactor,
       installationMethod: wire.installationMethod,
+      /* Conductor material is user-settable in the wire inspector and was
+         being dropped here, so the panel's own copper/aluminium selector had
+         no effect on the resistance and voltage drop the panel displayed.
+         `gauge` is deliberately not passed: the AWG selector writes an
+         equivalent `customCableMm2`, so mm² stays the single size input every
+         consumer (engine, validator, compliance, Zs) reads. */
+      material: wire.material,
     });
     wireCalculations[wire.id] = calculation;
     if (options.appMode === 'pro' && calculation.status === 'warning') {
@@ -545,19 +680,17 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
       // Trip only the RCD/RCBO devices guarding the faulted network
       // (previously tripped every RCD/RCBO on the canvas, even on isolated networks)
       if (faultAnchorId) {
-        tripProtectionForFault(
-          faultAnchorId,
-          'ground-fault',
-          (t) => t.includes('rcd') || t.includes('rcbo') || t.includes('afdd'),
-        );
+        // Residual sensing comes from the device's rated leakage, not its name:
+        // the substring list here silently excluded the AFDD, which is an RCBO
+        // with arc detection and does trip on 30 mA leakage.
+        tripProtectionForFault(faultAnchorId, 'ground-fault', (t) => isResidualDevice(t, defs));
       }
     } else if (fault.type === 'smooth-dc-residual') {
       pushFaultNarrationError(
         `SMOOTH DC RESIDUAL: Power-electronic earth leakage on ${def.label} — only Type B residual devices can detect a smooth DC component (BS EN 62423, BS 7671 Reg 531.3.3).`,
       );
       if (faultAnchorId) {
-        const isResidual = (t: string) =>
-          t.includes('rcd') || t.includes('rcbo') || t.includes('afdd');
+        const isResidual = (t: string) => isResidualDevice(t, defs);
         const residualDevices = findProtectionDevicesInNetwork(faultAnchorId, circuit, defs).filter(
           (d) => isResidual(d.type),
         );
@@ -588,9 +721,9 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
         `ARC FAULT: Series/parallel arcing on ${def.label} — arc current rides at/below load current with no earth imbalance, so thermal-magnetic and residual-current devices cannot see it (BS EN 62606).`,
       );
       if (faultAnchorId) {
-        tripProtectionForFault(faultAnchorId, 'arc-fault', (t) => t.includes('afdd'));
+        tripProtectionForFault(faultAnchorId, 'arc-fault', (t) => isArcFaultDevice(t, defs));
         const afdds = findProtectionDevicesInNetwork(faultAnchorId, circuit, defs).filter((d) =>
-          d.type.includes('afdd'),
+          isArcFaultDevice(d.type, defs),
         );
         if (afdds.length === 0) {
           pushFaultNarrationError(

@@ -318,6 +318,19 @@
   font-size: .7rem;
 }
 
+/* "All N topics →" — reads as the escape hatch from the 12-chip teaser, so it
+   takes the accent treatment instead of another neutral pill. */
+.topic-links a.topic-link-all {
+  border-color: var(--border-bright);
+  background: var(--blue-l);
+  color: var(--blue);
+  font-weight: 700;
+}
+.topic-links a.topic-link-all span {
+  color: inherit;
+  font-size: inherit;
+}
+
 @media (max-width: 600px) {
   .page-hero {
     padding: 4rem 0 3rem;

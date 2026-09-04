@@ -11,7 +11,6 @@ import {
   type ComponentInstance,
   type SimulationResult,
 } from '../../domain';
-import type { CanvasTheme } from './types';
 
 export interface ComponentTooltipProps {
   component: ComponentInstance | undefined;

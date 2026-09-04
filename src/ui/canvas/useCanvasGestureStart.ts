@@ -1,5 +1,5 @@
 import type { PointerEvent, RefObject, WheelEvent } from 'react';
-import type { Circuit, ComponentInstance, InteractionMode, Point2D } from '../../domain';
+import type { ComponentInstance, InteractionMode, Point2D } from '../../domain';
 import { useCircuitStore, useUiStore, useViewportStore } from '../../store';
 import type { PendingCustomPath, RerouteState } from '../../store/uiStore';
 import { dropComponentAt } from '../canvas-actions';
@@ -16,7 +16,6 @@ interface CanvasGestureStartOptions {
   pendingPanRef: RefObject<Point2D | null>;
   panPreviewRef: RefObject<HTMLDivElement | null>;
   panDidMoveRef: RefObject<boolean>;
-  circuit: Circuit;
   customWiringMode: boolean;
   onSelect?: (id: string | null) => void;
   pendingWireFrom: PortLoc | null;
@@ -61,7 +60,6 @@ export function useCanvasGestureStart({
   pendingPanRef,
   panPreviewRef,
   panDidMoveRef,
-  circuit,
   customWiringMode,
   onSelect,
   pendingWireFrom,

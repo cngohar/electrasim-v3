@@ -1,16 +1,21 @@
 /**
- * Schematic activator — 700 bytes of "only animate what is on screen".
+ * Schematic activator — "only animate what is on screen".
  *
  * Every looping animation in global.css ships `animation-play-state: paused`.
  * This flips `.is-live` on a section while it intersects the viewport, so a
- * long page never pays for pulses the reader cannot see. Elements are
- * unobserved once they have gone live and come back — the observer stays
- * cheap even on the 100-post blog index.
+ * long page never pays for pulses the reader cannot see.
+ *
+ * Re-runs after every view transition (see boot.js): the swapped-in <body> has
+ * fresh `[data-live]` nodes that the previous observer knows nothing about, and
+ * the old observer is disconnected on cleanup so they never stack up.
  */
-(() => {
+window.ElectraSim.onReady(({ onCleanup }) => {
+  const targets = document.querySelectorAll('[data-live]');
+  if (targets.length === 0) return;
+
   if (!('IntersectionObserver' in window)) {
     // No observer: just run everything. Correctness beats cleverness.
-    for (const el of document.querySelectorAll('[data-live]')) el.classList.add('is-live');
+    for (const el of targets) el.classList.add('is-live');
     return;
   }
 
@@ -25,5 +30,6 @@
     { rootMargin: '120px 0px' },
   );
 
-  for (const el of document.querySelectorAll('[data-live]')) io.observe(el);
-})();
+  for (const el of targets) io.observe(el);
+  onCleanup(() => io.disconnect());
+});

@@ -30,13 +30,7 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { COMPONENT_DEFS } from '../../domain';
-import {
-  type ContextMenuState,
-  setMomentarySwitchState,
-  useCircuitStore,
-  useSettingsStore,
-  useUiStore,
-} from '../../store';
+import { type ContextMenuState, useCircuitStore, useSettingsStore, useUiStore } from '../../store';
 import {
   requestClearAll,
   requestClearWires,

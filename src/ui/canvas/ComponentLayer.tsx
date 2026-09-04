@@ -1,14 +1,5 @@
 import type { MouseEvent, PointerEvent } from 'react';
-import {
-  COMPONENT_DEFS,
-  COMP_H,
-  COMP_W,
-  type ComponentInstance,
-  type SimulationResult,
-  checkFastCompatibility,
-} from '../../domain';
-import { useSettingsStore, useUiStore } from '../../store';
-import { getComponentIcon, getComponentImage } from '../components/componentImages';
+import type { ComponentInstance, SimulationResult } from '../../domain';
 import { ComponentNode } from './ComponentNode';
 import type { CanvasTheme, PortLoc } from './types';
 

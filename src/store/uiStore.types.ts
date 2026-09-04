@@ -85,6 +85,17 @@ export interface ElectricalFaultAlert {
   limitAmps: number;
   cableMm2?: number;
   resolutionHint: string;
+  /**
+   * How long the standard says the device took to clear, in seconds. Surfaced
+   * next to the current/limit pair because "26 A on a 16 A breaker" is only half
+   * the story — whether that clears in 40 ms or 21 minutes is the difference
+   * between a nuisance trip and a cable fire.
+   */
+  clearingTimeSeconds?: number;
+  /** Which element operated: thermal/magnetic (overcurrent), residual, or arc. */
+  mechanism?: 'thermal' | 'magnetic' | 'residual' | 'arc';
+  /** I/In for overcurrent trips; I/IΔn for residual trips. */
+  currentMultiple?: number;
   /** Timestamp when the fault occurred */
   timestamp?: number;
 }

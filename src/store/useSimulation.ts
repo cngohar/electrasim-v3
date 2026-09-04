@@ -113,14 +113,12 @@ export function useSimulation() {
             for (const trip of result.trippedComponents) {
               const comp = cs.components.find((c) => c.id === trip.id);
               if (comp && !comp.state.isTripped) {
+                /* `trip.cause` is the machine-readable enum; `trip.reason` is a
+                   full sentence for the overload branch and would fail
+                   `validateCircuitJSON` on export/re-import if persisted here. */
                 cs.updateComponentState(trip.id, {
                   isTripped: true,
-                  tripReason: trip.reason as
-                    | 'overload'
-                    | 'short-circuit'
-                    | 'ground-fault'
-                    | 'arc-fault'
-                    | 'manual-fault',
+                  tripReason: trip.cause,
                 });
               }
             }
@@ -128,7 +126,7 @@ export function useSimulation() {
             const ui = useUiStore.getState();
             ui.setSimRunning(false); // Stop simulation immediately
             // §14: a tripped breaker is a legitimate observable symptom, so the
-            // learner still sees that it tripped — but not *why*. `trip.reason`
+            // learner still sees that it tripped — but not *why*. `trip.cause`
             // is the fault type they are being asked to name, and the normal
             // hint points straight at the faulted component.
             const diagnosing = useUiStore.getState().diagnosisActive;
@@ -140,9 +138,26 @@ export function useSimulation() {
               reason: diagnosing ? 'protection operated' : trip.reason,
               currentAmps: trip.currentAmps,
               limitAmps: trip.ratingAmps,
+              /* Standards-derived timing. Withheld while diagnosing: the
+                 mechanism narrows the fault down, which is the answer. */
+              ...(diagnosing
+                ? {}
+                : {
+                    ...(trip.clearingTimeSeconds !== undefined
+                      ? { clearingTimeSeconds: trip.clearingTimeSeconds }
+                      : {}),
+                    ...(trip.mechanism ? { mechanism: trip.mechanism } : {}),
+                    ...(trip.currentMultiple !== undefined
+                      ? { currentMultiple: trip.currentMultiple }
+                      : {}),
+                  }),
+              /* Branch on `cause`, not `reason`: the overload branch's `reason`
+                 is a full sentence, so `reason === 'overload'` was never true
+                 and a plain overload was told to "clear the injected fault"
+                 that does not exist. */
               resolutionHint: diagnosing
                 ? 'The protective device has operated. Work out what caused it, then submit your diagnosis.'
-                : trip.reason === 'overload'
+                : trip.cause === 'overload'
                   ? 'Lower load power/current in the Inspector panel or upgrade breaker rating before resuming simulation.'
                   : 'Clear the injected fault (right-click the faulted component or wire → Clear fault), then reset the tripped breaker in the Inspector before resuming simulation.',
               timestamp: Date.now(),
@@ -154,11 +169,11 @@ export function useSimulation() {
               componentId: trip.id,
               description: diagnosing
                 ? 'Circuit breaker/fuse tripped.'
-                : `Circuit breaker/fuse tripped due to ${trip.reason}`,
+                : `Circuit breaker/fuse tripped due to ${trip.cause}`,
               severity: 'critical',
               details: {
                 currentAmps: trip.currentAmps,
-                reason: diagnosing ? 'protection operated' : trip.reason,
+                reason: diagnosing ? 'protection operated' : trip.cause,
               },
             });
           } else if (result.wireMeltEvents && result.wireMeltEvents.length > 0) {

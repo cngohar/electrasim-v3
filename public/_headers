@@ -1,4 +1,9 @@
 # Cloudflare Pages — custom response headers
+#
+# Single source of truth. This file used to be duplicated byte-for-byte in
+# astro-site/public/_headers; the Astro overlay runs last in postbuild, so that
+# copy silently won and an edit here would have been discarded. Vite copies this
+# file to dist/_headers and nothing overwrites it.
 
 # ─── Global security headers (all routes) ────────────────────────────────────
 /*
@@ -27,10 +32,6 @@
   Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
 
 /contact/*
-  Cache-Control: public, max-age=0, must-revalidate, no-transform
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
-
-/compare/*
   Cache-Control: public, max-age=0, must-revalidate, no-transform
   Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
 

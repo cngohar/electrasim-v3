@@ -14,14 +14,12 @@ import type { InspectorSelectionState } from './useInspectorSelectionState';
 interface InspectorPropertiesContentProps {
   selectionState: InspectorSelectionState;
   simResult: SimulationResult | null;
-  setIsCollapsed: (c: boolean) => void;
   runCircuitValidation: () => void;
 }
 
 export function InspectorPropertiesContent({
   selectionState,
   simResult,
-  setIsCollapsed,
   runCircuitValidation,
 }: InspectorPropertiesContentProps) {
   if (selectionState.kind === 'multi-component') {

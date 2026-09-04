@@ -12,18 +12,16 @@
  */
 
 import { COMPONENT_DEFS } from './components';
+import { isAutomaticProtection } from './protectionRoles';
 import type {
   Circuit,
-  ComponentInstance,
   FaultCategory,
   FaultDefinition,
-  FaultDiagnostic,
   FaultTarget,
   FaultType,
   InjectedFault,
   SimulationResult,
   WireFaultType,
-  WireInstance,
 } from './types';
 
 // ─── Centralized Fault Definitions ──────────────────────────────────────────
@@ -369,14 +367,10 @@ export function getAvailableFaultsForTarget(
         return def?.isSwitch === true;
       }
       if (d.id === 'protection-forced-open' || d.id === 'protection-bypass') {
-        return (
-          def?.isProtection === true ||
-          comp.type.includes('mcb') ||
-          comp.type.includes('rcd') ||
-          comp.type.includes('rcbo') ||
-          comp.type.includes('fuse') ||
-          comp.type.includes('fused-spur')
-        );
+        // Any protection-palette device (including isolators, which can stick
+        // open) plus the GFCI outlet, which is a residual device wearing a
+        // socket's clothing and so is not flagged `isProtection`.
+        return def?.isProtection === true || isAutomaticProtection(comp.type);
       }
       if (d.id === 'open-earth' || d.id === 'live-to-earth') {
         return def?.ports.some((p) => p.type === 'earth') ?? true;

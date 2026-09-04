@@ -1,3 +1,13 @@
+---
+/* The footer column headings are <h2>, not <h4>. Every page's outline is
+   h1 → h2 → …, so <h4> here produced an h2→h4 jump on all 134 routes
+   (WCAG 1.3.1). They are visually unchanged — the styling hangs off
+   `.ft-col-title`, not the tag name.
+
+   The year is derived, not typed. A hardcoded "© 2026" silently rots. */
+const year = new Date().getFullYear();
+---
+
 <footer role="contentinfo">
   <span class="ft-bus" data-live aria-hidden="true"><span class="pulse-x"></span></span>
   <div class="ft">
@@ -5,7 +15,7 @@
       <div class="ft-brand">
         <a href="/" class="ft-logo">
           <span class="ft-logo-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
             </svg>
           </span>
@@ -14,28 +24,29 @@
         <p>Free online electrical circuit simulator for learning wiring, building circuit diagrams, testing faults, and simulating circuits in your browser.</p>
       </div>
       <nav class="ft-col" aria-label="Product links">
-        <h4>Product</h4>
+        <h2 class="ft-col-title">Product</h2>
         <ul>
           <li><a href="/app/">Launch App</a></li>
           <li><a href="/explore/">Explore <span class="nav-badge-exp">Coming soon</span></a></li>
           <li><a href="/tools/">Electrical Toolbox</a></li>
+          <li><a href="/compare/">Comparison bench</a></li>
           <li><a href="/#features">Features</a></li>
           <li><a href="/#how-it-works">How it works</a></li>
-          <li><a href="/compare/">Compare simulators</a></li>
           <li><a href="/updates/">Product updates</a></li>
         </ul>
       </nav>
       <nav class="ft-col" aria-label="Learn links">
-        <h4>Learn</h4>
+        <h2 class="ft-col-title">Learn</h2>
         <ul>
           <li><a href="/guide/">Circuit Guide</a></li>
           <li><a href="/blog/">Blog</a></li>
           <li><a href="/blog/how-household-wiring-works/">Wiring Guide</a></li>
+          <li><a href="/rss.xml">RSS feed</a></li>
           <li><a href="/about/">About</a></li>
         </ul>
       </nav>
       <nav class="ft-col" aria-label="Legal and connect">
-        <h4>Connect</h4>
+        <h2 class="ft-col-title">Connect</h2>
         <ul>
           <li><a href="https://web.facebook.com/electrasimweb" target="_blank" rel="noopener noreferrer">Facebook</a></li>
           <li><a href="/contact/">Contact</a></li>
@@ -45,7 +56,7 @@
       </nav>
     </div>
     <div class="ft-bot">
-      <span>© 2026 ElectraSim. All rights reserved.</span>
+      <span>© {year} ElectraSim. All rights reserved.</span>
       <div class="ft-legal">
         <a href="/privacy/">Privacy</a>
         <a href="/terms/">Terms</a>

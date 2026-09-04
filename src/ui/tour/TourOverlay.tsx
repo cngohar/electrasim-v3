@@ -15,7 +15,7 @@
 
 import { ArrowRight, Check, History, RotateCcw, Sparkles, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { COMPONENT_DEFS, getPortPos } from '../../domain';
+import { COMPONENT_DEFS, VIEW_H, VIEW_W, getPortPos } from '../../domain';
 import { useCircuitStore, useViewportStore } from '../../store';
 import { useSettingsStore } from '../../store/settingsStore';
 import { useUiStore } from '../../store/uiStore';
@@ -31,8 +31,6 @@ const SPOT_PAD = 6;
 const MISSING_TARGET_GRACE_MS = 700;
 const SUCCESS_LINGER_MS = 550;
 const POLL_MS = 250;
-const VIEW_W = 1200;
-const VIEW_H = 720;
 
 type Phase = 'tour' | 'celebration' | 'choice';
 

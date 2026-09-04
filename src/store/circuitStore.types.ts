@@ -11,7 +11,6 @@ import type {
   Circuit,
   ComponentGroup,
   ComponentInstance,
-  FaultTarget,
   FaultType,
   InjectedFault,
   WireFaultType,

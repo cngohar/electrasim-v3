@@ -13,43 +13,47 @@ const GOOGLE_FORM_URL = data.google_form_url;
   description={data.seo_description}
   canonical="https://electrasim.com/contact/"
 >
-  <div class="contact-hero" data-live>
-    <div class="wrap">
-      <span class="label">Contact</span>
-      <h1 set:html={data.hero_heading.replace('\n', '<br>')}></h1>
-      <p>{data.hero_sub}</p>
-    </div>
-  </div>
-
-  <main id="main-content" class="contact-wrap" data-live>
-
-    <div class="contact-grid">
-      <a href={FACEBOOK_URL} target="_blank" rel="noopener noreferrer" class="contact-card">
-        <span class="contact-icon"><EmojiIcon name="bookClosed" /></span>
-        <h2>Facebook Page</h2>
-        <p>Follow us on Facebook for updates, tips, and to send us a message directly. We respond within 24 hours.</p>
-        <span class="contact-btn">Visit Facebook →</span>
-      </a>
-
-      <a href={GOOGLE_FORM_URL} target="_blank" rel="noopener noreferrer" class="contact-card">
-        <span class="contact-icon"><EmojiIcon name="memo" /></span>
-        <h2>Feedback Form</h2>
-        <p>Use our Google Form to report bugs, request features, or share any other feedback. Anonymous submissions welcome.</p>
-        <span class="contact-btn">Open Form →</span>
-      </a>
-    </div>
-
-    <section class="faq-sec" aria-labelledby="faq-h">
-      <h2 id="faq-h">Frequently Asked Questions</h2>
-      <div class="faq-list">
-        {data.faqs.map((faq: { question: string; answer: string }) => (
-          <div class="faq-item">
-            <h3>{faq.question}</h3>
-            <p>{faq.answer}</p>
-          </div>
-        ))}
+  <!-- `<main>` wraps the hero so the skip link lands before the <h1>, not
+       past it. `<main>` itself is unstyled; `.contact-wrap` moved to a <div>. -->
+  <main id="main-content">
+    <div class="contact-hero" data-live>
+      <div class="wrap">
+        <span class="label">Contact</span>
+        <h1 set:html={data.hero_heading.replace('\n', '<br>')}></h1>
+        <p>{data.hero_sub}</p>
       </div>
-    </section>
+    </div>
 
+    <div class="contact-wrap" data-live>
+
+      <div class="contact-grid">
+        <a href={FACEBOOK_URL} target="_blank" rel="noopener noreferrer" class="contact-card">
+          <span class="contact-icon"><EmojiIcon name="bookClosed" /></span>
+          <h2>Facebook Page</h2>
+          <p>Follow us on Facebook for updates, tips, and to send us a message directly. We respond within 24 hours.</p>
+          <span class="contact-btn">Visit Facebook →</span>
+        </a>
+
+        <a href={GOOGLE_FORM_URL} target="_blank" rel="noopener noreferrer" class="contact-card">
+          <span class="contact-icon"><EmojiIcon name="memo" /></span>
+          <h2>Feedback Form</h2>
+          <p>Use our Google Form to report bugs, request features, or share any other feedback. Anonymous submissions welcome.</p>
+          <span class="contact-btn">Open Form →</span>
+        </a>
+      </div>
+
+      <section class="faq-sec" aria-labelledby="faq-h">
+        <h2 id="faq-h">Frequently Asked Questions</h2>
+        <div class="faq-list">
+          {data.faqs.map((faq: { question: string; answer: string }) => (
+            <div class="faq-item">
+              <h3>{faq.question}</h3>
+              <p>{faq.answer}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+    </div><!-- /.contact-wrap -->
   </main>
 </Base>

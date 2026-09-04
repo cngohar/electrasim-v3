@@ -53,19 +53,22 @@ const p = pageEntry!.data as BlogIndexPage;
     {nextUrl && <link rel="next" href={nextUrl} />}
   </Fragment>
 
-  <div class="page-hero blog-index-hero" data-live>
-    <div class="wrap">
-      <span class="label">{p.page_label}</span>
-      <h1>{p.page_heading}</h1>
-      <p>Page {pageNum} of {pageCount}</p>
+  <!-- `<main>` wraps the hero so the skip link lands before the <h1>. -->
+  <main id="main-content">
+    <div class="page-hero blog-index-hero" data-live>
+      <div class="wrap">
+        <span class="label">{p.page_label}</span>
+        <h1>{p.page_heading}</h1>
+        <p>Page {pageNum} of {pageCount}</p>
+      </div>
     </div>
-  </div>
 
-  <main id="main-content" class="blog-sec">
-    <div class="wrap">
-      <BlogTopicNav topics={topics} />
-      <BlogIndexSections posts={posts} />
-      <BlogPagination currentPage={pageNum} totalPages={pageCount} />
+    <div class="blog-sec">
+      <div class="wrap">
+        <BlogTopicNav topics={topics} />
+        <BlogIndexSections posts={posts} />
+        <BlogPagination currentPage={pageNum} totalPages={pageCount} />
+      </div>
     </div>
   </main>
 </Base>

@@ -80,13 +80,21 @@ export const CORE_PAGES: SearchItem[] = [
   },
   {
     id: 'page-compare',
-    title: 'ElectraSim vs Online Circuit Simulators (2026 Comparison)',
+    title: 'Circuit Simulator Comparison Bench',
     description:
-      'Compare ElectraSim with CircuitLab, Tinkercad Circuits, EveryCircuit, Falstad, and DCACLab.',
+      'Research-led comparison of ElectraSim, wiring trainers, electronics simulators, classroom tools, and open circuit-theory labs by practical task fit.',
     url: '/compare/',
     type: 'page',
     category: 'Pages',
-    tags: ['comparison', 'circuitlab', 'tinkercad', 'falstad', 'dcaclab'],
+    tags: [
+      'comparison',
+      'competitors',
+      'circuit simulators',
+      'wiring simulator',
+      'electronics simulator',
+      'research',
+      'benchmark',
+    ],
   },
   {
     id: 'page-about',

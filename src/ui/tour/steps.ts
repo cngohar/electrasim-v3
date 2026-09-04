@@ -123,7 +123,10 @@ const STUDENT_STEPS: TourStep[] = [
     title: 'Give it power: the Live feed',
     body: 'A load only works with a feed and a return. From the Supply section, click Live Terminal (L), then click the canvas just left of the bulb to place it.',
     action: 'Place the Live terminal',
-    advanceWhen: (snap, entry) => (snap.componentTypeCounts['live-terminal'] ?? 0) > 0,
+    /* Absolute count, not a delta: `startTour` always clears the canvas before
+       step 0, so entry counts are zero and comparing against them would be
+       noise. */
+    advanceWhen: (snap) => (snap.componentTypeCounts['live-terminal'] ?? 0) > 0,
   },
   {
     id: 'place-neutral',
@@ -136,7 +139,7 @@ const STUDENT_STEPS: TourStep[] = [
     title: 'Give it power: the Neutral return',
     body: 'Now the return path: from the Supply section, click Neutral Terminal (N), then place it just right of the bulb. Like connects to like — L on the left, N on the right.',
     action: 'Place the Neutral terminal',
-    advanceWhen: (snap, entry) =>
+    advanceWhen: (snap) =>
       (snap.componentTypeCounts['neutral-terminal'] ?? 0) > 0 &&
       (snap.componentTypeCounts['live-terminal'] ?? 0) > 0,
   },

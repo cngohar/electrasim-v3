@@ -1,3 +1,17 @@
+/**
+ * theme.js — pre-paint theme resolution, ClientRouter-safe.
+ *
+ * Loaded blocking in <head> so `data-theme` is on <html> before first paint.
+ *
+ * View-transition contract: Astro's `swapRootAttributes` copies the incoming
+ * document's <html> attributes verbatim, which deletes the `data-theme` we set
+ * at runtime. `astro:after-swap` fires inside the transition callback (before
+ * the new frame is painted), so re-applying there restores the theme with no
+ * flash. `deselectScripts` stops this file re-executing, so every listener is
+ * registered once on `document` — which survives the swap — and the toggle is
+ * handled by delegation rather than per-node binding, so a re-render can never
+ * double-bind (which would toggle twice and appear to do nothing).
+ */
 (() => {
   const STORAGE_KEY = 'electrasim:color-scheme';
   const APP_HINT_KEY = 'electrasim:app-theme-hint';
@@ -20,6 +34,7 @@
   const resolvePreference = (preference) =>
     preference === 'system' ? (media.matches ? 'dark' : 'light') : preference;
 
+  /** Idempotent: only writes attributes, so it is safe to call on every swap. */
   const updateControls = (resolved) => {
     const nextLabel = resolved === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
     document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
@@ -44,27 +59,40 @@
   let preference = readPreference();
   applyPreference(preference);
 
-  const bindControls = () => {
+  /* Delegated toggle: immune to <body> being replaced by a view transition. */
+  document.addEventListener('click', (event) => {
+    const target = event.target;
+    const toggle = target instanceof Element ? target.closest('[data-theme-toggle]') : null;
+    if (!toggle) return;
+    const next = resolvePreference(preference) === 'dark' ? 'light' : 'dark';
+    preference = next;
+    try {
+      window.localStorage.setItem(STORAGE_KEY, next);
+      window.localStorage.setItem(APP_HINT_KEY, next);
+    } catch {
+      // The selected theme still applies for this page when storage is unavailable.
+    }
+    applyPreference(preference);
+  });
+
+  /* Root attributes are wiped by the swap — restore them before the repaint. */
+  document.addEventListener('astro:after-swap', () => {
+    applyPreference(preference);
+  });
+
+  /* New <body> means new toggle buttons; re-sync their labels. */
+  document.addEventListener('astro:page-load', () => {
     updateControls(resolvePreference(preference));
-    document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
-      button.addEventListener('click', () => {
-        const next = resolvePreference(preference) === 'dark' ? 'light' : 'dark';
-        preference = next;
-        try {
-          window.localStorage.setItem(STORAGE_KEY, next);
-          window.localStorage.setItem(APP_HINT_KEY, next);
-        } catch {
-          // The selected theme still applies for this page when storage is unavailable.
-        }
-        applyPreference(preference);
-      });
-    });
-  };
+  });
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bindControls, { once: true });
+    document.addEventListener(
+      'DOMContentLoaded',
+      () => updateControls(resolvePreference(preference)),
+      { once: true },
+    );
   } else {
-    bindControls();
+    updateControls(resolvePreference(preference));
   }
 
   media.addEventListener('change', () => {

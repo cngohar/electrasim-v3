@@ -1,3 +1,8 @@
+/* The `.em-*` markdown pictographs (23.6 KB of inline SVG) are only ever used
+   inside article body copy, so they load with the article template instead of
+   with global.css on all 134 routes. */
+@import "../content-pictographs.css";
+
 /* ── Blog Post: Breadcrumb ─────────────────────────── */
 .bc-wrap {
   padding: .9rem 0;

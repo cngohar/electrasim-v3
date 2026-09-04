@@ -33,4 +33,7 @@ export const ICON_PATHS: Record<string, string> = {
     '<circle cx="12" cy="12" r="9"></circle><path d="M9.5 9a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.8-.9 1.4v.3"></path><path d="M12 17h.01"></path>',
   check: '<path d="m4 12 5 5L20 6"></path>',
   arrow: '<path d="M5 12h14M13 6l6 6-6 6"></path>',
+  chart:
+    '<path d="M4 19V5M4 19h16"></path><path d="m7 15 3-4 3 2 4-6"></path><circle cx="7" cy="15" r="1"></circle><circle cx="10" cy="11" r="1"></circle><circle cx="13" cy="13" r="1"></circle><circle cx="17" cy="7" r="1"></circle>',
+  pin: '<path d="m15 4 5 5-3 3-1-1-4 4v4l-2 2-2-6-6-2 2-2h4l4-4-1-1z"></path>',
 };

@@ -2,10 +2,11 @@
 title: "ElectraSim 2.0: Challenge Mode, the Diagnosis Lab, Guided Circuits and the Electrical Toolbox"
 description: "ElectraSim 2.0 is the learning release: three structured learning modes judged by the real simulation engine, eight Guided Circuits with checklists, a live Fault Lab, compliance reporting, and a multi-standard Electrical Toolbox — plus a long list of honesty and correctness fixes. Here is everything that changed and why."
 pubDate: 2026-08-31
+updatedDate: 2026-09-04
 author: ElectraSim
 category: App Update
-version: "v2.0.1"
-tags: [ElectraSim, v2.0, v2.0.1, release notes, challenge mode, diagnosis lab, ohmageddon, guided circuits, fault lab, electrical toolbox, cable sizing, voltage drop, circuit simulator]
+version: "v2.0.2"
+tags: [ElectraSim, v2.0, v2.0.1, v2.0.2, release notes, challenge mode, diagnosis lab, ohmageddon, guided circuits, fault lab, electrical toolbox, cable sizing, voltage drop, circuit simulator]
 featured: true
 ---
 
@@ -16,6 +17,8 @@ This post is the complete tour. Everything linked below is live today, free, wit
 [Open ElectraSim 2.0 →](/app/)
 
 > **v2.0.1 Maintenance Update:** We've polished the welcome popup with seamless animations, unified the "Coming Soon" badges across navigation and footer, optimized page loading speeds so preview graphics load only when needed, and fine-tuned menu interactions across the site.
+
+> **v2.0.2 Update:** The simulator comparison has been rebuilt as a current research bench with task filters, instrument plots, and linked first-party evidence.
 
 ---
 
@@ -104,6 +107,12 @@ Version 2.0.1 brings helpful visual polish, smarter navigation, and bug fixes ac
 - **Neat component labels:** Adjusted label padding and font sizes so component names and ratings fit inside their boxes without overflowing.
 - **Seamless page transitions & faster prefetching:** Enabled instant view transitions and background prefetching for rapid navigation across articles, guides, and tools.
 - **New interactive calculator guide:** Published an in-depth visual guide on how to calculate cable sizes and voltage drop interactively.
+
+## 12. What's new in v2.0.2: a rebuilt comparison bench
+
+The comparison route now works as a research instrument rather than a static product grid. It maps nine tools across practical wiring, numeric analysis, guided teaching, sharing, offline work and start-up friction. A filterable matrix, selectable profiles, radar plot and average-fit bars make the trade-offs visible without pretending that one simulator wins every job.
+
+The evidence is kept close to the claim: the page records the official product, documentation, pricing, classroom and repository pages reviewed on **4 September 2026**. When a public source does not document a capability, the bench says **Not confirmed** instead of inferring a negative. Open the [comparison bench](/compare/) or go straight to the [simulator guide](/guide/) for ElectraSim's own scope.
 
 ---
 

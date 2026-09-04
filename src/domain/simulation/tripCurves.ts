@@ -16,6 +16,22 @@
 import type { InstallationMethod } from '../types';
 
 /**
+ * Clearing time in the units the standards quote it in.
+ *
+ * BS 7671 Table 41.1 talks in seconds ("0.4 s"), an RCD's break time in
+ * milliseconds ("40 ms"), and a marginal thermal overload in minutes or hours.
+ * Printing all of them as raw seconds makes the interesting distinction —
+ * milliseconds versus minutes — invisible.
+ */
+export function formatClearingTime(seconds: number): string {
+  if (!Number.isFinite(seconds) || seconds <= 0) return '0 ms';
+  if (seconds < 1) return `${Math.round(seconds * 1000)} ms`;
+  if (seconds < 90) return `${seconds < 10 ? seconds.toFixed(1) : Math.round(seconds)} s`;
+  if (seconds < 5400) return `${Math.round(seconds / 60)} min`;
+  return `${(seconds / 3600).toFixed(1)} h`;
+}
+
+/**
  * Cable current-carrying capacity in Amps per BS 7671:2018 Appendix 4,
  * 70 °C thermoplastic (PVC) two-core copper cable, 30 °C ambient — the
  * table the twin-and-earth values of Table 4D5 come from.

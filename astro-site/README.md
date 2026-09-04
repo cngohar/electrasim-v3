@@ -1,6 +1,6 @@
 # ElectraSim Marketing Site
 
-This npm workspace contains the static Astro marketing, guide, comparison, legal, and blog routes. The root build merges its output with the Vite simulator under one Cloudflare Pages `dist/` directory.
+This npm workspace contains the static Astro marketing, guide, comparison-bench, legal, and blog routes. The root build merges its output with the Vite simulator under one Cloudflare Pages `dist/` directory.
 
 Run commands from the repository root so the shared lockfile remains authoritative:
 
@@ -12,7 +12,7 @@ npm run build
 npm run preview
 ```
 
-Content lives in `src/content/`, route components in `src/pages/`, shared view components in `src/components/`, and external stylesheets in `src/styles/`. Blog pagination and tag generation are centralized in `src/lib/blog.ts`; official-source comparison data and its review date live in `src/lib/compare.ts`.
+Content lives in `src/content/`, route components in `src/pages/`, shared view components in `src/components/`, and external stylesheets in `src/styles/`. Blog pagination and tag generation are centralized in `src/lib/blog.ts`; the dated, first-party comparison-bench data lives in `src/lib/competitor-bench.ts`.
 
 Marketing colours are shared CSS variables in `src/styles/global.css`. The same-origin `public/js/theme.js` bootstrap applies and persists the Light, Dark, or System-resolved appearance before paint. Keep page-specific styles on those variables so every route remains usable in both themes.
 
@@ -165,7 +165,7 @@ Every route has its own electrical identity rather than a reskinned template:
 | `/` | the workbench | ring main · busbar · series chain · parallel drops · signal line |
 | `/about/` | the build log | a supply riser down the page; mission is a drawing sheet with a title block, principles are `P-01…P-04` terminal blocks |
 | `/guide/` | drawing sheets | progress strip is a **DIN rail of ways** with feed drops; each circuit is a sheet with a title block, a terminal strip of parts and a framed diagram with corner ticks |
-| `/compare/` | the test bench | instrument chart — mono column headers, ElectraSim's row energised with a live edge; tool profiles are instrument cards |
+| `/compare/` | the test bench | SVG research map, task filters, instrument plots, and an interactive evidence matrix |
 | `/blog/` | the reference library | marching dashed topic rail; product-news feeder runs **amber** so release notes read apart from guides |
 | `/blog/[slug]` | the datasheet | a reading conductor down the margin with every `h2` as a terminal on it |
 | `/contact/` | the terminal block | busbar with a phase-offset drop into each terminal; FAQ items are `Q01…` ways |

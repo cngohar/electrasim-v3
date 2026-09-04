@@ -15,6 +15,7 @@
 export {
   calculateMCBTrip,
   calculateRCDTrip,
+  formatClearingTime,
   getCableAmpacity,
   simulate,
   type RCDTripResult,

@@ -858,3 +858,91 @@ describe('simulate — arc fault detection (BS EN 62606 / Reg 421.1.7)', () => {
     return { prot, result: simulate(circuit([l, n, prot, bulb], wires)) };
   }
 });
+
+// ─── IEC 60898-1 / 61008-1 trip curves in the engine ───────────────────────
+
+describe('simulate — protection operates to its published curve', () => {
+  /** Live → MCB → load → Neutral, with the MCB's rating overridden. */
+  function overloadCircuit(loadWatts: number, breakerAmps: number, type = 'mcb') {
+    const l = C('live-terminal');
+    const n = C('neutral-terminal');
+    const cb = C(type, { on: true, customMaxAmps: breakerAmps, customCableMm2: 10 });
+    // customMaxAmps keeps the *load* out of the picture: the point of these
+    // tests is the breaker's curve, not the appliance's own rating.
+    const load = C('space-heater', {
+      on: true,
+      customPowerWatts: loadWatts,
+      customCableMm2: 10,
+      customMaxAmps: 999,
+    });
+    const wires = [
+      W({ c: l, p: 0 }, { c: cb, p: 0 }),
+      W({ c: cb, p: 1 }, { c: load, p: 0 }),
+      W({ c: n, p: 0 }, { c: load, p: 1 }),
+    ];
+    return {
+      cb,
+      result: simulate(circuit([l, n, cb, load], wires), { appMode: 'pro' }),
+    };
+  }
+
+  it('does NOT trip below Inf = 1.13×In (IEC 60898-1 conventional non-tripping current)', () => {
+    // 16 A device, ~17.4 A load ⇒ 1.09×In: must carry it indefinitely.
+    const { cb, result } = overloadCircuit(4000, 16);
+    expect((result.trippedComponents ?? []).map((t) => t.id)).not.toContain(cb.id);
+    expect(result.blownComponents ?? []).toEqual([]);
+  });
+
+  it('trips above If = 1.45×In and reports the curve time', () => {
+    // 16 A device, ~26 A load ⇒ 1.63×In: inside the thermal tripping zone.
+    const { cb, result } = overloadCircuit(6000, 16);
+    const trip = (result.trippedComponents ?? []).find((t) => t.id === cb.id);
+    expect(trip).toBeDefined();
+    expect(trip?.cause).toBe('overload');
+    expect(trip?.mechanism).toBe('thermal');
+    expect(trip?.currentMultiple).toBeGreaterThan(1.45);
+    // Thermal clearing at ~1.6×In is minutes, not milliseconds.
+    expect(trip?.clearingTimeSeconds).toBeGreaterThan(1);
+  });
+
+  it('clears a heavy overload magnetically, far faster than a marginal one', () => {
+    const marginal = overloadCircuit(6000, 16);
+    const heavy = overloadCircuit(30000, 16);
+    const marginalTrip = (marginal.result.trippedComponents ?? []).find(
+      (t) => t.id === marginal.cb.id,
+    );
+    const heavyTrip = (heavy.result.trippedComponents ?? []).find((t) => t.id === heavy.cb.id);
+    expect(marginalTrip?.clearingTimeSeconds).toBeDefined();
+    expect(heavyTrip?.mechanism).toBe('magnetic');
+    expect(heavyTrip?.clearingTimeSeconds).toBeLessThan(
+      marginalTrip?.clearingTimeSeconds ?? Number.POSITIVE_INFINITY,
+    );
+  });
+
+  it('reports an IEC 61008-1 break time when an RCD operates on leakage', () => {
+    const l = C('live-terminal');
+    const n = C('neutral-terminal');
+    const rcd = C('rcd', { on: true });
+    const bulb = C('bulb', { fault: 'earth-fault' });
+    const wires = [
+      W({ c: l, p: 0 }, { c: rcd, p: 0 }),
+      W({ c: n, p: 0 }, { c: rcd, p: 1 }),
+      W({ c: rcd, p: 2 }, { c: bulb, p: 0 }),
+      W({ c: rcd, p: 3 }, { c: bulb, p: 1 }),
+    ];
+    const result = simulate(circuit([l, n, rcd, bulb], wires));
+    const trip = (result.trippedComponents ?? []).find((t) => t.id === rcd.id);
+    expect(trip?.cause).toBe('ground-fault');
+    expect(trip?.mechanism).toBe('residual');
+    // General-type maximums: ≤300 ms at 1×IΔn, ≤40 ms at ≥5×IΔn.
+    expect(trip?.clearingTimeSeconds).toBeLessThanOrEqual(0.3);
+    expect(trip?.clearingTimeSeconds).toBeGreaterThan(0);
+  });
+
+  it('keeps `cause` a persistable enum even when `reason` is a full sentence', () => {
+    const { cb, result } = overloadCircuit(6000, 16);
+    const trip = (result.trippedComponents ?? []).find((t) => t.id === cb.id);
+    expect(trip?.cause).toBe('overload');
+    expect(trip?.reason.length).toBeGreaterThan('overload'.length);
+  });
+});

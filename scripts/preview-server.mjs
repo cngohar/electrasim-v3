@@ -1,4 +1,4 @@
-import { createReadStream, existsSync, statSync } from 'node:fs';
+import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -8,6 +8,57 @@ const root = resolve(__dirname, '..');
 const dist = join(root, 'dist');
 const port = Number(process.env.PORT || 8788);
 const host = '127.0.0.1';
+
+/**
+ * `_redirects` support.
+ *
+ * This server is the stand-in for the Cloudflare Pages runtime in
+ * `e2e:production`, and it already emulates the per-route headers from
+ * `_headers`. Without the redirect table it could not answer for moved or
+ * retired routes consistently with Cloudflare Pages, so local production
+ * checks could mistake a routing difference for a broken page.
+ *
+ * Supports what Pages actually needs for this project: exact paths, and one `*`
+ * wildcard whose match is substituted for `:splat` in the destination. Rules are
+ * evaluated in file order, first match wins, and — as on Pages — before static
+ * assets, which is what lets `/blog/index.html` redirect even though the file
+ * exists.
+ */
+function parseRedirects(text) {
+  return text
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0 && !line.startsWith('#'))
+    .map((line) => {
+      const [from, to, status] = line.split(/\s+/);
+      if (!from || !to) return null;
+      return { from, to, status: Number(status) || 302 };
+    })
+    .filter(Boolean);
+}
+
+const redirectsFile = join(dist, '_redirects');
+const REDIRECTS = existsSync(redirectsFile)
+  ? parseRedirects(readFileSync(redirectsFile, 'utf8'))
+  : [];
+
+function matchRedirect(pathname) {
+  for (const rule of REDIRECTS) {
+    if (rule.from === pathname) return { location: rule.to, status: rule.status };
+
+    const star = rule.from.indexOf('*');
+    if (star === -1) continue;
+
+    const prefix = rule.from.slice(0, star);
+    const suffix = rule.from.slice(star + 1);
+    if (!pathname.startsWith(prefix) || !pathname.endsWith(suffix)) continue;
+    if (pathname.length < prefix.length + suffix.length) continue;
+
+    const splat = pathname.slice(prefix.length, pathname.length - suffix.length);
+    return { location: rule.to.replace(':splat', splat), status: rule.status };
+  }
+  return null;
+}
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -36,6 +87,17 @@ const server = createServer((req, res) => {
     const redirectUrl = pathname.slice(0, -'index.html'.length);
     res.writeHead(301, {
       Location: redirectUrl,
+      'Cache-Control': 'public, max-age=3600',
+    });
+    res.end();
+    return;
+  }
+
+  // Everything else in dist/_redirects (moved or retired routes).
+  const redirect = matchRedirect(pathname);
+  if (redirect) {
+    res.writeHead(redirect.status, {
+      Location: redirect.location,
       'Cache-Control': 'public, max-age=3600',
     });
     res.end();
