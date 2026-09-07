@@ -119,6 +119,9 @@ export default defineConfig({
         if (url.includes('/blog/') && url !== `${SITE}/blog/`) {
           return withLastmod({ changefreq: ChangeFreqEnum.MONTHLY, priority: 0.7 });
         }
+        if (url === `${SITE}/guide/` || url.startsWith(`${SITE}/guide/tools/`) || url.startsWith(`${SITE}/guide/components/`)) {
+          return { ...item, changefreq: ChangeFreqEnum.MONTHLY, priority: 0.7 };
+        }
         if (url === `${SITE}/blog/`) {
           return withNewest({ changefreq: ChangeFreqEnum.WEEKLY, priority: 0.8 });
         }

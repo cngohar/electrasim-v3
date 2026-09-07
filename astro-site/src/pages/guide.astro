@@ -5,7 +5,9 @@ import GuideHero from '../components/guide/GuideHero.astro';
 import GuideOverview from '../components/guide/GuideOverview.astro';
 import data from '../content/pages/guide.json';
 import Base from '../layouts/Base.astro';
+import packageMetadata from '../../../package.json';
 import '../styles/guide.css';
+import '../styles/guide-lab.css';
 import type { GuideCircuit, GuideFeature, GuidedTemplate } from '../types/pages';
 
 const circuits = data.circuits as GuideCircuit[];
@@ -48,6 +50,11 @@ const guidedTemplates = data.guided_templates as GuidedTemplate[];
 
     <div class="guide-main" data-live>
       <div class="wrap">
+        <nav class="guide-lab-nav" aria-label="Guide sections">
+          <a href="/guide/tools/"><span class="lab-icon" aria-hidden="true">🛠️</span> Hand Tools</a>
+          <a href="/guide/components/"><span class="lab-icon" aria-hidden="true">🔌</span> Components</a>
+          <a href="#circuit-walkthroughs"><span class="lab-icon" aria-hidden="true">⚡</span> Circuit Demos</a>
+        </nav>
         <GuideOverview features={latestFeatures} templates={guidedTemplates} />
         {circuits.map((circuit) => <GuideCircuitCard circuit={circuit} />)}
         <GuideCta
@@ -59,4 +66,6 @@ const guidedTemplates = data.guided_templates as GuidedTemplate[];
       </div>
     </div>
   </main>
+
+  <script is:inline defer src={`/js/guide-lab.js?v=${packageMetadata.version}`}></script>
 </Base>

@@ -1,0 +1,47 @@
+{
+  "slug": "side-cutters",
+  "name": "Side Cutters (Diagonal Cutters)",
+  "tagline": "Snip conductors cleanly at the jaws' edge — the workhorse for trimming to length at a terminal.",
+  "category": "Cutting",
+  "parts": [
+    "Diagonal cutting edges — shear against each other",
+    "Pivot joint — transfers grip pressure into shear",
+    "Spring return — opens the jaws for rapid repeat cuts",
+    "Beaded insulation grips — rated to a working voltage"
+  ],
+  "safety": "Use the cutting edge only for the conductor sizes stamped on the tool. Cutting armour or steel with a copper cutter blunts it — and an unblunted cutter can slip onto your fingers.",
+  "svg": {
+    "viewBox": "0 0 320 210",
+    "body": "<g class=\"dl-part\" data-part=\"L3\"><path class=\"dl-metal-2\" d=\"M56 58 L146 116 q7 5 4 13 q-3 8 -11 6 L62 88 q-7 -4 -6 -13 q1 -9 10 -9 l-10 -8 z\" transform=\"rotate(-12 96 92)\"/><path class=\"dl-metal\" d=\"M52 60 L140 120 q7 5 4 13 q-3 8 -11 6 L58 92 q-7 -4 -6 -13 q1 -9 10 -9\" transform=\"rotate(28 92 94)\"/><path class=\"dl-line--accent\" d=\"M150 90 L86 60\"/></g><g class=\"dl-part\" data-part=\"L2\"><circle class=\"dl-chip\" cx=\"196\" cy=\"108\" r=\"8\"/></g><g class=\"dl-part\" data-part=\"L1\"><path class=\"dl-fill--line\" d=\"M206 132 q18 -20 6 -40\"/></g><g class=\"dl-part\" data-part=\"L0\"><path class=\"dl-grip\" d=\"M250 118 L252 168 q0 10 -9 10 l-44 -8 q-8 -2 -6 -11 q2 -9 10 -8 l40 4 q0 -22 5 -18 z\" transform=\"rotate(-18 232 150)\"/></g>"
+  },
+  "points": [
+    {
+      "id": "L3",
+      "label": "Diagonal cutting edges",
+      "detail": "The jaws meet at an angle and slice by shear — one blade rides just past the other. This shearing action gives a clean square cut on copper up to the stamped capacity (often ~2.5–4 mm²).\n\nCut conductors square at the stripped length; a diagonal nick starts a future break under vibration.",
+      "x": 105,
+      "y": 62
+    },
+    {
+      "id": "L2",
+      "label": "Pivot joint",
+      "detail": "A precision rivet lets the two blades rotate the exact amount needed for shear. Any play here makes the tool chew instead of cut — keep it clean and one-drop-oiled.",
+      "x": 196,
+      "y": 108
+    },
+    {
+      "id": "L1",
+      "label": "Spring return",
+      "detail": "An external (or internal) spring pushes the jaws back open after each squeeze, so you can make dozens of cuts without re-opening by hand.",
+      "x": 210,
+      "y": 140
+    },
+    {
+      "id": "L0",
+      "label": "Beaded insulation grips",
+      "detail": "The insulated handles are rated to a working voltage (check the marking; 1000 V is common). The raised 'beads' improve grip when your hands are oily.",
+      "x": 240,
+      "y": 158
+    }
+  ]
+}

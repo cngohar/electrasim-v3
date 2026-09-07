@@ -1,0 +1,367 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   GUIDE LAB — anatomy cards
+   ─────────────────────────────────────────────────────────────────────────
+   Anatomy cards = a frame, an embedded SVG figure, and absolutely
+   positioned hotspots (percent coords) hit-testing the depicted part.
+   Selection state lives as `aria-pressed` + `.is-active`. All labels are
+   real <button> text in the DOM — crawlable, keyboard-focusable, and
+   independent of the SVG. If the enhancement script never runs, the card
+   degrades to the SVG + a plain bullet list of parts.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Guide sections nav band (top of main guide page) ──────────────── */
+.guide-lab-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+.guide-lab-nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+.guide-lab-nav a:hover {
+  border-color: var(--border-bright);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.12);
+  transform: translateY(-1px);
+}
+.guide-lab-nav .lab-icon {
+  font-size: 1rem;
+}
+
+/* ── Anatomy card ─────────────────────────────────────────────────────── */
+.dl-lab-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.anatomy-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The SVG figure sits in a "drawing sheet" panel, light grey like the
+   blueprint papers used in the rest of the guide. */
+.anatomy-figure {
+  position: relative;
+  padding: 1.5rem;
+  background: radial-gradient(ellipse at 50% -10%, var(--blue-l) 0%, transparent 60%), var(--bg-2);
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+}
+
+/* Structural body: list of parts (always present) + active detail. */
+.anatomy-card__body {
+  padding: 1.25rem 1.5rem 1.5rem;
+  flex: 1;
+}
+.anatomy-card__parts {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+.anatomy-card__parts li {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-mid);
+  padding-left: 0.9rem;
+  position: relative;
+}
+.anatomy-card__parts li::before {
+  content: "";
+  position: absolute;
+  left: 0.2rem;
+  top: 0.55em;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--live);
+}
+
+/* Active part detail panel */
+.dl-anatomy-detail {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--blue-l);
+  padding: 0.85rem 1rem;
+  min-height: 3.2rem;
+  transition: border-color 0.2s, background 0.2s;
+  margin-top: 1rem;
+}
+.dl-anatomy-detail.is-active {
+  border-color: var(--border-bright);
+}
+.dl-anatomy-detail h4 {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--blue-ink);
+  margin: 0 0 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.dl-anatomy-detail p {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--text-mid);
+}
+
+/* On the detail pages the figure can be wider. */
+.anatomy-card--wide .anatomy-figure {
+  min-height: 300px;
+}
+.anatomy-card--wide .anatomy-stage svg {
+  max-width: 420px;
+}
+@media (min-width: 760px) {
+  .anatomy-card--wide .anatomy-card__body {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* ── Detail-page two-column hero layout ─────────────────────────────── */
+.guide-detail-grid {
+  display: grid;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+@media (min-width: 980px) {
+  .guide-detail-grid {
+    grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+    align-items: start;
+  }
+}
+
+/* Meta table (terminals / category / parts) alongside the label content. */
+.dl-spec {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--bg-card);
+}
+.dl-spec__row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+.dl-spec__row:first-child {
+  border-top: 0;
+}
+.dl-spec__row dt {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding-top: 0.15rem;
+}
+.dl-spec__row dd {
+  margin: 0;
+  color: var(--text-mid);
+  line-height: 1.5;
+}
+.dl-spec__row dd ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.dl-spec__row dd li {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--text-mid);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 0.12rem 0.5rem;
+  background: var(--bg-2);
+}
+
+/* Safety note strip */
+.dl-safety {
+  margin: 1.5rem 0 0;
+  border: 1px solid var(--warning-border);
+  border-left: 4px solid var(--amber);
+  border-radius: 10px;
+  background: var(--warning-bg);
+  padding: 0.85rem 1.1rem;
+}
+.dl-safety__label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--warning-text);
+  margin-bottom: 0.3rem;
+}
+.dl-safety p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text-mid);
+}
+
+/* Browse section at the bottom of detail pages */
+.dl-browse {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+.dl-browse-head {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 1rem;
+}
+.dl-browse .dl-lab-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  max-width: 640px;
+}
+.dl-browse-link {
+  display: block;
+  padding: 1rem 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.dl-browse-link:hover {
+  border-color: var(--border-bright);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.12);
+}
+
+/* Hub + section hero */
+.guide-hero--small {
+  padding: 3rem 0 2rem;
+  text-align: center;
+}
+.guide-hero--small h1 {
+  font-size: clamp(1.8rem, 4.4vw, 2.8rem);
+  max-width: 22ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+.guide-hero--small p {
+  max-width: 60ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ── SVG figure palette (rendered via classes, not inline style, so the
+   strict CSP `style-src 'self'` is respected) ────────────────────────── */
+.dl-part {
+  transition: opacity 0.15s, filter 0.15s;
+}
+.dl-part.is-active {
+  filter: drop-shadow(0 0 6px rgba(37, 99, 235, 0.45));
+}
+.dl-svg-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+.dl-metal {
+  fill: var(--metal-1);
+  stroke: var(--border);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+.dl-metal-2 {
+  fill: var(--metal-2);
+  stroke: var(--border);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+.dl-arm {
+  fill: none;
+  stroke: var(--metal-1);
+  stroke-width: 20;
+  stroke-linecap: round;
+}
+.dl-arm--2 {
+  fill: none;
+  stroke: var(--metal-2);
+  stroke-width: 20;
+  stroke-linecap: round;
+}
+.dl-grip {
+  fill: none;
+  stroke: var(--live);
+  stroke-width: 20;
+  stroke-linecap: round;
+}
+.dl-grip--d {
+  fill: none;
+  stroke: var(--blue-d);
+  stroke-width: 20;
+  stroke-linecap: round;
+}
+.dl-fill {
+  fill: var(--bg-card);
+  stroke: var(--border);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+.dl-fill--line {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 1.4;
+}
+.dl-line--accent {
+  fill: none;
+  stroke: var(--energy);
+  stroke-width: 2;
+}
+.dl-text {
+  font-family: var(--font-mono);
+  fill: var(--text);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+.dl-text--mid {
+  font-family: var(--font-mono);
+  fill: var(--text-mid);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+.dl-chip {
+  fill: var(--live);
+  stroke: none;
+}

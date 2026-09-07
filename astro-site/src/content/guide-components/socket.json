@@ -1,0 +1,60 @@
+{
+  "slug": "socket",
+  "name": "Socket Outlet (3-Pin UK Type G)",
+  "tagline": "The 3-pole interface that lets you plug in an appliance — and the reason your board has RCD protection.",
+  "category": "Outlet",
+  "terminals": [
+    "Live (L)",
+    "Neutral (N)",
+    "Earth (E)",
+    "Terminal L/N/E screw-block behind the face"
+  ],
+  "parts": [
+    "Shutter — blocks the live and neutral holes",
+    "Live/neutral pins — carry the working current",
+    "Earth pin — the longest, opens the shutter",
+    "Terminal block — live, neutral, earth lands"
+  ],
+  "safety": "A UK socket is fused or supervised by the consumer unit's MCB, and earth is mandatory for the circuit. Don't 'bridge' the earth with the neutral — the entire protective system relies on a solid earth return.",
+  "svg": {
+    "viewBox": "0 0 260 200",
+    "body": "<g class=\"dl-part\" data-part=\"L0\"><rect class=\"dl-fill\" x=\"80\" y=\"40\" width=\"140\" height=\"120\" rx=\"14\"/></g><g class=\"dl-part\" data-part=\"L4\"><rect class=\"dl-fill\" x=\"140\" y=\"64\" width=\"18\" height=\"34\" rx=\"3\"/></g><g class=\"dl-part\" data-part=\"L3\"><rect class=\"dl-chip\" x=\"122\" y=\"74\" width=\"10\" height=\"18\" rx=\"1\"/><rect class=\"dl-chip\" x=\"168\" y=\"74\" width=\"10\" height=\"18\" rx=\"1\"/><text class=\"dl-text--mid\" x=\"118\" y=\"72\" text-anchor=\"middle\">L</text><text class=\"dl-text--mid\" x=\"180\" y=\"72\" text-anchor=\"middle\">N</text></g><g class=\"dl-part\" data-part=\"L2\"><circle class=\"dl-chip\" cx=\"148\" cy=\"112\" r=\"7\"/><text class=\"dl-text--mid\" x=\"148\" y=\"134\" text-anchor=\"middle\">E</text></g><g class=\"dl-part\" data-part=\"L1\"><rect class=\"dl-metal\" x=\"108\" y=\"178\" width=\"80\" height=\"12\" rx=\"3\"/><text class=\"dl-text--mid\" x=\"148\" y=\"186\" text-anchor=\"middle\">L · N · E</text></g>"
+  },
+  "points": [
+    {
+      "id": "L4",
+      "label": "Shutter",
+      "detail": "A sprung shield covers the live and neutral holes. It only opens when a plug's EARTH pin presses it — that's why the earth pin is the longest. Children's fingers or a stray screwdriver can't reach the live contacts.",
+      "x": 149,
+      "y": 78
+    },
+    {
+      "id": "L3",
+      "label": "Live / neutral pins",
+      "detail": "The plug's L and N pins make contact here once the shutter opens. Live (right, shorter hole) and neutral (left) are the current-carrying pair — rated at the socket's 13 A and fused inside the plug for the appliance.",
+      "x": 128,
+      "y": 82
+    },
+    {
+      "id": "L2",
+      "label": "Earth pin",
+      "detail": "Earth opens the shutter and connects the appliance's metal body back to the protective earth conductor (CPC). Never block the earth hole — a fault will then seek a path through you instead.",
+      "x": 149,
+      "y": 112
+    },
+    {
+      "id": "L1",
+      "label": "Terminal block",
+      "detail": "Behind the face, three screw terminals: L (red/brown), N (black/blue), E (green/yellow). Strip ~10 mm, clamp firmly, and check the fixing screws retighten the cable in the standard orientation.",
+      "x": 148,
+      "y": 186
+    },
+    {
+      "id": "L0",
+      "label": "Faceplate",
+      "detail": "The white outer housing holds the mechanism and screws to a back box. It also carries the permanent 'maximum 13 A' marking and (with a socket this deep) the identifying brand/part.",
+      "x": 148,
+      "y": 120
+    }
+  ]
+}

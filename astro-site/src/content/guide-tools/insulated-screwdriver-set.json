@@ -1,0 +1,47 @@
+{
+  "slug": "insulated-screwdriver-set",
+  "name": "Insulated Screwdriver Set",
+  "tagline": "VDE-rated turners for terminal screws — the handles that keep a flash off you.",
+  "category": "Turning",
+  "parts": [
+    "VDE-tested insulated shaft — double-insulated to 1000 V",
+    "Hardened steel tip — fits the screw head without cam-out",
+    "Moulded handle — colour-coded size and symbol icon",
+    "Ferrule / bolster — stops a slip sliding down the blade"
+  ],
+  "safety": "The insulation is only the protection after you have isolated the circuit. Re-test the tool before trusting it — cracks or carbon tracks in the shaft are grounds to retire it.",
+  "svg": {
+    "viewBox": "0 0 320 210",
+    "body": "<g class=\"dl-part\" data-part=\"L3\"><rect class=\"dl-metal\" x=\"120\" y=\"30\" width=\"8\" height=\"40\" rx=\"1\"/></g><g class=\"dl-part\" data-part=\"L2\"><rect class=\"dl-fill\" x=\"120\" y=\"66\" width=\"8\" height=\"72\" rx=\"1\"/><rect class=\"dl-metal\" x=\"119\" y=\"138\" width=\"10\" height=\"10\" rx=\"1\"/></g><g class=\"dl-part\" data-part=\"L1\"><circle class=\"dl-chip\" cx=\"124\" cy=\"150\" r=\"9\"/></g><g class=\"dl-part\" data-part=\"L0\"><path class=\"dl-grip\" d=\"M124 158 q-4 -8 -10 0 q-6 10 0 24 q8 20 24 20 q26 0 22 -22 l-22 -16 q-8 -5 -10 6 z\"/><circle class=\"dl-chip\" cx=\"124\" cy=\"168\" r=\"2\"/></g>"
+  },
+  "points": [
+    {
+      "id": "L3",
+      "label": "Screwdriver tip",
+      "detail": "The blade is shaped to the screw slot (Phillips, Pozidriv, or flat). A worn or wrong-size tip 'cams out' under torque and chews the head — replace it rather than fighting it.",
+      "x": 124,
+      "y": 48
+    },
+    {
+      "id": "L2",
+      "label": "VDE-insulated shaft",
+      "detail": "Two layers of insulating material over the steel core, tested to 1000 V AC. The next ring is the colour band that marks VDE-rated tooling (not merely 'insulated grip').",
+      "x": 124,
+      "y": 100
+    },
+    {
+      "id": "L1",
+      "label": "Bolster / ferrule",
+      "detail": "The raised collar at the handle base stops your fingers sliding onto the shaft while you tighten a terminal deep in a box — overlap that guard and you have shortened your reach.",
+      "x": 124,
+      "y": 152
+    },
+    {
+      "id": "L0",
+      "label": "Moulded handle",
+      "detail": "The iconic orange/yellow handle is colour-coded by driver size across a set and embossed with the component icon (slotted, Phillips, etc.). The rubber grip is also what you grab to twist a tight terminal.",
+      "x": 150,
+      "y": 182
+    }
+  ]
+}

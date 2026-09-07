@@ -1,0 +1,56 @@
+{
+  "slug": "rcd",
+  "name": "Residual Current Device (RCD)",
+  "tagline": "Watches the balance between live and neutral — any leakage to earth trips it in milliseconds.",
+  "category": "Protection",
+  "terminals": ["L-in (top)", "N-in (top)", "L-out (bottom)", "N-out (bottom)"],
+  "parts": [
+    "Test button 'T' — simulates a leakage",
+    "Trip indicator flag — shows the pole that opened",
+    "Summation transformer — compares L and N current",
+    "Solenoid — releases the mechanism on imbalance",
+    "L, N terminals — in (top) and out (bottom)"
+  ],
+  "safety": "An RCD does not protect against overload — that is the MCB's job. RCD + MCB together (or one RCBO) is the standard way final circuits are built in UK boards today.",
+  "svg": {
+    "viewBox": "0 0 220 260",
+    "body": "<g class=\"dl-part\" data-part=\"housing\"><rect class=\"dl-fill\" x=\"52\" y=\"22\" width=\"64\" height=\"224\" rx=\"6\"/></g><g class=\"dl-part\" data-part=\"L5\"><circle class=\"dl-chip\" cx=\"96\" cy=\"54\" r=\"12\"/><text class=\"dl-text\" x=\"96\" y=\"58\" text-anchor=\"middle\">T</text></g><g class=\"dl-part\" data-part=\"L4\"><rect class=\"dl-metal\" x=\"88\" y=\"96\" width=\"12\" height=\"26\" rx=\"3\"/></g><g class=\"dl-part\" data-part=\"L3\"><circle class=\"dl-metal\" cx=\"88\" cy=\"148\" r=\"22\" fill=\"none\"/><circle class=\"dl-chip\" cx=\"88\" cy=\"148\" r=\"8\"/></g><g class=\"dl-part\" data-part=\"L2\"><path class=\"dl-metal\" d=\"M52 178 h64 v14 h-64 z\"/></g><g class=\"dl-part\" data-part=\"L1\"><rect class=\"dl-chip\" x=\"52\" y=\"248\" width=\"40\" height=\"12\" rx=\"3\"/><rect class=\"dl-chip\" x=\"76\" y=\"248\" width=\"40\" height=\"12\" rx=\"3\"/><rect class=\"dl-chip\" x=\"52\" y=\"20\" width=\"40\" height=\"12\" rx=\"3\"/><rect class=\"dl-chip\" x=\"76\" y=\"20\" width=\"40\" height=\"12\" rx=\"3\"/></g><text class=\"dl-text--mid\" x=\"58\" y=\"26\" text-anchor=\"middle\">L</text><text class=\"dl-text--mid\" x=\"102\" y=\"26\" text-anchor=\"middle\">N</text>"
+  },
+  "points": [
+    {
+      "id": "L5",
+      "label": "Test button 'T'",
+      "detail": "Pressing test injects a deliberate L-to-earth imbalance and the RCD must trip. Standards (IEC/BS) require a quarterly test; press it along with the MCB lever test to confirm both poles open clean.",
+      "x": 96,
+      "y": 54
+    },
+    {
+      "id": "L4",
+      "label": "Trip indicator flag",
+      "detail": "Many RCDs show a coloured window that flips to red/released when it has tripped. That tells you the trip came from earth leakage rather than someone simply switching it off.",
+      "x": 94,
+      "y": 108
+    },
+    {
+      "id": "L3",
+      "label": "Summation transformer",
+      "detail": "A toroidal core passes both live and neutral. While they carry equal and opposite current the flux cancels; any imbalance (leakage via earth) produces net flux the pick-up coil senses.",
+      "x": 88,
+      "y": 148
+    },
+    {
+      "id": "L2",
+      "label": "Tripping solenoid",
+      "detail": "At the rated trip current (commonly 30 mA) the sense winding energises a solenoid that releases the latch with a spring — typically in under 40 ms, quick enough to stop a lethal shock from establishing.",
+      "x": 84,
+      "y": 184
+    },
+    {
+      "id": "L1",
+      "label": "L / N terminals",
+      "detail": "In (top) and out (bottom) for both poles. An RCD must be downstream of its MCB and must carry BOTH live and neutral — a single-pole 'L only' feed cannot detect a neutral-earth fault.",
+      "x": 72,
+      "y": 250
+    }
+  ]
+}

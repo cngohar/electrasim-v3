@@ -1,0 +1,78 @@
+---
+import { getCollection } from 'astro:content';
+import packageMetadata from '../../../../package.json';
+import CatalogCard from '../../../components/guide/CatalogCard.astro';
+import GuideCta from '../../../components/guide/GuideCta.astro';
+import Base from '../../../layouts/Base.astro';
+import '../../../styles/guide.css';
+import '../../../styles/guide-lab.css';
+
+const components = await getCollection('guideComponents');
+const sorted = [...components].sort((a, b) => a.data.name.localeCompare(b.data.name));
+const canonical = 'https://electrasim.com/guide/components/';
+---
+
+<Base
+  title="ElectraSim — Electrical Components Anatomy Guide (MCB, RCD, Bulb, Socket)"
+  description="Learn the anatomy of electrical components: MCB, RCD, lamp and socket outlets — what each terminal does, how the trip works, and the safety rules behind them."
+  canonical={canonical}
+>
+  <main id="main-content">
+    <div class="bc-wrap">
+      <div class="wrap">
+        <nav class="bc" aria-label="Breadcrumb">
+          <a href="/">Home</a><span aria-hidden="true">›</span>
+          <a href="/guide/">Circuit Guide</a><span aria-hidden="true">›</span>
+          <span aria-current="page">Components</span>
+        </nav>
+      </div>
+    </div>
+
+    <div class="guide-hero guide-hero--small">
+      <div class="wrap">
+        <span class="label">Electrical Components</span>
+        <h1>The inside of the box.</h1>
+        <p>From the micro-mech of an MCB to the shutter in a socket — learn each part, its terminals, and the safety rule that keeps the following circuits safe.</p>
+      </div>
+    </div>
+
+    <div class="progress-strip">
+      <div class="wrap">
+        <div class="progress-inner">
+          {sorted.map((component) => (
+            <a class="prog-item" href={`#${component.data.slug}`} title={component.data.name}>
+              <div class="prog-num">◆</div>
+              <span class="prog-label">{component.data.name}</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <div class="guide-main" data-live>
+      <div class="wrap">
+        <section class="guide-section" id="components" aria-labelledby="components-h">
+          <div class="guide-section-head">
+            <span class="guide-kicker">The parts bin</span>
+            <h2 id="components-h">Four components you'll meet in every guide</h2>
+            <p>These are the building blocks of the circuit walkthroughs below — tap a marker on any drawing to find out what that terminal or trip does.</p>
+          </div>
+          <div class="dl-lab-grid">
+            {sorted.map((component) => (
+              <CatalogCard item={component.data} href={`/guide/components/${component.data.slug}/`} />
+            ))}
+          </div>
+        </section>
+
+        <GuideCta
+          heading="Components understood. Wire the circuit."
+          description="Now take an MCB, lamp and socket into ElectraSim and run the RCD socket walkthrough with live fault simulation."
+          primary="Open ElectraSim Free"
+          secondary="Read the Blog →"
+        />
+      </div>
+    </div>
+  </main>
+
+  <script is:inline defer src={`/js/guide-lab.js?v=${packageMetadata.version}`}></script>
+</Base>

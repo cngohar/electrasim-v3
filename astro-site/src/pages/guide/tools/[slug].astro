@@ -1,0 +1,100 @@
+---
+import { getCollection } from 'astro:content';
+import packageMetadata from '../../../../package.json';
+import CatalogCard from '../../../components/guide/CatalogCard.astro';
+import GuideCta from '../../../components/guide/GuideCta.astro';
+import Base from '../../../layouts/Base.astro';
+import '../../../styles/guide.css';
+import '../../../styles/guide-lab.css';
+
+export async function getStaticPaths() {
+  const tools = await getCollection('guideTools');
+  return tools.map((tool) => ({
+    params: { slug: tool.data.slug },
+    props: { tool },
+  }));
+}
+
+const { tool } = Astro.props;
+const { data } = tool;
+const canonical = `https://electrasim.com/guide/tools/${data.slug}/`;
+
+/* Next/prev for the "more hand tools" row. */
+const all = (await getCollection('guideTools')).map((t) => t.data).sort((a, b) => a.name.localeCompare(b.name));
+const index = all.findIndex((t) => t.slug === data.slug);
+const next = all[(index + 1) % all.length];
+const prev = all[(index - 1 + all.length) % all.length];
+---
+
+<Base
+  title={`${data.name} Anatomy — ElectraSim Hand Tools Guide`}
+  description={`${data.tagline} Labeled anatomy of ${data.name}: jaws, cutting edge, grips and more, with safety notes. Perfect for wiring beginners.`}
+  canonical={canonical}
+>
+  <main id="main-content">
+    <div class="bc-wrap">
+      <div class="wrap">
+        <nav class="bc" aria-label="Breadcrumb">
+          <a href="/">Home</a><span aria-hidden="true">›</span>
+          <a href="/guide/">Circuit Guide</a><span aria-hidden="true">›</span>
+          <a href="/guide/tools/">Hand Tools</a><span aria-hidden="true">›</span>
+          <span aria-current="page">{data.name}</span>
+        </nav>
+      </div>
+    </div>
+
+    <div class="guide-hero guide-hero--small">
+      <div class="wrap">
+        <span class="label">{data.category}</span>
+        <h1>{data.name}</h1>
+        <p>{data.tagline}</p>
+      </div>
+    </div>
+
+    <div class="guide-main" data-live>
+      <div class="wrap">
+        <div class="guide-detail-grid">
+          <CatalogCard item={data} href={`/guide/tools/${data.slug}/`} wide />
+
+          <aside class="dl-spec" aria-label={`${data.name} specification`}>
+            <div class="dl-spec__row">
+              <dt>Category</dt>
+              <dd>{data.category}</dd>
+            </div>
+            <div class="dl-spec__row">
+              <dt>Parts</dt>
+              <dd>
+                <ul>
+                  {data.parts.map((p) => <li>{p}</li>)}
+                </ul>
+              </dd>
+            </div>
+            {data.safety && (
+              <div class="dl-spec__row">
+                <dt>Safety</dt>
+                <dd>{data.safety}</dd>
+              </div>
+            )}
+          </aside>
+        </div>
+
+        <div class="dl-browse">
+          <span class="dl-browse-head">More hand tools</span>
+          <div class="dl-lab-grid">
+            <a class="dl-browse-link" href={`/guide/tools/${prev.slug}/`}>← {prev.name}</a>
+            <a class="dl-browse-link" href={`/guide/tools/${next.slug}/`}>{next.name} →</a>
+          </div>
+        </div>
+
+        <GuideCta
+          heading="Tool understood. Time to wire."
+          description="Run the real thing — a guided circuit, live current, and fault simulation in your browser."
+          primary="Open ElectraSim Free"
+          secondary="Browse all tools →"
+        />
+      </div>
+    </div>
+  </main>
+
+  <script is:inline defer src={`/js/guide-lab.js?v=${packageMetadata.version}`}></script>
+</Base>

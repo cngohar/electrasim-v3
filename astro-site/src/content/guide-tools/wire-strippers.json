@@ -1,0 +1,47 @@
+{
+  "slug": "wire-strippers",
+  "name": "Wire Strippers",
+  "tagline": "Remove exactly the right length of insulation without nicking the copper underneath.",
+  "category": "Stripping",
+  "parts": [
+    "Adjustable length stop — repeatable strip length",
+    "Colour-coded sizing die — matches cable gauges",
+    "Hinged blades — cut insulation only, not the core",
+    "Comb/cutting jaws — trim multiple cores in one go"
+  ],
+  "safety": "Match the strip length to the terminal depth. Too short and the terminal eats bare copper; too long leaves exposed core beyond the screw — the classic cause of a flash between conductors.",
+  "svg": {
+    "viewBox": "0 0 320 210",
+    "body": "<g class=\"dl-part\" data-part=\"L3\"><rect class=\"dl-fill\" x=\"56\" y=\"96\" width=\"26\" height=\"26\" rx=\"4\"/><circle class=\"dl-chip\" cx=\"82\" cy=\"109\" r=\"3\"/></g><g class=\"dl-part\" data-part=\"L2\"><path class=\"dl-metal\" d=\"M84 92 L150 70 q8 -3 10 4 l6 18 q2 7 -6 9 L96 122 q-8 2 -11 -5 l-2 -18 q-1 -8 7 -7 z\"/><path class=\"dl-line--accent\" d=\"M96 84 v14 M110 80 v14 M124 75 v14\"/></g><g class=\"dl-part\" data-part=\"L1\"><path class=\"dl-metal-2\" d=\"M158 96 L204 66 q7 -4 12 1 l-4 10 q2 6 -3 10 l-46 30 q-6 4 -11 -1 l6 -8 q-2 -5 3 -6 z\"/></g><g class=\"dl-part\" data-part=\"L0\"><rect class=\"dl-fill\" x=\"226\" y=\"58\" width=\"20\" height=\"56\" rx=\"6\" transform=\"rotate(24 236 86)\"/><path class=\"dl-fill--line\" d=\"M240 66 l10 20 M234 76 l10 20\"/></g><g class=\"dl-grip\" x=\"252\" y=\"132\" width=\"20\" height=\"74\" rx=\"10\" transform=\"rotate(-8 262 169)\"/>"
+  },
+  "points": [
+    {
+      "id": "L3",
+      "label": "Adjustable length stop",
+      "detail": "A sliding gauge sets how much insulation the blade removes every time. Dial it to the terminal's stripping depth (typically 8–12 mm) and every strip comes out identical.",
+      "x": 70,
+      "y": 109
+    },
+    {
+      "id": "L2",
+      "label": "Colour-coded sizing die",
+      "detail": "Each notch is a bending size, colour-marked to cable gauge (often matching the UK harmonised core colours). Squeeze to bite the insulation and rotate gently to cut it all the way around without touching the copper.",
+      "x": 111,
+      "y": 90
+    },
+    {
+      "id": "L1",
+      "label": "Hinged blades",
+      "detail": "Unlike a knife, the blade depth is pre-set near the conductor diameter. The tool cuts the jacket and stops — that is what protects the strands underneath.",
+      "x": 172,
+      "y": 84
+    },
+    {
+      "id": "L0",
+      "label": "Comb / multi-core jaws",
+      "detail": "The rear set of jaws nips multiple cores (or a flex) at once, so stripping a 3-core cable becomes one squeeze instead of three.",
+      "x": 238,
+      "y": 74
+    }
+  ]
+}

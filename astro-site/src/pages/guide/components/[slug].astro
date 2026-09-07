@@ -1,0 +1,107 @@
+---
+import { getCollection } from 'astro:content';
+import packageMetadata from '../../../../package.json';
+import CatalogCard from '../../../components/guide/CatalogCard.astro';
+import GuideCta from '../../../components/guide/GuideCta.astro';
+import Base from '../../../layouts/Base.astro';
+import '../../../styles/guide.css';
+import '../../../styles/guide-lab.css';
+
+export async function getStaticPaths() {
+  const items = await getCollection('guideComponents');
+  return items.map((item) => ({
+    params: { slug: item.data.slug },
+    props: { item },
+  }));
+}
+
+const { item } = Astro.props;
+const { data } = item;
+const canonical = `https://electrasim.com/guide/components/${data.slug}/`;
+
+const all = (await getCollection('guideComponents')).map((c) => c.data).sort((a, b) => a.name.localeCompare(b.name));
+const index = all.findIndex((c) => c.slug === data.slug);
+const next = all[(index + 1) % all.length];
+const prev = all[(index - 1 + all.length) % all.length];
+---
+
+<Base
+  title={`${data.name} Anatomy — ElectraSim Components Guide`}
+  description={`${data.tagline} Labeled anatomy of a ${data.name}: terminals ${data.terminals.join(', ')} and how each part behaves, with safety notes.`}
+  canonical={canonical}
+>
+  <main id="main-content">
+    <div class="bc-wrap">
+      <div class="wrap">
+        <nav class="bc" aria-label="Breadcrumb">
+          <a href="/">Home</a><span aria-hidden="true">›</span>
+          <a href="/guide/">Circuit Guide</a><span aria-hidden="true">›</span>
+          <a href="/guide/components/">Components</a><span aria-hidden="true">›</span>
+          <span aria-current="page">{data.name}</span>
+        </nav>
+      </div>
+    </div>
+
+    <div class="guide-hero guide-hero--small">
+      <div class="wrap">
+        <span class="label">{data.category}</span>
+        <h1>{data.name}</h1>
+        <p>{data.tagline}</p>
+      </div>
+    </div>
+
+    <div class="guide-main" data-live>
+      <div class="wrap">
+        <div class="guide-detail-grid">
+          <CatalogCard item={data} href={`/guide/components/${data.slug}/`} wide />
+
+          <aside class="dl-spec" aria-label={`${data.name} specification`}>
+            <div class="dl-spec__row">
+              <dt>Category</dt>
+              <dd>{data.category}</dd>
+            </div>
+            <div class="dl-spec__row">
+              <dt>Terminals</dt>
+              <dd>
+                <ul>
+                  {data.terminals.map((t) => <li>{t}</li>)}
+                </ul>
+              </dd>
+            </div>
+            <div class="dl-spec__row">
+              <dt>Parts</dt>
+              <dd>
+                <ul>
+                  {data.parts.map((p) => <li>{p}</li>)}
+                </ul>
+              </dd>
+            </div>
+            {data.safety && (
+              <div class="dl-safety">
+                <span class="dl-safety__label">Safety note</span>
+                <p>{data.safety}</p>
+              </div>
+            )}
+          </aside>
+        </div>
+
+        <div class="dl-browse">
+          <span class="dl-browse-head">More components</span>
+          <div class="dl-lab-grid">
+            <a class="dl-browse-link" href={`/guide/components/${prev.slug}/`}>← {prev.name}</a>
+            <a class="dl-browse-link" href={`/guide/components/${next.slug}/`}>{next.name} →</a>
+          </div>
+        </div>
+
+        <GuideCta
+          heading="Now wire it for real."
+          description="Set {data.name} into a live circuit, inject a fault, and watch the protection respond — all in your browser."
+          primary="Open ElectraSim Free"
+          secondary="Browse all components →"
+        />
+      </div>
+    </div>
+  </main>
+
+  <script is:inline defer src={`/js/guide-lab.js?v=${packageMetadata.version}`}></script>
+</Base>

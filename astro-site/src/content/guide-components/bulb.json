@@ -1,0 +1,59 @@
+{
+  "slug": "bulb",
+  "name": "Lamp / Bulb",
+  "tagline": "Turns live current into light — and the perfect first circuit to understand the live/neutral path.",
+  "category": "Load",
+  "terminals": [
+    "Live screw / centre contact",
+    "Neutral / phase return (bayonet or edison)",
+    "Earth (metallic fittings only)"
+  ],
+  "parts": [
+    "Filament / chip — the light source",
+    "Glass envelope — shape and gas atmosphere",
+    "Cap / base — bayonet (B22) or Edison screw (E27)",
+    "Centre contact + outer thread — live and neutral lands"
+  ],
+  "safety": "Never touch the glass of a hot halogen with bare fingers — skin oil creates hot spots that crack it. Match the wattage to the fixture's label.",
+  "svg": {
+    "viewBox": "0 0 200 260",
+    "body": "<g class=\"dl-part\" data-part=\"L4\"><path class=\"dl-line--accent\" d=\"M74 96 Q100 84 126 96\"/></g><g class=\"dl-part\" data-part=\"L3\"><path class=\"dl-fill\" d=\"M68 92 a32 32 0 0 1 64 0 q0 14 -10 20 l-4 22 h-36 l-4 -22 q-10 -6 -10 -20 z\"/></g><g class=\"dl-part\" data-part=\"L2\"><path class=\"dl-metal\" d=\"M82 134 l36 0 l8 24 q3 9 -3 13 l-46 0 q-6 -4 -3 -13 z\"/><rect class=\"dl-metal\" x=\"84\" y=\"172\" width=\"32\" height=\"20\" rx=\"3\"/></g><g class=\"dl-part\" data-part=\"L0\"><text class=\"dl-text--mid\" x=\"100\" y=\"186\" text-anchor=\"middle\">230V 9W</text></g><g class=\"dl-part\" data-part=\"L1\"><circle class=\"dl-chip\" cx=\"88\" cy=\"196\" r=\"4\"/><path class=\"dl-line--accent\" d=\"M96 192 l12 0 l-2 10 h-10 z\"/></g>"
+  },
+  "points": [
+    {
+      "id": "L4",
+      "label": "Filament / chip",
+      "detail": "The light source — an incandescent filament glows by resistance; an LED 'chip' converts diode forward voltage into light. Modern fittings use the thermal and luminous LED chip, which is why they have a driver, not a filament.",
+      "x": 100,
+      "y": 96
+    },
+    {
+      "id": "L3",
+      "label": "Glass envelope",
+      "detail": "Sealed glass holds a vacuum or inert gas for a filament (stopping oxidation) or a phosphor coating for LEDs. Some low-energy lamps carry a mercury warning — dispose of them at a recycling point.",
+      "x": 100,
+      "y": 108
+    },
+    {
+      "id": "L2",
+      "label": "Cap / base",
+      "detail": "Bayonet (B22) has two pins you push-and-twist; Edison screw (E27) threads in. The type is stamped on the lamp base and must match the fitting — they are not interchangeable.",
+      "x": 100,
+      "y": 158
+    },
+    {
+      "id": "L1",
+      "label": "Centre contact + outer thread",
+      "detail": "Two separate electrical lands: the centre contact is LIVE, the outer thread (or shell) is NEUTRAL. Swapping the lamp wiring makes the accessible metal live when you unscrew the bulb — always land neutral to the shell.",
+      "x": 88,
+      "y": 192
+    },
+    {
+      "id": "L0",
+      "label": "Rating marking",
+      "detail": "Wattage, voltage, base type and maker are printed on the glass or cap. Match voltage (230 V vs 12 V) and rated draw when replacing lamps for dimmer compatibility.",
+      "x": 100,
+      "y": 186
+    }
+  ]
+}

@@ -1,0 +1,236 @@
+---
+/**
+ * CatalogCard.astro — anatomy cards for hand tools and electrical components.
+ *
+ * Renders an embedded SVG (markup injected as `set:html` via `item.svg.body`)
+ * plus a trail of hotspot <button>s. Hotspots overlay the SVG and, when
+ * enhanced by guide-lab.js, show the active part's detail panel and twin-
+ * highlight the `dl-part--<id>` group in the drawing. Without JS the card
+ * keeps its full content (SVG + parts list) and simply doesn't light up.
+ *
+ * CSP note: inline `style="left:…;top:…"` attributes are blocked by the site's
+ * strict `style-src 'self'`, so hotspot positions are applied at runtime by
+ * guide-lab.js via CSSOM (allowed). Until then hotspots are hidden, and the
+ * readable parts list carries the content.
+ */
+import type { ComponentAnatomy, ToolAnatomy } from '../../lib/anatomy';
+
+interface Props {
+  item: ToolAnatomy | ComponentAnatomy;
+  href: string;
+  /** Wider stage, used on detail pages. */
+  wide?: boolean;
+}
+
+const { item, href, wide = false } = Astro.props;
+const isComponent = 'terminals' in item;
+const points = item.points;
+const terminals = isComponent ? (item as ComponentAnatomy).terminals : [];
+const parts = item.parts;
+const detailTitle = item.name;
+const detailHint = 'Select a marked part to read about it.';
+---
+
+<article
+  class:list={['anatomy-card', wide && 'anatomy-card--wide']}
+  id={item.slug}
+  data-anatomy
+  data-anatomy-label={detailTitle}
+>
+  <div class="anatomy-figure">
+    <div class="anatomy-stage">
+      <svg
+        viewBox={item.svg.viewBox}
+        role="img"
+        aria-label={`${item.name} anatomy ${item.tagline}`}
+        set:html={item.svg.body}
+      />
+      <div class="anatomy-hotspots">
+        {points.map((p, i) => (
+          <button
+            type="button"
+            class="dl-hotspot"
+            data-point
+            data-point-id={p.id}
+            data-point-vx={p.x}
+            data-point-vy={p.y}
+            data-point-label={p.label}
+            data-point-desc={p.detail}
+            aria-label={`${item.name}: ${p.label}`}
+          >{i + 1}</button>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <div class="anatomy-card__body">
+    <div class="anatomy-card__title">
+      <h3>{item.name}</h3>
+      <p>{item.tagline}</p>
+      <a class="anatomy-card__link" href={href}>Open anatomy →</a>
+    </div>
+
+    {terminals.length > 0 && (
+      <div class="dl-spec-row anatomy-card__meta">
+        <span class="dl-spec-row__k">Terminals</span>
+        <ul class="dl-spec-row__chips">
+          {terminals.map((t) => <li>{t}</li>)}
+        </ul>
+      </div>
+    )}
+
+    {parts.length > 0 && (
+      <ul class="anatomy-card__parts">
+        {parts.map((p) => <li>{p}</li>)}
+      </ul>
+    )}
+
+    <div class="dl-anatomy-detail" data-anatomy-detail>
+      <h4 data-anatomy-title>{detailTitle}</h4>
+      <p data-anatomy-text>{detailHint}</p>
+    </div>
+  </div>
+</article>
+
+<style>
+  .anatomy-card__title h3 {
+    margin: 0 0 0.3rem;
+    font-size: 1.06rem;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.015em;
+  }
+  .anatomy-card__title p {
+    margin: 0 0 0.55rem;
+    font-size: 0.85rem;
+    color: var(--text-mid);
+    line-height: 1.5;
+  }
+  .anatomy-card__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--blue);
+    text-decoration: none;
+  }
+  .anatomy-card__link:hover {
+    text-decoration: underline;
+  }
+
+  /* Stage shrink-wraps the SVG so the hotspot overlay is exactly the SVG box. */
+  .anatomy-figure {
+    display: grid;
+    place-items: center;
+  }
+  .anatomy-stage {
+    position: relative;
+    display: inline-grid;
+  }
+  .anatomy-stage svg {
+    display: block;
+    width: auto;
+    max-width: 260px;
+    height: auto;
+    margin-inline: auto;
+  }
+  .anatomy-card--wide .anatomy-stage svg {
+    max-width: 420px;
+  }
+  .anatomy-hotspots {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    /* guide-lab.js reveals + positions these from data-point-v{x,y}. */
+    display: none;
+  }
+  .dl-hotspot {
+    pointer-events: auto;
+    position: absolute;
+    box-sizing: content-box;
+    width: 20px;
+    height: 20px;
+    margin-left: -10px;
+    margin-top: -10px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    background: var(--live);
+    color: #fff;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 19px;
+    text-align: center;
+    padding: 0;
+    cursor: pointer;
+    box-shadow: 0 2px 8px var(--rail-glow);
+    transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+  }
+  .dl-hotspot:hover,
+  .dl-hotspot:focus-visible {
+    transform: scale(1.14);
+    box-shadow: 0 4px 14px var(--rail-glow);
+  }
+  .dl-hotspot.is-active {
+    background: var(--energy);
+    border-color: #fff;
+    color: #1e293b;
+  }
+  .dl-spec-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 0.85rem;
+  }
+  .dl-spec-row__k {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    flex-shrink: 0;
+  }
+  .dl-spec-row__chips {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+  .dl-spec-row__chips li {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--blue-ink);
+    border: 1px solid var(--border-bright);
+    background: var(--blue-l);
+    border-radius: 5px;
+    padding: 0.12rem 0.5rem;
+  }
+  .anatomy-card__parts {
+    list-style: none;
+    margin: 0 0 1.1rem;
+    padding: 0;
+    display: grid;
+    gap: 0.35rem;
+  }
+  .anatomy-card__parts li {
+    position: relative;
+    padding-left: 0.9rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-mid);
+  }
+  .anatomy-card__parts li::before {
+    content: "";
+    position: absolute;
+    left: 0.15rem;
+    top: 0.52em;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--live);
+  }
+</style>
