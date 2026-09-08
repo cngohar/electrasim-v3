@@ -419,6 +419,178 @@
       ],
       "insight": "The key principle of a consumer unit is circuit isolation: a fault on one circuit trips only that MCB, leaving all other circuits unaffected. This is why each circuit has its own dedicated breaker.",
       "app_template": "pro-spd-consumer-unit"
+    },
+    {
+      "id": "circuit-13",
+      "step": "13",
+      "title": "Three-Phase DOL Motor Starter",
+      "level": "Advanced",
+      "description": "How an industrial motor is started: three live phases, each on its own Type-D breaker, into a three-pole contactor and out to the windings. Direct-on-line means the motor gets full voltage from the first turn.",
+      "components": [
+        "Live L1",
+        "Live L2",
+        "Live L3",
+        "Earth (E)",
+        "MCB Type-D × 3",
+        "Contactor (3-pole)",
+        "3-Phase Motor"
+      ],
+      "diagram": "L1 → MCB D → Contactor → Motor U\nL2 → MCB D → Contactor → Motor V\nL3 → MCB D → Contactor → Motor W\nEarth → Motor frame (PE)",
+      "steps": [
+        "Place three Live terminals (L1, L2, L3) and an Earth terminal down the left of the canvas.",
+        "Give each phase its own Type-D MCB — the D curve rides out the motor's starting surge.",
+        "Place a three-pole contactor after the breakers, then a 3-phase motor as the load.",
+        "Wire L1, L2 and L3 through their breakers into contactor poles 1, 2 and 3.",
+        "Take the three switched phases out to the motor's U, V and W terminals.",
+        "Run Earth to the motor frame, press Run, then open any one breaker — losing a single phase stops the motor."
+      ],
+      "insight": "A three-phase motor needs no neutral: the windings are each other’s return path. What it does need is per-phase overcurrent protection, a contactor that breaks all three poles together, and a protective earth on the frame.",
+      "app_template": "pro-3phase-dol-starter"
+    },
+    {
+      "id": "circuit-14",
+      "step": "14",
+      "title": "EV Charger Dedicated Circuit",
+      "level": "Advanced",
+      "description": "A 7.4 kW charge point on a circuit of its own: a rotary isolator that can be locked off, an RCBO covering both fault currents, and an earth run straight to the unit.",
+      "components": [
+        "Live (L)",
+        "Neutral (N)",
+        "Earth (E)",
+        "Rotary Isolator",
+        "RCBO (RCD + overcurrent)",
+        "EV Charge Point"
+      ],
+      "diagram": "Live + Neutral → Isolator → RCBO → Charge Point\nEarth → Charge Point (E)",
+      "steps": [
+        "Place Live, Neutral and Earth terminals.",
+        "Place a rotary isolator first in line — it switches both live and neutral for safe maintenance.",
+        "Place an RCBO after the isolator, then the charge point as the load.",
+        "Wire Live and Neutral through the isolator into the RCBO, then out to the charger.",
+        "Run Earth straight to the charger's E terminal, bypassing both devices.",
+        "Press Run, then open the isolator: the whole charge point goes dead while its earth stays connected."
+      ],
+      "insight": "A charger is a sustained high load, so it gets a dedicated circuit rather than a spur off a ring. The isolator exists for maintenance, the RCBO covers overcurrent and earth leakage, and the RCD type matters — smooth DC leakage from a vehicle can blind a Type AC device.",
+      "app_template": "pro-ev-charger-circuit"
+    },
+    {
+      "id": "circuit-15",
+      "step": "15",
+      "title": "Solar PV with Battery Storage",
+      "level": "Advanced",
+      "description": "A small DC system: a PV array and a battery share a DC bus through a combiner, feeding a 12 V load. DC has polarity rather than live and neutral, and both rails matter just as much.",
+      "components": ["Solar PV Panel", "12 V Battery", "DC Combiner", "12 V LED Load"],
+      "diagram": "PV + → Combiner → Battery + and LED +\nPV − → Battery − → LED −",
+      "steps": [
+        "Place a Solar PV Panel as the source and a 12 V battery as the storage.",
+        "Place a DC combiner (here a Wago connector) to join the sources onto one bus.",
+        "Run DC+ from the panel into the combiner, then out to the LED positive and the battery positive.",
+        "Run DC− from the panel to the battery negative, and on to the LED negative.",
+        "Press Run: the LED lights from the shared bus.",
+        "Open the battery positive in the Fault Lab — the LED keeps running, because the panel is still on the bus."
+      ],
+      "insight": "DC has a positive and a negative rail, not live and neutral, and polarity decides which way current flows. Sources sharing a bus can each support the load, which is the point of storage: the panel runs the load and charges the battery at the same time.",
+      "app_template": "pro-solar-dc-system"
+    },
+    {
+      "id": "circuit-16",
+      "step": "16",
+      "title": "Underfloor Heating Zone",
+      "level": "Advanced",
+      "description": "A dedicated heating circuit: Type-C breaker, a heating thermostat switching both poles, and the mat itself. Heating is a fixed load, so it never shares a circuit with anything else.",
+      "components": ["Live (L)", "Neutral (N)", "MCB Type-C", "Heating Thermostat", "Heating Mat"],
+      "diagram": "Live → MCB C → Thermostat (L-in)\nNeutral → Thermostat (N-in)\nLoad-L + Load-N → Heating Mat",
+      "steps": [
+        "Place Live and Neutral terminals, then a Type-C MCB on the live conductor.",
+        "Place a heating thermostat, then the heating mat as the load.",
+        "Wire Live through the MCB into the thermostat L-in, and Neutral into its N-in.",
+        "Take both switched poles — Load-L and Load-N — out to the mat.",
+        "Press Run, then open the thermostat: both poles of the mat go dead, not just the live."
+      ],
+      "insight": "A heating thermostat is double-pole: it breaks live and neutral together so the element really is isolated when it stops calling for heat. Type-C breakers ride out the element’s inrush where a Type B can nuisance-trip.",
+      "app_template": "pro-underfloor-heating"
+    },
+    {
+      "id": "circuit-17",
+      "step": "17",
+      "title": "Motion-Activated Floodlight",
+      "level": "Advanced",
+      "description": "A PIR sensor switching a halogen floodlight. Unlike a plain switch, an active sensor needs its own live and neutral supply before it can switch anything at all.",
+      "components": ["Live (L)", "Neutral (N)", "MCB", "PIR Motion Sensor", "Halogen Floodlight"],
+      "diagram": "Live → MCB → PIR (L-in)\nNeutral → PIR (N-in)\nPIR (L-out) → Floodlight → Neutral",
+      "steps": [
+        "Place Live and Neutral, an MCB, a PIR sensor and a floodlight.",
+        "Feed the sensor itself: Live through the MCB into L-in, Neutral into N-in.",
+        "Take the switched L-out from the sensor to the floodlight.",
+        "Return the floodlight's neutral directly to the supply.",
+        "Press Run, then toggle the sensor contact to compare detected and idle states.",
+        "Open the sensor's supply neutral in the Fault Lab — with no reference, it cannot switch."
+      ],
+      "insight": "A passive switch intercepts one conductor; an active sensor is a small appliance with a switched output. That is why PIRs want a neutral at the switch position, and why retrofitting one into an old two-core switch drop is a wiring problem rather than a straight swap.",
+      "app_template": "pro-pir-floodlight"
+    },
+    {
+      "id": "circuit-18",
+      "step": "18",
+      "title": "Cooker & Induction Hob Supply",
+      "level": "Advanced",
+      "description": "Cookers are among the heaviest loads in a home. They get a dedicated circuit, a control unit beside the appliance, and conductors sized for the rating — with diversity applied, not assumed.",
+      "components": ["Live (L)", "Neutral (N)", "MCB", "Cooker Control Unit", "Induction Hob"],
+      "diagram": "Live → MCB → Cooker Unit (L-in)\nNeutral → Cooker Unit (N-in)\nLoad-L + Load-N → Induction Hob",
+      "steps": [
+        "Place Live and Neutral, an MCB, a cooker control unit and an induction hob.",
+        "Wire Live through the MCB into the cooker unit L-in.",
+        "Wire Neutral into the cooker unit N-in.",
+        "Take both switched poles out to the hob.",
+        "Press Run, then open the cooker unit: the hob is isolated where whoever works on it can see it."
+      ],
+      "insight": "Diversity lets a cooker circuit be sized below the sum of every element, because hob and oven are rarely flat out together — but the control unit is not optional. Isolation has to be local, visible and within reach of the appliance.",
+      "app_template": "pro-cooker-induction"
+    },
+    {
+      "id": "circuit-19",
+      "step": "19",
+      "title": "Diesel Generator Backup Supply",
+      "level": "Advanced",
+      "description": "A standby generator feeding emergency lighting and an alarm, earthed to its own rod. Backup generation is a small installation in its own right, with its own earth reference.",
+      "components": ["Diesel Generator", "Earth Rod", "MCB", "Emergency Light", "Alarm Siren"],
+      "diagram": "Generator L → MCB → Light + Siren\nLight/Siren N → Generator N\nGenerator PE → Earth Rod",
+      "steps": [
+        "Place a diesel generator as the source, with an earth rod below it.",
+        "Place an MCB on the generator's live output, then an emergency light and an alarm siren.",
+        "Wire the generator Live through the MCB to both loads.",
+        "Return both neutrals to the generator N terminal.",
+        "Run the generator's PE conductor down to the earth rod.",
+        "Press Run: both loads energise. Break the earth path and read the warning that appears."
+      ],
+      "insight": "A generator is the origin of its own installation, so its protective devices need an earth reference to fault against — here a rod, a TT arrangement. Changeover must be interlocked: back-feeding the network can kill someone working on the cable.",
+      "app_template": "pro-generator-backup"
+    },
+    {
+      "id": "circuit-20",
+      "step": "20",
+      "title": "AFDD-Protected Bedroom Circuit",
+      "level": "Advanced",
+      "description": "A bedroom final circuit on an AFDD-RCBO, feeding a socket and a light — the BS 7671 421.1.7 recommendation for sleeping accommodation, where a fire can start unnoticed.",
+      "components": [
+        "Live (L)",
+        "Neutral (N)",
+        "Earth (E)",
+        "AFDD-RCBO",
+        "Double Socket",
+        "LED Light"
+      ],
+      "diagram": "Live + Neutral → AFDD → Socket → LED Light\nEarth → Socket (E)",
+      "steps": [
+        "Place Live, Neutral and Earth terminals.",
+        "Place an AFDD-RCBO as the single protective device on the final circuit.",
+        "Wire Live and Neutral into it at L-in and N-in.",
+        "Take L-out and N-out to the double socket, then tap both on to the LED light.",
+        "Run Earth directly to the socket's E terminal.",
+        "Press Run, then open the AFDD: the whole final circuit goes dead, socket and light together."
+      ],
+      "insight": "Arcs from a loose terminal or a damaged cord carry too little current to trip a breaker, and they are not earth faults, so an RCD ignores them too. An AFDD listens for the signature of a series or parallel arc and opens first — which is why it is specified where people sleep.",
+      "app_template": "pro-afdd-bedroom"
     }
   ]
 }

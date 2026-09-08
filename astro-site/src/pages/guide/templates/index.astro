@@ -110,9 +110,14 @@ const walkthroughs = new Map(
             <h2 id="templates-h">Start from these built-in circuits</h2>
             <p>
               The app ships {templates.length} built-in guided circuits with loaded components, wires, steps, and
-              expected outcomes. Every card opens its guide inside the editor. {walkthroughs.size} of them also have a
-              written walkthrough in this guide — cards marked <span class="template-scope">App only</span> are
-              exclusive to the app for now.
+              expected outcomes. Every card opens its guide inside the editor.
+              {walkthroughs.size === templates.length ? (
+                <> Every one of them has a written walkthrough in this guide — build it in the app first, or read the
+                theory first.</>
+              ) : (
+                <>{walkthroughs.size} of them also have a written walkthrough in this guide — cards marked <span
+                class="template-scope">App only</span> are exclusive to the app for now.</>
+              )}
             </p>
           </div>
           <div class="template-grid">

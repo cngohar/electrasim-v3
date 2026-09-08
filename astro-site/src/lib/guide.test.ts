@@ -166,9 +166,12 @@ describe('circuit schematics', () => {
         expect(label.length).toBeGreaterThan(40);
       });
 
-      it('marks live, neutral and current flow', () => {
-        expect(svg).toMatch(/class="w wl"/);
-        expect(svg).toMatch(/class="w wn"/);
+      it('marks live, the return path and current flow', () => {
+        // DC circuits carry a positive and a negative rail instead of live and
+        // neutral, so the return conductor may be neutral, earth or DC-.
+        const dc = /class="w wdp"/.test(svg);
+        expect(svg).toMatch(dc ? /class="w wdp"/ : /class="w wl"/);
+        expect(svg).toMatch(/class="w (wn|we|wdn)"/);
         expect(svg).toMatch(/class="flow"/);
       });
 
@@ -269,14 +272,29 @@ describe('circuit schematics', () => {
         }
       });
 
-      it('connects the supply live and neutral terminals to the drawing', () => {
+      it('connects the supply terminals to the drawing', () => {
         const { shapes, allPoints } = parse(svg);
         const terminal = (cls: string) =>
           shapes.circles.find((c) => svg.includes(`<circle class="term ${cls}"`))?.c;
-        for (const [name, term] of [
-          ['live', terminal('term-l')],
-          ['neutral', terminal('term-n')],
-        ] as const) {
+        const dc = /class="w wdp"/.test(svg);
+        const neutral = svg.includes('<circle class="term term-n"');
+        const rails = dc
+          ? ([
+              ['positive', terminal('term-p')],
+              ['negative', terminal('term-m')],
+            ] as const)
+          : neutral
+            ? ([
+                ['live', terminal('term-l')],
+                ['neutral', terminal('term-n')],
+              ] as const)
+            : // Three-phase drawings return through the other phases, so the
+              // only other supply rail is the protective earth.
+              ([
+                ['live', terminal('term-l')],
+                ['earth', terminal('term-e')],
+              ] as const);
+        for (const [name, term] of rails) {
           expect(term, `no ${name} terminal`).toBeDefined();
           const near = allPoints.some((p) => dist(p, term as Pt) <= 12);
           expect(near, `nothing touches the ${name} terminal`).toBe(true);

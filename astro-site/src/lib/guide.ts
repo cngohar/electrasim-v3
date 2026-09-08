@@ -29,6 +29,14 @@ const CIRCUIT_SLUGS: Record<string, string> = {
   'circuit-10': 'timer-bell',
   'circuit-11': 'rcbo-socket',
   'circuit-12': 'contactor-motor-starter',
+  'circuit-13': 'three-phase-dol-starter',
+  'circuit-14': 'ev-charger-circuit',
+  'circuit-15': 'solar-pv-battery',
+  'circuit-16': 'underfloor-heating-zone',
+  'circuit-17': 'pir-floodlight',
+  'circuit-18': 'cooker-induction-supply',
+  'circuit-19': 'generator-backup-supply',
+  'circuit-20': 'afdd-bedroom-circuit',
 };
 
 export function circuitSlug(circuit: Pick<GuideCircuit, 'id' | 'title'>): string {
@@ -102,6 +110,8 @@ const SCHEMATIC_STYLE = `
   .wl  { stroke:#dc2626; }
   .wn  { stroke:#0f172a; }
   .we  { stroke:#059669; }
+  .wdp { stroke:#dc2626; }
+  .wdn { stroke:#1d4ed8; }
   .dev { fill:#f1f5f9; stroke:#334155; stroke-width:2.5; }
   .sym { fill:none; stroke:#1e293b; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
   .dot { fill:#1e293b; }
@@ -109,11 +119,15 @@ const SCHEMATIC_STYLE = `
   .term-l { fill:#dc2626; stroke:#b91c1c; }
   .term-n { fill:#0f172a; stroke:#0f172a; }
   .term-e { fill:#059669; stroke:#047857; }
+  .term-p { fill:#dc2626; stroke:#b91c1c; }
+  .term-m { fill:#1d4ed8; stroke:#1e40af; }
   .lbl { font-family: ui-monospace, Menlo, monospace; font-size:12px; fill:#475569; }
   .lblw { font-family: ui-monospace, Menlo, monospace; font-size:12px; fill:#1e293b; font-weight:700; }
   .lbl-l { fill:#dc2626; }
   .lbl-n { fill:#0f172a; }
   .lbl-e { fill:#047857; }
+  .lbl-p { fill:#dc2626; }
+  .lbl-m { fill:#1d4ed8; }
   .flow { fill:none; stroke:#f59e0b; stroke-width:3; stroke-dasharray:5 9; stroke-linecap:round; animation:flow 1.1s linear infinite; }
   @keyframes flow { to { stroke-dashoffset:-28; } }
   @media (prefers-reduced-motion: reduce) { .flow { animation:none; } }
@@ -170,6 +184,50 @@ const rotary = (cx: number, cy: number) => `
   <circle class="sym" cx="${cx}" cy="${cy}" r="15"/>
   <line class="sym" x1="${cx - 9}" y1="${cy + 9}" x2="${cx + 9}" y2="${cy - 9}"/>
   <path class="sym" d="M${cx + 9},${cy - 9} l-6,1 m6,-1 l-1,-6"/>`;
+
+/** Three-phase motor: circle with its M and 3~ rating. */
+const motor3 = (cx: number, cy: number, r = 34) => `
+  <circle class="sym" cx="${cx}" cy="${cy}" r="${r}"/>
+  <text class="lblw" x="${cx}" y="${cy + 6}" text-anchor="middle">M 3~</text>`;
+
+/** PV array: framed panel split into cell strings. */
+const solarPanel = (x: number, y: number, w = 130, h = 70) => `
+  <rect class="dev" x="${x}" y="${y}" width="${w}" height="${h}" rx="4"/>
+  <line class="sym" x1="${x + w / 3}" y1="${y + 8}" x2="${x + w / 3}" y2="${y + h - 8}"/>
+  <line class="sym" x1="${x + (2 * w) / 3}" y1="${y + 8}" x2="${x + (2 * w) / 3}" y2="${y + h - 8}"/>`;
+
+/** Heating mat: framed serpentine element. */
+const heatMat = (x: number, y: number, w = 120, h = 80) => `
+  <rect class="dev" x="${x}" y="${y}" width="${w}" height="${h}" rx="4"/>
+  <path class="sym" d="M${x + 12},${y + 20} h${w - 44} a10,10 0 0 1 0,20 h-${w - 44} a10,10 0 0 1 0,20 h${w - 44}"/>`;
+
+/** LED luminaire: diode triangle inside a lens. */
+const ledLamp = (cx: number, cy: number, r = 24) => `
+  <circle class="sym" cx="${cx}" cy="${cy}" r="${r}"/>
+  <path class="sym" d="M${cx - 11},${cy - 8} L${cx - 11},${cy + 8} L${cx + 9},${cy} Z"/>
+  <line class="sym" x1="${cx + 9}" y1="${cy - 9}" x2="${cx + 9}" y2="${cy + 9}"/>
+  <line class="sym" x1="${cx - 11}" y1="${cy - 13}" x2="${cx + 14}" y2="${cy - 13}"/>
+  <line class="sym" x1="${cx - 11}" y1="${cy + 13}" x2="${cx + 14}" y2="${cy + 13}"/>`;
+
+/** Alarm siren: horn with two sound arcs. */
+const siren = (cx: number, cy: number) => `
+  <path class="sym" d="M${cx - 20},${cy - 14} L${cx + 4},${cy - 4} L${cx + 4},${cy + 4} L${cx - 20},${cy + 14} Z"/>
+  <path class="sym" d="M${cx + 10},${cy - 10} A14,14 0 0 1 ${cx + 10},${cy + 10}"/>
+  <path class="sym" d="M${cx + 18},${cy - 16} A22,22 0 0 1 ${cx + 18},${cy + 16}"/>`;
+
+/** Driven earth rod: rod plus the plate hatching. */
+const earthRod = (cx: number, y: number) => `
+  <line class="sym" x1="${cx}" y1="${y}" x2="${cx}" y2="${y + 34}"/>
+  <line class="sym" x1="${cx - 12}" y1="${y + 34}" x2="${cx + 12}" y2="${y + 34}"/>
+  <line class="sym" x1="${cx - 8}" y1="${y + 42}" x2="${cx + 8}" y2="${y + 42}"/>
+  <line class="sym" x1="${cx - 4}" y1="${y + 50}" x2="${cx + 4}" y2="${y + 50}"/>`;
+
+/** PIR sensor: boxed lens with detection arcs. */
+const pirSensor = (x: number, y: number, w = 130, h = 64) => `
+  <rect class="dev" x="${x}" y="${y}" width="${w}" height="${h}" rx="6"/>
+  <circle class="sym" cx="${x + w / 2}" cy="${y + 18}" r="11"/>
+  <path class="sym" d="M${x + w / 2},${y + 36} A16,16 0 0 1 ${x + w / 2},${y + 58}"/>
+  <path class="sym" d="M${x + w / 2 + 12},${y + 30} A24,24 0 0 1 ${x + w / 2 + 12},${y + 60}"/>`;
 
 /** Normally-open push button: two contacts with a gap and a plunger. */
 const pushButton = (cx: number, y: number) => `
@@ -493,6 +551,256 @@ export const CIRCUIT_SCHEMATICS: Record<string, string> = {
   ${flow('M586,110 H620 V200 H450')}
   ${flow('M300,200 H240 V280 H69')}
 </svg>`,
+  'circuit-13': `
+<svg viewBox="0 0 780 520" role="img" aria-label="Schematic: three live phases each pass through their own Type-D breaker into a three-pole contactor, which feeds the motor windings U, V and W, with a protective earth to the motor frame" class="schem">
+  <style>${SCHEMATIC_STYLE}</style>
+  <circle class="term term-l" cx="55" cy="90" r="9"/><text class="lblw lbl-l" x="31" y="76">L1</text>
+  <circle class="term term-l" cx="55" cy="200" r="9"/><text class="lblw lbl-l" x="31" y="186">L2</text>
+  <circle class="term term-l" cx="55" cy="310" r="9"/><text class="lblw lbl-l" x="31" y="296">L3</text>
+  <circle class="term term-e" cx="55" cy="440" r="9"/><text class="lblw lbl-e" x="31" y="462">E</text>
+  ${wire('M64,90 H150', 'wl')}
+  ${devBox(150, 74, 74, 32, 'MCB D1', 64)}
+  ${wire('M224,90 H320', 'wl')}
+  ${wire('M64,200 H150', 'wl')}
+  ${devBox(150, 184, 74, 32, 'MCB D2', 174)}
+  ${wire('M224,200 H320', 'wl')}
+  ${wire('M64,310 H150', 'wl')}
+  ${devBox(150, 294, 74, 32, 'MCB D3', 284)}
+  ${wire('M224,310 H320', 'wl')}
+  <rect class="dev" x="320" y="60" width="150" height="290" rx="8"/>
+  <text class="lblw" x="395" y="44" text-anchor="middle">CONTACTOR 3P</text>
+  <circle class="dot" cx="320" cy="90" r="4.5"/><circle class="dot" cx="470" cy="90" r="4.5"/>
+  <circle class="dot" cx="320" cy="200" r="4.5"/><circle class="dot" cx="470" cy="200" r="4.5"/>
+  <circle class="dot" cx="320" cy="310" r="4.5"/><circle class="dot" cx="470" cy="310" r="4.5"/>
+  <line class="sym" x1="320" y1="90" x2="464" y2="90"/>
+  <line class="sym" x1="320" y1="200" x2="464" y2="200"/>
+  <line class="sym" x1="320" y1="310" x2="464" y2="310"/>
+  <rect class="dev" x="350" y="232" width="90" height="40" rx="4"/>
+  <text class="lbl" x="395" y="258" text-anchor="middle">COIL</text>
+  ${wire('M470,90 H560 V200 H616', 'wl')}
+  ${wire('M470,200 H616', 'wl')}
+  ${wire('M470,310 H590 V200 H616', 'wl')}
+  ${motor3(650, 200)}
+  <text class="lbl" x="650" y="262" text-anchor="middle">MOTOR 3~</text>
+  ${wire('M64,440 H700 V234 H650', 'we')}
+  ${flow('M64,90 H320')}
+  ${flow('M470,90 H560 V200 H616')}
+  ${flow('M64,200 H320')}
+  ${flow('M470,200 H616')}
+  ${flow('M64,310 H320')}
+  ${flow('M470,310 H590 V200 H616')}
+</svg>`,
+
+  'circuit-14': `
+<svg viewBox="0 0 760 420" role="img" aria-label="Schematic: live and neutral run through a rotary isolator and an RCBO to the charge point, with the protective earth running straight to the charger earth terminal" class="schem">
+  <style>${SCHEMATIC_STYLE}</style>
+  <circle class="term term-l" cx="55" cy="90" r="9"/><text class="lblw lbl-l" x="33" y="76">L</text>
+  <circle class="term term-n" cx="55" cy="190" r="9"/><text class="lblw lbl-n" x="31" y="214">N</text>
+  <circle class="term term-e" cx="55" cy="360" r="9"/><text class="lblw lbl-e" x="31" y="382">E</text>
+  ${wire('M64,90 H150', 'wl')}
+  ${wire('M64,190 H150', 'wn')}
+  <rect class="dev" x="150" y="70" width="90" height="180" rx="8"/>
+  <text class="lblw" x="195" y="52" text-anchor="middle">ISOLATOR</text>
+  <circle class="dot" cx="150" cy="90" r="4.5"/><circle class="dot" cx="240" cy="90" r="4.5"/>
+  <circle class="dot" cx="150" cy="190" r="4.5"/><circle class="dot" cx="240" cy="190" r="4.5"/>
+  <line class="sym" x1="150" y1="90" x2="234" y2="90"/>
+  <line class="sym" x1="150" y1="190" x2="234" y2="190"/>
+  ${wire('M240,90 H320', 'wl')}
+  ${wire('M240,190 H320', 'wn')}
+  <rect class="dev" x="320" y="50" width="110" height="200" rx="8"/>
+  <text class="lblw" x="375" y="72" text-anchor="middle">RCBO</text>
+  <circle class="term" cx="375" cy="150" r="11"/><text class="lbl" x="375" y="154" text-anchor="middle">T</text>
+  <circle class="dot" cx="320" cy="90" r="4.5"/><circle class="dot" cx="430" cy="90" r="4.5"/>
+  <circle class="dot" cx="320" cy="190" r="4.5"/><circle class="dot" cx="430" cy="190" r="4.5"/>
+  <line class="sym" x1="320" y1="90" x2="424" y2="90"/>
+  <line class="sym" x1="320" y1="190" x2="424" y2="190"/>
+  ${wire('M430,90 H470 V170 H520', 'wl')}
+  ${wire('M430,190 H500 V210 H520', 'wn')}
+  ${wire('M64,360 H560 V250 H520', 'we')}
+  <rect class="dev" x="520" y="140" width="120" height="120" rx="6"/>
+  <circle class="sym" cx="580" cy="176" r="14"/>
+  <path class="sym" d="M580,190 v12 h-26"/>
+  <rect class="sym" x="540" y="202" width="26" height="16" rx="3"/>
+  <text class="lblw" x="580" y="126" text-anchor="middle">EV CHARGER</text>
+  ${flow('M64,90 H430')}
+  ${flow('M430,90 H470 V170 H520')}
+  ${flow('M520,210 H500 V190 H320')}
+  ${flow('M320,190 H64')}
+</svg>`,
+
+  'circuit-15': `
+<svg viewBox="0 0 720 400" role="img" aria-label="Schematic: the PV array feeds a DC combiner that supplies a 12 volt LED load and charges a battery, with the negative rail returning from both" class="schem">
+  <style>${SCHEMATIC_STYLE}</style>
+  ${solarPanel(90, 120)}
+  <text class="lblw" x="155" y="104" text-anchor="middle">PV ARRAY</text>
+  <circle class="term term-p" cx="220" cy="142" r="9"/><text class="lblw lbl-p" x="236" y="130">+</text>
+  <circle class="term term-m" cx="220" cy="178" r="9"/><text class="lblw lbl-m" x="236" y="192">−</text>
+  ${wire('M229,142 H360', 'wdp')}
+  <rect class="dev" x="360" y="110" width="110" height="54" rx="6"/>
+  <text class="lblw" x="415" y="96" text-anchor="middle">DC COMBINER</text>
+  <circle class="dot" cx="360" cy="124" r="4.5"/><circle class="dot" cx="470" cy="124" r="4.5"/>
+  <circle class="dot" cx="470" cy="150" r="4.5"/>
+  <line class="sym" x1="360" y1="124" x2="464" y2="124"/>
+  ${wire('M470,124 H596', 'wdp')}
+  ${wire('M470,150 H520 V288 H210', 'wdp')}
+  ${wire('M229,178 H250 V320 H210', 'wdn')}
+  ${wire('M250,320 H620 V148', 'wdn')}
+  <rect class="dev" x="100" y="270" width="110" height="70" rx="6"/>
+  <text class="lbl" x="155" y="296" text-anchor="middle">BATTERY</text>
+  <text class="lbl" x="155" y="318" text-anchor="middle">12 V</text>
+  ${ledLamp(620, 124)}
+  <text class="lbl" x="620" y="86" text-anchor="middle">LED 12V</text>
+  ${flow('M229,142 H360')}
+  ${flow('M470,124 H596')}
+  ${flow('M470,150 H520 V288 H210')}
+  ${flow('M229,178 H250 V320 H210')}
+  ${flow('M250,320 H620 V148')}
+</svg>`,
+
+  'circuit-16': `
+<svg viewBox="0 0 700 380" role="img" aria-label="Schematic: live reaches the heating thermostat through a Type-C breaker, neutral joins it there, and both switched poles run out to the heating mat" class="schem">
+  <style>${SCHEMATIC_STYLE}</style>
+  <circle class="term term-l" cx="60" cy="110" r="9"/><text class="lblw lbl-l" x="38" y="96">L</text>
+  <circle class="term term-n" cx="60" cy="290" r="9"/><text class="lblw lbl-n" x="36" y="312">N</text>
+  ${wire('M69,110 H140', 'wl')}
+  ${devBox(140, 94, 74, 32, 'MCB C', 84)}
+  ${wire('M214,110 H300', 'wl')}
+  ${wire('M69,290 H240 V170 H300', 'wn')}
+  <rect class="dev" x="300" y="80" width="130" height="190" rx="8"/>
+  <text class="lblw" x="365" y="62" text-anchor="middle">THERMOSTAT</text>
+  <circle class="dot" cx="300" cy="110" r="4.5"/><circle class="dot" cx="430" cy="110" r="4.5"/>
+  <circle class="dot" cx="300" cy="170" r="4.5"/><circle class="dot" cx="430" cy="170" r="4.5"/>
+  <line class="sym" x1="300" y1="110" x2="424" y2="110"/>
+  <line class="sym" x1="300" y1="170" x2="424" y2="170"/>
+  ${wire('M430,110 H470 V130 H520', 'wl')}
+  ${wire('M430,170 H495 V165 H520', 'wn')}
+  ${heatMat(520, 100)}
+  <text class="lbl" x="580" y="206" text-anchor="middle">HEATING MAT</text>
+  ${flow('M69,110 H300')}
+  ${flow('M430,110 H470 V130 H520')}
+  ${flow('M520,165 H495 V170 H300')}
+  ${flow('M300,170 H240 V290 H69')}
+</svg>`,
+
+  'circuit-17': `
+<svg viewBox="0 0 700 380" role="img" aria-label="Schematic: live and neutral both supply the PIR sensor, its switched live output feeds the floodlight, and the floodlight neutral returns to the supply" class="schem">
+  <style>${SCHEMATIC_STYLE}</style>
+  <circle class="term term-l" cx="60" cy="110" r="9"/><text class="lblw lbl-l" x="38" y="96">L</text>
+  <circle class="term term-n" cx="60" cy="290" r="9"/><text class="lblw lbl-n" x="36" y="312">N</text>
+  ${wire('M69,110 H140', 'wl')}
+  ${devBox(140, 94, 60, 32, 'MCB', 84)}
+  ${wire('M200,110 H250 V98 H290', 'wl')}
+  ${wire('M69,290 H250 V126 H290', 'wn')}
+  ${pirSensor(290, 80)}
+  <text class="lblw" x="355" y="64" text-anchor="middle">PIR SENSOR</text>
+  <circle class="dot" cx="290" cy="98" r="4.5"/><circle class="dot" cx="290" cy="126" r="4.5"/><circle class="dot" cx="420" cy="112" r="4.5"/>
+  <line class="sym" x1="290" y1="98" x2="416" y2="112"/>
+  <line class="sym" x1="290" y1="126" x2="330" y2="126"/>
+  ${wire('M420,112 H534', 'wl')}
+  ${bulb(560, 112)}
+  <text class="lbl" x="560" y="166" text-anchor="middle">FLOODLIGHT</text>
+  ${wire('M586,112 H630 V290 H250', 'wn')}
+  ${flow('M69,110 H250 V98 H290')}
+  ${flow('M420,112 H534')}
+  ${flow('M586,112 H630 V290 H250')}
+  ${flow('M250,290 H69')}
+</svg>`,
+
+  'circuit-18': `
+<svg viewBox="0 0 700 380" role="img" aria-label="Schematic: live reaches a cooker control unit through a breaker, neutral joins it there, and both switched poles feed the induction hob" class="schem">
+  <style>${SCHEMATIC_STYLE}</style>
+  <circle class="term term-l" cx="60" cy="110" r="9"/><text class="lblw lbl-l" x="38" y="96">L</text>
+  <circle class="term term-n" cx="60" cy="290" r="9"/><text class="lblw lbl-n" x="36" y="312">N</text>
+  ${wire('M69,110 H140', 'wl')}
+  ${devBox(140, 94, 60, 32, 'MCB', 84)}
+  ${wire('M200,110 H290', 'wl')}
+  ${wire('M69,290 H240 V180 H290', 'wn')}
+  <rect class="dev" x="290" y="80" width="140" height="170" rx="8"/>
+  <text class="lblw" x="360" y="62" text-anchor="middle">COOKER UNIT</text>
+  <circle class="dot" cx="290" cy="110" r="4.5"/><circle class="dot" cx="430" cy="110" r="4.5"/>
+  <circle class="dot" cx="290" cy="180" r="4.5"/><circle class="dot" cx="430" cy="180" r="4.5"/>
+  <line class="sym" x1="290" y1="110" x2="424" y2="110"/>
+  <line class="sym" x1="290" y1="180" x2="424" y2="180"/>
+  ${wire('M430,110 H470 V130 H520', 'wl')}
+  ${wire('M430,180 H495 V170 H520', 'wn')}
+  <rect class="dev" x="520" y="100" width="110" height="100" rx="6"/>
+  <circle class="sym" cx="575" cy="134" r="18"/>
+  <line class="sym" x1="575" y1="152" x2="575" y2="176"/>
+  <line class="sym" x1="556" y1="164" x2="594" y2="164"/>
+  <text class="lbl" x="575" y="222" text-anchor="middle">INDUCTION HOB</text>
+  ${flow('M69,110 H290')}
+  ${flow('M430,110 H470 V130 H520')}
+  ${flow('M520,170 H495 V180 H290')}
+  ${flow('M290,180 H240 V290 H69')}
+</svg>`,
+
+  'circuit-19': `
+<svg viewBox="0 0 720 420" role="img" aria-label="Schematic: a standby generator feeds an MCB that supplies an emergency light and an alarm siren, both returning to the generator neutral, with the generator frame earthed to a rod" class="schem">
+  <style>${SCHEMATIC_STYLE}</style>
+  <rect class="dev" x="90" y="170" width="130" height="110" rx="8"/>
+  <text class="lblw" x="155" y="152" text-anchor="middle">GENERATOR</text>
+  <circle class="term term-l" cx="220" cy="200" r="9"/><text class="lblw lbl-l" x="236" y="190">L</text>
+  <circle class="term term-n" cx="220" cy="250" r="9"/><text class="lblw lbl-n" x="236" y="266">N</text>
+  <circle class="term term-e" cx="155" cy="280" r="9"/><text class="lblw lbl-e" x="168" y="276">E</text>
+  ${wire('M229,200 H330', 'wl')}
+  ${devBox(330, 184, 60, 32, 'MCB', 174)}
+  ${wire('M390,200 H450 V110 H520', 'wl')}
+  ${wire('M390,200 H450 V300 H520', 'wl')}
+  <rect class="dev" x="520" y="76" width="110" height="68" rx="6"/>
+  ${ledLamp(575, 110, 20)}
+  <text class="lbl" x="575" y="166" text-anchor="middle">EMERG. LIGHT</text>
+  <rect class="dev" x="520" y="266" width="110" height="68" rx="6"/>
+  ${siren(575, 300)}
+  <text class="lbl" x="575" y="356" text-anchor="middle">ALARM SIREN</text>
+  ${wire('M584,110 H640 V250 H220', 'wn')}
+  ${wire('M630,300 H640 V250', 'wn')}
+  ${wire('M155,289 V320', 'we')}
+  ${earthRod(155, 320)}
+  <text class="lbl" x="155" y="392" text-anchor="middle">EARTH ROD</text>
+  ${flow('M229,200 H330')}
+  ${flow('M390,200 H450 V110 H520')}
+  ${flow('M390,200 H450 V300 H520')}
+  ${flow('M584,110 H640 V250 H220')}
+  ${flow('M630,300 H640 V250')}
+</svg>`,
+
+  'circuit-20': `
+<svg viewBox="0 0 760 440" role="img" aria-label="Schematic: live and neutral pass through an AFDD-RCBO to a double socket that also feeds a light, with the earth conductor running straight to the socket earth terminal" class="schem">
+  <style>${SCHEMATIC_STYLE}</style>
+  <circle class="term term-l" cx="55" cy="90" r="9"/><text class="lblw lbl-l" x="33" y="76">L</text>
+  <circle class="term term-n" cx="55" cy="240" r="9"/><text class="lblw lbl-n" x="31" y="262">N</text>
+  <circle class="term term-e" cx="55" cy="390" r="9"/><text class="lblw lbl-e" x="31" y="412">E</text>
+  ${wire('M64,90 H150', 'wl')}
+  ${wire('M64,240 H110 V200 H150', 'wn')}
+  <rect class="dev" x="150" y="60" width="120" height="250" rx="8"/>
+  <text class="lblw" x="210" y="42" text-anchor="middle">AFDD-RCBO</text>
+  <circle class="term" cx="210" cy="160" r="11"/><text class="lbl" x="210" y="164" text-anchor="middle">T</text>
+  <circle class="dot" cx="150" cy="110" r="4.5"/><circle class="dot" cx="270" cy="110" r="4.5"/>
+  <circle class="dot" cx="150" cy="200" r="4.5"/><circle class="dot" cx="270" cy="200" r="4.5"/>
+  <line class="sym" x1="150" y1="110" x2="264" y2="110"/>
+  <line class="sym" x1="150" y1="200" x2="264" y2="200"/>
+  ${wire('M270,110 H400', 'wl')}
+  ${wire('M270,200 H400', 'wn')}
+  ${wire('M64,390 H370 V240 H400', 'we')}
+  <rect class="dev" x="400" y="70" width="150" height="180" rx="8"/>
+  <circle class="dot" cx="400" cy="110" r="4.5"/><circle class="dot" cx="400" cy="200" r="4.5"/><circle class="dot" cx="400" cy="240" r="4.5"/>
+  <line class="sym" x1="400" y1="110" x2="430" y2="110"/>
+  <line class="sym" x1="400" y1="200" x2="430" y2="200"/>
+  <line class="sym" x1="400" y1="240" x2="430" y2="240"/>
+  ${socketFace(475, 160)}
+  <text class="lblw" x="475" y="102" text-anchor="middle">SOCKET</text>
+  <text class="lbl" x="440" y="102">L</text><text class="lbl" x="440" y="192">N</text><text class="lbl lbl-e" x="440" y="232">E</text>
+  ${wire('M550,110 H590 V300 H620', 'wl')}
+  ${wire('M550,200 H610 V330 H620', 'wn')}
+  <rect class="dev" x="620" y="280" width="110" height="70" rx="6"/>
+  ${ledLamp(675, 315, 20)}
+  <text class="lbl" x="675" y="376" text-anchor="middle">LED LIGHT</text>
+  ${flow('M64,90 H270')}
+  ${flow('M270,110 H400')}
+  ${flow('M550,110 H590 V300 H620')}
+  ${flow('M620,330 H610 V200 H400')}
+  ${flow('M270,200 H110 V240 H64')}
+</svg>`,
 };
 
 /**
@@ -511,6 +819,18 @@ const CIRCUIT_SAFETY: Record<string, string> = {
     'An RCBO only protects if its earth reference is intact. Confirm it trips from its test button after installation, and never route the circuit protective conductor through the device or through a switch.',
   'circuit-12':
     'Motor circuits draw a heavy starting surge and store energy in their windings. Size protection for the surge, provide a lockable local isolator, and treat the terminals as live until the supply is isolated and proved dead.',
+  'circuit-13':
+    'Three-phase work is not a step up from domestic wiring — 400 V between phases, and a motor that can start unexpectedly if its control circuit is energised. Isolate and lock off all three phases, prove dead, and check rotation before coupling a load.',
+  'circuit-14':
+    'A charge point is a continuous high load on a dedicated circuit. It needs the right earthing arrangement for the supply (TN-S, TN-C-S or TT) before any vehicle is connected, and the RCD type the manufacturer specifies — household Type AC devices can be blinded by smooth DC leakage.',
+  'circuit-15':
+    'A PV array is live whenever light falls on it, and DC arcs do not self-extinguish the way AC arcs do. Isolate at the DC isolator before touching a connector, and remember a battery can deliver fault current far beyond what its size suggests.',
+  'circuit-18':
+    'Cooker circuits carry some of the highest currents in a home: terminations torque to specification and get re-checked after a heating cycle, because a loose connection here heats rather than trips. The cooker control unit must stay within reach of the appliance.',
+  'circuit-19':
+    'A generator must never back-feed the supply network — that can energise the incoming cable and kill a linesman working on it. Use an approved changeover arrangement, and earth the generator to its own rod so its protective devices have a fault path.',
+  'circuit-20':
+    'Arc-fault devices reduce a fire risk ordinary breakers cannot see; they do not remove it. Loose terminations, damaged flexible cords and overloaded adaptors still start fires — AFDDs are additional protection, not a substitute for sound wiring.',
 };
 
 export const SAFETY_DEFAULT =

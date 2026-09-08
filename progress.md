@@ -146,6 +146,21 @@ Copy that had drifted was corrected at the same time: the landing page's "8 guid
 "Eight ready-made templates" highlight (stale since the app passed 18), the hub/overview/templates
 counts (now derived from the template list), and the in-app docs page.
 
+**Follow-up round 7 (same session — the remaining eight templates):** all Advanced Pro circuits.
+Lessons 13–20: three-phase DOL starter, EV charger, solar PV + battery, underfloor heating zone, PIR
+floodlight, cooker/induction hob, generator backup, AFDD bedroom. Each with a schematic, chips,
+steps, insight and a tailored safety note (400 V isolation and rotation checks; EV earthing
+arrangements and RCD types; DC arcs not self-extinguishing; cooker terminations; generator
+back-feed; AFDD as additional, not substitute, protection).
+Schematic work: six new symbol builders (3-phase motor, PV array, heating mat, LED luminaire, siren,
+earth rod, PIR sensor) plus DC rail support — `.wdp`/`.wdn` conductors, `.term-p`/`.term-m`
+terminals and a DC + / DC − legend that replaces the Live/Neutral key for DC circuits, with
+three-phase drawings dropping the Neutral key entirely. Test contract widened accordingly: the
+live/return assertion accepts a DC pair, and the supply-terminal assertion checks DC rails for DC
+schematics and the CPC for three-phase ones (no neutral to find).
+The guide now carries 20 walkthroughs covering all 20 guided templates; the templates page says so
+and no longer renders an "App only" chip. `guide.test.ts` is at 203 assertions; 174 pages build.
+
 **Verification (round 4):** `astro check` 0 errors / 0 warnings / 9 hints; **162 pages**; **240 lib
 tests**; every detail page asserted in jsdom against the built HTML (motor/board/bulb/switch 4–5
 markers, tools 4 markers, 0 self-links, script tag carries a content hash

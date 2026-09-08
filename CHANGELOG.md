@@ -66,6 +66,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   topology and simulation tests — the parallel lamps keep a branch alive when the other is removed,
   and the dimmed lamp drops when the dimmer opens.
 
+- **Walkthroughs for the last eight guided templates.** Three-phase DOL motor starter, EV charger
+  circuit, solar PV with battery storage, underfloor heating zone, PIR floodlight, cooker and
+  induction hob supply, diesel generator backup and the AFDD-protected bedroom circuit — lessons 13
+  to 20, each with a hand-authored schematic, anatomy cross-links, a build sequence, the key insight
+  and a safety note specific to the work (400 V isolation, DC arc behaviour, generator back-feed,
+  earthing arrangements). Every guided template in the app now has a written walkthrough.
+- **Schematic support for circuits that are not single-phase AC.** DC walkthroughs draw a positive
+  and a negative rail with their own conductor colours and terminal markers and a matching legend
+  (DC + / DC −), and three-phase drawings no longer claim a neutral they do not have.
+
 ### Changed
 - **The guide hub is a route table, not a dump.** Four section cards plus a circuit index replace the
   inlined feature, workflow, template and circuit content; legacy `/guide/#circuit-N` links redirect
