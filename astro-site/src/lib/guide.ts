@@ -43,24 +43,42 @@ export function circuitSlug(circuit: Pick<GuideCircuit, 'id' | 'title'>): string
  * a set of links (the circuit → anatomy half of the cross-link mesh).
  */
 const COMPONENT_ANATOMY_RULES: { slug: string; match: RegExp }[] = [
+  // Order is significant: the first rule that matches a component name wins, so
+  // "Two-way Switch" resolves to the two-way page rather than the plain switch.
+  { slug: 'two-way-switch', match: /two-way/i },
+  { slug: 'timer-switch', match: /timer/i },
+  { slug: 'dimmer-switch', match: /dimmer/i },
+  { slug: 'switch', match: /switch/i },
+  { slug: 'junction-box', match: /junction box/i },
+  { slug: 'push-button', match: /push button/i },
+  { slug: 'bell', match: /bell|buzzer/i },
+  { slug: 'distribution-board', match: /distribution board/i },
+  { slug: 'motor', match: /motor/i },
   { slug: 'mcb', match: /mcb/i },
   { slug: 'rcd', match: /rcd/i },
   { slug: 'bulb', match: /bulb/i },
   { slug: 'socket', match: /socket/i },
 ];
 
+/** The one anatomy page that explains a component name, if any. */
+function anatomyForComponent(component: string): string | undefined {
+  return COMPONENT_ANATOMY_RULES.find((rule) => rule.match.test(component))?.slug;
+}
+
 /** Anatomies that explain at least one of a circuit's components. */
 export function anatomiesForCircuit(circuit: Pick<GuideCircuit, 'components'>) {
-  return COMPONENT_ANATOMY_RULES.filter((rule) =>
-    circuit.components.some((component) => rule.match.test(component)),
+  const slugs = new Set(
+    circuit.components.map((component) => anatomyForComponent(component)).filter(Boolean),
   );
+  return COMPONENT_ANATOMY_RULES.filter((rule) => slugs.has(rule.slug));
 }
 
 /** Circuits that use a given anatomy (the anatomy → circuit half of the mesh). */
 export function circuitsUsingAnatomy(circuits: GuideCircuit[], slug: string): GuideCircuit[] {
-  const rule = COMPONENT_ANATOMY_RULES.find((r) => r.slug === slug);
-  if (!rule) return [];
-  return circuits.filter((circuit) => circuit.components.some((c) => rule.match.test(c)));
+  if (!COMPONENT_ANATOMY_RULES.some((rule) => rule.slug === slug)) return [];
+  return circuits.filter((circuit) =>
+    circuit.components.some((component) => anatomyForComponent(component) === slug),
+  );
 }
 
 /**

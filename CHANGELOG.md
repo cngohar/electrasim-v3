@@ -27,9 +27,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   RCD-protected socket, timed outdoor lighting, dimmable lighting, doorbell and the three-way
   consumer unit panel, each drawn with shared symbol builders (switch, lamp, socket face, bell,
   motor, clock, dimmer, push button) so the set reads as one diagram family.
-- **Schematic regression tests.** Sixty-five assertions across the eight diagrams: every circuit has
+- **Schematic and component regression tests.** Sixty-five assertions across the eight diagrams: every circuit has
   a schematic, no conductor ends in mid-air, the animated current stays on the conductors, no label
-  is printed on a wire or on top of another label, and nothing is drawn outside the frame.
+  is printed on a wire or on top of another label, and nothing is drawn outside the frame — plus forty-two more over the component library: every
+  circuit component resolves to exactly one page, every page is reachable from a circuit, every
+  drawing point sits inside the shape it labels, and every photo hotspot matches a real point on a
+  real image of the declared size.
+- **Nine more component anatomy pages.** One-way switch, two-way switch, junction box, timer
+  switch, dimmer switch, bell push, bell/buzzer, distribution board and electric motor — every
+  component a circuit walkthrough names now has a page of its own (13 in total), each with a
+  photorealistic render, numbered hotspots on the real geometry, terminal and part lists, a safety
+  note and links both ways to the circuits that use it. Hotspot coordinates were measured off the
+  renders (dark-blob, brass and copper feature detection) rather than eyeballed, and every marker
+  verified to land on the part.
 - **"In the App" section** at `/guide/templates/`: the six feature cards, the four-step workflow and
   the 18 guided templates moved off the hub, each template cross-linking to its written walkthrough
   where one exists.
@@ -47,6 +57,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   numbered markers (and their detail panel) only render where they can be used.
 - **Component chips that open an anatomy page are now amber**, so "this one has a page" reads at a
   glance next to the plain chips.
+- **The components index and hub copy count themselves.** The section heading and the hub card
+  description now derive from the collection, so adding a part no longer leaves "Four components"
+  or "MCB, RCD, lamp and socket" behind.
 - **The schematic legend follows the drawing.** Earth (green) is listed only on circuits that run a
   CPC, and strappers only where two-way switching uses them. Device designators (MCB, RCD, timer,
   dimmer, main switch) and the two-way terminal labels (COM, L1, L2) moved clear of the conductors

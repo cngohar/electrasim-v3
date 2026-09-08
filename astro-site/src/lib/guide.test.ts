@@ -1,6 +1,9 @@
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import guide from '../content/pages/guide.json';
-import { CIRCUIT_SCHEMATICS } from './guide';
+import type { GuideCircuit } from '../types/pages';
+import { CIRCUIT_SCHEMATICS, anatomiesForCircuit, circuitsUsingAnatomy } from './guide';
 
 /**
  * The circuit schematics are hand-authored SVG that nobody can eyeball on every
@@ -140,7 +143,7 @@ const strokesThrough = (a: Pt, b: Pt, box: { x1: number; x2: number; y1: number;
 const boxesOverlap = (a: { x1: number; x2: number; y1: number; y2: number }, b: typeof a) =>
   !(a.x2 < b.x1 || a.x1 > b.x2 || a.y2 < b.y1 || a.y1 > b.y2);
 
-const circuits = guide.circuits as { id: string; title: string }[];
+const circuits = guide.circuits as GuideCircuit[];
 
 describe('circuit schematics', () => {
   it('has a schematic for every circuit in the guide', () => {
@@ -277,6 +280,115 @@ describe('circuit schematics', () => {
           expect(term, `no ${name} terminal`).toBeDefined();
           const near = allPoints.some((p) => dist(p, term as Pt) <= 12);
           expect(near, `nothing touches the ${name} terminal`).toBe(true);
+        }
+      });
+    });
+  }
+});
+
+/* ── component library ───────────────────────────────────────────────────── */
+
+type AnatomyDoc = {
+  slug: string;
+  name: string;
+  svg: { viewBox: string; body: string };
+  points: { id: string; x: number; y: number }[];
+  photo?: {
+    src: string;
+    alt: string;
+    width: number;
+    height: number;
+    points: { id: string; x: number; y: number }[];
+  };
+};
+
+const ANATOMY_DIR = resolve(process.cwd(), 'astro-site/src/content/guide-components');
+const PUB = resolve(process.cwd(), 'astro-site/public');
+
+const components: AnatomyDoc[] = readdirSync(ANATOMY_DIR)
+  .filter((f) => f.endsWith('.json'))
+  .map((f) => JSON.parse(readFileSync(resolve(ANATOMY_DIR, f), 'utf8')) as AnatomyDoc);
+
+/** Width and height straight from the PNG header — no image library needed. */
+function pngSize(file: string) {
+  const buf = readFileSync(file);
+  return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
+}
+
+const circuitsBy = (id: string) => circuits.find((c) => c.id === id) as GuideCircuit;
+
+describe('component anatomy library', () => {
+  it('ships a page for every component the circuits name', () => {
+    const linked = new Set(circuits.flatMap((c) => anatomiesForCircuit(c).map((r) => r.slug)));
+    const pages = new Set(components.map((c) => c.slug));
+    expect([...pages].filter((slug) => !linked.has(slug))).toEqual([]);
+    expect([...linked].filter((slug) => !pages.has(slug))).toEqual([]);
+  });
+
+  it('resolves each circuit component to the page that explains it', () => {
+    const slugsFor = (id: string) => anatomiesForCircuit(circuitsBy(id)).map((r) => r.slug);
+    expect(slugsFor('circuit-3')).toContain('two-way-switch');
+    expect(slugsFor('circuit-3')).not.toContain('switch');
+    expect(slugsFor('circuit-1')).toContain('switch');
+    expect(slugsFor('circuit-5')).toContain('timer-switch');
+    expect(slugsFor('circuit-5')).not.toContain('switch');
+    expect(slugsFor('circuit-6')).toContain('dimmer-switch');
+    expect(slugsFor('circuit-2')).toContain('junction-box');
+    expect(slugsFor('circuit-7')).toEqual(expect.arrayContaining(['push-button', 'bell']));
+    expect(slugsFor('circuit-8')).toEqual(
+      expect.arrayContaining(['distribution-board', 'motor', 'switch', 'mcb']),
+    );
+  });
+
+  it('gives every page a way back into the circuits', () => {
+    for (const component of components) {
+      expect(
+        circuitsUsingAnatomy(circuits, component.slug).length,
+        `${component.slug} is not used by any circuit`,
+      ).toBeGreaterThan(0);
+    }
+  });
+
+  for (const component of components) {
+    describe(component.slug, () => {
+      it('has unique point ids inside the drawing frame', () => {
+        const ids = component.points.map((p) => p.id);
+        expect(new Set(ids).size).toBe(ids.length);
+        const [, , w, h] = component.svg.viewBox.split(' ').map(Number);
+        for (const point of component.points) {
+          expect(point.x >= 0 && point.x <= w, `${point.id} x`).toBe(true);
+          expect(point.y >= 0 && point.y <= h, `${point.id} y`).toBe(true);
+        }
+      });
+
+      it('draws every point it describes', () => {
+        for (const point of component.points) {
+          expect(component.svg.body.includes(`data-part="${point.id}"`), `${point.id}`).toBe(true);
+        }
+      });
+
+      it('pins photo hotspots to real points on a real image', () => {
+        const photo = component.photo;
+        expect(photo, 'no render').toBeDefined();
+        if (!photo) return;
+        for (const ext of ['webp', 'png']) {
+          expect(
+            existsSync(resolve(PUB, `${photo.src.slice(1)}.${ext}`)),
+            `${photo.src}.${ext}`,
+          ).toBe(true);
+        }
+        const size = pngSize(resolve(PUB, `${photo.src.slice(1)}.png`));
+        expect(photo.width).toBe(size.width);
+        expect(photo.height).toBe(size.height);
+        expect(photo.alt.length).toBeGreaterThan(10);
+        expect(photo.points.length).toBeGreaterThan(0);
+        for (const point of photo.points) {
+          expect(
+            component.points.some((p) => p.id === point.id),
+            `photo point ${point.id} has no anatomy point`,
+          ).toBe(true);
+          expect(point.x > 0 && point.x < 100, `${point.id} x`).toBe(true);
+          expect(point.y > 0 && point.y < 100, `${point.id} y`).toBe(true);
         }
       });
     });

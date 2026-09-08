@@ -1,0 +1,87 @@
+{
+  "slug": "push-button",
+  "name": "Bell Push",
+  "tagline": "Momentary by design: it conducts only while you hold it, which is why the bell rings once and stops.",
+  "category": "Control",
+  "terminals": [
+    "Two terminals on a simple bell push — one conductor in, one out",
+    "Some illuminated pushes need a neutral as well"
+  ],
+  "parts": [
+    "Button cap — the part you press",
+    "Bezel or surround — the decorative ring and plate",
+    "Spring return — drives the contacts open again",
+    "Normally-open contacts — closed only while pressed",
+    "Fixing screws or a hidden clip"
+  ],
+  "safety": "Most bell circuits run at extra-low voltage from a transformer or a bell unit, which makes the wiring itself safe to handle. The transformer does not: it is mains equipment, mounted in a cupboard or the consumer unit, and it must be isolated before any work on it.",
+  "svg": {
+    "viewBox": "0 0 200 230",
+    "body": "<g class=\"dl-part\" data-part=\"L2\"><rect class=\"dl-fill\" x=\"35\" y=\"14\" width=\"130\" height=\"170\" rx=\"8\"/></g><g class=\"dl-part\" data-part=\"L1\"><circle class=\"dl-metal\" cx=\"100\" cy=\"99\" r=\"46\"/><circle class=\"dl-fill\" cx=\"100\" cy=\"99\" r=\"34\"/></g><g class=\"dl-part\" data-part=\"L0\"><circle class=\"dl-metal-2\" cx=\"100\" cy=\"99\" r=\"26\"/></g><g class=\"dl-part\" data-part=\"L3\"><circle class=\"dl-metal\" cx=\"100\" cy=\"32\" r=\"5\"/><circle class=\"dl-metal\" cx=\"100\" cy=\"166\" r=\"5\"/></g><g class=\"dl-part\" data-part=\"L4\"><rect class=\"dl-metal\" x=\"70\" y=\"192\" width=\"60\" height=\"20\" rx=\"3\"/><circle class=\"dl-chip\" cx=\"84\" cy=\"202\" r=\"4\"/><circle class=\"dl-chip\" cx=\"116\" cy=\"202\" r=\"4\"/></g>"
+  },
+  "points": [
+    {
+      "id": "L0",
+      "label": "Button",
+      "detail": "The cap you press. It pushes a plunger onto a spring contact, and the spring is what makes the action momentary — release it and the circuit opens again however long you hold it.",
+      "x": 100,
+      "y": 99
+    },
+    {
+      "id": "L1",
+      "label": "Bezel / surround",
+      "detail": "The ring and plate that make the push weatherproof and tidy. Outdoor pushes carry an IP rating; a push that lets water into the back of the mechanism will corrode the contacts long before it fails electrically.",
+      "x": 100,
+      "y": 60
+    },
+    {
+      "id": "L2",
+      "label": "Surround plate",
+      "detail": "Mounts on a back box or directly to the frame. Illuminated pushes need a neutral at the plate, which older bell wiring often does not provide.",
+      "x": 48,
+      "y": 45
+    },
+    {
+      "id": "L3",
+      "label": "Fixing screws",
+      "detail": "Visible screws, or a clip-on cover that hides them. Screwing a push to a damp frame without a gasket lets water track straight into the terminals.",
+      "x": 100,
+      "y": 32
+    },
+    {
+      "id": "L4",
+      "label": "Rear contacts (normally open)",
+      "detail": "The contacts are open at rest and close only while the button is held. That is the whole point of a bell push: hold it down and the bell keeps ringing, let go and it stops — no latching, no second press.",
+      "x": 100,
+      "y": 202
+    }
+  ],
+  "photo": {
+    "src": "/images/guide/push-button",
+    "alt": "Photorealistic doorbell push button on a surround plate",
+    "width": 544,
+    "height": 562,
+    "points": [
+      {
+        "id": "L0",
+        "x": 38,
+        "y": 45
+      },
+      {
+        "id": "L1",
+        "x": 57,
+        "y": 45
+      },
+      {
+        "id": "L2",
+        "x": 10,
+        "y": 50
+      },
+      {
+        "id": "L3",
+        "x": 54,
+        "y": 17
+      }
+    ]
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "slug": "motor",
+  "name": "Electric Motor",
+  "tagline": "An inductive load that pulls several times its running current to start — protection has to allow for that.",
+  "category": "Load",
+  "terminals": [
+    "L and N on a single-phase motor",
+    "Earth to the motor frame",
+    "Start and run windings via the capacitor terminals"
+  ],
+  "parts": [
+    "Terminal box — where the supply connects",
+    "Housing with cooling fins — the stator frame",
+    "Capacitor — gives the start (or run) winding its phase shift",
+    "Drive shaft and bearings",
+    "Mounting feet or flange",
+    "Rating plate — volts, amps, power factor, duty"
+  ],
+  "safety": "Motors are hard to start and easy to stall: starting current is typically six times the running current, and a stalled motor draws that continuously until the overload trips. Protection must be sized so the motor starts without nuisance tripping while still clearing a stall — and the frame must be earthed. Always isolate, and remember the capacitor can hold a charge after switch-off.",
+  "svg": {
+    "viewBox": "0 0 220 230",
+    "body": "<g class=\"dl-part\" data-part=\"L0\"><rect class=\"dl-metal-2\" x=\"60\" y=\"26\" width=\"70\" height=\"30\" rx=\"4\"/><circle class=\"dl-chip\" cx=\"122\" cy=\"41\" r=\"5\"/></g><g class=\"dl-part\" data-part=\"L1\"><rect class=\"dl-metal\" x=\"42\" y=\"62\" width=\"136\" height=\"92\" rx=\"12\"/><path class=\"dl-line--accent\" d=\"M58 68 v80\"/><path class=\"dl-line--accent\" d=\"M72 68 v80\"/><path class=\"dl-line--accent\" d=\"M86 68 v80\"/><path class=\"dl-line--accent\" d=\"M100 68 v80\"/><path class=\"dl-line--accent\" d=\"M114 68 v80\"/><path class=\"dl-line--accent\" d=\"M128 68 v80\"/><path class=\"dl-line--accent\" d=\"M142 68 v80\"/><path class=\"dl-line--accent\" d=\"M156 68 v80\"/><path class=\"dl-line--accent\" d=\"M170 68 v80\"/></g><g class=\"dl-part\" data-part=\"L2\"><rect class=\"dl-metal-2\" x=\"14\" y=\"88\" width=\"26\" height=\"62\" rx=\"10\"/></g><g class=\"dl-part\" data-part=\"L3\"><rect class=\"dl-metal\" x=\"178\" y=\"98\" width=\"34\" height=\"18\" rx=\"4\"/></g><g class=\"dl-part\" data-part=\"L5\"><rect class=\"dl-fill\" x=\"88\" y=\"98\" width=\"48\" height=\"28\" rx=\"3\"/><text class=\"dl-text--mid\" x=\"112\" y=\"116\" text-anchor=\"middle\">230V</text></g><g class=\"dl-part\" data-part=\"L4\"><rect class=\"dl-metal\" x=\"48\" y=\"154\" width=\"58\" height=\"20\" rx=\"3\"/><rect class=\"dl-metal\" x=\"114\" y=\"154\" width=\"58\" height=\"20\" rx=\"3\"/></g>"
+  },
+  "points": [
+    {
+      "id": "L0",
+      "label": "Terminal box",
+      "detail": "Where the supply lands, usually with a link plate that lets you change the motor between star and delta or reverse its rotation. The lid and its gasket are part of the enclosure rating; the gland must grip the cable, not just the conductors.",
+      "x": 95,
+      "y": 41
+    },
+    {
+      "id": "L1",
+      "label": "Housing and cooling fins",
+      "detail": "The finned frame is the stator housing and the heat sink. Motors cool by moving air over those fins, so a motor blanketed in dust or boxed in without ventilation runs hot and loses winding life fast.",
+      "x": 110,
+      "y": 105
+    },
+    {
+      "id": "L2",
+      "label": "Capacitor",
+      "detail": "Single-phase motors have no rotating field of their own; the capacitor shifts the phase of the start (or run) winding to create one. A failed start capacitor leaves the motor humming and not turning — and it stays charged after switch-off, so discharge it before you touch the terminals.",
+      "x": 27,
+      "y": 119
+    },
+    {
+      "id": "L3",
+      "label": "Drive shaft",
+      "detail": "The output. Couplings and pulleys must be aligned and guarded: a misaligned coupling destroys bearings, and an exposed shaft and keyway is a rotating-entanglement hazard.",
+      "x": 195,
+      "y": 107
+    },
+    {
+      "id": "L4",
+      "label": "Mounting feet",
+      "detail": "Bolt the motor down solidly and level. A motor that rocks on its feet hammers its own bearings and works the coupling loose; on a resilient mount, make sure the earth bond is not relying on the feet.",
+      "x": 76,
+      "y": 164
+    },
+    {
+      "id": "L5",
+      "label": "Rating plate",
+      "detail": "Volts, full-load current, power factor, speed, duty and the insulation class. The full-load current is the number you size the cable and the overload from — not the power in watts divided by 230 V, because the power factor is well below one.",
+      "x": 112,
+      "y": 112
+    }
+  ],
+  "photo": {
+    "src": "/images/guide/motor",
+    "alt": "Photorealistic single-phase AC electric motor",
+    "width": 720,
+    "height": 641,
+    "points": [
+      {
+        "id": "L0",
+        "x": 37,
+        "y": 10
+      },
+      {
+        "id": "L1",
+        "x": 50,
+        "y": 45
+      },
+      {
+        "id": "L2",
+        "x": 18,
+        "y": 59
+      },
+      {
+        "id": "L5",
+        "x": 64,
+        "y": 58
+      },
+      {
+        "id": "L4",
+        "x": 30,
+        "y": 90
+      }
+    ]
+  }
+}

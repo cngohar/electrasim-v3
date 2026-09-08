@@ -71,11 +71,34 @@ the real content JSON, used only to settle layout and interaction before touchin
 4. The schematic legend now derives from the drawing: earth (green) on the RCD socket circuit,
    strappers (brown) only where two-way switching uses them.
 
-**Deferred (user's call):** cutaway diagrams for the internal parts that a photo cannot show.
+**Follow-up round 3 (same session — completing the component library):**
+1. Nine new component pages — one-way switch, two-way switch, junction box, timer switch, dimmer
+   switch, bell push, bell/buzzer, distribution board and electric motor — closing the gap where a
+   circuit named a part that had no page to open. The guide now has 13 component pages and every
+   component referenced by a walkthrough links to one.
+2. Renders: nine product shots generated, then cropped tight by fitting a bilinear background plane
+   to the image borders and keeping the largest connected blob (the kit from round 1 did not survive,
+   so the pipeline was rebuilt). Hotspot coordinates were picked from feature probes — dark blobs for
+   screws and recesses, brass masks for terminal metal, copper masks for windings and busbars — and
+   each one verified to sit on the part rather than the backdrop. One miss (the consumer unit's main
+   switch) was caught that way and moved.
+3. Cross-link rules rewritten as first-match-wins so "Two-way Switch × 2" resolves to the two-way
+   page instead of the plain switch, and "Timer/Dimmer Switch" do not fall through to it either.
+   Pinned by tests, along with "every page is reachable from a circuit".
+4. `guide.test.ts` grew to 107 assertions: the eight schematics above plus the component library —
+   point ids unique and inside the frame, every point backed by a `data-part` group, every photo
+   hotspot matched to a point and to a real image of the declared size, and every drawing hotspot
+   inside the shape it labels (checked by parsing the SVG geometry).
 
-**Verification:** `astro check` 0 errors / 0 warnings / 8 hints; 153 pages build; 182 lib tests pass
-(129 + 4 hotspot + 49 schematic); a label/conductor collision report run over all eight diagrams comes
-back clean; hotspots asserted in jsdom against the built HTML.
+**Deferred (user's call):** cutaway diagrams for the internal parts that a photo cannot show. The
+drawing-only points (rear terminals, striker, shaft, DIN rail) are described in each page's parts
+list but stay off the photo, matching the four existing components.
+
+**Verification:** `astro check` 0 errors / 0 warnings; **162 pages** build; **240 lib tests** pass
+(129 + 4 hotspot + 107 guide); a label/conductor collision report run over all eight diagrams comes
+back clean; hotspots asserted in jsdom against the built HTML (motor 5 markers → "Terminal box",
+distribution board 5 → "Main switch", bell 4 → "Gong", switch 4 → "Faceplate", components index 13
+cards and 0 markers); the consumer-unit walkthrough now links 6 of its 8 chips to anatomy pages.
 
 ---
 

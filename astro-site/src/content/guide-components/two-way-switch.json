@@ -1,0 +1,96 @@
+{
+  "slug": "two-way-switch",
+  "name": "Two-Way Switch",
+  "tagline": "Three terminals instead of two: two of these and a pair of strappers let you work one light from two places.",
+  "category": "Control",
+  "terminals": [
+    "COM — common, from the supply or to the lamp",
+    "L1 — strapper to the other switch",
+    "L2 — the second strapper",
+    "Earth — plate earth where a metal plate is used"
+  ],
+  "parts": [
+    "Faceplate — one or two gang, two-way on every gang",
+    "Rockers — one or two, each switching between L1 and L2",
+    "Four fixing screws on a two-gang plate",
+    "Three terminals per gang: COM, L1, L2",
+    "Strappers — the two conductors running between the switches"
+  ],
+  "safety": "COM is not interchangeable with L1 and L2. Landing the supply on a strapper terminal produces a switch that works from one end only, or one that blows the fuse when both switches are operated. Identify COM (it is usually a different coloured terminal) before you connect anything.",
+  "svg": {
+    "viewBox": "0 0 200 240",
+    "body": "<g class=\"dl-part\" data-part=\"L0\"><rect class=\"dl-fill\" x=\"30\" y=\"16\" width=\"140\" height=\"130\" rx=\"8\"/></g><g class=\"dl-part\" data-part=\"L1\"><rect class=\"dl-metal-2\" x=\"48\" y=\"46\" width=\"44\" height=\"70\" rx=\"5\"/></g><g class=\"dl-part\" data-part=\"L2\"><rect class=\"dl-metal-2\" x=\"108\" y=\"46\" width=\"44\" height=\"70\" rx=\"5\"/></g><g class=\"dl-part\" data-part=\"L3\"><circle class=\"dl-metal\" cx=\"44\" cy=\"30\" r=\"5\"/><path class=\"dl-line--accent\" d=\"M40 30 h8\"/><circle class=\"dl-metal\" cx=\"156\" cy=\"30\" r=\"5\"/><path class=\"dl-line--accent\" d=\"M152 30 h8\"/><circle class=\"dl-metal\" cx=\"44\" cy=\"132\" r=\"5\"/><path class=\"dl-line--accent\" d=\"M40 132 h8\"/><circle class=\"dl-metal\" cx=\"156\" cy=\"132\" r=\"5\"/><path class=\"dl-line--accent\" d=\"M152 132 h8\"/></g><g class=\"dl-part\" data-part=\"L4\"><rect class=\"dl-metal\" x=\"50\" y=\"160\" width=\"100\" height=\"34\" rx=\"4\"/><circle class=\"dl-chip\" cx=\"72\" cy=\"177\" r=\"4\"/><circle class=\"dl-chip\" cx=\"100\" cy=\"177\" r=\"4\"/><circle class=\"dl-chip\" cx=\"128\" cy=\"177\" r=\"4\"/></g><g class=\"dl-part\" data-part=\"L5\"><text class=\"dl-text--mid\" x=\"100\" y=\"214\" text-anchor=\"middle\">COM  L1  L2</text></g>"
+  },
+  "points": [
+    {
+      "id": "L0",
+      "label": "Faceplate",
+      "detail": "A two-gang plate carries two independent switches on one back box — one for the landing light, one for the hall, for example. Each gang switches its own circuit; they do not work together unless you wire them as two-way.",
+      "x": 45,
+      "y": 40
+    },
+    {
+      "id": "L1",
+      "label": "Left rocker",
+      "detail": "Each rocker throws its common terminal between L1 and L2. Which of the two strappers is live at any moment depends on the position of both switches, which is exactly why the circuit works either way round.",
+      "x": 70,
+      "y": 80
+    },
+    {
+      "id": "L2",
+      "label": "Right rocker",
+      "detail": "The second gang. On a staircase the two switches sit at opposite ends of the run and the two strappers run between them; the lamp is connected to whichever switch is more convenient.",
+      "x": 130,
+      "y": 80
+    },
+    {
+      "id": "L3",
+      "label": "Fixing screws",
+      "detail": "Four screws on a two-gang plate. Long plate screws through a deep back box can foul the conductors behind, so use the screws supplied with the accessory.",
+      "x": 44,
+      "y": 30
+    },
+    {
+      "id": "L4",
+      "label": "Terminals (COM, L1, L2)",
+      "detail": "Three terminals per gang. COM is the common — the moving contact — and it is the one that carries the supply in at one end and feeds the lamp at the other. L1 and L2 are the strappers and are interchangeable with each other.",
+      "x": 100,
+      "y": 177
+    },
+    {
+      "id": "L5",
+      "label": "Strapper identification",
+      "detail": "Both strappers are live in one switch position or the other, so both need brown sleeving at each end. You cannot identify a strapper by testing for voltage — only by tracing it.",
+      "x": 100,
+      "y": 214
+    }
+  ],
+  "photo": {
+    "src": "/images/guide/two-way-switch",
+    "alt": "Photorealistic two-gang two-way light switch",
+    "width": 720,
+    "height": 428,
+    "points": [
+      {
+        "id": "L0",
+        "x": 10,
+        "y": 50
+      },
+      {
+        "id": "L1",
+        "x": 41,
+        "y": 59
+      },
+      {
+        "id": "L2",
+        "x": 62,
+        "y": 59
+      },
+      {
+        "id": "L3",
+        "x": 11,
+        "y": 20
+      }
+    ]
+  }
+}

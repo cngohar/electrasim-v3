@@ -1,9 +1,9 @@
 ---
+import packageMetadata from '../../../package.json';
 import GuideCta from '../components/guide/GuideCta.astro';
 import GuideHero from '../components/guide/GuideHero.astro';
 import data from '../content/pages/guide.json';
 import Base from '../layouts/Base.astro';
-import packageMetadata from '../../../package.json';
 import '../styles/guide.css';
 import '../styles/guide-lab.css';
 import { circuitSlug } from '../lib/guide';
@@ -65,7 +65,7 @@ const circuits = data.circuits as GuideCircuit[];
             <a class="hub-card" href="/guide/components/">
               <span class="hub-icon" aria-hidden="true">🔌</span>
               <h3>Components</h3>
-              <p>MCB, RCD, lamp and socket — what each terminal does and how the protection works.</p>
+              <p>Thirteen parts, from the switch on the wall to the board itself — what each terminal does and how the protection works.</p>
               <span class="cs-go">Open components →</span>
             </a>
             <a class="hub-card" href="/guide/circuits/">

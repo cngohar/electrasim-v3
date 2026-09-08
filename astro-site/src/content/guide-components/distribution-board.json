@@ -1,0 +1,110 @@
+{
+  "slug": "distribution-board",
+  "name": "Distribution Board",
+  "tagline": "Where the supply splits into final circuits, each with its own protection and its own switch.",
+  "category": "Protection",
+  "terminals": [
+    "L-in and N-in from the meter and main earthing terminal",
+    "Circuit protective conductors to the earth bar",
+    "Neutral bar and earth bar — one way per circuit",
+    "Main earthing terminal and bonding connections"
+  ],
+  "parts": [
+    "Enclosure — metal on modern boards, with a hinged cover",
+    "Main switch — a double-pole isolator for the whole board",
+    "Circuit breakers, RCBOs and RCDs on a DIN rail",
+    "Busbar — the copper strip feeding the protective devices",
+    "Neutral bar and earth bar",
+    "DIN rail and blanking modules",
+    "Circuit schedule and labels"
+  ],
+  "safety": "Live parts inside a consumer unit stay live with every circuit breaker off — only the main switch (or the cut-out fuse before it) makes the board safe. Only a competent person should remove a cover, and the supply must be isolated and proved dead first. Also note that a metal board and its circuits must be earthed and the bonding verified.",
+  "svg": {
+    "viewBox": "0 0 220 230",
+    "body": "<g class=\"dl-part\" data-part=\"L0\"><rect class=\"dl-fill\" x=\"14\" y=\"14\" width=\"192\" height=\"202\" rx=\"8\"/></g><g class=\"dl-part\" data-part=\"L3\"><rect class=\"dl-metal\" x=\"66\" y=\"36\" width=\"126\" height=\"9\" rx=\"2\"/></g><g class=\"dl-part\" data-part=\"L1\"><rect class=\"dl-metal-2\" x=\"26\" y=\"50\" width=\"30\" height=\"92\" rx=\"4\"/><rect class=\"dl-chip\" x=\"32\" y=\"60\" width=\"18\" height=\"14\" rx=\"3\"/></g><g class=\"dl-part\" data-part=\"L2\"><rect class=\"dl-metal-2\" x=\"68\" y=\"50\" width=\"16\" height=\"92\" rx=\"3\"/><rect class=\"dl-chip\" x=\"71\" y=\"60\" width=\"10\" height=\"12\" rx=\"2\"/><rect class=\"dl-metal-2\" x=\"88\" y=\"50\" width=\"16\" height=\"92\" rx=\"3\"/><rect class=\"dl-chip\" x=\"91\" y=\"60\" width=\"10\" height=\"12\" rx=\"2\"/><rect class=\"dl-metal-2\" x=\"108\" y=\"50\" width=\"16\" height=\"92\" rx=\"3\"/><rect class=\"dl-chip\" x=\"111\" y=\"60\" width=\"10\" height=\"12\" rx=\"2\"/><rect class=\"dl-metal-2\" x=\"128\" y=\"50\" width=\"16\" height=\"92\" rx=\"3\"/><rect class=\"dl-chip\" x=\"131\" y=\"60\" width=\"10\" height=\"12\" rx=\"2\"/><rect class=\"dl-metal-2\" x=\"148\" y=\"50\" width=\"16\" height=\"92\" rx=\"3\"/><rect class=\"dl-chip\" x=\"151\" y=\"60\" width=\"10\" height=\"12\" rx=\"2\"/><rect class=\"dl-metal-2\" x=\"168\" y=\"50\" width=\"16\" height=\"92\" rx=\"3\"/><rect class=\"dl-chip\" x=\"171\" y=\"60\" width=\"10\" height=\"12\" rx=\"2\"/></g><g class=\"dl-part\" data-part=\"L4\"><rect class=\"dl-metal\" x=\"66\" y=\"164\" width=\"60\" height=\"22\" rx=\"3\"/><circle class=\"dl-chip\" cx=\"78\" cy=\"175\" r=\"3.5\"/><circle class=\"dl-chip\" cx=\"91\" cy=\"175\" r=\"3.5\"/><circle class=\"dl-chip\" cx=\"104\" cy=\"175\" r=\"3.5\"/><circle class=\"dl-chip\" cx=\"117\" cy=\"175\" r=\"3.5\"/></g><g class=\"dl-part\" data-part=\"L5\"><rect class=\"dl-metal\" x=\"136\" y=\"164\" width=\"60\" height=\"22\" rx=\"3\"/><circle class=\"dl-chip\" cx=\"148\" cy=\"175\" r=\"3.5\"/><circle class=\"dl-chip\" cx=\"161\" cy=\"175\" r=\"3.5\"/><circle class=\"dl-chip\" cx=\"174\" cy=\"175\" r=\"3.5\"/><circle class=\"dl-chip\" cx=\"187\" cy=\"175\" r=\"3.5\"/></g><g class=\"dl-part\" data-part=\"L6\"><rect class=\"dl-fill--line\" x=\"26\" y=\"150\" width=\"170\" height=\"5\" rx=\"2\"/></g>"
+  },
+  "points": [
+    {
+      "id": "L0",
+      "label": "Enclosure",
+      "detail": "Modern boards are metal, non-combustible and fitted with a hinged cover and blanks over every unused way. The blanking modules are not cosmetic: an open way leaves live busbar exposed to fingers and to anything dropped behind the cover.",
+      "x": 30,
+      "y": 32
+    },
+    {
+      "id": "L1",
+      "label": "Main switch",
+      "detail": "A double-pole isolator that kills every circuit on the board. It does not protect anything — that is what the breakers do — and it does not isolate the incoming tails, which stay live from the cut-out.",
+      "x": 41,
+      "y": 96
+    },
+    {
+      "id": "L2",
+      "label": "Circuit breakers",
+      "detail": "One protective device per final circuit, each sized to its cable. Type B for general purpose, Type C where the starting surge of a motor or transformer would nuisance-trip a B, and an RCBO where a single circuit needs its own 30 mA protection.",
+      "x": 110,
+      "y": 96
+    },
+    {
+      "id": "L3",
+      "label": "Busbar",
+      "detail": "The copper comb that feeds live to every device on the rail. It is the reason the board is dangerous with all the breakers off: the busbar and the device line terminals are live whenever the main switch is on.",
+      "x": 129,
+      "y": 40
+    },
+    {
+      "id": "L4",
+      "label": "Neutral bar",
+      "detail": "One way per circuit neutral, and the neutral must stay paired with its own circuit — mixing neutrals between circuits trips RCDs and can leave a conductor carrying current you do not expect after you have isolated.",
+      "x": 96,
+      "y": 175
+    },
+    {
+      "id": "L5",
+      "label": "Earth bar",
+      "detail": "Circuit protective conductors and the main earthing terminal. Every CPC must land here; a CPC left floating in the board is a circuit with no fault path at all.",
+      "x": 166,
+      "y": 175
+    },
+    {
+      "id": "L6",
+      "label": "DIN rail",
+      "detail": "The 35 mm rail every device clips onto. Devices must be seated and latched fully — a breaker clipped on by its top edge only can sit proud of the busbar and arc.",
+      "x": 110,
+      "y": 152
+    }
+  ],
+  "photo": {
+    "src": "/images/guide/distribution-board",
+    "alt": "Photorealistic consumer unit with the cover removed",
+    "width": 720,
+    "height": 313,
+    "points": [
+      {
+        "id": "L1",
+        "x": 8,
+        "y": 50
+      },
+      {
+        "id": "L2",
+        "x": 45,
+        "y": 52
+      },
+      {
+        "id": "L3",
+        "x": 42,
+        "y": 26
+      },
+      {
+        "id": "L4",
+        "x": 74,
+        "y": 71
+      },
+      {
+        "id": "L5",
+        "x": 33,
+        "y": 81
+      }
+    ]
+  }
+}

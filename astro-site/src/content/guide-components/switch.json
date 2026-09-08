@@ -1,0 +1,95 @@
+{
+  "slug": "switch",
+  "name": "One-Way Switch",
+  "tagline": "The simplest control there is: it makes or breaks a single conductor — and that conductor has to be the live one.",
+  "category": "Control",
+  "terminals": [
+    "COM — common, the conductor arriving from the supply",
+    "L1 — switched live out to the lamp",
+    "Earth — plate earth terminal on metal faceplates"
+  ],
+  "parts": [
+    "Faceplate — the visible cover screwed to the back box",
+    "Rocker (or dolly) — the moving contact you press",
+    "Two fixing screws — top and bottom, into the back box lugs",
+    "Snap-action mechanism — springs the contacts open or closed in milliseconds",
+    "Rear terminals — cage clamps or screw terminals for the conductors"
+  ],
+  "safety": "A switch must interrupt live, never neutral. Wire it on neutral and the lampholder stays live with the light off — the classic reason a “dead” fitting still bites. Isolate and prove dead before you touch anything.",
+  "svg": {
+    "viewBox": "0 0 200 240",
+    "body": "<g class=\"dl-part\" data-part=\"L0\"><rect class=\"dl-fill\" x=\"45\" y=\"16\" width=\"110\" height=\"130\" rx=\"8\"/></g><g class=\"dl-part\" data-part=\"L1\"><rect class=\"dl-metal-2\" x=\"70\" y=\"48\" width=\"60\" height=\"66\" rx=\"6\"/><path class=\"dl-line--accent\" d=\"M82 58 v46\"/><path class=\"dl-line--accent\" d=\"M118 58 v46\"/></g><g class=\"dl-part\" data-part=\"L2\"><circle class=\"dl-metal\" cx=\"100\" cy=\"30\" r=\"6\"/><path class=\"dl-line--accent\" d=\"M95 30 h10\"/></g><g class=\"dl-part\" data-part=\"L3\"><circle class=\"dl-metal\" cx=\"100\" cy=\"132\" r=\"6\"/><path class=\"dl-line--accent\" d=\"M95 132 h10\"/></g><g class=\"dl-part\" data-part=\"L4\"><rect class=\"dl-metal\" x=\"55\" y=\"160\" width=\"90\" height=\"34\" rx=\"4\"/><circle class=\"dl-chip\" cx=\"75\" cy=\"177\" r=\"4\"/><circle class=\"dl-chip\" cx=\"100\" cy=\"177\" r=\"4\"/><circle class=\"dl-chip\" cx=\"125\" cy=\"177\" r=\"4\"/></g><g class=\"dl-part\" data-part=\"L5\"><text class=\"dl-text--mid\" x=\"100\" y=\"214\" text-anchor=\"middle\">COM   L1   E</text></g>"
+  },
+  "points": [
+    {
+      "id": "L0",
+      "label": "Faceplate",
+      "detail": "The moulded cover that hides the mechanism and the back box. Switches are sold by gang (how many rockers) and by way (how many positions each rocker connects) — a one-gang one-way switch is the plain light switch.",
+      "x": 60,
+      "y": 40
+    },
+    {
+      "id": "L1",
+      "label": "Rocker",
+      "detail": "Press the top, press the bottom: one movement closes the contacts, the next opens them. Inside is a spring that snaps the contacts across quickly, which is what keeps arcing (and pitting of the contacts) to a minimum.",
+      "x": 100,
+      "y": 80
+    },
+    {
+      "id": "L2",
+      "label": "Top fixing screw",
+      "detail": "One of the two screws into the back box lugs. They only hold the plate on — they are not an earth path, so a metal faceplate still needs its earth flylead wired to the back box.",
+      "x": 100,
+      "y": 30
+    },
+    {
+      "id": "L3",
+      "label": "Bottom fixing screw",
+      "detail": "The second fixing screw. Overtightening cracks the plate and can distort the back box enough to stop the rocker moving freely; just snug is right.",
+      "x": 100,
+      "y": 132
+    },
+    {
+      "id": "L4",
+      "label": "Rear terminals",
+      "detail": "Two conductor terminals plus an earth: live in, switched live out. Brown sleeving on the switched live is not decoration — on a two-plate wiring system that conductor is live when the light is on and switched when it is off, so it must never be mistaken for a neutral.",
+      "x": 100,
+      "y": 177
+    },
+    {
+      "id": "L5",
+      "label": "Marking / rating",
+      "detail": "The rating (commonly 10 A or 20 A) is the current the switch will carry continuously. It must equal or exceed the circuit protective device rating, and fluorescent or LED loads with a big inrush may call for a higher-rated switch.",
+      "x": 100,
+      "y": 214
+    }
+  ],
+  "photo": {
+    "src": "/images/guide/switch",
+    "alt": "Photorealistic one-gang one-way light switch",
+    "width": 544,
+    "height": 557,
+    "points": [
+      {
+        "id": "L0",
+        "x": 10,
+        "y": 50
+      },
+      {
+        "id": "L1",
+        "x": 51,
+        "y": 52
+      },
+      {
+        "id": "L2",
+        "x": 53,
+        "y": 18
+      },
+      {
+        "id": "L3",
+        "x": 53,
+        "y": 82
+      }
+    ]
+  }
+}
