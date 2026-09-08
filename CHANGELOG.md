@@ -60,6 +60,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   protected lamp is the new Lesson 01 so the sequence runs from a bare two-rail circuit up to the
   consumer unit.
 
+- **Two more guided templates in the app.** Two-bulb parallel lighting (Beginner) and dimmable
+  lighting (Intermediate) close the last two gaps between the guide and the editor: the app ships 20
+  guided templates, and all 12 walkthroughs now open a template that matches them. Both are pinned by
+  topology and simulation tests — the parallel lamps keep a branch alive when the other is removed,
+  and the dimmed lamp drops when the dimmer opens.
+
 ### Changed
 - **The guide hub is a route table, not a dump.** Four section cards plus a circuit index replace the
   inlined feature, workflow, template and circuit content; legacy `/guide/#circuit-N` links redirect
@@ -106,6 +112,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   its stage pushed the overlay's negative offsets outside the card's `overflow: hidden` (`max-width:
   100%` on `.anatomy-photo`), and the script URL was version-stamped with the package number so
   browsers kept serving the old file. All three fixed.
+- **The landing page still counted eight guided circuits.** The app had grown to 18 templates (20
+  now) while the hero stat and the release highlight kept the original number. Counts derive from the
+  template list wherever a page can, and the in-app docs name the new starter circuits.
 - **The single-lamp walkthrough opened the wrong template.** Its steps place a switch, but the link
   pointed at `simple-lamp`, which has none. It now opens `one-way-light-switch`, and the switchless
   `simple-lamp` template has its own walkthrough.
