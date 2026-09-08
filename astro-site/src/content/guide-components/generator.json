@@ -1,0 +1,97 @@
+{
+  "slug": "generator",
+  "name": "Portable Generator Set",
+  "tagline": "An engine turning an alternator — a separate source that must never touch the supply network.",
+  "category": "Generation",
+  "terminals": [
+    "230 V socket outlets on the control panel",
+    "Earth terminal on the frame",
+    "12 V DC output on some sets",
+    "Changeover switch or interlocked breaker at the installation"
+  ],
+  "parts": [
+    "Engine — diesel or petrol, governed to hold 50 Hz",
+    "Alternator — brushless, with an AVR holding the voltage",
+    "Control panel with sockets, breakers and meters",
+    "AVR (automatic voltage regulator)",
+    "Anti-vibration mounts and base frame",
+    "Exhaust muffler and fuel tank"
+  ],
+  "safety": "Back-feeding a generator into an installation that is still connected to the network can kill a linesman on the street, so a generator must be interlocked with the supply — a changeover switch or a mechanically interlocked breaker, never a lead plugged into a socket. It also needs its own earthing arrangement: a portable set is a separate source, not an extension of the building's earth.",
+  "svg": {
+    "viewBox": "0 0 280 200",
+    "body": "<g class=\"dl-part\" data-part=\"base\"><rect class=\"dl-metal-2\" x=\"20\" y=\"158\" width=\"240\" height=\"26\" rx=\"6\"/></g><g class=\"dl-part\" data-part=\"alternator\"><rect class=\"dl-fill\" x=\"52\" y=\"64\" width=\"108\" height=\"94\" rx=\"10\"/><circle class=\"dl-fill--line\" cx=\"106\" cy=\"111\" r=\"30\"/><circle class=\"dl-chip\" cx=\"106\" cy=\"111\" r=\"9\"/></g><g class=\"dl-part\" data-part=\"engine\"><rect class=\"dl-metal-2\" x=\"172\" y=\"82\" width=\"72\" height=\"76\" rx=\"8\"/><path class=\"dl-fill--line\" d=\"M186 96 h44 M186 110 h44 M186 124 h44\"/></g><g class=\"dl-part\" data-part=\"control-panel\"><rect class=\"dl-fill\" x=\"56\" y=\"112\" width=\"100\" height=\"42\" rx=\"4\"/><circle class=\"dl-metal\" cx=\"76\" cy=\"133\" r=\"9\"/><circle class=\"dl-metal\" cx=\"106\" cy=\"133\" r=\"9\"/><circle class=\"dl-metal\" cx=\"136\" cy=\"133\" r=\"9\"/></g><g class=\"dl-part\" data-part=\"top-cowling\"><rect class=\"dl-metal-2\" x=\"46\" y=\"42\" width=\"176\" height=\"20\" rx=\"6\"/><circle class=\"dl-metal\" cx=\"200\" cy=\"34\" r=\"10\"/></g><g class=\"dl-part\" data-part=\"earth-terminal\"><circle class=\"dl-chip\" cx=\"248\" cy=\"171\" r=\"7\"/></g><text class=\"dl-text--mid\" x=\"106\" y=\"115\" text-anchor=\"middle\">G</text><text class=\"dl-text--mid\" x=\"248\" y=\"192\" text-anchor=\"middle\">E</text><text class=\"dl-text--mid\" x=\"88\" y=\"160\" text-anchor=\"middle\">230 V</text>"
+  },
+  "points": [
+    {
+      "id": "top-cowling",
+      "label": "Top cowling, muffler and fuel cap",
+      "detail": "The silenced exhaust and the filler both live on top of a portable set. Exhaust gas and heat are why a generator runs outdoors or in a purpose-built enclosure with a through-wall flue — never in a garage or a hallway, and never just inside a doorway.",
+      "x": 140,
+      "y": 52
+    },
+    {
+      "id": "engine",
+      "label": "Engine",
+      "detail": "The engine is governed to hold the speed that gives 50 Hz: 3,000 rpm for a two-pole alternator, 1,500 rpm for a four-pole. Frequency is a direct function of shaft speed, so a set that is hunting or sagging is an engine problem before it is an electrical one.",
+      "x": 208,
+      "y": 118
+    },
+    {
+      "id": "alternator",
+      "label": "Alternator",
+      "detail": "A brushless machine with a rotating exciter feeding the main rotor through a rectifier, so there are no brushes to wear. The AVR senses the output voltage and adjusts the excitation to hold it steady as the load changes — which is what stops the lights dipping when a motor starts.",
+      "x": 106,
+      "y": 88
+    },
+    {
+      "id": "control-panel",
+      "label": "Control panel and socket outlets",
+      "detail": "Sockets, an output breaker, and usually a voltmeter and frequency meter. The breaker protects the alternator against overload; it does not make the set safe to connect to an installation, and the RCD on the panel only protects what is plugged directly into the set.",
+      "x": 96,
+      "y": 133
+    },
+    {
+      "id": "base",
+      "label": "Base frame and anti-vibration mounts",
+      "detail": "The set sits on rubber mounts so engine vibration is not transmitted into the frame or the floor. It also carries the earth stud: a portable generator used as a standalone source has no path back to the supply earth, so the frame is bonded to the local electrode rather than relying on the installation.",
+      "x": 140,
+      "y": 171
+    },
+    {
+      "id": "earth-terminal",
+      "label": "Earth stud",
+      "detail": "Where the set feeds a fixed installation through a changeover switch, the earthing arrangement is decided at the design stage — TT with its own rod, or bonded into the existing system under the control of the changeover device. Getting this wrong leaves exposed metal with no fault path at all.",
+      "x": 248,
+      "y": 171
+    }
+  ],
+  "photo": {
+    "src": "/images/guide/generator",
+    "alt": "Photorealistic portable generator set with control panel",
+    "width": 720,
+    "height": 720,
+    "points": [
+      {
+        "id": "top-cowling",
+        "x": 70,
+        "y": 27
+      },
+      {
+        "id": "alternator",
+        "x": 30,
+        "y": 50
+      },
+      {
+        "id": "control-panel",
+        "x": 66,
+        "y": 60
+      },
+      {
+        "id": "base",
+        "x": 40,
+        "y": 72
+      }
+    ]
+  }
+}

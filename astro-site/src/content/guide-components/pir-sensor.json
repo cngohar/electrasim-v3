@@ -1,0 +1,85 @@
+{
+  "slug": "pir-sensor",
+  "name": "PIR Motion Sensor",
+  "tagline": "Sees changes in infrared, not movement — it detects a warm body crossing its beams.",
+  "category": "Control device",
+  "terminals": [
+    "L — permanent live in",
+    "N — neutral (most mains sensors need one)",
+    "L' or SL — switched live out to the load",
+    "Some designs add a permanent-live loop or an override input"
+  ],
+  "parts": [
+    "Fresnel lens — splits the view into beams",
+    "Pyroelectric element — generates a voltage when IR flux changes",
+    "Amplifier and comparator — decides what counts as a detection",
+    "Time (TIME) and light level (LUX) adjustment dials",
+    "Adjustable swivel bracket",
+    "Cable gland and terminal block"
+  ],
+  "safety": "A PIR switches live, so the lamp holder stays live even with the sensor off — isolate at the board, not at the sensor. Detection zones are wider than people expect: a sensor pointed at a road or a neighbour's garden will trigger on passing cars, and one mounted near a heat source such as a boiler flue will false-trigger in still air.",
+  "svg": {
+    "viewBox": "0 0 240 260",
+    "body": "<g class=\"dl-part\" data-part=\"housing\"><path class=\"dl-fill\" d=\"M60 30 h120 a12 12 0 0 1 12 12 v78 a12 12 0 0 1 -12 12 h-120 a12 12 0 0 1 -12 -12 v-78 a12 12 0 0 1 12 -12 z\"/></g><g class=\"dl-part\" data-part=\"lens\"><circle class=\"dl-fill--line\" cx=\"120\" cy=\"86\" r=\"40\"/><circle class=\"dl-metal-2\" cx=\"120\" cy=\"86\" r=\"28\"/><circle class=\"dl-chip\" cx=\"120\" cy=\"86\" r=\"10\"/><path class=\"dl-line--accent\" d=\"M120 46 V126 M80 86 H160\"/></g><g class=\"dl-part\" data-part=\"adjustment\"><circle class=\"dl-metal-2\" cx=\"98\" cy=\"150\" r=\"13\"/><circle class=\"dl-metal-2\" cx=\"142\" cy=\"150\" r=\"13\"/></g><g class=\"dl-part\" data-part=\"bracket\"><path class=\"dl-metal-2\" d=\"M96 174 h48 v34 h-48 z\"/><circle class=\"dl-chip\" cx=\"120\" cy=\"191\" r=\"10\"/></g><g class=\"dl-part\" data-part=\"cable-gland\"><path class=\"dl-metal-2\" d=\"M110 208 h20 v34 h-20 z\"/></g><text class=\"dl-text--mid\" x=\"98\" y=\"172\" text-anchor=\"middle\">TIME</text><text class=\"dl-text--mid\" x=\"142\" y=\"172\" text-anchor=\"middle\">LUX</text><text class=\"dl-text--mid\" x=\"120\" y=\"90\" text-anchor=\"middle\">PIR</text>"
+  },
+  "points": [
+    {
+      "id": "housing",
+      "label": "Housing",
+      "detail": "A UV-stable plastic case rated at least IP44 outdoors. Mount it where the approach runs across the beams rather than straight at the lens — a sensor detects a warm body moving between zones, so someone walking directly towards it is the one case it sees worst.",
+      "x": 66,
+      "y": 46
+    },
+    {
+      "id": "lens",
+      "label": "Fresnel lens and pyroelectric element",
+      "detail": "The domed lens is a set of facets, each focusing a narrow beam onto the element behind it. Nothing is detected until a heat source moves from one beam to the next, which is why a person standing still inside the detection zone eventually lets the light time out.",
+      "x": 120,
+      "y": 86
+    },
+    {
+      "id": "adjustment",
+      "label": "TIME and LUX dials",
+      "detail": "TIME sets how long the load stays on after the last detection — a few seconds to several minutes. LUX sets the ambient light level below which the sensor will work at all, so adjusting it in daylight is what makes a floodlight appear dead at night.",
+      "x": 98,
+      "y": 150
+    },
+    {
+      "id": "bracket",
+      "label": "Swivel bracket",
+      "detail": "A ball joint that lets you aim the lens after the back plate is fixed. Set the angle on the ground and check it again after dark from the approach you actually want covered — the pattern on the box is a cone, not the real footprint on the ground.",
+      "x": 120,
+      "y": 191
+    },
+    {
+      "id": "cable-gland",
+      "label": "Cable gland and terminals",
+      "detail": "Cable enters from below through a gland so water runs away from the terminals. Inside, L and N feed the electronics permanently and the switched live goes out to the lamp — so the permanent live stays live with the light off, and a sensor cannot be used as the isolator for the fitting it feeds.",
+      "x": 120,
+      "y": 226
+    }
+  ],
+  "photo": {
+    "src": "/images/guide/pir-sensor",
+    "alt": "Photorealistic wall-mounted PIR motion sensor with fresnel lens",
+    "width": 582,
+    "height": 582,
+    "points": [
+      {
+        "id": "housing",
+        "x": 30,
+        "y": 20
+      },
+      {
+        "id": "lens",
+        "x": 66,
+        "y": 72
+      },
+      {
+        "id": "bracket",
+        "x": 22,
+        "y": 65
+      }
+    ]
+  }
+}

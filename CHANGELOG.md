@@ -12,6 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Anatomy pages for the nine advanced components.** Contactor, PIR motion sensor, cooker control
+  unit, diesel generator, AFDD, EV charge point, solar PV panel, 12 V battery and underfloor heating
+  mat — the equipment the eight advanced walkthroughs name, which previously appeared as dead chips.
+  Each page carries a photorealistic render cropped to an exact 1:1 canvas, hotspots measured off the
+  render rather than guessed, a hand-authored SVG drawing for the parts a photo cannot show, terminal
+  and part lists, a safety note and links both ways to the circuits that use it. The guide now
+  explains 22 components and every component a walkthrough names resolves to exactly one page.
 - **Real-part imagery across the guide.** All four components (MCB, RCD, lamp, socket) and all four
   hand tools now lead with a photorealistic render instead of a drawing, cropped tight to the part and
   served as WebP with a PNG fallback. Hotspots are pinned to the real geometry using percent

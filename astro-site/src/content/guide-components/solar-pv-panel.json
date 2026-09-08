@@ -1,0 +1,82 @@
+{
+  "slug": "solar-pv-panel",
+  "name": "Solar PV Panel",
+  "tagline": "Cells in series make the voltage, cells in parallel make the current — the frame carries neither.",
+  "category": "Generation",
+  "terminals": [
+    "Positive (+) and negative (−) in the junction box",
+    "Bypass diodes — one per cell string, inside the box or laminate",
+    "Functional earth bond to the module frame"
+  ],
+  "parts": [
+    "Tempered glass front — 3–4 mm, carries the mechanical load",
+    "Encapsulant (EVA) — seals the cells out of the weather",
+    "Mono or poly cells — typically 60 or 72, cut into half or third cells",
+    "Busbar and finger ribbons — collect current off each cell",
+    "Backsheet — the insulating rear layer",
+    "Junction box with bypass diodes and MC4 leads"
+  ],
+  "safety": "A module in daylight is live and cannot be switched off — Voc sits just above the panel's maximum-power voltage and rises in cold weather. That is why DC isolators, MC4 connectors that can only be separated with a tool, and working on the DC side after dark (or under a cover) are non-negotiable.",
+  "svg": {
+    "viewBox": "0 0 280 220",
+    "body": "<g class=\"dl-part\" data-part=\"frame\"><rect class=\"dl-metal\" x=\"16\" y=\"14\" width=\"248\" height=\"180\" rx=\"8\"/></g><g class=\"dl-part\" data-part=\"cells\"><rect class=\"dl-fill\" x=\"28\" y=\"26\" width=\"224\" height=\"156\" rx=\"3\"/><rect class=\"dl-metal-2\" x=\"36\" y=\"34\" width=\"48\" height=\"66\" rx=\"2\"/><rect class=\"dl-metal-2\" x=\"92\" y=\"34\" width=\"48\" height=\"66\" rx=\"2\"/><rect class=\"dl-metal-2\" x=\"148\" y=\"34\" width=\"48\" height=\"66\" rx=\"2\"/><rect class=\"dl-metal-2\" x=\"204\" y=\"34\" width=\"40\" height=\"66\" rx=\"2\"/><rect class=\"dl-metal-2\" x=\"36\" y=\"108\" width=\"48\" height=\"66\" rx=\"2\"/><rect class=\"dl-metal-2\" x=\"92\" y=\"108\" width=\"48\" height=\"66\" rx=\"2\"/><rect class=\"dl-metal-2\" x=\"148\" y=\"108\" width=\"48\" height=\"66\" rx=\"2\"/><rect class=\"dl-metal-2\" x=\"204\" y=\"108\" width=\"40\" height=\"66\" rx=\"2\"/></g><g class=\"dl-part\" data-part=\"busbar\"><path class=\"dl-line--accent\" d=\"M60 26 V182 M116 26 V182 M172 26 V182 M224 26 V182\"/></g><g class=\"dl-part\" data-part=\"junction-box\"><rect class=\"dl-metal\" x=\"118\" y=\"196\" width=\"56\" height=\"22\" rx=\"3\"/><circle class=\"dl-chip\" cx=\"146\" cy=\"207\" r=\"5\"/></g><text class=\"dl-text--mid\" x=\"146\" y=\"196\" text-anchor=\"middle\">J-box</text>"
+  },
+  "points": [
+    {
+      "id": "cells",
+      "label": "Cell strings",
+      "detail": "Cells are wired in series to build voltage — about 0.6 V per cell, so a 60-cell module gives roughly 36 V at maximum power and nearer 45 V open-circuit when cold. Shade one cell and the whole string current collapses, which is why bypass diodes exist.",
+      "x": 70,
+      "y": 80
+    },
+    {
+      "id": "busbar",
+      "label": "Busbar ribbons",
+      "detail": "Thin tinned copper ribbons run across every cell collecting the current that the hair-like fingers gather off the surface. Modern modules use more, narrower busbars (MBB) to cut resistive loss and to keep output up when a cell cracks.",
+      "x": 116,
+      "y": 62
+    },
+    {
+      "id": "frame",
+      "label": "Anodised aluminium frame",
+      "detail": "The frame is structural, not electrical — it carries the wind and snow load and gives you somewhere to bolt the clamps. It must still be bonded to earth, because a damaged module can make the frame live.",
+      "x": 26,
+      "y": 104
+    },
+    {
+      "id": "junction-box",
+      "label": "Junction box and bypass diodes",
+      "detail": "On the back of the module, holding one diode across each cell string. When a string is shaded the diode conducts around it, so the rest of the panel keeps producing instead of the shaded cells dissipating power as heat — the hotspot that cooks a module.",
+      "x": 146,
+      "y": 207
+    }
+  ],
+  "photo": {
+    "src": "/images/guide/solar-pv-panel",
+    "alt": "Photorealistic solar photovoltaic panel module",
+    "width": 720,
+    "height": 720,
+    "points": [
+      {
+        "id": "cells",
+        "x": 40,
+        "y": 40
+      },
+      {
+        "id": "busbar",
+        "x": 48,
+        "y": 40
+      },
+      {
+        "id": "frame",
+        "x": 11,
+        "y": 40
+      },
+      {
+        "id": "junction-box",
+        "x": 57,
+        "y": 82
+      }
+    ]
+  }
+}

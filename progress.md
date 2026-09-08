@@ -4476,3 +4476,40 @@ release-notes link, Esc/×/backdrop close, focus trap. Verified in Chromium at 1
 **Gates:** tsc (app + e2e) ✓, biome ✓, astro check 0 errors ✓, **1135/1135 vitest** (−21
 deleted tool tests, +7 lazy-emoji contract tests), build **133 pages** ✓, check:perf all
 PASS ✓, check:links ✓, simulation benchmark unchanged (1.07 ms median @ 200 components).
+
+---
+
+## Follow-up round 9 — close the remaining guide content gaps, then SEO
+
+**Audit first.** Scanned the built HTML for title lengths, meta description lengths, h1 counts,
+canonical tags, alt attributes, OG images and JSON-LD, then read `astro.config.mjs`, `robots.txt`,
+`search.json.ts` and the content collections. Technical SEO is in good shape (canonical everywhere,
+one h1 per page, alt text on all 34 guide images, all 43 guide URLs in the sitemap, WebSite JSON-LD,
+`check:links` and `check:perf` green). The gaps are: titles over 60 chars, descriptions up to 391
+chars, no custom OG cards on guide pages, no `BreadcrumbList`/`HowTo`/`ItemList` structured data, no
+`<lastmod>` or visible "last updated" on guide URLs, no in-body guide → blog cross-links, and
+`/js/theme.js?v=<version>` still using the stale-cache pattern already fixed for `guide-lab.js`.
+
+Per the user: **finish the content first, verify, then do SEO.** Order: (1) the nine advanced
+component anatomy pages, (2) glossary, (3) test equipment pages, (4) cutaways.
+
+**Nine advanced anatomy pages — done.** `contactor`, `afdd`, `ev-charger`, `solar-pv-panel`,
+`battery`, `generator`, `pir-sensor`, `cooker-unit`, `heating-mat`. Nine renders were generated,
+then processed without ever looking at them (no vision in this session):
+
+- crop and square by modal-background colour + largest connected component, part centred, canvas
+  padded with the render's own background;
+- layout "seen" by rasterising each image to a 64–88 column ASCII luminance map, and by a 44×22 grid
+  of distance-from-background values, which is what actually located the terminals, lens, cold tail
+  and busbars;
+- every hotspot verified numerically (7×7 patch mean distance from background ≥ 25) — four first
+  guesses landed on background and were relocated from the grids;
+- PNG fallbacks re-encoded to 128-colour palette (41–86 KB, rmse 3.2–6.3) and WebP at q84; the
+  photos are 41–102 KB instead of the 500 KB–1 MB the raw renders came out at.
+
+Nine matching rules added to `COMPONENT_ANATOMY_RULES`, so every advanced walkthrough now links to
+its component page and every page links back to the circuits that use it (contactor is shared by the
+single-phase and three-phase motor starters).
+
+**Gates:** 1387 vitest (+27 = 9 pages × 3 assertions), `astro check` 0/0/9, build **183 pages**
+(+9), dev server serving all new pages 200.

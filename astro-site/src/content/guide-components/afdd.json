@@ -1,0 +1,97 @@
+{
+  "slug": "afdd",
+  "name": "AFDD (Arc Fault Detection Device)",
+  "tagline": "Listens for the crackle of a bad connection — and trips before the arc becomes a fire.",
+  "category": "Protection",
+  "terminals": [
+    "L in / N in (top) — supply from the MCB or RCBO upstream",
+    "L out / N out (bottom) — the protected final circuit",
+    "Functional earth / neutral fly-lead on some designs"
+  ],
+  "parts": [
+    "Microprocessor — samples current and looks for the arc signature",
+    "Series and parallel arc detection — broken conductor vs L-to-N tracking",
+    "Tripping relay — opens both poles on a detected arc",
+    "Toggle lever and test button",
+    "DIN-rail clip and cable shield"
+  ],
+  "safety": "An AFDD does not replace an MCB or an RCD — it is normally an AFDD-RCBO that combines all three in one module. Never fit one to defeat nuisance tripping: repeated arc trips are telling you a connection, a flex or an accessory is breaking down, and that fault needs finding.",
+  "svg": {
+    "viewBox": "0 0 220 300",
+    "body": "<g class=\"dl-part\" data-part=\"housing\"><rect class=\"dl-fill\" x=\"50\" y=\"24\" width=\"120\" height=\"252\" rx=\"7\"/></g><g class=\"dl-part\" data-part=\"terminal-top\"><rect class=\"dl-metal\" x=\"58\" y=\"8\" width=\"44\" height=\"20\" rx=\"3\"/><rect class=\"dl-metal\" x=\"118\" y=\"8\" width=\"44\" height=\"20\" rx=\"3\"/></g><g class=\"dl-part\" data-part=\"terminal-bottom\"><rect class=\"dl-metal\" x=\"58\" y=\"272\" width=\"44\" height=\"20\" rx=\"3\"/><rect class=\"dl-metal\" x=\"118\" y=\"272\" width=\"44\" height=\"20\" rx=\"3\"/></g><g class=\"dl-part\" data-part=\"toggle\"><rect class=\"dl-metal-2\" x=\"86\" y=\"52\" width=\"48\" height=\"40\" rx=\"4\"/><rect class=\"dl-chip\" x=\"98\" y=\"60\" width=\"24\" height=\"10\" rx=\"2\"/></g><g class=\"dl-part\" data-part=\"test-button\"><circle class=\"dl-chip\" cx=\"110\" cy=\"116\" r=\"12\"/><text class=\"dl-text\" x=\"110\" y=\"120\" text-anchor=\"middle\">T</text></g><g class=\"dl-part\" data-part=\"electronics\"><rect class=\"dl-fill--line\" x=\"66\" y=\"146\" width=\"88\" height=\"80\" rx=\"4\"/><path class=\"dl-line--accent\" d=\"M76 186 h16 l8 -14 l8 22 l8 -20 l8 12 h20\"/></g><g class=\"dl-part\" data-part=\"din-clip\"><path class=\"dl-metal-2\" d=\"M76 284 q34 14 68 0 v10 h-68 z\"/></g><text class=\"dl-text--mid\" x=\"80\" y=\"23\" text-anchor=\"middle\">L</text><text class=\"dl-text--mid\" x=\"140\" y=\"23\" text-anchor=\"middle\">N</text><text class=\"dl-text--mid\" x=\"80\" y=\"287\" text-anchor=\"middle\">L</text><text class=\"dl-text--mid\" x=\"140\" y=\"287\" text-anchor=\"middle\">N</text><text class=\"dl-text--mid\" x=\"110\" y=\"138\" text-anchor=\"middle\">AFDD</text>"
+  },
+  "points": [
+    {
+      "id": "terminal-top",
+      "label": "L / N in (top)",
+      "detail": "Supply comes in at the top from the protective device upstream. An AFDD is always fed from an overcurrent device — it senses arcs but is not rated to clear a short-circuit on its own.",
+      "x": 94,
+      "y": 18
+    },
+    {
+      "id": "toggle",
+      "label": "Toggle lever",
+      "detail": "Switches both poles together. On most designs the lever sits midway when the device has tripped on a fault, which is your first clue that the trip was automatic rather than someone switching it off.",
+      "x": 110,
+      "y": 66
+    },
+    {
+      "id": "test-button",
+      "label": "Test button 'T'",
+      "detail": "Injects a simulated arc signature so the internal electronics and the tripping relay are exercised end to end. Test it on the same schedule as the RCD test button — a few times a year, and record the result.",
+      "x": 110,
+      "y": 116
+    },
+    {
+      "id": "electronics",
+      "label": "Arc-detection electronics",
+      "detail": "The device samples the current waveform continuously and looks for the tell-tale pattern of a series arc: a flat spot at each zero crossing, broadband noise, and irregular half-cycles that a normal load such as a dimmer or a motor does not produce. That discrimination is what keeps it from tripping on ordinary switching.",
+      "x": 110,
+      "y": 176
+    },
+    {
+      "id": "housing",
+      "label": "Front face and housing",
+      "detail": "One module wide (about 18 mm) on a modern AFDD-RCBO, or two on older combined units. The label carries the ratings you must record on the schedule: In, the 30 mA RCD marking, the type (AC, A, F or B), and the breaking capacity.",
+      "x": 60,
+      "y": 236
+    },
+    {
+      "id": "terminal-bottom",
+      "label": "L / N out (bottom)",
+      "detail": "The protected circuit leaves here. Both live and neutral pass through the device, because the neutral current is part of the signature it analyses — a borrowed or shared neutral downstream will usually cause it to trip.",
+      "x": 72,
+      "y": 282
+    },
+    {
+      "id": "din-clip",
+      "label": "DIN-rail clip",
+      "detail": "Spring-loaded foot for the 35 mm rail. With the busbar and the neutral fly-lead both connected, unclipping the device takes real care: release it slowly and support the conductors.",
+      "x": 110,
+      "y": 292
+    }
+  ],
+  "photo": {
+    "src": "/images/guide/afdd",
+    "alt": "Photorealistic arc fault detection device on a DIN rail",
+    "width": 602,
+    "height": 602,
+    "points": [
+      {
+        "id": "terminal-top",
+        "x": 68,
+        "y": 8
+      },
+      {
+        "id": "housing",
+        "x": 60,
+        "y": 30
+      },
+      {
+        "id": "terminal-bottom",
+        "x": 57,
+        "y": 85
+      }
+    ]
+  }
+}

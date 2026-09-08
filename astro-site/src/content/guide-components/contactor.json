@@ -1,0 +1,99 @@
+{
+  "slug": "contactor",
+  "name": "Contactor (3-pole)",
+  "tagline": "A switch thrown by an electromagnet — a small coil current commands a large motor current.",
+  "category": "Control gear",
+  "terminals": [
+    "1/L1 · 3/L2 · 5/L3 — three line inputs (top)",
+    "2/T1 · 4/T2 · 6/T3 — three load outputs (bottom)",
+    "A1 / A2 — the coil (control) supply",
+    "13 NO / 21 NC — auxiliary contacts on the add-on block"
+  ],
+  "parts": [
+    "Coil (A1–A2) — creates the field that pulls the armature in",
+    "Fixed and moving contacts — usually double-break, one pair per pole",
+    "Armature and return spring — drops the contacts out when the coil de-energises",
+    "Arc chutes — split and cool the arc drawn when a motor load breaks",
+    "Auxiliary contact block — extra NO/NC contacts for the hold-in circuit",
+    "DIN-rail clip — the spring foot that mounts it in the board"
+  ],
+  "safety": "A contactor is a control device, not an isolator: it can weld closed after a fault, and the contacts you can see are never the whole picture. Isolate, lock off and prove dead on the incoming side before touching anything, and remember the coil may be fed from a completely different circuit than the contacts switch.",
+  "svg": {
+    "viewBox": "0 0 240 280",
+    "body": "<g class=\"dl-part\" data-part=\"housing\"><rect class=\"dl-fill\" x=\"56\" y=\"44\" width=\"128\" height=\"196\" rx=\"7\"/></g><g class=\"dl-part\" data-part=\"line-terminals\"><rect class=\"dl-metal\" x=\"66\" y=\"24\" width=\"30\" height=\"22\" rx=\"3\"/><rect class=\"dl-metal\" x=\"105\" y=\"24\" width=\"30\" height=\"22\" rx=\"3\"/><rect class=\"dl-metal\" x=\"144\" y=\"24\" width=\"30\" height=\"22\" rx=\"3\"/></g><g class=\"dl-part\" data-part=\"load-terminals\"><rect class=\"dl-metal\" x=\"66\" y=\"238\" width=\"30\" height=\"22\" rx=\"3\"/><rect class=\"dl-metal\" x=\"105\" y=\"238\" width=\"30\" height=\"22\" rx=\"3\"/><rect class=\"dl-metal\" x=\"144\" y=\"238\" width=\"30\" height=\"22\" rx=\"3\"/></g><g class=\"dl-part\" data-part=\"aux-block\"><rect class=\"dl-metal-2\" x=\"86\" y=\"62\" width=\"68\" height=\"34\" rx=\"3\"/><circle class=\"dl-chip\" cx=\"102\" cy=\"79\" r=\"5\"/><circle class=\"dl-chip\" cx=\"138\" cy=\"79\" r=\"5\"/></g><g class=\"dl-part\" data-part=\"coil-terminals\"><rect class=\"dl-chip\" x=\"64\" y=\"112\" width=\"20\" height=\"14\" rx=\"2\"/><rect class=\"dl-chip\" x=\"156\" y=\"112\" width=\"20\" height=\"14\" rx=\"2\"/></g><g class=\"dl-part\" data-part=\"contact-carrier\"><rect class=\"dl-fill--line\" x=\"88\" y=\"148\" width=\"64\" height=\"56\" rx=\"4\"/><rect class=\"dl-chip\" x=\"104\" y=\"160\" width=\"32\" height=\"10\" rx=\"2\"/><path class=\"dl-line--accent\" d=\"M104 190 h32\"/></g><g class=\"dl-part\" data-part=\"din-clip\"><path class=\"dl-metal-2\" d=\"M84 258 q36 14 72 0 v10 h-72 z\"/></g><text class=\"dl-text--mid\" x=\"81\" y=\"39\" text-anchor=\"middle\">1</text><text class=\"dl-text--mid\" x=\"120\" y=\"39\" text-anchor=\"middle\">3</text><text class=\"dl-text--mid\" x=\"159\" y=\"39\" text-anchor=\"middle\">5</text><text class=\"dl-text--mid\" x=\"81\" y=\"253\" text-anchor=\"middle\">2</text><text class=\"dl-text--mid\" x=\"120\" y=\"253\" text-anchor=\"middle\">4</text><text class=\"dl-text--mid\" x=\"159\" y=\"253\" text-anchor=\"middle\">6</text><text class=\"dl-text--mid\" x=\"74\" y=\"106\" text-anchor=\"middle\">A1</text><text class=\"dl-text--mid\" x=\"166\" y=\"106\" text-anchor=\"middle\">A2</text>"
+  },
+  "points": [
+    {
+      "id": "line-terminals",
+      "label": "Line terminals 1/L1 · 3/L2 · 5/L3",
+      "detail": "The three incoming phases land on the top of the device and feed the fixed contacts. Terminal numbering follows the old IEC pattern: odd numbers on the line side, even on the load side, so 1–2 is pole one, 3–4 pole two and 5–6 pole three.",
+      "x": 120,
+      "y": 32
+    },
+    {
+      "id": "load-terminals",
+      "label": "Load terminals 2/T1 · 4/T2 · 6/T3",
+      "detail": "The switched output to the motor. Because a contactor switches all three poles mechanically at once, the motor cannot single-phase — the failure mode that burns out windings when one fuse blows but the other two still feed it.",
+      "x": 120,
+      "y": 246
+    },
+    {
+      "id": "coil-terminals",
+      "label": "Coil terminals A1 / A2",
+      "detail": "A completely separate circuit from the contacts. A 230 V or 24 V coil draws a fraction of an amp while the contacts it closes may carry 25 A or more — that ratio is the whole point of a contactor. A1 and A2 are the two ends of the coil winding and are not polarity-sensitive on an AC coil.",
+      "x": 74,
+      "y": 119
+    },
+    {
+      "id": "aux-block",
+      "label": "Auxiliary contact block",
+      "detail": "A clip-on module with one or two small NO and NC contacts (13–14 normally open, 21–22 normally closed) driven by the same armature. The classic use is the hold-in (seal-in) circuit: a start button energises the coil, and an NO auxiliary contact in parallel keeps it energised after the button is released.",
+      "x": 120,
+      "y": 79
+    },
+    {
+      "id": "contact-carrier",
+      "label": "Contact carrier and position window",
+      "detail": "The moving bridge that carries all three moving contacts at once. Many contactors show a small flag in the front window so you can see whether the contacts are in or out without a meter — useful, but never treat it as proof of isolation.",
+      "x": 120,
+      "y": 176
+    },
+    {
+      "id": "housing",
+      "label": "Housing and arc chutes",
+      "detail": "Behind the front face each pole sits in its own chamber with a stack of steel splitter plates. When the contacts part under load the arc is driven into the stack, split into shorter arcs and cooled until it cannot sustain itself — which is why contactors are rated for many thousands of motor starts.",
+      "x": 66,
+      "y": 210
+    },
+    {
+      "id": "din-clip",
+      "label": "DIN-rail clip",
+      "detail": "A spring foot at the back that hooks over the 35 mm top-hat rail inside the enclosure. Pull it down with a screwdriver to release the device; it is the only fixings most DIN devices have, so support the cables rather than letting their weight hang off the terminals.",
+      "x": 120,
+      "y": 262
+    }
+  ],
+  "photo": {
+    "src": "/images/guide/contactor",
+    "alt": "Photorealistic three-pole contactor with top and bottom screw terminals",
+    "width": 691,
+    "height": 691,
+    "points": [
+      {
+        "id": "line-terminals",
+        "x": 25,
+        "y": 13
+      },
+      {
+        "id": "load-terminals",
+        "x": 25,
+        "y": 80
+      },
+      {
+        "id": "housing",
+        "x": 70,
+        "y": 48
+      }
+    ]
+  }
+}

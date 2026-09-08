@@ -66,10 +66,22 @@ const COMPONENT_ANATOMY_RULES: { slug: string; match: RegExp }[] = [
   { slug: 'bell', match: /bell|buzzer/i },
   { slug: 'distribution-board', match: /distribution board/i },
   { slug: 'motor', match: /motor/i },
+  { slug: 'afdd', match: /afdd/i },
   { slug: 'mcb', match: /mcb/i },
   { slug: 'rcd', match: /rcd/i },
   { slug: 'bulb', match: /bulb/i },
   { slug: 'socket', match: /socket/i },
+  // Equipment from the advanced templates. Each is matched on the wording the
+  // circuit's `components[]` list actually uses, so the naming stays in step
+  // with the walkthrough instead of the other way round.
+  { slug: 'contactor', match: /contactor/i },
+  { slug: 'ev-charger', match: /charge point|ev charger/i },
+  { slug: 'solar-pv-panel', match: /pv panel|solar pv/i },
+  { slug: 'battery', match: /battery/i },
+  { slug: 'generator', match: /generator/i },
+  { slug: 'pir-sensor', match: /\bpir\b|motion sensor/i },
+  { slug: 'cooker-unit', match: /cooker/i },
+  { slug: 'heating-mat', match: /heating mat/i },
 ];
 
 /** The one anatomy page that explains a component name, if any. */

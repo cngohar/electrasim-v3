@@ -1,0 +1,89 @@
+{
+  "slug": "heating-mat",
+  "name": "Underfloor Heating Mat",
+  "tagline": "A fixed resistance laid in a mesh — the whole floor becomes the heater, slowly.",
+  "category": "Fixed load",
+  "terminals": [
+    "Cold tail — the mains lead that runs to the thermostat",
+    "Factory joint between the cold tail and the heating cable",
+    "Floor probe (sensor) leads — low voltage, to the thermostat",
+    "Earth braid or screen, bonded at the thermostat"
+  ],
+  "parts": [
+    "Heating cable — a series resistance in a fluoropolymer jacket",
+    "Fibreglass mesh backing — sets the spacing",
+    "Factory joint — the only joint allowed in the screed",
+    "Cold tail — the unheated lead back to the connection box",
+    "Floor temperature probe in its own conduit"
+  ],
+  "safety": "The mat is a fixed load buried in screed, so the insulation-resistance and continuity tests are done three times: before it is laid, after the screed goes down, and before it is tiled. Never cut the heating cable to shorten it — that changes the resistance and the wattage, and any joint buried in the floor will fail.",
+  "svg": {
+    "viewBox": "0 0 280 200",
+    "body": "<g class=\"dl-part\" data-part=\"mesh\"><rect class=\"dl-fill\" x=\"24\" y=\"36\" width=\"232\" height=\"128\" rx=\"4\"/><path class=\"dl-fill--line\" d=\"M64 36 V164 M104 36 V164 M144 36 V164 M184 36 V164 M224 36 V164\"/><path class=\"dl-fill--line\" d=\"M24 76 H256 M24 116 H256\"/></g><g class=\"dl-part\" data-part=\"heating-cable\"><path class=\"dl-line--accent\" d=\"M32 52 H244 a12 12 0 0 1 0 24 H32 a12 12 0 0 0 0 24 H244 a12 12 0 0 1 0 24 H32\"/></g><g class=\"dl-part\" data-part=\"factory-joint\"><rect class=\"dl-metal\" x=\"26\" y=\"140\" width=\"26\" height=\"16\" rx=\"3\"/></g><g class=\"dl-part\" data-part=\"cold-tail\"><path class=\"dl-metal-2\" d=\"M26 156 v22 h-14\"/></g><g class=\"dl-part\" data-part=\"floor-probe\"><circle class=\"dl-chip\" cx=\"176\" cy=\"176\" r=\"8\"/><path class=\"dl-fill--line\" d=\"M176 176 V168\"/></g><text class=\"dl-text--mid\" x=\"140\" y=\"30\" text-anchor=\"middle\">200 W/m²</text><text class=\"dl-text--mid\" x=\"176\" y=\"196\" text-anchor=\"middle\">probe</text>"
+  },
+  "points": [
+    {
+      "id": "mesh",
+      "label": "Fibreglass mesh backing",
+      "detail": "The mesh is only a spacer: it holds the cable at a fixed pitch — usually 75 mm or 100 mm — so the floor heats evenly instead of in stripes. It is rolled out on the insulation board and cut (the mesh, never the cable) to turn corners.",
+      "x": 60,
+      "y": 68
+    },
+    {
+      "id": "heating-cable",
+      "label": "Heating cable",
+      "detail": "One continuous series resistance, so the mat's total wattage is fixed by its length: a 150 W/m² mat and a 200 W/m² mat look identical but are not interchangeable. The spacing you lay it at changes the heat per square metre, not the output of the cable.",
+      "x": 180,
+      "y": 52
+    },
+    {
+      "id": "factory-joint",
+      "label": "Factory joint",
+      "detail": "The transition from the heating cable to the plain mains cold tail, moulded and sealed at the factory. It is the only joint permitted in the floor, and it has to be fully embedded in the levelling compound — a joint left proud will crack the screed above it.",
+      "x": 39,
+      "y": 148
+    },
+    {
+      "id": "cold-tail",
+      "label": "Cold tail and earth braid",
+      "detail": "The unheated lead that runs up the wall to the thermostat or connection box. It carries the screen or earth braid that must be bonded at the thermostat end, because the thermostat and its RCD rely on that path to clear a cable damaged by a later fixing.",
+      "x": 22,
+      "y": 172
+    },
+    {
+      "id": "floor-probe",
+      "label": "Floor temperature probe",
+      "detail": "A thermistor in its own conduit laid between two cable runs, not touching them, so it reads the floor temperature rather than the cable's. The thermostat uses it to limit the floor surface to a safe temperature and to protect the floor covering — the probe, not the air sensor, is what stops a wood floor being cooked.",
+      "x": 176,
+      "y": 176
+    }
+  ],
+  "photo": {
+    "src": "/images/guide/heating-mat",
+    "alt": "Photorealistic electric underfloor heating mat with serpentine cable",
+    "width": 720,
+    "height": 720,
+    "points": [
+      {
+        "id": "mesh",
+        "x": 16,
+        "y": 35
+      },
+      {
+        "id": "heating-cable",
+        "x": 24,
+        "y": 55
+      },
+      {
+        "id": "cold-tail",
+        "x": 4,
+        "y": 68
+      },
+      {
+        "id": "factory-joint",
+        "x": 10,
+        "y": 71
+      }
+    ]
+  }
+}

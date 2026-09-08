@@ -1,0 +1,89 @@
+{
+  "slug": "cooker-unit",
+  "name": "Cooker Control Unit",
+  "tagline": "A 45 A switch with a 13 A socket hung off it — the isolator for the biggest load in a kitchen.",
+  "category": "Control device",
+  "terminals": [
+    "L / N supply in — from the cooker circuit's MCB",
+    "L / N out to the cooker connection unit or the appliance",
+    "Earth terminals, usually doubled up as a through connection",
+    "Socket terminals — fed from the switch on most designs"
+  ],
+  "parts": [
+    "45 A double-pole switch — isolates both conductors",
+    "Neon indicator — shows the switch is on",
+    "13 A switched socket outlet",
+    "Cable entry and clamp for 6 mm² or 10 mm² conductors",
+    "Faceplate, usually a dual-size or grid plate"
+  ],
+  "safety": "The switch is the isolator for the cooker circuit, so it has to be within reach of the appliance and clearly labelled — but it only isolates what is downstream of it. The supply terminals stay live with the switch off, and the load can exceed 40 A on a big induction hob, so the terminals must be tightened to the manufacturer's torque and re-checked after the first heat cycle.",
+  "svg": {
+    "viewBox": "0 0 240 200",
+    "body": "<g class=\"dl-part\" data-part=\"faceplate\"><rect class=\"dl-fill\" x=\"24\" y=\"20\" width=\"192\" height=\"160\" rx=\"10\"/></g><g class=\"dl-part\" data-part=\"switch\"><rect class=\"dl-metal-2\" x=\"42\" y=\"48\" width=\"66\" height=\"60\" rx=\"7\"/><rect class=\"dl-chip\" x=\"54\" y=\"56\" width=\"42\" height=\"20\" rx=\"3\"/><rect class=\"dl-chip\" x=\"54\" y=\"82\" width=\"42\" height=\"14\" rx=\"3\"/></g><g class=\"dl-part\" data-part=\"neon\"><circle class=\"dl-chip\" cx=\"64\" cy=\"132\" r=\"12\"/><text class=\"dl-text\" x=\"64\" y=\"136\" text-anchor=\"middle\">N</text></g><g class=\"dl-part\" data-part=\"socket-outlet\"><rect class=\"dl-metal-2\" x=\"134\" y=\"52\" width=\"62\" height=\"76\" rx=\"6\"/><circle class=\"dl-chip\" cx=\"165\" cy=\"72\" r=\"5\"/><rect class=\"dl-chip\" x=\"150\" y=\"98\" width=\"10\" height=\"16\" rx=\"2\"/><rect class=\"dl-chip\" x=\"170\" y=\"98\" width=\"10\" height=\"16\" rx=\"2\"/></g><g class=\"dl-part\" data-part=\"cable-entry\"><rect class=\"dl-metal-2\" x=\"96\" y=\"180\" width=\"48\" height=\"16\" rx=\"3\"/></g><text class=\"dl-text--mid\" x=\"64\" y=\"158\" text-anchor=\"middle\">COOKER</text><text class=\"dl-text--mid\" x=\"165\" y=\"140\" text-anchor=\"middle\">13 A</text>"
+  },
+  "points": [
+    {
+      "id": "faceplate",
+      "label": "Faceplate",
+      "detail": "A cooker control unit is normally a dual-size plate that covers a single-gang or a deeper dual box — and it needs the depth, because 10 mm² conductors do not bend into a 25 mm box. It is mounted between 100 mm and 1.5 m above the floor and within 2 m of the appliance it isolates.",
+      "x": 200,
+      "y": 38
+    },
+    {
+      "id": "switch",
+      "label": "45 A double-pole switch",
+      "detail": "Switches both live and neutral, which is what makes it a valid isolator for the appliance. It is rated for a resistive cooker load, so the rating is not a licence to run a 45 A shower or an EV charger from the same plate.",
+      "x": 70,
+      "y": 74
+    },
+    {
+      "id": "neon",
+      "label": "Neon indicator",
+      "detail": "Lit when the switch is on, so you can see the appliance is fed without walking around it. On some designs the neon is fed from the load side, which means a neon that stays dark with the switch on points at a lost supply rather than a failed lamp.",
+      "x": 64,
+      "y": 132
+    },
+    {
+      "id": "socket-outlet",
+      "label": "13 A socket outlet",
+      "detail": "A convenience socket on the same plate, protected by the cooker circuit's MCB and, on modern boards, its RCD. Because the cooker circuit is sized for diversity, the socket is only intended for the appliance's own small loads — ignition or a clock — not for a kettle.",
+      "x": 165,
+      "y": 88
+    },
+    {
+      "id": "cable-entry",
+      "label": "Supply and load terminals",
+      "detail": "Two sets of terminals: the supply in from the cooker circuit's protective device, and the load out to the appliance or its connection unit. Both conductors land in the same clamp on many plates, so a loose screw here drops the whole hob — and with the currents involved a loose joint heats up quickly.",
+      "x": 120,
+      "y": 188
+    }
+  ],
+  "photo": {
+    "src": "/images/guide/cooker-unit",
+    "alt": "Photorealistic cooker control unit with 45 A switch and 13 A socket",
+    "width": 720,
+    "height": 720,
+    "points": [
+      {
+        "id": "faceplate",
+        "x": 75,
+        "y": 28
+      },
+      {
+        "id": "switch",
+        "x": 29,
+        "y": 50
+      },
+      {
+        "id": "neon",
+        "x": 11,
+        "y": 50
+      },
+      {
+        "id": "socket-outlet",
+        "x": 72,
+        "y": 63
+      }
+    ]
+  }
+}
