@@ -34,6 +34,22 @@ the real content JSON, used only to settle layout and interaction before touchin
 5. Both anatomy pages restructured: specification rows → point-detail panel → meet-it-in-a-circuit
    mesh, with the safety note as a full-width band above the bottom row.
 
+**Follow-up round (same session, after review):**
+1. Breadcrumbs: `global.css` styles a bare `.bc` as a terminal card (border, shadow, top busbar) for
+   the blog, and guide pages were inheriting it. Scoped the plain row back in with
+   `.bc-wrap:has(+ .guide-hero)` so the blog is untouched.
+2. Removed the leftover `#circuit-N` progress strip under the hero, the `#slug` strip on the anatomy
+   index pages, and the hub's duplicated circuit list; the hero CTA now targets
+   `/guide/templates/#latest-features`.
+3. Hotspots moved off the index cards — `CatalogCard` takes a `hotspots` prop, opted into by the
+   detail pages only.
+4. Component chips with a matching anatomy page now render amber (`--warning-bg` / `--amber-ink`) so
+   linked and unlinked chips are distinguishable.
+5. Section pill nav: present on every guide page except the hub.
+6. Responsive rules for phone / tablet / small laptop / widescreen; verified in the built CSS.
+7. Audited the template question: the app's `GUIDED_CIRCUIT_TEMPLATES` and the guide's
+   `guided_templates` are both 18 entries with identical ids and titles — nothing is missing.
+
 **Deferred (user's call):** cutaway diagrams for the internal parts that a photo cannot show.
 
 **Verification:** `astro check` 0 errors; 153 pages build; 129 lib tests pass; structure asserted

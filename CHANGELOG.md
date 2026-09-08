@@ -34,7 +34,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (below the specification rows, above "Meet it in a circuit") instead of beneath it, and the safety
   note is a full-width band below the anatomy and above the bottom row.
 
+### Changed
+- **Hotspots belong to detail pages.** Component and tool index cards are browse tiles again — the
+  numbered markers (and their detail panel) only render where they can be used.
+- **Component chips that open an anatomy page are now amber**, so "this one has a page" reads at a
+  glance next to the plain chips.
+- **Responsive pass** across the new guide surfaces: phone (≤560px), tablet (≤760px), small laptop
+  (980–1200px) and widescreen (≥1600px) rules for the hub grid, circuit index, walkthrough columns,
+  schematic frame, tall portrait renders and the safety band.
+
+### Removed
+- The `#circuit-N` progress strip under the guide hero, the equivalent `#slug` strip on the anatomy
+  index pages, and the duplicated circuit list on the hub — the dedicated pages replace all three,
+  and the hero's "See latest features" button now points at `/guide/templates/`.
+
 ### Fixed
+- **Guide breadcrumbs were rendering as terminal cards.** `global.css` styles a bare `.bc` with a
+  border, shadow and top busbar for the blog; guide pages were inheriting it. Scoped out with
+  `.bc-wrap:has(+ .guide-hero)`, leaving the blog untouched.
 - The component CTA description shipped a literal `Set {data.name}` — a plain string attribute does
   not interpolate in Astro. Now a template literal.
 - Search indexed circuits at `/guide/#<id>`, a fragment that never resolved for a first-time visitor.

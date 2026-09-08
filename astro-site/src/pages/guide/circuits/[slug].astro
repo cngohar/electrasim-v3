@@ -79,7 +79,14 @@ const canonical = `https://electrasim.com/guide/circuits/${slug}/`;
 
     <article class="circuit-detail">
       <div class="wrap">
-        <header class="cd-head">
+        <nav class="guide-lab-nav" aria-label="Guide sections">
+          <a href="/guide/tools/"><span class="lab-icon" aria-hidden="true">🛠️</span> Hand Tools</a>
+          <a href="/guide/components/"><span class="lab-icon" aria-hidden="true">🔌</span> Components</a>
+          <a href="/guide/circuits/" aria-current="page"><span class="lab-icon" aria-hidden="true">⚡</span> Circuits</a>
+          <a href="/guide/templates/"><span class="lab-icon" aria-hidden="true">🧭</span> In the App</a>
+        </nav>
+
+                <header class="cd-head">
           <div class="step-badge">{circuit.step}</div>
           <div>
             <div class="circuit-meta-row">

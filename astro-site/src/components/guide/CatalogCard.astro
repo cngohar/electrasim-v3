@@ -38,16 +38,21 @@ interface Props {
    * guide-lab.js resolves `[data-anatomy-detail]` through this id.
    */
   detailTargetId?: string;
+  /**
+   * Show the numbered hotspots. Detail pages only: on an index the card is a
+   * browse tile, and a row of markers that do nothing but decorate is noise.
+   */
+  hotspots?: boolean;
 }
 
-const { item, href, wide = false, drawing = false, detailTargetId } = Astro.props;
+const { item, href, wide = false, drawing = false, detailTargetId, hotspots = false } = Astro.props;
 const isComponent = 'terminals' in item;
 const photo = drawing ? undefined : item.photo;
 
 /** Marker coordinates for whichever figure we render, keyed by point id. */
 const photoCoords = new Map((photo?.points ?? []).map((p) => [p.id, p]));
 const drawnPoints = photo ? item.points.filter((p) => photoCoords.has(p.id)) : item.points;
-const points = drawnPoints;
+const points = hotspots ? drawnPoints : [];
 const terminals = isComponent ? (item as ComponentAnatomy).terminals : [];
 const parts = item.parts;
 const detailTitle = item.name;
@@ -107,7 +112,11 @@ const detailHint = 'Select a marked part to read about it.';
         })}
       </div>
     </div>
-    {photo && <span class="anatomy-figure__cap">Real part — tap a marker</span>}
+    {photo && (
+      <span class="anatomy-figure__cap">
+        {hotspots ? 'Real part — tap a marker' : 'Real part'}
+      </span>
+    )}
   </div>
 
   <div class="anatomy-card__body">
@@ -133,7 +142,7 @@ const detailHint = 'Select a marked part to read about it.';
     )}
 
     {
-      !detailTargetId && (
+      hotspots && !detailTargetId && (
         <div class="dl-anatomy-detail" data-anatomy-detail>
           <h4 data-anatomy-title>{detailTitle}</h4>
           <p data-anatomy-text>{detailHint}</p>

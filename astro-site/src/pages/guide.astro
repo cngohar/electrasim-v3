@@ -6,7 +6,7 @@ import Base from '../layouts/Base.astro';
 import packageMetadata from '../../../package.json';
 import '../styles/guide.css';
 import '../styles/guide-lab.css';
-import { circuitSlug, levelClass } from '../lib/guide';
+import { circuitSlug } from '../lib/guide';
 import type { GuideCircuit } from '../types/pages';
 
 const circuits = data.circuits as GuideCircuit[];
@@ -42,18 +42,10 @@ const circuits = data.circuits as GuideCircuit[];
       description={data.hero_description}
       primaryCta={data.hero_cta_primary}
       secondaryCta={data.hero_cta_secondary}
-      circuits={circuits}
     />
 
     <div class="guide-main" data-live>
       <div class="wrap">
-        <nav class="guide-lab-nav" aria-label="Guide sections">
-          <a href="/guide/tools/"><span class="lab-icon" aria-hidden="true">🛠️</span> Hand Tools</a>
-          <a href="/guide/components/"><span class="lab-icon" aria-hidden="true">🔌</span> Components</a>
-          <a href="/guide/circuits/"><span class="lab-icon" aria-hidden="true">⚡</span> Circuits</a>
-          <a href="/guide/templates/"><span class="lab-icon" aria-hidden="true">🧭</span> In the App</a>
-        </nav>
-
         <!-- The hub is a route table, not a dump of every section: the app
              features, workflow and 18 guided templates now live at
              /guide/templates/, and each walkthrough has its own page. -->
@@ -91,31 +83,6 @@ const circuits = data.circuits as GuideCircuit[];
           </div>
         </section>
 
-        <section class="guide-section" id="circuit-walkthroughs" aria-labelledby="walkthroughs-h">
-          <div class="guide-section-head">
-            <span class="guide-kicker">Circuit walkthroughs</span>
-            <h2 id="walkthroughs-h">Eight step-by-step practice circuits</h2>
-            <p>Each walkthrough gets its own page with the wiring path, the build steps, the key insight and the safety rule.</p>
-          </div>
-          <ol class="circuit-index">
-            {circuits.map((circuit) => (
-              <li>
-                <a class="circuit-index-link" href={`/guide/circuits/${circuitSlug(circuit)}/`}>
-                  <span class="ci-step">{circuit.step}</span>
-                  <span class="ci-body">
-                    <span class="ci-title">{circuit.title}</span>
-                    <span class="ci-desc">{circuit.description}</span>
-                  </span>
-                  <span class:list={['level-pill', levelClass(circuit.level)]}>
-                    <span class="level-dot" aria-hidden="true"></span>
-                    {circuit.level}
-                  </span>
-                  <span class="ci-arrow" aria-hidden="true">→</span>
-                </a>
-              </li>
-            ))}
-          </ol>
-        </section>
         <GuideCta
           heading={data.cta_heading}
           description={data.cta_description}
@@ -175,48 +142,4 @@ const circuits = data.circuits as GuideCircuit[];
   .hub-card h3 { margin: 0.2rem 0 0; font-size: 1.05rem; }
   .hub-card p { margin: 0 0 0.4rem; font-size: 0.86rem; color: var(--text-mid); line-height: 1.55; }
 
-  .circuit-index {
-    list-style: none;
-    margin: 1.25rem 0 0.5rem;
-    padding: 0;
-    display: grid;
-    gap: 0.7rem;
-  }
-  .circuit-index-link {
-    display: grid;
-    grid-template-columns: auto 1fr auto auto;
-    align-items: center;
-    gap: 1.1rem;
-    padding: 0.9rem 1.15rem;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    background: var(--bg-card);
-    text-decoration: none;
-    color: inherit;
-    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
-  }
-  .circuit-index-link:hover,
-  .circuit-index-link:focus-visible {
-    border-color: var(--border-bright);
-    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.1);
-    transform: translateY(-2px);
-  }
-  .ci-step {
-    font-family: var(--font-mono);
-    font-size: 0.76rem;
-    font-weight: 800;
-    color: var(--blue-d);
-    background: var(--blue-l);
-    border: 1px solid var(--border-bright);
-    border-radius: 8px;
-    padding: 0.3rem 0.55rem;
-  }
-  .ci-body { display: grid; gap: 0.2rem; min-width: 0; }
-  .ci-title { font-weight: 700; }
-  .ci-desc { font-size: 0.85rem; color: var(--text-mid); line-height: 1.5; }
-  .ci-arrow { color: var(--blue); font-weight: 700; }
-  @media (max-width: 640px) {
-    .circuit-index-link { grid-template-columns: auto 1fr; row-gap: 0.6rem; }
-    .ci-arrow { display: none; }
-  }
 </style>

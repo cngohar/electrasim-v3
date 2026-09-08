@@ -605,8 +605,33 @@
   display: flex;
   gap: .4rem;
   align-items: center;
+  flex-wrap: wrap;
   font-size: .8rem;
   color: var(--text-dim);
+}
+/* global.css styles bare `.bc` as a terminal card (border, shadow and a 2px
+   top busbar) — intentional on blog pages. Guide breadcrumbs are a plain text
+   row on the .bc-wrap bar, so the card treatment is stripped back off, scoped
+   to the guide's markup (`.bc-wrap` always precedes `.guide-hero`). */
+.bc-wrap:has(+ .guide-hero) .bc {
+  position: static;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+}
+.bc-wrap:has(+ .guide-hero) .bc::before,
+.bc-wrap:has(+ .guide-hero) .bc::after {
+  display: none;
+}
+.bc-wrap:has(+ .guide-hero) .bc [aria-current="page"] {
+  color: var(--text-mid);
+  font-weight: 600;
+}
+.bc-wrap:has(+ .guide-hero) .bc span[aria-hidden] {
+  color: var(--text-dim);
+  opacity: 0.8;
 }
 .bc a {
   color: var(--text-mid);
@@ -824,6 +849,32 @@
   border: 1px solid var(--border);
   background: var(--bg-2);
   color: var(--text-mid);
+  padding: 0.32rem 0.7rem;
+}
+
+/* A chip whose component has an anatomy page is a link, and reads as one:
+   amber fill + ↗ arrow, so "you can open this" is obvious next to the plain
+   chips. Amber keeps the safety palette off it by staying a fill, not a rule. */
+a.comp-chip,
+.comp-chip--link {
+  background: var(--warning-bg);
+  border-color: var(--warning-border);
+  color: var(--amber-ink);
+  font-weight: 700;
+  text-decoration: none;
+  transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
+}
+a.comp-chip:hover,
+a.comp-chip:focus-visible,
+.comp-chip--link:hover,
+.comp-chip--link:focus-visible {
+  border-color: var(--amber);
+  box-shadow: 0 4px 12px rgba(255, 184, 0, 0.18);
+  transform: translateY(-1px);
+}
+.comp-chip .chip-arrow {
+  font-size: 0.85em;
+  opacity: 0.75;
 }
 
 /* Diagram gets a drawing frame with corner ticks */
@@ -1045,4 +1096,95 @@
   font-size: 0.92rem;
   line-height: 1.7;
   max-width: 78ch;
+}
+
+/* ── Responsive: phones, tablets, small laptops, widescreen ──────────────── */
+/* Tablet and below: the mesh rows and schematic get room to breathe. */
+@media (max-width: 980px) {
+  .used-in li a {
+    grid-template-columns: auto 1fr;
+    row-gap: 0.4rem;
+  }
+  .used-in .level-pill {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+@media (max-width: 760px) {
+  .schem-box {
+    padding: 0.5rem 0.6rem 0.3rem;
+  }
+  .schem-box .schem {
+    min-width: 420px;
+  }
+  .schem-legend {
+    gap: 0.7rem;
+    font-size: 0.64rem;
+  }
+  .diagram-box pre {
+    font-size: 0.72rem;
+  }
+  .safety-band {
+    padding: 0.95rem 1.1rem;
+  }
+  .cd-prev-next {
+    grid-template-columns: 1fr;
+  }
+  .cd-prev-next .pn-next {
+    text-align: left;
+  }
+}
+
+@media (max-width: 560px) {
+  .circuit-index-link {
+    grid-template-columns: auto 1fr;
+    row-gap: 0.55rem;
+    padding: 0.85rem 0.95rem;
+  }
+  .circuit-index-link .level-pill {
+    grid-column: 2;
+    justify-self: start;
+  }
+  .ci-arrow {
+    display: none;
+  }
+  /* Tall renders (the MCB is 1:2.7 portrait) must not dominate a phone. */
+  .anatomy-photo {
+    max-height: 60vh;
+    width: auto;
+    margin-inline: auto;
+  }
+  .anatomy-card--wide .anatomy-photo {
+    max-height: 55vh;
+  }
+  .hub-grid {
+    grid-template-columns: 1fr;
+  }
+  .safety-band {
+    border-left-width: 3px;
+    padding: 0.85rem 1rem;
+  }
+}
+
+/* Small laptops: the two-column walkthrough needs a little less gap so both
+   columns stay readable between 980px and 1200px. */
+@media (min-width: 980px) and (max-width: 1200px) {
+  .card-body {
+    gap: 1.5rem;
+  }
+  .guide-detail-grid {
+    gap: 1.5rem;
+  }
+}
+
+/* Widescreen: stop the grids stretching into unreadable single rows. */
+@media (min-width: 1600px) {
+  .hub-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .latest-grid,
+  .template-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }

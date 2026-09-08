@@ -33,30 +33,25 @@ const canonical = 'https://electrasim.com/guide/tools/';
       <div class="wrap">
         <span class="label">Hand Tools &amp; Accessories</span>
         <h1>Know the tool before you touch the wire.</h1>
-        <p>Anatomy guides for electrician's hand tools — click the hotspots on each drawing to learn what each part does, how to use it safely, and which job it's built for.</p>
+        <p>Anatomy guides for electrician's hand tools — open a tool to see its labelled parts, how to use it safely, and which job it's built for.</p>
       </div>
     </div>
 
-    <div class="progress-strip">
-      <div class="wrap">
-        <div class="progress-inner">
-          {tools.map((tool) => (
-            <a class="prog-item" href={`#${tool.data.slug}`} title={tool.data.name}>
-              <div class="prog-num">✦</div>
-              <span class="prog-label">{tool.data.name.split(' ').slice(0, 2).join(' ')}</span>
-            </a>
-          ))}
-        </div>
-      </div>
-    </div>
 
     <div class="guide-main" data-live>
       <div class="wrap">
+        <nav class="guide-lab-nav" aria-label="Guide sections">
+          <a href="/guide/tools/" aria-current="page"><span class="lab-icon" aria-hidden="true">🛠️</span> Hand Tools</a>
+          <a href="/guide/components/"><span class="lab-icon" aria-hidden="true">🔌</span> Components</a>
+          <a href="/guide/circuits/"><span class="lab-icon" aria-hidden="true">⚡</span> Circuits</a>
+          <a href="/guide/templates/"><span class="lab-icon" aria-hidden="true">🧭</span> In the App</a>
+        </nav>
+
         <section class="guide-section" id="tools" aria-labelledby="tools-h">
           <div class="guide-section-head">
             <span class="guide-kicker">The toolbox</span>
             <h2 id="tools-h">Start here: work through {featured} core hand tools</h2>
-            <p>Every drawing is interactive — hover or tap a numbered marker to reveal what that part is for.</p>
+            <p>Open any tool to explore its labelled anatomy — tap a numbered marker on the render to reveal what that part is for.</p>
           </div>
           <div class="dl-lab-grid">
             {sorted.map((tool) => (

@@ -1,5 +1,4 @@
 ---
-import type { GuideCircuit } from '../../types/pages';
 import EmojiIcon from '../EmojiIcon.astro';
 
 interface Props {
@@ -7,10 +6,9 @@ interface Props {
   description: string;
   primaryCta: string;
   secondaryCta: string;
-  circuits: GuideCircuit[];
 }
 
-const { heading, description, primaryCta, secondaryCta, circuits } = Astro.props;
+const { heading, description, primaryCta, secondaryCta } = Astro.props;
 const headingLines = heading.split('\n');
 ---
 
@@ -31,23 +29,7 @@ const headingLines = heading.split('\n');
     <p>{description}</p>
     <div class="cta-row">
       <a href="/app/" class="btn-primary"><EmojiIcon name="bolt" /> {primaryCta}</a>
-      <a href="#latest-features" class="btn-outline">{secondaryCta}</a>
-    </div>
-  </div>
-</div>
-
-<div class="progress-strip">
-  <div class="wrap">
-    <div class="progress-inner">
-      {circuits.map((circuit, index) => (
-        <>
-          <a href={`#${circuit.id}`} class="prog-item" title={circuit.title}>
-            <div class="prog-num">{circuit.step}</div>
-            <span class="prog-label">{circuit.title.split(' ').slice(0, 2).join(' ')}</span>
-          </a>
-          {index < circuits.length - 1 && <div class="prog-sep" aria-hidden="true"></div>}
-        </>
-      ))}
+      <a href="/guide/templates/#latest-features" class="btn-outline">{secondaryCta}</a>
     </div>
   </div>
 </div>

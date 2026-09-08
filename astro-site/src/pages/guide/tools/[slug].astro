@@ -53,8 +53,15 @@ const prev = all[(index - 1 + all.length) % all.length];
 
     <div class="guide-main" data-live>
       <div class="wrap">
+        <nav class="guide-lab-nav" aria-label="Guide sections">
+          <a href="/guide/tools/" aria-current="page"><span class="lab-icon" aria-hidden="true">🛠️</span> Hand Tools</a>
+          <a href="/guide/components/"><span class="lab-icon" aria-hidden="true">🔌</span> Components</a>
+          <a href="/guide/circuits/"><span class="lab-icon" aria-hidden="true">⚡</span> Circuits</a>
+          <a href="/guide/templates/"><span class="lab-icon" aria-hidden="true">🧭</span> In the App</a>
+        </nav>
+
         <div class="guide-detail-grid">
-          <CatalogCard item={data} href={`/guide/tools/${data.slug}/`} wide detailTargetId="anatomy-detail" />
+          <CatalogCard item={data} href={`/guide/tools/${data.slug}/`} wide hotspots detailTargetId="anatomy-detail" />
 
           <aside class="dl-spec" aria-label={`${data.name} specification`}>
             <div class="dl-spec__row">

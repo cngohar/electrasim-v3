@@ -36,26 +36,21 @@ const canonical = 'https://electrasim.com/guide/components/';
       </div>
     </div>
 
-    <div class="progress-strip">
-      <div class="wrap">
-        <div class="progress-inner">
-          {sorted.map((component) => (
-            <a class="prog-item" href={`#${component.data.slug}`} title={component.data.name}>
-              <div class="prog-num">◆</div>
-              <span class="prog-label">{component.data.name}</span>
-            </a>
-          ))}
-        </div>
-      </div>
-    </div>
 
     <div class="guide-main" data-live>
       <div class="wrap">
+        <nav class="guide-lab-nav" aria-label="Guide sections">
+          <a href="/guide/tools/"><span class="lab-icon" aria-hidden="true">🛠️</span> Hand Tools</a>
+          <a href="/guide/components/" aria-current="page"><span class="lab-icon" aria-hidden="true">🔌</span> Components</a>
+          <a href="/guide/circuits/"><span class="lab-icon" aria-hidden="true">⚡</span> Circuits</a>
+          <a href="/guide/templates/"><span class="lab-icon" aria-hidden="true">🧭</span> In the App</a>
+        </nav>
+
         <section class="guide-section" id="components" aria-labelledby="components-h">
           <div class="guide-section-head">
             <span class="guide-kicker">The parts bin</span>
             <h2 id="components-h">Four components you'll meet in every guide</h2>
-            <p>These are the building blocks of the circuit walkthroughs below — tap a marker on any drawing to find out what that terminal or trip does.</p>
+            <p>These are the building blocks of every circuit walkthrough — open a part to see its labelled anatomy, terminals and the rule that keeps it safe.</p>
           </div>
           <div class="dl-lab-grid">
             {sorted.map((component) => (
