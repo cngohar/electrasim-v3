@@ -53,6 +53,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   string came from the package version and stayed identical across releases, leaving returning
   visitors on a stale script.
 
+- **Four more circuit walkthroughs.** Protected lamp, timer-controlled bell, RCBO-protected socket
+  and contactor motor starter — each with a hand-authored schematic, component chips that open the
+  matching anatomy page, a build sequence, a key insight and a deep link into the in-app template.
+  The guide now carries 12 walkthroughs covering 10 of the 18 guided templates, and the switchless
+  protected lamp is the new Lesson 01 so the sequence runs from a bare two-rail circuit up to the
+  consumer unit.
+
 ### Changed
 - **The guide hub is a route table, not a dump.** Four section cards plus a circuit index replace the
   inlined feature, workflow, template and circuit content; legacy `/guide/#circuit-N` links redirect
@@ -99,6 +106,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   its stage pushed the overlay's negative offsets outside the card's `overflow: hidden` (`max-width:
   100%` on `.anatomy-photo`), and the script URL was version-stamped with the package number so
   browsers kept serving the old file. All three fixed.
+- **The single-lamp walkthrough opened the wrong template.** Its steps place a switch, but the link
+  pointed at `simple-lamp`, which has none. It now opens `one-way-light-switch`, and the switchless
+  `simple-lamp` template has its own walkthrough.
 - **Detail pages linked to themselves.** The catalog card's "Open anatomy →" action now only renders
   when a different URL is passed, so component and tool detail pages are no longer their own CTA.
 - The component CTA description shipped a literal `Set {data.name}` — a plain string attribute does

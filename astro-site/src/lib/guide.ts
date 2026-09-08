@@ -25,6 +25,10 @@ const CIRCUIT_SLUGS: Record<string, string> = {
   'circuit-6': 'dimmable-lighting',
   'circuit-7': 'doorbell-circuit',
   'circuit-8': 'consumer-unit-panel',
+  'circuit-9': 'protected-lamp',
+  'circuit-10': 'timer-bell',
+  'circuit-11': 'rcbo-socket',
+  'circuit-12': 'contactor-motor-starter',
 };
 
 export function circuitSlug(circuit: Pick<GuideCircuit, 'id' | 'title'>): string {
@@ -394,6 +398,101 @@ export const CIRCUIT_SCHEMATICS: Record<string, string> = {
   ${flow('M600,260 H700 V440')}
   ${flow('M572,370 H700 V440')}
 </svg>`,
+  'circuit-9': `
+<svg viewBox="0 0 560 300" role="img" aria-label="Schematic: live runs from the supply through the MCB to the lamp, with the neutral returning to the supply" class="schem">
+  <style>${SCHEMATIC_STYLE}</style>
+  <circle class="term term-l" cx="60" cy="90" r="9"/><text class="lblw lbl-l" x="38" y="76">L</text>
+  <circle class="term term-n" cx="60" cy="230" r="9"/><text class="lblw lbl-n" x="36" y="252">N</text>
+  ${wire('M69,90 H130', 'wl')}
+  ${devBox(130, 74, 60, 32, 'MCB', 64)}
+  ${wire('M190,90 H314', 'wl')}
+  ${bulb(340, 90)}
+  <text class="lbl" x="340" y="152" text-anchor="middle">LAMP</text>
+  ${wire('M366,90 H480 V230 H69', 'wn')}
+  ${flow('M69,90 H314')}
+  ${flow('M366,90 H480 V230 H69')}
+</svg>`,
+
+  'circuit-10': `
+<svg viewBox="0 0 640 330" role="img" aria-label="Schematic: live feeds a timer switch through the MCB, and the switched live feeds a bell that returns to neutral" class="schem">
+  <style>${SCHEMATIC_STYLE}</style>
+  <circle class="term term-l" cx="60" cy="100" r="9"/><text class="lblw lbl-l" x="38" y="86">L</text>
+  <circle class="term term-n" cx="60" cy="260" r="9"/><text class="lblw lbl-n" x="36" y="282">N</text>
+  ${wire('M69,100 H130', 'wl')}
+  ${devBox(130, 84, 60, 32, 'MCB', 74)}
+  ${wire('M190,100 H260', 'wl')}
+  <rect class="dev" x="260" y="72" width="100" height="56" rx="6"/>
+  ${clock(288, 100)}
+  <text class="lblw" x="318" y="88">TIMER</text>
+  ${wire('M360,100 H404', 'wl')}
+  ${bell(432, 100)}
+  <text class="lbl" x="432" y="150" text-anchor="middle">BELL</text>
+  ${wire('M460,100 H580 V260 H69', 'wn')}
+  ${flow('M69,100 H260')}
+  ${flow('M360,100 H404')}
+  ${flow('M460,100 H580 V260 H69')}
+</svg>`,
+
+  'circuit-11': `
+<svg viewBox="0 0 780 420" role="img" aria-label="Schematic: live and neutral pass through the RCBO before reaching the socket, the earth conductor runs straight to the socket earth terminal, and a test lamp stands in for a plugged-in appliance" class="schem">
+  <style>${SCHEMATIC_STYLE}</style>
+  <circle class="term term-l" cx="55" cy="80" r="9"/><text class="lblw lbl-l" x="33" y="66">L</text>
+  <circle class="term term-n" cx="55" cy="240" r="9"/><text class="lblw lbl-n" x="31" y="262">N</text>
+  <circle class="term term-e" cx="55" cy="350" r="9"/><text class="lblw lbl-e" x="31" y="372">E</text>
+  ${wire('M64,80 H150', 'wl')}
+  ${wire('M64,240 H150', 'wn')}
+  ${wire('M64,350 H470', 'we')}
+  <rect class="dev" x="150" y="50" width="120" height="230" rx="8"/>
+  <text class="lblw" x="210" y="72" text-anchor="middle">RCBO</text>
+  <circle class="term" cx="210" cy="122" r="11"/><text class="lbl" x="210" y="126" text-anchor="middle">T</text>
+  <circle class="dot" cx="150" cy="80" r="4.5"/><circle class="dot" cx="270" cy="80" r="4.5"/>
+  <circle class="dot" cx="150" cy="240" r="4.5"/><circle class="dot" cx="270" cy="240" r="4.5"/>
+  ${wire('M270,80 H470', 'wl')}
+  ${wire('M270,240 H470', 'wn')}
+  <rect class="dev" x="470" y="56" width="150" height="320" rx="8"/>
+  <circle class="dot" cx="470" cy="80" r="4.5"/><circle class="dot" cx="470" cy="240" r="4.5"/><circle class="dot" cx="470" cy="350" r="4.5"/>
+  <line class="sym" x1="470" y1="80" x2="500" y2="80"/>
+  <line class="sym" x1="470" y1="240" x2="500" y2="240"/>
+  <line class="sym" x1="470" y1="350" x2="500" y2="350"/>
+  ${socketFace(555, 200)}
+  <text class="lblw" x="555" y="120" text-anchor="middle">SOCKET</text>
+  <text class="lbl" x="500" y="72">L</text><text class="lbl" x="500" y="232">N</text><text class="lbl lbl-e" x="500" y="342">E</text>
+  ${wire('M620,80 H660 V160 H674', 'wl')}
+  ${wire('M620,240 H745 V160 H726', 'wn')}
+  ${bulb(700, 160)}
+  <text class="lbl" x="700" y="120" text-anchor="middle">TEST LAMP</text>
+  ${flow('M64,80 H470')}
+  ${flow('M470,240 H64')}
+  ${flow('M620,80 H660 V160 H674')}
+  ${flow('M620,240 H745 V160 H726')}
+</svg>`,
+
+  'circuit-12': `
+<svg viewBox="0 0 700 360" role="img" aria-label="Schematic: live reaches the contactor through the MCB, the contactor switches both live and neutral through to the motor, and the neutral returns to the supply" class="schem">
+  <style>${SCHEMATIC_STYLE}</style>
+  <circle class="term term-l" cx="60" cy="90" r="9"/><text class="lblw lbl-l" x="38" y="76">L</text>
+  <circle class="term term-n" cx="60" cy="280" r="9"/><text class="lblw lbl-n" x="36" y="302">N</text>
+  ${wire('M69,90 H130', 'wl')}
+  ${devBox(130, 74, 60, 32, 'MCB', 64)}
+  ${wire('M190,90 H250 V110 H300', 'wl')}
+  <rect class="dev" x="300" y="70" width="150" height="170" rx="8"/>
+  <text class="lblw" x="375" y="52" text-anchor="middle">CONTACTOR</text>
+  <circle class="dot" cx="300" cy="110" r="4.5"/><circle class="dot" cx="450" cy="110" r="4.5"/>
+  <circle class="dot" cx="300" cy="200" r="4.5"/><circle class="dot" cx="450" cy="200" r="4.5"/>
+  <line class="sym" x1="300" y1="110" x2="444" y2="110"/>
+  <line class="sym" x1="300" y1="200" x2="444" y2="200"/>
+  <rect class="dev" x="330" y="140" width="90" height="40" rx="4"/>
+  <text class="lbl" x="375" y="166" text-anchor="middle">COIL</text>
+  ${wire('M69,280 H240 V200 H300', 'wn')}
+  ${wire('M450,110 H534', 'wl')}
+  ${wire('M450,200 H620 V110 H586', 'wn')}
+  ${motor(560, 110)}
+  <text class="lbl" x="560" y="170" text-anchor="middle">MOTOR</text>
+  ${flow('M69,90 H250 V110 H300')}
+  ${flow('M450,110 H534')}
+  ${flow('M586,110 H620 V200 H450')}
+  ${flow('M300,200 H240 V280 H69')}
+</svg>`,
 };
 
 /**
@@ -408,6 +507,10 @@ const CIRCUIT_SAFETY: Record<string, string> = {
     'Two-way switching must interrupt the live conductor, never neutral. A switch wired on neutral leaves the lampholder live even when the light is off.',
   'circuit-8':
     'A consumer unit carries live busbar and main-switch terminals even with every breaker off. Only a competent person should remove a cover, and the supply must be isolated at the cut-out first.',
+  'circuit-11':
+    'An RCBO only protects if its earth reference is intact. Confirm it trips from its test button after installation, and never route the circuit protective conductor through the device or through a switch.',
+  'circuit-12':
+    'Motor circuits draw a heavy starting surge and store energy in their windings. Size protection for the surge, provide a lockable local isolator, and treat the terminals as live until the supply is isolated and proved dead.',
 };
 
 export const SAFETY_DEFAULT =

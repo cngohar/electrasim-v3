@@ -153,8 +153,27 @@
   ],
   "circuits": [
     {
-      "id": "circuit-1",
+      "id": "circuit-9",
       "step": "01",
+      "title": "Protected Lamp Circuit",
+      "level": "Beginner",
+      "description": "The shortest complete circuit here: a supply, one protective device and a lamp, with nothing to switch it. Build this first — every other walkthrough is this path with something added.",
+      "components": ["Live (L)", "Neutral (N)", "MCB", "Bulb (E27)"],
+      "diagram": "Live → MCB → Bulb → Neutral",
+      "steps": [
+        "Place a Live (L) terminal and a Neutral (N) terminal on the canvas.",
+        "Place an MCB to the right of the Live terminal.",
+        "Place a Bulb (E27) to the right of the MCB.",
+        "Wire: Live → MCB → Bulb → Neutral.",
+        "Press Run, then select the bulb and read its voltage and current in the Inspector.",
+        "Toggle the MCB off and run again — the lamp goes dark because the live feed is gone, not because the neutral moved."
+      ],
+      "insight": "A lamp needs both rails: a live feed and a neutral return. The MCB sits in the live conductor only, so opening it removes the feed while the neutral path stays connected back to the supply.",
+      "app_template": "simple-lamp"
+    },
+    {
+      "id": "circuit-1",
+      "step": "02",
       "title": "Single-Lamp Switched Circuit",
       "level": "Beginner",
       "description": "The most fundamental circuit in household wiring. A switch in series controls one bulb. This is the exact wiring behind every ceiling light.",
@@ -169,11 +188,11 @@
         "Press Run. Toggle the Switch to turn the bulb on and off."
       ],
       "insight": "The MCB is always wired in series — it protects the entire circuit. The switch interrupts only the Live wire, keeping Neutral permanently connected back to supply.",
-      "app_template": "simple-lamp"
+      "app_template": "one-way-light-switch"
     },
     {
       "id": "circuit-2",
-      "step": "02",
+      "step": "03",
       "title": "Two-Bulb Parallel Circuit",
       "level": "Beginner",
       "description": "Wire two bulbs in parallel so each receives full voltage independently. This is how all household lighting and sockets are wired — one bulb failing or being removed has no effect on the other.",
@@ -199,7 +218,7 @@
     },
     {
       "id": "circuit-3",
-      "step": "03",
+      "step": "04",
       "title": "Two-Way Switching (Staircase Circuit)",
       "level": "Intermediate",
       "description": "Control one light from two separate locations — the classic staircase or hallway circuit. Switch the light on upstairs, switch it off downstairs, and vice versa.",
@@ -220,7 +239,7 @@
     },
     {
       "id": "circuit-4",
-      "step": "04",
+      "step": "05",
       "title": "RCD-Protected Socket Circuit",
       "level": "Intermediate",
       "description": "Add earth fault protection to a socket outlet using an RCD. This is mandatory in bathrooms, kitchens, and outdoor circuits in modern installations.",
@@ -241,7 +260,7 @@
     },
     {
       "id": "circuit-5",
-      "step": "05",
+      "step": "06",
       "title": "Timed Outdoor Lighting",
       "level": "Intermediate",
       "description": "Automate an outdoor light to turn on and off at set times using a Timer Switch — no manual intervention required once programmed.",
@@ -259,7 +278,7 @@
     },
     {
       "id": "circuit-6",
-      "step": "06",
+      "step": "07",
       "title": "Dimmable Lighting Circuit",
       "level": "Intermediate",
       "description": "Add a Dimmer Switch to a lighting circuit for variable brightness control. Use this for living rooms, dining rooms, and any space where ambience matters.",
@@ -275,7 +294,7 @@
     },
     {
       "id": "circuit-7",
-      "step": "07",
+      "step": "08",
       "title": "Doorbell Circuit",
       "level": "Beginner",
       "description": "Build the classic doorbell: a Push Button (momentary switch) in series with a Bell/Buzzer. The bell sounds only while the button is held — exactly like a real doorbell.",
@@ -292,8 +311,73 @@
       "app_template": "push-button-doorbell"
     },
     {
+      "id": "circuit-10",
+      "step": "09",
+      "title": "Timer-Controlled Bell",
+      "level": "Beginner",
+      "description": "A bell or buzzer on a timed contact. The timer switch is an ordinary switch driven by a clock, which is why the bell sounds for a set period and then stops on its own.",
+      "components": ["Live (L)", "Neutral (N)", "MCB", "Timer Switch", "Bell"],
+      "diagram": "Live → MCB → Timer Switch → Bell → Neutral",
+      "steps": [
+        "Place a Live (L) terminal and a Neutral (N) terminal on the canvas.",
+        "Place an MCB on the live side, then a Timer Switch to its right.",
+        "Place a Bell as the load.",
+        "Wire: Live → MCB → Timer Switch → Bell → Neutral.",
+        "Press Run, then toggle the timer switch to stand in for the timed contact closing and opening.",
+        "Select the timer in the Inspector to compare its weekly, staircase and countdown variants."
+      ],
+      "insight": "A timer switch is a switch with a clock attached: it closes the live conductor for a set interval, then opens it. A bell is an intermittent load, so the timer is what stops it being left energised.",
+      "app_template": "timer-bell"
+    },
+    {
+      "id": "circuit-11",
+      "step": "10",
+      "title": "RCBO-Protected Socket",
+      "level": "Intermediate",
+      "description": "A socket outlet fed through an RCBO, with its protective earth run straight from the earth terminal and a lamp standing in for a plugged-in appliance. One device covers both overcurrent and earth-leakage protection for the whole circuit.",
+      "components": [
+        "Live (L)",
+        "Neutral (N)",
+        "Earth (E)",
+        "RCBO (RCD + overcurrent)",
+        "Socket (3-pin)",
+        "Bulb (test load)"
+      ],
+      "diagram": "Live + Neutral → RCBO → Socket → Bulb (test load)\nEarth → Socket (E)",
+      "steps": [
+        "Place Live (L), Neutral (N) and Earth (E) terminals down the left of the canvas.",
+        "Place an RCBO between the supply and the socket.",
+        "Wire Live and Neutral into the RCBO at L-in and N-in.",
+        "Take L-out and N-out from the RCBO to the socket's L and N terminals.",
+        "Run Earth straight to the socket's E terminal — it must not pass through the RCBO.",
+        "Feed a test lamp from the socket's Live and Neutral, then press Run.",
+        "Open the RCBO: both outgoing conductors are interrupted while Earth stays connected."
+      ],
+      "insight": "An RCBO breaks live and neutral together, so an open device leaves the socket dead on both rails. Earth never passes through it — a protective conductor that can be switched is not a protective conductor.",
+      "app_template": "rcbo-protected-socket"
+    },
+    {
+      "id": "circuit-12",
+      "step": "11",
+      "title": "Contactor Motor Starter",
+      "level": "Intermediate",
+      "description": "A motor branch switched by a contactor. The MCB protects the cable, the contactor does the switching, and it breaks live and neutral together so the motor is isolated when the coil drops out.",
+      "components": ["Live (L)", "Neutral (N)", "MCB", "Contactor", "Motor"],
+      "diagram": "Live → MCB → Contactor → Motor → Neutral",
+      "steps": [
+        "Place a Live (L) terminal and a Neutral (N) terminal on the canvas.",
+        "Place an MCB on the live conductor to protect the cable.",
+        "Place a Contactor after the MCB, then a Motor as the load.",
+        "Wire Live → MCB → Contactor, and Neutral → Contactor.",
+        "Take the contactor's switched live and switched neutral through to the motor.",
+        "Press Run, then toggle the contactor or the MCB — either one stops the motor."
+      ],
+      "insight": "Protection and switching are separate jobs: the MCB clears overcurrent while the contactor handles the repeated making and breaking of an inductive load. Switching both conductors means the motor is never left sitting on a live rail when the contactor drops out.",
+      "app_template": "contactor-motor"
+    },
+    {
       "id": "circuit-8",
-      "step": "08",
+      "step": "12",
       "title": "Full Consumer Unit (3-Circuit Panel)",
       "level": "Advanced",
       "description": "Build a complete home breaker panel using a Distribution Board. Three independent circuits — lighting, sockets, and a motor — each protected by their own MCB.",

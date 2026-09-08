@@ -117,6 +117,24 @@ list but stay off the photo, matching the four existing components.
    chip instead of silently omitting the link. Writing the remaining 12 walkthroughs is left as the
    user's call.
 
+**Follow-up round 5 (same session — closing the app/guide coverage gap):** the two collections
+overlap but are not the same thing (18 app templates, 8 written walkthroughs, 6 linked; 2 circuits
+guide-only). The templates page now says so and chips the 12 app-only cards. On the user's call, the
+four beginner/intermediate app-only templates got walkthroughs of their own:
+1. **Protected Lamp** (`simple-lamp`, new Lesson 01) — no switch, so the two-rail path is the only
+   lesson. Also fixes a real mismatch: circuit-1's steps place a switch but it pointed at
+   `simple-lamp`, which has none; circuit-1 now opens `one-way-light-switch`.
+2. **Timer-Controlled Bell** (`timer-bell`, 09) — timer block + bell symbol, next to the doorbell
+   walkthrough.
+3. **RCBO-Protected Socket** (`rcbo-protected-socket`, 10) — RCBO device box with a test button,
+   earth bypassing the device, and a test lamp standing in for a plugged-in appliance.
+4. **Contactor Motor Starter** (`contactor-motor`, 11) — contactor with a coil, switching live and
+   neutral together so the motor is isolated when it drops out.
+Schematic work: four new diagrams built from the existing symbol builders (no new primitives except
+a contactor drawn as a device box with a coil), each pinned by the 8 schematic assertions — no
+dangling conductor ends, flow on the conductors, no label on a wire or another label, nothing
+outside the frame. `guide.test.ts` is at 139 assertions; 166 pages build.
+
 **Verification (round 4):** `astro check` 0 errors / 0 warnings / 9 hints; **162 pages**; **240 lib
 tests**; every detail page asserted in jsdom against the built HTML (motor/board/bulb/switch 4–5
 markers, tools 4 markers, 0 self-links, script tag carries a content hash

@@ -338,6 +338,12 @@ describe('component anatomy library', () => {
     expect(slugsFor('circuit-8')).toEqual(
       expect.arrayContaining(['distribution-board', 'motor', 'switch', 'mcb']),
     );
+    // The four walkthroughs added for the app-only guided templates.
+    expect(slugsFor('circuit-9')).toEqual(expect.arrayContaining(['mcb', 'bulb']));
+    expect(slugsFor('circuit-10')).toEqual(expect.arrayContaining(['timer-switch', 'bell']));
+    expect(slugsFor('circuit-10')).not.toContain('switch');
+    expect(slugsFor('circuit-11')).toEqual(expect.arrayContaining(['rcd', 'socket', 'bulb']));
+    expect(slugsFor('circuit-12')).toEqual(expect.arrayContaining(['motor', 'mcb']));
   });
 
   it('gives every page a way back into the circuits', () => {
