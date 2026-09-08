@@ -3,8 +3,8 @@ import { getCollection } from 'astro:content';
 import packageMetadata from '../../../../../package.json';
 import EmojiIcon from '../../../components/EmojiIcon.astro';
 import GuideCta from '../../../components/guide/GuideCta.astro';
-import Base from '../../../layouts/Base.astro';
 import data from '../../../content/pages/guide.json';
+import Base from '../../../layouts/Base.astro';
 import {
   CIRCUIT_SCHEMATICS,
   anatomiesForCircuit,
@@ -35,6 +35,11 @@ const slug = circuitSlug(circuit);
 
 const spokenPath = diagramLabel(circuit.diagram);
 const schematic = CIRCUIT_SCHEMATICS[circuit.id];
+/** Legend keys follow the conductors a given schematic actually draws. */
+const schematicUses = {
+  earth: !!schematic && schematic.includes('w we'),
+  strapper: !!schematic && schematic.includes('class="w"'),
+};
 
 /* Component chips link to the anatomy page that explains them — the
    circuit → anatomy half of the cross-link mesh. */
@@ -128,7 +133,8 @@ const canonical = `https://electrasim.com/guide/circuits/${slug}/`;
                   <figcaption class="schem-legend">
                     <span><i class="lg lg-live"></i> Live (line)</span>
                     <span><i class="lg lg-neutral"></i> Neutral</span>
-                    <span><i class="lg lg-sw"></i> Strapper / switch wire</span>
+                    {schematicUses.earth && <span><i class="lg lg-earth"></i> Earth (CPC)</span>}
+                    {schematicUses.strapper && <span><i class="lg lg-sw"></i> Strapper / switch wire</span>}
                     <span><i class="lg lg-flow"></i> Current flow (simulated)</span>
                   </figcaption>
                 </figure>
@@ -286,6 +292,7 @@ const canonical = `https://electrasim.com/guide/circuits/${slug}/`;
   .lg-live { background: #dc2626; }
   .lg-neutral { background: #0f172a; }
   .lg-sw { background: #b45309; }
+  .lg-earth { background: #059669; }
   .lg-flow { background: repeating-linear-gradient(90deg, #f59e0b 0 5px, transparent 5px 9px); }
 
   /* Safety band — full width, below the walkthrough, above the bottom row. */

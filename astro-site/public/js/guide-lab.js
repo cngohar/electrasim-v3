@@ -26,9 +26,13 @@ window.ElectraSim.onReady(({ onCleanup }) => {
       ? document.getElementById(card.dataset.anatomyDetailTarget)
       : card;
     const scope = detailHost || card;
-    const detail = scope.querySelector('[data-anatomy-detail]');
-    const detailTitle = scope.querySelector('[data-anatomy-title]');
-    const detailText = scope.querySelector('[data-anatomy-text]');
+    /* The target element is usually the panel itself, and querySelector only
+       walks descendants — so match the scope before searching inside it. */
+    const findIn = (selector) =>
+      scope.matches?.(selector) ? scope : scope.querySelector(selector);
+    const detail = findIn('[data-anatomy-detail]');
+    const detailTitle = findIn('[data-anatomy-title]');
+    const detailText = findIn('[data-anatomy-text]');
     if (
       !stage ||
       !figure ||
@@ -40,8 +44,9 @@ window.ElectraSim.onReady(({ onCleanup }) => {
     )
       continue;
 
-    const viewW = svg ? svg.viewBox.baseVal.width || 1 : 1;
-    const viewH = svg ? svg.viewBox.baseVal.height || 1 : 1;
+    const viewBox = svg?.viewBox ? svg.viewBox.baseVal : null;
+    const viewW = viewBox?.width || 1;
+    const viewH = viewBox?.height || 1;
 
     const positionAll = () => {
       const rect = figure.getBoundingClientRect();

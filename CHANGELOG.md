@@ -19,9 +19,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   descriptions are never duplicated. Internal parts (trip mechanisms, shutters, rear terminals) keep
   no photo coordinates and stay on the diagrammatic drawing.
 - **Circuit walkthrough pages.** `/guide/circuits/` plus eight per-circuit pages carrying the text
-  wiring path, an SVG schematic (live red, neutral black, strappers brown, with an amber current-flow
-  animation that respects `prefers-reduced-motion`), component chips that link to the matching
-  anatomy page, a full-width safety band, and prev/next navigation.
+  wiring path, a hand-authored SVG schematic, component chips that link to the matching anatomy page,
+  a full-width safety band, and prev/next navigation. Conductors follow wiring practice — live red,
+  neutral black, strappers brown, earth green — and an amber current-flow animation traces the
+  conducting path, stopping under `prefers-reduced-motion`.
+- **SVG schematics for all eight circuits.** Single-lamp, two-lamp parallel, two-way switching,
+  RCD-protected socket, timed outdoor lighting, dimmable lighting, doorbell and the three-way
+  consumer unit panel, each drawn with shared symbol builders (switch, lamp, socket face, bell,
+  motor, clock, dimmer, push button) so the set reads as one diagram family.
+- **Schematic regression tests.** Sixty-five assertions across the eight diagrams: every circuit has
+  a schematic, no conductor ends in mid-air, the animated current stays on the conductors, no label
+  is printed on a wire or on top of another label, and nothing is drawn outside the frame.
 - **"In the App" section** at `/guide/templates/`: the six feature cards, the four-step workflow and
   the 18 guided templates moved off the hub, each template cross-linking to its written walkthrough
   where one exists.
@@ -39,6 +47,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   numbered markers (and their detail panel) only render where they can be used.
 - **Component chips that open an anatomy page are now amber**, so "this one has a page" reads at a
   glance next to the plain chips.
+- **The schematic legend follows the drawing.** Earth (green) is listed only on circuits that run a
+  CPC, and strappers only where two-way switching uses them. Device designators (MCB, RCD, timer,
+  dimmer, main switch) and the two-way terminal labels (COM, L1, L2) moved clear of the conductors
+  that used to run through them.
 - **Responsive pass** across the new guide surfaces: phone (≤560px), tablet (≤760px), small laptop
   (980–1200px) and widescreen (≥1600px) rules for the hub grid, circuit index, walkthrough columns,
   schematic frame, tall portrait renders and the safety band.
@@ -52,6 +64,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Guide breadcrumbs were rendering as terminal cards.** `global.css` styles a bare `.bc` with a
   border, shadow and top busbar for the blog; guide pages were inheriting it. Scoped out with
   `.bc-wrap:has(+ .guide-hero)`, leaving the blog untouched.
+- **Anatomy hotspots vanished from the component and tool detail pages.** When a page pointed a
+  figure at the anatomy panel in the right rail, the script searched for that panel *inside* the
+  figure, found nothing, and skipped the figure entirely — so every numbered marker stayed hidden and
+  the overlay was never revealed. Panel lookup now matches the scope element itself before searching
+  inside it, and a jsdom regression test pins the external-panel case (plus a `viewBox` guard for
+  environments that do not expose it).
 - The component CTA description shipped a literal `Set {data.name}` — a plain string attribute does
   not interpolate in Astro. Now a template literal.
 - Search indexed circuits at `/guide/#<id>`, a fragment that never resolved for a first-time visitor.

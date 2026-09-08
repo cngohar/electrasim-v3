@@ -50,10 +50,32 @@ the real content JSON, used only to settle layout and interaction before touchin
 7. Audited the template question: the app's `GUIDED_CIRCUIT_TEMPLATES` and the guide's
    `guided_templates` are both 18 entries with identical ids and titles — nothing is missing.
 
+**Follow-up round 2 (same session, after re-checking the built site):**
+1. Hotspot regression — the markers had disappeared from *both* the index and the detail pages. When
+   a detail page points its figure at the side-rail panel (`data-anatomy-detail-target`), that panel
+   *is* the scope element, and `querySelector` only walks descendants: the lookup returned `null`, the
+   card was skipped wholesale, and `.anatomy-hotspots` kept `display:none`. Added a `findIn()` helper
+   that matches the scope itself before searching inside it, plus a guard for the SVG `viewBox` read.
+   Pinned by `astro-site/src/lib/guide-lab.test.ts` — reverting the fix fails the external-panel case
+   — and checked end-to-end in jsdom against the built HTML (mcb 4 markers and a populated panel,
+   wire-strippers 4 markers, components index 0).
+2. Schematics for the remaining six circuits — two-lamp parallel, RCD-protected socket, timed outdoor
+   lighting, dimmable lighting, doorbell and the three-way consumer unit panel — drawn from shared
+   symbol builders (`sw1`, `bulb`, `socketFace`, `bell`, `motor`, `clock`, `rotary`, `pushButton`) so
+   all eight diagrams read as one family rather than eight one-offs.
+3. `astro-site/src/lib/guide.test.ts` (65 assertions) checks what nobody can eyeball on every deploy:
+   every circuit has a schematic, every conductor end lands on a terminal, device, symbol or another
+   conductor, the animated current stays on the conductors, no label is printed on a wire or on top of
+   another label, and nothing falls outside the frame. It caught two real defects — the consumer-unit
+   busbar flow ran one column off the conductor, and every device designator sat on the live wire.
+4. The schematic legend now derives from the drawing: earth (green) on the RCD socket circuit,
+   strappers (brown) only where two-way switching uses them.
+
 **Deferred (user's call):** cutaway diagrams for the internal parts that a photo cannot show.
 
-**Verification:** `astro check` 0 errors; 153 pages build; 129 lib tests pass; structure asserted
-against the served HTML (panel in rail, band ordering, schematic colours, cross-link counts).
+**Verification:** `astro check` 0 errors / 0 warnings / 8 hints; 153 pages build; 182 lib tests pass
+(129 + 4 hotspot + 49 schematic); a label/conductor collision report run over all eight diagrams comes
+back clean; hotspots asserted in jsdom against the built HTML.
 
 ---
 
