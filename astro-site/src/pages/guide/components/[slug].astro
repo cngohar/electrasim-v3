@@ -1,6 +1,9 @@
 ---
 import { getCollection } from 'astro:content';
 import packageMetadata from '../../../../package.json';
+import guideData from '../../../content/pages/guide.json';
+import { circuitSlug, circuitsUsingAnatomy, levelClass } from '../../../lib/guide';
+import type { GuideCircuit } from '../../../types/pages';
 import CatalogCard from '../../../components/guide/CatalogCard.astro';
 import GuideCta from '../../../components/guide/GuideCta.astro';
 import Base from '../../../layouts/Base.astro';
@@ -18,6 +21,10 @@ export async function getStaticPaths() {
 const { item } = Astro.props;
 const { data } = item;
 const canonical = `https://electrasim.com/guide/components/${data.slug}/`;
+
+/* The anatomy → circuit half of the cross-link mesh. */
+const circuits = guideData.circuits as GuideCircuit[];
+const usedIn = circuitsUsingAnatomy(circuits, data.slug);
 
 const all = (await getCollection('guideComponents')).map((c) => c.data).sort((a, b) => a.name.localeCompare(b.name));
 const index = all.findIndex((c) => c.slug === data.slug);
@@ -53,7 +60,7 @@ const prev = all[(index - 1 + all.length) % all.length];
     <div class="guide-main" data-live>
       <div class="wrap">
         <div class="guide-detail-grid">
-          <CatalogCard item={data} href={`/guide/components/${data.slug}/`} wide />
+          <CatalogCard item={data} href={`/guide/components/${data.slug}/`} wide detailTargetId="anatomy-detail" />
 
           <aside class="dl-spec" aria-label={`${data.name} specification`}>
             <div class="dl-spec__row">
@@ -76,14 +83,41 @@ const prev = all[(index - 1 + all.length) % all.length];
                 </ul>
               </dd>
             </div>
-            {data.safety && (
-              <div class="dl-safety">
-                <span class="dl-safety__label">Safety note</span>
-                <p>{data.safety}</p>
-              </div>
-            )}
+            <!-- Point detail lives here, beside the figure, so you read the
+                 part description without scrolling away from the marker. -->
+            <div class="dl-anatomy-detail" id="anatomy-detail" data-anatomy-detail>
+              <h4 data-anatomy-title>{data.name}</h4>
+              <p data-anatomy-text>Select a numbered marker on the figure to read about that part.</p>
+            </div>
           </aside>
         </div>
+
+        {usedIn.length > 0 && (
+          <section class="used-in" aria-labelledby="used-in-h">
+            <div class="used-in-head" id="used-in-h">⚡ Meet it in a circuit</div>
+            <ul>
+              {usedIn.map((c) => (
+                <li>
+                  <a href={`/guide/circuits/${circuitSlug(c)}/`}>
+                    <span class="ui-step">{c.step}</span>
+                    <span class="ui-title">{c.title}</span>
+                    <span class:list={['level-pill', levelClass(c.level)]}>
+                      <span class="level-dot" aria-hidden="true"></span>{c.level}
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        <!-- Full-width safety band: below the anatomy, above the bottom row. -->
+        {data.safety && (
+          <div class="safety-band">
+            <span class="sn-label">⚠ Safety note</span>
+            <p>{data.safety}</p>
+          </div>
+        )}
 
         <div class="dl-browse">
           <span class="dl-browse-head">More components</span>
@@ -95,7 +129,7 @@ const prev = all[(index - 1 + all.length) % all.length];
 
         <GuideCta
           heading="Now wire it for real."
-          description="Set {data.name} into a live circuit, inject a fault, and watch the protection respond — all in your browser."
+          description={`Set ${data.name} into a live circuit, inject a fault, and watch the protection respond — all in your browser.`}
           primary="Open ElectraSim Free"
           secondary="Browse all components →"
         />

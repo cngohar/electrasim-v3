@@ -60,7 +60,7 @@ describe('Search Index Builder (buildSearchIndex)', () => {
 
     const guideCircuit = items.find((item) => item.id === 'guide-two-way-lighting');
     expect(guideCircuit).toBeDefined();
-    expect(guideCircuit?.url).toBe('/guide/#two-way-lighting');
+    expect(guideCircuit?.url).toBe('/guide/circuits/two-way-staircase-lighting-circuit/');
 
     // Check all items have required fields
     for (const item of items) {

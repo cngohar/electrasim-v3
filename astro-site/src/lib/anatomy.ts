@@ -9,6 +9,20 @@ export type AnatomyPoint = {
   y: number;
 };
 
+/**
+ * Optional photorealistic render. `points[].x/y` are PERCENTAGES of the image
+ * box (see the schema note in content.config.ts) matched to anatomy points
+ * by `id`, so labels and descriptions stay in one place.
+ */
+export type AnatomyPhoto = {
+  /** Path under /public without extension; both `.webp` and `.png` exist. */
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  points: { id: string; x: number; y: number }[];
+};
+
 export type ToolAnatomy = {
   slug: string;
   name: string;
@@ -18,6 +32,7 @@ export type ToolAnatomy = {
   safety?: string;
   svg: { viewBox: string; body: string };
   points: AnatomyPoint[];
+  photo?: AnatomyPhoto;
 };
 
 export type ComponentAnatomy = {
@@ -30,6 +45,7 @@ export type ComponentAnatomy = {
   safety?: string;
   svg: { viewBox: string; body: string };
   points: AnatomyPoint[];
+  photo?: AnatomyPhoto;
 };
 
 export type ToolEntry = CollectionEntry<'guideTools'>;

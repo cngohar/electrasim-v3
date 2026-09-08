@@ -1,24 +1,37 @@
 window.ElectraSim.onReady(({ onCleanup }) => {
   /* ── Anatomy cards ──────────────────────────────────────────────────
-     Hotspots carry viewBox coords (`data-point-v{x,y}`, `data-point-vy`).
+     Two figure modes, both positioned here rather than in markup:
+       • drawing — hotspots carry viewBox coords (`data-point-v{x,y}`), mapped
+         onto the rendered SVG's pixel box.
+       • photo   — hotspots carry PERCENT coords (`data-point-p{x,y}`) of the
+         image box, so the markers stay put at any render size.
      The CSP (`style-src 'self'`) blocks inline style attributes, so guide-lab
-     maps those coords to the rendered SVG's pixel box at runtime via CSSOM
-     and positions each button. Until then the overlay is hidden and the card
-     is a reading layout (SVG + parts list) — full content, no JS needed.
-     Selection shows the labeled detail panel and twin-highlights the
-     `data-part=<point id>` group in the drawing.                         */
+     maps those coords to pixels at runtime via CSSOM. Until then the overlay
+     is hidden and the card is a reading layout (figure + parts list) — full
+     content, no JS needed. Selection shows the labeled detail panel and twin-
+     highlights the `data-part=<point id>` group in the drawing.           */
   for (const card of document.querySelectorAll('[data-anatomy]')) {
     if (!(card instanceof HTMLElement)) continue;
     const stage = card.querySelector('.anatomy-stage');
     const svg = stage ? stage.querySelector('svg') : null;
+    const photo = stage ? stage.querySelector('.anatomy-photo') : null;
+    /* The figure the hotspots are pinned to: photo wins when both exist. */
+    const figure = photo || svg;
     const hotspots = Array.from(card.querySelectorAll('[data-point]'));
     const hotspotsHost = card.querySelector('.anatomy-hotspots');
-    const detail = card.querySelector('[data-anatomy-detail]');
-    const detailTitle = card.querySelector('[data-anatomy-title]');
-    const detailText = card.querySelector('[data-anatomy-text]');
+    /* Detail pages put the panel in the side rail (beside the figure) and point
+       the card at it with `data-anatomy-detail-target`; cards on index pages
+       keep the panel inside themselves. */
+    const detailHost = card.dataset.anatomyDetailTarget
+      ? document.getElementById(card.dataset.anatomyDetailTarget)
+      : card;
+    const scope = detailHost || card;
+    const detail = scope.querySelector('[data-anatomy-detail]');
+    const detailTitle = scope.querySelector('[data-anatomy-title]');
+    const detailText = scope.querySelector('[data-anatomy-text]');
     if (
       !stage ||
-      !svg ||
+      !figure ||
       hotspots.length === 0 ||
       !hotspotsHost ||
       !detail ||
@@ -27,29 +40,36 @@ window.ElectraSim.onReady(({ onCleanup }) => {
     )
       continue;
 
-    const viewW = svg.viewBox.baseVal.width || 1;
-    const viewH = svg.viewBox.baseVal.height || 1;
+    const viewW = svg ? svg.viewBox.baseVal.width || 1 : 1;
+    const viewH = svg ? svg.viewBox.baseVal.height || 1 : 1;
 
     const positionAll = () => {
-      const svgRect = svg.getBoundingClientRect();
+      const rect = figure.getBoundingClientRect();
       for (const btn of hotspots) {
-        const vx = Number(btn.dataset.pointVx) || 0;
-        const vy = Number(btn.dataset.pointVy) || 0;
-        btn.style.left = `${(vx / viewW) * svgRect.width}px`;
-        btn.style.top = `${(vy / viewH) * svgRect.height}px`;
+        if (photo) {
+          const px = Number(btn.dataset.pointPx);
+          const py = Number(btn.dataset.pointPy);
+          btn.style.left = `${(px / 100) * rect.width}px`;
+          btn.style.top = `${(py / 100) * rect.height}px`;
+        } else {
+          const vx = Number(btn.dataset.pointVx) || 0;
+          const vy = Number(btn.dataset.pointVy) || 0;
+          btn.style.left = `${(vx / viewW) * rect.width}px`;
+          btn.style.top = `${(vy / viewH) * rect.height}px`;
+        }
       }
       const stageRect = stage.getBoundingClientRect();
-      hotspotsHost.style.left = `${svgRect.left - stageRect.left}px`;
-      hotspotsHost.style.top = `${svgRect.top - stageRect.top}px`;
-      hotspotsHost.style.width = `${svgRect.width}px`;
-      hotspotsHost.style.height = `${svgRect.height}px`;
+      hotspotsHost.style.left = `${rect.left - stageRect.left}px`;
+      hotspotsHost.style.top = `${rect.top - stageRect.top}px`;
+      hotspotsHost.style.width = `${rect.width}px`;
+      hotspotsHost.style.height = `${rect.height}px`;
       hotspotsHost.style.display = 'block';
     };
 
     positionAll();
     if (typeof ResizeObserver === 'function') {
       const ro = new ResizeObserver(positionAll);
-      ro.observe(svg);
+      ro.observe(figure);
       ro.observe(stage);
       onCleanup(() => {
         ro.disconnect();

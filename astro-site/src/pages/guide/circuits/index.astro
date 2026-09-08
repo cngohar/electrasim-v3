@@ -1,0 +1,147 @@
+---
+import packageMetadata from '../../../../../package.json';
+import GuideCta from '../../../components/guide/GuideCta.astro';
+import Base from '../../../layouts/Base.astro';
+import { circuitSlug, levelClass } from '../../../lib/guide';
+import data from '../../../content/pages/guide.json';
+import '../../../styles/guide.css';
+import '../../../styles/guide-lab.css';
+import type { GuideCircuit } from '../../../types/pages';
+
+const circuits = data.circuits as GuideCircuit[];
+---
+
+<Base
+  title="Circuit Walkthroughs — ElectraSim Guide"
+  description="Eight guided circuit walkthroughs, from a single lamp on a one-way switch to a three-circuit consumer unit. Components, wiring path, steps and the safety rule for each."
+  canonical="https://electrasim.com/guide/circuits/"
+>
+  <main id="main-content">
+    <div class="bc-wrap">
+      <div class="wrap">
+        <nav class="bc" aria-label="Breadcrumb">
+          <a href="/">Home</a><span aria-hidden="true">›</span>
+          <a href="/guide/">Circuit Guide</a><span aria-hidden="true">›</span>
+          <span aria-current="page">Circuit Walkthroughs</span>
+        </nav>
+      </div>
+    </div>
+
+    <div class="guide-hero guide-hero--small">
+      <div class="wrap">
+        <span class="label">Circuit Walkthroughs</span>
+        <h1>Eight circuits, from one lamp to a full panel.</h1>
+        <p>
+          Each walkthrough lists the components, the wiring path, the build steps and the one thing that
+          catches people out. Component names link to their anatomy page, so you can drop into the part
+          and come straight back.
+        </p>
+      </div>
+    </div>
+
+    <div class="guide-main" data-live>
+      <div class="wrap">
+        <nav class="guide-lab-nav" aria-label="Guide sections">
+          <a href="/guide/tools/"><span class="lab-icon" aria-hidden="true">🛠️</span> Hand Tools</a>
+          <a href="/guide/components/"><span class="lab-icon" aria-hidden="true">🔌</span> Components</a>
+          <a href="/guide/circuits/" aria-current="page"><span class="lab-icon" aria-hidden="true">⚡</span> Circuits</a>
+          <a href="/guide/templates/"><span class="lab-icon" aria-hidden="true">🧭</span> In the App</a>
+        </nav>
+
+        <ol class="circuit-index">
+          {circuits.map((circuit) => (
+            <li>
+              <a class="circuit-index-link" href={`/guide/circuits/${circuitSlug(circuit)}/`}>
+                <span class="ci-step">{circuit.step}</span>
+                <span class="ci-body">
+                  <span class="ci-title">{circuit.title}</span>
+                  <span class="ci-desc">{circuit.description}</span>
+                </span>
+                <span class:list={['level-pill', levelClass(circuit.level)]}>
+                  <span class="level-dot" aria-hidden="true"></span>
+                  {circuit.level}
+                </span>
+                <span class="ci-arrow" aria-hidden="true">→</span>
+              </a>
+            </li>
+          ))}
+        </ol>
+
+        <GuideCta
+          heading="Read one, then build it."
+          description="Every walkthrough that matches a guided circuit links straight into the editor with the parts already placed."
+          primary="Open ElectraSim Free"
+          secondary="Browse components →"
+        />
+      </div>
+    </div>
+  </main>
+
+  <script is:inline defer src={`/js/guide-lab.js?v=${packageMetadata.version}`}></script>
+</Base>
+
+<style>
+  .circuit-index {
+    list-style: none;
+    margin: 1.5rem 0 2.5rem;
+    padding: 0;
+    display: grid;
+    gap: 0.75rem;
+  }
+  .circuit-index-link {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    align-items: center;
+    gap: 1.1rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-card);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  }
+  .circuit-index-link:hover,
+  .circuit-index-link:focus-visible {
+    border-color: var(--border-bright);
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.1);
+    transform: translateY(-2px);
+  }
+  .ci-step {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--blue-d);
+    background: var(--blue-l);
+    border: 1px solid var(--border-bright);
+    border-radius: 8px;
+    padding: 0.35rem 0.6rem;
+  }
+  .ci-body {
+    display: grid;
+    gap: 0.2rem;
+    min-width: 0;
+  }
+  .ci-title {
+    font-weight: 700;
+    color: var(--text);
+  }
+  .ci-desc {
+    font-size: 0.85rem;
+    color: var(--text-mid);
+    line-height: 1.5;
+  }
+  .ci-arrow {
+    color: var(--blue);
+    font-weight: 700;
+  }
+  @media (max-width: 640px) {
+    .circuit-index-link {
+      grid-template-columns: auto 1fr;
+      row-gap: 0.6rem;
+    }
+    .ci-arrow {
+      display: none;
+    }
+  }
+</style>

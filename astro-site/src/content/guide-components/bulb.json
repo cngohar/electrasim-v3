@@ -55,5 +55,33 @@
       "x": 100,
       "y": 186
     }
-  ]
+  ],
+  "photo": {
+    "src": "/images/guide/bulb",
+    "alt": "Photorealistic lamp / bulb",
+    "width": 700,
+    "height": 1142,
+    "points": [
+      {
+        "id": "L4",
+        "x": 50.6,
+        "y": 52
+      },
+      {
+        "id": "L3",
+        "x": 10,
+        "y": 28
+      },
+      {
+        "id": "L2",
+        "x": 50.7,
+        "y": 80
+      },
+      {
+        "id": "L1",
+        "x": 50.6,
+        "y": 92
+      }
+    ]
+  }
 }

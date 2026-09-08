@@ -54,7 +54,7 @@ const prev = all[(index - 1 + all.length) % all.length];
     <div class="guide-main" data-live>
       <div class="wrap">
         <div class="guide-detail-grid">
-          <CatalogCard item={data} href={`/guide/tools/${data.slug}/`} wide />
+          <CatalogCard item={data} href={`/guide/tools/${data.slug}/`} wide detailTargetId="anatomy-detail" />
 
           <aside class="dl-spec" aria-label={`${data.name} specification`}>
             <div class="dl-spec__row">
@@ -69,14 +69,39 @@ const prev = all[(index - 1 + all.length) % all.length];
                 </ul>
               </dd>
             </div>
-            {data.safety && (
-              <div class="dl-spec__row">
-                <dt>Safety</dt>
-                <dd>{data.safety}</dd>
-              </div>
-            )}
+            <!-- Point detail beside the figure, not below it. -->
+            <div class="dl-anatomy-detail" id="anatomy-detail" data-anatomy-detail>
+              <h4 data-anatomy-title>{data.name}</h4>
+              <p data-anatomy-text>Select a numbered marker on the figure to read about that part.</p>
+            </div>
           </aside>
         </div>
+
+        <section class="used-in" aria-labelledby="used-in-h">
+          <div class="used-in-head" id="used-in-h">🔧 Use it while you build</div>
+          <ul>
+            <li>
+              <a href="/guide/circuits/single-lamp-switch/">
+                <span class="ui-step">01</span>
+                <span class="ui-title">Single-Lamp Switched Circuit</span>
+              </a>
+            </li>
+            <li>
+              <a href="/guide/circuits/rcd-socket-circuit/">
+                <span class="ui-step">04</span>
+                <span class="ui-title">RCD-Protected Socket Circuit</span>
+              </a>
+            </li>
+          </ul>
+        </section>
+
+        <!-- Full-width safety band: below the anatomy, above the bottom row. -->
+        {data.safety && (
+          <div class="safety-band">
+            <span class="sn-label">⚠ Safety note</span>
+            <p>{data.safety}</p>
+          </div>
+        )}
 
         <div class="dl-browse">
           <span class="dl-browse-head">More hand tools</span>

@@ -1,18 +1,15 @@
 ---
-import GuideCircuitCard from '../components/guide/GuideCircuitCard.astro';
 import GuideCta from '../components/guide/GuideCta.astro';
 import GuideHero from '../components/guide/GuideHero.astro';
-import GuideOverview from '../components/guide/GuideOverview.astro';
 import data from '../content/pages/guide.json';
 import Base from '../layouts/Base.astro';
 import packageMetadata from '../../../package.json';
 import '../styles/guide.css';
 import '../styles/guide-lab.css';
-import type { GuideCircuit, GuideFeature, GuidedTemplate } from '../types/pages';
+import { circuitSlug, levelClass } from '../lib/guide';
+import type { GuideCircuit } from '../types/pages';
 
 const circuits = data.circuits as GuideCircuit[];
-const latestFeatures = data.latest_features as GuideFeature[];
-const guidedTemplates = data.guided_templates as GuidedTemplate[];
 ---
 
 <Base
@@ -53,10 +50,72 @@ const guidedTemplates = data.guided_templates as GuidedTemplate[];
         <nav class="guide-lab-nav" aria-label="Guide sections">
           <a href="/guide/tools/"><span class="lab-icon" aria-hidden="true">🛠️</span> Hand Tools</a>
           <a href="/guide/components/"><span class="lab-icon" aria-hidden="true">🔌</span> Components</a>
-          <a href="#circuit-walkthroughs"><span class="lab-icon" aria-hidden="true">⚡</span> Circuit Demos</a>
+          <a href="/guide/circuits/"><span class="lab-icon" aria-hidden="true">⚡</span> Circuits</a>
+          <a href="/guide/templates/"><span class="lab-icon" aria-hidden="true">🧭</span> In the App</a>
         </nav>
-        <GuideOverview features={latestFeatures} templates={guidedTemplates} />
-        {circuits.map((circuit) => <GuideCircuitCard circuit={circuit} />)}
+
+        <!-- The hub is a route table, not a dump of every section: the app
+             features, workflow and 18 guided templates now live at
+             /guide/templates/, and each walkthrough has its own page. -->
+        <section class="guide-section" aria-labelledby="start-here-h">
+          <div class="guide-section-head">
+            <span class="guide-kicker">The guide</span>
+            <h2 id="start-here-h">Choose your starting point</h2>
+            <p>Four ways in — pick the one that matches what you are trying to do.</p>
+          </div>
+          <div class="hub-grid">
+            <a class="hub-card" href="/guide/tools/">
+              <span class="hub-icon" aria-hidden="true">🛠️</span>
+              <h3>Hand Tools</h3>
+              <p>Anatomy of the four core electrician's tools, labelled on the real tool.</p>
+              <span class="cs-go">Open hand tools →</span>
+            </a>
+            <a class="hub-card" href="/guide/components/">
+              <span class="hub-icon" aria-hidden="true">🔌</span>
+              <h3>Components</h3>
+              <p>MCB, RCD, lamp and socket — what each terminal does and how the protection works.</p>
+              <span class="cs-go">Open components →</span>
+            </a>
+            <a class="hub-card" href="/guide/circuits/">
+              <span class="hub-icon" aria-hidden="true">⚡</span>
+              <h3>Circuits</h3>
+              <p>Eight walkthroughs, from a single lamp to a three-circuit consumer unit.</p>
+              <span class="cs-go">Open circuits →</span>
+            </a>
+            <a class="hub-card" href="/guide/templates/">
+              <span class="hub-icon" aria-hidden="true">🧭</span>
+              <h3>In the App</h3>
+              <p>18 guided templates that open pre-built in the editor, plus the four-step workflow.</p>
+              <span class="cs-go">Open templates →</span>
+            </a>
+          </div>
+        </section>
+
+        <section class="guide-section" id="circuit-walkthroughs" aria-labelledby="walkthroughs-h">
+          <div class="guide-section-head">
+            <span class="guide-kicker">Circuit walkthroughs</span>
+            <h2 id="walkthroughs-h">Eight step-by-step practice circuits</h2>
+            <p>Each walkthrough gets its own page with the wiring path, the build steps, the key insight and the safety rule.</p>
+          </div>
+          <ol class="circuit-index">
+            {circuits.map((circuit) => (
+              <li>
+                <a class="circuit-index-link" href={`/guide/circuits/${circuitSlug(circuit)}/`}>
+                  <span class="ci-step">{circuit.step}</span>
+                  <span class="ci-body">
+                    <span class="ci-title">{circuit.title}</span>
+                    <span class="ci-desc">{circuit.description}</span>
+                  </span>
+                  <span class:list={['level-pill', levelClass(circuit.level)]}>
+                    <span class="level-dot" aria-hidden="true"></span>
+                    {circuit.level}
+                  </span>
+                  <span class="ci-arrow" aria-hidden="true">→</span>
+                </a>
+              </li>
+            ))}
+          </ol>
+        </section>
         <GuideCta
           heading={data.cta_heading}
           description={data.cta_description}
@@ -67,5 +126,97 @@ const guidedTemplates = data.guided_templates as GuidedTemplate[];
     </div>
   </main>
 
+  {/* Legacy links: walkthroughs used to live at /guide/#circuit-N. The hash
+      never reaches the server, so the redirect has to happen here. */}
+  <script
+    is:inline
+    set:html={`window.__GUIDE_CIRCUIT_SLUGS=${JSON.stringify(
+      Object.fromEntries(circuits.map((c) => [c.id, circuitSlug(c)])),
+    )};`}
+  />
+  <script is:inline>
+    (function () {
+      var m = /^#circuit-(\d+)$/.exec(window.location.hash);
+      if (!m) return;
+      var slug = window.__GUIDE_CIRCUIT_SLUGS && window.__GUIDE_CIRCUIT_SLUGS['circuit-' + m[1]];
+      if (slug) window.location.replace('/guide/circuits/' + slug + '/');
+    })();
+  </script>
+
   <script is:inline defer src={`/js/guide-lab.js?v=${packageMetadata.version}`}></script>
 </Base>
+
+<style>
+  .hub-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 1rem;
+    margin: 1.25rem 0 0.5rem;
+  }
+  .hub-card {
+    display: grid;
+    gap: 0.4rem;
+    align-content: start;
+    padding: 1.2rem 1.3rem 1.35rem;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--bg-card);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  }
+  .hub-card:hover,
+  .hub-card:focus-visible {
+    border-color: var(--border-bright);
+    box-shadow: 0 10px 26px rgba(37, 99, 235, 0.1);
+    transform: translateY(-3px);
+  }
+  .hub-icon { font-size: 1.5rem; line-height: 1; }
+  .hub-card h3 { margin: 0.2rem 0 0; font-size: 1.05rem; }
+  .hub-card p { margin: 0 0 0.4rem; font-size: 0.86rem; color: var(--text-mid); line-height: 1.55; }
+
+  .circuit-index {
+    list-style: none;
+    margin: 1.25rem 0 0.5rem;
+    padding: 0;
+    display: grid;
+    gap: 0.7rem;
+  }
+  .circuit-index-link {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    align-items: center;
+    gap: 1.1rem;
+    padding: 0.9rem 1.15rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-card);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  }
+  .circuit-index-link:hover,
+  .circuit-index-link:focus-visible {
+    border-color: var(--border-bright);
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.1);
+    transform: translateY(-2px);
+  }
+  .ci-step {
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    font-weight: 800;
+    color: var(--blue-d);
+    background: var(--blue-l);
+    border: 1px solid var(--border-bright);
+    border-radius: 8px;
+    padding: 0.3rem 0.55rem;
+  }
+  .ci-body { display: grid; gap: 0.2rem; min-width: 0; }
+  .ci-title { font-weight: 700; }
+  .ci-desc { font-size: 0.85rem; color: var(--text-mid); line-height: 1.5; }
+  .ci-arrow { color: var(--blue); font-weight: 700; }
+  @media (max-width: 640px) {
+    .circuit-index-link { grid-template-columns: auto 1fr; row-gap: 0.6rem; }
+    .ci-arrow { display: none; }
+  }
+</style>

@@ -1,0 +1,166 @@
+---
+import packageMetadata from '../../../../../package.json';
+import EmojiIcon from '../../../components/EmojiIcon.astro';
+import GuideCta from '../../../components/guide/GuideCta.astro';
+import Base from '../../../layouts/Base.astro';
+import data from '../../../content/pages/guide.json';
+import { circuitSlug, levelClass } from '../../../lib/guide';
+import '../../../styles/guide.css';
+import '../../../styles/guide-lab.css';
+import type { GuideCircuit, GuideFeature, GuidedTemplate } from '../../../types/pages';
+
+const circuits = data.circuits as GuideCircuit[];
+const features = data.latest_features as GuideFeature[];
+const templates = data.guided_templates as GuidedTemplate[];
+
+/** Circuits that have a written walkthrough, keyed by their in-app template id. */
+const walkthroughs = new Map(
+  circuits.filter((c) => c.app_template).map((c) => [c.app_template as string, c]),
+);
+---
+
+<Base
+  title="Guided Templates & App Features — ElectraSim Guide"
+  description="The 18 built-in guided circuits, the four-step workflow, and what the current ElectraSim app can do. Every template opens pre-built in the editor."
+  canonical="https://electrasim.com/guide/templates/"
+>
+  <main id="main-content">
+    <div class="bc-wrap">
+      <div class="wrap">
+        <nav class="bc" aria-label="Breadcrumb">
+          <a href="/">Home</a><span aria-hidden="true">›</span>
+          <a href="/guide/">Circuit Guide</a><span aria-hidden="true">›</span>
+          <span aria-current="page">In the App</span>
+        </nav>
+      </div>
+    </div>
+
+    <div class="guide-hero guide-hero--small">
+      <div class="wrap">
+        <span class="label">In the App</span>
+        <h1>Start from a circuit that already works.</h1>
+        <p>
+          What the current app can do, the four-step workflow, and the 18 guided templates that open
+          pre-built in the editor. Where a template has a written walkthrough, the card links to it —
+          read the theory, or skip straight to building.
+        </p>
+      </div>
+    </div>
+
+    <div class="guide-main" data-live>
+      <div class="wrap">
+        <nav class="guide-lab-nav" aria-label="Guide sections">
+          <a href="/guide/tools/"><span class="lab-icon" aria-hidden="true">🛠️</span> Hand Tools</a>
+          <a href="/guide/components/"><span class="lab-icon" aria-hidden="true">🔌</span> Components</a>
+          <a href="/guide/circuits/"><span class="lab-icon" aria-hidden="true">⚡</span> Circuits</a>
+          <a href="/guide/templates/" aria-current="page"><span class="lab-icon" aria-hidden="true">🧭</span> In the App</a>
+        </nav>
+
+        <section class="guide-section" id="latest-features" aria-labelledby="latest-features-h">
+          <div class="guide-section-head">
+            <span class="guide-kicker">Latest app workflow</span>
+            <h2 id="latest-features-h">What the current ElectraSim app can do</h2>
+            <p>Features to use before you start the circuit walkthroughs: templates for fast starts, wiring control, fault testing, and tools for larger diagrams.</p>
+          </div>
+          <div class="latest-grid">
+            {features.map((feature) => (
+              <article class="latest-card">
+                <span class="latest-icon" aria-hidden="true"><EmojiIcon name={feature.icon} /></span>
+                <h3>{feature.title}</h3>
+                <p>{feature.body}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section class="guide-section" aria-labelledby="workflow-h">
+          <div class="guide-section-head">
+            <span class="guide-kicker">Recommended workflow</span>
+            <h2 id="workflow-h">Use the guide the way the app is built today</h2>
+            <p>Start with a template when you want a working example, then inspect, modify, fault-test, and export it.</p>
+          </div>
+          <div class="workflow-band">
+            <div class="workflow-step">
+              <strong>01</strong>
+              <h3>Load a template</h3>
+              <p>Open Templates in the app and choose a guided circuit that matches the concept you want to learn.</p>
+            </div>
+            <div class="workflow-step">
+              <strong>02</strong>
+              <h3>Trace the paths</h3>
+              <p>Run the simulation and follow live, neutral, and earth through the highlighted wire paths.</p>
+            </div>
+            <div class="workflow-step">
+              <strong>03</strong>
+              <h3>Change and test</h3>
+              <p>Toggle switches, move components, reroute wires, or inject faults to see how the circuit responds.</p>
+            </div>
+            <div class="workflow-step">
+              <strong>04</strong>
+              <h3>Save or share</h3>
+              <p>Export JSON, SVG, PNG, PDF/print, or a shareable URL when the diagram is ready.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="guide-section" id="guided-templates" aria-labelledby="templates-h">
+          <div class="guide-section-head">
+            <span class="guide-kicker">In-app guided templates</span>
+            <h2 id="templates-h">Start from these built-in circuits</h2>
+            <p>The app includes 18 built-in guided circuits with loaded components, wires, steps, and expected outcomes. Every card opens its guide inside the editor.</p>
+          </div>
+          <div class="template-grid">
+            {templates.map((template) => {
+              const walkthrough = walkthroughs.get(template.id);
+              return (
+                <div class="template-card template-card-link">
+                  <div class="template-top">
+                    <h3>{template.title}</h3>
+                    <span class:list={['template-level', levelClass(template.level)]}>{template.level}</span>
+                  </div>
+                  <p>{template.body}</p>
+                  <a class="template-cta" href={`/app/?template=${template.id}`}>Open in ElectraSim →</a>
+                  {walkthrough && (
+                    <a class="template-walkthrough" href={`/guide/circuits/${circuitSlug(walkthrough)}/`}>
+                      📖 Or follow the written walkthrough →
+                    </a>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        <GuideCta
+          heading="Prefer to build it yourself?"
+          description="The circuit walkthroughs place every component by hand, one connection at a time."
+          primary="Open the walkthroughs →"
+          secondary="Browse components →"
+        />
+      </div>
+    </div>
+  </main>
+
+  <script is:inline defer src={`/js/guide-lab.js?v=${packageMetadata.version}`}></script>
+</Base>
+
+<style>
+  /* Template cards hold two links, so the card is a div and each action is its
+     own anchor — a nested <a> inside <a> would be invalid. */
+  .template-card {
+    display: grid;
+    gap: 0.5rem;
+    align-content: start;
+  }
+  .template-walkthrough {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--blue-d);
+    text-decoration: none;
+    padding-top: 0.35rem;
+    border-top: 1px dashed var(--border);
+  }
+  .template-walkthrough:hover {
+    text-decoration: underline;
+  }
+</style>

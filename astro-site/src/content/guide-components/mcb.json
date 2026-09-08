@@ -59,5 +59,33 @@
       "x": 72,
       "y": 57
     }
-  ]
+  ],
+  "photo": {
+    "src": "/images/guide/mcb",
+    "alt": "Photorealistic miniature circuit breaker",
+    "width": 286,
+    "height": 768,
+    "points": [
+      {
+        "id": "L5",
+        "x": 50,
+        "y": 50
+      },
+      {
+        "id": "L2",
+        "x": 50,
+        "y": 84
+      },
+      {
+        "id": "L1",
+        "x": 50,
+        "y": 96.5
+      },
+      {
+        "id": "L0",
+        "x": 50,
+        "y": 28
+      }
+    ]
+  }
 }
