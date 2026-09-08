@@ -2,7 +2,9 @@
 export const GUIDED_CIRCUIT_IDS = [
   'simple-lamp',
   'one-way-light-switch',
+  'two-bulb-parallel',
   'two-way-staircase-light',
+  'dimmable-lighting',
   'rcd-earth-fault-demo',
   'contactor-motor',
   'timer-bell',

@@ -135,6 +135,17 @@ a contactor drawn as a device box with a coil), each pinned by the 8 schematic a
 dangling conductor ends, flow on the conductors, no label on a wire or another label, nothing
 outside the frame. `guide.test.ts` is at 139 assertions; 166 pages build.
 
+**Follow-up round 6 (same session — the two guide-only circuits, app side):** on the user's call,
+`two-bulb-parallel` and `dimmable-lighting` were added to the app's guided template set
+(`src/domain/templates.ts`, `guidedCircuitIds.ts`), so every one of the 12 walkthroughs now opens a
+matching template and the app ships 20. Both are basic tier, 230 V, three steps, with a faultPrompt.
+Pinned by four new tests: topology (7 components / 7 wires for the parallel circuit, 5 / 4 for the
+dimmer) plus simulation — removing one parallel branch leaves the other lamp energised, opening the
+switch drops both, and the dimmer opens the live feed. `basic.length` assertion moved 8 → 10.
+Copy that had drifted was corrected at the same time: the landing page's "8 guided circuits" stat and
+"Eight ready-made templates" highlight (stale since the app passed 18), the hub/overview/templates
+counts (now derived from the template list), and the in-app docs page.
+
 **Verification (round 4):** `astro check` 0 errors / 0 warnings / 9 hints; **162 pages**; **240 lib
 tests**; every detail page asserted in jsdom against the built HTML (motor/board/bulb/switch 4–5
 markers, tools 4 markers, 0 self-links, script tag carries a content hash

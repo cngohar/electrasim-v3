@@ -55,10 +55,22 @@
       "id": "one-way-light-switch"
     },
     {
+      "title": "Two-Bulb Parallel Lighting",
+      "level": "Beginner",
+      "body": "Split one switched live through a junction box and see each lamp keep full voltage.",
+      "id": "two-bulb-parallel"
+    },
+    {
       "title": "Two-Way Staircase Light",
       "level": "Intermediate",
       "body": "Compare COM, L1, and L2 traveller paths as either switch changes state.",
       "id": "two-way-staircase-light"
+    },
+    {
+      "title": "Dimmable Lighting Circuit",
+      "level": "Intermediate",
+      "body": "Put a dimmer in the live conductor instead of a plain switch, on a dimmable lamp only.",
+      "id": "dimmable-lighting"
     },
     {
       "title": "RCD and Earth Fault Check",
@@ -214,8 +226,10 @@
         "Press Run — both bulbs light at full brightness.",
         "Disconnect one bulb wire — the other stays on. That's parallel wiring."
       ],
-      "insight": "In a parallel circuit, every branch receives the full supply voltage. Adding more branches increases total current drawn — the MCB protects against overload if too many loads are connected."
+      "insight": "In a parallel circuit, every branch receives the full supply voltage. Adding more branches increases total current drawn — the MCB protects against overload if too many loads are connected.",
+      "app_template": "two-bulb-parallel"
     },
+
     {
       "id": "circuit-3",
       "step": "04",
@@ -290,8 +304,10 @@
         "Press Run — the bulb is powered through the dimmer.",
         "Toggle the Dimmer to see the controlled state."
       ],
-      "insight": "In real installations, a dimmer switch must be matched to the bulb type — trailing-edge for LED, leading-edge for incandescent/halogen. Never connect a Dimmer Switch to a motor or fan (use a Fan Dimmer instead)."
+      "insight": "In real installations, a dimmer switch must be matched to the bulb type — trailing-edge for LED, leading-edge for incandescent/halogen. Never connect a Dimmer Switch to a motor or fan (use a Fan Dimmer instead).",
+      "app_template": "dimmable-lighting"
     },
+
     {
       "id": "circuit-7",
       "step": "08",

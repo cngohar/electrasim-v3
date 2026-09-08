@@ -48,7 +48,7 @@ const circuits = data.circuits as GuideCircuit[];
     <div class="guide-main" data-live>
       <div class="wrap">
         <!-- The hub is a route table, not a dump of every section: the app
-             features, workflow and 18 guided templates now live at
+             features, workflow and 20 guided templates now live at
              /guide/templates/, and each walkthrough has its own page. -->
         <section class="guide-section" aria-labelledby="start-here-h">
           <div class="guide-section-head">
@@ -78,7 +78,7 @@ const circuits = data.circuits as GuideCircuit[];
             <a class="hub-card" href="/guide/templates/">
               <span class="hub-icon" aria-hidden="true">🧭</span>
               <h3>In the App</h3>
-              <p>18 guided templates that open pre-built in the editor, plus the four-step workflow.</p>
+              <p>{data.guided_templates.length} guided templates that open pre-built in the editor, plus the four-step workflow.</p>
               <span class="cs-go">Open templates →</span>
             </a>
           </div>

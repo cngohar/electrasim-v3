@@ -22,7 +22,7 @@ const walkthroughs = new Map(
 
 <Base
   title="Guided Templates & App Features — ElectraSim Guide"
-  description="The 18 built-in guided circuits, the four-step workflow, and what the current ElectraSim app can do. Every template opens pre-built in the editor."
+  description={`The ${templates.length} built-in guided circuits, the four-step workflow, and what the current ElectraSim app can do. Every template opens pre-built in the editor.`}
   canonical="https://electrasim.com/guide/templates/"
 >
   <main id="main-content">
@@ -41,7 +41,7 @@ const walkthroughs = new Map(
         <span class="label">In the App</span>
         <h1>Start from a circuit that already works.</h1>
         <p>
-          What the current app can do, the four-step workflow, and the 18 guided templates that open
+          What the current app can do, the four-step workflow, and the {templates.length} guided templates that open
           pre-built in the editor. Where a template has a written walkthrough, the card links to it —
           read the theory, or skip straight to building.
         </p>

@@ -27,7 +27,7 @@
       "note": "Off-thread solver"
     },
     {
-      "value": "8",
+      "value": "20",
       "unit": "guided circuits",
       "note": "Protected lamp to SPD board"
     },
@@ -45,7 +45,7 @@
       "icon": "grid",
       "tag": "Learn",
       "title": "Guided Circuits",
-      "body": "Eight ready-made templates — protected lamp, two-way staircase, doorbell, RCBO socket, RCD earth-fault demo, Pro SPD consumer unit — each lands on the canvas with an in-app checklist that ticks off as you wire it correctly."
+      "body": "Twenty ready-made templates — protected lamp, two-way staircase, parallel lamps, dimmable lighting, doorbell, RCBO socket, RCD earth-fault demo, Pro SPD consumer unit — each lands on the canvas with an in-app checklist that ticks off as you wire it correctly."
     },
     {
       "icon": "fault",
