@@ -1,5 +1,4 @@
 ---
-import packageMetadata from '../../../package.json';
 import GuideCta from '../components/guide/GuideCta.astro';
 import GuideHero from '../components/guide/GuideHero.astro';
 import data from '../content/pages/guide.json';
@@ -8,6 +7,8 @@ import '../styles/guide.css';
 import '../styles/guide-lab.css';
 import { circuitSlug } from '../lib/guide';
 import type { GuideCircuit } from '../types/pages';
+import { GUIDE_LAB_VERSION } from '../lib/asset-version';
+
 
 const circuits = data.circuits as GuideCircuit[];
 ---
@@ -110,7 +111,7 @@ const circuits = data.circuits as GuideCircuit[];
     })();
   </script>
 
-  <script is:inline defer src={`/js/guide-lab.js?v=${packageMetadata.version}`}></script>
+  <script is:inline defer src={`/js/guide-lab.js?v=${GUIDE_LAB_VERSION}`}></script>
 </Base>
 
 <style>

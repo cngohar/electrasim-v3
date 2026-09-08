@@ -1,11 +1,12 @@
 ---
 import { getCollection } from 'astro:content';
-import packageMetadata from '../../../../package.json';
 import CatalogCard from '../../../components/guide/CatalogCard.astro';
 import GuideCta from '../../../components/guide/GuideCta.astro';
 import Base from '../../../layouts/Base.astro';
 import '../../../styles/guide.css';
 import '../../../styles/guide-lab.css';
+import { GUIDE_LAB_VERSION } from '../../../lib/asset-version';
+
 
 export async function getStaticPaths() {
   const tools = await getCollection('guideTools');
@@ -61,7 +62,7 @@ const prev = all[(index - 1 + all.length) % all.length];
         </nav>
 
         <div class="guide-detail-grid">
-          <CatalogCard item={data} href={`/guide/tools/${data.slug}/`} wide hotspots detailTargetId="anatomy-detail" />
+          <CatalogCard item={data} wide hotspots detailTargetId="anatomy-detail" />
 
           <aside class="dl-spec" aria-label={`${data.name} specification`}>
             <div class="dl-spec__row">
@@ -128,5 +129,5 @@ const prev = all[(index - 1 + all.length) % all.length];
     </div>
   </main>
 
-  <script is:inline defer src={`/js/guide-lab.js?v=${packageMetadata.version}`}></script>
+  <script is:inline defer src={`/js/guide-lab.js?v=${GUIDE_LAB_VERSION}`}></script>
 </Base>

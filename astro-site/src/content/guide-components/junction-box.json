@@ -54,7 +54,7 @@
     "src": "/images/guide/junction-box",
     "alt": "Photorealistic round junction box with the lid removed",
     "width": 720,
-    "height": 544,
+    "height": 720,
     "points": [
       {
         "id": "L0",
@@ -64,12 +64,12 @@
       {
         "id": "L1",
         "x": 50,
-        "y": 45
+        "y": 46.2
       },
       {
         "id": "L2",
         "x": 30,
-        "y": 25
+        "y": 31.1
       }
     ]
   }

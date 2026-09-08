@@ -69,7 +69,7 @@
     "src": "/images/guide/two-way-switch",
     "alt": "Photorealistic two-gang two-way light switch",
     "width": 720,
-    "height": 428,
+    "height": 720,
     "points": [
       {
         "id": "L0",
@@ -79,17 +79,17 @@
       {
         "id": "L1",
         "x": 41,
-        "y": 59
+        "y": 55.4
       },
       {
         "id": "L2",
         "x": 62,
-        "y": 59
+        "y": 55.4
       },
       {
         "id": "L3",
         "x": 11,
-        "y": 20
+        "y": 32.2
       }
     ]
   }

@@ -78,32 +78,32 @@
     "src": "/images/guide/distribution-board",
     "alt": "Photorealistic consumer unit with the cover removed",
     "width": 720,
-    "height": 313,
+    "height": 720,
     "points": [
       {
         "id": "L1",
         "x": 8,
-        "y": 50
+        "y": 49.9
       },
       {
         "id": "L2",
         "x": 45,
-        "y": 52
+        "y": 50.8
       },
       {
         "id": "L3",
         "x": 42,
-        "y": 26
+        "y": 39.5
       },
       {
         "id": "L4",
         "x": 74,
-        "y": 71
+        "y": 59.1
       },
       {
         "id": "L5",
         "x": 33,
-        "y": 81
+        "y": 63.4
       }
     ]
   }

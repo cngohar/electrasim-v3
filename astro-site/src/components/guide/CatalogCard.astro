@@ -27,7 +27,8 @@ import type { ComponentAnatomy, ToolAnatomy } from '../../lib/anatomy';
 
 interface Props {
   item: ToolAnatomy | ComponentAnatomy;
-  href: string;
+  /** Omit on a detail page: the card would otherwise link to itself. */
+  href?: string;
   /** Wider stage, used on detail pages. */
   wide?: boolean;
   /** Force the diagrammatic drawing even when a photo exists. */
@@ -123,7 +124,7 @@ const detailHint = 'Select a marked part to read about it.';
     <div class="anatomy-card__title">
       <h3>{item.name}</h3>
       <p>{item.tagline}</p>
-      <a class="anatomy-card__link" href={href}>Open anatomy →</a>
+      {href && <a class="anatomy-card__link" href={href}>Open anatomy →</a>}
     </div>
 
     {terminals.length > 0 && (
@@ -208,6 +209,9 @@ const detailHint = 'Select a marked part to read about it.';
   .anatomy-photo {
     display: block;
     width: 100%;
+    /* Never wider than the stage: the hotspot overlay is measured from the
+       image box, so an overflowing render would push markers out of sight. */
+    max-width: 100%;
     height: auto;
     border-radius: 10px;
     border: 1px solid var(--border);
@@ -215,6 +219,7 @@ const detailHint = 'Select a marked part to read about it.';
   }
   .anatomy-card--wide .anatomy-photo {
     max-height: 460px;
+    max-width: 100%;
     width: auto;
     margin-inline: auto;
   }

@@ -62,27 +62,27 @@
     "src": "/images/guide/timer-switch",
     "alt": "Photorealistic mechanical timer switch with dial and selector",
     "width": 720,
-    "height": 451,
+    "height": 720,
     "points": [
       {
         "id": "L0",
         "x": 9,
-        "y": 49
+        "y": 49.3
       },
       {
         "id": "L1",
         "x": 41,
-        "y": 14
+        "y": 27.4
       },
       {
         "id": "L2",
         "x": 37,
-        "y": 43
+        "y": 45.5
       },
       {
         "id": "L3",
         "x": 38,
-        "y": 92
+        "y": 76.2
       }
     ]
   }

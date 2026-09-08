@@ -61,22 +61,22 @@
     "src": "/images/guide/socket",
     "alt": "Photorealistic socket outlet (3-pin uk type g)",
     "width": 700,
-    "height": 688,
+    "height": 700,
     "points": [
       {
         "id": "L3",
         "x": 50,
-        "y": 60.2
+        "y": 60
       },
       {
         "id": "L2",
         "x": 50.8,
-        "y": 31.2
+        "y": 31.5
       },
       {
         "id": "L0",
         "x": 16,
-        "y": 30
+        "y": 30.3
       }
     ]
   }

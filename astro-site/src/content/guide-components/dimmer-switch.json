@@ -54,22 +54,22 @@
     "src": "/images/guide/dimmer-switch",
     "alt": "Photorealistic rotary dimmer switch",
     "width": 571,
-    "height": 540,
+    "height": 571,
     "points": [
       {
         "id": "L0",
         "x": 8,
-        "y": 50
+        "y": 49.9
       },
       {
         "id": "L1",
         "x": 54,
-        "y": 58
+        "y": 57.5
       },
       {
         "id": "L2",
         "x": 15,
-        "y": 15
+        "y": 16.8
       }
     ]
   }

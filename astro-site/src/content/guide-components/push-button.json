@@ -59,27 +59,27 @@
   "photo": {
     "src": "/images/guide/push-button",
     "alt": "Photorealistic doorbell push button on a surround plate",
-    "width": 544,
+    "width": 562,
     "height": 562,
     "points": [
       {
         "id": "L0",
-        "x": 38,
+        "x": 38.4,
         "y": 45
       },
       {
         "id": "L1",
-        "x": 57,
+        "x": 56.8,
         "y": 45
       },
       {
         "id": "L2",
-        "x": 10,
+        "x": 11.3,
         "y": 50
       },
       {
         "id": "L3",
-        "x": 54,
+        "x": 53.9,
         "y": 17
       }
     ]

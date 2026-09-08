@@ -44,6 +44,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the 18 guided templates moved off the hub, each template cross-linking to its written walkthrough
   where one exists.
 
+- **Component renders are square.** All 13 part photos are padded to an exact 1:1 canvas with the
+  part centred on the render's own background colour, so every anatomy card and index tile frames the
+  same way instead of alternating between tall and wide crops. Hotspot percentages were remapped to
+  the new canvas and re-verified.
+- **Content-hashed asset URLs for `public/` scripts.** `publicAssetVersion()` hashes a file at build
+  time, so `/js/guide-lab.js?v=<sha>` changes exactly when the script does — previously the query
+  string came from the package version and stayed identical across releases, leaving returning
+  visitors on a stale script.
+
 ### Changed
 - **The guide hub is a route table, not a dump.** Four section cards plus a circuit index replace the
   inlined feature, workflow, template and circuit content; legacy `/guide/#circuit-N` links redirect
@@ -52,7 +61,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (below the specification rows, above "Meet it in a circuit") instead of beneath it, and the safety
   note is a full-width band below the anatomy and above the bottom row.
 
-### Changed
 - **Hotspots belong to detail pages.** Component and tool index cards are browse tiles again — the
   numbered markers (and their detail panel) only render where they can be used.
 - **Component chips that open an anatomy page are now amber**, so "this one has a page" reads at a
@@ -64,6 +72,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   CPC, and strappers only where two-way switching uses them. Device designators (MCB, RCD, timer,
   dimmer, main switch) and the two-way terminal labels (COM, L1, L2) moved clear of the conductors
   that used to run through them.
+- **The templates page states what it covers.** The section copy counts both collections (18 app
+  templates, 6 of which have a written walkthrough) and every card without one carries an
+  "App only" chip, instead of silently omitting the link.
 - **Responsive pass** across the new guide surfaces: phone (≤560px), tablet (≤760px), small laptop
   (980–1200px) and widescreen (≥1600px) rules for the hub grid, circuit index, walkthrough columns,
   schematic frame, tall portrait renders and the safety band.
@@ -83,6 +94,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the overlay was never revealed. Panel lookup now matches the scope element itself before searching
   inside it, and a jsdom regression test pins the external-panel case (plus a `viewBox` guard for
   environments that do not expose it).
+- **Hotspots were still invisible for returning visitors.** Three causes: the figure's `<img>` could
+  finish decoding after the script ran (markers are now repositioned on `load`), a photo wider than
+  its stage pushed the overlay's negative offsets outside the card's `overflow: hidden` (`max-width:
+  100%` on `.anatomy-photo`), and the script URL was version-stamped with the package number so
+  browsers kept serving the old file. All three fixed.
+- **Detail pages linked to themselves.** The catalog card's "Open anatomy →" action now only renders
+  when a different URL is passed, so component and tool detail pages are no longer their own CTA.
 - The component CTA description shipped a literal `Set {data.name}` — a plain string attribute does
   not interpolate in Astro. Now a template literal.
 - Search indexed circuits at `/guide/#<id>`, a fragment that never resolved for a first-time visitor.

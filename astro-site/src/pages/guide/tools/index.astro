@@ -1,11 +1,12 @@
 ---
 import { getCollection } from 'astro:content';
-import packageMetadata from '../../../../package.json';
 import CatalogCard from '../../../components/guide/CatalogCard.astro';
 import GuideCta from '../../../components/guide/GuideCta.astro';
 import Base from '../../../layouts/Base.astro';
 import '../../../styles/guide.css';
 import '../../../styles/guide-lab.css';
+import { GUIDE_LAB_VERSION } from '../../../lib/asset-version';
+
 
 const tools = await getCollection('guideTools');
 const sorted = [...tools].sort((a, b) => a.data.name.localeCompare(b.data.name));
@@ -70,5 +71,5 @@ const canonical = 'https://electrasim.com/guide/tools/';
     </div>
   </main>
 
-  <script is:inline defer src={`/js/guide-lab.js?v=${packageMetadata.version}`}></script>
+  <script is:inline defer src={`/js/guide-lab.js?v=${GUIDE_LAB_VERSION}`}></script>
 </Base>

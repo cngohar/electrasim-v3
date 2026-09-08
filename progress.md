@@ -94,6 +94,34 @@ the real content JSON, used only to settle layout and interaction before touchin
 drawing-only points (rear terminals, striker, shaft, DIN rail) are described in each page's parts
 list but stay off the photo, matching the four existing components.
 
+**Follow-up round 4 (same session — review fixes from the deployed preview):**
+1. **Markers still missing in a real browser.** Three separate causes: (a) the figure `<img>` can
+   finish decoding *after* the script runs, so positions were computed against a zero-height photo —
+   markers are now repositioned on `load`; (b) a photo wider than its stage pushed the overlay's
+   negative offsets outside `.anatomy-card { overflow: hidden }`, clipping the markers —
+   `max-width: 100%` added to `.anatomy-photo`; (c) **the real one**: the script URL was stamped with
+   the package version (`?v=2.0.2`), which does not change when the file does, so the user's browser
+   kept serving the old script through two "fixed" deploys. New `src/lib/asset-version.ts` hashes the
+   file's contents at build time via a Vite `?raw` import, so the URL changes exactly when the script
+   does.
+2. **Detail pages linked to themselves.** `CatalogCard`'s `href` is now optional and the "Open
+   anatomy →" action only renders when a different URL is passed; the component and tool `[slug]`
+   pages no longer pass one (index pages still do).
+3. **Images squared.** All 13 part renders padded to an exact 1:1 canvas (part centred, pad filled
+   with the render's own median border colour, hotspot percentages remapped, `photo.width/height`
+   rewritten, webp regenerated) so cards frame identically instead of alternating tall and wide.
+   Re-verified: 13/13 "all hotspots on the part".
+4. **App-vs-guide coverage made explicit.** The two collections are different things: 18 guided
+   templates in the app, 8 written walkthroughs in the guide, 6 of which the app links to. The
+   templates page now counts both in its copy and marks the 12 app-only cards with an "App only"
+   chip instead of silently omitting the link. Writing the remaining 12 walkthroughs is left as the
+   user's call.
+
+**Verification (round 4):** `astro check` 0 errors / 0 warnings / 9 hints; **162 pages**; **240 lib
+tests**; every detail page asserted in jsdom against the built HTML (motor/board/bulb/switch 4–5
+markers, tools 4 markers, 0 self-links, script tag carries a content hash
+`?v=3c3d96274a`); components index 13 cards, 0 markers.
+
 **Verification:** `astro check` 0 errors / 0 warnings; **162 pages** build; **240 lib tests** pass
 (129 + 4 hotspot + 107 guide); a label/conductor collision report run over all eight diagrams comes
 back clean; hotspots asserted in jsdom against the built HTML (motor 5 markers → "Terminal box",

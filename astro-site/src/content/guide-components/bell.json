@@ -61,27 +61,27 @@
     "src": "/images/guide/bell",
     "alt": "Photorealistic electric bell with the cover removed",
     "width": 720,
-    "height": 429,
+    "height": 720,
     "points": [
       {
         "id": "L0",
         "x": 35,
-        "y": 60
+        "y": 55.9
       },
       {
         "id": "L1",
         "x": 71,
-        "y": 33
+        "y": 39.8
       },
       {
         "id": "L3",
         "x": 73,
-        "y": 19
+        "y": 31.5
       },
       {
         "id": "L4",
         "x": 65,
-        "y": 92
+        "y": 75
       }
     ]
   }

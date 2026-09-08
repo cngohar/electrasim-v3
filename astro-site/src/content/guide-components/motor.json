@@ -69,32 +69,32 @@
     "src": "/images/guide/motor",
     "alt": "Photorealistic single-phase AC electric motor",
     "width": 720,
-    "height": 641,
+    "height": 720,
     "points": [
       {
         "id": "L0",
         "x": 37,
-        "y": 10
+        "y": 14.3
       },
       {
         "id": "L1",
         "x": 50,
-        "y": 45
+        "y": 45.5
       },
       {
         "id": "L2",
         "x": 18,
-        "y": 59
+        "y": 57.9
       },
       {
         "id": "L5",
         "x": 64,
-        "y": 58
+        "y": 57.1
       },
       {
         "id": "L4",
         "x": 30,
-        "y": 90
+        "y": 85.5
       }
     ]
   }

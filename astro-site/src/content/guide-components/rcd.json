@@ -56,22 +56,22 @@
   "photo": {
     "src": "/images/guide/rcd",
     "alt": "Photorealistic residual current device (rcd)",
-    "width": 700,
+    "width": 717,
     "height": 717,
     "points": [
       {
         "id": "L5",
-        "x": 17.8,
+        "x": 18.5,
         "y": 38.2
       },
       {
         "id": "L4",
-        "x": 18.3,
+        "x": 19,
         "y": 51.6
       },
       {
         "id": "L1",
-        "x": 24.6,
+        "x": 25.1,
         "y": 15.1
       }
     ]

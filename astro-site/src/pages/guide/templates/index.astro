@@ -1,5 +1,4 @@
 ---
-import packageMetadata from '../../../../../package.json';
 import EmojiIcon from '../../../components/EmojiIcon.astro';
 import GuideCta from '../../../components/guide/GuideCta.astro';
 import Base from '../../../layouts/Base.astro';
@@ -8,6 +7,8 @@ import { circuitSlug, levelClass } from '../../../lib/guide';
 import '../../../styles/guide.css';
 import '../../../styles/guide-lab.css';
 import type { GuideCircuit, GuideFeature, GuidedTemplate } from '../../../types/pages';
+import { GUIDE_LAB_VERSION } from '../../../lib/asset-version';
+
 
 const circuits = data.circuits as GuideCircuit[];
 const features = data.latest_features as GuideFeature[];
@@ -107,7 +108,12 @@ const walkthroughs = new Map(
           <div class="guide-section-head">
             <span class="guide-kicker">In-app guided templates</span>
             <h2 id="templates-h">Start from these built-in circuits</h2>
-            <p>The app includes 18 built-in guided circuits with loaded components, wires, steps, and expected outcomes. Every card opens its guide inside the editor.</p>
+            <p>
+              The app ships {templates.length} built-in guided circuits with loaded components, wires, steps, and
+              expected outcomes. Every card opens its guide inside the editor. {walkthroughs.size} of them also have a
+              written walkthrough in this guide — cards marked <span class="template-scope">App only</span> are
+              exclusive to the app for now.
+            </p>
           </div>
           <div class="template-grid">
             {templates.map((template) => {
@@ -120,10 +126,12 @@ const walkthroughs = new Map(
                   </div>
                   <p>{template.body}</p>
                   <a class="template-cta" href={`/app/?template=${template.id}`}>Open in ElectraSim →</a>
-                  {walkthrough && (
+                  {walkthrough ? (
                     <a class="template-walkthrough" href={`/guide/circuits/${circuitSlug(walkthrough)}/`}>
                       📖 Or follow the written walkthrough →
                     </a>
+                  ) : (
+                    <span class="template-scope">App only</span>
                   )}
                 </div>
               );
@@ -141,7 +149,7 @@ const walkthroughs = new Map(
     </div>
   </main>
 
-  <script is:inline defer src={`/js/guide-lab.js?v=${packageMetadata.version}`}></script>
+  <script is:inline defer src={`/js/guide-lab.js?v=${GUIDE_LAB_VERSION}`}></script>
 </Base>
 
 <style>
@@ -162,5 +170,16 @@ const walkthroughs = new Map(
   }
   .template-walkthrough:hover {
     text-decoration: underline;
+  }
+  .template-scope {
+    justify-self: start;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.15rem 0.55rem;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-dim);
   }
 </style>

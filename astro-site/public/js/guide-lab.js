@@ -72,6 +72,11 @@ window.ElectraSim.onReady(({ onCleanup }) => {
     };
 
     positionAll();
+    /* The render's box can change as it decodes (and on slow connections the
+       first measurement happens before the bytes land), so place again. */
+    if (photo && !photo.complete) {
+      photo.addEventListener('load', positionAll, { once: true });
+    }
     if (typeof ResizeObserver === 'function') {
       const ro = new ResizeObserver(positionAll);
       ro.observe(figure);

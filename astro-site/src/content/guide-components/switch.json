@@ -67,27 +67,27 @@
   "photo": {
     "src": "/images/guide/switch",
     "alt": "Photorealistic one-gang one-way light switch",
-    "width": 544,
+    "width": 557,
     "height": 557,
     "points": [
       {
         "id": "L0",
-        "x": 10,
+        "x": 10.8,
         "y": 50
       },
       {
         "id": "L1",
-        "x": 51,
+        "x": 50.9,
         "y": 52
       },
       {
         "id": "L2",
-        "x": 53,
+        "x": 52.8,
         "y": 18
       },
       {
         "id": "L3",
-        "x": 53,
+        "x": 52.8,
         "y": 82
       }
     ]
