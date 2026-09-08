@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import guideData from '../../../content/pages/guide.json';
+import { termsIn } from '../../../lib/glossary';
 import { circuitSlug, circuitsUsingAnatomy, levelClass } from '../../../lib/guide';
 import type { GuideCircuit } from '../../../types/pages';
 import CatalogCard from '../../../components/guide/CatalogCard.astro';
@@ -26,6 +27,11 @@ const canonical = `https://electrasim.com/guide/components/${data.slug}/`;
 /* The anatomy → circuit half of the cross-link mesh. */
 const circuits = guideData.circuits as GuideCircuit[];
 const usedIn = circuitsUsingAnatomy(circuits, data.slug);
+
+/* Terms this page uses, read off its own copy. */
+const usedTerms = termsIn(
+  [data.name, data.tagline, data.safety ?? '', ...(data.parts ?? []), ...(data.terminals ?? [])].join(' '),
+);
 
 const all = (await getCollection('guideComponents')).map((c) => c.data).sort((a, b) => a.name.localeCompare(b.name));
 const index = all.findIndex((c) => c.slug === data.slug);
@@ -112,6 +118,25 @@ const prev = all[(index - 1 + all.length) % all.length];
                     <span class:list={['level-pill', levelClass(c.level)]}>
                       <span class="level-dot" aria-hidden="true"></span>{c.level}
                     </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {usedTerms.length > 0 && (
+          <section class="cd-terms" aria-labelledby="cd-terms-h">
+            <h2 id="cd-terms-h">Terms used here</h2>
+            <p class="cd-terms-note">
+              Defined in the <a href="/glossary/">glossary</a> — each one opens at its own entry.
+            </p>
+            <ul class="cd-terms-list">
+              {usedTerms.map((term) => (
+                <li>
+                  <a href={`/glossary/#${term.slug}`}>
+                    <span class="cd-terms-term">{term.term}</span>
+                    <span class="cd-terms-cat">{term.category}</span>
                   </a>
                 </li>
               ))}

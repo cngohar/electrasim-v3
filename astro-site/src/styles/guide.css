@@ -1188,3 +1188,94 @@ a.comp-chip:focus-visible,
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+/* Route out of the hub to the glossary: the hub is a table of contents, so the
+   one thing it cannot do is define the terms its own cards use. */
+.hub-footnote {
+  margin: 1.5rem 0 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  color: var(--text-mid);
+  font-size: 0.95rem;
+}
+.hub-footnote a {
+  color: var(--blue);
+  font-weight: 600;
+}
+
+/* ── Glossary chip row ─────────────────────────────────────────────────────
+   Sits above the "parts used here" cards: anatomy pages explain the hardware,
+   the glossary explains the vocabulary the prose assumes. */
+.cd-terms {
+  margin: 2.5rem 0 0;
+  padding: 1.5rem 1.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+}
+.cd-terms h2 {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+.cd-terms-note {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--text-mid);
+}
+.cd-terms-note a {
+  color: var(--blue);
+  font-weight: 600;
+}
+.cd-terms-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cd-terms-list a {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-2);
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.cd-terms-list a:hover {
+  border-color: var(--border-bright);
+  transform: translateY(-1px);
+}
+.cd-terms-term {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.cd-terms-cat {
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-mid);
+}
+
+/* Hand tools and test equipment read as two shelves of the same toolbox. */
+.tool-group + .tool-group {
+  margin-top: 3rem;
+}
+.tool-group-head {
+  margin-bottom: 1.25rem;
+}
+.tool-group-head h3 {
+  margin: 0 0 0.25rem;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+.tool-group-head p {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: 0.95rem;
+}

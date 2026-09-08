@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import guide from '../content/pages/guide.json';
 import type { GuideCircuit } from '../types/pages';
+import { GLOSSARY, termsIn } from './glossary';
 import { CIRCUIT_SCHEMATICS, anatomiesForCircuit, circuitsUsingAnatomy } from './guide';
 
 /**
@@ -333,6 +334,53 @@ function pngSize(file: string) {
   return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
 }
 
+/** Every scrap of prose on a component page, for glossary matching. */
+function componentProse(): string[] {
+  return readdirSync(ANATOMY_DIR)
+    .filter((f) => f.endsWith('.json'))
+    .flatMap((f) => {
+      const c = JSON.parse(readFileSync(resolve(ANATOMY_DIR, f), 'utf8')) as {
+        name: string;
+        tagline: string;
+        safety?: string;
+        parts?: string[];
+        terminals?: string[];
+        points?: { label: string; detail: string }[];
+      };
+      return [
+        c.name,
+        c.tagline,
+        c.safety ?? '',
+        ...(c.parts ?? []),
+        ...(c.terminals ?? []),
+        ...(c.points ?? []).map((p) => `${p.label} ${p.detail}`),
+      ];
+    });
+}
+
+/** Same for the hand-tool and test-equipment pages. */
+function toolProse(): string[] {
+  const dir = resolve(process.cwd(), 'astro-site/src/content/guide-tools');
+  return readdirSync(dir)
+    .filter((f) => f.endsWith('.json'))
+    .flatMap((f) => {
+      const t = JSON.parse(readFileSync(resolve(dir, f), 'utf8')) as {
+        name: string;
+        tagline: string;
+        safety?: string;
+        parts?: string[];
+        points?: { label: string; detail: string }[];
+      };
+      return [
+        t.name,
+        t.tagline,
+        t.safety ?? '',
+        ...(t.parts ?? []),
+        ...(t.points ?? []).map((p) => `${p.label} ${p.detail}`),
+      ];
+    });
+}
+
 const circuitsBy = (id: string) => circuits.find((c) => c.id === id) as GuideCircuit;
 
 describe('component anatomy library', () => {
@@ -417,4 +465,58 @@ describe('component anatomy library', () => {
       });
     });
   }
+});
+
+/* ── glossary ─────────────────────────────────────────────────────────────── */
+
+/**
+ * The glossary is linked into the walkthroughs by scanning their prose, so the
+ * failure mode is quiet: a term nobody uses, or a "used in" list that points at
+ * a page which does not mention it. These tests keep the table honest.
+ */
+describe('guide glossary', () => {
+  it('gives every term a unique slug and a real definition', () => {
+    const slugs = GLOSSARY.map((t) => t.slug);
+    expect(new Set(slugs).size).toBe(slugs.length);
+    for (const term of GLOSSARY) {
+      expect(term.term.length, term.slug).toBeGreaterThan(0);
+      expect(term.definition.length, term.slug).toBeGreaterThan(120);
+      expect(term.category.length, term.slug).toBeGreaterThan(0);
+    }
+  });
+
+  it('only points at terms and pages that exist', () => {
+    const slugs = new Set(GLOSSARY.map((t) => t.slug));
+    for (const term of GLOSSARY) {
+      for (const see of term.see ?? []) {
+        expect(slugs.has(see), `${term.slug} → ${see}`).toBe(true);
+        expect(see, `${term.slug} links to itself`).not.toBe(term.slug);
+      }
+    }
+  });
+
+  it('reaches every term from a guide page, or hands the reader a pointer', () => {
+    const circuits = guide.circuits as GuideCircuit[];
+    const prose = [
+      ...circuits.flatMap((c) => [c.title, c.description, c.insight, ...c.steps, ...c.components]),
+      ...componentProse(),
+      ...toolProse(),
+    ].join(' ');
+    const used = new Set(termsIn(prose).map((t) => t.slug));
+    const orphaned = GLOSSARY.filter((t) => !used.has(t.slug) && !t.pointer).map((t) => t.slug);
+    expect(orphaned, 'terms no page reaches').toEqual([]);
+  });
+
+  it('matches on word boundaries, not substrings', () => {
+    // "Type C" is a breaker curve; "Continuity" is a test. Neither should be
+    // found inside an unrelated word.
+    expect(termsIn('a Type C breaker feeds the motor').map((t) => t.slug)).toContain('mcb-curves');
+    expect(termsIn('the cooker circuit').map((t) => t.slug)).not.toContain('mcb-curves');
+    expect(termsIn('prove the conductor is continuous').map((t) => t.slug)).not.toContain(
+      'continuity',
+    );
+    expect(termsIn('a continuity test on the CPC').map((t) => t.slug)).toEqual(
+      expect.arrayContaining(['continuity', 'cpc']),
+    );
+  });
 });

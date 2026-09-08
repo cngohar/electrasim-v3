@@ -1,6 +1,7 @@
 import { getCollection } from 'astro:content';
 import type { APIRoute } from 'astro';
 import guideData from '../content/pages/guide.json';
+import { GLOSSARY } from '../lib/glossary';
 import { type RawBlogPost, type RawGuideCircuit, buildSearchIndex } from '../lib/search';
 import { TOOLBOX_REGISTRY } from '../lib/tools/registry';
 
@@ -74,7 +75,29 @@ export const GET: APIRoute = async () => {
     })),
   ];
 
-  return new Response(JSON.stringify([...items, ...anatomy]), {
+  const glossary = [
+    {
+      id: 'guide-glossary',
+      title: 'Electrical Terms Glossary',
+      description:
+        'Plain-English definitions of the terms the wiring guides use — Zs, CPC, RCD types, IP ratings, earthing systems and breaker curves, with links to the circuits that use them.',
+      url: '/glossary/',
+      type: 'guide' as const,
+      category: 'Glossary',
+      tags: ['glossary', 'terms', 'definitions', 'Zs', 'CPC', 'RCD', 'earthing'],
+    },
+    ...GLOSSARY.map((term) => ({
+      id: `glossary-${term.slug}`,
+      title: term.expansion ? `${term.term} — ${term.expansion}` : term.term,
+      description: term.definition,
+      url: `/glossary/#${term.slug}`,
+      type: 'guide' as const,
+      category: 'Glossary',
+      tags: [term.category, 'glossary', 'term', ...(term.aliases ?? []).slice(0, 4)],
+    })),
+  ];
+
+  return new Response(JSON.stringify([...items, ...anatomy, ...glossary]), {
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
       'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',

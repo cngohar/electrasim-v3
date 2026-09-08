@@ -1,0 +1,56 @@
+{
+  "slug": "rcd-tester",
+  "name": "RCD Tester",
+  "tagline": "Injects a known leakage current and times the trip — the only way to prove an RCD will actually save someone.",
+  "category": "Test equipment",
+  "parts": [
+    "Rotary selector — IΔn, ×½, ×1, ×5 and the ramp test",
+    "Display — trip time in milliseconds",
+    "Test button — starts the injection",
+    "Mains lead — plugs into a socket on the circuit under test",
+    "Earth/loop ranges — Zs and, with the supply isolated, Ze and R1+R2",
+    "Polarity and wiring check before any test is allowed to run"
+  ],
+  "safety": "An RCD tester connects to live parts by design, so the instrument, its lead and your hands are at supply voltage during the test. Never start a test with the circuit energised from an unknown source, and never use the ×5 range as a shortcut — 150 mA through a person-sized fault path is precisely what the device exists to prevent.",
+  "svg": {
+    "viewBox": "0 0 320 210",
+    "body": "<g class=\"dl-part\" data-part=\"L0\"><rect class=\"dl-fill\" x=\"104\" y=\"52\" width=\"112\" height=\"112\" rx=\"12\"/></g><g class=\"dl-part\" data-part=\"L1\"><rect class=\"dl-fill--line\" x=\"120\" y=\"64\" width=\"80\" height=\"34\" rx=\"4\"/><text class=\"dl-text\" x=\"160\" y=\"86\" text-anchor=\"middle\">28.4 ms</text></g><g class=\"dl-part\" data-part=\"L2\"><circle class=\"dl-metal-2\" cx=\"160\" cy=\"132\" r=\"22\"/><path class=\"dl-line--accent\" d=\"M160 132 L176 120\"/><path class=\"dl-fill--line\" d=\"M160 110 v-5 M138 132 h-5 M182 132 h5\"/></g><g class=\"dl-part\" data-part=\"L3\"><rect class=\"dl-chip\" x=\"128\" y=\"156\" width=\"30\" height=\"16\" rx=\"4\"/></g><g class=\"dl-part\" data-part=\"L4\"><path class=\"dl-metal\" d=\"M160 52 v-24\"/><rect class=\"dl-metal-2\" x=\"146\" y=\"14\" width=\"28\" height=\"18\" rx=\"3\"/><circle class=\"dl-chip\" cx=\"154\" cy=\"32\" r=\"2\"/><circle class=\"dl-chip\" cx=\"160\" cy=\"24\" r=\"2\"/><circle class=\"dl-chip\" cx=\"166\" cy=\"32\" r=\"2\"/></g><text class=\"dl-text--mid\" x=\"143\" y=\"182\" text-anchor=\"middle\">TEST</text><text class=\"dl-text--mid\" x=\"160\" y=\"44\" text-anchor=\"middle\">lead</text>"
+  },
+  "points": [
+    {
+      "id": "L0",
+      "label": "Instrument body",
+      "detail": "A mains-powered instrument: it plugs into the circuit under test and injects a controlled fault current between live and earth downstream of the RCD. Because it is working with the supply live, the case, the lead and the insulation are all part of the safety system — a damaged lead is a reason to stop, not to carry on carefully.",
+      "x": 110,
+      "y": 150
+    },
+    {
+      "id": "L1",
+      "label": "Display (trip time)",
+      "detail": "The number that matters is milliseconds: a 30 mA RCD must disconnect within 300 ms at rated residual current, and within 40 ms at five times that. A device that trips in 280 ms is compliant and still telling you something is wrong; the same device last year may have tripped in 20 ms.",
+      "x": 160,
+      "y": 81
+    },
+    {
+      "id": "L2",
+      "label": "Rotary selector (×½, ×1, ×5, ramp)",
+      "detail": "×½ must NOT trip — that proves the device is not nuisance-tripping; ×1 must trip within 300 ms — that proves it protects; ×5 must trip within 40 ms — that proves it protects under a serious fault. The ramp test winds the current up slowly to find the actual trip threshold, which is how you investigate a device that keeps tripping without an obvious cause.",
+      "x": 160,
+      "y": 132
+    },
+    {
+      "id": "L3",
+      "label": "Test button",
+      "detail": "Starts the injection. On most instruments it will not start at all if the tester sees a wiring fault — reversed polarity, a missing earth or a borrowed neutral — which is a useful, if blunt, first check on the circuit as well as on the RCD.",
+      "x": 143,
+      "y": 164
+    },
+    {
+      "id": "L4",
+      "label": "Mains lead and plug",
+      "detail": "The tester plugs into a socket on the circuit it is testing, so it is downstream of the device and the injected current flows through the RCD's sense coil. Testing at the socket furthest from the board is the meaningful one: it proves the device trips for a fault at the end of the circuit, not just next to the consumer unit.",
+      "x": 160,
+      "y": 23
+    }
+  ]
+}

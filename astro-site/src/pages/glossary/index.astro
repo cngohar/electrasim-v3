@@ -1,0 +1,310 @@
+---
+import { getCollection } from 'astro:content';
+import GuideCta from '../../components/guide/GuideCta.astro';
+import Base from '../../layouts/Base.astro';
+import '../../styles/guide.css';
+import '../../styles/guide-lab.css';
+import guideData from '../../content/pages/guide.json';
+import { circuitSafety, circuitSlug } from '../../lib/guide';
+import { GLOSSARY, GLOSSARY_CATEGORIES, termsIn } from '../../lib/glossary';
+
+const circuits = (guideData?.circuits || []) as {
+  id: string;
+  title: string;
+  description: string;
+  steps: string[];
+  insight: string;
+  components: string[];
+}[];
+const components = await getCollection('guideComponents');
+
+/* Where each term actually turns up. Scanning the prose keeps this honest: a
+   term drops off the list when the walkthrough stops using it, rather than
+   drifting out of step with the text. Everything the reader sees is scanned —
+   steps, safety copy, terminal lists and the long hotspot descriptions. */
+const tools = await getCollection('guideTools');
+
+type Source = { kind: 'circuit' | 'component' | 'tool'; slug: string; title: string; text: string };
+
+const sources: Source[] = [
+  ...circuits.map((c) => ({
+    kind: 'circuit' as const,
+    slug: circuitSlug({ id: c.id, title: c.title }),
+    title: c.title,
+    text: [
+      c.title,
+      c.description,
+      c.insight,
+      circuitSafety(c),
+      ...(c.steps ?? []),
+      ...(c.components ?? []),
+    ].join(' '),
+  })),
+  ...components.map((c) => ({
+    kind: 'component' as const,
+    slug: c.data.slug,
+    title: c.data.name,
+    text: [
+      c.data.name,
+      c.data.tagline,
+      c.data.safety ?? '',
+      ...(c.data.parts ?? []),
+      ...(c.data.terminals ?? []),
+      ...(c.data.points ?? []).map((p) => `${p.label} ${p.detail}`),
+    ].join(' '),
+  })),
+  ...tools.map((t) => ({
+    kind: 'tool' as const,
+    slug: t.data.slug,
+    title: t.data.name,
+    text: [
+      t.data.name,
+      t.data.tagline,
+      t.data.safety ?? '',
+      ...(t.data.parts ?? []),
+      ...(t.data.points ?? []).map((p) => `${p.label} ${p.detail}`),
+    ].join(' '),
+  })),
+];
+
+const HREFS = {
+  circuit: (slug: string) => `/guide/circuits/${slug}/`,
+  component: (slug: string) => `/guide/components/${slug}/`,
+  tool: (slug: string) => `/guide/tools/${slug}/`,
+};
+
+const usedIn = (slug: string) =>
+  sources.filter((s) => termsIn(s.text).some((t) => t.slug === slug));
+
+const alphabet = [...new Set(GLOSSARY.map((t) => t.term[0].toUpperCase()))].sort();
+const canonical = 'https://electrasim.com/glossary/';
+---
+
+<Base
+  title="Electrical Terms Glossary: Zs, CPC, RCD Types"
+  description="Plain-English definitions of the terms the wiring guides use — Zs, CPC, RCD types, IP ratings, earthing systems, breaker curves and more, with links to the circuits that use them."
+  canonical={canonical}
+>
+  <main id="main-content">
+    <div class="bc-wrap">
+      <div class="wrap">
+        <nav class="bc" aria-label="Breadcrumb">
+          <a href="/">Home</a><span aria-hidden="true">›</span>
+          <a href="/guide/">Circuit Guide</a><span aria-hidden="true">›</span>
+          <span aria-current="page">Glossary</span>
+        </nav>
+      </div>
+    </div>
+
+    <div class="guide-hero guide-hero--small">
+      <div class="wrap">
+        <span class="label">Glossary</span>
+        <h1>The terms, without the jargon.</h1>
+        <p>Every abbreviation a walkthrough throws at you — {GLOSSARY.length} of them, from
+          <a href="#cpc">CPC</a> to <a href="#zs">Zs</a> — defined in a sentence or two and linked to
+          the circuits that actually use it.</p>
+      </div>
+    </div>
+
+    <div class="guide-main" data-live>
+      <div class="wrap">
+        <nav class="guide-lab-nav" aria-label="Guide sections">
+          <a href="/guide/tools/"><span class="lab-icon" aria-hidden="true">🛠️</span> Hand Tools</a>
+          <a href="/guide/components/"><span class="lab-icon" aria-hidden="true">🔌</span> Components</a>
+          <a href="/guide/circuits/"><span class="lab-icon" aria-hidden="true">⚡</span> Circuits</a>
+          <a href="/guide/templates/"><span class="lab-icon" aria-hidden="true">🧭</span> In the App</a>
+          <a href="/glossary/" aria-current="page"><span class="lab-icon" aria-hidden="true">📖</span> Glossary</a>
+        </nav>
+
+        <nav class="gloss-jump" aria-label="Jump to a letter">
+          <span class="gloss-jump-label">Jump to</span>
+          {alphabet.map((letter) => (
+            <a href={`#letter-${letter.toLowerCase()}`}>{letter}</a>
+          ))}
+        </nav>
+
+        {GLOSSARY_CATEGORIES.map((category) => {
+          const terms = GLOSSARY.filter((t) => t.category === category);
+          if (terms.length === 0) return null;
+          const anchor = category.toLowerCase().replace(/[^a-z]+/g, '-');
+          return (
+            <section class="guide-section gloss-group" id={anchor} aria-labelledby={`${anchor}-h`}>
+              <div class="guide-section-head">
+                <span class="guide-kicker">{category}</span>
+                <h2 id={`${anchor}-h`}>{category}</h2>
+              </div>
+              <dl class="gloss-list">
+                {terms.map((term) => {
+                  const used = usedIn(term.slug);
+                  const related = (term.see ?? []).map((s) => GLOSSARY.find((t) => t.slug === s)).filter(Boolean);
+                  return (
+                    <div class="gloss-entry" id={term.slug}>
+                      <dt>
+                        <a class="gloss-anchor" href={`#${term.slug}`} aria-label={`Link to ${term.term}`}>#</a>
+                        <span class="gloss-term">{term.term}</span>
+                        {term.expansion && <span class="gloss-exp">{term.expansion}</span>}
+                      </dt>
+                      <dd>
+                        <p>{term.definition}</p>
+                        {(used.length > 0 || term.pointer) && (
+                          <p class="gloss-used">
+                            <span class="gloss-used-label">Used in</span>
+                            {used.slice(0, 6).map((s) => (
+                              <a href={HREFS[s.kind](s.slug)}>{s.title}</a>
+                            ))}
+                            {used.length === 0 && term.pointer && (
+                              <a href={term.pointer.href}>{term.pointer.label}</a>
+                            )}
+                          </p>
+                        )}
+                        {related.length > 0 && (
+                          <p class="gloss-see">
+                            <span class="gloss-used-label">See also</span>
+                            {related.map((r) => (
+                              <a href={`#${r!.slug}`}>{r!.term}</a>
+                            ))}
+                          </p>
+                        )}
+                      </dd>
+                    </div>
+                  );
+                })}
+              </dl>
+            </section>
+          );
+        })}
+
+        <GuideCta
+          heading="Read the terms in context."
+          description="Every walkthrough links the jargon back here — open a circuit and follow the steps with the glossary open alongside it."
+          primary="Open the walkthroughs →"
+          secondary="Open the guide →"
+        />
+      </div>
+    </div>
+  </main>
+</Base>
+
+<style>
+  .gloss-jump {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 2rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg-card);
+  }
+  .gloss-jump-label {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-mid);
+    margin-right: 0.35rem;
+  }
+  .gloss-jump a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.9rem;
+    padding: 0.2rem 0.35rem;
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--text);
+    text-decoration: none;
+    background: var(--bg-2);
+  }
+  .gloss-jump a:hover {
+    background: var(--blue);
+    color: #fff;
+  }
+  .gloss-group {
+    margin-top: 0;
+  }
+  .gloss-list {
+    margin: 0;
+    display: grid;
+    gap: 1rem;
+  }
+  .gloss-entry {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-card);
+    padding: 1.1rem 1.25rem;
+    scroll-margin-top: 6rem;
+  }
+  .gloss-entry:target {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px var(--blue-glow);
+  }
+  .gloss-entry dt {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+  }
+  .gloss-term {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .gloss-exp {
+    font-size: 0.85rem;
+    color: var(--text-mid);
+  }
+  .gloss-anchor {
+    color: var(--text-mid);
+    text-decoration: none;
+    opacity: 0;
+    font-family: var(--font-mono);
+    transition: opacity 0.15s;
+  }
+  .gloss-entry:hover .gloss-anchor,
+  .gloss-anchor:focus-visible {
+    opacity: 1;
+  }
+  .gloss-entry dd {
+    margin: 0;
+  }
+  .gloss-entry p {
+    margin: 0 0 0.5rem;
+    color: var(--text-mid);
+    line-height: 1.65;
+  }
+  .gloss-used,
+  .gloss-see {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.25rem !important;
+    font-size: 0.85rem;
+  }
+  .gloss-used-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-mid);
+    opacity: 0.75;
+    margin-right: 0.2rem;
+  }
+  .gloss-used a,
+  .gloss-see a {
+    display: inline-block;
+    padding: 0.15rem 0.55rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--text);
+    text-decoration: none;
+    background: var(--bg-2);
+  }
+  .gloss-used a:hover,
+  .gloss-see a:hover {
+    border-color: var(--blue);
+    color: var(--blue);
+  }
+</style>

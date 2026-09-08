@@ -4,6 +4,7 @@ import EmojiIcon from '../../../components/EmojiIcon.astro';
 import GuideCta from '../../../components/guide/GuideCta.astro';
 import data from '../../../content/pages/guide.json';
 import Base from '../../../layouts/Base.astro';
+import { termsIn } from '../../../lib/glossary';
 import {
   CIRCUIT_SCHEMATICS,
   anatomiesForCircuit,
@@ -53,6 +54,12 @@ const chipHref = (component: string) => {
   const rule = linked.find((r) => r.match.test(component));
   return rule ? `/guide/components/${rule.slug}/` : null;
 };
+
+/* Terms the walkthrough actually uses, read off the prose so the chip row
+   cannot claim a term that has been edited out of the text. */
+const usedTerms = termsIn(
+  [circuit.title, circuit.description, circuit.insight, ...circuit.steps, ...circuit.components].join(' '),
+);
 
 /* Reverse direction: anatomy pages that explain something in this circuit. */
 type RelatedAnatomy = { slug: string; name: string; tagline: string };
@@ -179,6 +186,25 @@ const canonical = `https://electrasim.com/guide/circuits/${slug}/`;
           <span class="sn-label">⚠ Safety practice</span>
           <p>{circuitSafety(circuit)}</p>
         </div>
+
+        {usedTerms.length > 0 && (
+          <section class="cd-terms" aria-labelledby="cd-terms-h">
+            <h2 id="cd-terms-h">Terms used here</h2>
+            <p class="cd-terms-note">
+              Defined in the <a href="/glossary/">glossary</a> — each one opens at its own entry.
+            </p>
+            <ul class="cd-terms-list">
+              {usedTerms.map((term) => (
+                <li>
+                  <a href={`/glossary/#${term.slug}`}>
+                    <span class="cd-terms-term">{term.term}</span>
+                    <span class="cd-terms-cat">{term.category}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         {relatedAnatomies.length > 0 && (
           <section class="cd-related" aria-labelledby="cd-related-h">

@@ -5,6 +5,7 @@ import GuideCta from '../../../components/guide/GuideCta.astro';
 import Base from '../../../layouts/Base.astro';
 import '../../../styles/guide.css';
 import '../../../styles/guide-lab.css';
+import { termsIn } from '../../../lib/glossary';
 import { GUIDE_LAB_VERSION } from '../../../lib/asset-version';
 
 
@@ -19,6 +20,11 @@ export async function getStaticPaths() {
 const { tool } = Astro.props;
 const { data } = tool;
 const canonical = `https://electrasim.com/guide/tools/${data.slug}/`;
+
+/* Terms this page uses, read off its own copy. */
+const usedTerms = termsIn(
+  [data.name, data.tagline, data.safety ?? '', ...(data.parts ?? [])].join(' '),
+);
 
 /* Next/prev for the "more hand tools" row. */
 const all = (await getCollection('guideTools')).map((t) => t.data).sort((a, b) => a.name.localeCompare(b.name));
@@ -103,6 +109,25 @@ const prev = all[(index - 1 + all.length) % all.length];
           </ul>
         </section>
 
+        {usedTerms.length > 0 && (
+          <section class="cd-terms" aria-labelledby="cd-terms-h">
+            <h2 id="cd-terms-h">Terms used here</h2>
+            <p class="cd-terms-note">
+              Defined in the <a href="/glossary/">glossary</a> — each one opens at its own entry.
+            </p>
+            <ul class="cd-terms-list">
+              {usedTerms.map((term) => (
+                <li>
+                  <a href={`/glossary/#${term.slug}`}>
+                    <span class="cd-terms-term">{term.term}</span>
+                    <span class="cd-terms-cat">{term.category}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         <!-- Full-width safety band: below the anatomy, above the bottom row. -->
         {data.safety && (
           <div class="safety-band">
@@ -112,7 +137,7 @@ const prev = all[(index - 1 + all.length) % all.length];
         )}
 
         <div class="dl-browse">
-          <span class="dl-browse-head">More hand tools</span>
+          <span class="dl-browse-head">More tools</span>
           <div class="dl-lab-grid">
             <a class="dl-browse-link" href={`/guide/tools/${prev.slug}/`}>← {prev.name}</a>
             <a class="dl-browse-link" href={`/guide/tools/${next.slug}/`}>{next.name} →</a>

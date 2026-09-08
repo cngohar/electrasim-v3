@@ -12,6 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Glossary.** `/glossary/` defines the 36 terms the walkthroughs use — Zs, Ze, R1 + R2, CPC, RCD
+  types AC/A/F/B, Type B/C/D curves, TT/TN-S/TN-C-S, Ra, IP-style earthing and testing vocabulary,
+  diversity, SELV, Voc — grouped by subject with an A–Z jump strip and per-term anchor links. Each
+  entry lists the circuits, components and tools that actually use it, derived by scanning the prose
+  so the cross-links cannot drift; the same scan puts a "Terms used here" chip row on every
+  walkthrough, component and tool page. Four regression tests cover unique slugs, `see`-link
+  integrity, word-boundary matching and the no-orphan-term invariant.
+- **Test equipment pages.** Multimeter, voltage and continuity tester, RCD tester and clamp meter —
+  the instruments the safety copy keeps referring to ("prove dead", "press the test button"). The
+  tools index now splits into hand tools and test equipment.
 - **Anatomy pages for the nine advanced components.** Contactor, PIR motion sensor, cooker control
   unit, diesel generator, AFDD, EV charge point, solar PV panel, 12 V battery and underfloor heating
   mat — the equipment the eight advanced walkthroughs name, which previously appeared as dead chips.

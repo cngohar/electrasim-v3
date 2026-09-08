@@ -1,4 +1,5 @@
 ---
+import { getCollection } from 'astro:content';
 import GuideCta from '../components/guide/GuideCta.astro';
 import GuideHero from '../components/guide/GuideHero.astro';
 import data from '../content/pages/guide.json';
@@ -11,6 +12,7 @@ import { GUIDE_LAB_VERSION } from '../lib/asset-version';
 
 
 const circuits = data.circuits as GuideCircuit[];
+const componentCount = (await getCollection('guideComponents')).length;
 ---
 
 <Base
@@ -66,13 +68,13 @@ const circuits = data.circuits as GuideCircuit[];
             <a class="hub-card" href="/guide/components/">
               <span class="hub-icon" aria-hidden="true">🔌</span>
               <h3>Components</h3>
-              <p>Thirteen parts, from the switch on the wall to the board itself — what each terminal does and how the protection works.</p>
+              <p>{componentCount} parts, from the switch on the wall to the board itself — what each terminal does and how the protection works.</p>
               <span class="cs-go">Open components →</span>
             </a>
             <a class="hub-card" href="/guide/circuits/">
               <span class="hub-icon" aria-hidden="true">⚡</span>
               <h3>Circuits</h3>
-              <p>Eight walkthroughs, from a single lamp to a three-circuit consumer unit.</p>
+              <p>{circuits.length} walkthroughs, from a single lamp to a generator changeover.</p>
               <span class="cs-go">Open circuits →</span>
             </a>
             <a class="hub-card" href="/guide/templates/">
@@ -82,6 +84,11 @@ const circuits = data.circuits as GuideCircuit[];
               <span class="cs-go">Open templates →</span>
             </a>
           </div>
+          <p class="hub-footnote">
+            New to the abbreviations? Every term the walkthroughs use — <strong>Zs</strong>,
+            <strong>CPC</strong>, <strong>RCD types</strong>, earthing systems — is defined in the
+            <a href="/glossary/">glossary</a>.
+          </p>
         </section>
 
         <GuideCta

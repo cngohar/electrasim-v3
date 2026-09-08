@@ -4513,3 +4513,28 @@ single-phase and three-phase motor starters).
 
 **Gates:** 1387 vitest (+27 = 9 pages × 3 assertions), `astro check` 0/0/9, build **183 pages**
 (+9), dev server serving all new pages 200.
+
+**Glossary — done.** `/glossary/`: 36 terms in six groups (earthing & bonding, protection, testing,
+cables & sizing, circuits & loads, low voltage & generation) with an A–Z jump strip and per-term
+anchors. The cross-links are *derived*, not curated: `termsIn()` scans every circuit (title,
+description, insight, steps, components, safety copy), component (name, tagline, safety, parts,
+terminals, hotspot details) and tool page, so each glossary entry lists only the pages that really
+mention it, and each of those pages gets a "Terms used here" chip row back. A term no page reaches
+would be an orphan, so four tests assert: unique slugs with real definitions, `see`-links that
+resolve, word-boundary matching (`Type C` is a breaker curve, `the cooker circuit` is not), and zero
+orphaned terms — terms with no natural home get a hand-written pointer instead (sizing terms to the
+cable-size and voltage-drop calculators).
+
+**Test equipment — done, photos half done.** Four pages: multimeter, voltage & continuity tester,
+RCD tester, clamp meter. The multimeter has a verified photo (hotspots measured, not eyeballed); the
+other three are drawing-only for now because the image generator hit its 10-image-per-turn limit
+after one render. Their renders get generated and wired next turn with the same pipeline (crop →
+3:1 canvas on the render's own background → numeric hotspot verification → palette PNG + WebP).
+The tools index now reads as two shelves: hand tools and test equipment.
+
+**Gates:** 1391 vitest (+4 glossary assertions), `astro check` 0/0/9, build **188 pages**,
+`check:links` 190 HTML files, `check:perf` 5/5 budgets PASS.
+
+**Note:** this turn also found the local branch had been reset to the base commit while the remote
+still held the round-1–8 work; re-synced with `git fetch` + `git reset --mixed` so the tree kept its
+content and history came back from `origin/arena/01a07c47-electrasimw`.
