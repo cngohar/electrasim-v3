@@ -7,6 +7,40 @@ A running, append-only log of work on the ElectraSim rewrite. Every coding sessi
 
 ---
 
+## Session 2026-09-08 — Guide redesign: real-part imagery, circuit pages, In the App
+
+**Request:** implement the approved Guide Hub redesign (Idea 1: four sections + a page per circuit) on
+the real Astro site, after sign-off on a clickable mockup. Earlier in the session the user asked for
+realistic component and tool imagery, the point-detail panel beside the figure rather than below it,
+safety notes as a full-width band, SVG schematics alongside the text diagrams, and real conductor
+colours (live red, neutral black) with the current-flow animation kept.
+
+**Mockup:** `mockup-guide/` (untracked, disposable) — a Node generator producing 17 static pages from
+the real content JSON, used only to settle layout and interaction before touching app code.
+
+**Done:**
+1. Images: eight renders generated and cropped tight to each part, then emitted as `.webp` + quantised
+   `.png` fallback under `astro-site/public/images/guide/`. Hotspot coordinates were measured
+   programmatically off the renders (bounding boxes, connected-component blobs, colour masks) rather
+   than eyeballed, and every marker verified to sit on the part.
+2. Schema (`src/content.config.ts`) gains an optional `photo` block — percent coordinates keyed by
+   point id — plus matching types in `src/lib/anatomy.ts`.
+3. `CatalogCard.astro` renders the photo when present; `guide-lab.js` positions photo hotspots from
+   `data-point-p{x,y}` and drawing hotspots from `data-point-v{x,y}`, and resolves the detail panel
+   through `data-anatomy-detail-target` so it can live in the side rail (the strict CSP blocks inline
+   styles, so positions are still applied at runtime).
+4. New routes `/guide/circuits/[slug]` (8 pages) and `/guide/templates/`; hub reduced to a route table
+   with a legacy `#circuit-N` redirect; search index and its test updated to the new URLs.
+5. Both anatomy pages restructured: specification rows → point-detail panel → meet-it-in-a-circuit
+   mesh, with the safety note as a full-width band above the bottom row.
+
+**Deferred (user's call):** cutaway diagrams for the internal parts that a photo cannot show.
+
+**Verification:** `astro check` 0 errors; 153 pages build; 129 lib tests pass; structure asserted
+against the served HTML (panel in rail, band ordering, schematic colours, cross-link counts).
+
+---
+
 ## Session 2026-08-29 — Cable Size Calculator v2 (full replacement)
 
 **Request:** replace/overwrite the existing cable sizing tool with **Cable Size Calculator v2** per the

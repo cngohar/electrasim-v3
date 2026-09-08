@@ -9,6 +9,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+- **Real-part imagery across the guide.** All four components (MCB, RCD, lamp, socket) and all four
+  hand tools now lead with a photorealistic render instead of a drawing, cropped tight to the part and
+  served as WebP with a PNG fallback. Hotspots are pinned to the real geometry using percent
+  coordinates declared in the content JSON, matched to anatomy points by id so labels and
+  descriptions are never duplicated. Internal parts (trip mechanisms, shutters, rear terminals) keep
+  no photo coordinates and stay on the diagrammatic drawing.
+- **Circuit walkthrough pages.** `/guide/circuits/` plus eight per-circuit pages carrying the text
+  wiring path, an SVG schematic (live red, neutral black, strappers brown, with an amber current-flow
+  animation that respects `prefers-reduced-motion`), component chips that link to the matching
+  anatomy page, a full-width safety band, and prev/next navigation.
+- **"In the App" section** at `/guide/templates/`: the six feature cards, the four-step workflow and
+  the 18 guided templates moved off the hub, each template cross-linking to its written walkthrough
+  where one exists.
+
+### Changed
+- **The guide hub is a route table, not a dump.** Four section cards plus a circuit index replace the
+  inlined feature, workflow, template and circuit content; legacy `/guide/#circuit-N` links redirect
+  to the new pages.
+- **Anatomy pages read side-by-side.** The point-detail panel sits in the side rail beside the figure
+  (below the specification rows, above "Meet it in a circuit") instead of beneath it, and the safety
+  note is a full-width band below the anatomy and above the bottom row.
+
+### Fixed
+- The component CTA description shipped a literal `Set {data.name}` — a plain string attribute does
+  not interpolate in Astro. Now a template literal.
+- Search indexed circuits at `/guide/#<id>`, a fragment that never resolved for a first-time visitor.
+  Entries now point at `/guide/circuits/<slug>/`.
+
+---
+
 ## [2.0.2] — 2026-09-04
 
 ### Added
