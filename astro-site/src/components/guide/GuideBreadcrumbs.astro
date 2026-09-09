@@ -6,11 +6,15 @@
  * the two could drift independently. This takes the crumbs once and produces
  * both the <nav> a reader sees and the BreadcrumbList a crawler reads.
  *
- * The JSON-LD sits beside the nav rather than in <head>: schema.org data
+ * The JSON-LD sits inside .bc-wrap rather than in <head>: schema.org data
  * blocks are valid anywhere in the document, and keeping it here means the
  * page cannot end up describing a trail it does not show. CSP is not a
  * concern — `type="application/ld+json"` is a data block, not executable
  * script, so `script-src 'self'` does not apply to it.
+ *
+ * Inside, and not after: guide.css strips the blog's terminal-card styling
+ * with `.bc-wrap:has(+ .guide-hero)`, so anything between the two divs — even
+ * a bare script tag — hands the border and shadow straight back.
  */
 import { breadcrumbList, type Crumb } from '../../lib/structured-data';
 
@@ -39,5 +43,5 @@ const last = crumbs.length - 1;
       }
     </nav>
   </div>
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(breadcrumbList(crumbs))} />
 </div>
-<script is:inline type="application/ld+json" set:html={JSON.stringify(breadcrumbList(crumbs))} />
