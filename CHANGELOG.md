@@ -151,6 +151,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   not interpolate in Astro. Now a template literal.
 - Search indexed circuits at `/guide/#<id>`, a fragment that never resolved for a first-time visitor.
   Entries now point at `/guide/circuits/<slug>/`.
+- **Search snippets were being truncated mid-word by Google.** 111 of 188 pages shipped a title longer
+  than 60 characters (worst 127) and 128 a description longer than 160 (worst 415 — the cooker control
+  unit page, whose description was the tagline with the whole terminals list appended). Titles and
+  descriptions are now clamped in `Base.astro` via `src/lib/seo.ts`: a description prefers to end on a
+  complete sentence and otherwise cuts at a word, guarded against the false sentence ends that occur
+  in electrical copy (`1.5 mm`, `etc.`); a title prefers to drop the trailing brand segment, then the
+  longest leading clause, and only then cuts. `ToolLayout.astro` gets the same clamp — the two toolbox
+  pages write their own head tags and kept their 237- and 199-character descriptions after the first
+  pass. `npm run check:seo` now reads the built HTML and fails on a title over 60, a description
+  outside 40–160, a missing tag or a description duplicated across pages; it is wired into
+  `npm run verify`. All 187 indexed pages pass.
 
 ---
 

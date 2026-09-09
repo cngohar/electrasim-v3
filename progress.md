@@ -7,6 +7,27 @@ A running, append-only log of work on the ElectraSim rewrite. Every coding sessi
 
 ---
 
+## Session 2026-09-09 — SEO pass 1: snippet lengths
+
+**Request:** with the guide signed off as complete (22 components, 16 cutaways, 8 tools, 20 circuits,
+37 glossary terms) and the remaining content items deferred to a later phase, work the SEO list one
+item at a time and report when the whole list is finished. Items: (1) descriptions over 160
+characters, (2) titles over 60, (3) per-page OG cards for the guide pages, (4) `BreadcrumbList` and
+`HowTo` structured data.
+
+**Done:**
+1. Descriptions: 128 over 160 → 0. The clamp went into `Base.astro` (every page renders through it)
+   and into `ToolLayout.astro` (the toolbox pages do not). The three guide description templates were
+   rewritten rather than truncated — they were the source of the longest copy.
+2. Titles: 111 over 60 → 0. Clause-boundary logic rather than a bare cut, so the surviving text is
+   still a readable phrase.
+3. `scripts/check-seo.mjs` gates it in `npm run verify`, and measures the *rendered* text — counting
+   `&amp;` as five characters was reporting a 58-character title as 64.
+4. 13 unit tests over the two helpers, plus a full suite run (1435 passing), typecheck, lint,
+   `check:perf` and `check:links`.
+
+**Verified** against `dist/`, not the source: 187 pages, 0 SEO failures.
+
 ## Session 2026-09-08 — Guide redesign: real-part imagery, circuit pages, In the App
 
 **Request:** implement the approved Guide Hub redesign (Idea 1: four sections + a page per circuit) on

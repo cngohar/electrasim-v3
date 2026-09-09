@@ -21,7 +21,7 @@
     "check:perf": "node scripts/check-performance.mjs",
     "check:links": "node scripts/check-internal-links.mjs",
     "preview": "wrangler pages dev dist --ip 127.0.0.1 --port 8788 --no-bundle",
-    "verify": "npm run check && npm run build && npm run check:perf && npm run check:links && npm run benchmark:simulation && npm run benchmark:browser && npm run e2e && npm run e2e:production",
+    "verify": "npm run check && npm run build && npm run check:perf && npm run check:links && npm run check:seo && npm run benchmark:simulation && npm run benchmark:browser && npm run e2e && npm run e2e:production",
     "deploy": "npm run verify && wrangler pages deploy dist/ --project-name=electrasim",
     "clean": "rm -rf dist coverage playwright-report test-results",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.e2e.json && npm run typecheck --workspace astro-site",
@@ -37,7 +37,8 @@
     "e2e:install": "playwright install --with-deps",
     "e2e:ui": "playwright test --ui",
     "check": "npm run typecheck && npm run lint && npm run test",
-    "prepare": "lefthook install || echo '(skipped: no .git yet — run \"git init && npm run prepare\" later)'"
+    "prepare": "lefthook install || echo '(skipped: no .git yet \u2014 run \"git init && npm run prepare\" later)'",
+    "check:seo": "node scripts/check-seo.mjs"
   },
   "dependencies": {
     "@types/three": "^0.185.4",

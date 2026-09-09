@@ -7,6 +7,7 @@ import '../styles/global.css';
    onto all 134 routes when only the two tool pages use it. */
 import '../styles/tool-stage.css';
 import packageMetadata from '../../../package.json';
+import { metaDescription, metaTitle } from '../lib/seo';
 
 export interface Props {
   title: string;
@@ -21,8 +22,8 @@ export interface Props {
 }
 
 const {
-  title,
-  description,
+  title: rawTitle,
+  description: rawDescription,
   canonical,
   keywords = [],
   robots = 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1',
@@ -31,6 +32,11 @@ const {
   ogType = 'website',
   structuredData,
 } = Astro.props;
+
+/* Same clamp Base.astro applies: the toolbox pages do not route through Base,
+   and the registry descriptions run well past a search snippet. */
+const description = metaDescription(rawDescription);
+const title = metaTitle(rawTitle);
 ---
 
 <!doctype html>
