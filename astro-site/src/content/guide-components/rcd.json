@@ -75,5 +75,87 @@
         "y": 15.1
       }
     ]
-  }
+  },
+  "cutaway": {
+    "src": "/images/guide/rcd-cutaway",
+    "alt": "Cutaway of a residual current device showing the toroidal summation transformer, trip solenoid, latch mechanism and main contacts",
+    "width": 768,
+    "height": 768,
+    "points": [
+      {
+        "id": "summation-transformer",
+        "x": 31,
+        "y": 36
+      },
+      {
+        "id": "conductors-through-core",
+        "x": 47,
+        "y": 26
+      },
+      {
+        "id": "trip-solenoid",
+        "x": 64,
+        "y": 48
+      },
+      {
+        "id": "trip-latch",
+        "x": 42,
+        "y": 60
+      },
+      {
+        "id": "main-contacts",
+        "x": 44,
+        "y": 74
+      },
+      {
+        "id": "test-resistor",
+        "x": 60,
+        "y": 70
+      }
+    ]
+  },
+  "cutawayPoints": [
+    {
+      "id": "summation-transformer",
+      "label": "Summation transformer",
+      "detail": "A toroidal ring core with a sense winding, sitting so that both the live and the neutral conductor pass through its centre. Equal currents produce equal and opposite fields and cancel, so the winding sees nothing; any current leaking to earth unbalances them and induces a voltage — the whole device is that imbalance, amplified.",
+      "x": 31,
+      "y": 36
+    },
+    {
+      "id": "conductors-through-core",
+      "label": "Conductors through the core",
+      "detail": "Live and neutral both thread the ring. That is the trick worth seeing: an RCD does not measure current to earth, it compares what goes out with what comes back, so it trips on any difference above its rating — 30 mA on a socket circuit, 100 mA or more on a whole installation.",
+      "x": 47,
+      "y": 26
+    },
+    {
+      "id": "trip-solenoid",
+      "label": "Trip solenoid",
+      "detail": "The residual is only millivolts, so on a modern device it is amplified before it reaches the trip coil. The plunger strikes the latch and opens both poles; at rated residual a 30 mA device has to do it within 40 ms, and most manage a good deal less.",
+      "x": 64,
+      "y": 48
+    },
+    {
+      "id": "trip-latch",
+      "label": "Trip latch",
+      "detail": "The same over-centre latch the lever drives manually, held closed against a spring and released by either the solenoid or the test circuit — and when it goes, the lever does not return to OFF but stops mid-travel, which is how you tell a trip from a switch-off.",
+      "x": 42,
+      "y": 60
+    },
+    {
+      "id": "main-contacts",
+      "label": "Main contacts",
+      "detail": "Double-break contacts opening live and neutral together. Interrupting the whole supply rather than one conductor is what makes an RCD protection against electric shock rather than just against fire: the appliance is dead on both sides.",
+      "x": 44,
+      "y": 74
+    },
+    {
+      "id": "test-resistor",
+      "label": "Test resistor",
+      "detail": "The T button does not fake a fault in the electronics — it passes a real current through a resistor from the load side of one pole back to the supply side of the other, outside the ring. The transformer sees a genuine imbalance. That is why the button proves the mechanism and the wiring but proves nothing about your earth.",
+      "x": 60,
+      "y": 70
+    }
+  ]
 }

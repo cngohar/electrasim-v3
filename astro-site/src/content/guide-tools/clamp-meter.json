@@ -59,5 +59,43 @@
       "x": 108,
       "y": 208
     }
-  ]
+  ],
+  "photo": {
+    "src": "/images/guide/clamp-meter",
+    "alt": "Photorealistic digital clamp meter with split-core jaws, rotary dial and test leads",
+    "width": 720,
+    "height": 240,
+    "points": [
+      {
+        "id": "L0",
+        "x": 42,
+        "y": 30
+      },
+      {
+        "id": "L1",
+        "x": 20,
+        "y": 46
+      },
+      {
+        "id": "L2",
+        "x": 30,
+        "y": 60
+      },
+      {
+        "id": "L3",
+        "x": 40,
+        "y": 50
+      },
+      {
+        "id": "L4",
+        "x": 46,
+        "y": 72
+      },
+      {
+        "id": "L5",
+        "x": 78,
+        "y": 60
+      }
+    ]
+  }
 }

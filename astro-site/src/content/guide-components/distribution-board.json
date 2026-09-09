@@ -106,5 +106,87 @@
         "y": 63.4
       }
     ]
-  }
+  },
+  "cutaway": {
+    "src": "/images/guide/distribution-board-cutaway",
+    "alt": "Cutaway of a distribution board showing the DIN rail, busbar, main switch, protective devices, neutral bar and earth bar",
+    "width": 768,
+    "height": 768,
+    "points": [
+      {
+        "id": "din-rail",
+        "x": 50,
+        "y": 68
+      },
+      {
+        "id": "busbar",
+        "x": 50,
+        "y": 44
+      },
+      {
+        "id": "main-switch",
+        "x": 20,
+        "y": 42
+      },
+      {
+        "id": "protective-devices",
+        "x": 72,
+        "y": 40
+      },
+      {
+        "id": "neutral-bar",
+        "x": 38,
+        "y": 86
+      },
+      {
+        "id": "earth-bar",
+        "x": 66,
+        "y": 86
+      }
+    ]
+  },
+  "cutawayPoints": [
+    {
+      "id": "din-rail",
+      "label": "DIN rail",
+      "detail": "The 35 mm top-hat rail every device clips onto. It carries no current — it sets the geometry. Get the rail straight and level and the busbar lines up with every line terminal in the board; get it wrong and you are fighting alignment on every way.",
+      "x": 50,
+      "y": 68
+    },
+    {
+      "id": "busbar",
+      "label": "Busbar",
+      "detail": "A comb of copper that feeds the line terminal of every device from one set of tails, so the supply does not have to be daisy-chained from breaker to breaker. The comb is cut for the board it ships with: mismatched devices leave teeth that do not line up with the terminals.",
+      "x": 50,
+      "y": 44
+    },
+    {
+      "id": "main-switch",
+      "label": "Main switch",
+      "detail": "A double-pole isolator ahead of everything else, switching live and neutral so the entire board can be made dead with one movement — which is what makes safe isolation of a single circuit possible without killing the building.",
+      "x": 20,
+      "y": 42
+    },
+    {
+      "id": "protective-devices",
+      "label": "Protective devices",
+      "detail": "The MCBs, RCBOs and RCDs on the rail, one way per final circuit. Each carries its own overload and fault protection, and the arrangement is the design decision: an RCBO per circuit costs more but means one fault does not darken the whole house.",
+      "x": 72,
+      "y": 40
+    },
+    {
+      "id": "neutral-bar",
+      "label": "Neutral bar",
+      "detail": "The common landing point for every circuit neutral, one way per circuit, with the incoming neutral tail on the same bar. A neutral that comes loose here does not just stop one circuit — on a shared-neutral arrangement it can put full voltage across equipment.",
+      "x": 38,
+      "y": 86
+    },
+    {
+      "id": "earth-bar",
+      "label": "Earth bar",
+      "detail": "Where every circuit CPC lands alongside the main earthing conductor and any bonding. On a TN-C-S supply this is the point at which the distributor combined earth and neutral becomes your installation earth, and the reason main bonding is sized the way it is.",
+      "x": 66,
+      "y": 86
+    }
+  ]
 }

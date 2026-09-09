@@ -84,5 +84,87 @@
         "y": 75
       }
     ]
-  }
+  },
+  "cutaway": {
+    "src": "/images/guide/bell-cutaway",
+    "alt": "Cutaway of an electric bell showing the solenoid coil, armature and striker, gong, self-interrupting contacts and return spring",
+    "width": 768,
+    "height": 768,
+    "points": [
+      {
+        "id": "solenoid-coil",
+        "x": 30,
+        "y": 62
+      },
+      {
+        "id": "armature-striker",
+        "x": 44,
+        "y": 62
+      },
+      {
+        "id": "gong",
+        "x": 44,
+        "y": 26
+      },
+      {
+        "id": "interrupter-contacts",
+        "x": 58,
+        "y": 54
+      },
+      {
+        "id": "return-spring",
+        "x": 58,
+        "y": 72
+      },
+      {
+        "id": "bell-terminals",
+        "x": 30,
+        "y": 86
+      }
+    ]
+  },
+  "cutawayPoints": [
+    {
+      "id": "solenoid-coil",
+      "label": "Solenoid coil",
+      "detail": "Fed from the bell transformer at 8–12 V, not from the mains. Energised, it pulls the armature in to strike the gong — and because it is a coil it keeps drawing current only while the striker is moving, which is what makes the interrupting contact essential.",
+      "x": 30,
+      "y": 62
+    },
+    {
+      "id": "armature-striker",
+      "label": "Armature and striker",
+      "detail": "A spring-steel arm carrying the striker, hinged so the coil pull swings it at the gong. Its travel sets how hard the gong is hit, so a striker set too close buzzes weakly and one set too far never reaches it.",
+      "x": 44,
+      "y": 62
+    },
+    {
+      "id": "gong",
+      "label": "Gong",
+      "detail": "The tuned metal dome that turns the strike into a sound. It is the resonator, not the mechanism: a gong screwed down hard against its mounting, or touching the case, is muffled instead of ringing — the usual reason a bell sounds like a buzzer.",
+      "x": 44,
+      "y": 26
+    },
+    {
+      "id": "interrupter-contacts",
+      "label": "Self-interrupting contacts",
+      "detail": "The contacts that make it a bell rather than a solenoid: as the armature arrives, they open, the coil de-energises, the striker springs back, they close again and it strikes once more. That cycle repeating several times a second is the buzz you hear.",
+      "x": 58,
+      "y": 54
+    },
+    {
+      "id": "return-spring",
+      "label": "Return spring",
+      "detail": "Pulls the striker back off the gong so it can strike again, and holds the contacts closed when the bell is at rest. It also sets the rest position, so a weak spring leaves the striker resting on the gong and the bell silent.",
+      "x": 58,
+      "y": 72
+    },
+    {
+      "id": "bell-terminals",
+      "label": "Terminals",
+      "detail": "Two screws fed at SELV from the bell transformer, which is why the cable to a bell is not treated like a lighting circuit and why the transformer itself is the part that fails when a bell goes quiet — check for voltage here before condemning the bell.",
+      "x": 30,
+      "y": 86
+    }
+  ]
 }

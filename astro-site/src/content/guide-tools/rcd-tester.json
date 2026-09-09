@@ -52,5 +52,38 @@
       "x": 160,
       "y": 23
     }
-  ]
+  ],
+  "photo": {
+    "src": "/images/guide/rcd-tester",
+    "alt": "Photorealistic RCD tester with rotary selector, display and mains lead",
+    "width": 720,
+    "height": 240,
+    "points": [
+      {
+        "id": "L0",
+        "x": 56,
+        "y": 70
+      },
+      {
+        "id": "L1",
+        "x": 56,
+        "y": 22
+      },
+      {
+        "id": "L2",
+        "x": 56,
+        "y": 80
+      },
+      {
+        "id": "L3",
+        "x": 49,
+        "y": 46
+      },
+      {
+        "id": "L4",
+        "x": 84,
+        "y": 72
+      }
+    ]
+  }
 }

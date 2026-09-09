@@ -122,16 +122,6 @@ const prev = all[(index - 1 + all.length) % all.length];
                   data-view-panel
                 >
                   <CatalogCard item={data} wide hotspots detailTargetId="anatomy-detail" />
-                  <div
-                    class="dl-anatomy-detail dl-anatomy-detail--inline"
-                    id="anatomy-detail"
-                    data-anatomy-detail
-                  >
-                    <h4 data-anatomy-title>{data.name}</h4>
-                    <p data-anatomy-text>
-                      Select a numbered marker on the figure to read about that part.
-                    </p>
-                  </div>
                 </div>
 
                 <div
@@ -145,21 +135,10 @@ const prev = all[(index - 1 + all.length) % all.length];
                     item={cutawayItem}
                     wide
                     hotspots
-                    detailTargetId="cutaway-detail"
+                    detailTargetId="anatomy-detail"
                     figureOnly
                     caption="Cutaway — tap a marker"
                   />
-                  <div
-                    class="dl-anatomy-detail dl-anatomy-detail--inline"
-                    id="cutaway-detail"
-                    data-anatomy-detail
-                  >
-                    <h4 data-anatomy-title>{`${data.name} — inside`}</h4>
-                    <p data-anatomy-text>
-                      Same part, case sectioned away. These markers describe the mechanism, not the
-                      outside of the case.
-                    </p>
-                  </div>
                 </div>
               </div>
             ) : (
@@ -188,18 +167,16 @@ const prev = all[(index - 1 + all.length) % all.length];
                 </ul>
               </dd>
             </div>
-            {/* With a cutaway the detail panel moves inside each tab, so the
-                panel you read always belongs to the figure you are looking at. */}
-            {
-              !cutawayItem && (
-                <div class="dl-anatomy-detail" id="anatomy-detail" data-anatomy-detail>
-                  <h4 data-anatomy-title>{data.name}</h4>
-                  <p data-anatomy-text>
-                    Select a numbered marker on the figure to read about that part.
-                  </p>
-                </div>
-              )
-            }
+            {/* One panel, shared by both figures: only one view is visible at a
+                time, so the marker you click always belongs to the figure in
+                front of you — and the panel stays where it always was, under
+                the specification rows rather than under the picture. */}
+            <div class="dl-anatomy-detail" id="anatomy-detail" data-anatomy-detail>
+              <h4 data-anatomy-title>{data.name}</h4>
+              <p data-anatomy-text>
+                Select a numbered marker on the figure to read about that part.
+              </p>
+            </div>
           </aside>
         </div>
 

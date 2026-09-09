@@ -72,5 +72,87 @@
         "y": 16.8
       }
     ]
-  }
+  },
+  "cutaway": {
+    "src": "/images/guide/dimmer-switch-cutaway",
+    "alt": "Cutaway of a dimmer switch showing the TRIAC on its heat sink, suppression choke, potentiometer and timing network",
+    "width": 768,
+    "height": 768,
+    "points": [
+      {
+        "id": "triac",
+        "x": 42,
+        "y": 52
+      },
+      {
+        "id": "heat-sink",
+        "x": 30,
+        "y": 48
+      },
+      {
+        "id": "suppression-choke",
+        "x": 56,
+        "y": 74
+      },
+      {
+        "id": "potentiometer",
+        "x": 42,
+        "y": 24
+      },
+      {
+        "id": "timing-network",
+        "x": 30,
+        "y": 72
+      },
+      {
+        "id": "dimmer-terminals",
+        "x": 60,
+        "y": 86
+      }
+    ]
+  },
+  "cutawayPoints": [
+    {
+      "id": "triac",
+      "label": "TRIAC",
+      "detail": "The semiconductor that does the dimming: it turns on partway through each half cycle and switches off at the zero crossing. It is bolted to metal because while it conducts it still drops a volt or two, and at full load that is several watts of heat in a plastic box.",
+      "x": 42,
+      "y": 52
+    },
+    {
+      "id": "heat-sink",
+      "label": "Heat sink",
+      "detail": "The finned aluminium the TRIAC is mounted on, and the reason a dimmer is derated when it is stacked alongside others in a multi-gang plate: less heat sink per dimmer, so less load each may carry. It is also why a dimmer in a sealed or insulated box runs hotter than one in free air.",
+      "x": 30,
+      "y": 48
+    },
+    {
+      "id": "suppression-choke",
+      "label": "Suppression choke",
+      "detail": "A coil in series with the load that slows the sharp switching edge of the TRIAC. Without it the edge makes the lamp filament or the driver buzz audibly and sprays radio-frequency interference back down the wiring — the hum you can hear through a radio in the same room.",
+      "x": 56,
+      "y": 74
+    },
+    {
+      "id": "potentiometer",
+      "label": "Setting potentiometer",
+      "detail": "The track behind the knob, setting how far into each half cycle the TRIAC fires. On LED-friendly designs there is also a minimum-load trim, because a lamp that draws a few watts may never pull enough current to keep an old dimmer timing circuit stable.",
+      "x": 42,
+      "y": 24
+    },
+    {
+      "id": "timing-network",
+      "label": "DIAC and RC network",
+      "detail": "A capacitor charges through a resistor each half cycle and the DIAC fires the TRIAC when it reaches its threshold. Moving that firing point earlier or later is all a dimmer does — it never reduces the voltage, it just conducts for a shorter slice of each half cycle.",
+      "x": 30,
+      "y": 72
+    },
+    {
+      "id": "dimmer-terminals",
+      "label": "Rear terminals",
+      "detail": "Two terminals, wired in series with the live exactly like a switch, and no neutral — which is why a smart dimmer that needs one may not fit an existing back box, and why a dimmer cannot simply be dropped into a two-way arrangement without the right companion switch.",
+      "x": 60,
+      "y": 86
+    }
+  ]
 }

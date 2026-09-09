@@ -85,5 +85,75 @@
         "y": 76.2
       }
     ]
-  }
+  },
+  "cutaway": {
+    "src": "/images/guide/timer-switch-cutaway",
+    "alt": "Cutaway of a timer switch showing the timer electronics, output relay, backup cell, dial cam and rear terminals",
+    "width": 768,
+    "height": 768,
+    "points": [
+      {
+        "id": "timer-module",
+        "x": 40,
+        "y": 40
+      },
+      {
+        "id": "output-relay",
+        "x": 62,
+        "y": 55
+      },
+      {
+        "id": "backup-cell",
+        "x": 30,
+        "y": 56
+      },
+      {
+        "id": "dial-cam",
+        "x": 45,
+        "y": 24
+      },
+      {
+        "id": "timer-terminals",
+        "x": 62,
+        "y": 80
+      }
+    ]
+  },
+  "cutawayPoints": [
+    {
+      "id": "timer-module",
+      "label": "Timer electronics",
+      "detail": "A quartz-driven module that holds the programme and decides when the output should be on. It is a small computer, which is why it needs a permanent supply — and why a timer plate is deeper and has more terminals than the plain switch it replaces.",
+      "x": 40,
+      "y": 40
+    },
+    {
+      "id": "output-relay",
+      "label": "Output relay",
+      "detail": "The electronics switch milliamps; the relay switches the lighting load. Listen for it and you can hear the programme act. It is also the part with a finite life, so a timer that sticks on or will not switch is usually the relay rather than the electronics.",
+      "x": 62,
+      "y": 55
+    },
+    {
+      "id": "backup-cell",
+      "label": "Backup cell",
+      "detail": "Keeps the clock running while the supply is off, so a power cut does not wipe the programme or lose the time. A flat cell is the usual reason a timer drifts by minutes a month or comes back from a cut with all its settings gone.",
+      "x": 30,
+      "y": 56
+    },
+    {
+      "id": "dial-cam",
+      "label": "Dial and setting cam",
+      "detail": "On a mechanical timer the dial physically drives a cam that lifts the switch — the tappets you push around the rim are the programme. On an electronic one the dial is only an input, which is why the same-looking plate can behave quite differently.",
+      "x": 45,
+      "y": 24
+    },
+    {
+      "id": "timer-terminals",
+      "label": "Rear terminals",
+      "detail": "Live in, switched live out, and a neutral the electronics need to run. That third terminal is the trap: a plain switch box usually has no neutral at the plate, so swapping a switch for a timer often means a new cable rather than a like-for-like change.",
+      "x": 62,
+      "y": 80
+    }
+  ]
 }

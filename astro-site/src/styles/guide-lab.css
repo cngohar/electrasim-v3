@@ -102,11 +102,6 @@
 .anatomy-views__panel[hidden] {
   display: none;
 }
-/* The detail panel sits under its own figure when the views are tabbed, so it
-   belongs to the markers above it rather than to the side rail. */
-.dl-anatomy-detail--inline {
-  margin-top: 1rem;
-}
 
 /* The SVG figure sits in a "drawing sheet" panel, light grey like the
    blueprint papers used in the rest of the guide. */

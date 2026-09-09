@@ -131,8 +131,20 @@ window.ElectraSim.onReady(({ onCleanup }) => {
         if (btn.getAttribute('aria-pressed') === 'true') deselect(btn);
         else select();
       });
-      /* Keep the panel synced when keyboard users Tab through the buttons. */
-      btn.addEventListener('focus', select);
+      /* Keep the panel synced when keyboard users Tab through the buttons.
+         Mouse focus must NOT select: `focus` fires before `click`, so a click
+         would arrive with the button already active and immediately undo it —
+         the marker looked like it needed two clicks. `:focus-visible` is only
+         set for keyboard focus. */
+      btn.addEventListener('focus', () => {
+        let keyboard = true;
+        try {
+          keyboard = btn.matches(':focus-visible');
+        } catch {
+          /* No :focus-visible support — keep the old behaviour. */
+        }
+        if (keyboard) select();
+      });
     }
   }
 

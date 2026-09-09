@@ -95,5 +95,87 @@
         "y": 48
       }
     ]
-  }
+  },
+  "cutaway": {
+    "src": "/images/guide/contactor-cutaway",
+    "alt": "Cutaway of a three-pole contactor showing the operating coil, armature, return spring, double-break contacts, arc chutes and auxiliary block",
+    "width": 768,
+    "height": 768,
+    "points": [
+      {
+        "id": "coil",
+        "x": 38,
+        "y": 70
+      },
+      {
+        "id": "armature",
+        "x": 40,
+        "y": 55
+      },
+      {
+        "id": "return-spring",
+        "x": 55,
+        "y": 62
+      },
+      {
+        "id": "double-break-contacts",
+        "x": 40,
+        "y": 30
+      },
+      {
+        "id": "arc-chutes",
+        "x": 62,
+        "y": 32
+      },
+      {
+        "id": "aux-contact-block",
+        "x": 80,
+        "y": 58
+      }
+    ]
+  },
+  "cutawayPoints": [
+    {
+      "id": "coil",
+      "label": "Operating coil",
+      "detail": "Wound around a laminated core and fed from the control circuit at A1–A2, which can be 230 V, 110 V or 24 V independently of the power it switches. A shading ring on the pole face holds the flux through the zero crossing — without it the armature would chatter at 50 Hz. The inrush when it pulls in is several times the holding current, which is what sizes the control cables.",
+      "x": 38,
+      "y": 70
+    },
+    {
+      "id": "armature",
+      "label": "Moving armature",
+      "detail": "The steel block the coil drags in, carrying the contact bridge for all three poles at once. It closes against the return spring, and a thin residual air gap at the pole face stops it sticking when the coil drops out — sticking on is the failure mode that leaves a motor running after the stop button.",
+      "x": 40,
+      "y": 55
+    },
+    {
+      "id": "return-spring",
+      "label": "Return spring",
+      "detail": "What makes a contactor fail safe: de-energise the coil for any reason — stop button, overload, lost supply — and the spring opens the contacts. That is the whole reason a motor starter uses a contactor instead of a relay you have to remember to release.",
+      "x": 55,
+      "y": 62
+    },
+    {
+      "id": "double-break-contacts",
+      "label": "Double-break contacts",
+      "detail": "Each pole opens in two places at once, so the arc is split into two series gaps. Twice the arc voltage for the same package size is what lets a contactor no bigger than a fist break a motor current many times its own coil rating.",
+      "x": 40,
+      "y": 30
+    },
+    {
+      "id": "arc-chutes",
+      "label": "Arc chutes",
+      "detail": "Stacks of steel splitter plates sitting over the contact gaps. Breaking an inductive load draws an arc that would weld the contacts shut; the plates pull it up, slice it into shorter arcs and drain its heat into the metal so it dies at the next current zero. They are the reason a contactor has an electrical life rated in operations.",
+      "x": 62,
+      "y": 32
+    },
+    {
+      "id": "aux-contact-block",
+      "label": "Auxiliary contact block",
+      "detail": "A clip-on NO/NC pair driven by the same carrier as the power contacts. The NO contact is wired in parallel with the start button so the contactor holds itself in after you let go — and the NC one interlocks a second contactor so reversing a motor cannot short the supply.",
+      "x": 80,
+      "y": 58
+    }
+  ]
 }
