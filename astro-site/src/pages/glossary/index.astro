@@ -1,4 +1,5 @@
 ---
+import GuideBreadcrumbs from '../../components/guide/GuideBreadcrumbs.astro';
 import { getCollection } from 'astro:content';
 import GuideCta from '../../components/guide/GuideCta.astro';
 import { ogCardUrl } from '../../og-manifest';
@@ -93,6 +94,12 @@ for (const term of GLOSSARY) {
 }
 const alphabet = [...firstTermByLetter.entries()].sort((a, b) => a[0].localeCompare(b[0]));
 const canonical = 'https://electrasim.com/glossary/';
+const crumbs = [
+  { name: 'Home', path: `/` },
+  { name: 'Circuit Guide', path: `/guide/` },
+  { name: 'Glossary', path: `/glossary/` }
+];
+
 ---
 
 <Base
@@ -105,15 +112,7 @@ const canonical = 'https://electrasim.com/glossary/';
   ogImageType="image/png"
 >
   <main id="main-content">
-    <div class="bc-wrap">
-      <div class="wrap">
-        <nav class="bc" aria-label="Breadcrumb">
-          <a href="/">Home</a><span aria-hidden="true">›</span>
-          <a href="/guide/">Circuit Guide</a><span aria-hidden="true">›</span>
-          <span aria-current="page">Glossary</span>
-        </nav>
-      </div>
-    </div>
+    <GuideBreadcrumbs crumbs={crumbs} />
 
     <div class="guide-hero guide-hero--small">
       <div class="wrap">

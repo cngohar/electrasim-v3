@@ -114,6 +114,61 @@ for (const filePath of htmlFiles) {
     }
   }
 
+  /* Structured data. The breadcrumb trail is the one piece that can drift
+     silently: the page renders one trail and the schema describes another, and
+     neither looks wrong on its own. So the schema is compared against the
+     <nav> the reader actually sees. */
+  if (source.startsWith('/guide/') || source.startsWith('/glossary/')) {
+    const schemas = [
+      ...html.matchAll(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g),
+    ]
+      .map((match) => {
+        try {
+          return JSON.parse(match[1]);
+        } catch {
+          return null;
+        }
+      })
+      .filter(Boolean);
+
+    const crumbs = schemas.find((schema) => schema['@type'] === 'BreadcrumbList');
+    const nav = html.match(/<nav class="bc"[^>]*>([\s\S]*?)<\/nav>/i);
+    const shown = nav
+      ? [...nav[1].matchAll(/<(?:a|span)[^>]*>([\s\S]*?)<\/(?:a|span)>/g)]
+          .map((match) => decodeEntities(match[1].replace(/<[^>]+>/g, '')).trim())
+          .filter((label) => label && label !== '›')
+      : [];
+
+    if (!crumbs) {
+      failures.push(`${source}: no BreadcrumbList on a page that renders a breadcrumb trail`);
+    } else {
+      const marked = (crumbs.itemListElement ?? []).map((item) => item.name);
+      if (marked.join(' › ') !== shown.join(' › ')) {
+        failures.push(
+          `${source}: BreadcrumbList is "${marked.join(' › ')}" but the page shows "${shown.join(' › ')}"`,
+        );
+      }
+    }
+
+    /* The 20 circuit walkthroughs are numbered procedures, so each carries a
+       HowTo whose steps match the list on the page. */
+    if (/^\/guide\/circuits\/[^/]+\/$/.test(source)) {
+      const howTo = schemas.find((schema) => schema['@type'] === 'HowTo');
+      if (!howTo) {
+        failures.push(`${source}: circuit walkthrough has no HowTo`);
+      } else {
+        const steps = howTo.step ?? [];
+        if (steps.length === 0) failures.push(`${source}: HowTo has no steps`);
+        for (const step of steps) {
+          const anchor = (step.url ?? '').split('#')[1];
+          if (anchor && !html.includes(`id="${anchor}"`)) {
+            failures.push(`${source}: HowTo step points at #${anchor}, which is not on the page`);
+          }
+        }
+      }
+    }
+  }
+
   const descMatch = html.match(/<meta\s+name="description"\s+content="([^"]*)"/i);
   const description = decodeEntities(descMatch?.[1] ?? '')
     .replace(/\s+/g, ' ')
@@ -130,6 +185,19 @@ for (const filePath of htmlFiles) {
     const seen = descriptions.get(description) ?? [];
     seen.push(source);
     descriptions.set(description, seen);
+  }
+}
+
+/* An unrendered template expression is invisible in the source and obvious on
+   the page — a breadcrumb that reads "{data.name}" shipped this way once. */
+const PLACEHOLDER = /\{(?:data|circuit|Astro|entry|post|component|tool)\.[a-zA-Z]/;
+for (const filePath of htmlFiles) {
+  const html = readFileSync(filePath, 'utf8');
+  const match = html.match(PLACEHOLDER);
+  if (match) {
+    failures.push(
+      `${pageUrl(filePath)}: unrendered template expression "${match[0]}…" in the HTML`,
+    );
   }
 }
 

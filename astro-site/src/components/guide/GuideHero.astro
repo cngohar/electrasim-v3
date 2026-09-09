@@ -1,26 +1,21 @@
 ---
+import { type Crumb } from '../../lib/structured-data';
 import EmojiIcon from '../EmojiIcon.astro';
+import GuideBreadcrumbs from './GuideBreadcrumbs.astro';
 
 interface Props {
   heading: string;
   description: string;
   primaryCta: string;
   secondaryCta: string;
+  crumbs: Crumb[];
 }
 
-const { heading, description, primaryCta, secondaryCta } = Astro.props;
+const { heading, description, primaryCta, secondaryCta, crumbs } = Astro.props;
 const headingLines = heading.split('\n');
 ---
 
-<div class="bc-wrap">
-  <div class="wrap">
-    <nav class="bc" aria-label="Breadcrumb">
-      <a href="/">Home</a>
-      <span aria-hidden="true">›</span>
-      <span aria-current="page">Circuit Guide</span>
-    </nav>
-  </div>
-</div>
+<GuideBreadcrumbs crumbs={crumbs} />
 
 <div class="guide-hero" data-live>
   <div class="wrap">

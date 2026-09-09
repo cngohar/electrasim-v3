@@ -1,4 +1,5 @@
 ---
+import GuideBreadcrumbs from '../../../components/guide/GuideBreadcrumbs.astro';
 import { getCollection } from 'astro:content';
 import CatalogCard from '../../../components/guide/CatalogCard.astro';
 import GuideCta from '../../../components/guide/GuideCta.astro';
@@ -32,6 +33,13 @@ const all = (await getCollection('guideTools')).map((t) => t.data).sort((a, b) =
 const index = all.findIndex((t) => t.slug === data.slug);
 const next = all[(index + 1) % all.length];
 const prev = all[(index - 1 + all.length) % all.length];
+const crumbs = [
+  { name: 'Home', path: `/` },
+  { name: 'Circuit Guide', path: `/guide/` },
+  { name: 'Hand Tools', path: `/guide/tools/` },
+  { name: data.name, path: `/guide/tools/{slug}/` }
+];
+
 ---
 
 <Base
@@ -44,16 +52,7 @@ const prev = all[(index - 1 + all.length) % all.length];
   ogImageType="image/png"
 >
   <main id="main-content">
-    <div class="bc-wrap">
-      <div class="wrap">
-        <nav class="bc" aria-label="Breadcrumb">
-          <a href="/">Home</a><span aria-hidden="true">›</span>
-          <a href="/guide/">Circuit Guide</a><span aria-hidden="true">›</span>
-          <a href="/guide/tools/">Hand Tools</a><span aria-hidden="true">›</span>
-          <span aria-current="page">{data.name}</span>
-        </nav>
-      </div>
-    </div>
+    <GuideBreadcrumbs crumbs={crumbs} />
 
     <div class="guide-hero guide-hero--small">
       <div class="wrap">

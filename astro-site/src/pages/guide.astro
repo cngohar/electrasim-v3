@@ -14,6 +14,11 @@ import { GUIDE_LAB_VERSION } from '../lib/asset-version';
 
 const circuits = data.circuits as GuideCircuit[];
 const componentCount = (await getCollection('guideComponents')).length;
+const crumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'Circuit Guide', path: '/guide/' },
+];
+
 ---
 
 <Base
@@ -50,7 +55,8 @@ const componentCount = (await getCollection('guideComponents')).length;
       description={data.hero_description}
       primaryCta={data.hero_cta_primary}
       secondaryCta={data.hero_cta_secondary}
-    />
+      crumbs={crumbs}
+/>
 
     <div class="guide-main" data-live>
       <div class="wrap">

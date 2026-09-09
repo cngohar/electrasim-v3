@@ -1,4 +1,5 @@
 ---
+import GuideBreadcrumbs from '../../../components/guide/GuideBreadcrumbs.astro';
 import { getCollection } from 'astro:content';
 import EmojiIcon from '../../../components/EmojiIcon.astro';
 import GuideCta from '../../../components/guide/GuideCta.astro';
@@ -6,6 +7,7 @@ import data from '../../../content/pages/guide.json';
 import Base from '../../../layouts/Base.astro';
 import { termsIn } from '../../../lib/glossary';
 import { ogCardUrl } from '../../../og-manifest';
+import { howTo, stepName } from '../../../lib/structured-data';
 import {
   CIRCUIT_SCHEMATICS,
   anatomiesForCircuit,
@@ -76,6 +78,29 @@ const matchedTemplate = circuit.app_template
   : null;
 
 const canonical = `https://electrasim.com/guide/circuits/${slug}/`;
+
+/* The walkthrough is a numbered procedure, so it is marked up as one. Each
+   step carries the anchor of the <li> that renders it, added below. */
+const howToSchema = howTo({
+  name: circuit.title,
+  description: circuit.description,
+  path: `/guide/circuits/${slug}/`,
+  image: ogCardUrl(circuit.id, 'circuits'),
+  supply: circuit.components,
+  tool: { name: 'ElectraSim', url: 'https://electrasim.com/app/' },
+  steps: circuit.steps.map((step: string, i: number) => ({
+    name: stepName(step),
+    text: step,
+    anchor: `step-${i + 1}`,
+  })),
+});
+const crumbs = [
+  { name: 'Home', path: `/` },
+  { name: 'Circuit Guide', path: `/guide/` },
+  { name: 'Circuits', path: `/guide/circuits/` },
+  { name: circuit.title, path: `/guide/circuits/{slug}/` }
+];
+
 ---
 
 <Base
@@ -87,17 +112,12 @@ const canonical = `https://electrasim.com/guide/circuits/${slug}/`;
   ogImageHeight={630}
   ogImageType="image/png"
 >
+  <Fragment slot="head">
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(howToSchema)} />
+  </Fragment>
+
   <main id="main-content">
-    <div class="bc-wrap">
-      <div class="wrap">
-        <nav class="bc" aria-label="Breadcrumb">
-          <a href="/">Home</a><span aria-hidden="true">›</span>
-          <a href="/guide/">Circuit Guide</a><span aria-hidden="true">›</span>
-          <a href="/guide/circuits/">Circuits</a><span aria-hidden="true">›</span>
-          <span aria-current="page">{circuit.title}</span>
-        </nav>
-      </div>
-    </div>
+    <GuideBreadcrumbs crumbs={crumbs} />
 
     <article class="circuit-detail">
       <div class="wrap">
@@ -172,7 +192,7 @@ const canonical = `https://electrasim.com/guide/circuits/${slug}/`;
             <h3>Steps</h3>
             <ol class="step-list">
               {circuit.steps.map((step, i) => (
-                <li class="step-item">
+                <li class="step-item" id={`step-${i + 1}`}>
                   <span class="step-n">{i + 1}</span>
                   <span class="step-text">{step}</span>
                 </li>

@@ -151,6 +151,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   not interpolate in Astro. Now a template literal.
 - Search indexed circuits at `/guide/#<id>`, a fragment that never resolved for a first-time visitor.
   Entries now point at `/guide/circuits/<slug>/`.
+- **Structured data for the guide.** Every guide page now carries a `BreadcrumbList`. The trail was
+  visible on nine templates and marked up on none of them, so a crawler saw no hierarchy at all; it
+  is now emitted by `GuideBreadcrumbs.astro`, which takes the crumbs once and produces both the
+  `<nav>` a reader sees and the JSON-LD a crawler reads, so the two cannot drift. The 20 circuit
+  walkthroughs also carry a `HowTo` — name, description, card image, the parts list as
+  `HowToSupply`, ElectraSim as the `HowToTool`, and one `HowToStep` per numbered step, each with the
+  anchor of the `<li>` that renders it so the step URLs resolve. `npm run check:seo` compares each
+  `BreadcrumbList` against the trail actually rendered on the page and fails on a difference, and
+  fails on an unrendered template expression (`{data.name}`) reaching the HTML. Nine unit tests cover
+  the builders, including the step-label truncation that keeps a long instruction readable.
 - **Per-page social cards for the guide.** All 56 guide URLs — 22 components, 8 tools, 20 circuit
   walkthroughs and the six landing pages — now carry their own 1200×630 card instead of sharing the
   generic `og-image.png`. `scripts/generate-og-images.mjs` grows a corpus per guide section: cards
