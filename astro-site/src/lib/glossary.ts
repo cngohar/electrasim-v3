@@ -213,6 +213,16 @@ export const GLOSSARY: GlossaryTerm[] = [
     see: ['breaking-capacity', 'zs'],
     pointer: { label: 'Consumer unit panel', href: '/guide/circuits/consumer-unit-panel/' },
   },
+  {
+    slug: 'ip-ratings',
+    term: 'IP ratings',
+    expansion: 'Ingress Protection',
+    category: CATEGORY.protection,
+    definition:
+      'The two-digit code on an enclosure: the first digit rates protection against solid objects — 2 keeps a finger out, 4 keeps a 1 mm wire out, 6 is dust-tight — and the second rates protection against water, from X4 (splashing from any direction) to X7 (temporary immersion). The two digits are independent, and neither says anything about impact, which is the separate IK code, so an outdoor fitting needs the rating that suits where it is rather than the biggest number on the box.',
+    aliases: ['IP rating', 'IP2X', 'IP4X', 'IPX4', 'IP65', 'IP67', 'ingress protection'],
+    pointer: { label: 'PIR floodlight circuit', href: '/guide/circuits/pir-floodlight/' },
+  },
 
   /* ── Testing ────────────────────────────────────────────────────────────── */
   {

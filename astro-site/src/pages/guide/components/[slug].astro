@@ -28,6 +28,14 @@ const canonical = `https://electrasim.com/guide/components/${data.slug}/`;
 const circuits = guideData.circuits as GuideCircuit[];
 const usedIn = circuitsUsingAnatomy(circuits, data.slug);
 
+/* A cutaway is a second figure of the same part with its own marker set: the
+   outside view shows what you see and wire up, the inside view shows the
+   mechanism that does the work. Only rendered when the component has one. */
+const cutaway = data.cutaway;
+const cutawayPoints = data.cutawayPoints ?? [];
+const cutawayItem =
+  cutaway && cutawayPoints.length > 0 ? { ...data, photo: cutaway, points: cutawayPoints } : null;
+
 /* Terms this page uses, read off its own copy. */
 const usedTerms = termsIn(
   [data.name, data.tagline, data.safety ?? '', ...(data.parts ?? []), ...(data.terminals ?? [])].join(' '),
@@ -74,7 +82,90 @@ const prev = all[(index - 1 + all.length) % all.length];
         </nav>
 
         <div class="guide-detail-grid">
-          <CatalogCard item={data} wide hotspots detailTargetId="anatomy-detail" />
+          {
+            /* Two figures, two sets of information: the render is the part you
+               hold and wire, the cutaway is the mechanism inside it. Both ship
+               expanded so the page still reads without JS; guide-lab.js turns
+               them into tabs and keeps the outside view as the default. */
+            cutawayItem ? (
+              <div class="anatomy-views" data-anatomy-views>
+                <div class="anatomy-views__tabs" role="tablist" aria-label="Anatomy view">
+                  <button
+                    type="button"
+                    role="tab"
+                    id="view-tab-outside"
+                    class="anatomy-view-tab"
+                    aria-controls="view-panel-outside"
+                    aria-selected="true"
+                    data-view-tab
+                  >
+                    <span class="av-icon" aria-hidden="true">🔍</span> Outside — the real part
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    id="view-tab-inside"
+                    class="anatomy-view-tab"
+                    aria-controls="view-panel-inside"
+                    aria-selected="false"
+                    data-view-tab
+                  >
+                    <span class="av-icon" aria-hidden="true">🧊</span> Inside — cutaway
+                  </button>
+                </div>
+
+                <div
+                  class="anatomy-views__panel"
+                  role="tabpanel"
+                  id="view-panel-outside"
+                  aria-labelledby="view-tab-outside"
+                  data-view-panel
+                >
+                  <CatalogCard item={data} wide hotspots detailTargetId="anatomy-detail" />
+                  <div
+                    class="dl-anatomy-detail dl-anatomy-detail--inline"
+                    id="anatomy-detail"
+                    data-anatomy-detail
+                  >
+                    <h4 data-anatomy-title>{data.name}</h4>
+                    <p data-anatomy-text>
+                      Select a numbered marker on the figure to read about that part.
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  class="anatomy-views__panel"
+                  role="tabpanel"
+                  id="view-panel-inside"
+                  aria-labelledby="view-tab-inside"
+                  data-view-panel
+                >
+                  <CatalogCard
+                    item={cutawayItem}
+                    wide
+                    hotspots
+                    detailTargetId="cutaway-detail"
+                    figureOnly
+                    caption="Cutaway — tap a marker"
+                  />
+                  <div
+                    class="dl-anatomy-detail dl-anatomy-detail--inline"
+                    id="cutaway-detail"
+                    data-anatomy-detail
+                  >
+                    <h4 data-anatomy-title>{`${data.name} — inside`}</h4>
+                    <p data-anatomy-text>
+                      Same part, case sectioned away. These markers describe the mechanism, not the
+                      outside of the case.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <CatalogCard item={data} wide hotspots detailTargetId="anatomy-detail" />
+            )
+          }
 
           <aside class="dl-spec" aria-label={`${data.name} specification`}>
             <div class="dl-spec__row">
@@ -97,12 +188,18 @@ const prev = all[(index - 1 + all.length) % all.length];
                 </ul>
               </dd>
             </div>
-            <!-- Point detail lives here, beside the figure, so you read the
-                 part description without scrolling away from the marker. -->
-            <div class="dl-anatomy-detail" id="anatomy-detail" data-anatomy-detail>
-              <h4 data-anatomy-title>{data.name}</h4>
-              <p data-anatomy-text>Select a numbered marker on the figure to read about that part.</p>
-            </div>
+            {/* With a cutaway the detail panel moves inside each tab, so the
+                panel you read always belongs to the figure you are looking at. */}
+            {
+              !cutawayItem && (
+                <div class="dl-anatomy-detail" id="anatomy-detail" data-anatomy-detail>
+                  <h4 data-anatomy-title>{data.name}</h4>
+                  <p data-anatomy-text>
+                    Select a numbered marker on the figure to read about that part.
+                  </p>
+                </div>
+              )
+            }
           </aside>
         </div>
 

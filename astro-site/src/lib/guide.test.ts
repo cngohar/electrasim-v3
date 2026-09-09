@@ -319,6 +319,15 @@ type AnatomyDoc = {
     height: number;
     points: { id: string; x: number; y: number }[];
   };
+  /** Optional second figure: the same part with its case sectioned away. */
+  cutaway?: {
+    src: string;
+    alt: string;
+    width: number;
+    height: number;
+    points: { id: string; x: number; y: number }[];
+  };
+  cutawayPoints?: { id: string; label: string; detail: string; x: number; y: number }[];
 };
 
 const ANATOMY_DIR = resolve(process.cwd(), 'astro-site/src/content/guide-components');
@@ -461,6 +470,52 @@ describe('component anatomy library', () => {
           ).toBe(true);
           expect(point.x > 0 && point.x < 100, `${point.id} x`).toBe(true);
           expect(point.y > 0 && point.y < 100, `${point.id} y`).toBe(true);
+        }
+      });
+
+      /**
+       * A cutaway is a second figure with its own marker set, so the failure
+       * mode is a cutaway that silently repeats the outside view — same ids,
+       * same labels — or hotspots pinned to an id nobody describes.
+       */
+      it('pins cutaway hotspots to their own points, on a real image', () => {
+        const cutaway = component.cutaway;
+        if (!cutaway) return;
+        const cutawayPoints = component.cutawayPoints ?? [];
+        expect(cutawayPoints.length, 'cutaway with no cutawayPoints').toBeGreaterThan(0);
+
+        for (const ext of ['webp', 'png']) {
+          expect(
+            existsSync(resolve(PUB, `${cutaway.src.slice(1)}.${ext}`)),
+            `${cutaway.src}.${ext}`,
+          ).toBe(true);
+        }
+        const size = pngSize(resolve(PUB, `${cutaway.src.slice(1)}.png`));
+        expect(cutaway.width).toBe(size.width);
+        expect(cutaway.height).toBe(size.height);
+        expect(cutaway.alt.length).toBeGreaterThan(10);
+        expect(cutaway.points.length).toBeGreaterThan(0);
+
+        for (const point of cutaway.points) {
+          expect(
+            cutawayPoints.some((p) => p.id === point.id),
+            `cutaway point ${point.id} has no cutawayPoints entry`,
+          ).toBe(true);
+          expect(point.x > 0 && point.x < 100, `${point.id} x`).toBe(true);
+          expect(point.y > 0 && point.y < 100, `${point.id} y`).toBe(true);
+        }
+        for (const point of cutawayPoints) {
+          expect(point.detail.length, `cutaway point ${point.id} detail`).toBeGreaterThan(80);
+        }
+
+        /* The point of the second view is new information: reusing an outside
+           id would just show the same label on a different picture. */
+        const outsideIds = new Set(component.points.map((p) => p.id));
+        for (const point of cutawayPoints) {
+          expect(
+            outsideIds.has(point.id),
+            `cutaway point ${point.id} repeats an outside marker`,
+          ).toBe(false);
         }
       });
     });

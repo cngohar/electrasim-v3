@@ -44,9 +44,26 @@ interface Props {
    * browse tile, and a row of markers that do nothing but decorate is noise.
    */
   hotspots?: boolean;
+  /**
+   * Render the figure alone, with no title/tagline/parts body. Used for the
+   * second figure in a tabbed anatomy view (a cutaway beside the real part),
+   * where the page already carries the heading and the specification rail.
+   */
+  figureOnly?: boolean;
+  /** Overrides the figure caption, e.g. "Cutaway — inside the mechanism". */
+  caption?: string;
 }
 
-const { item, href, wide = false, drawing = false, detailTargetId, hotspots = false } = Astro.props;
+const {
+  item,
+  href,
+  wide = false,
+  drawing = false,
+  detailTargetId,
+  hotspots = false,
+  figureOnly = false,
+  caption,
+} = Astro.props;
 const isComponent = 'terminals' in item;
 const photo = drawing ? undefined : item.photo;
 
@@ -61,8 +78,8 @@ const detailHint = 'Select a marked part to read about it.';
 ---
 
 <article
-  class:list={['anatomy-card', wide && 'anatomy-card--wide']}
-  id={item.slug}
+  class:list={['anatomy-card', wide && 'anatomy-card--wide', figureOnly && 'anatomy-card--figure']}
+  id={figureOnly ? `${item.slug}-cutaway` : item.slug}
   data-anatomy
   data-anatomy-label={detailTitle}
   data-anatomy-detail-target={detailTargetId}
@@ -115,12 +132,14 @@ const detailHint = 'Select a marked part to read about it.';
     </div>
     {photo && (
       <span class="anatomy-figure__cap">
-        {hotspots ? 'Real part — tap a marker' : 'Real part'}
+        {caption ?? (hotspots ? 'Real part — tap a marker' : 'Real part')}
       </span>
     )}
   </div>
 
-  <div class="anatomy-card__body">
+  {
+    !figureOnly && (
+      <div class="anatomy-card__body">
     <div class="anatomy-card__title">
       <h3>{item.name}</h3>
       <p>{item.tagline}</p>
@@ -150,10 +169,20 @@ const detailHint = 'Select a marked part to read about it.';
         </div>
       )
     }
-  </div>
+      </div>
+    )
+  }
 </article>
 
 <style>
+  /* Figure-only mode (the cutaway tab): the page already carries the heading
+     and the spec rail, so the card chrome would just double the box. */
+  .anatomy-card--figure {
+    background: none;
+    border: none;
+    box-shadow: none;
+  }
+
   .anatomy-card__title h3 {
     margin: 0 0 0.3rem;
     font-size: 1.06rem;

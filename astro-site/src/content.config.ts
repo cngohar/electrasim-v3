@@ -89,6 +89,14 @@ const guideComponents = defineCollection({
     svg: z.object({ viewBox: z.string(), body: z.string() }),
     points: z.array(anatomyPointSchema),
     photo: anatomyPhotoSchema.optional(),
+    /**
+     * Optional second figure: a cutaway of the same part, showing the
+     * mechanism you cannot see from outside. Rendered as a tab beside the
+     * outside view, with its own marker set (`cutawayPoints`) so the two views
+     * carry different information instead of repeating each other.
+     */
+    cutaway: anatomyPhotoSchema.optional(),
+    cutawayPoints: z.array(anatomyPointSchema).optional(),
   }),
 });
 

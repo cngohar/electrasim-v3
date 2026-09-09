@@ -10,6 +10,11 @@ window.ElectraSim.onReady(({ onCleanup }) => {
      is hidden and the card is a reading layout (figure + parts list) — full
      content, no JS needed. Selection shows the labeled detail panel and twin-
      highlights the `data-part=<point id>` group in the drawing.           */
+  /* Every card's re-measure function, keyed by card. A figure inside a hidden
+     tab panel measures 0×0, so revealing it has to re-place its markers; the
+     ResizeObserver usually catches it, this makes it immediate. */
+  const repositioners = [];
+
   for (const card of document.querySelectorAll('[data-anatomy]')) {
     if (!(card instanceof HTMLElement)) continue;
     const stage = card.querySelector('.anatomy-stage');
@@ -72,6 +77,7 @@ window.ElectraSim.onReady(({ onCleanup }) => {
     };
 
     positionAll();
+    repositioners.push({ card, positionAll });
     /* The render's box can change as it decodes (and on slow connections the
        first measurement happens before the bytes land), so place again. */
     if (photo && !photo.complete) {
@@ -128,5 +134,60 @@ window.ElectraSim.onReady(({ onCleanup }) => {
       /* Keep the panel synced when keyboard users Tab through the buttons. */
       btn.addEventListener('focus', select);
     }
+  }
+
+  window.ElectraSim.repositionAnatomy = (root) => {
+    for (const entry of repositioners) {
+      if (!root || root.contains(entry.card)) entry.positionAll();
+    }
+  };
+
+  /* ── Anatomy view tabs (outside render ↔ inside cutaway) ───────────────
+     Two figures of the same part carry two different sets of information: the
+     render shows what you see and wire up, the cutaway shows the mechanism
+     that does the work. Only one is visible at a time.
+
+     Progressive enhancement: the markup ships both panels expanded, so with no
+     JS you read Outside then Inside stacked. JS hides the second panel, shows
+     the tab row, and re-measures the markers of whichever panel it reveals
+     (a hidden figure has no box to measure, so its markers would pile at 0,0). */
+  for (const views of document.querySelectorAll('[data-anatomy-views]')) {
+    if (!(views instanceof HTMLElement)) continue;
+    const tabs = Array.from(views.querySelectorAll('[data-view-tab]'));
+    const panels = Array.from(views.querySelectorAll('[data-view-panel]'));
+    if (tabs.length < 2 || panels.length !== tabs.length) continue;
+
+    const activate = (tab) => {
+      const panelId = tab.getAttribute('aria-controls');
+      for (const other of tabs) {
+        const on = other === tab;
+        other.setAttribute('aria-selected', on ? 'true' : 'false');
+        other.tabIndex = on ? 0 : -1;
+      }
+      for (const panel of panels) {
+        const on = panel.id === panelId;
+        panel.hidden = !on;
+        if (on) window.ElectraSim.repositionAnatomy(panel);
+      }
+    };
+
+    for (const tab of tabs) {
+      tab.addEventListener('click', () => activate(tab));
+      tab.addEventListener('keydown', (event) => {
+        const step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+        if (!step) return;
+        event.preventDefault();
+        const next = tabs[(tabs.indexOf(tab) + step + tabs.length) % tabs.length];
+        activate(next);
+        next.focus();
+      });
+    }
+
+    activate(tabs[0]);
+    views.dataset.ready = 'true';
+    onCleanup(() => {
+      delete views.dataset.ready;
+      for (const panel of panels) panel.hidden = false;
+    });
   }
 });

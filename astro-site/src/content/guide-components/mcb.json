@@ -87,5 +87,87 @@
         "y": 28
       }
     ]
-  }
+  },
+  "cutaway": {
+    "src": "/images/guide/mcb-cutaway",
+    "alt": "Cutaway of a miniature circuit breaker with the case sectioned away, showing the trip latch, magnetic coil, bimetal strip, arc chute, main contacts and terminal clamps",
+    "width": 768,
+    "height": 768,
+    "points": [
+      {
+        "id": "latch",
+        "x": 52,
+        "y": 20
+      },
+      {
+        "id": "solenoid",
+        "x": 46,
+        "y": 40
+      },
+      {
+        "id": "arc-chute",
+        "x": 30,
+        "y": 47
+      },
+      {
+        "id": "bimetal",
+        "x": 40,
+        "y": 60
+      },
+      {
+        "id": "contacts",
+        "x": 50,
+        "y": 74
+      },
+      {
+        "id": "terminal-clamp",
+        "x": 24,
+        "y": 24
+      }
+    ]
+  },
+  "cutawayPoints": [
+    {
+      "id": "latch",
+      "label": "Trip latch",
+      "detail": "One latch holds the contacts closed, and both trips fire into it: the bimetal nudges it on overload, the solenoid slams it on a short circuit. It is over-centre, so the spring throws the contacts open fast regardless of how slowly you push the lever — and after a trip it sits half-released, which is why the lever stops mid-travel instead of at OFF.",
+      "x": 52,
+      "y": 20
+    },
+    {
+      "id": "solenoid",
+      "label": "Magnetic coil",
+      "detail": "A few turns of thick wire in series with the load. Current times turns is pull, so the magnet only wins at several times the rating — 3–5× for a type B, 10–20× for a type D. That is the instant, milliseconds-fast half of the trip curve, and it is what clears a short circuit before the cable heats.",
+      "x": 46,
+      "y": 40
+    },
+    {
+      "id": "arc-chute",
+      "label": "Arc chute",
+      "detail": "A stack of steel plates sitting in the path the arc is driven into. Splitting one long arc into many short ones lengthens it and drains heat into the metal, so the current stops at the next zero crossing instead of sustaining. A breaker that has cleared a big fault has spent some of this steel — which is why repeated short circuits are not free.",
+      "x": 30,
+      "y": 47
+    },
+    {
+      "id": "bimetal",
+      "label": "Bimetal strip",
+      "detail": "Two metals with different expansion rates bonded together, carrying the load current. Warm it and it bends; bend it far enough and it releases the latch. Because the strip has to heat up first, this is the slow half of the curve — minutes at 1.5× rating, seconds at 4× — and it is the part that makes a breaker tolerate a motor's starting surge.",
+      "x": 40,
+      "y": 60
+    },
+    {
+      "id": "contacts",
+      "label": "Main contacts",
+      "detail": "The moving contact is spring-loaded so it slams shut and stays tight: contact resistance makes heat, and heat at a loose contact is how a breaker cooks itself. Every interruption burns a little material off the faces, so the contacts — not the trip mechanism — usually set how many faults a breaker can clear.",
+      "x": 50,
+      "y": 74
+    },
+    {
+      "id": "terminal-clamp",
+      "label": "Terminal clamp",
+      "detail": "A cage clamp rather than a screw onto the wire: the screw drives a block that traps the conductor against the bar, so solid and stranded cores are held without splaying. Torque matters here more than anywhere else on the board — a loose termination heats under load, and the heat travels down the copper.",
+      "x": 24,
+      "y": 24
+    }
+  ]
 }
