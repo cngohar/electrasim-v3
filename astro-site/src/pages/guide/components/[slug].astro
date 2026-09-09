@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import guideData from '../../../content/pages/guide.json';
 import { termsIn } from '../../../lib/glossary';
+import { ogCardUrl } from '../../../og-manifest';
 import { circuitSlug, circuitsUsingAnatomy, levelClass } from '../../../lib/guide';
 import type { GuideCircuit } from '../../../types/pages';
 import CatalogCard from '../../../components/guide/CatalogCard.astro';
@@ -51,6 +52,10 @@ const prev = all[(index - 1 + all.length) % all.length];
   title={`${data.name} Anatomy — ElectraSim Components Guide`}
   description={`${data.tagline} Inside a ${data.name}.`}
   canonical={canonical}
+  ogImage={ogCardUrl(data.slug, 'components')}
+  ogImageWidth={1200}
+  ogImageHeight={630}
+  ogImageType="image/png"
 >
   <main id="main-content">
     <div class="bc-wrap">

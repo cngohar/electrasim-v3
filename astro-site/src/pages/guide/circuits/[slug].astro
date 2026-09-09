@@ -5,6 +5,7 @@ import GuideCta from '../../../components/guide/GuideCta.astro';
 import data from '../../../content/pages/guide.json';
 import Base from '../../../layouts/Base.astro';
 import { termsIn } from '../../../lib/glossary';
+import { ogCardUrl } from '../../../og-manifest';
 import {
   CIRCUIT_SCHEMATICS,
   anatomiesForCircuit,
@@ -81,6 +82,10 @@ const canonical = `https://electrasim.com/guide/circuits/${slug}/`;
   title={`${circuit.title} — Circuit Walkthrough | ElectraSim Guide`}
   description={circuit.description}
   canonical={canonical}
+  ogImage={ogCardUrl(circuit.id, 'circuits')}
+  ogImageWidth={1200}
+  ogImageHeight={630}
+  ogImageType="image/png"
 >
   <main id="main-content">
     <div class="bc-wrap">

@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import CatalogCard from '../../../components/guide/CatalogCard.astro';
+import { ogCardUrl } from '../../../og-manifest';
 import GuideCta from '../../../components/guide/GuideCta.astro';
 import Base from '../../../layouts/Base.astro';
 import '../../../styles/guide.css';
@@ -26,6 +27,10 @@ const canonical = 'https://electrasim.com/guide/tools/';
   title="ElectraSim — Electrical Hand Tools &amp; Accessories Anatomy Guide"
   description="Learn the anatomy of electrician's hand tools — needle-nose pliers, side cutters, wire strippers and VDE screwdrivers — with labeled hotspots and safety notes for wiring projects."
   canonical={canonical}
+  ogImage={ogCardUrl('tools', 'sections')}
+  ogImageWidth={1200}
+  ogImageHeight={630}
+  ogImageType="image/png"
 >
   <main id="main-content">
     <div class="bc-wrap">

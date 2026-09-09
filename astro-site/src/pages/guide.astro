@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import GuideCta from '../components/guide/GuideCta.astro';
+import { ogCardUrl } from '../og-manifest';
 import GuideHero from '../components/guide/GuideHero.astro';
 import data from '../content/pages/guide.json';
 import Base from '../layouts/Base.astro';
@@ -19,6 +20,10 @@ const componentCount = (await getCollection('guideComponents')).length;
   title={data.seo_title}
   description={data.seo_description}
   canonical="https://electrasim.com/guide/"
+  ogImage={ogCardUrl('guide', 'sections')}
+  ogImageWidth={1200}
+  ogImageHeight={630}
+  ogImageType="image/png"
 >
   <Fragment slot="head">
     <script is:inline type="application/ld+json" set:html={JSON.stringify({

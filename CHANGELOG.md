@@ -151,6 +151,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   not interpolate in Astro. Now a template literal.
 - Search indexed circuits at `/guide/#<id>`, a fragment that never resolved for a first-time visitor.
   Entries now point at `/guide/circuits/<slug>/`.
+- **Per-page social cards for the guide.** All 56 guide URLs — 22 components, 8 tools, 20 circuit
+  walkthroughs and the six landing pages — now carry their own 1200×630 card instead of sharing the
+  generic `og-image.png`. `scripts/generate-og-images.mjs` grows a corpus per guide section: cards
+  keep the seeded circuit-trace motif and brand header, take their accent from the item's category
+  (Protection, Generation, Test equipment…) so a section reads as a set while its categories stay
+  tellable apart at thumbnail size, and put the page's own counts in the meta row — "3 terminals ·
+  5 parts", "Beginner · 8 steps" — in place of a publication date a guide page does not have. Guide
+  cards ship as PNG-8: measured against the truecolour encoding, 60 KB instead of 131 KB for a
+  per-channel error of 0.65/255; the blog and changelog cards keep the encoding they shipped with.
+  `npm run check:seo` now fails if any `/guide/` or `/glossary/` page falls back to the shared
+  image, and seven unit tests tie the manifest back to the content it is generated from, so a page
+  added without re-running the generator fails the suite rather than going unnoticed.
 - **Search snippets were being truncated mid-word by Google.** 111 of 188 pages shipped a title longer
   than 60 characters (worst 127) and 128 a description longer than 160 (worst 415 — the cooker control
   unit page, whose description was the tagline with the whole terminals list appended). Titles and

@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import CatalogCard from '../../../components/guide/CatalogCard.astro';
+import { ogCardUrl } from '../../../og-manifest';
 import GuideCta from '../../../components/guide/GuideCta.astro';
 import Base from '../../../layouts/Base.astro';
 import '../../../styles/guide.css';
@@ -17,6 +18,10 @@ const canonical = 'https://electrasim.com/guide/components/';
   title="ElectraSim — Electrical Components Anatomy Guide (MCB, RCD, Bulb, Socket)"
   description="Learn the anatomy of electrical components: breakers, switches, timers, dimmers, bell gear, the distribution board and motors — what each terminal does, how the protection works, and the safety rules behind them."
   canonical={canonical}
+  ogImage={ogCardUrl('components', 'sections')}
+  ogImageWidth={1200}
+  ogImageHeight={630}
+  ogImageType="image/png"
 >
   <main id="main-content">
     <div class="bc-wrap">

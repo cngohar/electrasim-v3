@@ -103,6 +103,17 @@ for (const filePath of htmlFiles) {
     failures.push(`${source}: title is ${title.length} chars (max ${MAX_TITLE}) — "${title}"`);
   }
 
+  /* Every guide page is meant to carry its own social card. Sharing one image
+     across them is invisible in the source and obvious the moment a link is
+     pasted anywhere, so it is checked here rather than left to review. */
+  if (source.startsWith('/guide/') || source.startsWith('/glossary/')) {
+    const ogMatch = html.match(/<meta\s+property="og:image"\s+content="([^"]*)"/i);
+    const ogImage = ogMatch?.[1] ?? '';
+    if (!ogImage.includes('/og/guide/')) {
+      failures.push(`${source}: no per-page OG card (og:image is "${ogImage || 'missing'}")`);
+    }
+  }
+
   const descMatch = html.match(/<meta\s+name="description"\s+content="([^"]*)"/i);
   const description = decodeEntities(descMatch?.[1] ?? '')
     .replace(/\s+/g, ' ')

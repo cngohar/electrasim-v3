@@ -1,5 +1,6 @@
 ---
 import GuideCta from '../../../components/guide/GuideCta.astro';
+import { ogCardUrl } from '../../../og-manifest';
 import Base from '../../../layouts/Base.astro';
 import { circuitSlug, levelClass } from '../../../lib/guide';
 import data from '../../../content/pages/guide.json';
@@ -16,6 +17,10 @@ const circuits = data.circuits as GuideCircuit[];
   title="Circuit Walkthroughs — ElectraSim Guide"
   description="Twenty guided circuit walkthroughs, from a single lamp on a one-way switch to a three-circuit consumer unit. Components, wiring path, steps and the safety rule for each."
   canonical="https://electrasim.com/guide/circuits/"
+  ogImage={ogCardUrl('circuits', 'sections')}
+  ogImageWidth={1200}
+  ogImageHeight={630}
+  ogImageType="image/png"
 >
   <main id="main-content">
     <div class="bc-wrap">

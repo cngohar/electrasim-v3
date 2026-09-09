@@ -28,6 +28,11 @@ characters, (2) titles over 60, (3) per-page OG cards for the guide pages, (4) `
 
 **Verified** against `dist/`, not the source: 187 pages, 0 SEO failures.
 
+3. OG cards: 56 unique cards for the guide (22 components, 8 tools, 20 circuits, 6 landing pages).
+   The generator gained a corpus per guide section with category-driven accents; guide cards emit as
+   PNG-8 (60 KB vs 131 KB, per-channel error 0.65/255) while the published blog cards keep their
+   encoding. The SEO gate now fails any guide page that falls back to the shared image.
+
 ## Session 2026-09-08 — Guide redesign: real-part imagery, circuit pages, In the App
 
 **Request:** implement the approved Guide Hub redesign (Idea 1: four sections + a page per circuit) on

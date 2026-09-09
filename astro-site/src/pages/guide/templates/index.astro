@@ -1,5 +1,6 @@
 ---
 import EmojiIcon from '../../../components/EmojiIcon.astro';
+import { ogCardUrl } from '../../../og-manifest';
 import GuideCta from '../../../components/guide/GuideCta.astro';
 import Base from '../../../layouts/Base.astro';
 import data from '../../../content/pages/guide.json';
@@ -24,6 +25,10 @@ const walkthroughs = new Map(
   title="Guided Templates & App Features — ElectraSim Guide"
   description={`The ${templates.length} built-in guided circuits, the four-step workflow, and what the current ElectraSim app can do. Every template opens pre-built in the editor.`}
   canonical="https://electrasim.com/guide/templates/"
+  ogImage={ogCardUrl('templates', 'sections')}
+  ogImageWidth={1200}
+  ogImageHeight={630}
+  ogImageType="image/png"
 >
   <main id="main-content">
     <div class="bc-wrap">

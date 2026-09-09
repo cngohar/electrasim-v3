@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import GuideCta from '../../components/guide/GuideCta.astro';
+import { ogCardUrl } from '../../og-manifest';
 import Base from '../../layouts/Base.astro';
 import '../../styles/guide.css';
 import '../../styles/guide-lab.css';
@@ -98,6 +99,10 @@ const canonical = 'https://electrasim.com/glossary/';
   title="Electrical Terms Glossary: Zs, CPC, RCD Types"
   description="Plain-English definitions of the terms the wiring guides use — Zs, CPC, RCD types, IP ratings, earthing systems, breaker curves and more, with links to the circuits that use them."
   canonical={canonical}
+  ogImage={ogCardUrl('glossary', 'sections')}
+  ogImageWidth={1200}
+  ogImageHeight={630}
+  ogImageType="image/png"
 >
   <main id="main-content">
     <div class="bc-wrap">

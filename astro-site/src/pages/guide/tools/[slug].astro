@@ -6,6 +6,7 @@ import Base from '../../../layouts/Base.astro';
 import '../../../styles/guide.css';
 import '../../../styles/guide-lab.css';
 import { termsIn } from '../../../lib/glossary';
+import { ogCardUrl } from '../../../og-manifest';
 import { GUIDE_LAB_VERSION } from '../../../lib/asset-version';
 
 
@@ -37,6 +38,10 @@ const prev = all[(index - 1 + all.length) % all.length];
   title={`${data.name} Anatomy — ElectraSim Hand Tools Guide`}
   description={`${data.tagline} Inside ${data.name}.`}
   canonical={canonical}
+  ogImage={ogCardUrl(data.slug, 'tools')}
+  ogImageWidth={1200}
+  ogImageHeight={630}
+  ogImageType="image/png"
 >
   <main id="main-content">
     <div class="bc-wrap">
