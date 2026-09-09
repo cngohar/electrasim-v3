@@ -86,12 +86,14 @@ export const GET: APIRoute = async () => {
       category: 'Glossary',
       tags: ['glossary', 'terms', 'definitions', 'Zs', 'CPC', 'RCD', 'earthing'],
     },
+    // Terms get their own type so the Guide filter stays circuits/components/
+    // tools: at 37 entries they would otherwise be ~40% of every guide search.
     ...GLOSSARY.map((term) => ({
       id: `glossary-${term.slug}`,
       title: term.expansion ? `${term.term} — ${term.expansion}` : term.term,
       description: term.definition,
       url: `/glossary/#${term.slug}`,
-      type: 'guide' as const,
+      type: 'term' as const,
       category: 'Glossary',
       tags: [term.category, 'glossary', 'term', ...(term.aliases ?? []).slice(0, 4)],
     })),

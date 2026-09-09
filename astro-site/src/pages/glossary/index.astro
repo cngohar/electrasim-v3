@@ -76,7 +76,21 @@ const HREFS = {
 const usedIn = (slug: string) =>
   sources.filter((s) => termsIn(s.text).some((t) => t.slug === slug));
 
-const alphabet = [...new Set(GLOSSARY.map((t) => t.term[0].toUpperCase()))].sort();
+/** How many "Used in" links show before the rest fold into "+N more". */
+const USED_LIMIT = 6;
+
+/**
+ * The A–Z strip targets the first term beginning with each letter, not a
+ * `#letter-*` element: entries are grouped by category, and it is the terms
+ * themselves that carry `id="{slug}"`. Deriving both the letters and their
+ * targets from the same map means a link can never point at a missing anchor.
+ */
+const firstTermByLetter = new Map<string, string>();
+for (const term of GLOSSARY) {
+  const letter = term.term[0].toUpperCase();
+  if (!firstTermByLetter.has(letter)) firstTermByLetter.set(letter, term.slug);
+}
+const alphabet = [...firstTermByLetter.entries()].sort((a, b) => a[0].localeCompare(b[0]));
 const canonical = 'https://electrasim.com/glossary/';
 ---
 
@@ -118,8 +132,8 @@ const canonical = 'https://electrasim.com/glossary/';
 
         <nav class="gloss-jump" aria-label="Jump to a letter">
           <span class="gloss-jump-label">Jump to</span>
-          {alphabet.map((letter) => (
-            <a href={`#letter-${letter.toLowerCase()}`}>{letter}</a>
+          {alphabet.map(([letter, slug]) => (
+            <a href={`#${slug}`}>{letter}</a>
           ))}
         </nav>
 
@@ -147,15 +161,27 @@ const canonical = 'https://electrasim.com/glossary/';
                       <dd>
                         <p>{term.definition}</p>
                         {(used.length > 0 || term.pointer) && (
-                          <p class="gloss-used">
-                            <span class="gloss-used-label">Used in</span>
-                            {used.slice(0, 6).map((s) => (
-                              <a href={HREFS[s.kind](s.slug)}>{s.title}</a>
-                            ))}
-                            {used.length === 0 && term.pointer && (
-                              <a href={term.pointer.href}>{term.pointer.label}</a>
+                          <>
+                            <p class="gloss-used">
+                              <span class="gloss-used-label">Used in</span>
+                              {used.slice(0, USED_LIMIT).map((s) => (
+                                <a href={HREFS[s.kind](s.slug)}>{s.title}</a>
+                              ))}
+                              {used.length === 0 && term.pointer && (
+                                <a href={term.pointer.href}>{term.pointer.label}</a>
+                              )}
+                            </p>
+                            {used.length > USED_LIMIT && (
+                              <details class="gloss-more">
+                                <summary>+{used.length - USED_LIMIT} more</summary>
+                                <p class="gloss-used gloss-used-more">
+                                  {used.slice(USED_LIMIT).map((s) => (
+                                    <a href={HREFS[s.kind](s.slug)}>{s.title}</a>
+                                  ))}
+                                </p>
+                              </details>
                             )}
-                          </p>
+                          </>
                         )}
                         {related.length > 0 && (
                           <p class="gloss-see">
@@ -306,5 +332,29 @@ const canonical = 'https://electrasim.com/glossary/';
   .gloss-see a:hover {
     border-color: var(--blue);
     color: var(--blue);
+  }
+  /* "+N more" — a <details> keeps the overflow reachable without JS. */
+  .gloss-more {
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+  }
+  .gloss-more summary {
+    display: inline-block;
+    padding: 0.15rem 0.6rem;
+    border: 1px dashed var(--border);
+    border-radius: 999px;
+    color: var(--text-mid);
+    cursor: pointer;
+    list-style: none;
+  }
+  .gloss-more summary::-webkit-details-marker {
+    display: none;
+  }
+  .gloss-more summary:hover {
+    border-color: var(--blue);
+    color: var(--blue);
+  }
+  .gloss-used-more {
+    margin-top: 0.4rem !important;
   }
 </style>

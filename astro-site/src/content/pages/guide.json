@@ -1,8 +1,8 @@
 {
   "seo_title": "ElectraSim Guide — Circuits, Faults, Smart Wiring and Guided Templates",
-  "seo_description": "Learn the current ElectraSim workflow: guided circuit templates, smart and custom wiring, fault simulation, import/export, alignment tools, mini-map, and eight step-by-step wiring walkthroughs.",
+  "seo_description": "Learn the current ElectraSim workflow: guided circuit templates, smart and custom wiring, fault simulation, import/export, alignment tools, mini-map, and twenty step-by-step wiring walkthroughs.",
   "hero_heading": "Build Real Circuits.\nLearn by Simulating.",
-  "hero_description": "A practical guide to the current ElectraSim app: start with guided templates, wire circuits with smart or custom routing, test faults, organise large diagrams, and practise eight real wiring walkthroughs.",
+  "hero_description": "A practical guide to the current ElectraSim app: start with guided templates, wire circuits with smart or custom routing, test faults, organise large diagrams, and practise 20 real wiring walkthroughs.",
   "hero_cta_primary": "Open ElectraSim",
   "hero_cta_secondary": "See Latest Features ↓",
   "cta_heading": "You know the current workflow. Now build your own circuit.",
@@ -13,7 +13,7 @@
     {
       "icon": "compass",
       "title": "Guided Circuit Templates",
-      "body": "Open 18 built-in guided circuits straight inside the app: eight starter circuits (lamps, one-way and two-way switching, RCD fault checks, contactors, timers, a push-button doorbell, an RCBO socket) and ten Pro scenarios — three-phase motor control, EV charging, solar with battery storage, underfloor heating, staircase timers, PIR floodlights, cooker supplies, surge-protected consumer units, generator backup and AFDD bedrooms."
+      "body": "Open 20 built-in guided circuits straight inside the app: ten starter circuits (lamps, one-way and two-way switching, RCD fault checks, contactors, timers, a push-button doorbell, an RCBO socket) and ten Pro scenarios — three-phase motor control, EV charging, solar with battery storage, underfloor heating, staircase timers, PIR floodlights, cooker supplies, surge-protected consumer units, generator backup and AFDD bedrooms."
     },
     {
       "icon": "warning",
