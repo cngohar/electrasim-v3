@@ -78,5 +78,87 @@
         "y": 82
       }
     ]
-  }
+  },
+  "cutaway": {
+    "src": "/images/guide/solar-pv-panel-cutaway",
+    "alt": "Cutaway of a solar PV panel showing the tempered glass, encapsulant, silicon cells with busbar ribbons, backsheet and frame",
+    "width": 768,
+    "height": 768,
+    "points": [
+      {
+        "id": "glass-layer",
+        "x": 24,
+        "y": 30
+      },
+      {
+        "id": "encapsulant",
+        "x": 30,
+        "y": 39
+      },
+      {
+        "id": "pv-cells",
+        "x": 66,
+        "y": 36
+      },
+      {
+        "id": "busbar-ribbons",
+        "x": 58,
+        "y": 56
+      },
+      {
+        "id": "backsheet",
+        "x": 26,
+        "y": 50
+      },
+      {
+        "id": "panel-frame",
+        "x": 50,
+        "y": 90
+      }
+    ]
+  },
+  "cutawayPoints": [
+    {
+      "id": "glass-layer",
+      "label": "Tempered glass",
+      "detail": "Three to four millimetres, and it is structural: the glass carries the mechanical load, which is why a panel can be walked on by snow and hail and still be sound while the cells inside are only a fraction of a millimetre thick. It is also the layer that has to stay clean, because anything that blocks light blocks current.",
+      "x": 24,
+      "y": 30
+    },
+    {
+      "id": "encapsulant",
+      "label": "Encapsulant",
+      "detail": "A transparent EVA film that is laminated under vacuum and heat to seal the cells away from moisture. It is the reason a panel survives twenty-five years outdoors — and when it browns or delaminates, moisture reaches the cells and the panel dies from the inside out, usually long before the glass shows a mark.",
+      "x": 30,
+      "y": 39
+    },
+    {
+      "id": "pv-cells",
+      "label": "Silicon cells",
+      "detail": "The semiconductor that does the work: each cell generates around 0.6 V open circuit regardless of its size, so voltage comes from cells in series and current from cells in parallel. The array is a string of cells, which is why one shaded cell in a series string costs the whole string, not just its own output.",
+      "x": 66,
+      "y": 36
+    },
+    {
+      "id": "busbar-ribbons",
+      "label": "Busbars and fingers",
+      "detail": "Fine silver fingers collect current across the face of each cell and wider ribbons carry it between cells. They are the panel wiring, and they are thin: thermal cycling and flexing crack them, which is what shows up as hot cells under an infrared survey and a slow, unexplained loss of output.",
+      "x": 58,
+      "y": 56
+    },
+    {
+      "id": "backsheet",
+      "label": "Backsheet",
+      "detail": "The insulating rear layer. It is the electrical barrier between the cells and the frame, so damage here — a scrape during installation, a cut from cable ties — is a safety defect, not just cosmetic. Modern panels are often glass on both sides; the insulation requirement does not change.",
+      "x": 26,
+      "y": 50
+    },
+    {
+      "id": "panel-frame",
+      "label": "Frame",
+      "detail": "Anodised aluminium that carries the mechanical load into the mounting system. The frame is metal and it is touchable, so it gets bonded — the array is a large exposed conductive part, and the frame is where that bonding lands.",
+      "x": 50,
+      "y": 90
+    }
+  ]
 }

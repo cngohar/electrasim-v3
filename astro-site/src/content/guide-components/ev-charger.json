@@ -81,5 +81,87 @@
         "y": 90
       }
     ]
-  }
+  },
+  "cutaway": {
+    "src": "/images/guide/ev-charger-cutaway",
+    "alt": "Cutaway of an EV charge point showing the internal contactor, control pilot board, DC leakage sensor, protective devices and supply terminals",
+    "width": 768,
+    "height": 768,
+    "points": [
+      {
+        "id": "ev-contactor",
+        "x": 45,
+        "y": 40
+      },
+      {
+        "id": "control-pilot-board",
+        "x": 62,
+        "y": 35
+      },
+      {
+        "id": "dc-leakage-sensor",
+        "x": 40,
+        "y": 58
+      },
+      {
+        "id": "ev-protection",
+        "x": 66,
+        "y": 60
+      },
+      {
+        "id": "ev-supply-terminals",
+        "x": 42,
+        "y": 82
+      },
+      {
+        "id": "ev-cable-entry",
+        "x": 80,
+        "y": 88
+      }
+    ]
+  },
+  "cutawayPoints": [
+    {
+      "id": "ev-contactor",
+      "label": "Output contactor",
+      "detail": "The connector on the front of the unit is dead until this closes. It only closes after the control pilot handshake confirms a vehicle is connected and is ready to charge, which is why the pins on a mode 3 connector are safe to touch before it plugs in and are not afterwards.",
+      "x": 45,
+      "y": 40
+    },
+    {
+      "id": "control-pilot-board",
+      "label": "Control pilot",
+      "detail": "The low-voltage conversation between the charge point and the car. A 1 kHz PWM signal on the pilot conductor tells the car how much current it may draw — the duty cycle is the limit — and the car signals back by loading the line. Charging stops the moment that exchange stops, which is what makes an unplug safe.",
+      "x": 62,
+      "y": 35
+    },
+    {
+      "id": "dc-leakage-sensor",
+      "label": "DC leakage sensor",
+      "detail": "A sensor looking for smooth DC fault current, which is required because a car can leak DC into the installation, and DC saturates the core of an ordinary Type A RCD and blinds it — the RCD is still there, it just stops working. Detection has to trip the supply at 6 mA DC or the installation loses its shock protection without anyone noticing.",
+      "x": 40,
+      "y": 58
+    },
+    {
+      "id": "ev-protection",
+      "label": "Protective device",
+      "detail": "An RCBO or a dedicated RCD with the right type for the DC detection, on a dedicated circuit. Sharing a circuit or using the wrong device is the usual finding on a charger installation: the load is large, continuous for hours, and the fault current available at the connector matters as much as the rating.",
+      "x": 66,
+      "y": 60
+    },
+    {
+      "id": "ev-supply-terminals",
+      "label": "Supply terminals",
+      "detail": "Where the dedicated circuit from the board lands. The cable is sized for a continuous load — a charge point drawing 32 A for six hours is not the same duty as a cooker that cycles — and the termination is where a continuous load finds the one loose screw in the installation.",
+      "x": 42,
+      "y": 82
+    },
+    {
+      "id": "ev-cable-entry",
+      "label": "Cable entry",
+      "detail": "Where the supply cable and the tethered charging cable leave the enclosure, and the detail that decides whether the unit keeps its ingress rating outdoors. A cable entering from above without a drip loop, or a gland left unsealed, puts water in the enclosure with the contactor.",
+      "x": 80,
+      "y": 88
+    }
+  ]
 }

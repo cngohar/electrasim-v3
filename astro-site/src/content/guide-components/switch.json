@@ -91,5 +91,75 @@
         "y": 82
       }
     ]
-  }
+  },
+  "cutaway": {
+    "src": "/images/guide/switch-cutaway",
+    "alt": "Cutaway of a one-way switch showing the rocker, snap-action spring, moving contact bridge, fixed contact and rear cage terminals",
+    "width": 768,
+    "height": 768,
+    "points": [
+      {
+        "id": "rocker",
+        "x": 35,
+        "y": 32
+      },
+      {
+        "id": "snap-action",
+        "x": 46,
+        "y": 50
+      },
+      {
+        "id": "moving-contact",
+        "x": 58,
+        "y": 48
+      },
+      {
+        "id": "fixed-contact",
+        "x": 66,
+        "y": 63
+      },
+      {
+        "id": "switch-terminals",
+        "x": 58,
+        "y": 80
+      }
+    ]
+  },
+  "cutawayPoints": [
+    {
+      "id": "rocker",
+      "label": "Rocker",
+      "detail": "What you press, pivoting on a moulded bearing in the plate. It does not carry current — it only drives the mechanism underneath, which is why a switch can feel solid and still be failing electrically.",
+      "x": 35,
+      "y": 32
+    },
+    {
+      "id": "snap-action",
+      "label": "Snap-action mechanism",
+      "detail": "An over-centre spring that stores your slow press and releases it as a fast movement. The contacts must close and open in milliseconds regardless of how slowly you push: a slow make would draw an arc for as long as your finger took, and that arc is what pits and eventually welds contacts.",
+      "x": 46,
+      "y": 50
+    },
+    {
+      "id": "moving-contact",
+      "label": "Moving contact",
+      "detail": "A silver-plated bridge that tips between positions. Silver, not copper, because the oxide conducts — a copper contact would slowly insulate itself every time it arced. Wear happens here, and a switch that has stopped clicking positively is usually telling you about this face.",
+      "x": 58,
+      "y": 48
+    },
+    {
+      "id": "fixed-contact",
+      "label": "Fixed contact",
+      "detail": "The rivet the moving contact lands on, carrying the current into the terminal. Contact pressure between these two faces is what keeps the joint cool; a mechanism that has lost its spring pressure makes heat at a few watts, which over years is how a plate browns and a faceplate cracks.",
+      "x": 66,
+      "y": 63
+    },
+    {
+      "id": "switch-terminals",
+      "label": "Rear terminals",
+      "detail": "Two cage clamps, one in and one out, and the switch sits in series on the live. That is the whole rule: switching the neutral would leave the fitting live at the lampholder with the switch off, which is the fault that makes changing a bulb dangerous.",
+      "x": 58,
+      "y": 80
+    }
+  ]
 }

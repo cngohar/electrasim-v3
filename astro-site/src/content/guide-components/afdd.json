@@ -93,5 +93,87 @@
         "y": 85
       }
     ]
-  }
+  },
+  "cutaway": {
+    "src": "/images/guide/afdd-cutaway",
+    "alt": "Cutaway of an AFDD arc fault detection device showing the microprocessor board, arc-sensing transformer, filtering and the tripping relay",
+    "width": 768,
+    "height": 768,
+    "points": [
+      {
+        "id": "arc-sensing-transformer",
+        "x": 52,
+        "y": 36
+      },
+      {
+        "id": "afdd-electronics",
+        "x": 36,
+        "y": 44
+      },
+      {
+        "id": "afdd-microprocessor",
+        "x": 40,
+        "y": 56
+      },
+      {
+        "id": "tripping-relay",
+        "x": 62,
+        "y": 58
+      },
+      {
+        "id": "test-circuit",
+        "x": 52,
+        "y": 22
+      },
+      {
+        "id": "afdd-terminals",
+        "x": 40,
+        "y": 84
+      }
+    ]
+  },
+  "cutawayPoints": [
+    {
+      "id": "arc-sensing-transformer",
+      "label": "Arc-sensing transformer",
+      "detail": "A wideband current transformer around the live conductor, listening for the high-frequency content an arc puts on the waveform. A normal load is smooth at those frequencies; a loose terminal sparking is not. This is the input the rest of the device works from — no sensing, no detection.",
+      "x": 52,
+      "y": 36
+    },
+    {
+      "id": "afdd-electronics",
+      "label": "Filtering and power supply",
+      "detail": "The front end that conditions what the sensor hears and powers the electronics from the circuit being protected. It has to do both from a few millivolts of signal on a conductor carrying a kettle, a dimmer or a switched-mode supply, which is why an AFDD is far more than an RCD with a chip bolted on.",
+      "x": 36,
+      "y": 44
+    },
+    {
+      "id": "afdd-microprocessor",
+      "label": "Microprocessor",
+      "detail": "Samples the current continuously and looks for the shape of an arc rather than its size: the current zero period, the erratic burst-to-burst variation, the broadband noise. That signature is what separates a bad connection sparking from a dimmer or a motor brush doing the same thing harmlessly — and getting it wrong is what used to make early AFDDs nuisance-trip.",
+      "x": 40,
+      "y": 56
+    },
+    {
+      "id": "tripping-relay",
+      "label": "Tripping relay",
+      "detail": "The device cannot open the circuit with a semiconductor, so detection ends here: a relay driven by the processor opens both poles. It is a protective device first, so the relay is the part that has to interrupt a fault current, not just signal one.",
+      "x": 62,
+      "y": 58
+    },
+    {
+      "id": "test-circuit",
+      "label": "Test button",
+      "detail": "Injects a waveform that mimics an arc so the whole chain — sensor, filtering, processor, relay — is exercised rather than just the electronics. It proves the device still detects; it does not prove anything about the wiring downstream, which is where the arcs it is looking for actually start.",
+      "x": 52,
+      "y": 22
+    },
+    {
+      "id": "afdd-terminals",
+      "label": "Line and neutral terminals",
+      "detail": "In at the top, out at the bottom, like any other DIN-rail device. The difference is what is behind them: an AFDD is often specified per circuit on a board where the cables are long and the terminations are the most likely thing in the installation to work loose — which is exactly the fault it exists to catch.",
+      "x": 40,
+      "y": 84
+    }
+  ]
 }

@@ -81,5 +81,87 @@
         "y": 65
       }
     ]
-  }
+  },
+  "cutaway": {
+    "src": "/images/guide/pir-sensor-cutaway",
+    "alt": "Cutaway of a PIR motion sensor showing the Fresnel lens, pyroelectric element, amplifier board, adjustment trimmers and cable gland",
+    "width": 768,
+    "height": 768,
+    "points": [
+      {
+        "id": "fresnel-lens",
+        "x": 50,
+        "y": 24
+      },
+      {
+        "id": "pyro-element",
+        "x": 52,
+        "y": 40
+      },
+      {
+        "id": "amplifier-comparator",
+        "x": 62,
+        "y": 55
+      },
+      {
+        "id": "time-lux-trimmers",
+        "x": 42,
+        "y": 62
+      },
+      {
+        "id": "pir-relay",
+        "x": 62,
+        "y": 72
+      },
+      {
+        "id": "pir-cable-gland",
+        "x": 58,
+        "y": 88
+      }
+    ]
+  },
+  "cutawayPoints": [
+    {
+      "id": "fresnel-lens",
+      "label": "Fresnel lens",
+      "detail": "The faceted dome is not a cover — it is the optics. Each facet focuses infrared from a different direction onto the element below, so the view is split into beams. Movement is detected as a warm body crossing from one beam to the next, which is why a sensor sees someone walking across its field far better than someone walking straight at it.",
+      "x": 50,
+      "y": 24
+    },
+    {
+      "id": "pyro-element",
+      "label": "Pyroelectric element",
+      "detail": "A crystal that generates a voltage when the infrared falling on it changes. It responds to change only: a warm body held perfectly still in front of the sensor produces nothing, because the flux is steady. Two sensing areas wired in opposition cancel slow changes like a room warming up, so what is left is movement.",
+      "x": 52,
+      "y": 40
+    },
+    {
+      "id": "amplifier-comparator",
+      "label": "Amplifier and comparator",
+      "detail": "The element output is tiny, so it is amplified and then compared against a threshold. The comparator decides what counts as a detection and what is noise — a radiator switching on, sunlight moving across a wall, a cat. Getting that decision right is the whole difference between a sensor that works and one the occupants bypass.",
+      "x": 62,
+      "y": 55
+    },
+    {
+      "id": "time-lux-trimmers",
+      "label": "TIME and LUX adjustments",
+      "detail": "Two trimmers: TIME sets how long the output stays on after the last detection, LUX sets how dark it has to be before it will switch at all. Most complaints about a PIR — staying on too long, coming on in daylight — are these two potentiometers, not the sensor.",
+      "x": 42,
+      "y": 62
+    },
+    {
+      "id": "pir-relay",
+      "label": "Output relay",
+      "detail": "The electronics run at a volt or two; the relay is what switches the lighting circuit. It also means the sensor needs a permanent live and a neutral to work, which is why replacing a plain switch with a PIR often means a new cable rather than a straight swap.",
+      "x": 62,
+      "y": 72
+    },
+    {
+      "id": "pir-cable-gland",
+      "label": "Cable gland",
+      "detail": "Where the supply and the switched live leave the housing, and the point that decides whether the unit is weatherproof. A gland left loose, or drilled on the underside where water runs down the cable, is how an outdoor sensor fills with water.",
+      "x": 58,
+      "y": 88
+    }
+  ]
 }

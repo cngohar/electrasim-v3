@@ -92,5 +92,87 @@
         "y": 32.2
       }
     ]
-  }
+  },
+  "cutaway": {
+    "src": "/images/guide/two-way-switch-cutaway",
+    "alt": "Cutaway of a two-way switch showing the rocker, changeover contact, common terminal and the two strapper terminals",
+    "width": 768,
+    "height": 768,
+    "points": [
+      {
+        "id": "two-way-rocker",
+        "x": 36,
+        "y": 34
+      },
+      {
+        "id": "changeover-contact",
+        "x": 52,
+        "y": 48
+      },
+      {
+        "id": "two-way-pivot",
+        "x": 48,
+        "y": 60
+      },
+      {
+        "id": "common-terminal",
+        "x": 44,
+        "y": 74
+      },
+      {
+        "id": "l1-l2-terminals",
+        "x": 64,
+        "y": 72
+      },
+      {
+        "id": "two-way-fixings",
+        "x": 30,
+        "y": 22
+      }
+    ]
+  },
+  "cutawayPoints": [
+    {
+      "id": "two-way-rocker",
+      "label": "Rocker",
+      "detail": "Drives the same over-centre mechanism as a one-way switch, so the contacts snap across rather than following your finger. The feel is identical; what is behind it is not.",
+      "x": 36,
+      "y": 34
+    },
+    {
+      "id": "changeover-contact",
+      "label": "Changeover contact",
+      "detail": "One moving contact tipping between two fixed ones — a single-pole, double-throw switch. The common is always connected to one of the two strappers, never to both and never to neither, which is what lets either of two switches complete the circuit to the lamp.",
+      "x": 52,
+      "y": 48
+    },
+    {
+      "id": "two-way-pivot",
+      "label": "Pivot and spring carrier",
+      "detail": "Holds the moving contact against a fixed contact with real pressure. Two-way switching means the contact spends its life alternating between the two strappers, so a worn pivot shows up as intermittent lighting at one end of the landing long before it fails outright.",
+      "x": 48,
+      "y": 60
+    },
+    {
+      "id": "common-terminal",
+      "label": "Common terminal",
+      "detail": "Marked COM, and it is the one that matters: it takes either the supply or the switched live to the lamp, while L1 and L2 are interchangeable strappers. Wiring to the wrong terminal is the classic two-way fault — the light works from one switch and not the other.",
+      "x": 44,
+      "y": 74
+    },
+    {
+      "id": "l1-l2-terminals",
+      "label": "L1 and L2 terminals",
+      "detail": "The two strapper terminals, carrying the pair of conductors that run between the two switches. They are electrically identical, so it does not matter which is which at either end — what matters is that both strappers go strapper to strapper and the commons are at the supply and the load.",
+      "x": 64,
+      "y": 72
+    },
+    {
+      "id": "two-way-fixings",
+      "label": "Fixing screws",
+      "detail": "Two screws into the back box lugs, and the reason a deeper box is often needed: a two-way plate carries three conductors per gang instead of two, and cramming them behind a shallow box is what cracks faceplates and works terminals loose.",
+      "x": 30,
+      "y": 22
+    }
+  ]
 }
