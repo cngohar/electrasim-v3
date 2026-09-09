@@ -7,6 +7,34 @@ A running, append-only log of work on the ElectraSim rewrite. Every coding sessi
 
 ---
 
+## Session 2026-09-09 — Release v2.0.3: a start-here post for the guide
+
+**Request:** write a detailed blog post on how to use the guide from beginner level to pro level,
+bump the version to 2.0.3, add a v2.0.3 note to the 2.0 release post, append entries to the
+changelog, progress and other tracking, then open a pull request.
+
+**Done:**
+1. `/blog/how-to-use-the-electrasim-guide-beginner-to-pro/` — the route through the guide in four
+   levels (beginner, intermediate, advanced, pro). Each level says what to open, what to read, what
+   to build in the app and what "ready for the next level" looks like; a progression table
+   summarises it; the closing section covers Part P, proving dead and EICR codes so the post cannot
+   be read as authorising work on a live installation. 2,213 words, 76 internal links, all verified
+   by `check:links`. Marked `featured: true` — the first blog post to carry the badge.
+2. Version bumped to 2.0.3 in the root manifest, the astro workspace manifest and the three
+   workspace entries in `package-lock.json`. The landing release popup is keyed on this value, so
+   the bump is what re-arms it, and the three versionless marketing scripts (`theme.js`,
+   `site-nav.js`, `scroll-top.js`) get a new `?v=` cache key with it.
+3. The v2.0 release post carries a v2.0.3 note in the established blockquote pattern, a new
+   section 13 with the reader-facing summary, `version: "v2.0.3"`, a v2.0.3 tag and an updated
+   `updatedDate`.
+4. `CHANGELOG.md`: the Unreleased block is cut as `## [2.0.3] — 2026-09-09` with a fresh empty
+   Unreleased above it. `TRACKING.md` gains a release record for the version and its cache-key
+   consequences.
+
+**Verified** against `dist/`: the post renders at 48-char title / 142-char description with its own
+OG card, Article and BreadcrumbList schema, and a sitemap entry; 192 pages pass `check:links` and
+`check:seo`.
+
 ## Session 2026-09-09 — SEO pass 1: snippet lengths
 
 **Request:** with the guide signed off as complete (22 components, 16 cutaways, 8 tools, 20 circuits,

@@ -1,17 +1,27 @@
-# Changelog
-
-All notable changes to **ElectraSim — Interactive Wiring Lab** will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-> **Master plan:** [`PLAN.md`](./PLAN.md) · **Session log:** [`progress.md`](./progress.md)
-
----
-
 ## [Unreleased]
 
 ### Added
+
+---
+
+## [2.0.3] — 2026-09-09
+
+The guide release. Everything below that was previously listed under _Unreleased_ ships in this
+version: twenty circuit walkthroughs, twenty-two component anatomy pages with cutaway views for
+sixteen of them, eight tool pages, the glossary, and the SEO pass that gave every guide page a
+snippet that fits, its own social card and marked-up breadcrumbs. The release note carries the
+reader-facing summary; see the session log in `progress.md` for how it was built.
+
+### Added
+
+- **A start-here post for the guide.** `/blog/how-to-use-the-electrasim-guide-beginner-to-pro/` is the
+  route through the whole guide: what to open first, how to read a circuit walkthrough (schematic,
+  wiring path, steps, key insight, safety band), when to open a component page instead, and how to tell
+  when you are ready for the next level. Four levels — beginner, intermediate, advanced and pro — each
+  with a reading order, the pages to open, and the thing to build in the app before moving on, ending at
+  Challenge Mode, the Diagnosis Lab and Ohmageddon. A progression table summarises the route, and the
+  closing section is explicit that the guide is educational and not a substitute for a qualified
+  electrician or a notifiable installation under Part P.
 - **Glossary.** `/glossary/` defines the 36 terms the walkthroughs use — Zs, Ze, R1 + R2, CPC, RCD
   types AC/A/F/B, Type B/C/D curves, TT/TN-S/TN-C-S, Ra, IP-style earthing and testing vocabulary,
   diversity, SELV, Voc — grouped by subject with an A–Z jump strip and per-term anchor links. Each

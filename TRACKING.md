@@ -229,3 +229,34 @@ rendering, and the Run-to-Live workflow.
 Set `PLAYWRIGHT_BASE_URL=https://electrasim.com` when running `npm run e2e:production` to
 exercise the same production suite against the live domain instead of starting a local
 Wrangler preview.
+
+## Release Record
+
+| Version | Date | Summary |
+|---|---|---|
+| v2.0.3 | 2026-09-09 | The guide release: 20 circuit walkthroughs, 22 component anatomy pages (16 with interactive cutaways), 8 tool pages, a 37-term glossary, and a start-here post routing readers through all of it. Every guide page gained a snippet that fits, its own social card and marked-up breadcrumbs. |
+| v2.0.2 | 2026-09-04 | `/compare/` rebuilt as a research bench: SVG research map, task-fit plots, filterable matrix and a dated first-party evidence ledger. |
+
+A release bump is not cosmetic on this site. Three things key off the version in the root
+`package.json`:
+
+- **The landing release popup** (`astro-site/src/components/landing/LandingReleasePopup.astro`)
+  stores dismissal under `electrasim:release-popup:<version>`, so a bump is what re-arms the
+  announcement for returning visitors. The copy in that component is about 2.0 and is not rewritten
+  for a patch — check it before a minor or major.
+- **The three versionless marketing scripts** (`theme.js`, `site-nav.js`, `scroll-top.js`) request
+  `?v=<version>`, so a bump is also their cache invalidation.
+- **The app's own version** (`src/version.ts`) reads the same manifest.
+
+The marketing `?v=` keys and the OG card hashes are separate mechanisms and do not need to move
+together: card hashes are content digests written by `scripts/generate-og-images.mjs`, and they
+change only when the artwork changes.
+
+### Content and SEO state
+
+- 192 HTML routes build from `dist/`, of which 190 are checked by `npm run check:seo` (`/app/` and
+  `/admin/` are noindex shells and are skipped).
+- The pre-release gate is `npm run verify`, which now includes `check:seo` between `check:links`
+  and `benchmark:simulation`.
+- Guide pages are checked for a per-page social card, a `BreadcrumbList` that matches the trail
+  rendered on the page, and (on circuit walkthroughs) a `HowTo` whose step anchors resolve.

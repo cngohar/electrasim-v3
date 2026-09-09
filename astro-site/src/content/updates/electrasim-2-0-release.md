@@ -2,11 +2,11 @@
 title: "ElectraSim 2.0: Challenge Mode, the Diagnosis Lab, Guided Circuits and the Electrical Toolbox"
 description: "ElectraSim 2.0 is the learning release: three structured learning modes judged by the real simulation engine, eight Guided Circuits with checklists, a live Fault Lab, compliance reporting, and a multi-standard Electrical Toolbox — plus a long list of honesty and correctness fixes. Here is everything that changed and why."
 pubDate: 2026-08-31
-updatedDate: 2026-09-04
+updatedDate: 2026-09-09
 author: ElectraSim
 category: App Update
-version: "v2.0.2"
-tags: [ElectraSim, v2.0, v2.0.1, v2.0.2, release notes, challenge mode, diagnosis lab, ohmageddon, guided circuits, fault lab, electrical toolbox, cable sizing, voltage drop, circuit simulator]
+version: "v2.0.3"
+tags: [ElectraSim, v2.0, v2.0.1, v2.0.2, v2.0.3, release notes, challenge mode, diagnosis lab, ohmageddon, guided circuits, fault lab, electrical toolbox, cable sizing, voltage drop, circuit simulator]
 featured: true
 ---
 
@@ -19,6 +19,8 @@ This post is the complete tour. Everything linked below is live today, free, wit
 > **v2.0.1 Maintenance Update:** We've polished the welcome popup with seamless animations, unified the "Coming Soon" badges across navigation and footer, optimized page loading speeds so preview graphics load only when needed, and fine-tuned menu interactions across the site.
 
 > **v2.0.2 Update:** The simulator comparison has been rebuilt as a current research bench with task filters, instrument plots, and linked first-party evidence.
+
+> **v2.0.3 Update:** The Circuit Guide is now a complete route through the subject — 20 circuit walkthroughs, 22 component anatomy pages (16 with interactive cutaways), 8 tool pages and a 37-term glossary — and there is a [start-here post](/blog/how-to-use-the-electrasim-guide-beginner-to-pro/) that walks you through it from beginner level to pro.
 
 ---
 
@@ -113,6 +115,20 @@ Version 2.0.1 brings helpful visual polish, smarter navigation, and bug fixes ac
 The comparison route now works as a research instrument rather than a static product grid. It maps nine tools across practical wiring, numeric analysis, guided teaching, sharing, offline work and start-up friction. A filterable matrix, selectable profiles, radar plot and average-fit bars make the trade-offs visible without pretending that one simulator wins every job.
 
 The evidence is kept close to the claim: the page records the official product, documentation, pricing, classroom and repository pages reviewed on **4 September 2026**. When a public source does not document a capability, the bench says **Not confirmed** instead of inferring a negative. Open the [comparison bench](/compare/) or go straight to the [simulator guide](/guide/) for ElectraSim's own scope.
+
+---
+
+## 13. What's new in v2.0.3: the guide has a front door
+
+The guide used to be a good reference with no obvious way in. Twenty circuit walkthroughs, twenty-two components and eight tools were all there, and none of them told you which one to open first. Two things change that.
+
+**A start-here post.** [How to Use the ElectraSim Guide: Beginner to Pro](/blog/how-to-use-the-electrasim-guide-beginner-to-pro/) is the route: what to read at each level, how to read a walkthrough, when to open a component page instead, and how to tell when you are ready to move up. It ends where the reading stops being useful — Challenge Mode, the Diagnosis Lab and Ohmageddon, judged by the same engine the canvas runs on.
+
+**A guide you can take apart.** The [component pages](/guide/components/) now carry two views: the outside of the real part, with hotspots pinned to its actual geometry, and — for sixteen of them — a cutaway showing the mechanism. On an [MCB](/guide/components/mcb/) that is the latch, solenoid, arc chute and bimetal strip; on an [RCD](/guide/components/rcd/) it is the summation transformer and trip solenoid. One click on a marker fills the side rail; the picture does not move.
+
+The [circuit walkthroughs](/guide/circuits/) each end with their own link into the app, so a walkthrough you have just read opens pre-built on the canvas. The [glossary](/glossary/) catches the 37 terms those walkthroughs actually use, linked both ways, so a definition is one click away and the way back is another.
+
+Behind the scenes the guide also got the plumbing a reference site needs: every guide page now carries its own social card, so a link pasted into a chat shows that page rather than the site's generic image, and the breadcrumb trail on each page is marked up as well as rendered.
 
 ---
 
