@@ -153,6 +153,20 @@ describe('circuit schematics', () => {
     expect(circuits.length).toBeGreaterThan(0);
   });
 
+  it('keeps schematic styling external so the strict CSP cannot block it', () => {
+    for (const svg of Object.values(CIRCUIT_SCHEMATICS)) {
+      expect(svg).not.toContain('<style');
+    }
+
+    const route = readFileSync(
+      resolve(process.cwd(), 'astro-site/src/pages/guide/circuits/[slug].astro'),
+      'utf8',
+    );
+    for (const className of ['.w', '.dev', '.sym', '.flow']) {
+      expect(route).toContain(`:global(.schem ${className})`);
+    }
+  });
+
   for (const circuit of circuits) {
     describe(circuit.id, () => {
       const svg = CIRCUIT_SCHEMATICS[circuit.id];

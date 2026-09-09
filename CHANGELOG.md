@@ -2,6 +2,21 @@
 
 ### Added
 
+- **Guide engineering hardening.** Search indexing now has one typed source for guide circuits,
+  components, tools, hubs, and glossary terms; the circuit index is grouped by difficulty; guide
+  review metadata and sitemap `lastmod` are wired through; print styles and clearer next-step labels
+  improve the reading path; and legacy guide redirects moved to a cache-busted external script.
+  Production verification now includes strict-CSP parity and a browser test that checks every circuit
+  schematic's conductor colours under the real security policy.
+
+### Fixed
+
+- Corrected the dynamic circuit, component, and tool breadcrumb URLs, made Open Graph images absolute,
+  and hardened the SEO gate against relative social images, missing build assets, breadcrumb URLs that
+  do not match the page, and rendered template placeholders.
+- Moved circuit-schematic styling into the external guide stylesheet so the site's strict
+  Content-Security-Policy cannot block it and leave SVG paths rendered as filled blocks.
+
 ---
 
 ## [2.0.3] — 2026-09-09

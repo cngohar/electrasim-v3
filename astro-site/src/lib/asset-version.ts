@@ -1,6 +1,8 @@
 import { createHash } from 'node:crypto';
 // Vite inlines the file at build time, so the token always tracks the shipped bytes.
 import guideLabSource from '../../public/js/guide-lab.js?raw';
+import guideData from '../content/pages/guide.json';
+import { circuitSlugMap } from './guide';
 
 /**
  * Cache-busting token for the guide lab script.
@@ -14,5 +16,10 @@ import guideLabSource from '../../public/js/guide-lab.js?raw';
  */
 export const GUIDE_LAB_VERSION = createHash('sha256')
   .update(guideLabSource)
+  .digest('hex')
+  .slice(0, 10);
+
+export const GUIDE_LEGACY_REDIRECT_VERSION = createHash('sha256')
+  .update(JSON.stringify(circuitSlugMap(guideData.circuits)))
   .digest('hex')
   .slice(0, 10);

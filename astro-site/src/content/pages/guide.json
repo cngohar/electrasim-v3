@@ -1,6 +1,8 @@
 {
   "seo_title": "ElectraSim Guide — Circuits, Faults, Smart Wiring and Guided Templates",
   "seo_description": "Learn the current ElectraSim workflow: guided circuit templates, smart and custom wiring, fault simulation, import/export, alignment tools, mini-map, and twenty step-by-step wiring walkthroughs.",
+  "reviewed_at": "2026-09-09",
+  "standards_context": ["BS 7671:2018+A4:2026", "IEC 60364"],
   "hero_heading": "Build Real Circuits.\nLearn by Simulating.",
   "hero_description": "A practical guide to the current ElectraSim app: start with guided templates, wire circuits with smart or custom routing, test faults, organise large diagrams, and practise 20 real wiring walkthroughs.",
   "hero_cta_primary": "Open ElectraSim",

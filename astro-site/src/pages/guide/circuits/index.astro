@@ -12,10 +12,15 @@ import { GUIDE_LAB_VERSION } from '../../../lib/asset-version';
 
 
 const circuits = data.circuits as GuideCircuit[];
+const LEVELS = ['Beginner', 'Intermediate', 'Advanced'] as const;
+const circuitsByLevel = LEVELS.map((level) => ({
+  level,
+  circuits: circuits.filter((circuit) => circuit.level === level),
+}));
 const crumbs = [
-  { name: 'Home', path: `/` },
-  { name: 'Circuit Guide', path: `/guide/` },
-  { name: 'Circuit Walkthroughs', path: `/guide/circuits/` }
+  { name: 'Home', path: '/' },
+  { name: 'Circuit Guide', path: '/guide/' },
+  { name: 'Circuit Walkthroughs', path: '/guide/circuits/' }
 ];
 
 ---
@@ -54,24 +59,48 @@ const crumbs = [
           <a href="/glossary/"><span class="lab-icon" aria-hidden="true">📖</span> Glossary</a>
         </nav>
 
-        <ol class="circuit-index">
-          {circuits.map((circuit) => (
-            <li>
-              <a class="circuit-index-link" href={`/guide/circuits/${circuitSlug(circuit)}/`}>
-                <span class="ci-step">{circuit.step}</span>
-                <span class="ci-body">
-                  <span class="ci-title">{circuit.title}</span>
-                  <span class="ci-desc">{circuit.description}</span>
-                </span>
-                <span class:list={['level-pill', levelClass(circuit.level)]}>
-                  <span class="level-dot" aria-hidden="true"></span>
-                  {circuit.level}
-                </span>
-                <span class="ci-arrow" aria-hidden="true">→</span>
-              </a>
-            </li>
+        <nav class="circuit-level-nav" aria-label="Circuit difficulty levels">
+          {circuitsByLevel.map(({ level, circuits: levelCircuits }) => (
+            <a href={`#level-${level.toLowerCase()}`}>
+              {level}
+              <span>{levelCircuits.length}</span>
+            </a>
           ))}
-        </ol>
+        </nav>
+
+        {circuitsByLevel.map(({ level, circuits: levelCircuits }) => (
+          <section class="circuit-level" aria-labelledby={`level-${level.toLowerCase()}`}>
+            <div class="circuit-level-head">
+              <h2 id={`level-${level.toLowerCase()}`}>{level} circuits</h2>
+              <p>
+                {level === 'Beginner' &&
+                  'Start here if you are new to household wiring or electrical notation.'}
+                {level === 'Intermediate' &&
+                  'Combine switching, protection and timed or contactor-based control.'}
+                {level === 'Advanced' &&
+                  'Work through larger installations, special locations and three-phase equipment.'}
+              </p>
+            </div>
+            <ol class="circuit-index">
+              {levelCircuits.map((circuit) => (
+                <li>
+                  <a class="circuit-index-link" href={`/guide/circuits/${circuitSlug(circuit)}/`}>
+                    <span class="ci-step">{circuit.step}</span>
+                    <span class="ci-body">
+                      <span class="ci-title">{circuit.title}</span>
+                      <span class="ci-desc">{circuit.description}</span>
+                    </span>
+                    <span class:list={['level-pill', levelClass(circuit.level)]}>
+                      <span class="level-dot" aria-hidden="true"></span>
+                      {circuit.level}
+                    </span>
+                    <span class="ci-arrow" aria-hidden="true">→</span>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </section>
+        ))}
 
         <GuideCta
           heading="Read one, then build it."
@@ -87,6 +116,55 @@ const crumbs = [
 </Base>
 
 <style>
+  .circuit-level-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin: 0 0 1.5rem;
+  }
+  .circuit-level-nav a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.42rem 0.85rem;
+    background: var(--bg-card);
+    color: var(--text-mid);
+    font-size: 0.82rem;
+    font-weight: 750;
+    text-decoration: none;
+  }
+  .circuit-level-nav a:hover,
+  .circuit-level-nav a:focus-visible {
+    border-color: var(--border-bright);
+    color: var(--blue);
+  }
+  .circuit-level-nav span {
+    color: var(--blue-d);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+  }
+  .circuit-level {
+    scroll-margin-top: 5.5rem;
+  }
+  .circuit-level-head {
+    display: grid;
+    gap: 0.25rem;
+    margin-bottom: 0.85rem;
+  }
+  .circuit-level-head h2 {
+    margin: 0;
+    font-size: 1.15rem;
+    letter-spacing: -0.01em;
+  }
+  .circuit-level-head p {
+    margin: 0;
+    max-width: 68ch;
+    color: var(--text-mid);
+    font-size: 0.87rem;
+    line-height: 1.55;
+  }
   .circuit-index {
     list-style: none;
     margin: 1.5rem 0 2.5rem;

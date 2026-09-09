@@ -3,6 +3,7 @@ import GuideBreadcrumbs from '../../../components/guide/GuideBreadcrumbs.astro';
 import { getCollection } from 'astro:content';
 import EmojiIcon from '../../../components/EmojiIcon.astro';
 import GuideCta from '../../../components/guide/GuideCta.astro';
+import GuideReviewMeta from '../../../components/guide/GuideReviewMeta.astro';
 import data from '../../../content/pages/guide.json';
 import Base from '../../../layouts/Base.astro';
 import { termsIn } from '../../../lib/glossary';
@@ -95,10 +96,10 @@ const howToSchema = howTo({
   })),
 });
 const crumbs = [
-  { name: 'Home', path: `/` },
-  { name: 'Circuit Guide', path: `/guide/` },
-  { name: 'Circuits', path: `/guide/circuits/` },
-  { name: circuit.title, path: `/guide/circuits/{slug}/` }
+  { name: 'Home', path: '/' },
+  { name: 'Circuit Guide', path: '/guide/' },
+  { name: 'Circuits', path: '/guide/circuits/' },
+  { name: circuit.title, path: `/guide/circuits/${slug}/` }
 ];
 
 ---
@@ -140,6 +141,7 @@ const crumbs = [
             </div>
             <h1>{circuit.title}</h1>
             <p class="cd-desc">{circuit.description}</p>
+            <GuideReviewMeta />
           </div>
         </header>
 
@@ -264,7 +266,7 @@ const crumbs = [
           ) : <span />}
           {next ? (
             <a class="pn-next" href={`/guide/circuits/${circuitSlug(next)}/`}>
-              <span class="pn-dir">Lesson {next.step} →</span>
+              <span class="pn-dir">Recommended next · Lesson {next.step} →</span>
               <span class="pn-title">{next.title}</span>
             </a>
           ) : <span />}
@@ -340,6 +342,71 @@ const crumbs = [
     min-width: 480px;
     width: 100%;
     height: auto;
+  }
+  .schem-box :global(.schem .w) {
+    fill: none;
+    stroke: #b45309;
+    stroke-width: 3.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .schem-box :global(.schem .wl) { stroke: #dc2626; }
+  .schem-box :global(.schem .wn) { stroke: #0f172a; }
+  .schem-box :global(.schem .we) { stroke: #059669; }
+  .schem-box :global(.schem .wdp) { stroke: #dc2626; }
+  .schem-box :global(.schem .wdn) { stroke: #1d4ed8; }
+  .schem-box :global(.schem .dev) {
+    fill: #f1f5f9;
+    stroke: #334155;
+    stroke-width: 2.5;
+  }
+  .schem-box :global(.schem .sym) {
+    fill: none;
+    stroke: #1e293b;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .schem-box :global(.schem .dot) { fill: #1e293b; }
+  .schem-box :global(.schem .term) {
+    fill: #ffffff;
+    stroke: #334155;
+    stroke-width: 2.5;
+  }
+  .schem-box :global(.schem .term-l) { fill: #dc2626; stroke: #b91c1c; }
+  .schem-box :global(.schem .term-n) { fill: #0f172a; stroke: #0f172a; }
+  .schem-box :global(.schem .term-e) { fill: #059669; stroke: #047857; }
+  .schem-box :global(.schem .term-p) { fill: #dc2626; stroke: #b91c1c; }
+  .schem-box :global(.schem .term-m) { fill: #1d4ed8; stroke: #1e40af; }
+  .schem-box :global(.schem .lbl) {
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 12px;
+    fill: #475569;
+  }
+  .schem-box :global(.schem .lblw) {
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 12px;
+    fill: #1e293b;
+    font-weight: 700;
+  }
+  .schem-box :global(.schem .lbl-l) { fill: #dc2626; }
+  .schem-box :global(.schem .lbl-n) { fill: #0f172a; }
+  .schem-box :global(.schem .lbl-e) { fill: #047857; }
+  .schem-box :global(.schem .lbl-p) { fill: #dc2626; }
+  .schem-box :global(.schem .lbl-m) { fill: #1d4ed8; }
+  .schem-box :global(.schem .flow) {
+    fill: none;
+    stroke: #f59e0b;
+    stroke-width: 3;
+    stroke-dasharray: 5 9;
+    stroke-linecap: round;
+    animation: schematic-flow 1.1s linear infinite;
+  }
+  @keyframes schematic-flow {
+    to { stroke-dashoffset: -28; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .schem-box :global(.schem .flow) { animation: none; }
   }
   .schem-legend {
     display: flex;

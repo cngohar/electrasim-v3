@@ -1,0 +1,23 @@
+---
+import guideData from '../../content/pages/guide.json';
+
+const reviewedAt = new Date(`${guideData.reviewed_at}T00:00:00Z`);
+const reviewedLabel = reviewedAt.toLocaleDateString('en-GB', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+const standardsContext = guideData.standards_context.join(' · ');
+---
+
+<dl class="guide-review-meta">
+  <div>
+    <dt>Guide review</dt>
+    <dd><time datetime={guideData.reviewed_at}>{reviewedLabel}</time></dd>
+  </div>
+  <div>
+    <dt>Standards context</dt>
+    <dd>{standardsContext}</dd>
+  </div>
+</dl>

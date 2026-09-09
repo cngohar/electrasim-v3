@@ -6,6 +6,10 @@ import { defineConfig } from 'astro/config';
 import { benchReviewedIso } from './src/lib/competitor-bench';
 
 const SITE = 'https://electrasim.com';
+const guideData = JSON.parse(
+  readFileSync(new URL('./src/content/pages/guide.json', import.meta.url), 'utf8'),
+);
+const guideLastmod = new Date(`${guideData.reviewed_at}T00:00:00Z`).toISOString();
 
 /**
  * Content freshness map for <lastmod>.
@@ -119,8 +123,13 @@ export default defineConfig({
         if (url.includes('/blog/') && url !== `${SITE}/blog/`) {
           return withLastmod({ changefreq: ChangeFreqEnum.MONTHLY, priority: 0.7 });
         }
-        if (url === `${SITE}/guide/` || url.startsWith(`${SITE}/guide/tools/`) || url.startsWith(`${SITE}/guide/components/`)) {
-          return { ...item, changefreq: ChangeFreqEnum.MONTHLY, priority: 0.7 };
+        if (url === `${SITE}/guide/` || url.startsWith(`${SITE}/guide/`) || url === `${SITE}/glossary/`) {
+          return {
+            ...item,
+            changefreq: ChangeFreqEnum.MONTHLY,
+            priority: 0.7,
+            lastmod: guideLastmod,
+          };
         }
         if (url === `${SITE}/blog/`) {
           return withNewest({ changefreq: ChangeFreqEnum.WEEKLY, priority: 0.8 });

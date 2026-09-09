@@ -3,6 +3,7 @@ import GuideBreadcrumbs from '../../../components/guide/GuideBreadcrumbs.astro';
 import { getCollection } from 'astro:content';
 import CatalogCard from '../../../components/guide/CatalogCard.astro';
 import GuideCta from '../../../components/guide/GuideCta.astro';
+import GuideReviewMeta from '../../../components/guide/GuideReviewMeta.astro';
 import Base from '../../../layouts/Base.astro';
 import '../../../styles/guide.css';
 import '../../../styles/guide-lab.css';
@@ -34,10 +35,10 @@ const index = all.findIndex((t) => t.slug === data.slug);
 const next = all[(index + 1) % all.length];
 const prev = all[(index - 1 + all.length) % all.length];
 const crumbs = [
-  { name: 'Home', path: `/` },
-  { name: 'Circuit Guide', path: `/guide/` },
-  { name: 'Hand Tools', path: `/guide/tools/` },
-  { name: data.name, path: `/guide/tools/{slug}/` }
+  { name: 'Home', path: '/' },
+  { name: 'Circuit Guide', path: '/guide/' },
+  { name: 'Hand Tools', path: '/guide/tools/' },
+  { name: data.name, path: `/guide/tools/${data.slug}/` }
 ];
 
 ---
@@ -75,6 +76,7 @@ const crumbs = [
           <CatalogCard item={data} wide hotspots detailTargetId="anatomy-detail" />
 
           <aside class="dl-spec" aria-label={`${data.name} specification`}>
+            <GuideReviewMeta />
             <div class="dl-spec__row">
               <dt>Category</dt>
               <dd>{data.category}</dd>

@@ -33,12 +33,57 @@ describe('Search Index Builder (buildSearchIndex)', () => {
     },
   ];
 
+  const mockGuideTools = [
+    {
+      slug: 'multimeter',
+      name: 'Digital Multimeter',
+      tagline: 'Measure voltage, continuity and resistance safely.',
+      category: 'Test equipment',
+      parts: ['Display', 'Selector dial', 'Test leads'],
+    },
+  ];
+
+  const mockGuideComponents = [
+    {
+      slug: 'mcb',
+      name: 'Miniature Circuit Breaker',
+      tagline: 'Protects a final circuit from overcurrent.',
+      category: 'Protective device',
+      terminals: ['L-in', 'L-out'],
+    },
+  ];
+
+  const mockGlossaryTerms = [
+    {
+      slug: 'cpc',
+      term: 'CPC',
+      expansion: 'Circuit Protective Conductor',
+      definition: 'The earth conductor that clears a fault by providing a low-impedance path.',
+      category: 'Earthing',
+      aliases: ['earth conductor'],
+    },
+  ];
+
   it('builds a comprehensive search index including tools, posts, guides, and core pages', () => {
-    const items = buildSearchIndex(mockBlogPosts, TOOLBOX_REGISTRY, mockGuideCircuits);
+    const items = buildSearchIndex({
+      blogPosts: mockBlogPosts,
+      tools: TOOLBOX_REGISTRY,
+      guideCircuits: mockGuideCircuits,
+      guideTools: mockGuideTools,
+      guideComponents: mockGuideComponents,
+      glossaryTerms: mockGlossaryTerms,
+    });
 
     expect(Array.isArray(items)).toBe(true);
     expect(items.length).toBe(
-      TOOLBOX_REGISTRY.length + mockBlogPosts.length + mockGuideCircuits.length + CORE_PAGES.length,
+      TOOLBOX_REGISTRY.length +
+        mockBlogPosts.length +
+        mockGuideCircuits.length +
+        mockGuideTools.length +
+        mockGuideComponents.length +
+        mockGlossaryTerms.length +
+        3 + // guide library hubs
+        CORE_PAGES.length,
     );
 
     // Verify presence of different resource types
@@ -47,6 +92,7 @@ describe('Search Index Builder (buildSearchIndex)', () => {
     expect(types).toContain('article');
     expect(types).toContain('guide');
     expect(types).toContain('page');
+    expect(types).toContain('term');
 
     // Check specific items
     const voltageDropTool = items.find((item) => item.id === 'tool-voltage-drop');
@@ -62,6 +108,19 @@ describe('Search Index Builder (buildSearchIndex)', () => {
     expect(guideCircuit).toBeDefined();
     expect(guideCircuit?.url).toBe('/guide/circuits/two-way-staircase-lighting-circuit/');
 
+    const guideTool = items.find((item) => item.id === 'guide-tool-multimeter');
+    expect(guideTool).toBeDefined();
+    expect(guideTool?.url).toBe('/guide/tools/multimeter/');
+
+    const guideComponent = items.find((item) => item.id === 'guide-component-mcb');
+    expect(guideComponent).toBeDefined();
+    expect(guideComponent?.url).toBe('/guide/components/mcb/');
+
+    const glossaryTerm = items.find((item) => item.id === 'glossary-cpc');
+    expect(glossaryTerm).toBeDefined();
+    expect(glossaryTerm?.type).toBe('term');
+    expect(glossaryTerm?.url).toBe('/glossary/#cpc');
+
     // Check all items have required fields
     for (const item of items) {
       expect(item.id).toBeTruthy();
@@ -70,6 +129,7 @@ describe('Search Index Builder (buildSearchIndex)', () => {
       expect(item.url).toBeTruthy();
       expect(item.category).toBeTruthy();
       expect(Array.isArray(item.tags)).toBe(true);
+      expect(new URL(item.url, 'https://electrasim.com').pathname).toBeTruthy();
     }
   });
 });

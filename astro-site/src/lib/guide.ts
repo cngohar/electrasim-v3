@@ -49,6 +49,12 @@ export function circuitSlug(circuit: Pick<GuideCircuit, 'id' | 'title'>): string
   );
 }
 
+export function circuitSlugMap(
+  circuits: Array<Pick<GuideCircuit, 'id' | 'title'>>,
+): Record<string, string> {
+  return Object.fromEntries(circuits.map((circuit) => [circuit.id, circuitSlug(circuit)]));
+}
+
 /**
  * Maps a component name as written in a circuit's `components[]` list to the
  * anatomy page that explains it. This is what turns a circuit walkthrough into
@@ -117,34 +123,6 @@ export function circuitsUsingAnatomy(circuits: GuideCircuit[], slug: string): Gu
  * Only two circuits ship a schematic so far; the rest fall back to the ASCII
  * text diagram, which stays on the page in both cases.
  */
-const SCHEMATIC_STYLE = `
-  .w   { fill:none; stroke:#b45309; stroke-width:3.5; stroke-linecap:round; stroke-linejoin:round; }
-  .wl  { stroke:#dc2626; }
-  .wn  { stroke:#0f172a; }
-  .we  { stroke:#059669; }
-  .wdp { stroke:#dc2626; }
-  .wdn { stroke:#1d4ed8; }
-  .dev { fill:#f1f5f9; stroke:#334155; stroke-width:2.5; }
-  .sym { fill:none; stroke:#1e293b; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
-  .dot { fill:#1e293b; }
-  .term { fill:#ffffff; stroke:#334155; stroke-width:2.5; }
-  .term-l { fill:#dc2626; stroke:#b91c1c; }
-  .term-n { fill:#0f172a; stroke:#0f172a; }
-  .term-e { fill:#059669; stroke:#047857; }
-  .term-p { fill:#dc2626; stroke:#b91c1c; }
-  .term-m { fill:#1d4ed8; stroke:#1e40af; }
-  .lbl { font-family: ui-monospace, Menlo, monospace; font-size:12px; fill:#475569; }
-  .lblw { font-family: ui-monospace, Menlo, monospace; font-size:12px; fill:#1e293b; font-weight:700; }
-  .lbl-l { fill:#dc2626; }
-  .lbl-n { fill:#0f172a; }
-  .lbl-e { fill:#047857; }
-  .lbl-p { fill:#dc2626; }
-  .lbl-m { fill:#1d4ed8; }
-  .flow { fill:none; stroke:#f59e0b; stroke-width:3; stroke-dasharray:5 9; stroke-linecap:round; animation:flow 1.1s linear infinite; }
-  @keyframes flow { to { stroke-dashoffset:-28; } }
-  @media (prefers-reduced-motion: reduce) { .flow { animation:none; } }
-`;
-
 const bulb = (cx: number, cy: number, r = 26) => `
   <circle class="sym" cx="${cx}" cy="${cy}" r="${r}"/>
   <line class="sym" x1="${cx - r * 0.72}" y1="${cy - r * 0.72}" x2="${cx + r * 0.72}" y2="${cy + r * 0.72}"/>
@@ -254,7 +232,6 @@ const pushButton = (cx: number, y: number) => `
 export const CIRCUIT_SCHEMATICS: Record<string, string> = {
   'circuit-1': `
 <svg viewBox="0 0 640 320" role="img" aria-label="Schematic: live from the supply through the MCB and switch to the lamp, with the neutral returning to the supply" class="schem">
-  <style>${SCHEMATIC_STYLE}</style>
   <circle class="term term-l" cx="60" cy="100" r="9"/><text class="lblw lbl-l" x="38" y="86">L</text>
   <circle class="term term-n" cx="60" cy="240" r="9"/><text class="lblw lbl-n" x="36" y="262">N</text>
   <rect class="dev" x="130" y="84" width="60" height="32" rx="6"/>
@@ -276,7 +253,6 @@ export const CIRCUIT_SCHEMATICS: Record<string, string> = {
 
   'circuit-3': `
 <svg viewBox="0 0 700 360" role="img" aria-label="Schematic: live feeds the common of switch one, two strapper wires link the switches, and the common of switch two feeds the lamp" class="schem">
-  <style>${SCHEMATIC_STYLE}</style>
   <circle class="term term-l" cx="55" cy="90" r="9"/><text class="lblw lbl-l" x="33" y="76">L</text>
   <circle class="term term-n" cx="55" cy="310" r="9"/><text class="lblw lbl-n" x="31" y="332">N</text>
   <rect class="dev" x="120" y="74" width="58" height="32" rx="6"/>
@@ -312,7 +288,6 @@ export const CIRCUIT_SCHEMATICS: Record<string, string> = {
 
   'circuit-2': `
 <svg viewBox="0 0 660 360" role="img" aria-label="Schematic: live runs through the MCB and switch to a junction box that feeds two lamps in parallel, with both neutrals returning to the supply" class="schem">
-  <style>${SCHEMATIC_STYLE}</style>
   <circle class="term term-l" cx="60" cy="90" r="9"/><text class="lblw lbl-l" x="38" y="76">L</text>
   <circle class="term term-n" cx="60" cy="300" r="9"/><text class="lblw lbl-n" x="36" y="322">N</text>
   ${wire('M69,90 H130', 'wl')}
@@ -338,7 +313,6 @@ export const CIRCUIT_SCHEMATICS: Record<string, string> = {
 
   'circuit-4': `
 <svg viewBox="0 0 700 420" role="img" aria-label="Schematic: live and neutral both pass through the RCD before reaching the socket, with a separate earth conductor running straight to the socket earth terminal" class="schem">
-  <style>${SCHEMATIC_STYLE}</style>
   <circle class="term term-l" cx="55" cy="80" r="9"/><text class="lblw lbl-l" x="33" y="66">L</text>
   <circle class="term term-n" cx="55" cy="240" r="9"/><text class="lblw lbl-n" x="31" y="262">N</text>
   <circle class="term term-e" cx="55" cy="350" r="9"/><text class="lblw lbl-e" x="31" y="372">E</text>
@@ -370,7 +344,6 @@ export const CIRCUIT_SCHEMATICS: Record<string, string> = {
 
   'circuit-5': `
 <svg viewBox="0 0 640 320" role="img" aria-label="Schematic: live feeds a timer switch through the MCB, and the switched live feeds the lamp" class="schem">
-  <style>${SCHEMATIC_STYLE}</style>
   <circle class="term term-l" cx="60" cy="100" r="9"/><text class="lblw lbl-l" x="38" y="86">L</text>
   <circle class="term term-n" cx="60" cy="250" r="9"/><text class="lblw lbl-n" x="36" y="272">N</text>
   ${wire('M69,100 H130', 'wl')}
@@ -389,7 +362,6 @@ export const CIRCUIT_SCHEMATICS: Record<string, string> = {
 
   'circuit-6': `
 <svg viewBox="0 0 640 320" role="img" aria-label="Schematic: live feeds a dimmer switch through the MCB, and the dimmed live feeds the lamp" class="schem">
-  <style>${SCHEMATIC_STYLE}</style>
   <circle class="term term-l" cx="60" cy="100" r="9"/><text class="lblw lbl-l" x="38" y="86">L</text>
   <circle class="term term-n" cx="60" cy="250" r="9"/><text class="lblw lbl-n" x="36" y="272">N</text>
   ${wire('M69,100 H130', 'wl')}
@@ -408,7 +380,6 @@ export const CIRCUIT_SCHEMATICS: Record<string, string> = {
 
   'circuit-7': `
 <svg viewBox="0 0 640 340" role="img" aria-label="Schematic: live feeds a normally-open push button through the MCB, and pressing it completes the circuit to the bell" class="schem">
-  <style>${SCHEMATIC_STYLE}</style>
   <circle class="term term-l" cx="60" cy="110" r="9"/><text class="lblw lbl-l" x="38" y="96">L</text>
   <circle class="term term-n" cx="60" cy="260" r="9"/><text class="lblw lbl-n" x="36" y="282">N</text>
   ${wire('M69,110 H130', 'wl')}
@@ -426,7 +397,6 @@ export const CIRCUIT_SCHEMATICS: Record<string, string> = {
 
   'circuit-8': `
 <svg viewBox="0 0 780 500" role="img" aria-label="Schematic: the supply enters a consumer unit main switch, a live busbar feeds three MCBs, and each MCB feeds a lighting circuit, a socket circuit and a motor circuit, with all neutrals returning to the neutral bar" class="schem">
-  <style>${SCHEMATIC_STYLE}</style>
   <circle class="term term-l" cx="50" cy="60" r="9"/><text class="lblw lbl-l" x="28" y="46">L</text>
   <circle class="term term-n" cx="50" cy="440" r="9"/><text class="lblw lbl-n" x="28" y="462">N</text>
   ${wire('M59,60 H110', 'wl')}
@@ -470,7 +440,6 @@ export const CIRCUIT_SCHEMATICS: Record<string, string> = {
 </svg>`,
   'circuit-9': `
 <svg viewBox="0 0 560 300" role="img" aria-label="Schematic: live runs from the supply through the MCB to the lamp, with the neutral returning to the supply" class="schem">
-  <style>${SCHEMATIC_STYLE}</style>
   <circle class="term term-l" cx="60" cy="90" r="9"/><text class="lblw lbl-l" x="38" y="76">L</text>
   <circle class="term term-n" cx="60" cy="230" r="9"/><text class="lblw lbl-n" x="36" y="252">N</text>
   ${wire('M69,90 H130', 'wl')}
@@ -485,7 +454,6 @@ export const CIRCUIT_SCHEMATICS: Record<string, string> = {
 
   'circuit-10': `
 <svg viewBox="0 0 640 330" role="img" aria-label="Schematic: live feeds a timer switch through the MCB, and the switched live feeds a bell that returns to neutral" class="schem">
-  <style>${SCHEMATIC_STYLE}</style>
   <circle class="term term-l" cx="60" cy="100" r="9"/><text class="lblw lbl-l" x="38" y="86">L</text>
   <circle class="term term-n" cx="60" cy="260" r="9"/><text class="lblw lbl-n" x="36" y="282">N</text>
   ${wire('M69,100 H130', 'wl')}
@@ -505,7 +473,6 @@ export const CIRCUIT_SCHEMATICS: Record<string, string> = {
 
   'circuit-11': `
 <svg viewBox="0 0 780 420" role="img" aria-label="Schematic: live and neutral pass through the RCBO before reaching the socket, the earth conductor runs straight to the socket earth terminal, and a test lamp stands in for a plugged-in appliance" class="schem">
-  <style>${SCHEMATIC_STYLE}</style>
   <circle class="term term-l" cx="55" cy="80" r="9"/><text class="lblw lbl-l" x="33" y="66">L</text>
   <circle class="term term-n" cx="55" cy="240" r="9"/><text class="lblw lbl-n" x="31" y="262">N</text>
   <circle class="term term-e" cx="55" cy="350" r="9"/><text class="lblw lbl-e" x="31" y="372">E</text>
@@ -539,7 +506,6 @@ export const CIRCUIT_SCHEMATICS: Record<string, string> = {
 
   'circuit-12': `
 <svg viewBox="0 0 700 360" role="img" aria-label="Schematic: live reaches the contactor through the MCB, the contactor switches both live and neutral through to the motor, and the neutral returns to the supply" class="schem">
-  <style>${SCHEMATIC_STYLE}</style>
   <circle class="term term-l" cx="60" cy="90" r="9"/><text class="lblw lbl-l" x="38" y="76">L</text>
   <circle class="term term-n" cx="60" cy="280" r="9"/><text class="lblw lbl-n" x="36" y="302">N</text>
   ${wire('M69,90 H130', 'wl')}
@@ -565,7 +531,6 @@ export const CIRCUIT_SCHEMATICS: Record<string, string> = {
 </svg>`,
   'circuit-13': `
 <svg viewBox="0 0 780 520" role="img" aria-label="Schematic: three live phases each pass through their own Type-D breaker into a three-pole contactor, which feeds the motor windings U, V and W, with a protective earth to the motor frame" class="schem">
-  <style>${SCHEMATIC_STYLE}</style>
   <circle class="term term-l" cx="55" cy="90" r="9"/><text class="lblw lbl-l" x="31" y="76">L1</text>
   <circle class="term term-l" cx="55" cy="200" r="9"/><text class="lblw lbl-l" x="31" y="186">L2</text>
   <circle class="term term-l" cx="55" cy="310" r="9"/><text class="lblw lbl-l" x="31" y="296">L3</text>
@@ -605,7 +570,6 @@ export const CIRCUIT_SCHEMATICS: Record<string, string> = {
 
   'circuit-14': `
 <svg viewBox="0 0 760 420" role="img" aria-label="Schematic: live and neutral run through a rotary isolator and an RCBO to the charge point, with the protective earth running straight to the charger earth terminal" class="schem">
-  <style>${SCHEMATIC_STYLE}</style>
   <circle class="term term-l" cx="55" cy="90" r="9"/><text class="lblw lbl-l" x="33" y="76">L</text>
   <circle class="term term-n" cx="55" cy="190" r="9"/><text class="lblw lbl-n" x="31" y="214">N</text>
   <circle class="term term-e" cx="55" cy="360" r="9"/><text class="lblw lbl-e" x="31" y="382">E</text>
@@ -642,7 +606,6 @@ export const CIRCUIT_SCHEMATICS: Record<string, string> = {
 
   'circuit-15': `
 <svg viewBox="0 0 720 400" role="img" aria-label="Schematic: the PV array feeds a DC combiner that supplies a 12 volt LED load and charges a battery, with the negative rail returning from both" class="schem">
-  <style>${SCHEMATIC_STYLE}</style>
   ${solarPanel(90, 120)}
   <text class="lblw" x="155" y="104" text-anchor="middle">PV ARRAY</text>
   <circle class="term term-p" cx="220" cy="142" r="9"/><text class="lblw lbl-p" x="236" y="130">+</text>
@@ -671,7 +634,6 @@ export const CIRCUIT_SCHEMATICS: Record<string, string> = {
 
   'circuit-16': `
 <svg viewBox="0 0 700 380" role="img" aria-label="Schematic: live reaches the heating thermostat through a Type-C breaker, neutral joins it there, and both switched poles run out to the heating mat" class="schem">
-  <style>${SCHEMATIC_STYLE}</style>
   <circle class="term term-l" cx="60" cy="110" r="9"/><text class="lblw lbl-l" x="38" y="96">L</text>
   <circle class="term term-n" cx="60" cy="290" r="9"/><text class="lblw lbl-n" x="36" y="312">N</text>
   ${wire('M69,110 H140', 'wl')}
@@ -696,7 +658,6 @@ export const CIRCUIT_SCHEMATICS: Record<string, string> = {
 
   'circuit-17': `
 <svg viewBox="0 0 700 380" role="img" aria-label="Schematic: live and neutral both supply the PIR sensor, its switched live output feeds the floodlight, and the floodlight neutral returns to the supply" class="schem">
-  <style>${SCHEMATIC_STYLE}</style>
   <circle class="term term-l" cx="60" cy="110" r="9"/><text class="lblw lbl-l" x="38" y="96">L</text>
   <circle class="term term-n" cx="60" cy="290" r="9"/><text class="lblw lbl-n" x="36" y="312">N</text>
   ${wire('M69,110 H140', 'wl')}
@@ -720,7 +681,6 @@ export const CIRCUIT_SCHEMATICS: Record<string, string> = {
 
   'circuit-18': `
 <svg viewBox="0 0 700 380" role="img" aria-label="Schematic: live reaches a cooker control unit through a breaker, neutral joins it there, and both switched poles feed the induction hob" class="schem">
-  <style>${SCHEMATIC_STYLE}</style>
   <circle class="term term-l" cx="60" cy="110" r="9"/><text class="lblw lbl-l" x="38" y="96">L</text>
   <circle class="term term-n" cx="60" cy="290" r="9"/><text class="lblw lbl-n" x="36" y="312">N</text>
   ${wire('M69,110 H140', 'wl')}
@@ -748,7 +708,6 @@ export const CIRCUIT_SCHEMATICS: Record<string, string> = {
 
   'circuit-19': `
 <svg viewBox="0 0 720 420" role="img" aria-label="Schematic: a standby generator feeds an MCB that supplies an emergency light and an alarm siren, both returning to the generator neutral, with the generator frame earthed to a rod" class="schem">
-  <style>${SCHEMATIC_STYLE}</style>
   <rect class="dev" x="90" y="170" width="130" height="110" rx="8"/>
   <text class="lblw" x="155" y="152" text-anchor="middle">GENERATOR</text>
   <circle class="term term-l" cx="220" cy="200" r="9"/><text class="lblw lbl-l" x="236" y="190">L</text>
@@ -778,7 +737,6 @@ export const CIRCUIT_SCHEMATICS: Record<string, string> = {
 
   'circuit-20': `
 <svg viewBox="0 0 760 440" role="img" aria-label="Schematic: live and neutral pass through an AFDD-RCBO to a double socket that also feeds a light, with the earth conductor running straight to the socket earth terminal" class="schem">
-  <style>${SCHEMATIC_STYLE}</style>
   <circle class="term term-l" cx="55" cy="90" r="9"/><text class="lblw lbl-l" x="33" y="76">L</text>
   <circle class="term term-n" cx="55" cy="240" r="9"/><text class="lblw lbl-n" x="31" y="262">N</text>
   <circle class="term term-e" cx="55" cy="390" r="9"/><text class="lblw lbl-e" x="31" y="412">E</text>

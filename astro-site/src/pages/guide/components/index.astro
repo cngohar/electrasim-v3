@@ -14,9 +14,9 @@ const components = await getCollection('guideComponents');
 const sorted = [...components].sort((a, b) => a.data.name.localeCompare(b.data.name));
 const canonical = 'https://electrasim.com/guide/components/';
 const crumbs = [
-  { name: 'Home', path: `/` },
-  { name: 'Circuit Guide', path: `/guide/` },
-  { name: 'Components', path: `/guide/components/` }
+  { name: 'Home', path: '/' },
+  { name: 'Circuit Guide', path: '/guide/' },
+  { name: 'Components', path: '/guide/components/' }
 ];
 
 ---

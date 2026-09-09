@@ -6,7 +6,7 @@ export interface SearchItem {
   title: string;
   description: string;
   url: string;
-  type: 'tool' | 'article' | 'guide' | 'page' | 'update';
+  type: 'tool' | 'article' | 'guide' | 'page' | 'update' | 'term';
   category: string;
   tags: string[];
 }
@@ -26,6 +26,31 @@ export interface RawGuideCircuit {
   title: string;
   description: string;
   level?: string;
+}
+
+export interface RawGuideTool {
+  slug: string;
+  name: string;
+  tagline: string;
+  category: string;
+  parts: string[];
+}
+
+export interface RawGuideComponent {
+  slug: string;
+  name: string;
+  tagline: string;
+  category: string;
+  terminals: string[];
+}
+
+export interface RawGlossaryTerm {
+  slug: string;
+  term: string;
+  expansion?: string;
+  definition: string;
+  category: string;
+  aliases?: string[];
 }
 
 export interface RawUpdatePost {
@@ -131,12 +156,25 @@ export const CORE_PAGES: SearchItem[] = [
 /**
  * Builds a normalized, weighted search index from raw content sources.
  */
-export function buildSearchIndex(
-  blogPosts: RawBlogPost[],
-  tools: ToolEntry[],
-  guideCircuits: RawGuideCircuit[] = [],
-  updatePosts: RawUpdatePost[] = [],
-): SearchItem[] {
+export interface BuildSearchIndexInput {
+  blogPosts: RawBlogPost[];
+  tools: ToolEntry[];
+  guideCircuits?: RawGuideCircuit[];
+  updatePosts?: RawUpdatePost[];
+  guideTools?: RawGuideTool[];
+  guideComponents?: RawGuideComponent[];
+  glossaryTerms?: RawGlossaryTerm[];
+}
+
+export function buildSearchIndex({
+  blogPosts,
+  tools,
+  guideCircuits = [],
+  updatePosts = [],
+  guideTools = [],
+  guideComponents = [],
+  glossaryTerms = [],
+}: BuildSearchIndexInput): SearchItem[] {
   const items: SearchItem[] = [];
 
   // 1. Calculators & Tools
@@ -190,6 +228,84 @@ export function buildSearchIndex(
       type: 'guide',
       category: 'Guides',
       tags: [circuit.level || 'intermediate', 'circuit', 'wiring', 'guide'],
+    });
+  }
+
+  // 3b. Guide anatomy libraries. These are appended to the circuits rather
+  // than replacing the existing guide-page result because the hub, a circuit,
+  // a component and a term answer different intents.
+  if (guideTools.length > 0) {
+    items.push({
+      id: 'guide-tools-hub',
+      title: 'Hand Tools & Accessories Anatomy Guide',
+      description:
+        'Anatomy guides for electrician’s hand tools and test equipment — labelled hotspots, practical use and safety notes.',
+      url: '/guide/tools/',
+      type: 'guide',
+      category: 'Tool Anatomy',
+      tags: ['tools', 'anatomy', 'test equipment', 'hand tools'],
+    });
+  }
+
+  for (const tool of guideTools) {
+    items.push({
+      id: `guide-tool-${tool.slug}`,
+      title: tool.name,
+      description: tool.tagline,
+      url: `/guide/tools/${tool.slug}/`,
+      type: 'guide',
+      category: 'Tool Anatomy',
+      tags: [tool.category, 'tools', 'anatomy', ...tool.parts],
+    });
+  }
+
+  if (guideComponents.length > 0) {
+    items.push({
+      id: 'guide-components-hub',
+      title: 'Electrical Components Anatomy Guide',
+      description:
+        'Learn the anatomy of electrical components — what each terminal does, how the protection works, and the safety rules behind it.',
+      url: '/guide/components/',
+      type: 'guide',
+      category: 'Component Anatomy',
+      tags: ['components', 'anatomy', 'terminals', 'protection'],
+    });
+  }
+
+  for (const component of guideComponents) {
+    items.push({
+      id: `guide-component-${component.slug}`,
+      title: component.name,
+      description: component.tagline,
+      url: `/guide/components/${component.slug}/`,
+      type: 'guide',
+      category: 'Component Anatomy',
+      tags: [component.category, 'components', 'anatomy', ...component.terminals],
+    });
+  }
+
+  if (glossaryTerms.length > 0) {
+    items.push({
+      id: 'guide-glossary',
+      title: 'Electrical Terms Glossary',
+      description:
+        'Plain-English definitions of the terms the wiring guides use, with links to the circuits, components and tools that use them.',
+      url: '/glossary/',
+      type: 'guide',
+      category: 'Glossary',
+      tags: ['glossary', 'terms', 'definitions'],
+    });
+  }
+
+  for (const term of glossaryTerms) {
+    items.push({
+      id: `glossary-${term.slug}`,
+      title: term.expansion ? `${term.term} — ${term.expansion}` : term.term,
+      description: term.definition,
+      url: `/glossary/#${term.slug}`,
+      type: 'term',
+      category: 'Glossary',
+      tags: [term.category, 'glossary', 'term', ...(term.aliases ?? []).slice(0, 4)],
     });
   }
 

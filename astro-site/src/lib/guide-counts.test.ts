@@ -17,6 +17,8 @@ import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 type Guide = {
+  reviewed_at?: string;
+  standards_context?: string[];
   circuits: { id: string; app_template?: string }[];
   guided_templates: { id: string; level?: string }[];
 };
@@ -168,5 +170,12 @@ describe('guide corpus counts quoted in copy', () => {
       missing,
       `walkthroughs pointing at unknown app templates: ${missing.join(', ')}`,
     ).toEqual([]);
+  });
+
+  it('carries a parseable guide review date and standards context', () => {
+    expect(guide.reviewed_at).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(new Date(`${guide.reviewed_at}T00:00:00Z`).toString()).not.toBe('Invalid Date');
+    expect(guide.standards_context?.length).toBeGreaterThan(0);
+    expect(guide.standards_context?.every((standard) => standard.length > 3)).toBe(true);
   });
 });

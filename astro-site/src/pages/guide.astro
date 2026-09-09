@@ -7,9 +7,8 @@ import data from '../content/pages/guide.json';
 import Base from '../layouts/Base.astro';
 import '../styles/guide.css';
 import '../styles/guide-lab.css';
-import { circuitSlug } from '../lib/guide';
 import type { GuideCircuit } from '../types/pages';
-import { GUIDE_LAB_VERSION } from '../lib/asset-version';
+import { GUIDE_LEGACY_REDIRECT_VERSION, GUIDE_LAB_VERSION } from '../lib/asset-version';
 
 
 const circuits = data.circuits as GuideCircuit[];
@@ -113,22 +112,9 @@ const crumbs = [
   </main>
 
   {/* Legacy links: walkthroughs used to live at /guide/#circuit-N. The hash
-      never reaches the server, so the redirect has to happen here. */}
-  <script
-    is:inline
-    set:html={`window.__GUIDE_CIRCUIT_SLUGS=${JSON.stringify(
-      Object.fromEntries(circuits.map((c) => [c.id, circuitSlug(c)])),
-    )};`}
-  />
-  <script is:inline>
-    (function () {
-      var m = /^#circuit-(\d+)$/.exec(window.location.hash);
-      if (!m) return;
-      var slug = window.__GUIDE_CIRCUIT_SLUGS && window.__GUIDE_CIRCUIT_SLUGS['circuit-' + m[1]];
-      if (slug) window.location.replace('/guide/circuits/' + slug + '/');
-    })();
-  </script>
-
+      never reaches the server, so the redirect has to happen in an external
+      script that the guide's strict CSP permits. */}
+  <script is:inline defer src={`/js/guide-legacy-redirects.js?v=${GUIDE_LEGACY_REDIRECT_VERSION}`}></script>
   <script is:inline defer src={`/js/guide-lab.js?v=${GUIDE_LAB_VERSION}`}></script>
 </Base>
 

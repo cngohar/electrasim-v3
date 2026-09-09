@@ -10,13 +10,12 @@ const port = Number(process.env.PORT || 8788);
 const host = '127.0.0.1';
 
 /**
- * `_redirects` support.
+ * `_redirects` and `_headers` support.
  *
  * This server is the stand-in for the Cloudflare Pages runtime in
- * `e2e:production`, and it already emulates the per-route headers from
- * `_headers`. Without the redirect table it could not answer for moved or
- * retired routes consistently with Cloudflare Pages, so local production
- * checks could mistake a routing difference for a broken page.
+ * `e2e:production`. Without these tables it could not answer for moved or
+ * retired routes, or apply the same per-route CSP as production, so local
+ * checks could mistake a routing or security difference for a broken page.
  *
  * Supports what Pages actually needs for this project: exact paths, and one `*`
  * wildcard whose match is substituted for `:splat` in the destination. Rules are
@@ -41,6 +40,53 @@ const redirectsFile = join(dist, '_redirects');
 const REDIRECTS = existsSync(redirectsFile)
   ? parseRedirects(readFileSync(redirectsFile, 'utf8'))
   : [];
+
+function parseHeaderRules(text) {
+  const rules = [];
+  let current = null;
+
+  for (const rawLine of text.split('\n')) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) continue;
+
+    if (!/^\s/.test(rawLine)) {
+      current = { pattern: line, headers: {} };
+      rules.push(current);
+      continue;
+    }
+
+    const separator = line.indexOf(':');
+    if (!current || separator === -1) continue;
+    current.headers[line.slice(0, separator).trim()] = line.slice(separator + 1).trim();
+  }
+
+  return rules;
+}
+
+const headersFile = join(dist, '_headers');
+const HEADER_RULES = existsSync(headersFile)
+  ? parseHeaderRules(readFileSync(headersFile, 'utf8'))
+  : [];
+
+function headerPatternMatches(pattern, pathname) {
+  if (pattern === pathname) return true;
+  const star = pattern.indexOf('*');
+  if (star === -1) return false;
+
+  const prefix = pattern.slice(0, star);
+  const suffix = pattern.slice(star + 1);
+  return pathname.startsWith(prefix) && pathname.endsWith(suffix);
+}
+
+function cspForPath(pathname) {
+  let policy;
+  for (const rule of HEADER_RULES) {
+    if (!headerPatternMatches(rule.pattern, pathname)) continue;
+    const nextPolicy = rule.headers['Content-Security-Policy'];
+    if (nextPolicy) policy = nextPolicy;
+  }
+  return policy;
+}
 
 function matchRedirect(pathname) {
   for (const rule of REDIRECTS) {
@@ -123,8 +169,7 @@ const server = createServer((req, res) => {
         'Content-Type': 'text/html; charset=utf-8',
         'Cache-Control': 'public, max-age=0, must-revalidate, no-transform',
         'X-Content-Type-Options': 'nosniff',
-        'Content-Security-Policy':
-          "default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+        ...(cspForPath('/404.html') ? { 'Content-Security-Policy': cspForPath('/404.html') } : {}),
       });
       createReadStream(notFoundPath).pipe(res);
       return;
@@ -159,15 +204,8 @@ const server = createServer((req, res) => {
     'Cache-Control': cacheControl,
   };
 
-  if (ext === '.html') {
-    if (pathname.startsWith('/app/')) {
-      headers['Content-Security-Policy'] =
-        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'";
-    } else {
-      headers['Content-Security-Policy'] =
-        "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
-    }
-  }
+  const csp = ext === '.html' ? cspForPath(pathname) : undefined;
+  if (csp) headers['Content-Security-Policy'] = csp;
 
   res.writeHead(200, headers);
   createReadStream(filePath).pipe(res);

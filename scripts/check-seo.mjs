@@ -23,6 +23,7 @@ import { fileURLToPath } from 'node:url';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const outputRoot = resolve(projectRoot, process.argv[2] ?? 'dist');
+const siteOrigin = 'https://electrasim.com';
 
 /** Google's truncation points. A little headroom keeps the tail intact. */
 const MAX_TITLE = 60;
@@ -89,6 +90,20 @@ const htmlFiles = listHtmlFiles(outputRoot).filter((file) => {
 const failures = [];
 const descriptions = new Map();
 
+function checkOgImage(source, ogImage) {
+  let url;
+  try {
+    url = new URL(ogImage);
+  } catch {
+    failures.push(`${source}: og:image must be an absolute URL (got "${ogImage}")`);
+    return;
+  }
+
+  if (url.origin === siteOrigin && !existsSync(join(outputRoot, url.pathname))) {
+    failures.push(`${source}: og:image does not exist in the build ("${ogImage}")`);
+  }
+}
+
 for (const filePath of htmlFiles) {
   const html = readFileSync(filePath, 'utf8');
   const source = pageUrl(filePath);
@@ -103,10 +118,22 @@ for (const filePath of htmlFiles) {
     failures.push(`${source}: title is ${title.length} chars (max ${MAX_TITLE}) — "${title}"`);
   }
 
+  const ogMatch = html.match(/<meta\s+property="og:image"\s+content="([^"]*)"/i);
+  const ogImage = decodeEntities(ogMatch?.[1] ?? '');
+  if (!ogImage) {
+    failures.push(`${source}: missing og:image`);
+  } else {
+    checkOgImage(source, ogImage);
+  }
+
   /* Every guide page is meant to carry its own social card. Sharing one image
      across them is invisible in the source and obvious the moment a link is
      pasted anywhere, so it is checked here rather than left to review. */
   if (source.startsWith('/guide/') || source.startsWith('/glossary/')) {
+    if (/<style\b/i.test(html)) {
+      failures.push(`${source}: inline <style> is blocked by the guide CSP`);
+    }
+
     const ogMatch = html.match(/<meta\s+property="og:image"\s+content="([^"]*)"/i);
     const ogImage = ogMatch?.[1] ?? '';
     if (!ogImage.includes('/og/guide/')) {
@@ -146,6 +173,13 @@ for (const filePath of htmlFiles) {
       if (marked.join(' › ') !== shown.join(' › ')) {
         failures.push(
           `${source}: BreadcrumbList is "${marked.join(' › ')}" but the page shows "${shown.join(' › ')}"`,
+        );
+      }
+
+      const finalItem = crumbs.itemListElement?.at(-1);
+      if (finalItem?.item !== `${siteOrigin}${source}`) {
+        failures.push(
+          `${source}: BreadcrumbList ends at "${finalItem?.item ?? 'missing'}" instead of the page URL`,
         );
       }
     }
@@ -190,7 +224,7 @@ for (const filePath of htmlFiles) {
 
 /* An unrendered template expression is invisible in the source and obvious on
    the page — a breadcrumb that reads "{data.name}" shipped this way once. */
-const PLACEHOLDER = /\{(?:data|circuit|Astro|entry|post|component|tool)\.[a-zA-Z]/;
+const PLACEHOLDER = /\{(?:data|circuit|Astro|entry|post|component|tool)\.[a-zA-Z]|\{[a-zA-Z][a-zA-Z0-9_.-]*\}/;
 for (const filePath of htmlFiles) {
   const html = readFileSync(filePath, 'utf8');
   const match = html.match(PLACEHOLDER);

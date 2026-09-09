@@ -1279,3 +1279,120 @@ a.comp-chip:focus-visible,
   color: var(--text-mid);
   font-size: 0.95rem;
 }
+
+/* ── Print: a guide page is also a workshop reference sheet ──────────────── */
+@media print {
+  @page {
+    margin: 12mm;
+  }
+
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .site-header,
+  .site-footer,
+  .floating-contact,
+  .scroll-top,
+  .guide-lab-nav,
+  .anatomy-hotspots,
+  .anatomy-views__tabs,
+  .try-row,
+  .cd-prev-next {
+    display: none !important;
+  }
+
+  main,
+  .guide-main,
+  .wrap {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  .guide-main,
+  .guide-hero,
+  .guide-hero--small,
+  .circuit-detail,
+  .card-body,
+  .card-col,
+  .guide-detail-grid,
+  .anatomy-card,
+  .dl-spec,
+  .cd-terms,
+  .cd-related,
+  .used-in {
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+
+  .guide-detail-grid,
+  .card-body {
+    display: block !important;
+  }
+
+  .card-col + .card-col,
+  .anatomy-card,
+  .dl-spec,
+  .schem-box,
+  .step-item,
+  .insight,
+  .safety-band,
+  .guide-review-meta {
+    break-inside: avoid;
+  }
+
+  .card-col + .card-col,
+  .guide-detail-grid > .anatomy-views,
+  .guide-detail-grid > .anatomy-card {
+    margin-top: 1.5rem;
+  }
+
+  .schem-box {
+    overflow: visible !important;
+    border: 1px solid #000 !important;
+    padding: 0.5rem 0 0 !important;
+  }
+
+  .schem-box .schem {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .diagram-box {
+    background: #fff !important;
+    color: #000 !important;
+    border: 1px solid #000;
+  }
+
+  .anatomy-views__panel,
+  .anatomy-views__panel[hidden] {
+    display: block !important;
+  }
+
+  .anatomy-views__panel + .anatomy-views__panel {
+    margin-top: 1.25rem;
+  }
+
+  .anatomy-photo {
+    max-width: 100%;
+  }
+
+  .safety-band,
+  .insight,
+  .guide-review-meta {
+    border: 1px solid #000 !important;
+    background: #fff !important;
+  }
+
+  .safety-band *,
+  .insight *,
+  .guide-review-meta * {
+    color: #000 !important;
+  }
+
+  a {
+    color: #000 !important;
+    text-decoration: none !important;
+  }
+}
