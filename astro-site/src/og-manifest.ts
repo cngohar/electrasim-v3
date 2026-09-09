@@ -26,6 +26,7 @@ export const OG_BLOG_MANIFEST: Record<string, string> = {
   'how-to-trace-an-electrical-fault-safely': 'ee208e5172',
   'how-to-use-a-multimeter-electrical-testing-guide': 'e8d6dcc3d8',
   'how-to-use-interactive-cable-size-and-voltage-drop-calculators': '9b66139cfd',
+  'how-to-use-the-electrasim-guide-beginner-to-pro': 'e780f146f4',
   'how-to-wire-a-bathroom-zone-by-zone-uk-guide': '1d74fe8de7',
   'how-to-wire-a-ceiling-rose-and-light-fitting': 'c1f9fc6685',
   'how-to-wire-a-cooker-electric-oven-uk': 'bea2581159',
@@ -70,7 +71,7 @@ export const OG_BLOG_MANIFEST: Record<string, string> = {
   'why-has-my-socket-stopped-working': 'b094d66750',
 };
 export const OG_UPDATES_MANIFEST: Record<string, string> = {
-  'electrasim-2-0-release': '1a3785d2b6',
+  'electrasim-2-0-release': '35d9920403',
   'electrasim-new-components-rcd-contactor-timer-dimmer-distribution-board-bell': '656036cb16',
   'electrasim-v1-5-performance-accessibility-privacy-update': '5f57b58e4b',
   'electrasim-v1-6-dark-mode-rcbo-comparison-update': 'abe29d00b6',
