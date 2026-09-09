@@ -1,0 +1,159 @@
+{
+  "slug": "timer-switch",
+  "name": "Timer Switch",
+  "tagline": "A switch that works to a clock instead of a finger — outdoor lighting that goes off on its own.",
+  "category": "Control",
+  "terminals": [
+    "L — permanent live to power the timer",
+    "N — neutral, needed by the electronics or the clock motor",
+    "Load — switched live out to the lamp",
+    "Earth — plate earth on metal plates"
+  ],
+  "parts": [
+    "Faceplate — usually a deeper plate than a plain switch",
+    "Dial or digital display — the programme you set",
+    "Override / boost button — forces the output on for the rest of the set period",
+    "Selector — ON / AUTO / OFF on mechanical timers",
+    "Rear terminals, including the neutral the electronics need"
+  ],
+  "safety": "A timer needs a neutral, so it will not replace a plain switch on a two-plate lighting circuit without a new cable. Outdoor lighting must be RCD-protected, and the enclosure and fittings need an IP rating that suits the location.",
+  "svg": {
+    "viewBox": "0 0 200 240",
+    "body": "<g class=\"dl-part\" data-part=\"L0\"><rect class=\"dl-fill\" x=\"40\" y=\"14\" width=\"120\" height=\"150\" rx=\"8\"/></g><g class=\"dl-part\" data-part=\"L1\"><circle class=\"dl-metal-2\" cx=\"100\" cy=\"72\" r=\"42\"/><path class=\"dl-line--accent\" d=\"M100 34 v8\"/><path class=\"dl-line--accent\" d=\"M138 72 h-8\"/><path class=\"dl-line--accent\" d=\"M100 110 v-8\"/><path class=\"dl-line--accent\" d=\"M62 72 h8\"/><path class=\"dl-line--accent\" d=\"M100 72 L100 40\"/></g><g class=\"dl-part\" data-part=\"L2\"><circle class=\"dl-metal\" cx=\"100\" cy=\"72\" r=\"12\"/></g><g class=\"dl-part\" data-part=\"L3\"><rect class=\"dl-metal\" x=\"65\" y=\"126\" width=\"70\" height=\"22\" rx=\"4\"/><rect class=\"dl-chip\" x=\"72\" y=\"130\" width=\"18\" height=\"14\" rx=\"3\"/></g><g class=\"dl-part\" data-part=\"L4\"><circle class=\"dl-metal\" cx=\"100\" cy=\"26\" r=\"5\"/><circle class=\"dl-metal\" cx=\"100\" cy=\"152\" r=\"5\"/></g>"
+  },
+  "points": [
+    {
+      "id": "L0",
+      "label": "Faceplate",
+      "detail": "Deeper than a plain switch because the mechanism or electronics sit behind the plate. Check the back box depth before you buy — a 25 mm box rarely takes a timer.",
+      "x": 55,
+      "y": 40
+    },
+    {
+      "id": "L1",
+      "label": "Dial and pointer",
+      "detail": "The dial carries the time scale and the set segments; the pointer is the clock. On a mechanical timer the tappets you push out are the on and off times; on an electronic one the same information is a programme in memory, which is why it survives a power cut only if the unit has a backup cell.",
+      "x": 100,
+      "y": 40
+    },
+    {
+      "id": "L2",
+      "label": "Override button",
+      "detail": "Forces the output on — a boost that either runs for a fixed period (typically one or two hours) or until the next programmed off time. It is the control you use at the door without having to reprogramme anything.",
+      "x": 100,
+      "y": 72
+    },
+    {
+      "id": "L3",
+      "label": "Selector (ON / AUTO / OFF)",
+      "detail": "ON holds the load live permanently, OFF holds it off, and AUTO hands control to the clock. Leaving a timer on ON is the usual reason a “timed” light is found burning at midday.",
+      "x": 100,
+      "y": 137
+    },
+    {
+      "id": "L4",
+      "label": "Fixing screws",
+      "detail": "Two screws into the back box, as for any plate accessory. Do not trap the neutral conductor behind the plate when you push the unit home.",
+      "x": 100,
+      "y": 26
+    }
+  ],
+  "photo": {
+    "src": "/images/guide/timer-switch",
+    "alt": "Photorealistic mechanical timer switch with dial and selector",
+    "width": 720,
+    "height": 720,
+    "points": [
+      {
+        "id": "L0",
+        "x": 9,
+        "y": 49.3
+      },
+      {
+        "id": "L1",
+        "x": 41,
+        "y": 27.4
+      },
+      {
+        "id": "L2",
+        "x": 37,
+        "y": 45.5
+      },
+      {
+        "id": "L3",
+        "x": 38,
+        "y": 76.2
+      }
+    ]
+  },
+  "cutaway": {
+    "src": "/images/guide/timer-switch-cutaway",
+    "alt": "Cutaway of a timer switch showing the timer electronics, output relay, backup cell, dial cam and rear terminals",
+    "width": 768,
+    "height": 768,
+    "points": [
+      {
+        "id": "timer-module",
+        "x": 40,
+        "y": 40
+      },
+      {
+        "id": "output-relay",
+        "x": 62,
+        "y": 55
+      },
+      {
+        "id": "backup-cell",
+        "x": 30,
+        "y": 56
+      },
+      {
+        "id": "dial-cam",
+        "x": 45,
+        "y": 24
+      },
+      {
+        "id": "timer-terminals",
+        "x": 62,
+        "y": 80
+      }
+    ]
+  },
+  "cutawayPoints": [
+    {
+      "id": "timer-module",
+      "label": "Timer electronics",
+      "detail": "A quartz-driven module that holds the programme and decides when the output should be on. It is a small computer, which is why it needs a permanent supply — and why a timer plate is deeper and has more terminals than the plain switch it replaces.",
+      "x": 40,
+      "y": 40
+    },
+    {
+      "id": "output-relay",
+      "label": "Output relay",
+      "detail": "The electronics switch milliamps; the relay switches the lighting load. Listen for it and you can hear the programme act. It is also the part with a finite life, so a timer that sticks on or will not switch is usually the relay rather than the electronics.",
+      "x": 62,
+      "y": 55
+    },
+    {
+      "id": "backup-cell",
+      "label": "Backup cell",
+      "detail": "Keeps the clock running while the supply is off, so a power cut does not wipe the programme or lose the time. A flat cell is the usual reason a timer drifts by minutes a month or comes back from a cut with all its settings gone.",
+      "x": 30,
+      "y": 56
+    },
+    {
+      "id": "dial-cam",
+      "label": "Dial and setting cam",
+      "detail": "On a mechanical timer the dial physically drives a cam that lifts the switch — the tappets you push around the rim are the programme. On an electronic one the dial is only an input, which is why the same-looking plate can behave quite differently.",
+      "x": 45,
+      "y": 24
+    },
+    {
+      "id": "timer-terminals",
+      "label": "Rear terminals",
+      "detail": "Live in, switched live out, and a neutral the electronics need to run. That third terminal is the trap: a plain switch box usually has no neutral at the plate, so swapping a switch for a timer often means a new cable rather than a like-for-like change.",
+      "x": 62,
+      "y": 80
+    }
+  ]
+}

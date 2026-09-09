@@ -43,5 +43,33 @@
       "x": 150,
       "y": 182
     }
-  ]
+  ],
+  "photo": {
+    "src": "/images/guide/insulated-screwdriver-set",
+    "alt": "Photorealistic insulated screwdriver set",
+    "width": 700,
+    "height": 176,
+    "points": [
+      {
+        "id": "L3",
+        "x": 4.2,
+        "y": 42.5
+      },
+      {
+        "id": "L2",
+        "x": 33.7,
+        "y": 42.5
+      },
+      {
+        "id": "L1",
+        "x": 53.1,
+        "y": 51.4
+      },
+      {
+        "id": "L0",
+        "x": 78.5,
+        "y": 49.1
+      }
+    ]
+  }
 }

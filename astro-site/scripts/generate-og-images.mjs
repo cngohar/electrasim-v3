@@ -30,10 +30,51 @@ const CONTENT_ROOT = path.join(__dirname, '..', 'src', 'content');
 const PUBLIC_OG_ROOT = path.join(__dirname, '..', 'public', 'og');
 const MANIFEST_PATH = path.join(__dirname, '..', 'src', 'og-manifest.ts');
 
-// Cards are generated per corpus: technical articles vs. product changelog.
+// Cards are generated per corpus: technical articles and product changelog
+// read front matter; the three guide sections read content JSON.
 const CORPORA = [
-  { kind: 'blog', contentDir: path.join(CONTENT_ROOT, 'blog'), outDir: path.join(PUBLIC_OG_ROOT, 'blog'), manifestKey: 'OG_BLOG_MANIFEST' },
-  { kind: 'updates', contentDir: path.join(CONTENT_ROOT, 'updates'), outDir: path.join(PUBLIC_OG_ROOT, 'updates'), manifestKey: 'OG_UPDATES_MANIFEST' },
+  {
+    kind: 'blog',
+    contentDir: path.join(CONTENT_ROOT, 'blog'),
+    outDir: path.join(PUBLIC_OG_ROOT, 'blog'),
+    manifestKey: 'OG_BLOG_MANIFEST',
+    load: loadMarkdownEntries,
+  },
+  {
+    kind: 'updates',
+    contentDir: path.join(CONTENT_ROOT, 'updates'),
+    outDir: path.join(PUBLIC_OG_ROOT, 'updates'),
+    manifestKey: 'OG_UPDATES_MANIFEST',
+    load: loadMarkdownEntries,
+  },
+  {
+    kind: 'components',
+    contentDir: path.join(CONTENT_ROOT, 'guide-components'),
+    outDir: path.join(PUBLIC_OG_ROOT, 'guide', 'components'),
+    manifestKey: 'OG_COMPONENTS_MANIFEST',
+    load: loadComponentEntries,
+  },
+  {
+    kind: 'tools',
+    contentDir: path.join(CONTENT_ROOT, 'guide-tools'),
+    outDir: path.join(PUBLIC_OG_ROOT, 'guide', 'tools'),
+    manifestKey: 'OG_TOOLS_MANIFEST',
+    load: loadToolEntries,
+  },
+  {
+    kind: 'circuits',
+    contentDir: path.join(CONTENT_ROOT, 'pages', 'guide.json'),
+    outDir: path.join(PUBLIC_OG_ROOT, 'guide', 'circuits'),
+    manifestKey: 'OG_CIRCUITS_MANIFEST',
+    load: loadCircuitEntries,
+  },
+  {
+    kind: 'sections',
+    contentDir: path.join(CONTENT_ROOT, 'pages', 'guide.json'),
+    outDir: path.join(PUBLIC_OG_ROOT, 'guide'),
+    manifestKey: 'OG_SECTIONS_MANIFEST',
+    load: loadSectionEntries,
+  },
 ];
 
 const W = 1200;
@@ -69,6 +110,157 @@ const CATEGORY_DESIGN = {
   'How-to Guide': { a: '#38bdf8', b: '#818cf8', deep: '#0a1a33', icon: 'wrench' },
 };
 const FALLBACK_DESIGN = { a: '#3b82f6', b: '#22d3ee', deep: '#0a1230', icon: 'bolt' };
+
+// ── Guide-section design language ────────────────────────────────────
+/** One background and motif per guide section, so a section reads as a set. */
+const GUIDE_SECTION = {
+  components: { deep: '#04161d', icon: 'chip' },
+  tools: { deep: '#1b1205', icon: 'wrench' },
+  circuits: { deep: '#0a1a33', icon: 'plug' },
+  sections: { deep: '#0a1230', icon: 'book' },
+};
+
+/**
+ * The five guide landing pages. Their on-page <h1>s are editorial — "The
+ * inside of the box." — which reads well on the page and badly on a shared
+ * card, so each entry carries the descriptive line instead.
+ */
+const GUIDE_SECTION_CARDS = [
+  {
+    slug: 'guide',
+    title: 'The ElectraSim Circuit Guide',
+    metaParts: ['22 components', '8 tools', '20 circuits'],
+  },
+  {
+    slug: 'components',
+    title: 'Electrical Components, Taken Apart',
+    metaParts: ['22 components', 'cutaway views'],
+  },
+  {
+    slug: 'tools',
+    title: 'Hand Tools and Test Equipment',
+    metaParts: ['8 tools', 'marked up part by part'],
+  },
+  { slug: 'circuits', title: 'Circuit Walkthroughs', metaParts: ['20 circuits', 'step by step'] },
+  {
+    slug: 'glossary',
+    title: 'Electrical Terms Glossary',
+    metaParts: ['37 terms', 'plain English'],
+  },
+  {
+    slug: 'templates',
+    title: 'Guided Circuit Templates',
+    metaParts: ['20 templates', 'build them in the app'],
+  },
+];
+
+/**
+ * Accent pairs, chosen by category rather than by page: a section holds one
+ * background, but "Protection" and "Generation" are still tellable apart at
+ * thumbnail size. The per-slug traces and glow keep individual cards distinct.
+ */
+const GUIDE_ACCENTS = [
+  { a: '#22d3ee', b: '#34d399' },
+  { a: '#38bdf8', b: '#818cf8' },
+  { a: '#f59e0b', b: '#fbbf24' },
+  { a: '#a78bfa', b: '#f472b6' },
+  { a: '#34d399', b: '#a3e635' },
+  { a: '#60a5fa', b: '#22d3ee' },
+];
+
+function guideDesign(kind, category) {
+  const section = GUIDE_SECTION[kind];
+  const accent = GUIDE_ACCENTS[hashSlug(category ?? kind) % GUIDE_ACCENTS.length];
+  return { a: accent.a, b: accent.b, deep: section.deep, icon: section.icon };
+}
+
+// ── Corpus readers ───────────────────────────────────────────────────
+function plural(count, noun) {
+  return count ? `${count} ${noun}${count === 1 ? '' : 's'}` : null;
+}
+
+/** A meta row with the blanks taken out — not every page has every count. */
+function metaPartsOf(...parts) {
+  return parts.filter(Boolean);
+}
+
+function readJsonDir(dir) {
+  return readdirSync(dir)
+    .filter((file) => file.endsWith('.json'))
+    .sort()
+    .map((file) => JSON.parse(readFileSync(path.join(dir, file), 'utf8')));
+}
+
+function loadMarkdownEntries(corpus) {
+  return readdirSync(corpus.contentDir)
+    .filter((file) => file.endsWith('.md'))
+    .map((file) => {
+      const raw = readFileSync(path.join(corpus.contentDir, file), 'utf8');
+      const { data, content } = matter(raw);
+      const slug = file.replace(/\.md$/, '');
+      return {
+        slug,
+        title: data.title ?? slug,
+        category: data.category ?? 'Guide',
+        pubDate:
+          data.pubDate instanceof Date ? data.pubDate.toISOString().split('T')[0] : data.pubDate,
+        body: content,
+        draft: Boolean(data.draft),
+        pathLabel: corpus.kind,
+      };
+    });
+}
+
+function loadComponentEntries(corpus) {
+  return readJsonDir(corpus.contentDir).map((entry) => ({
+    slug: entry.slug,
+    title: entry.name,
+    category: entry.category,
+    metaParts: metaPartsOf(
+      plural(entry.terminals?.length, 'terminal'),
+      plural(entry.parts?.length, 'part'),
+    ),
+    pathLabel: 'guide/components',
+    design: guideDesign('components', entry.category),
+  }));
+}
+
+function loadToolEntries(corpus) {
+  return readJsonDir(corpus.contentDir).map((entry) => ({
+    slug: entry.slug,
+    title: entry.name,
+    category: entry.category,
+    metaParts: metaPartsOf(plural(entry.parts?.length, 'marked part')),
+    pathLabel: 'guide/tools',
+    design: guideDesign('tools', entry.category),
+  }));
+}
+
+function loadSectionEntries(corpus) {
+  return GUIDE_SECTION_CARDS.map((entry) => ({
+    ...entry,
+    category: 'Guide',
+    pathLabel: 'guide',
+    design: guideDesign('sections', entry.slug),
+  }));
+}
+
+function loadCircuitEntries(corpus) {
+  /* Keyed by circuit id, not by page slug: the id is the stable key the
+     content is written against, and the slug is derived from a map in
+     src/lib/guide.ts that this generator would otherwise have to duplicate. */
+  return JSON.parse(readFileSync(corpus.contentDir, 'utf8')).circuits.map((circuit) => ({
+    slug: circuit.id,
+    title: circuit.title,
+    category: circuit.level,
+    metaParts: metaPartsOf(
+      plural(circuit.steps?.length, 'step'),
+      plural(circuit.components?.length, 'component'),
+    ),
+    pathLabel: 'guide/circuits',
+    design: guideDesign('circuits', circuit.level),
+  }));
+}
 
 // ── Vector icons (stroke-drawn, engineering-schematic feel) ───────────
 function iconMarkup(kind, cx, cy, size, color, opacity) {
@@ -109,6 +301,18 @@ function iconMarkup(kind, cx, cy, size, color, opacity) {
       return p(
         `<path d="M ${s * 0.68} ${s * 0.08} A ${s * 0.22} ${s * 0.22} 0 0 0 ${s * 0.6} ${s * 0.42} L ${s * 0.2} ${s * 0.74} A ${s * 0.1} ${s * 0.1} 0 1 0 ${s * 0.34} ${s * 0.86} L ${s * 0.68} ${s * 0.55} A ${s * 0.22} ${s * 0.22} 0 0 0 ${s * 0.95} ${s * 0.36} L ${s * 0.8} ${s * 0.5} L ${s * 0.68} ${s * 0.42} L ${s * 0.76} ${s * 0.26} Z"/>`,
       );
+    case 'chip': {
+      /* A packaged device with leads out — the anatomy pages look inside these. */
+      const leads = [0.36, 0.5, 0.64]
+        .map(
+          (t) =>
+            `<line x1="${s * t}" y1="${s * 0.26}" x2="${s * t}" y2="${s * 0.08}"/><line x1="${s * t}" y1="${s * 0.74}" x2="${s * t}" y2="${s * 0.92}"/><line x1="${s * 0.26}" y1="${s * t}" x2="${s * 0.08}" y2="${s * t}"/><line x1="${s * 0.74}" y1="${s * t}" x2="${s * 0.92}" y2="${s * t}"/>`,
+        )
+        .join('');
+      return p(
+        `<rect x="${s * 0.26}" y="${s * 0.26}" width="${s * 0.48}" height="${s * 0.48}" rx="${s * 0.06}"/><rect x="${s * 0.4}" y="${s * 0.4}" width="${s * 0.2}" height="${s * 0.2}" rx="${s * 0.03}"/>${leads}`,
+      );
+    }
     default:
       return p(
         `<path d="M ${s * 0.56} ${s * 0.04} L ${s * 0.22} ${s * 0.58} H ${s * 0.48} L ${s * 0.42} ${s * 0.96} L ${s * 0.78} ${s * 0.42} H ${s * 0.5} Z"/>`,
@@ -224,9 +428,18 @@ function readingMins(body) {
 }
 
 // ── Card builder ──────────────────────────────────────────────────────
-function buildCardSvg({ slug, title, category, pubDate, body, pathLabel }) {
+function buildCardSvg({
+  slug,
+  title,
+  category,
+  pubDate,
+  body,
+  pathLabel,
+  metaParts,
+  design: cardDesign,
+}) {
   const rng = mulberry32(hashSlug(slug));
-  const design = CATEGORY_DESIGN[category] ?? FALLBACK_DESIGN;
+  const design = cardDesign ?? CATEGORY_DESIGN[category] ?? FALLBACK_DESIGN;
   const glowX = 150 + rng() * 900;
   const glowY = 80 + rng() * 470;
   const iconX = 880 + rng() * 140;
@@ -237,7 +450,20 @@ function buildCardSvg({ slug, title, category, pubDate, body, pathLabel }) {
   const lh = titleSize * 1.16;
   const titleStartY = 268 - (titleLines.length - 2) * 14 + titleSize;
   const cat = category || 'Guide';
-  const mins = readingMins(body);
+  /* Guide pages have no publication date or reading time, so they hand in
+     their own meta row — "3 terminals · 5 parts", "Beginner · 8 steps". */
+  const meta = metaParts ?? [formatDate(pubDate), `${readingMins(body)} min read`];
+
+  let metaX = 72;
+  const metaRow = meta
+    .map((part, i) => {
+      const dot = i === 0 ? '' : `<text x="${metaX.toFixed(0)}" y="564" fill="#64748b">·</text>`;
+      if (i > 0) metaX += 18;
+      const entry = `${dot}<text x="${metaX.toFixed(0)}" y="564">${esc(part)}</text>`;
+      metaX += estWidthPlain(part, 23) + 26;
+      return entry;
+    })
+    .join('\n    ');
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <defs>
@@ -278,10 +504,7 @@ function buildCardSvg({ slug, title, category, pubDate, body, pathLabel }) {
   <!-- title -->
   <g font-family="DejaVu Sans, sans-serif" font-weight="bold" font-size="${titleSize}" fill="#f8fafc">
     ${titleLines
-      .map(
-        (ln, i) =>
-          `<text x="72" y="${(titleStartY + i * lh).toFixed(0)}">${esc(ln)}</text>`,
-      )
+      .map((ln, i) => `<text x="72" y="${(titleStartY + i * lh).toFixed(0)}">${esc(ln)}</text>`)
       .join('\n    ')}
   </g>
 
@@ -291,9 +514,7 @@ function buildCardSvg({ slug, title, category, pubDate, body, pathLabel }) {
 
   <!-- meta row -->
   <g font-family="DejaVu Sans, sans-serif" font-size="23" fill="#b6c2d3">
-    <text x="72" y="564">${esc(formatDate(pubDate))}</text>
-    <text x="${(72 + estWidthPlain(formatDate(pubDate), 23) + 26).toFixed(0)}" y="564" fill="#64748b">·</text>
-    <text x="${(72 + estWidthPlain(formatDate(pubDate), 23) + 44).toFixed(0)}" y="564">${mins} min read</text>
+    ${metaRow}
   </g>
 
   <!-- footer -->
@@ -304,6 +525,20 @@ function buildCardSvg({ slug, title, category, pubDate, body, pathLabel }) {
 /** Width helper using the same estimator with a normal-weight tweak. */
 function estWidthPlain(text, fontSize) {
   return estWidth(text, fontSize);
+}
+
+/**
+ * Encoding per corpus.
+ *
+ * Guide cards ship as PNG-8: measured against the truecolour encoding on an
+ * existing card, 128 colours with dithering is 60 KB instead of 131 KB for a
+ * per-channel error of 0.65/255. The blog and changelog cards keep the
+ * encoding they were published with.
+ */
+function pngOptions(corpus) {
+  const base = { compressionLevel: 9, adaptiveFiltering: true };
+  if (corpus.kind === 'blog' || corpus.kind === 'updates') return base;
+  return { ...base, palette: true, colors: 128, dither: 1 };
 }
 
 // ── Main ──────────────────────────────────────────────────────────────
@@ -318,31 +553,19 @@ async function main() {
     if (!existsSync(corpus.contentDir)) continue;
     mkdirSync(corpus.outDir, { recursive: true });
 
-    const files = readdirSync(corpus.contentDir).filter((f) => f.endsWith('.md'));
+    const entries = corpus.load(corpus).filter((entry) => !entry.draft);
     const liveSlugs = new Set();
 
-    for (const file of files) {
-      const slug = file.replace(/\.md$/, '');
-      const raw = readFileSync(path.join(corpus.contentDir, file), 'utf8');
-      const { data, content } = matter(raw);
-      if (data.draft) continue;
-      liveSlugs.add(slug);
+    for (const entry of entries) {
+      liveSlugs.add(entry.slug);
 
-      const outPath = path.join(corpus.outDir, `${slug}.png`);
+      const outPath = path.join(corpus.outDir, `${entry.slug}.png`);
       if (!force && existsSync(outPath)) {
         totalSkipped++;
         continue;
       }
-      const svg = buildCardSvg({
-        slug,
-        title: data.title ?? slug,
-        category: data.category ?? 'Guide',
-        pubDate: data.pubDate instanceof Date ? data.pubDate.toISOString().split('T')[0] : data.pubDate,
-        body: content,
-        pathLabel: corpus.kind,
-      });
-      await sharp(Buffer.from(svg), { density: 72 })
-        .png({ compressionLevel: 9, adaptiveFiltering: true })
+      await sharp(Buffer.from(buildCardSvg(entry)), { density: 72 })
+        .png(pngOptions(corpus))
         .toFile(outPath);
       totalBuilt++;
     }
@@ -356,15 +579,13 @@ async function main() {
       }
     }
 
-    const manifest = [...liveSlugs]
-      .sort()
-      .map((slug) => {
-        const hash = createHash('sha256')
-          .update(readFileSync(path.join(corpus.outDir, `${slug}.png`)))
-          .digest('hex')
-          .slice(0, 10);
-        return [slug, hash];
-      });
+    const manifest = [...liveSlugs].sort().map((slug) => {
+      const hash = createHash('sha256')
+        .update(readFileSync(path.join(corpus.outDir, `${slug}.png`)))
+        .digest('hex')
+        .slice(0, 10);
+      return [slug, hash];
+    });
     manifestBlocks.push(
       `export const ${corpus.manifestKey}: Record<string, string> = ${JSON.stringify(Object.fromEntries(manifest), null, 2)};`,
     );
@@ -376,12 +597,29 @@ async function main() {
 // content-hash (sha256, first 10 hex chars) per OG card for cache busting.
 ${manifestBlocks.join('\n')}
 
-export type OgKind = 'blog' | 'updates';
+export type OgKind = 'blog' | 'updates' | 'sections' | 'components' | 'tools' | 'circuits';
+
+const OG_CARD_DIR: Record<OgKind, string> = {
+  blog: 'blog',
+  updates: 'updates',
+  sections: 'guide',
+  components: 'guide/components',
+  tools: 'guide/tools',
+  circuits: 'guide/circuits',
+};
+
+const OG_CARD_MANIFEST: Record<OgKind, Record<string, string>> = {
+  blog: OG_BLOG_MANIFEST,
+  updates: OG_UPDATES_MANIFEST,
+  sections: OG_SECTIONS_MANIFEST,
+  components: OG_COMPONENTS_MANIFEST,
+  tools: OG_TOOLS_MANIFEST,
+  circuits: OG_CIRCUITS_MANIFEST,
+};
 
 export function ogCardUrl(slug: string, kind: OgKind = 'blog'): string {
-  const map = kind === 'updates' ? OG_UPDATES_MANIFEST : OG_BLOG_MANIFEST;
-  const v = map[slug];
-  return \`/og/\${kind}/\${slug}.png\${v ? \`?v=\${v}\` : ''}\`;
+  const v = OG_CARD_MANIFEST[kind]?.[slug];
+  return \`/og/\${OG_CARD_DIR[kind]}/\${slug}.png\${v ? \`?v=\${v}\` : ''}\`;
 }
 `,
   );

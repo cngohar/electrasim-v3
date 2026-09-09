@@ -8,6 +8,16 @@
  * highlight the `dl-part--<id>` group in the drawing. Without JS the card
  * keeps its full content (SVG + parts list) and simply doesn't light up.
  *
+ * Two figure modes, chosen by the content:
+ *   1. `photo` — a photorealistic render, hotspots placed from the percent
+ *      coordinates in `item.photo.points` (see the schema note in
+ *      content.config.ts). Only parts visible from outside get coordinates,
+ *      so a photo card shows fewer markers than the drawing.
+ *   2. `svg`   — the diagrammatic drawing, hotspots from viewBox coords.
+ * Both emit identical `[data-point]` buttons, so guide-lab.js needs no
+ * mode-specific markup: it positions from `data-point-p{x,y}` (percent) when
+ * the stage holds a photo, and from `data-point-v{x,y}` (viewBox) otherwise.
+ *
  * CSP note: inline `style="left:…;top:…"` attributes are blocked by the site's
  * strict `style-src 'self'`, so hotspot positions are applied at runtime by
  * guide-lab.js via CSSOM (allowed). Until then hotspots are hidden, and the
@@ -17,14 +27,50 @@ import type { ComponentAnatomy, ToolAnatomy } from '../../lib/anatomy';
 
 interface Props {
   item: ToolAnatomy | ComponentAnatomy;
-  href: string;
+  /** Omit on a detail page: the card would otherwise link to itself. */
+  href?: string;
   /** Wider stage, used on detail pages. */
   wide?: boolean;
+  /** Force the diagrammatic drawing even when a photo exists. */
+  drawing?: boolean;
+  /**
+   * Element id of an external detail panel (used on detail pages, where the
+   * panel sits in the side rail beside the figure instead of under it).
+   * guide-lab.js resolves `[data-anatomy-detail]` through this id.
+   */
+  detailTargetId?: string;
+  /**
+   * Show the numbered hotspots. Detail pages only: on an index the card is a
+   * browse tile, and a row of markers that do nothing but decorate is noise.
+   */
+  hotspots?: boolean;
+  /**
+   * Render the figure alone, with no title/tagline/parts body. Used for the
+   * second figure in a tabbed anatomy view (a cutaway beside the real part),
+   * where the page already carries the heading and the specification rail.
+   */
+  figureOnly?: boolean;
+  /** Overrides the figure caption, e.g. "Cutaway — inside the mechanism". */
+  caption?: string;
 }
 
-const { item, href, wide = false } = Astro.props;
+const {
+  item,
+  href,
+  wide = false,
+  drawing = false,
+  detailTargetId,
+  hotspots = false,
+  figureOnly = false,
+  caption,
+} = Astro.props;
 const isComponent = 'terminals' in item;
-const points = item.points;
+const photo = drawing ? undefined : item.photo;
+
+/** Marker coordinates for whichever figure we render, keyed by point id. */
+const photoCoords = new Map((photo?.points ?? []).map((p) => [p.id, p]));
+const drawnPoints = photo ? item.points.filter((p) => photoCoords.has(p.id)) : item.points;
+const points = hotspots ? drawnPoints : [];
 const terminals = isComponent ? (item as ComponentAnatomy).terminals : [];
 const parts = item.parts;
 const detailTitle = item.name;
@@ -32,42 +78,72 @@ const detailHint = 'Select a marked part to read about it.';
 ---
 
 <article
-  class:list={['anatomy-card', wide && 'anatomy-card--wide']}
-  id={item.slug}
+  class:list={['anatomy-card', wide && 'anatomy-card--wide', figureOnly && 'anatomy-card--figure']}
+  id={figureOnly ? `${item.slug}-cutaway` : item.slug}
   data-anatomy
   data-anatomy-label={detailTitle}
+  data-anatomy-detail-target={detailTargetId}
 >
-  <div class="anatomy-figure">
+  <div class:list={['anatomy-figure', photo && 'anatomy-figure--photo']}>
     <div class="anatomy-stage">
-      <svg
-        viewBox={item.svg.viewBox}
-        role="img"
-        aria-label={`${item.name} anatomy ${item.tagline}`}
-        set:html={item.svg.body}
-      />
+      {
+        photo ? (
+          <picture>
+            <source type="image/webp" srcset={`${photo.src}.webp`} />
+            <img
+              class="anatomy-photo"
+              src={`${photo.src}.png`}
+              width={photo.width}
+              height={photo.height}
+              alt={photo.alt}
+              loading="lazy"
+              decoding="async"
+            />
+          </picture>
+        ) : (
+          <svg
+            viewBox={item.svg.viewBox}
+            role="img"
+            aria-label={`${item.name} anatomy ${item.tagline}`}
+            set:html={item.svg.body}
+          />
+        )
+      }
       <div class="anatomy-hotspots">
-        {points.map((p, i) => (
-          <button
-            type="button"
-            class="dl-hotspot"
-            data-point
-            data-point-id={p.id}
-            data-point-vx={p.x}
-            data-point-vy={p.y}
-            data-point-label={p.label}
-            data-point-desc={p.detail}
-            aria-label={`${item.name}: ${p.label}`}
-          >{i + 1}</button>
-        ))}
+        {points.map((p, i) => {
+          const c = photoCoords.get(p.id);
+          return (
+            <button
+              type="button"
+              class="dl-hotspot"
+              data-point
+              data-point-id={p.id}
+              data-point-vx={p.x}
+              data-point-vy={p.y}
+              data-point-px={c?.x}
+              data-point-py={c?.y}
+              data-point-label={p.label}
+              data-point-desc={p.detail}
+              aria-label={`${item.name}: ${p.label}`}
+            >{i + 1}</button>
+          );
+        })}
       </div>
     </div>
+    {photo && (
+      <span class="anatomy-figure__cap">
+        {caption ?? (hotspots ? 'Real part — tap a marker' : 'Real part')}
+      </span>
+    )}
   </div>
 
-  <div class="anatomy-card__body">
+  {
+    !figureOnly && (
+      <div class="anatomy-card__body">
     <div class="anatomy-card__title">
       <h3>{item.name}</h3>
       <p>{item.tagline}</p>
-      <a class="anatomy-card__link" href={href}>Open anatomy →</a>
+      {href && <a class="anatomy-card__link" href={href}>Open anatomy →</a>}
     </div>
 
     {terminals.length > 0 && (
@@ -85,14 +161,28 @@ const detailHint = 'Select a marked part to read about it.';
       </ul>
     )}
 
-    <div class="dl-anatomy-detail" data-anatomy-detail>
-      <h4 data-anatomy-title>{detailTitle}</h4>
-      <p data-anatomy-text>{detailHint}</p>
-    </div>
-  </div>
+    {
+      hotspots && !detailTargetId && (
+        <div class="dl-anatomy-detail" data-anatomy-detail>
+          <h4 data-anatomy-title>{detailTitle}</h4>
+          <p data-anatomy-text>{detailHint}</p>
+        </div>
+      )
+    }
+      </div>
+    )
+  }
 </article>
 
 <style>
+  /* Figure-only mode (the cutaway tab): the page already carries the heading
+     and the spec rail, so the card chrome would just double the box. */
+  .anatomy-card--figure {
+    background: none;
+    border: none;
+    box-shadow: none;
+  }
+
   .anatomy-card__title h3 {
     margin: 0 0 0.3rem;
     font-size: 1.06rem;
@@ -137,6 +227,41 @@ const detailHint = 'Select a marked part to read about it.';
   }
   .anatomy-card--wide .anatomy-stage svg {
     max-width: 420px;
+  }
+
+  /* Photo mode: the render fills the stage and the overlay tracks the image
+     box, so the percent coordinates stay true at any size. */
+  .anatomy-figure--photo .anatomy-stage {
+    display: block;
+    width: 100%;
+  }
+  .anatomy-photo {
+    display: block;
+    width: 100%;
+    /* Never wider than the stage: the hotspot overlay is measured from the
+       image box, so an overflowing render would push markers out of sight. */
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fff;
+  }
+  .anatomy-card--wide .anatomy-photo {
+    max-height: 460px;
+    max-width: 100%;
+    width: auto;
+    margin-inline: auto;
+  }
+  .anatomy-figure__cap {
+    display: block;
+    margin-top: 0.55rem;
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-align: center;
   }
   .anatomy-hotspots {
     position: absolute;

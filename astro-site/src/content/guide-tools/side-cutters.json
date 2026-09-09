@@ -43,5 +43,33 @@
       "x": 240,
       "y": 158
     }
-  ]
+  ],
+  "photo": {
+    "src": "/images/guide/side-cutters",
+    "alt": "Photorealistic side cutters (diagonal cutters)",
+    "width": 700,
+    "height": 246,
+    "points": [
+      {
+        "id": "L3",
+        "x": 10.4,
+        "y": 52.6
+      },
+      {
+        "id": "L2",
+        "x": 38.8,
+        "y": 51
+      },
+      {
+        "id": "L1",
+        "x": 52,
+        "y": 51
+      },
+      {
+        "id": "L0",
+        "x": 75.4,
+        "y": 73.1
+      }
+    ]
+  }
 }

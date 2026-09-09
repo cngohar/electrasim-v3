@@ -1,0 +1,183 @@
+{
+  "slug": "motor",
+  "name": "Electric Motor",
+  "tagline": "An inductive load that pulls several times its running current to start — protection has to allow for that.",
+  "category": "Load",
+  "terminals": [
+    "L and N on a single-phase motor",
+    "Earth to the motor frame",
+    "Start and run windings via the capacitor terminals"
+  ],
+  "parts": [
+    "Terminal box — where the supply connects",
+    "Housing with cooling fins — the stator frame",
+    "Capacitor — gives the start (or run) winding its phase shift",
+    "Drive shaft and bearings",
+    "Mounting feet or flange",
+    "Rating plate — volts, amps, power factor, duty"
+  ],
+  "safety": "Motors are hard to start and easy to stall: starting current is typically six times the running current, and a stalled motor draws that continuously until the overload trips. Protection must be sized so the motor starts without nuisance tripping while still clearing a stall — and the frame must be earthed. Always isolate, and remember the capacitor can hold a charge after switch-off.",
+  "svg": {
+    "viewBox": "0 0 220 230",
+    "body": "<g class=\"dl-part\" data-part=\"L0\"><rect class=\"dl-metal-2\" x=\"60\" y=\"26\" width=\"70\" height=\"30\" rx=\"4\"/><circle class=\"dl-chip\" cx=\"122\" cy=\"41\" r=\"5\"/></g><g class=\"dl-part\" data-part=\"L1\"><rect class=\"dl-metal\" x=\"42\" y=\"62\" width=\"136\" height=\"92\" rx=\"12\"/><path class=\"dl-line--accent\" d=\"M58 68 v80\"/><path class=\"dl-line--accent\" d=\"M72 68 v80\"/><path class=\"dl-line--accent\" d=\"M86 68 v80\"/><path class=\"dl-line--accent\" d=\"M100 68 v80\"/><path class=\"dl-line--accent\" d=\"M114 68 v80\"/><path class=\"dl-line--accent\" d=\"M128 68 v80\"/><path class=\"dl-line--accent\" d=\"M142 68 v80\"/><path class=\"dl-line--accent\" d=\"M156 68 v80\"/><path class=\"dl-line--accent\" d=\"M170 68 v80\"/></g><g class=\"dl-part\" data-part=\"L2\"><rect class=\"dl-metal-2\" x=\"14\" y=\"88\" width=\"26\" height=\"62\" rx=\"10\"/></g><g class=\"dl-part\" data-part=\"L3\"><rect class=\"dl-metal\" x=\"178\" y=\"98\" width=\"34\" height=\"18\" rx=\"4\"/></g><g class=\"dl-part\" data-part=\"L5\"><rect class=\"dl-fill\" x=\"88\" y=\"98\" width=\"48\" height=\"28\" rx=\"3\"/><text class=\"dl-text--mid\" x=\"112\" y=\"116\" text-anchor=\"middle\">230V</text></g><g class=\"dl-part\" data-part=\"L4\"><rect class=\"dl-metal\" x=\"48\" y=\"154\" width=\"58\" height=\"20\" rx=\"3\"/><rect class=\"dl-metal\" x=\"114\" y=\"154\" width=\"58\" height=\"20\" rx=\"3\"/></g>"
+  },
+  "points": [
+    {
+      "id": "L0",
+      "label": "Terminal box",
+      "detail": "Where the supply lands, usually with a link plate that lets you change the motor between star and delta or reverse its rotation. The lid and its gasket are part of the enclosure rating; the gland must grip the cable, not just the conductors.",
+      "x": 95,
+      "y": 41
+    },
+    {
+      "id": "L1",
+      "label": "Housing and cooling fins",
+      "detail": "The finned frame is the stator housing and the heat sink. Motors cool by moving air over those fins, so a motor blanketed in dust or boxed in without ventilation runs hot and loses winding life fast.",
+      "x": 110,
+      "y": 105
+    },
+    {
+      "id": "L2",
+      "label": "Capacitor",
+      "detail": "Single-phase motors have no rotating field of their own; the capacitor shifts the phase of the start (or run) winding to create one. A failed start capacitor leaves the motor humming and not turning — and it stays charged after switch-off, so discharge it before you touch the terminals.",
+      "x": 27,
+      "y": 119
+    },
+    {
+      "id": "L3",
+      "label": "Drive shaft",
+      "detail": "The output. Couplings and pulleys must be aligned and guarded: a misaligned coupling destroys bearings, and an exposed shaft and keyway is a rotating-entanglement hazard.",
+      "x": 195,
+      "y": 107
+    },
+    {
+      "id": "L4",
+      "label": "Mounting feet",
+      "detail": "Bolt the motor down solidly and level. A motor that rocks on its feet hammers its own bearings and works the coupling loose; on a resilient mount, make sure the earth bond is not relying on the feet.",
+      "x": 76,
+      "y": 164
+    },
+    {
+      "id": "L5",
+      "label": "Rating plate",
+      "detail": "Volts, full-load current, power factor, speed, duty and the insulation class. The full-load current is the number you size the cable and the overload from — not the power in watts divided by 230 V, because the power factor is well below one.",
+      "x": 112,
+      "y": 112
+    }
+  ],
+  "photo": {
+    "src": "/images/guide/motor",
+    "alt": "Photorealistic single-phase AC electric motor",
+    "width": 720,
+    "height": 720,
+    "points": [
+      {
+        "id": "L0",
+        "x": 37,
+        "y": 14.3
+      },
+      {
+        "id": "L1",
+        "x": 50,
+        "y": 45.5
+      },
+      {
+        "id": "L2",
+        "x": 18,
+        "y": 57.9
+      },
+      {
+        "id": "L5",
+        "x": 64,
+        "y": 57.1
+      },
+      {
+        "id": "L4",
+        "x": 30,
+        "y": 85.5
+      }
+    ]
+  },
+  "cutaway": {
+    "src": "/images/guide/motor-cutaway",
+    "alt": "Cutaway of an electric motor showing the stator windings, rotor cage, shaft, bearings, terminal box and start capacitor",
+    "width": 768,
+    "height": 768,
+    "points": [
+      {
+        "id": "stator-windings",
+        "x": 33,
+        "y": 44
+      },
+      {
+        "id": "rotor",
+        "x": 50,
+        "y": 58
+      },
+      {
+        "id": "shaft",
+        "x": 72,
+        "y": 58
+      },
+      {
+        "id": "motor-bearings",
+        "x": 22,
+        "y": 58
+      },
+      {
+        "id": "terminal-box",
+        "x": 46,
+        "y": 26
+      },
+      {
+        "id": "capacitor",
+        "x": 76,
+        "y": 40
+      }
+    ]
+  },
+  "cutawayPoints": [
+    {
+      "id": "stator-windings",
+      "label": "Stator windings",
+      "detail": "Copper wound into the slots of a laminated steel core. These are what the supply actually feeds, and they are the reason a motor takes several times its running current to start: at standstill there is no back EMF to oppose the supply, so only the winding resistance and leakage reactance limit the current.",
+      "x": 33,
+      "y": 44
+    },
+    {
+      "id": "rotor",
+      "label": "Rotor",
+      "detail": "On an induction motor a cage of aluminium or copper bars joined by end rings at each end — no windings, no brushes, no connection to anything. The rotating stator field induces current in the bars, and that current makes the second field the rotor turns on. The rotor always runs slightly slower than the field, because slip is what induces the current in the first place.",
+      "x": 50,
+      "y": 58
+    },
+    {
+      "id": "shaft",
+      "label": "Drive shaft",
+      "detail": "Carries the torque out through the bearings. It is also the mechanical reference: anything coupled to it has to be aligned, and a shaft running a misaligned load is what destroys the bearings and then the motor.",
+      "x": 72,
+      "y": 58
+    },
+    {
+      "id": "motor-bearings",
+      "label": "Bearings",
+      "detail": "The wearing parts, and the ones that tell you a motor is dying before it dies: a change in the sound, then heat at the bearing housing, then a seized rotor and a winding that cooks on a stalled supply. Most motor failures reach the windings through the bearings.",
+      "x": 22,
+      "y": 58
+    },
+    {
+      "id": "terminal-box",
+      "label": "Terminal box",
+      "detail": "Where the supply lands, with links that set star or delta. It is also where the motor rating plate lives, and therefore where you read the full-load current before choosing the cable and the overload — not from the kW stamped on the frame.",
+      "x": 46,
+      "y": 26
+    },
+    {
+      "id": "capacitor",
+      "label": "Start or run capacitor",
+      "detail": "Single-phase motors have no rotating field of their own, so a capacitor feeds a second winding out of phase with the first to give the rotor something to turn towards. A failed start capacitor is the classic motor that hums and does not turn: it will sit there drawing locked-rotor current until the protection clears it.",
+      "x": 76,
+      "y": 40
+    }
+  ]
+}

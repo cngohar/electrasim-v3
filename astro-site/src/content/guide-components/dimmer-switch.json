@@ -1,0 +1,158 @@
+{
+  "slug": "dimmer-switch",
+  "name": "Dimmer Switch",
+  "tagline": "It chops the mains waveform instead of just switching it — which is why the lamp has to match the dimmer.",
+  "category": "Control",
+  "terminals": [
+    "L — live in",
+    "Load — dimmed live out to the lamps",
+    "Earth — functional earth or plate earth as the design requires"
+  ],
+  "parts": [
+    "Faceplate — one-gang or two-gang",
+    "Rotary knob or slider — the control you turn",
+    "Rear module — the electronics and the heat sink behind the plate",
+    "Fixing screws",
+    "Minimum-load adjustment on some designs"
+  ],
+  "safety": "Match the dimmer to the load. Leading-edge dimmers suit most incandescent and halogen lamps; trailing-edge suits electronic transformers and most LED lamps. A mismatched dimmer buzzes, flickers, will not dim to zero, and can destroy an LED driver. Total load must sit between the dimmer’s minimum and maximum.",
+  "svg": {
+    "viewBox": "0 0 200 230",
+    "body": "<g class=\"dl-part\" data-part=\"L0\"><rect class=\"dl-fill\" x=\"45\" y=\"14\" width=\"110\" height=\"150\" rx=\"8\"/></g><g class=\"dl-part\" data-part=\"L1\"><circle class=\"dl-metal-2\" cx=\"100\" cy=\"89\" r=\"44\"/><path class=\"dl-line--accent\" d=\"M100 49 v8\"/><path class=\"dl-line--accent\" d=\"M100 129 v-8\"/><path class=\"dl-line--accent\" d=\"M60 89 h8\"/><path class=\"dl-line--accent\" d=\"M140 89 h-8\"/><circle class=\"dl-chip\" cx=\"100\" cy=\"55\" r=\"4\"/></g><g class=\"dl-part\" data-part=\"L2\"><circle class=\"dl-metal\" cx=\"100\" cy=\"28\" r=\"5\"/><circle class=\"dl-metal\" cx=\"100\" cy=\"150\" r=\"5\"/></g><g class=\"dl-part\" data-part=\"L3\"><rect class=\"dl-metal\" x=\"62\" y=\"172\" width=\"76\" height=\"34\" rx=\"4\"/><path class=\"dl-line--accent\" d=\"M74 178 v22\"/><path class=\"dl-line--accent\" d=\"M88 178 v22\"/><path class=\"dl-line--accent\" d=\"M102 178 v22\"/><path class=\"dl-line--accent\" d=\"M116 178 v22\"/><path class=\"dl-line--accent\" d=\"M130 178 v22\"/></g>"
+  },
+  "points": [
+    {
+      "id": "L0",
+      "label": "Faceplate",
+      "detail": "A dimmer plate looks like any other, but the unit behind it is deeper and gets warm. Plate and back box both need the depth, and the load rating has to cover the total wattage of every lamp on the circuit.",
+      "x": 58,
+      "y": 40
+    },
+    {
+      "id": "L1",
+      "label": "Rotary knob",
+      "detail": "Turn to set the level; push to switch on many designs. The knob drives either a potentiometer on older leading-edge units or an encoder on electronic ones — in both cases it is setting the point in each half cycle at which the device switches the load on.",
+      "x": 100,
+      "y": 89
+    },
+    {
+      "id": "L2",
+      "label": "Fixing screws",
+      "detail": "Two screws into the back box. If the plate sits proud, do not pull it down with the screws: the heat sink needs air behind the plate and a distorted plate can jam the knob.",
+      "x": 100,
+      "y": 28
+    },
+    {
+      "id": "L3",
+      "label": "Rear module and heat sink",
+      "detail": "The electronics live in the moulding behind the plate and dump their heat through the finned metal body. Dimmers are rated with that heat sink in free air — burying the plate behind curtains or insulating it in a sealed back box derates it and shortens its life.",
+      "x": 100,
+      "y": 187
+    }
+  ],
+  "photo": {
+    "src": "/images/guide/dimmer-switch",
+    "alt": "Photorealistic rotary dimmer switch",
+    "width": 571,
+    "height": 571,
+    "points": [
+      {
+        "id": "L0",
+        "x": 8,
+        "y": 49.9
+      },
+      {
+        "id": "L1",
+        "x": 54,
+        "y": 57.5
+      },
+      {
+        "id": "L2",
+        "x": 15,
+        "y": 16.8
+      }
+    ]
+  },
+  "cutaway": {
+    "src": "/images/guide/dimmer-switch-cutaway",
+    "alt": "Cutaway of a dimmer switch showing the TRIAC on its heat sink, suppression choke, potentiometer and timing network",
+    "width": 768,
+    "height": 768,
+    "points": [
+      {
+        "id": "triac",
+        "x": 42,
+        "y": 52
+      },
+      {
+        "id": "heat-sink",
+        "x": 30,
+        "y": 48
+      },
+      {
+        "id": "suppression-choke",
+        "x": 56,
+        "y": 74
+      },
+      {
+        "id": "potentiometer",
+        "x": 42,
+        "y": 24
+      },
+      {
+        "id": "timing-network",
+        "x": 30,
+        "y": 72
+      },
+      {
+        "id": "dimmer-terminals",
+        "x": 60,
+        "y": 86
+      }
+    ]
+  },
+  "cutawayPoints": [
+    {
+      "id": "triac",
+      "label": "TRIAC",
+      "detail": "The semiconductor that does the dimming: it turns on partway through each half cycle and switches off at the zero crossing. It is bolted to metal because while it conducts it still drops a volt or two, and at full load that is several watts of heat in a plastic box.",
+      "x": 42,
+      "y": 52
+    },
+    {
+      "id": "heat-sink",
+      "label": "Heat sink",
+      "detail": "The finned aluminium the TRIAC is mounted on, and the reason a dimmer is derated when it is stacked alongside others in a multi-gang plate: less heat sink per dimmer, so less load each may carry. It is also why a dimmer in a sealed or insulated box runs hotter than one in free air.",
+      "x": 30,
+      "y": 48
+    },
+    {
+      "id": "suppression-choke",
+      "label": "Suppression choke",
+      "detail": "A coil in series with the load that slows the sharp switching edge of the TRIAC. Without it the edge makes the lamp filament or the driver buzz audibly and sprays radio-frequency interference back down the wiring — the hum you can hear through a radio in the same room.",
+      "x": 56,
+      "y": 74
+    },
+    {
+      "id": "potentiometer",
+      "label": "Setting potentiometer",
+      "detail": "The track behind the knob, setting how far into each half cycle the TRIAC fires. On LED-friendly designs there is also a minimum-load trim, because a lamp that draws a few watts may never pull enough current to keep an old dimmer timing circuit stable.",
+      "x": 42,
+      "y": 24
+    },
+    {
+      "id": "timing-network",
+      "label": "DIAC and RC network",
+      "detail": "A capacitor charges through a resistor each half cycle and the DIAC fires the TRIAC when it reaches its threshold. Moving that firing point earlier or later is all a dimmer does — it never reduces the voltage, it just conducts for a shorter slice of each half cycle.",
+      "x": 30,
+      "y": 72
+    },
+    {
+      "id": "dimmer-terminals",
+      "label": "Rear terminals",
+      "detail": "Two terminals, wired in series with the live exactly like a switch, and no neutral — which is why a smart dimmer that needs one may not fit an existing back box, and why a dimmer cannot simply be dropped into a two-way arrangement without the right companion switch.",
+      "x": 60,
+      "y": 86
+    }
+  ]
+}

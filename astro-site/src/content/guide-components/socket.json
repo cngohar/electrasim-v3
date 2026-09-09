@@ -56,5 +56,110 @@
       "x": 148,
       "y": 120
     }
+  ],
+  "photo": {
+    "src": "/images/guide/socket",
+    "alt": "Photorealistic socket outlet (3-pin uk type g)",
+    "width": 700,
+    "height": 700,
+    "points": [
+      {
+        "id": "L3",
+        "x": 50,
+        "y": 60
+      },
+      {
+        "id": "L2",
+        "x": 50.8,
+        "y": 31.5
+      },
+      {
+        "id": "L0",
+        "x": 16,
+        "y": 30.3
+      }
+    ]
+  },
+  "cutaway": {
+    "src": "/images/guide/socket-cutaway",
+    "alt": "Cutaway of a three-pin socket outlet showing the sprung shutter plate, contact tubes, rear terminals and cable clamp",
+    "width": 768,
+    "height": 768,
+    "points": [
+      {
+        "id": "shutter",
+        "x": 44,
+        "y": 42
+      },
+      {
+        "id": "earth-contact",
+        "x": 44,
+        "y": 28
+      },
+      {
+        "id": "neutral-contact",
+        "x": 33,
+        "y": 56
+      },
+      {
+        "id": "live-contact",
+        "x": 56,
+        "y": 56
+      },
+      {
+        "id": "socket-terminals",
+        "x": 44,
+        "y": 76
+      },
+      {
+        "id": "cable-clamp",
+        "x": 44,
+        "y": 88
+      }
+    ]
+  },
+  "cutawayPoints": [
+    {
+      "id": "shutter",
+      "label": "Shutter plate",
+      "detail": "A sprung plastic plate sitting behind the live and neutral apertures. Something has to push it aside before a pin can reach a live contact, and pushing needs either the long earth pin or both the other pins arriving together — so a single object in one hole meets plastic, not brass.",
+      "x": 44,
+      "y": 42
+    },
+    {
+      "id": "earth-contact",
+      "label": "Earth contact and pin channel",
+      "detail": "The earth pin is the longest on the plug, so it enters first and leaves last, and its channel is the ramp that drives the shutter out of the way for the other two. It also means a plug is earthed before it is live — the whole reason the pin is longer.",
+      "x": 44,
+      "y": 28
+    },
+    {
+      "id": "neutral-contact",
+      "label": "Neutral contact tube",
+      "detail": "A sprung brass tube that grips the pin along its length rather than pinching it at a point. Contact pressure is what keeps the joint cool: a tired tube that has lost its spring makes resistance, resistance makes heat, and heat is how a socket melts behind a faceplate.",
+      "x": 33,
+      "y": 56
+    },
+    {
+      "id": "live-contact",
+      "label": "Live contact tube",
+      "detail": "The same sprung tube on the live side, fed from the ring or radial. Note what protects what: the socket is rated for the circuit behind it, while the fuse in the plug protects the flexible cord of the appliance — which is why a 13 A socket feeding a 3 A lamp flex is safe only because of that fuse.",
+      "x": 56,
+      "y": 56
+    },
+    {
+      "id": "socket-terminals",
+      "label": "Rear terminals",
+      "detail": "Live, neutral and earth screws at the back, sized for the circuit conductors plus, where it is needed, a second earth terminal for the bonding tail to a metal back box. Terminals are where the two conductors of a ring land, so a loose one there puts the whole ring on one leg.",
+      "x": 44,
+      "y": 76
+    },
+    {
+      "id": "cable-clamp",
+      "label": "Cable clamp",
+      "detail": "Grips the outer sheath so a tug on the cable is taken by the clamp and not by the terminal screws. It also stops the cable being drawn far enough into the box to strain the conductors, which is what pulls a socket earth loose over years of plugs going in and out.",
+      "x": 44,
+      "y": 88
+    }
   ]
 }

@@ -33,6 +33,37 @@ function pageUrl(filePath) {
   return `/${outputPath.replace(/index\.html$/, '')}`;
 }
 
+/**
+ * Element ids present in a rendered page.
+ *
+ * Cached because the 190-page crawl checks thousands of links against a few
+ * dozen targets. Without this check a `href="#letter-a"` pointing at nothing
+ * passes: the file exists, so the link "works" — which is exactly how the
+ * glossary A–Z strip shipped with 13 dead jump links.
+ */
+const idCache = new Map();
+function pageIds(htmlPath) {
+  const cached = idCache.get(htmlPath);
+  if (cached) return cached;
+  const ids = new Set();
+  if (existsSync(htmlPath)) {
+    const html = readFileSync(htmlPath, 'utf8');
+    for (const match of html.matchAll(/\sid="([^"]+)"/g)) ids.add(match[1]);
+  }
+  idCache.set(htmlPath, ids);
+  return ids;
+}
+
+/** The HTML file that serves an internal pathname, whether it resolves or not. */
+function htmlFileFor(pathname) {
+  const directPath = join(outputRoot, pathname.replace(/^\/+/, ''));
+  if (pathname.endsWith('/')) return join(directPath, 'index.html');
+  if (directPath.endsWith('.html')) return directPath;
+  return existsSync(join(directPath, 'index.html'))
+    ? join(directPath, 'index.html')
+    : directPath;
+}
+
 const failures = [];
 const htmlFiles = listHtmlFiles(outputRoot);
 
@@ -42,7 +73,16 @@ for (const filePath of htmlFiles) {
 
   for (const match of html.matchAll(/<a\b[^>]*\bhref\s*=\s*(["'])([^"']+)\1/gi)) {
     const href = match[2].trim();
-    if (!href || href.startsWith('#') || /^(?:data|javascript|mailto|tel):/i.test(href)) continue;
+    if (!href || /^(?:data|javascript|mailto|tel):/i.test(href)) continue;
+
+    // Same-page fragment: the target id must exist in this file.
+    if (href.startsWith('#')) {
+      const fragment = href.slice(1);
+      if (fragment && !pageIds(filePath).has(fragment)) {
+        failures.push({ source, href, target: `${source}#${fragment} (no such id)` });
+      }
+      continue;
+    }
 
     let url;
     try {
@@ -62,8 +102,21 @@ for (const filePath of htmlFiles) {
       continue;
     }
 
-    if (outputPathExists(pathname)) continue;
-    failures.push({ source, href, target: url.pathname });
+    const targetFile = htmlFileFor(pathname);
+    if (!existsSync(targetFile)) {
+      failures.push({ source, href, target: url.pathname });
+      continue;
+    }
+
+    // Cross-page fragment: the target page must carry the id.
+    const fragment = url.hash ? decodeURIComponent(url.hash.slice(1)) : '';
+    if (fragment && !pageIds(targetFile).has(fragment)) {
+      failures.push({
+        source,
+        href,
+        target: `${url.pathname || source}#${fragment} (no such id)`,
+      });
+    }
   }
 }
 

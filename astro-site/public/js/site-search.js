@@ -225,6 +225,7 @@
         if (activeFilter === 'article') return item.type === 'article';
         if (activeFilter === 'update') return item.type === 'update';
         if (activeFilter === 'guide') return item.type === 'guide';
+        if (activeFilter === 'term') return item.type === 'term';
         return true;
       });
     }
@@ -250,11 +251,13 @@
         ? 'Calculator'
         : item.type === 'guide'
           ? 'Guide'
-          : item.type === 'article'
-            ? 'Article'
-            : item.type === 'update'
-              ? 'Update'
-              : 'Page';
+          : item.type === 'term'
+            ? 'Term'
+            : item.type === 'article'
+              ? 'Article'
+              : item.type === 'update'
+                ? 'Update'
+                : 'Page';
 
     return `
       <li

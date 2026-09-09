@@ -1,0 +1,101 @@
+{
+  "slug": "voltage-continuity-tester",
+  "name": "Voltage & Continuity Tester",
+  "tagline": "The instrument for proving dead — a two-pole tester that shows voltage without a battery.",
+  "category": "Test equipment",
+  "parts": [
+    "Two probes — one for each conductor, so the reading comes from the circuit",
+    "LED voltage indicators — 12 V steps up to 400 V or 690 V",
+    "Polarity indication — shows which side is live",
+    "Continuity buzzer and lamp — powered by the instrument's own battery",
+    "Single-pole phase test — only ever an indication, never a proof",
+    "Probe tips and finger guards (GS 38)"
+  ],
+  "safety": "Proving dead is a sequence, not a poke: test the tester on a known live source, test the circuit, then test the tester on the known source again. A two-pole tester does this properly because it draws its indication from the circuit itself — a single-pole neon screwdriver or a non-contact voltstick is an indication only, and neither is acceptable as proof that a circuit is dead.",
+  "svg": {
+    "viewBox": "0 0 320 210",
+    "body": "<g class=\"dl-part\" data-part=\"L0\"><rect class=\"dl-fill\" x=\"96\" y=\"34\" width=\"128\" height=\"96\" rx=\"14\"/></g><g class=\"dl-part\" data-part=\"L1\"><circle class=\"dl-chip\" cx=\"120\" cy=\"58\" r=\"7\"/><circle class=\"dl-chip\" cx=\"144\" cy=\"58\" r=\"7\"/><circle class=\"dl-chip\" cx=\"168\" cy=\"58\" r=\"7\"/><circle class=\"dl-chip\" cx=\"192\" cy=\"58\" r=\"7\"/></g><g class=\"dl-part\" data-part=\"L2\"><circle class=\"dl-metal-2\" cx=\"160\" cy=\"92\" r=\"14\"/><text class=\"dl-text\" x=\"160\" y=\"96\" text-anchor=\"middle\">Ω</text></g><g class=\"dl-part\" data-part=\"L3\"><rect class=\"dl-chip\" x=\"188\" y=\"84\" width=\"26\" height=\"16\" rx=\"4\"/></g><g class=\"dl-part\" data-part=\"L4\"><path class=\"dl-metal\" d=\"M132 130 v52\"/><path class=\"dl-metal\" d=\"M188 130 v52\"/><path class=\"dl-line--accent\" d=\"M132 182 v-8 M188 182 v-8\"/><rect class=\"dl-metal-2\" x=\"124\" y=\"134\" width=\"16\" height=\"12\" rx=\"3\"/><rect class=\"dl-metal-2\" x=\"180\" y=\"134\" width=\"16\" height=\"12\" rx=\"3\"/></g><g class=\"dl-part\" data-part=\"L5\"><path class=\"dl-fill--line\" d=\"M132 138 q28 22 56 0\"/></g><text class=\"dl-text--mid\" x=\"120\" y=\"44\" text-anchor=\"middle\">12</text><text class=\"dl-text--mid\" x=\"144\" y=\"44\" text-anchor=\"middle\">50</text><text class=\"dl-text--mid\" x=\"168\" y=\"44\" text-anchor=\"middle\">230</text><text class=\"dl-text--mid\" x=\"192\" y=\"44\" text-anchor=\"middle\">400</text>"
+  },
+  "points": [
+    {
+      "id": "L0",
+      "label": "Instrument body",
+      "detail": "A two-pole tester is built for one job and does it in one movement: both probes go on at once, so the voltage it shows comes from the circuit under test rather than from stray capacitance. That is what separates it from a non-contact voltstick, and why it is the accepted way to prove dead.",
+      "x": 106,
+      "y": 120
+    },
+    {
+      "id": "L1",
+      "label": "LED voltage steps",
+      "detail": "A ladder of LEDs at 12, 50, 120, 230, 400 and sometimes 690 V, lighting together so you read the voltage as a level rather than a number. They work without a battery on most designs — the instrument takes its power from the circuit it is measuring, which is exactly why a flat battery cannot leave you with a false 'dead' reading.",
+      "x": 156,
+      "y": 58
+    },
+    {
+      "id": "L2",
+      "label": "Continuity and polarity",
+      "detail": "Continuity uses the instrument's own battery to drive a buzzer through the conductor — quick, audible, and the reason it is used for checking protective conductors and bonding before any live test. The same indicators show polarity on DC, and a continuity buzz is how you confirm which conductor is which at the far end of a cable.",
+      "x": 160,
+      "y": 92
+    },
+    {
+      "id": "L3",
+      "label": "Test / load button",
+      "detail": "Pressing it places a deliberate load across the supply, which pulls down the ghost voltage that a high-impedance meter will happily show on a disconnected conductor running beside a live one. If the reading collapses when you press it, you were looking at induced voltage, not a supply.",
+      "x": 201,
+      "y": 92
+    },
+    {
+      "id": "L4",
+      "label": "Probes, tips and finger guards",
+      "detail": "GS 38 requires spring-loaded or shrouded tips exposing no more than 4 mm of metal on a probe used near live parts, plus a finger guard so a slip cannot put your hand on the tip. Probes get shorter with use as the tips are replaced — note when they stop springing, because that is when they stop being compliant.",
+      "x": 132,
+      "y": 168
+    },
+    {
+      "id": "L5",
+      "label": "Lead",
+      "detail": "A single tough lead between the two probes, rated well above the voltage you are testing. Inspect it before use like any other lead: a nick at the strain relief is a failure, not wear.",
+      "x": 160,
+      "y": 150
+    }
+  ],
+  "photo": {
+    "src": "/images/guide/voltage-continuity-tester",
+    "alt": "Photorealistic two-pole voltage and continuity tester with probes and LED indicator column",
+    "width": 720,
+    "height": 240,
+    "points": [
+      {
+        "id": "L0",
+        "x": 20,
+        "y": 50
+      },
+      {
+        "id": "L1",
+        "x": 33,
+        "y": 44
+      },
+      {
+        "id": "L2",
+        "x": 46,
+        "y": 54
+      },
+      {
+        "id": "L3",
+        "x": 30,
+        "y": 66
+      },
+      {
+        "id": "L4",
+        "x": 74,
+        "y": 48
+      },
+      {
+        "id": "L5",
+        "x": 90,
+        "y": 56
+      }
+    ]
+  }
+}

@@ -8,6 +8,7 @@ import SiteHeader from '../components/layout/SiteHeader.astro';
 import SiteSearchModal from '../components/layout/SiteSearchModal.astro';
 import '../styles/global.css';
 import packageMetadata from '../../../package.json';
+import { metaDescription, metaTitle } from '../lib/seo';
 
 export interface Props {
   title: string;
@@ -29,8 +30,8 @@ export interface Props {
 }
 
 const {
-  title,
-  description,
+  title: rawTitle,
+  description: rawDescription,
   canonical,
   robots = 'index, follow',
   contentSecurityPolicy,
@@ -45,6 +46,14 @@ const {
       ? 'image/avif'
       : 'image/png',
 } = Astro.props;
+
+/* Snippet lengths are clamped here rather than at each call site: this is the
+   one component every page renders through, so a new page cannot ship a
+   description or title that Google has to truncate mid-word. Pages that want
+   control over how they are cut still get it — they can call the helpers
+   themselves and hand over copy that already fits. */
+const description = metaDescription(rawDescription);
+const title = metaTitle(rawTitle);
 
 const websiteSchema = {
   '@context': 'https://schema.org',

@@ -26,6 +26,7 @@ export const OG_BLOG_MANIFEST: Record<string, string> = {
   'how-to-trace-an-electrical-fault-safely': 'ee208e5172',
   'how-to-use-a-multimeter-electrical-testing-guide': 'e8d6dcc3d8',
   'how-to-use-interactive-cable-size-and-voltage-drop-calculators': '9b66139cfd',
+  'how-to-use-the-electrasim-guide-beginner-to-pro': 'e780f146f4',
   'how-to-wire-a-bathroom-zone-by-zone-uk-guide': '1d74fe8de7',
   'how-to-wire-a-ceiling-rose-and-light-fitting': 'c1f9fc6685',
   'how-to-wire-a-cooker-electric-oven-uk': 'bea2581159',
@@ -70,18 +71,99 @@ export const OG_BLOG_MANIFEST: Record<string, string> = {
   'why-has-my-socket-stopped-working': 'b094d66750',
 };
 export const OG_UPDATES_MANIFEST: Record<string, string> = {
-  'electrasim-2-0-release': '1a3785d2b6',
+  'electrasim-2-0-release': '35d9920403',
   'electrasim-new-components-rcd-contactor-timer-dimmer-distribution-board-bell': '656036cb16',
   'electrasim-v1-5-performance-accessibility-privacy-update': '5f57b58e4b',
   'electrasim-v1-6-dark-mode-rcbo-comparison-update': 'abe29d00b6',
   'fault-simulation-mode-open-circuit-reverse-polarity-earth-fault': '880f619881',
   'guided-circuits-electrasim-templates-checklists': '81baeb5f99',
 };
+export const OG_COMPONENTS_MANIFEST: Record<string, string> = {
+  afdd: '512670ea04',
+  battery: 'e1335d5f55',
+  bell: 'f6c10fdaa0',
+  bulb: '8b9574e940',
+  contactor: '746b179d34',
+  'cooker-unit': '96c78f2387',
+  'dimmer-switch': 'c10ad97f51',
+  'distribution-board': 'bb486a5e51',
+  'ev-charger': '929a634d9d',
+  generator: '9c486015ef',
+  'heating-mat': '8a57b696d2',
+  'junction-box': 'e39381833c',
+  mcb: '1dea4ddd85',
+  motor: 'd36428d7b2',
+  'pir-sensor': 'f86fa5adc6',
+  'push-button': 'bb0d5e46bc',
+  rcd: '385e6756ea',
+  socket: '00c66e85be',
+  'solar-pv-panel': '13b9b7592f',
+  switch: 'df393d2613',
+  'timer-switch': '87c293e789',
+  'two-way-switch': 'a6efd5e4e7',
+};
+export const OG_TOOLS_MANIFEST: Record<string, string> = {
+  'clamp-meter': '240cac1e27',
+  'insulated-screwdriver-set': '09bdee005c',
+  multimeter: '494ea4fc91',
+  'needle-nose-pliers': '05a8784dc6',
+  'rcd-tester': 'f9d90a8bb6',
+  'side-cutters': '788843e305',
+  'voltage-continuity-tester': 'ba190d49f1',
+  'wire-strippers': '2e27840555',
+};
+export const OG_CIRCUITS_MANIFEST: Record<string, string> = {
+  'circuit-1': '9e7ca7c1ce',
+  'circuit-10': 'd457f4c348',
+  'circuit-11': 'ba48caed90',
+  'circuit-12': 'a2cd88112b',
+  'circuit-13': '95bbb025a9',
+  'circuit-14': 'c16f2c2f7d',
+  'circuit-15': 'a7f045bd1e',
+  'circuit-16': 'e3ba994c0c',
+  'circuit-17': '9cb21ec2b6',
+  'circuit-18': '76874811b6',
+  'circuit-19': 'd3e400db70',
+  'circuit-2': '2172e62ad5',
+  'circuit-20': '1597d48722',
+  'circuit-3': 'd472c724c2',
+  'circuit-4': '09f48c72ea',
+  'circuit-5': 'd0b9b83728',
+  'circuit-6': 'd9d6b51ac8',
+  'circuit-7': 'd388eb6636',
+  'circuit-8': 'ccdf916c2e',
+  'circuit-9': '110d0fd211',
+};
+export const OG_SECTIONS_MANIFEST: Record<string, string> = {
+  circuits: '78c18fb488',
+  components: 'bba5ff068e',
+  glossary: '05cb6ba690',
+  guide: 'f340d82069',
+  templates: '1569fabf0f',
+  tools: '390d2c30be',
+};
 
-export type OgKind = 'blog' | 'updates';
+export type OgKind = 'blog' | 'updates' | 'sections' | 'components' | 'tools' | 'circuits';
+
+const OG_CARD_DIR: Record<OgKind, string> = {
+  blog: 'blog',
+  updates: 'updates',
+  sections: 'guide',
+  components: 'guide/components',
+  tools: 'guide/tools',
+  circuits: 'guide/circuits',
+};
+
+const OG_CARD_MANIFEST: Record<OgKind, Record<string, string>> = {
+  blog: OG_BLOG_MANIFEST,
+  updates: OG_UPDATES_MANIFEST,
+  sections: OG_SECTIONS_MANIFEST,
+  components: OG_COMPONENTS_MANIFEST,
+  tools: OG_TOOLS_MANIFEST,
+  circuits: OG_CIRCUITS_MANIFEST,
+};
 
 export function ogCardUrl(slug: string, kind: OgKind = 'blog'): string {
-  const map = kind === 'updates' ? OG_UPDATES_MANIFEST : OG_BLOG_MANIFEST;
-  const v = map[slug];
-  return `/og/${kind}/${slug}.png${v ? `?v=${v}` : ''}`;
+  const v = OG_CARD_MANIFEST[kind]?.[slug];
+  return `/og/${OG_CARD_DIR[kind]}/${slug}.png${v ? `?v=${v}` : ''}`;
 }

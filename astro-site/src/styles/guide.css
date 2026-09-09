@@ -605,8 +605,33 @@
   display: flex;
   gap: .4rem;
   align-items: center;
+  flex-wrap: wrap;
   font-size: .8rem;
   color: var(--text-dim);
+}
+/* global.css styles bare `.bc` as a terminal card (border, shadow and a 2px
+   top busbar) — intentional on blog pages. Guide breadcrumbs are a plain text
+   row on the .bc-wrap bar, so the card treatment is stripped back off, scoped
+   to the guide's markup (`.bc-wrap` always precedes `.guide-hero`). */
+.bc-wrap:has(+ .guide-hero) .bc {
+  position: static;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+}
+.bc-wrap:has(+ .guide-hero) .bc::before,
+.bc-wrap:has(+ .guide-hero) .bc::after {
+  display: none;
+}
+.bc-wrap:has(+ .guide-hero) .bc [aria-current="page"] {
+  color: var(--text-mid);
+  font-weight: 600;
+}
+.bc-wrap:has(+ .guide-hero) .bc span[aria-hidden] {
+  color: var(--text-dim);
+  opacity: 0.8;
 }
 .bc a {
   color: var(--text-mid);
@@ -824,6 +849,32 @@
   border: 1px solid var(--border);
   background: var(--bg-2);
   color: var(--text-mid);
+  padding: 0.32rem 0.7rem;
+}
+
+/* A chip whose component has an anatomy page is a link, and reads as one:
+   amber fill + ↗ arrow, so "you can open this" is obvious next to the plain
+   chips. Amber keeps the safety palette off it by staying a fill, not a rule. */
+a.comp-chip,
+.comp-chip--link {
+  background: var(--warning-bg);
+  border-color: var(--warning-border);
+  color: var(--amber-ink);
+  font-weight: 700;
+  text-decoration: none;
+  transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
+}
+a.comp-chip:hover,
+a.comp-chip:focus-visible,
+.comp-chip--link:hover,
+.comp-chip--link:focus-visible {
+  border-color: var(--amber);
+  box-shadow: 0 4px 12px rgba(255, 184, 0, 0.18);
+  transform: translateY(-1px);
+}
+.comp-chip .chip-arrow {
+  font-size: 0.85em;
+  opacity: 0.75;
 }
 
 /* Diagram gets a drawing frame with corner ticks */
@@ -968,4 +1019,263 @@
 .guide-hero .guide-cta-btns,
 .guide-hero > .wrap > div:last-child {
   justify-content: center;
+}
+
+/* ── Anatomy → circuit mesh ("Meet it in a circuit") ────────────────────── */
+.used-in {
+  margin: 1.75rem 0 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+  overflow: hidden;
+}
+.used-in-head {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--blue-d);
+  background: var(--blue-l);
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.used-in ul {
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem 0;
+}
+.used-in li a {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.7rem 1rem;
+  text-decoration: none;
+  color: inherit;
+}
+.used-in li a:hover {
+  background: var(--bg-2);
+}
+.ui-step {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--blue-d);
+  background: var(--blue-l);
+  border: 1px solid var(--border-bright);
+  border-radius: 6px;
+  padding: 0.15rem 0.45rem;
+}
+.ui-title {
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+/* ── Full-width safety band ─────────────────────────────────────────────── */
+.safety-band {
+  margin: 1.75rem 0 0;
+  border: 1px solid var(--warning-border);
+  border-left: 4px solid var(--amber);
+  border-radius: 12px;
+  background: var(--warning-bg);
+  padding: 1.1rem 1.4rem;
+}
+.sn-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--warning-text);
+  margin-bottom: 0.35rem;
+}
+.safety-band p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.7;
+  max-width: 78ch;
+}
+
+/* ── Responsive: phones, tablets, small laptops, widescreen ──────────────── */
+/* Tablet and below: the mesh rows and schematic get room to breathe. */
+@media (max-width: 980px) {
+  .used-in li a {
+    grid-template-columns: auto 1fr;
+    row-gap: 0.4rem;
+  }
+  .used-in .level-pill {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+@media (max-width: 760px) {
+  .schem-box {
+    padding: 0.5rem 0.6rem 0.3rem;
+  }
+  .schem-box .schem {
+    min-width: 420px;
+  }
+  .schem-legend {
+    gap: 0.7rem;
+    font-size: 0.64rem;
+  }
+  .diagram-box pre {
+    font-size: 0.72rem;
+  }
+  .safety-band {
+    padding: 0.95rem 1.1rem;
+  }
+  .cd-prev-next {
+    grid-template-columns: 1fr;
+  }
+  .cd-prev-next .pn-next {
+    text-align: left;
+  }
+}
+
+@media (max-width: 560px) {
+  .circuit-index-link {
+    grid-template-columns: auto 1fr;
+    row-gap: 0.55rem;
+    padding: 0.85rem 0.95rem;
+  }
+  .circuit-index-link .level-pill {
+    grid-column: 2;
+    justify-self: start;
+  }
+  .ci-arrow {
+    display: none;
+  }
+  /* Tall renders (the MCB is 1:2.7 portrait) must not dominate a phone. */
+  .anatomy-photo {
+    max-height: 60vh;
+    width: auto;
+    margin-inline: auto;
+  }
+  .anatomy-card--wide .anatomy-photo {
+    max-height: 55vh;
+  }
+  .hub-grid {
+    grid-template-columns: 1fr;
+  }
+  .safety-band {
+    border-left-width: 3px;
+    padding: 0.85rem 1rem;
+  }
+}
+
+/* Small laptops: the two-column walkthrough needs a little less gap so both
+   columns stay readable between 980px and 1200px. */
+@media (min-width: 980px) and (max-width: 1200px) {
+  .card-body {
+    gap: 1.5rem;
+  }
+  .guide-detail-grid {
+    gap: 1.5rem;
+  }
+}
+
+/* Widescreen: stop the grids stretching into unreadable single rows. */
+@media (min-width: 1600px) {
+  .hub-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .latest-grid,
+  .template-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Route out of the hub to the glossary: the hub is a table of contents, so the
+   one thing it cannot do is define the terms its own cards use. */
+.hub-footnote {
+  margin: 1.5rem 0 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  color: var(--text-mid);
+  font-size: 0.95rem;
+}
+.hub-footnote a {
+  color: var(--blue);
+  font-weight: 600;
+}
+
+/* ── Glossary chip row ─────────────────────────────────────────────────────
+   Sits above the "parts used here" cards: anatomy pages explain the hardware,
+   the glossary explains the vocabulary the prose assumes. */
+.cd-terms {
+  margin: 2.5rem 0 0;
+  padding: 1.5rem 1.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+}
+.cd-terms h2 {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+.cd-terms-note {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--text-mid);
+}
+.cd-terms-note a {
+  color: var(--blue);
+  font-weight: 600;
+}
+.cd-terms-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cd-terms-list a {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-2);
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.cd-terms-list a:hover {
+  border-color: var(--border-bright);
+  transform: translateY(-1px);
+}
+.cd-terms-term {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.cd-terms-cat {
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-mid);
+}
+
+/* Hand tools and test equipment read as two shelves of the same toolbox. */
+.tool-group + .tool-group {
+  margin-top: 3rem;
+}
+.tool-group-head {
+  margin-bottom: 1.25rem;
+}
+.tool-group-head h3 {
+  margin: 0 0 0.25rem;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+.tool-group-head p {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: 0.95rem;
 }

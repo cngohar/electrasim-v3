@@ -43,5 +43,33 @@
       "x": 252,
       "y": 168
     }
-  ]
+  ],
+  "photo": {
+    "src": "/images/guide/needle-nose-pliers",
+    "alt": "Photorealistic needle-nose pliers",
+    "width": 700,
+    "height": 208,
+    "points": [
+      {
+        "id": "L3",
+        "x": 11.3,
+        "y": 50.3
+      },
+      {
+        "id": "L2",
+        "x": 39.8,
+        "y": 55.9
+      },
+      {
+        "id": "L1",
+        "x": 50.9,
+        "y": 52.2
+      },
+      {
+        "id": "L0",
+        "x": 75.3,
+        "y": 70.8
+      }
+    ]
+  }
 }

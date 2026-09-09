@@ -1,24 +1,46 @@
 window.ElectraSim.onReady(({ onCleanup }) => {
   /* ── Anatomy cards ──────────────────────────────────────────────────
-     Hotspots carry viewBox coords (`data-point-v{x,y}`, `data-point-vy`).
+     Two figure modes, both positioned here rather than in markup:
+       • drawing — hotspots carry viewBox coords (`data-point-v{x,y}`), mapped
+         onto the rendered SVG's pixel box.
+       • photo   — hotspots carry PERCENT coords (`data-point-p{x,y}`) of the
+         image box, so the markers stay put at any render size.
      The CSP (`style-src 'self'`) blocks inline style attributes, so guide-lab
-     maps those coords to the rendered SVG's pixel box at runtime via CSSOM
-     and positions each button. Until then the overlay is hidden and the card
-     is a reading layout (SVG + parts list) — full content, no JS needed.
-     Selection shows the labeled detail panel and twin-highlights the
-     `data-part=<point id>` group in the drawing.                         */
+     maps those coords to pixels at runtime via CSSOM. Until then the overlay
+     is hidden and the card is a reading layout (figure + parts list) — full
+     content, no JS needed. Selection shows the labeled detail panel and twin-
+     highlights the `data-part=<point id>` group in the drawing.           */
+  /* Every card's re-measure function, keyed by card. A figure inside a hidden
+     tab panel measures 0×0, so revealing it has to re-place its markers; the
+     ResizeObserver usually catches it, this makes it immediate. */
+  const repositioners = [];
+
   for (const card of document.querySelectorAll('[data-anatomy]')) {
     if (!(card instanceof HTMLElement)) continue;
     const stage = card.querySelector('.anatomy-stage');
     const svg = stage ? stage.querySelector('svg') : null;
+    const photo = stage ? stage.querySelector('.anatomy-photo') : null;
+    /* The figure the hotspots are pinned to: photo wins when both exist. */
+    const figure = photo || svg;
     const hotspots = Array.from(card.querySelectorAll('[data-point]'));
     const hotspotsHost = card.querySelector('.anatomy-hotspots');
-    const detail = card.querySelector('[data-anatomy-detail]');
-    const detailTitle = card.querySelector('[data-anatomy-title]');
-    const detailText = card.querySelector('[data-anatomy-text]');
+    /* Detail pages put the panel in the side rail (beside the figure) and point
+       the card at it with `data-anatomy-detail-target`; cards on index pages
+       keep the panel inside themselves. */
+    const detailHost = card.dataset.anatomyDetailTarget
+      ? document.getElementById(card.dataset.anatomyDetailTarget)
+      : card;
+    const scope = detailHost || card;
+    /* The target element is usually the panel itself, and querySelector only
+       walks descendants — so match the scope before searching inside it. */
+    const findIn = (selector) =>
+      scope.matches?.(selector) ? scope : scope.querySelector(selector);
+    const detail = findIn('[data-anatomy-detail]');
+    const detailTitle = findIn('[data-anatomy-title]');
+    const detailText = findIn('[data-anatomy-text]');
     if (
       !stage ||
-      !svg ||
+      !figure ||
       hotspots.length === 0 ||
       !hotspotsHost ||
       !detail ||
@@ -27,29 +49,43 @@ window.ElectraSim.onReady(({ onCleanup }) => {
     )
       continue;
 
-    const viewW = svg.viewBox.baseVal.width || 1;
-    const viewH = svg.viewBox.baseVal.height || 1;
+    const viewBox = svg?.viewBox ? svg.viewBox.baseVal : null;
+    const viewW = viewBox?.width || 1;
+    const viewH = viewBox?.height || 1;
 
     const positionAll = () => {
-      const svgRect = svg.getBoundingClientRect();
+      const rect = figure.getBoundingClientRect();
       for (const btn of hotspots) {
-        const vx = Number(btn.dataset.pointVx) || 0;
-        const vy = Number(btn.dataset.pointVy) || 0;
-        btn.style.left = `${(vx / viewW) * svgRect.width}px`;
-        btn.style.top = `${(vy / viewH) * svgRect.height}px`;
+        if (photo) {
+          const px = Number(btn.dataset.pointPx);
+          const py = Number(btn.dataset.pointPy);
+          btn.style.left = `${(px / 100) * rect.width}px`;
+          btn.style.top = `${(py / 100) * rect.height}px`;
+        } else {
+          const vx = Number(btn.dataset.pointVx) || 0;
+          const vy = Number(btn.dataset.pointVy) || 0;
+          btn.style.left = `${(vx / viewW) * rect.width}px`;
+          btn.style.top = `${(vy / viewH) * rect.height}px`;
+        }
       }
       const stageRect = stage.getBoundingClientRect();
-      hotspotsHost.style.left = `${svgRect.left - stageRect.left}px`;
-      hotspotsHost.style.top = `${svgRect.top - stageRect.top}px`;
-      hotspotsHost.style.width = `${svgRect.width}px`;
-      hotspotsHost.style.height = `${svgRect.height}px`;
+      hotspotsHost.style.left = `${rect.left - stageRect.left}px`;
+      hotspotsHost.style.top = `${rect.top - stageRect.top}px`;
+      hotspotsHost.style.width = `${rect.width}px`;
+      hotspotsHost.style.height = `${rect.height}px`;
       hotspotsHost.style.display = 'block';
     };
 
     positionAll();
+    repositioners.push({ card, positionAll });
+    /* The render's box can change as it decodes (and on slow connections the
+       first measurement happens before the bytes land), so place again. */
+    if (photo && !photo.complete) {
+      photo.addEventListener('load', positionAll, { once: true });
+    }
     if (typeof ResizeObserver === 'function') {
       const ro = new ResizeObserver(positionAll);
-      ro.observe(svg);
+      ro.observe(figure);
       ro.observe(stage);
       onCleanup(() => {
         ro.disconnect();
@@ -95,8 +131,75 @@ window.ElectraSim.onReady(({ onCleanup }) => {
         if (btn.getAttribute('aria-pressed') === 'true') deselect(btn);
         else select();
       });
-      /* Keep the panel synced when keyboard users Tab through the buttons. */
-      btn.addEventListener('focus', select);
+      /* Keep the panel synced when keyboard users Tab through the buttons.
+         Mouse focus must NOT select: `focus` fires before `click`, so a click
+         would arrive with the button already active and immediately undo it —
+         the marker looked like it needed two clicks. `:focus-visible` is only
+         set for keyboard focus. */
+      btn.addEventListener('focus', () => {
+        let keyboard = true;
+        try {
+          keyboard = btn.matches(':focus-visible');
+        } catch {
+          /* No :focus-visible support — keep the old behaviour. */
+        }
+        if (keyboard) select();
+      });
     }
+  }
+
+  window.ElectraSim.repositionAnatomy = (root) => {
+    for (const entry of repositioners) {
+      if (!root || root.contains(entry.card)) entry.positionAll();
+    }
+  };
+
+  /* ── Anatomy view tabs (outside render ↔ inside cutaway) ───────────────
+     Two figures of the same part carry two different sets of information: the
+     render shows what you see and wire up, the cutaway shows the mechanism
+     that does the work. Only one is visible at a time.
+
+     Progressive enhancement: the markup ships both panels expanded, so with no
+     JS you read Outside then Inside stacked. JS hides the second panel, shows
+     the tab row, and re-measures the markers of whichever panel it reveals
+     (a hidden figure has no box to measure, so its markers would pile at 0,0). */
+  for (const views of document.querySelectorAll('[data-anatomy-views]')) {
+    if (!(views instanceof HTMLElement)) continue;
+    const tabs = Array.from(views.querySelectorAll('[data-view-tab]'));
+    const panels = Array.from(views.querySelectorAll('[data-view-panel]'));
+    if (tabs.length < 2 || panels.length !== tabs.length) continue;
+
+    const activate = (tab) => {
+      const panelId = tab.getAttribute('aria-controls');
+      for (const other of tabs) {
+        const on = other === tab;
+        other.setAttribute('aria-selected', on ? 'true' : 'false');
+        other.tabIndex = on ? 0 : -1;
+      }
+      for (const panel of panels) {
+        const on = panel.id === panelId;
+        panel.hidden = !on;
+        if (on) window.ElectraSim.repositionAnatomy(panel);
+      }
+    };
+
+    for (const tab of tabs) {
+      tab.addEventListener('click', () => activate(tab));
+      tab.addEventListener('keydown', (event) => {
+        const step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+        if (!step) return;
+        event.preventDefault();
+        const next = tabs[(tabs.indexOf(tab) + step + tabs.length) % tabs.length];
+        activate(next);
+        next.focus();
+      });
+    }
+
+    activate(tabs[0]);
+    views.dataset.ready = 'true';
+    onCleanup(() => {
+      delete views.dataset.ready;
+      for (const panel of panels) panel.hidden = false;
+    });
   }
 });

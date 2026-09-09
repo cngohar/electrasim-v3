@@ -43,5 +43,33 @@
       "x": 238,
       "y": 74
     }
-  ]
+  ],
+  "photo": {
+    "src": "/images/guide/wire-strippers",
+    "alt": "Photorealistic wire strippers",
+    "width": 700,
+    "height": 215,
+    "points": [
+      {
+        "id": "L3",
+        "x": 6.4,
+        "y": 51.9
+      },
+      {
+        "id": "L2",
+        "x": 15.5,
+        "y": 55.5
+      },
+      {
+        "id": "L1",
+        "x": 51,
+        "y": 53.7
+      },
+      {
+        "id": "L0",
+        "x": 30.7,
+        "y": 62.7
+      }
+    ]
+  }
 }

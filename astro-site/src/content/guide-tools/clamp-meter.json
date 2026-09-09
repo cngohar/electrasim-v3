@@ -1,0 +1,101 @@
+{
+  "slug": "clamp-meter",
+  "name": "Clamp Meter",
+  "tagline": "Measures current without breaking the circuit — the jaws are the transformer's core.",
+  "category": "Test equipment",
+  "parts": [
+    "Jaws — a split core that closes around one conductor only",
+    "Trigger — opens the jaws one-handed",
+    "Display and hold",
+    "Rotary dial — A~ , A⎓, volts, ohms, continuity",
+    "Zero / relative button — cancels the residual reading before a leakage test",
+    "Test leads for the voltage and continuity functions"
+  ],
+  "safety": "The jaws must close around ONE conductor. Clamping around a whole cable — live and neutral together — reads zero because the two currents cancel, and that zero looks exactly like a circuit that is switched off. Clamping around a single conductor of a cable also tells you nothing about the other one, so a reading taken this way is never proof that anything is dead.",
+  "svg": {
+    "viewBox": "0 0 320 210",
+    "body": "<g class=\"dl-part\" data-part=\"L0\"><path class=\"dl-metal\" d=\"M136 58 a26 26 0 0 1 48 0 v-14 h-48 z\"/><path class=\"dl-metal-2\" d=\"M136 44 v14 a26 26 0 0 0 48 0 v-14 z\"/></g><g class=\"dl-part\" data-part=\"L1\"><path class=\"dl-metal-2\" d=\"M150 92 q-14 6 -14 20 h10\"/></g><g class=\"dl-part\" data-part=\"L2\"><rect class=\"dl-fill\" x=\"118\" y=\"86\" width=\"84\" height=\"106\" rx=\"12\"/></g><g class=\"dl-part\" data-part=\"L3\"><rect class=\"dl-fill--line\" x=\"132\" y=\"98\" width=\"56\" height=\"30\" rx=\"4\"/><text class=\"dl-text\" x=\"160\" y=\"118\" text-anchor=\"middle\">14.2</text></g><g class=\"dl-part\" data-part=\"L4\"><circle class=\"dl-metal-2\" cx=\"160\" cy=\"156\" r=\"20\"/><path class=\"dl-line--accent\" d=\"M160 156 L148 146\"/></g><g class=\"dl-part\" data-part=\"L5\"><path class=\"dl-metal\" d=\"M144 192 q-22 6 -34 16\"/><path class=\"dl-metal\" d=\"M176 192 q22 6 34 16\"/><circle class=\"dl-chip\" cx=\"108\" cy=\"208\" r=\"4\"/><circle class=\"dl-chip\" cx=\"212\" cy=\"208\" r=\"4\"/></g><text class=\"dl-text--mid\" x=\"160\" y=\"82\" text-anchor=\"middle\">A~</text>"
+  },
+  "points": [
+    {
+      "id": "L0",
+      "label": "Jaws (split core)",
+      "detail": "The jaws are half of a current transformer: the conductor passing through them is a single-turn primary, and the meter reads the current induced in the core's winding. Because the coupling is magnetic there is no electrical connection at all — which is the point, since measuring amps any other way means breaking into the circuit.",
+      "x": 160,
+      "y": 40
+    },
+    {
+      "id": "L1",
+      "label": "Trigger",
+      "detail": "Opens the jaws so you can close them one-handed around a conductor in a crowded board. Let it snap shut rather than easing it: a jaw that is not fully closed leaves an air gap in the magnetic circuit and reads low, sometimes by a lot.",
+      "x": 138,
+      "y": 104
+    },
+    {
+      "id": "L2",
+      "label": "Body and insulation",
+      "detail": "Everything below the jaw line is a barrier as much as a housing — the jaws sit around a bare live conductor in a consumer unit, and the plastic between them and your hand is the only thing preventing a shock. Treat a cracked case the way you would treat a cracked test lead.",
+      "x": 122,
+      "y": 180
+    },
+    {
+      "id": "L3",
+      "label": "Display",
+      "detail": "On AC ranges a clamp meter reads the value the transformer delivers, so the accuracy depends on the waveform: a true-RMS meter reads a dimmer or a switch-mode supply correctly, an average-responding one can be 30 % out. The reading also drifts with a small residual in the core, which is what the zero button is for.",
+      "x": 160,
+      "y": 113
+    },
+    {
+      "id": "L4",
+      "label": "Rotary dial",
+      "detail": "AC and DC current, volts, resistance and continuity on one instrument. The DC ranges work on a Hall-effect sensor rather than a transformer, because a transformer cannot see DC at all — that is also the reason a clamp meter's DC current range needs zeroing before every use.",
+      "x": 160,
+      "y": 156
+    },
+    {
+      "id": "L5",
+      "label": "Test leads and zero button",
+      "detail": "The leads carry the voltage, resistance and continuity functions, and must be rated for the installation category you are working in. Zero (or relative) cancels the residual reading before a leakage measurement: clamp all the live conductors of a circuit together and a healthy circuit reads very close to zero, while a fault with current escaping to earth leaves the imbalance the clamp can see.",
+      "x": 108,
+      "y": 208
+    }
+  ],
+  "photo": {
+    "src": "/images/guide/clamp-meter",
+    "alt": "Photorealistic digital clamp meter with split-core jaws, rotary dial and test leads",
+    "width": 720,
+    "height": 240,
+    "points": [
+      {
+        "id": "L0",
+        "x": 42,
+        "y": 30
+      },
+      {
+        "id": "L1",
+        "x": 20,
+        "y": 46
+      },
+      {
+        "id": "L2",
+        "x": 30,
+        "y": 60
+      },
+      {
+        "id": "L3",
+        "x": 40,
+        "y": 50
+      },
+      {
+        "id": "L4",
+        "x": 46,
+        "y": 72
+      },
+      {
+        "id": "L5",
+        "x": 78,
+        "y": 60
+      }
+    ]
+  }
+}

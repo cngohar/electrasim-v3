@@ -1,3 +1,4 @@
+import { circuitSlug } from './guide';
 import type { ToolEntry } from './tools/registry';
 
 export interface SearchItem {
@@ -183,7 +184,9 @@ export function buildSearchIndex(
       id: `guide-${circuit.id}`,
       title: circuit.title,
       description: circuit.description,
-      url: `/guide/#${circuit.id}`,
+      /* Walkthroughs have their own pages now — the old `/guide/#<id>`
+         fragment never resolved for a first-time visitor. */
+      url: `/guide/circuits/${circuitSlug(circuit)}/`,
       type: 'guide',
       category: 'Guides',
       tags: [circuit.level || 'intermediate', 'circuit', 'wiring', 'guide'],

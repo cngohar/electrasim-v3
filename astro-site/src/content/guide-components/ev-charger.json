@@ -1,0 +1,167 @@
+{
+  "slug": "ev-charger",
+  "name": "EV Charge Point",
+  "tagline": "A controlled socket that talks to the car before it ever energises the cable.",
+  "category": "Fixed equipment",
+  "terminals": [
+    "L / N / E supply from a dedicated RCBO",
+    "CP (control pilot) — the signalling line to the vehicle",
+    "PP (proximity pilot) — tells the unit what cable is plugged in",
+    "Type 2 socket or tethered lead"
+  ],
+  "parts": [
+    "Contactor inside the unit — energised only after the handshake",
+    "Control pilot circuit — sets the available current by PWM duty cycle",
+    "6 mA DC leakage detection — required because DC blinds a Type A RCD",
+    "PEN-loss (open-circuit neutral) protection on PME supplies",
+    "LED status ring — standby, charging, fault",
+    "Cable entry and gland at the bottom of the enclosure"
+  ],
+  "safety": "A charge point is fixed electrical equipment on a PME supply, so the protective earth arrangement matters as much as the cable size. Where the supply is TN-C-S the installation normally needs an earth electrode or a PEN-loss device that disconnects all poles including earth — the one place in a domestic installation where switching the earth conductor is permitted.",
+  "svg": {
+    "viewBox": "0 0 220 300",
+    "body": "<g class=\"dl-part\" data-part=\"enclosure\"><rect class=\"dl-fill\" x=\"40\" y=\"26\" width=\"140\" height=\"216\" rx=\"16\"/></g><g class=\"dl-part\" data-part=\"status-indicator\"><circle class=\"dl-fill--line\" cx=\"110\" cy=\"82\" r=\"28\"/><circle class=\"dl-chip\" cx=\"110\" cy=\"82\" r=\"11\"/></g><g class=\"dl-part\" data-part=\"front-panel\"><rect class=\"dl-metal-2\" x=\"62\" y=\"128\" width=\"96\" height=\"58\" rx=\"6\"/><text class=\"dl-text\" x=\"110\" y=\"162\" text-anchor=\"middle\">7 kW</text></g><g class=\"dl-part\" data-part=\"connector\"><rect class=\"dl-metal\" x=\"92\" y=\"200\" width=\"36\" height=\"30\" rx=\"4\"/><circle class=\"dl-chip\" cx=\"110\" cy=\"248\" r=\"12\"/></g><g class=\"dl-part\" data-part=\"cable-entry\"><path class=\"dl-metal-2\" d=\"M40 228 h-14 a4 4 0 0 0 -4 4 v34 a4 4 0 0 0 4 4 h14 z\"/></g><text class=\"dl-text--mid\" x=\"110\" y=\"86\" text-anchor=\"middle\">LED</text><text class=\"dl-text--mid\" x=\"110\" y=\"252\" text-anchor=\"middle\">T2</text>"
+  },
+  "points": [
+    {
+      "id": "enclosure",
+      "label": "Enclosure (IP rated)",
+      "detail": "Outdoor units are typically IP54 or better with a UV-stable case and a seal around the lid. The rating applies to the whole installation, not just the box: every cable entry has to be glanded or routed from below, or water will find the one hole you left.",
+      "x": 52,
+      "y": 50
+    },
+    {
+      "id": "status-indicator",
+      "label": "LED status ring",
+      "detail": "The ring is the unit's only user interface: steady for ready, pulsing while charging, red or amber for a fault. It reports the state the control pilot negotiated, so a ring that never leaves standby usually means the handshake failed rather than a supply problem.",
+      "x": 110,
+      "y": 82
+    },
+    {
+      "id": "front-panel",
+      "label": "Rating plate and display",
+      "detail": "The rating is not the supply size — a 7.4 kW unit on a single-phase supply draws 32 A continuously for hours, which is why charge points are treated as a load with a unity diversity factor and get their own dedicated circuit rather than sharing a ring.",
+      "x": 110,
+      "y": 152
+    },
+    {
+      "id": "connector",
+      "label": "Type 2 connector",
+      "detail": "The socket carries L, N and PE plus two thin signal pins: CP (control pilot) and PP (proximity pilot). CP is the one that matters — the car pulls it to a defined voltage to say it is present, and the unit then applies a 1 kHz PWM signal whose duty cycle tells the car how many amps it may draw.",
+      "x": 110,
+      "y": 215
+    },
+    {
+      "id": "cable-entry",
+      "label": "Cable entry and gland",
+      "detail": "The supply arrives at the bottom through a gland that maintains the enclosure rating, and the earth for the electrode (where one is fitted) comes in the same way. Nothing is energised until the pilot handshake completes, so the connector pins are dead while the lead is unplugged.",
+      "x": 33,
+      "y": 250
+    }
+  ],
+  "photo": {
+    "src": "/images/guide/ev-charger",
+    "alt": "Photorealistic wall-mounted EV charge point with status display",
+    "width": 614,
+    "height": 614,
+    "points": [
+      {
+        "id": "status-indicator",
+        "x": 48,
+        "y": 27
+      },
+      {
+        "id": "enclosure",
+        "x": 20,
+        "y": 45
+      },
+      {
+        "id": "cable-entry",
+        "x": 15,
+        "y": 90
+      }
+    ]
+  },
+  "cutaway": {
+    "src": "/images/guide/ev-charger-cutaway",
+    "alt": "Cutaway of an EV charge point showing the internal contactor, control pilot board, DC leakage sensor, protective devices and supply terminals",
+    "width": 768,
+    "height": 768,
+    "points": [
+      {
+        "id": "ev-contactor",
+        "x": 45,
+        "y": 40
+      },
+      {
+        "id": "control-pilot-board",
+        "x": 62,
+        "y": 35
+      },
+      {
+        "id": "dc-leakage-sensor",
+        "x": 40,
+        "y": 58
+      },
+      {
+        "id": "ev-protection",
+        "x": 66,
+        "y": 60
+      },
+      {
+        "id": "ev-supply-terminals",
+        "x": 42,
+        "y": 82
+      },
+      {
+        "id": "ev-cable-entry",
+        "x": 80,
+        "y": 88
+      }
+    ]
+  },
+  "cutawayPoints": [
+    {
+      "id": "ev-contactor",
+      "label": "Output contactor",
+      "detail": "The connector on the front of the unit is dead until this closes. It only closes after the control pilot handshake confirms a vehicle is connected and is ready to charge, which is why the pins on a mode 3 connector are safe to touch before it plugs in and are not afterwards.",
+      "x": 45,
+      "y": 40
+    },
+    {
+      "id": "control-pilot-board",
+      "label": "Control pilot",
+      "detail": "The low-voltage conversation between the charge point and the car. A 1 kHz PWM signal on the pilot conductor tells the car how much current it may draw — the duty cycle is the limit — and the car signals back by loading the line. Charging stops the moment that exchange stops, which is what makes an unplug safe.",
+      "x": 62,
+      "y": 35
+    },
+    {
+      "id": "dc-leakage-sensor",
+      "label": "DC leakage sensor",
+      "detail": "A sensor looking for smooth DC fault current, which is required because a car can leak DC into the installation, and DC saturates the core of an ordinary Type A RCD and blinds it — the RCD is still there, it just stops working. Detection has to trip the supply at 6 mA DC or the installation loses its shock protection without anyone noticing.",
+      "x": 40,
+      "y": 58
+    },
+    {
+      "id": "ev-protection",
+      "label": "Protective device",
+      "detail": "An RCBO or a dedicated RCD with the right type for the DC detection, on a dedicated circuit. Sharing a circuit or using the wrong device is the usual finding on a charger installation: the load is large, continuous for hours, and the fault current available at the connector matters as much as the rating.",
+      "x": 66,
+      "y": 60
+    },
+    {
+      "id": "ev-supply-terminals",
+      "label": "Supply terminals",
+      "detail": "Where the dedicated circuit from the board lands. The cable is sized for a continuous load — a charge point drawing 32 A for six hours is not the same duty as a cooker that cycles — and the termination is where a continuous load finds the one loose screw in the installation.",
+      "x": 42,
+      "y": 82
+    },
+    {
+      "id": "ev-cable-entry",
+      "label": "Cable entry",
+      "detail": "Where the supply cable and the tethered charging cable leave the enclosure, and the detail that decides whether the unit keeps its ingress rating outdoors. A cable entering from above without a drip loop, or a gland left unsealed, puts water in the enclosure with the contactor.",
+      "x": 80,
+      "y": 88
+    }
+  ]
+}

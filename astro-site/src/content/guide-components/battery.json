@@ -1,0 +1,88 @@
+{
+  "slug": "battery",
+  "name": "12 V Deep-Cycle Battery",
+  "tagline": "Stores energy chemically — and gives it back at whatever current the load demands, right up to a fault.",
+  "category": "Storage",
+  "terminals": [
+    "Positive (+) — red collar, the first connection made",
+    "Negative (−) — black collar, the last connection broken",
+    "Battery-to-battery links for series (24 V) or parallel (more Ah)"
+  ],
+  "parts": [
+    "Plates and separators — lead-acid, or cells in a lithium pack",
+    "Electrolyte — flooded, AGM or gel",
+    "Case with venting — hydrogen is given off when charging",
+    "Terminal posts — tapered lead or threaded insert",
+    "State of charge and cycle life ratings (Ah, DoD, cycles)"
+  ],
+  "safety": "A battery can deliver hundreds of amps into a short circuit, so the fuse belongs at the battery terminal, not at the load end. Connect the positive first and disconnect the negative first, keep spanners away from the other post while one is tightened, and never charge a sealed battery in an unventilated space.",
+  "svg": {
+    "viewBox": "0 0 280 200",
+    "body": "<g class=\"dl-part\" data-part=\"case-front\"><rect class=\"dl-fill\" x=\"34\" y=\"66\" width=\"212\" height=\"118\" rx=\"6\"/></g><g class=\"dl-part\" data-part=\"top-surface\"><path class=\"dl-metal-2\" d=\"M34 66 l26 -34 h160 l26 34 z\"/></g><g class=\"dl-part\" data-part=\"terminal-post\"><circle class=\"dl-metal\" cx=\"74\" cy=\"44\" r=\"15\"/><circle class=\"dl-chip\" cx=\"74\" cy=\"44\" r=\"6\"/><circle class=\"dl-metal\" cx=\"206\" cy=\"44\" r=\"15\"/><circle class=\"dl-chip\" cx=\"206\" cy=\"44\" r=\"6\"/></g><g class=\"dl-part\" data-part=\"end-panel\"><path class=\"dl-metal-2\" d=\"M34 66 h-14 a6 6 0 0 0 -6 6 v106 a6 6 0 0 0 6 6 h14 z\"/></g><g class=\"dl-part\" data-part=\"label\"><rect class=\"dl-fill--line\" x=\"66\" y=\"98\" width=\"148\" height=\"54\" rx=\"3\"/><text class=\"dl-text\" x=\"140\" y=\"130\" text-anchor=\"middle\">12 V 100 Ah</text></g><text class=\"dl-text--mid\" x=\"74\" y=\"22\" text-anchor=\"middle\">+</text><text class=\"dl-text--mid\" x=\"206\" y=\"22\" text-anchor=\"middle\">−</text>"
+  },
+  "points": [
+    {
+      "id": "terminal-post",
+      "label": "Terminal posts (+ and −)",
+      "detail": "Tapered lead posts on a leisure battery, or threaded inserts on a lithium pack. Torque matters: too loose and a high-resistance joint cooks the post, too tight and you crack the case sealing. Connect positive first, negative last — and on a multi-battery bank, take the main feeds from opposite ends so both batteries share the current equally.",
+      "x": 74,
+      "y": 44
+    },
+    {
+      "id": "top-surface",
+      "label": "Top surface and vents",
+      "detail": "Flooded batteries are topped up and vented here; AGM and gel units have a one-way valve that releases gas only if the charge voltage runs away. Hydrogen given off during charging is flammable, which is the reason for the ventilation rule in any battery enclosure.",
+      "x": 140,
+      "y": 44
+    },
+    {
+      "id": "case-front",
+      "label": "Case and rating label",
+      "detail": "The Ah figure is a capacity at a stated discharge rate — usually C20, meaning 100 Ah delivers 5 A for 20 hours. Draw it at 50 A and you get far less than two hours, because the faster you take energy out the more is lost inside the battery.",
+      "x": 170,
+      "y": 168
+    },
+    {
+      "id": "end-panel",
+      "label": "End panel and carry handle",
+      "detail": "The narrow face. Depth of discharge is written here on better batteries: a lead-acid leisure battery taken below 50 % regularly will not reach its rated cycle life, which is why a lithium pack's usable capacity is closer to its nameplate capacity.",
+      "x": 20,
+      "y": 122
+    },
+    {
+      "id": "label",
+      "label": "State of charge label",
+      "detail": "Resting voltage tells you roughly where you are — about 12.7 V fully charged, 12.0 V half flat, 11.8 V effectively empty — but only after the battery has rested for a few hours. Read it under load and you are measuring the charger or the inverter, not the battery.",
+      "x": 140,
+      "y": 116
+    }
+  ],
+  "photo": {
+    "src": "/images/guide/battery",
+    "alt": "Photorealistic 12 V deep-cycle leisure battery",
+    "width": 692,
+    "height": 692,
+    "points": [
+      {
+        "id": "terminal-post",
+        "x": 50,
+        "y": 24
+      },
+      {
+        "id": "top-surface",
+        "x": 50,
+        "y": 15
+      },
+      {
+        "id": "case-front",
+        "x": 45,
+        "y": 62
+      },
+      {
+        "id": "end-panel",
+        "x": 12,
+        "y": 62
+      }
+    ]
+  }
+}

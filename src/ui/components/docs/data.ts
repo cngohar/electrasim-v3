@@ -118,7 +118,7 @@ export const LEARNING_MODES: Array<{
   {
     name: 'Guided Circuits',
     tagline: 'Follow this',
-    body: 'Eighteen ready-made circuits load straight onto the canvas with a checklist: trace the wiring, run the simulation, then review the result. Starter circuits cover lamps, one-way and two-way switching, RCD/RCBO protection, contactors, timers and a momentary doorbell; the ten Pro guides cover three-phase motor control, EV charging, solar with battery storage, underfloor heating, staircase timers, PIR floodlights, cooker supplies, surge-protected consumer units, generator backup and AFDD bedrooms. Guided circuits are walkthroughs, not challenges — the checklist tracks what you have done and there is no score or timer.',
+    body: 'Twenty ready-made circuits load straight onto the canvas with a checklist: trace the wiring, run the simulation, then review the result. Starter circuits cover lamps, one-way and two-way switching, parallel lamps, dimmable lighting, RCD/RCBO protection, contactors, timers and a momentary doorbell; the ten Pro guides cover three-phase motor control, EV charging, solar with battery storage, underfloor heating, staircase timers, PIR floodlights, cooker supplies, surge-protected consumer units, generator backup and AFDD bedrooms. Guided circuits are walkthroughs, not challenges — the checklist tracks what you have done and there is no score or timer.',
   },
   {
     name: 'Challenge Mode',

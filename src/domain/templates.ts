@@ -162,6 +162,90 @@ function oneWaySwitchTemplate(): GuidedCircuitTemplate {
   };
 }
 
+function twoBulbParallelTemplate(): GuidedCircuitTemplate {
+  const id = 'two-bulb-parallel';
+  const live = component(id, 'live', 'live-terminal', 90, 300);
+  const neutral = component(id, 'neutral', 'neutral-terminal', 90, 540);
+  const mcb = component(id, 'mcb', 'mcb', 260, 300, { on: true });
+  const sw = component(id, 'switch', 'single-way-switch', 430, 300, { on: true });
+  const junction = component(id, 'junction', 'junction-box', 600, 300);
+  const bulbA = component(id, 'bulb-a', 'bulb', 810, 220);
+  const bulbB = component(id, 'bulb-b', 'bulb', 810, 420);
+
+  return {
+    id,
+    title: 'Two-Bulb Parallel Lighting',
+    difficulty: 'Beginner',
+    tier: 'basic',
+    topic: 'Parallel branches',
+    summary:
+      'One switched live split through a junction box into two lamps that each return to neutral on their own.',
+    teaches:
+      'Every parallel branch gets the full supply voltage, so removing one lamp leaves the other running — and each extra branch adds its own current to the protective device.',
+    expected:
+      'Run the simulation: both lamps energise. Open the switch to drop both at once, or disconnect one lamp to show the other is unaffected.',
+    steps: [
+      'Follow the switched live from the MCB and switch into the junction box L-in.',
+      'Take both L-out branches from the junction box, one to each lamp.',
+      "Run the simulation, then disconnect one lamp's wire — the other lamp stays energised.",
+    ],
+    faultPrompt:
+      'Fault check: inject an open circuit on one branch in the Fault Lab. That lamp goes dark while its parallel neighbour keeps running — the signature of a parallel circuit.',
+    circuit: {
+      globalVoltage: 230,
+      components: [live, neutral, mcb, sw, junction, bulbA, bulbB],
+      wires: [
+        wire(id, 'live-mcb', live, 0, mcb, 0),
+        wire(id, 'mcb-switch', mcb, 1, sw, 0),
+        wire(id, 'switch-junction', sw, 1, junction, 0),
+        wire(id, 'junction-lamp-a', junction, 1, bulbA, 0),
+        wire(id, 'junction-lamp-b', junction, 2, bulbB, 0),
+        wire(id, 'neutral-lamp-a', neutral, 0, bulbA, 1),
+        wire(id, 'neutral-lamp-b', neutral, 0, bulbB, 1),
+      ],
+    },
+  };
+}
+
+function dimmableLightingTemplate(): GuidedCircuitTemplate {
+  const id = 'dimmable-lighting';
+  const live = component(id, 'live', 'live-terminal', 110, 240);
+  const neutral = component(id, 'neutral', 'neutral-terminal', 110, 410);
+  const mcb = component(id, 'mcb', 'mcb', 300, 240, { on: true });
+  const dimmer = component(id, 'dimmer', 'dimmer-switch', 520, 240, { on: true });
+  const bulb = component(id, 'bulb', 'bulb', 760, 240);
+
+  return {
+    id,
+    title: 'Dimmable Lighting Circuit',
+    difficulty: 'Intermediate',
+    tier: 'basic',
+    topic: 'Dimmed lighting control',
+    summary: 'A lighting circuit whose live feed runs through a dimmer instead of a plain switch.',
+    teaches:
+      'A dimmer sits where the switch would be and chops the waveform rather than simply opening it, so it only belongs on dimmable lamps — never on a socket outlet or a motor. The simulator models it as a switch in the live conductor; brightness itself is a hardware behaviour, not a computed output.',
+    expected:
+      'Run the simulation: the lamp energises while the dimmer is closed. Toggle the dimmer to break the live feed, then select the lamp and read its voltage and current in the Inspector.',
+    steps: [
+      'Trace Live through the MCB into the dimmer L-in terminal.',
+      'Follow the dimmer L-out to the lamp, with neutral returning straight to the supply.',
+      'Run the simulation, then toggle the dimmer to compare closed and open states.',
+    ],
+    faultPrompt:
+      'Fault check: inject an open circuit on the dimmed live in the Fault Lab. The lamp stays dark because the dimmer is in series with the feed.',
+    circuit: {
+      globalVoltage: 230,
+      components: [live, neutral, mcb, dimmer, bulb],
+      wires: [
+        wire(id, 'live-mcb', live, 0, mcb, 0),
+        wire(id, 'mcb-dimmer', mcb, 1, dimmer, 0),
+        wire(id, 'dimmer-bulb', dimmer, 1, bulb, 0),
+        wire(id, 'neutral-bulb', neutral, 0, bulb, 1),
+      ],
+    },
+  };
+}
+
 function twoWaySwitchTemplate(): GuidedCircuitTemplate {
   const id = 'two-way-staircase-light';
   const live = component(id, 'live', 'live-terminal', 100, 210);
@@ -852,7 +936,9 @@ function afddBedroomTemplate(): GuidedCircuitTemplate {
 export const GUIDED_CIRCUIT_TEMPLATES: GuidedCircuitTemplate[] = [
   simpleLampTemplate(),
   oneWaySwitchTemplate(),
+  twoBulbParallelTemplate(),
   twoWaySwitchTemplate(),
+  dimmableLightingTemplate(),
   rcdFaultTemplate(),
   contactorMotorTemplate(),
   timerBellTemplate(),

@@ -1,24 +1,34 @@
 ---
-import GuideCircuitCard from '../components/guide/GuideCircuitCard.astro';
+import { getCollection } from 'astro:content';
 import GuideCta from '../components/guide/GuideCta.astro';
+import { ogCardUrl } from '../og-manifest';
 import GuideHero from '../components/guide/GuideHero.astro';
-import GuideOverview from '../components/guide/GuideOverview.astro';
 import data from '../content/pages/guide.json';
 import Base from '../layouts/Base.astro';
-import packageMetadata from '../../../package.json';
 import '../styles/guide.css';
 import '../styles/guide-lab.css';
-import type { GuideCircuit, GuideFeature, GuidedTemplate } from '../types/pages';
+import { circuitSlug } from '../lib/guide';
+import type { GuideCircuit } from '../types/pages';
+import { GUIDE_LAB_VERSION } from '../lib/asset-version';
+
 
 const circuits = data.circuits as GuideCircuit[];
-const latestFeatures = data.latest_features as GuideFeature[];
-const guidedTemplates = data.guided_templates as GuidedTemplate[];
+const componentCount = (await getCollection('guideComponents')).length;
+const crumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'Circuit Guide', path: '/guide/' },
+];
+
 ---
 
 <Base
   title={data.seo_title}
   description={data.seo_description}
   canonical="https://electrasim.com/guide/"
+  ogImage={ogCardUrl('guide', 'sections')}
+  ogImageWidth={1200}
+  ogImageHeight={630}
+  ogImageType="image/png"
 >
   <Fragment slot="head">
     <script is:inline type="application/ld+json" set:html={JSON.stringify({
@@ -45,18 +55,53 @@ const guidedTemplates = data.guided_templates as GuidedTemplate[];
       description={data.hero_description}
       primaryCta={data.hero_cta_primary}
       secondaryCta={data.hero_cta_secondary}
-      circuits={circuits}
-    />
+      crumbs={crumbs}
+/>
 
     <div class="guide-main" data-live>
       <div class="wrap">
-        <nav class="guide-lab-nav" aria-label="Guide sections">
-          <a href="/guide/tools/"><span class="lab-icon" aria-hidden="true">🛠️</span> Hand Tools</a>
-          <a href="/guide/components/"><span class="lab-icon" aria-hidden="true">🔌</span> Components</a>
-          <a href="#circuit-walkthroughs"><span class="lab-icon" aria-hidden="true">⚡</span> Circuit Demos</a>
-        </nav>
-        <GuideOverview features={latestFeatures} templates={guidedTemplates} />
-        {circuits.map((circuit) => <GuideCircuitCard circuit={circuit} />)}
+        <!-- The hub is a route table, not a dump of every section: the app
+             features, workflow and 20 guided templates now live at
+             /guide/templates/, and each walkthrough has its own page. -->
+        <section class="guide-section" aria-labelledby="start-here-h">
+          <div class="guide-section-head">
+            <span class="guide-kicker">The guide</span>
+            <h2 id="start-here-h">Choose your starting point</h2>
+            <p>Four ways in — pick the one that matches what you are trying to do.</p>
+          </div>
+          <div class="hub-grid">
+            <a class="hub-card" href="/guide/tools/">
+              <span class="hub-icon" aria-hidden="true">🛠️</span>
+              <h3>Hand Tools</h3>
+              <p>Anatomy of the four core electrician's tools, labelled on the real tool.</p>
+              <span class="cs-go">Open hand tools →</span>
+            </a>
+            <a class="hub-card" href="/guide/components/">
+              <span class="hub-icon" aria-hidden="true">🔌</span>
+              <h3>Components</h3>
+              <p>{componentCount} parts, from the switch on the wall to the board itself — what each terminal does and how the protection works.</p>
+              <span class="cs-go">Open components →</span>
+            </a>
+            <a class="hub-card" href="/guide/circuits/">
+              <span class="hub-icon" aria-hidden="true">⚡</span>
+              <h3>Circuits</h3>
+              <p>{circuits.length} walkthroughs, from a single lamp to a generator changeover.</p>
+              <span class="cs-go">Open circuits →</span>
+            </a>
+            <a class="hub-card" href="/guide/templates/">
+              <span class="hub-icon" aria-hidden="true">🧭</span>
+              <h3>In the App</h3>
+              <p>{data.guided_templates.length} guided templates that open pre-built in the editor, plus the four-step workflow.</p>
+              <span class="cs-go">Open templates →</span>
+            </a>
+          </div>
+          <p class="hub-footnote">
+            New to the abbreviations? Every term the walkthroughs use — <strong>Zs</strong>,
+            <strong>CPC</strong>, <strong>RCD types</strong>, earthing systems — is defined in the
+            <a href="/glossary/">glossary</a>.
+          </p>
+        </section>
+
         <GuideCta
           heading={data.cta_heading}
           description={data.cta_description}
@@ -67,5 +112,53 @@ const guidedTemplates = data.guided_templates as GuidedTemplate[];
     </div>
   </main>
 
-  <script is:inline defer src={`/js/guide-lab.js?v=${packageMetadata.version}`}></script>
+  {/* Legacy links: walkthroughs used to live at /guide/#circuit-N. The hash
+      never reaches the server, so the redirect has to happen here. */}
+  <script
+    is:inline
+    set:html={`window.__GUIDE_CIRCUIT_SLUGS=${JSON.stringify(
+      Object.fromEntries(circuits.map((c) => [c.id, circuitSlug(c)])),
+    )};`}
+  />
+  <script is:inline>
+    (function () {
+      var m = /^#circuit-(\d+)$/.exec(window.location.hash);
+      if (!m) return;
+      var slug = window.__GUIDE_CIRCUIT_SLUGS && window.__GUIDE_CIRCUIT_SLUGS['circuit-' + m[1]];
+      if (slug) window.location.replace('/guide/circuits/' + slug + '/');
+    })();
+  </script>
+
+  <script is:inline defer src={`/js/guide-lab.js?v=${GUIDE_LAB_VERSION}`}></script>
 </Base>
+
+<style>
+  .hub-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 1rem;
+    margin: 1.25rem 0 0.5rem;
+  }
+  .hub-card {
+    display: grid;
+    gap: 0.4rem;
+    align-content: start;
+    padding: 1.2rem 1.3rem 1.35rem;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--bg-card);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  }
+  .hub-card:hover,
+  .hub-card:focus-visible {
+    border-color: var(--border-bright);
+    box-shadow: 0 10px 26px rgba(37, 99, 235, 0.1);
+    transform: translateY(-3px);
+  }
+  .hub-icon { font-size: 1.5rem; line-height: 1; }
+  .hub-card h3 { margin: 0.2rem 0 0; font-size: 1.05rem; }
+  .hub-card p { margin: 0 0 0.4rem; font-size: 0.86rem; color: var(--text-mid); line-height: 1.55; }
+
+</style>

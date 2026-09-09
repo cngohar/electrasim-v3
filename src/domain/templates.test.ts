@@ -145,6 +145,93 @@ describe('guided circuit templates', () => {
     }
   });
 
+  it('defines the two-bulb parallel topology and its branch checklist', () => {
+    const template = requireTemplate('two-bulb-parallel');
+
+    expect(template).toMatchObject({
+      title: 'Two-Bulb Parallel Lighting',
+      difficulty: 'Beginner',
+      topic: 'Parallel branches',
+    });
+    expect(template.teaches).toContain('full supply voltage');
+    expect(template.steps).toHaveLength(3);
+    expect(template.circuit.components).toHaveLength(7);
+    expect(template.circuit.wires).toHaveLength(7);
+    expect(connections(template.circuit)).toEqual([
+      'two-bulb-parallel-live[0]->two-bulb-parallel-mcb[0]',
+      'two-bulb-parallel-mcb[1]->two-bulb-parallel-switch[0]',
+      'two-bulb-parallel-switch[1]->two-bulb-parallel-junction[0]',
+      'two-bulb-parallel-junction[1]->two-bulb-parallel-bulb-a[0]',
+      'two-bulb-parallel-junction[2]->two-bulb-parallel-bulb-b[0]',
+      'two-bulb-parallel-neutral[0]->two-bulb-parallel-bulb-a[1]',
+      'two-bulb-parallel-neutral[0]->two-bulb-parallel-bulb-b[1]',
+    ]);
+  });
+
+  it('keeps the parallel neighbour lit when one branch is removed', () => {
+    const circuit = cloneTemplateCircuit(requireTemplate('two-bulb-parallel'));
+    const lampA = 'two-bulb-parallel-bulb-a';
+    const lampB = 'two-bulb-parallel-bulb-b';
+
+    const both = simulate(circuit);
+    expect(both.energizedComponents.has(lampA)).toBe(true);
+    expect(both.energizedComponents.has(lampB)).toBe(true);
+    expect(both.errors).toEqual([]);
+
+    // One branch removed: that lamp drops, its parallel neighbour does not.
+    circuit.wires = circuit.wires.filter(
+      (wire) => wire.id !== 'two-bulb-parallel-w-junction-lamp-a',
+    );
+    const oneBranch = simulate(circuit);
+    expect(oneBranch.energizedComponents.has(lampA)).toBe(false);
+    expect(oneBranch.energizedComponents.has(lampB)).toBe(true);
+    expect(oneBranch.errors).toEqual([]);
+  });
+
+  it('drops both parallel lamps from the single switch', () => {
+    const circuit = cloneTemplateCircuit(requireTemplate('two-bulb-parallel'));
+    const sw = requireComponent(circuit, 'two-bulb-parallel-switch');
+
+    sw.state.on = false;
+    const result = simulate(circuit);
+    expect(result.energizedComponents.has('two-bulb-parallel-bulb-a')).toBe(false);
+    expect(result.energizedComponents.has('two-bulb-parallel-bulb-b')).toBe(false);
+    expect(result.errors).toEqual([]);
+  });
+
+  it('defines the dimmable lighting topology', () => {
+    const template = requireTemplate('dimmable-lighting');
+
+    expect(template).toMatchObject({
+      title: 'Dimmable Lighting Circuit',
+      difficulty: 'Intermediate',
+      topic: 'Dimmed lighting control',
+    });
+    expect(template.teaches).toContain('never on a socket outlet');
+    expect(template.steps).toHaveLength(3);
+    expect(template.circuit.components).toHaveLength(5);
+    expect(template.circuit.wires).toHaveLength(4);
+    expect(connections(template.circuit)).toEqual([
+      'dimmable-lighting-live[0]->dimmable-lighting-mcb[0]',
+      'dimmable-lighting-mcb[1]->dimmable-lighting-dimmer[0]',
+      'dimmable-lighting-dimmer[1]->dimmable-lighting-bulb[0]',
+      'dimmable-lighting-neutral[0]->dimmable-lighting-bulb[1]',
+    ]);
+  });
+
+  it('energises the dimmed lamp only while the dimmer is closed', () => {
+    const circuit = cloneTemplateCircuit(requireTemplate('dimmable-lighting'));
+    const dimmer = requireComponent(circuit, 'dimmable-lighting-dimmer');
+    const lampId = 'dimmable-lighting-bulb';
+
+    expect(simulate(circuit).energizedComponents.has(lampId)).toBe(true);
+
+    dimmer.state.on = false;
+    const open = simulate(circuit);
+    expect(open.energizedComponents.has(lampId)).toBe(false);
+    expect(open.errors).toEqual([]);
+  });
+
   it('deep-clones template state and wire control points', () => {
     const template = requireTemplate('push-button-doorbell');
     const clone = cloneTemplateCircuit(template);
@@ -160,7 +247,7 @@ describe('guided circuit templates', () => {
     const basic = GUIDED_CIRCUIT_TEMPLATES.filter((template) => template.tier === 'basic');
     const pro = GUIDED_CIRCUIT_TEMPLATES.filter((template) => template.tier === 'pro');
 
-    expect(basic.length).toBe(8);
+    expect(basic.length).toBe(10);
     expect(pro.length).toBeGreaterThanOrEqual(8);
     for (const template of basic) {
       expect(template.difficulty).not.toBe('Advanced');

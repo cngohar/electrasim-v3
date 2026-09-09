@@ -7,6 +7,231 @@ A running, append-only log of work on the ElectraSim rewrite. Every coding sessi
 
 ---
 
+## Session 2026-09-09 — Release v2.0.3: a start-here post for the guide
+
+**Request:** write a detailed blog post on how to use the guide from beginner level to pro level,
+bump the version to 2.0.3, add a v2.0.3 note to the 2.0 release post, append entries to the
+changelog, progress and other tracking, then open a pull request.
+
+**Done:**
+1. `/blog/how-to-use-the-electrasim-guide-beginner-to-pro/` — the route through the guide in four
+   levels (beginner, intermediate, advanced, pro). Each level says what to open, what to read, what
+   to build in the app and what "ready for the next level" looks like; a progression table
+   summarises it; the closing section covers Part P, proving dead and EICR codes so the post cannot
+   be read as authorising work on a live installation. 2,213 words, 76 internal links, all verified
+   by `check:links`. Marked `featured: true` — the first blog post to carry the badge.
+2. Version bumped to 2.0.3 in the root manifest, the astro workspace manifest and the three
+   workspace entries in `package-lock.json`. The landing release popup is keyed on this value, so
+   the bump is what re-arms it, and the three versionless marketing scripts (`theme.js`,
+   `site-nav.js`, `scroll-top.js`) get a new `?v=` cache key with it.
+3. The v2.0 release post carries a v2.0.3 note in the established blockquote pattern, a new
+   section 13 with the reader-facing summary, `version: "v2.0.3"`, a v2.0.3 tag and an updated
+   `updatedDate`.
+4. `CHANGELOG.md`: the Unreleased block is cut as `## [2.0.3] — 2026-09-09` with a fresh empty
+   Unreleased above it. `TRACKING.md` gains a release record for the version and its cache-key
+   consequences.
+
+**Verified** against `dist/`: the post renders at 48-char title / 142-char description with its own
+OG card, Article and BreadcrumbList schema, and a sitemap entry; 192 pages pass `check:links` and
+`check:seo`.
+
+## Session 2026-09-09 — SEO pass 1: snippet lengths
+
+**Request:** with the guide signed off as complete (22 components, 16 cutaways, 8 tools, 20 circuits,
+37 glossary terms) and the remaining content items deferred to a later phase, work the SEO list one
+item at a time and report when the whole list is finished. Items: (1) descriptions over 160
+characters, (2) titles over 60, (3) per-page OG cards for the guide pages, (4) `BreadcrumbList` and
+`HowTo` structured data.
+
+**Done:**
+1. Descriptions: 128 over 160 → 0. The clamp went into `Base.astro` (every page renders through it)
+   and into `ToolLayout.astro` (the toolbox pages do not). The three guide description templates were
+   rewritten rather than truncated — they were the source of the longest copy.
+2. Titles: 111 over 60 → 0. Clause-boundary logic rather than a bare cut, so the surviving text is
+   still a readable phrase.
+3. `scripts/check-seo.mjs` gates it in `npm run verify`, and measures the *rendered* text — counting
+   `&amp;` as five characters was reporting a 58-character title as 64.
+4. 13 unit tests over the two helpers, plus a full suite run (1435 passing), typecheck, lint,
+   `check:perf` and `check:links`.
+
+**Verified** against `dist/`, not the source: 187 pages, 0 SEO failures.
+
+4. Structured data: `BreadcrumbList` on all 56 guide pages, emitted by a component that renders the
+   trail and the schema from one array so they cannot drift, plus `HowTo` on the 20 circuit
+   walkthroughs with anchored steps. The gate compares each trail against the rendered nav.
+
+3. OG cards: 56 unique cards for the guide (22 components, 8 tools, 20 circuits, 6 landing pages).
+   The generator gained a corpus per guide section with category-driven accents; guide cards emit as
+   PNG-8 (60 KB vs 131 KB, per-channel error 0.65/255) while the published blog cards keep their
+   encoding. The SEO gate now fails any guide page that falls back to the shared image.
+
+## Session 2026-09-08 — Guide redesign: real-part imagery, circuit pages, In the App
+
+**Request:** implement the approved Guide Hub redesign (Idea 1: four sections + a page per circuit) on
+the real Astro site, after sign-off on a clickable mockup. Earlier in the session the user asked for
+realistic component and tool imagery, the point-detail panel beside the figure rather than below it,
+safety notes as a full-width band, SVG schematics alongside the text diagrams, and real conductor
+colours (live red, neutral black) with the current-flow animation kept.
+
+**Mockup:** `mockup-guide/` (untracked, disposable) — a Node generator producing 17 static pages from
+the real content JSON, used only to settle layout and interaction before touching app code.
+
+**Done:**
+1. Images: eight renders generated and cropped tight to each part, then emitted as `.webp` + quantised
+   `.png` fallback under `astro-site/public/images/guide/`. Hotspot coordinates were measured
+   programmatically off the renders (bounding boxes, connected-component blobs, colour masks) rather
+   than eyeballed, and every marker verified to sit on the part.
+2. Schema (`src/content.config.ts`) gains an optional `photo` block — percent coordinates keyed by
+   point id — plus matching types in `src/lib/anatomy.ts`.
+3. `CatalogCard.astro` renders the photo when present; `guide-lab.js` positions photo hotspots from
+   `data-point-p{x,y}` and drawing hotspots from `data-point-v{x,y}`, and resolves the detail panel
+   through `data-anatomy-detail-target` so it can live in the side rail (the strict CSP blocks inline
+   styles, so positions are still applied at runtime).
+4. New routes `/guide/circuits/[slug]` (8 pages) and `/guide/templates/`; hub reduced to a route table
+   with a legacy `#circuit-N` redirect; search index and its test updated to the new URLs.
+5. Both anatomy pages restructured: specification rows → point-detail panel → meet-it-in-a-circuit
+   mesh, with the safety note as a full-width band above the bottom row.
+
+**Follow-up round (same session, after review):**
+1. Breadcrumbs: `global.css` styles a bare `.bc` as a terminal card (border, shadow, top busbar) for
+   the blog, and guide pages were inheriting it. Scoped the plain row back in with
+   `.bc-wrap:has(+ .guide-hero)` so the blog is untouched.
+2. Removed the leftover `#circuit-N` progress strip under the hero, the `#slug` strip on the anatomy
+   index pages, and the hub's duplicated circuit list; the hero CTA now targets
+   `/guide/templates/#latest-features`.
+3. Hotspots moved off the index cards — `CatalogCard` takes a `hotspots` prop, opted into by the
+   detail pages only.
+4. Component chips with a matching anatomy page now render amber (`--warning-bg` / `--amber-ink`) so
+   linked and unlinked chips are distinguishable.
+5. Section pill nav: present on every guide page except the hub.
+6. Responsive rules for phone / tablet / small laptop / widescreen; verified in the built CSS.
+7. Audited the template question: the app's `GUIDED_CIRCUIT_TEMPLATES` and the guide's
+   `guided_templates` are both 18 entries with identical ids and titles — nothing is missing.
+
+**Follow-up round 2 (same session, after re-checking the built site):**
+1. Hotspot regression — the markers had disappeared from *both* the index and the detail pages. When
+   a detail page points its figure at the side-rail panel (`data-anatomy-detail-target`), that panel
+   *is* the scope element, and `querySelector` only walks descendants: the lookup returned `null`, the
+   card was skipped wholesale, and `.anatomy-hotspots` kept `display:none`. Added a `findIn()` helper
+   that matches the scope itself before searching inside it, plus a guard for the SVG `viewBox` read.
+   Pinned by `astro-site/src/lib/guide-lab.test.ts` — reverting the fix fails the external-panel case
+   — and checked end-to-end in jsdom against the built HTML (mcb 4 markers and a populated panel,
+   wire-strippers 4 markers, components index 0).
+2. Schematics for the remaining six circuits — two-lamp parallel, RCD-protected socket, timed outdoor
+   lighting, dimmable lighting, doorbell and the three-way consumer unit panel — drawn from shared
+   symbol builders (`sw1`, `bulb`, `socketFace`, `bell`, `motor`, `clock`, `rotary`, `pushButton`) so
+   all eight diagrams read as one family rather than eight one-offs.
+3. `astro-site/src/lib/guide.test.ts` (65 assertions) checks what nobody can eyeball on every deploy:
+   every circuit has a schematic, every conductor end lands on a terminal, device, symbol or another
+   conductor, the animated current stays on the conductors, no label is printed on a wire or on top of
+   another label, and nothing falls outside the frame. It caught two real defects — the consumer-unit
+   busbar flow ran one column off the conductor, and every device designator sat on the live wire.
+4. The schematic legend now derives from the drawing: earth (green) on the RCD socket circuit,
+   strappers (brown) only where two-way switching uses them.
+
+**Follow-up round 3 (same session — completing the component library):**
+1. Nine new component pages — one-way switch, two-way switch, junction box, timer switch, dimmer
+   switch, bell push, bell/buzzer, distribution board and electric motor — closing the gap where a
+   circuit named a part that had no page to open. The guide now has 13 component pages and every
+   component referenced by a walkthrough links to one.
+2. Renders: nine product shots generated, then cropped tight by fitting a bilinear background plane
+   to the image borders and keeping the largest connected blob (the kit from round 1 did not survive,
+   so the pipeline was rebuilt). Hotspot coordinates were picked from feature probes — dark blobs for
+   screws and recesses, brass masks for terminal metal, copper masks for windings and busbars — and
+   each one verified to sit on the part rather than the backdrop. One miss (the consumer unit's main
+   switch) was caught that way and moved.
+3. Cross-link rules rewritten as first-match-wins so "Two-way Switch × 2" resolves to the two-way
+   page instead of the plain switch, and "Timer/Dimmer Switch" do not fall through to it either.
+   Pinned by tests, along with "every page is reachable from a circuit".
+4. `guide.test.ts` grew to 107 assertions: the eight schematics above plus the component library —
+   point ids unique and inside the frame, every point backed by a `data-part` group, every photo
+   hotspot matched to a point and to a real image of the declared size, and every drawing hotspot
+   inside the shape it labels (checked by parsing the SVG geometry).
+
+**Deferred (user's call):** cutaway diagrams for the internal parts that a photo cannot show. The
+drawing-only points (rear terminals, striker, shaft, DIN rail) are described in each page's parts
+list but stay off the photo, matching the four existing components.
+
+**Follow-up round 4 (same session — review fixes from the deployed preview):**
+1. **Markers still missing in a real browser.** Three separate causes: (a) the figure `<img>` can
+   finish decoding *after* the script runs, so positions were computed against a zero-height photo —
+   markers are now repositioned on `load`; (b) a photo wider than its stage pushed the overlay's
+   negative offsets outside `.anatomy-card { overflow: hidden }`, clipping the markers —
+   `max-width: 100%` added to `.anatomy-photo`; (c) **the real one**: the script URL was stamped with
+   the package version (`?v=2.0.2`), which does not change when the file does, so the user's browser
+   kept serving the old script through two "fixed" deploys. New `src/lib/asset-version.ts` hashes the
+   file's contents at build time via a Vite `?raw` import, so the URL changes exactly when the script
+   does.
+2. **Detail pages linked to themselves.** `CatalogCard`'s `href` is now optional and the "Open
+   anatomy →" action only renders when a different URL is passed; the component and tool `[slug]`
+   pages no longer pass one (index pages still do).
+3. **Images squared.** All 13 part renders padded to an exact 1:1 canvas (part centred, pad filled
+   with the render's own median border colour, hotspot percentages remapped, `photo.width/height`
+   rewritten, webp regenerated) so cards frame identically instead of alternating tall and wide.
+   Re-verified: 13/13 "all hotspots on the part".
+4. **App-vs-guide coverage made explicit.** The two collections are different things: 18 guided
+   templates in the app, 8 written walkthroughs in the guide, 6 of which the app links to. The
+   templates page now counts both in its copy and marks the 12 app-only cards with an "App only"
+   chip instead of silently omitting the link. Writing the remaining 12 walkthroughs is left as the
+   user's call.
+
+**Follow-up round 5 (same session — closing the app/guide coverage gap):** the two collections
+overlap but are not the same thing (18 app templates, 8 written walkthroughs, 6 linked; 2 circuits
+guide-only). The templates page now says so and chips the 12 app-only cards. On the user's call, the
+four beginner/intermediate app-only templates got walkthroughs of their own:
+1. **Protected Lamp** (`simple-lamp`, new Lesson 01) — no switch, so the two-rail path is the only
+   lesson. Also fixes a real mismatch: circuit-1's steps place a switch but it pointed at
+   `simple-lamp`, which has none; circuit-1 now opens `one-way-light-switch`.
+2. **Timer-Controlled Bell** (`timer-bell`, 09) — timer block + bell symbol, next to the doorbell
+   walkthrough.
+3. **RCBO-Protected Socket** (`rcbo-protected-socket`, 10) — RCBO device box with a test button,
+   earth bypassing the device, and a test lamp standing in for a plugged-in appliance.
+4. **Contactor Motor Starter** (`contactor-motor`, 11) — contactor with a coil, switching live and
+   neutral together so the motor is isolated when it drops out.
+Schematic work: four new diagrams built from the existing symbol builders (no new primitives except
+a contactor drawn as a device box with a coil), each pinned by the 8 schematic assertions — no
+dangling conductor ends, flow on the conductors, no label on a wire or another label, nothing
+outside the frame. `guide.test.ts` is at 139 assertions; 166 pages build.
+
+**Follow-up round 6 (same session — the two guide-only circuits, app side):** on the user's call,
+`two-bulb-parallel` and `dimmable-lighting` were added to the app's guided template set
+(`src/domain/templates.ts`, `guidedCircuitIds.ts`), so every one of the 12 walkthroughs now opens a
+matching template and the app ships 20. Both are basic tier, 230 V, three steps, with a faultPrompt.
+Pinned by four new tests: topology (7 components / 7 wires for the parallel circuit, 5 / 4 for the
+dimmer) plus simulation — removing one parallel branch leaves the other lamp energised, opening the
+switch drops both, and the dimmer opens the live feed. `basic.length` assertion moved 8 → 10.
+Copy that had drifted was corrected at the same time: the landing page's "8 guided circuits" stat and
+"Eight ready-made templates" highlight (stale since the app passed 18), the hub/overview/templates
+counts (now derived from the template list), and the in-app docs page.
+
+**Follow-up round 7 (same session — the remaining eight templates):** all Advanced Pro circuits.
+Lessons 13–20: three-phase DOL starter, EV charger, solar PV + battery, underfloor heating zone, PIR
+floodlight, cooker/induction hob, generator backup, AFDD bedroom. Each with a schematic, chips,
+steps, insight and a tailored safety note (400 V isolation and rotation checks; EV earthing
+arrangements and RCD types; DC arcs not self-extinguishing; cooker terminations; generator
+back-feed; AFDD as additional, not substitute, protection).
+Schematic work: six new symbol builders (3-phase motor, PV array, heating mat, LED luminaire, siren,
+earth rod, PIR sensor) plus DC rail support — `.wdp`/`.wdn` conductors, `.term-p`/`.term-m`
+terminals and a DC + / DC − legend that replaces the Live/Neutral key for DC circuits, with
+three-phase drawings dropping the Neutral key entirely. Test contract widened accordingly: the
+live/return assertion accepts a DC pair, and the supply-terminal assertion checks DC rails for DC
+schematics and the CPC for three-phase ones (no neutral to find).
+The guide now carries 20 walkthroughs covering all 20 guided templates; the templates page says so
+and no longer renders an "App only" chip. `guide.test.ts` is at 203 assertions; 174 pages build.
+
+**Verification (round 4):** `astro check` 0 errors / 0 warnings / 9 hints; **162 pages**; **240 lib
+tests**; every detail page asserted in jsdom against the built HTML (motor/board/bulb/switch 4–5
+markers, tools 4 markers, 0 self-links, script tag carries a content hash
+`?v=3c3d96274a`); components index 13 cards, 0 markers.
+
+**Verification:** `astro check` 0 errors / 0 warnings; **162 pages** build; **240 lib tests** pass
+(129 + 4 hotspot + 107 guide); a label/conductor collision report run over all eight diagrams comes
+back clean; hotspots asserted in jsdom against the built HTML (motor 5 markers → "Terminal box",
+distribution board 5 → "Main switch", bell 4 → "Gong", switch 4 → "Faceplate", components index 13
+cards and 0 markers); the consumer-unit walkthrough now links 6 of its 8 chips to anatomy pages.
+
+---
+
 ## Session 2026-08-29 — Cable Size Calculator v2 (full replacement)
 
 **Request:** replace/overwrite the existing cable sizing tool with **Cable Size Calculator v2** per the
@@ -4309,3 +4534,65 @@ release-notes link, Esc/×/backdrop close, focus trap. Verified in Chromium at 1
 **Gates:** tsc (app + e2e) ✓, biome ✓, astro check 0 errors ✓, **1135/1135 vitest** (−21
 deleted tool tests, +7 lazy-emoji contract tests), build **133 pages** ✓, check:perf all
 PASS ✓, check:links ✓, simulation benchmark unchanged (1.07 ms median @ 200 components).
+
+---
+
+## Follow-up round 9 — close the remaining guide content gaps, then SEO
+
+**Audit first.** Scanned the built HTML for title lengths, meta description lengths, h1 counts,
+canonical tags, alt attributes, OG images and JSON-LD, then read `astro.config.mjs`, `robots.txt`,
+`search.json.ts` and the content collections. Technical SEO is in good shape (canonical everywhere,
+one h1 per page, alt text on all 34 guide images, all 43 guide URLs in the sitemap, WebSite JSON-LD,
+`check:links` and `check:perf` green). The gaps are: titles over 60 chars, descriptions up to 391
+chars, no custom OG cards on guide pages, no `BreadcrumbList`/`HowTo`/`ItemList` structured data, no
+`<lastmod>` or visible "last updated" on guide URLs, no in-body guide → blog cross-links, and
+`/js/theme.js?v=<version>` still using the stale-cache pattern already fixed for `guide-lab.js`.
+
+Per the user: **finish the content first, verify, then do SEO.** Order: (1) the nine advanced
+component anatomy pages, (2) glossary, (3) test equipment pages, (4) cutaways.
+
+**Nine advanced anatomy pages — done.** `contactor`, `afdd`, `ev-charger`, `solar-pv-panel`,
+`battery`, `generator`, `pir-sensor`, `cooker-unit`, `heating-mat`. Nine renders were generated,
+then processed without ever looking at them (no vision in this session):
+
+- crop and square by modal-background colour + largest connected component, part centred, canvas
+  padded with the render's own background;
+- layout "seen" by rasterising each image to a 64–88 column ASCII luminance map, and by a 44×22 grid
+  of distance-from-background values, which is what actually located the terminals, lens, cold tail
+  and busbars;
+- every hotspot verified numerically (7×7 patch mean distance from background ≥ 25) — four first
+  guesses landed on background and were relocated from the grids;
+- PNG fallbacks re-encoded to 128-colour palette (41–86 KB, rmse 3.2–6.3) and WebP at q84; the
+  photos are 41–102 KB instead of the 500 KB–1 MB the raw renders came out at.
+
+Nine matching rules added to `COMPONENT_ANATOMY_RULES`, so every advanced walkthrough now links to
+its component page and every page links back to the circuits that use it (contactor is shared by the
+single-phase and three-phase motor starters).
+
+**Gates:** 1387 vitest (+27 = 9 pages × 3 assertions), `astro check` 0/0/9, build **183 pages**
+(+9), dev server serving all new pages 200.
+
+**Glossary — done.** `/glossary/`: 36 terms in six groups (earthing & bonding, protection, testing,
+cables & sizing, circuits & loads, low voltage & generation) with an A–Z jump strip and per-term
+anchors. The cross-links are *derived*, not curated: `termsIn()` scans every circuit (title,
+description, insight, steps, components, safety copy), component (name, tagline, safety, parts,
+terminals, hotspot details) and tool page, so each glossary entry lists only the pages that really
+mention it, and each of those pages gets a "Terms used here" chip row back. A term no page reaches
+would be an orphan, so four tests assert: unique slugs with real definitions, `see`-links that
+resolve, word-boundary matching (`Type C` is a breaker curve, `the cooker circuit` is not), and zero
+orphaned terms — terms with no natural home get a hand-written pointer instead (sizing terms to the
+cable-size and voltage-drop calculators).
+
+**Test equipment — done, photos half done.** Four pages: multimeter, voltage & continuity tester,
+RCD tester, clamp meter. The multimeter has a verified photo (hotspots measured, not eyeballed); the
+other three are drawing-only for now because the image generator hit its 10-image-per-turn limit
+after one render. Their renders get generated and wired next turn with the same pipeline (crop →
+3:1 canvas on the render's own background → numeric hotspot verification → palette PNG + WebP).
+The tools index now reads as two shelves: hand tools and test equipment.
+
+**Gates:** 1391 vitest (+4 glossary assertions), `astro check` 0/0/9, build **188 pages**,
+`check:links` 190 HTML files, `check:perf` 5/5 budgets PASS.
+
+**Note:** this turn also found the local branch had been reset to the base commit while the remote
+still held the round-1–8 work; re-synced with `git fetch` + `git reset --mixed` so the tree kept its
+content and history came back from `origin/arena/01a07c47-electrasimw`.

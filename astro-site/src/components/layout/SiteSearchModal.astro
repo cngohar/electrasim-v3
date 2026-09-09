@@ -53,6 +53,9 @@ import EmojiIcon from '../EmojiIcon.astro';
       <button type="button" class="search-filter-pill" data-filter="guide" aria-pressed="false">
         <EmojiIcon name="ruler" /> Guides
       </button>
+      <button type="button" class="search-filter-pill" data-filter="term" aria-pressed="false">
+        <EmojiIcon name="scroll" /> Terms
+      </button>
     </div>
 
     <!-- Quick Links Heading (visible when empty query) -->
@@ -339,6 +342,15 @@ import EmojiIcon from '../EmojiIcon.astro';
 
   :global(:root[data-theme='dark']) .search-results-list :global(.type-badge-update) {
     color: #c4b5fd;
+  }
+
+  :global(.type-badge-term) {
+    background: rgba(6, 182, 212, 0.15);
+    color: #115e59;
+  }
+
+  :global(:root[data-theme='dark']) .search-results-list :global(.type-badge-term) {
+    color: #67e8f9;
   }
 
   :global(.type-badge-page) {

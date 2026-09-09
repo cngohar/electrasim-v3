@@ -1,0 +1,76 @@
+{
+  "slug": "junction-box",
+  "name": "Junction Box",
+  "tagline": "Where cables meet. Every joint has to live in an enclosure you can still open in ten years’ time.",
+  "category": "Accessory",
+  "terminals": [
+    "Terminal block — one way per conductor",
+    "Earth — a linked earth terminal for every cable",
+    "Cable entries — knockouts or glands around the rim"
+  ],
+  "parts": [
+    "Enclosure — round or rectangular, with a screw-down lid",
+    "Terminal block — a strip connector, one screw per conductor",
+    "Cable entries — knockouts or glands that grip the sheath",
+    "Lid fixing screw — keeps the lid on and the joint enclosed",
+    "Base fixing holes — screws that anchor the box to the joist or wall"
+  ],
+  "safety": "A joint buried in plaster, under floorboards or inside a wall cavity is not a joint — it is a fault waiting to be found. Every connection must be in an accessible enclosure, or made with a maintenance-free connector rated to be buried. Screw terminals must stay accessible for inspection and testing.",
+  "svg": {
+    "viewBox": "0 0 200 220",
+    "body": "<g class=\"dl-part\" data-part=\"L0\"><circle class=\"dl-fill\" cx=\"100\" cy=\"100\" r=\"82\"/><circle class=\"dl-fill--line\" cx=\"100\" cy=\"100\" r=\"70\"/></g><g class=\"dl-part\" data-part=\"L2\"><rect class=\"dl-fill\" x=\"86\" y=\"8\" width=\"28\" height=\"20\" rx=\"4\"/><rect class=\"dl-fill\" x=\"86\" y=\"172\" width=\"28\" height=\"20\" rx=\"4\"/><rect class=\"dl-fill\" x=\"8\" y=\"86\" width=\"20\" height=\"28\" rx=\"4\"/><rect class=\"dl-fill\" x=\"172\" y=\"86\" width=\"20\" height=\"28\" rx=\"4\"/></g><g class=\"dl-part\" data-part=\"L1\"><rect class=\"dl-metal\" x=\"58\" y=\"82\" width=\"84\" height=\"36\" rx=\"4\"/><circle class=\"dl-chip\" cx=\"72\" cy=\"100\" r=\"4\"/><circle class=\"dl-chip\" cx=\"91\" cy=\"100\" r=\"4\"/><circle class=\"dl-chip\" cx=\"110\" cy=\"100\" r=\"4\"/><circle class=\"dl-chip\" cx=\"129\" cy=\"100\" r=\"4\"/></g><g class=\"dl-part\" data-part=\"L3\"><circle class=\"dl-metal\" cx=\"100\" cy=\"142\" r=\"7\"/><path class=\"dl-line--accent\" d=\"M95 142 h10\"/></g>"
+  },
+  "points": [
+    {
+      "id": "L0",
+      "label": "Enclosure",
+      "detail": "The box exists so the joint can be found and inspected later. It must be fixed (not floating in a void), big enough for the conductors without cramming, and rated for the environment — an IP rating outdoors, and a fire-rated box where it sits in a ceiling.",
+      "x": 38,
+      "y": 45
+    },
+    {
+      "id": "L1",
+      "label": "Terminal block",
+      "detail": "One way of the strip per conductor, with every live, neutral and earth made separately. The screws must grip the conductor, not the insulation, and each connection gets a gentle pull test before the lid goes on.",
+      "x": 100,
+      "y": 100
+    },
+    {
+      "id": "L2",
+      "label": "Cable entries",
+      "detail": "Knockouts or glands sized to the cable. The sheath should be gripped and should enter far enough that the insulation is still inside the box — bare conductor poking out of a gland is how a joint ends up shorting to the box.",
+      "x": 100,
+      "y": 20
+    },
+    {
+      "id": "L3",
+      "label": "Lid fixing screw",
+      "detail": "The lid is part of the protection: it stops fingers and screws reaching live terminals. If the lid will not sit flat, the conductors are not dressed in properly — do not force it.",
+      "x": 100,
+      "y": 142
+    }
+  ],
+  "photo": {
+    "src": "/images/guide/junction-box",
+    "alt": "Photorealistic round junction box with the lid removed",
+    "width": 720,
+    "height": 720,
+    "points": [
+      {
+        "id": "L0",
+        "x": 10,
+        "y": 50
+      },
+      {
+        "id": "L1",
+        "x": 50,
+        "y": 46.2
+      },
+      {
+        "id": "L2",
+        "x": 30,
+        "y": 31.1
+      }
+    ]
+  }
+}

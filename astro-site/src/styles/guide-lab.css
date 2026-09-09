@@ -58,6 +58,51 @@
   flex-direction: column;
 }
 
+/* ── Tabbed anatomy views: outside render ↔ inside cutaway ─────────────────
+   Both panels ship expanded, so the page still reads with no JS at all.
+   guide-lab.js sets [data-ready], which reveals the tab row and hides the
+   inactive panel (the outside view stays the default). */
+.anatomy-views__tabs {
+  display: none;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+.anatomy-views[data-ready] .anatomy-views__tabs {
+  display: flex;
+}
+.anatomy-view-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.42rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--text-mid);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.anatomy-view-tab:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+.anatomy-view-tab[aria-selected="true"] {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+.anatomy-view-tab:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+.anatomy-views__panel[hidden] {
+  display: none;
+}
+
 /* The SVG figure sits in a "drawing sheet" panel, light grey like the
    blueprint papers used in the rest of the guide. */
 .anatomy-figure {

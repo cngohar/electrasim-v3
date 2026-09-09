@@ -1,68 +1,85 @@
 ---
+import GuideBreadcrumbs from '../../../components/guide/GuideBreadcrumbs.astro';
 import { getCollection } from 'astro:content';
-import packageMetadata from '../../../../package.json';
 import CatalogCard from '../../../components/guide/CatalogCard.astro';
+import { ogCardUrl } from '../../../og-manifest';
 import GuideCta from '../../../components/guide/GuideCta.astro';
 import Base from '../../../layouts/Base.astro';
 import '../../../styles/guide.css';
 import '../../../styles/guide-lab.css';
+import { GUIDE_LAB_VERSION } from '../../../lib/asset-version';
+
 
 const tools = await getCollection('guideTools');
 const sorted = [...tools].sort((a, b) => a.data.name.localeCompare(b.data.name));
-const featured = 4;
+/* Hand tools and test equipment are different things to learn: one is what you
+   cut and strip with, the other is what tells you whether it is safe. */
+const groups = [
+  { key: 'hand', label: 'Hand tools', blurb: 'What you cut, strip, twist and drive with.',
+    items: sorted.filter((t) => t.data.category !== 'Test equipment') },
+  { key: 'test', label: 'Test equipment', blurb: 'What tells you whether a circuit is safe to touch — and what proving dead actually means.',
+    items: sorted.filter((t) => t.data.category === 'Test equipment') },
+].filter((g) => g.items.length > 0);
+
 const canonical = 'https://electrasim.com/guide/tools/';
+const crumbs = [
+  { name: 'Home', path: `/` },
+  { name: 'Circuit Guide', path: `/guide/` },
+  { name: 'Hand Tools', path: `/guide/tools/` }
+];
+
 ---
 
 <Base
   title="ElectraSim — Electrical Hand Tools &amp; Accessories Anatomy Guide"
   description="Learn the anatomy of electrician's hand tools — needle-nose pliers, side cutters, wire strippers and VDE screwdrivers — with labeled hotspots and safety notes for wiring projects."
   canonical={canonical}
+  ogImage={ogCardUrl('tools', 'sections')}
+  ogImageWidth={1200}
+  ogImageHeight={630}
+  ogImageType="image/png"
 >
   <main id="main-content">
-    <div class="bc-wrap">
-      <div class="wrap">
-        <nav class="bc" aria-label="Breadcrumb">
-          <a href="/">Home</a><span aria-hidden="true">›</span>
-          <a href="/guide/">Circuit Guide</a><span aria-hidden="true">›</span>
-          <span aria-current="page">Hand Tools</span>
-        </nav>
-      </div>
-    </div>
+    <GuideBreadcrumbs crumbs={crumbs} />
 
     <div class="guide-hero guide-hero--small">
       <div class="wrap">
         <span class="label">Hand Tools &amp; Accessories</span>
         <h1>Know the tool before you touch the wire.</h1>
-        <p>Anatomy guides for electrician's hand tools — click the hotspots on each drawing to learn what each part does, how to use it safely, and which job it's built for.</p>
+        <p>Anatomy guides for the hand tools you strip and cut with, and the test equipment that tells you whether a circuit is safe to touch — labelled parts, how each one is used, and the safety rule behind it.</p>
       </div>
     </div>
 
-    <div class="progress-strip">
-      <div class="wrap">
-        <div class="progress-inner">
-          {tools.map((tool) => (
-            <a class="prog-item" href={`#${tool.data.slug}`} title={tool.data.name}>
-              <div class="prog-num">✦</div>
-              <span class="prog-label">{tool.data.name.split(' ').slice(0, 2).join(' ')}</span>
-            </a>
-          ))}
-        </div>
-      </div>
-    </div>
 
     <div class="guide-main" data-live>
       <div class="wrap">
+        <nav class="guide-lab-nav" aria-label="Guide sections">
+          <a href="/guide/tools/" aria-current="page"><span class="lab-icon" aria-hidden="true">🛠️</span> Hand Tools</a>
+          <a href="/guide/components/"><span class="lab-icon" aria-hidden="true">🔌</span> Components</a>
+          <a href="/guide/circuits/"><span class="lab-icon" aria-hidden="true">⚡</span> Circuits</a>
+          <a href="/guide/templates/"><span class="lab-icon" aria-hidden="true">🧭</span> In the App</a>
+          <a href="/glossary/"><span class="lab-icon" aria-hidden="true">📖</span> Glossary</a>
+        </nav>
+
         <section class="guide-section" id="tools" aria-labelledby="tools-h">
           <div class="guide-section-head">
             <span class="guide-kicker">The toolbox</span>
-            <h2 id="tools-h">Start here: work through {featured} core hand tools</h2>
-            <p>Every drawing is interactive — hover or tap a numbered marker to reveal what that part is for.</p>
+            <h2 id="tools-h">Start here: work through {sorted.length} tools</h2>
+            <p>Open any tool to explore its labelled anatomy — tap a numbered marker on the render to reveal what that part is for.</p>
           </div>
-          <div class="dl-lab-grid">
-            {sorted.map((tool) => (
-              <CatalogCard item={tool.data} href={`/guide/tools/${tool.data.slug}/`} />
-            ))}
-          </div>
+          {groups.map((group) => (
+            <div class="tool-group">
+              <div class="tool-group-head">
+                <h3 id={`${group.key}-h`}>{group.label}</h3>
+                <p>{group.blurb}</p>
+              </div>
+              <div class="dl-lab-grid">
+                {group.items.map((tool) => (
+                  <CatalogCard item={tool.data} href={`/guide/tools/${tool.data.slug}/`} />
+                ))}
+              </div>
+            </div>
+          ))}
         </section>
 
         <GuideCta
@@ -75,5 +92,5 @@ const canonical = 'https://electrasim.com/guide/tools/';
     </div>
   </main>
 
-  <script is:inline defer src={`/js/guide-lab.js?v=${packageMetadata.version}`}></script>
+  <script is:inline defer src={`/js/guide-lab.js?v=${GUIDE_LAB_VERSION}`}></script>
 </Base>
