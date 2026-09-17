@@ -173,7 +173,7 @@ const STUDENT_STEPS: TourStep[] = [
     target: '[data-tour="guided-circuits"]',
     kind: 'look',
     title: 'Guided Circuits — the best next step',
-    body: 'Eighteen ready-made circuits with learning notes and checklists: staircase two-way switching, RCD earth-fault checks, a contactor motor starter, an RCBO-protected socket — and ten Pro guides covering three-phase, EV charging, solar, and more.',
+    body: 'Twenty ready-made circuits with learning notes and checklists: staircase two-way switching, RCD earth-fault checks, a contactor motor starter, an RCBO-protected socket — and ten Pro guides covering three-phase, EV charging, solar, and more.',
   },
   {
     id: 'student-finish',

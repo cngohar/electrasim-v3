@@ -195,7 +195,9 @@ test.describe('faults & editing', () => {
 
     await page.getByRole('button', { name: /^Run Simulation$/ }).click();
     await expect(faultAlertDialog(page)).toBeVisible();
-    await expect(faultAlertDialog(page)).toContainText('RCBO (32A 30mA)');
+    /* The guided template re-specs the RCBO to 20 A on a 2.5 mm² radial, so the
+       learner-facing name is the instance rating, not the catalogue default. */
+    await expect(faultAlertDialog(page)).toContainText('RCBO (20 A)');
 
     const rcboAria = hitboxIn(page.locator(`[data-component-id="${rcboId}"]`));
     await expect(rcboAria).toHaveAttribute('aria-label', /, tripped/);
@@ -248,7 +250,7 @@ test.describe('faults & editing', () => {
     // Same fault, same run — now the Type B device trips like an earth fault.
     await page.getByRole('button', { name: /^Run Simulation$/ }).click();
     await expect(faultAlertDialog(page)).toBeVisible();
-    await expect(faultAlertDialog(page)).toContainText('RCBO (32A 30mA)');
+    await expect(faultAlertDialog(page)).toContainText('RCBO (20 A)');
     await expect(rcboAria).toHaveAttribute('aria-label', /, tripped/);
     await dismissFaultAlert(page);
 
@@ -388,7 +390,7 @@ test.describe('faults & editing', () => {
     const html = readFileSync((await download.path()) as string, 'utf8');
     expect(html).toContain('MINI ELECTRICAL INSTALLATION CERTIFICATE');
     expect(html).toContain('BS 7671 Appendix 6');
-    expect(html).toContain('RCBO (32A 30mA)');
+    expect(html).toContain('RCBO (20 A)');
     expect(html).toContain('Max Zs Ω');
     expect(html).toContain('window.print()');
     await expect(modal.getByText(/Mini EIC exported as/)).toBeVisible();

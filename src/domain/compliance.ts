@@ -77,7 +77,7 @@ function checkVoltageDrop(
     for (const w of adjacency.get(comp.id) ?? []) {
       queue.push({
         id: w.fromComponentId === comp.id ? w.toComponentId : w.fromComponentId,
-        drop: wireDrop(w, current),
+        drop: wireDrop(w, current, byId),
         visited: new Set([comp.id, w.id]),
       });
     }
@@ -97,7 +97,7 @@ function checkVoltageDrop(
         const visited = new Set(node.visited);
         visited.add(w.id);
         visited.add(next);
-        queue.push({ id: next, drop: node.drop + wireDrop(w, current), visited });
+        queue.push({ id: next, drop: node.drop + wireDrop(w, current, byId), visited });
       }
     }
 
@@ -149,9 +149,28 @@ function checkVoltageDrop(
 }
 
 /** Voltage drop (V) across a single wire at the given current. */
-function wireDrop(wire: WireInstance, currentAmps: number): number {
+function wireDrop(
+  wire: WireInstance,
+  currentAmps: number,
+  byId: Map<string, ComponentInstance>,
+): number {
   const length = wire.lengthMeters ?? 10;
-  const mm2 = wire.customCableMm2 ?? 2.5;
+  // Conductor size resolved the way the rest of the domain does (`zsCheck`):
+  // the wire's own declaration, then the smaller explicit endpoint size, else
+  // the domestic default. Reading only `wire.customCableMm2` meant a charger
+  // or heater whose endpoint *does* declare its conductor (10 mm² for a 7.4 kW
+  // charge point) was still costed at 2.5 mm² and reported as an excessive drop
+  // the user could not clear from the Inspector.
+  const endpointSizes = [wire.fromComponentId, wire.toComponentId]
+    .map((id) => byId.get(id))
+    .map((component) => component?.state?.customCableMm2)
+    .filter((value): value is number => typeof value === 'number' && value > 0);
+  const mm2 =
+    typeof wire.customCableMm2 === 'number' && wire.customCableMm2 > 0
+      ? wire.customCableMm2
+      : endpointSizes.length > 0
+        ? Math.min(...endpointSizes)
+        : 2.5;
   const material = wire.material ?? 'copper';
   const mVApm = getMillivoltAmpMeter(mm2, material);
   return (mVApm * length * currentAmps) / 1000;

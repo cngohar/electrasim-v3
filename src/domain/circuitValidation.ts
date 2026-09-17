@@ -22,6 +22,54 @@ export type {
   ValidationSeverity,
 } from './circuitValidationTypes';
 
+/**
+ * Conductor size for one wire, resolved the way the rest of the domain does
+ * (`zsCheck.wireMm2`): the wire's own declaration wins, then the smaller of the
+ * two endpoints' explicit sizes, else the domestic default of 2.5 mm².
+ *
+ * `declared` distinguishes "the circuit told us the size" from "we assumed the
+ * default" — check 5 needs that to decide between an error and a warning.
+ *
+ * Endpoint *recommendedCableMm2* is deliberately not consulted, for the same
+ * reason `zsCheck` skips it: terminals and switches recommend 1.0 mm² for their
+ * own tails, which would drag every run to the worst figure and invent
+ * violations that no one wired.
+ */
+function resolveConductorMm2(
+  wire: WireInstance,
+  byId: Map<string, ComponentInstance>,
+): { mm2: number; declared: boolean } {
+  if (typeof wire.customCableMm2 === 'number' && wire.customCableMm2 > 0) {
+    return { mm2: wire.customCableMm2, declared: true };
+  }
+
+  const endpointSizes = [wire.fromComponentId, wire.toComponentId]
+    .map((id) => byId.get(id))
+    .map((component) => component?.state?.customCableMm2)
+    .filter((value): value is number => typeof value === 'number' && value > 0);
+
+  if (endpointSizes.length > 0) {
+    return { mm2: Math.min(...endpointSizes), declared: true };
+  }
+
+  return { mm2: DEFAULT_CONDUCTOR_MM2, declared: false };
+}
+
+/** Domestic-default conductor when a circuit never names one. */
+const DEFAULT_CONDUCTOR_MM2 = 2.5;
+
+/** Candidate sizes for the upgrade advice, smallest first. */
+const CABLE_SIZE_LADDER = [1.0, 1.5, 2.5, 4, 6, 10, 16, 25, 35, 50];
+
+/** Smallest standard size whose tabulated ampacity covers a device rating. */
+function smallestSizeForAmps(amps: number): number {
+  return (
+    CABLE_SIZE_LADDER.find((mm2) => getStandardCableAmpacity(mm2) >= amps) ??
+    CABLE_SIZE_LADDER[CABLE_SIZE_LADDER.length - 1] ??
+    50
+  );
+}
+
 export function validateCircuit(
   circuit: Circuit,
   simResult?: SimulationResult | null,
@@ -65,6 +113,8 @@ export function validateCircuit(
     if (!compWiresMap.has(w.toComponentId)) compWiresMap.set(w.toComponentId, new Set());
     compWiresMap.get(w.toComponentId)!.add(w);
   }
+
+  const componentsById = new Map(components.map((c) => [c.id, c]));
 
   // 2. POWER SUPPLY CHECK
   const supplyComponents = components.filter((c) => {
@@ -483,6 +533,8 @@ export function validateCircuit(
     ratingAmps: number;
     cableMm2: number;
     ampacity: number;
+    /** True when the circuit named no conductor and the default was assumed. */
+    assumed: boolean;
   }[] = [];
 
   for (const c of protectionComps) {
@@ -494,36 +546,75 @@ export function validateCircuit(
       def.maxAmps ??
       (c.type.includes('32') ? 32 : c.type.includes('6') ? 6 : 16);
 
-    const attachedWires = Array.from(compWiresMap.get(c.id) || []);
-    for (const w of attachedWires) {
-      const otherCompId = w.fromComponentId === c.id ? w.toComponentId : w.fromComponentId;
-      const otherComp = components.find((comp) => comp.id === otherCompId);
-      const cableMm2 = w.lengthMeters ? 1.5 : (otherComp?.state.customCableMm2 ?? 1.5);
-      const ampacity = getStandardCableAmpacity(cableMm2);
+    // Worst (smallest) conductor this device sits on: In ≤ Iz has to hold for
+    // every conductor it protects, so the verdict must not depend on which wire
+    // happens to come first.
+    //
+    // Two things used to decide it arbitrarily. `w.lengthMeters ? 1.5 : …`
+    // treated a measured run length as evidence the cable is 1.5 mm², and the
+    // loop stopped at the first attached wire — usually the supply-side wire
+    // into a bare Live terminal, which declares nothing. That is where
+    // "Over-rated Breaker (32A MCB vs 1.5mm² Cable)" came from on circuits no
+    // one had ever given a cable size, and no Inspector edit could clear it.
+    //
+    // Declared conductors outrank assumed ones. The supply-side wire into a
+    // bare Live terminal never declares a size, so letting it compete would
+    // drag every declared load conductor down to the default — which is the
+    // same failure mode in a quieter outfit.
+    let worstDeclared: { cableMm2: number; ampacity: number } | null = null;
+    let worstAssumed: { cableMm2: number; ampacity: number } | null = null;
 
-      if (ratingAmps > ampacity) {
-        overratedBreakers.push({ comp: c, ratingAmps, cableMm2, ampacity });
-        break;
+    for (const w of compWiresMap.get(c.id) || []) {
+      const { mm2, declared } = resolveConductorMm2(w, componentsById);
+      const ampacity = getStandardCableAmpacity(mm2);
+      if (declared) {
+        if (!worstDeclared || ampacity < worstDeclared.ampacity) {
+          worstDeclared = { cableMm2: mm2, ampacity };
+        }
+      } else if (!worstAssumed || ampacity < worstAssumed.ampacity) {
+        worstAssumed = { cableMm2: mm2, ampacity };
       }
+    }
+
+    const worst = worstDeclared ?? worstAssumed;
+
+    if (worst && ratingAmps > worst.ampacity) {
+      overratedBreakers.push({
+        comp: c,
+        ratingAmps,
+        cableMm2: worst.cableMm2,
+        ampacity: worst.ampacity,
+        assumed: worstDeclared === null,
+      });
     }
   }
 
   if (overratedBreakers.length > 0) {
     const b = overratedBreakers[0];
     const defLabel = COMPONENT_DEFS[b.comp.type]?.label || 'Breaker';
+    const requiredMm2 = smallestSizeForAmps(b.ratingAmps);
+    // A named conductor that is too small is a definite violation. An assumed
+    // one is a heads-up: the circuit never said what it was wired in, so the
+    // check states its assumption instead of asserting a fault that the user
+    // cannot find anywhere in the Inspector.
+    const sizing = b.assumed
+      ? `No cable size is declared on this run, so ${b.cableMm2}mm² (${b.ampacity}A) was assumed.`
+      : `The declared ${b.cableMm2}mm² conductor carries ${b.ampacity}A.`;
     issues.push({
       id: 'mcb_overrated_group',
-      severity: 'error',
-      title: `Over-rated Breaker (${b.ratingAmps}A MCB vs ${b.cableMm2}mm² Cable)`,
-      description: `Protection device ${defLabel} rating (${b.ratingAmps}A) exceeds connected cable ampacity (${b.ampacity}A). BS 7671 requires In ≤ Iz to prevent fire before tripping.`,
-      recommendation: `Upgrade cable cross-section to at least ${b.ratingAmps <= 16 ? '2.5' : '4.0'}mm² or lower breaker rating.`,
+      severity: b.assumed ? 'warning' : 'error',
+      title: b.assumed
+        ? `Protection May Be Over-rated (${b.ratingAmps}A device, cable size not declared)`
+        : `Over-rated Breaker (${b.ratingAmps}A MCB vs ${b.cableMm2}mm² Cable)`,
+      description: `Protection device ${defLabel} rating (${b.ratingAmps}A) exceeds the connected conductor ampacity (${b.ampacity}A). ${sizing} BS 7671 requires In ≤ Iz to prevent fire before tripping.`,
+      recommendation: `Upgrade the conductor to at least ${requiredMm2}mm² or lower the device rating.`,
       category: 'protection',
       componentId: b.comp.id,
       quickFix: {
-        label: 'Upgrade Cable to 4.0mm²',
+        label: `Upgrade Cable to ${requiredMm2}mm²`,
         type: 'increase_cable_gauge',
         componentId: b.comp.id,
-        targetCableMm2: 4.0,
+        targetCableMm2: requiredMm2,
       },
       detailedBreakdown: {
         bs7671Regulation: 'BS 7671 Regulation 433.1 (Overcurrent Coordination In ≤ Iz)',
@@ -559,16 +650,22 @@ export function validateCircuit(
   }
 
   // 6. CABLE SIZING FOR HIGH POWER LOADS
+  //
+  // Only *declared* sizes count. The old fallback compared an assumed 1.5 mm²
+  // against the load's own recommendation, so a socket or lamp that had never
+  // been given a cable size was reported as "wired with undersized cable
+  // gauges" — a finding the user could not find anywhere in the Inspector and
+  // could only clear by picking a size the circuit never needed to name.
   const undersizedComps: ComponentInstance[] = [];
   for (const c of components) {
     const def = COMPONENT_DEFS[c.type];
     if (!def) continue;
 
-    const recommendedMm2 = c.state.customCableMm2 ?? def.recommendedCableMm2;
-    if (!recommendedMm2) continue;
+    const declaredMm2 = c.state.customCableMm2;
+    if (declaredMm2 === undefined) continue;
 
-    const cableMm2 = c.state.customCableMm2 ?? 1.5;
-    if (cableMm2 < recommendedMm2) {
+    const recommendedMm2 = def.recommendedCableMm2;
+    if (recommendedMm2 && declaredMm2 < recommendedMm2) {
       undersizedComps.push(c);
     }
   }

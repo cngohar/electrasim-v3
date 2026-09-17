@@ -51,15 +51,30 @@ function lastSentenceEnd(text: string, limit: number): number {
   return best;
 }
 
+/** Punctuation that cannot end a phrase. */
+const DANGLING_PUNCTUATION = /[\s,;:—–\-/&]+$/;
+
+/**
+ * Words that read as broken when they are the last thing in a snippet:
+ * "…Simulator &", "…and", "…of the". The homepage title shipped as
+ * "ElectraSim — Free Online Electrical Wiring Simulator &" because the word
+ * boundary fell right before "Circuit" and `&` survived the trim.
+ */
+const DANGLING_WORD =
+  /(?:\s(?:a|an|and|as|at|by|for|from|in|into|of|on|or|per|the|to|via|with|without|&))+$/i;
+
 /** Cut at the last word boundary that still leaves a useful amount of copy. */
 function cutAtWord(text: string, max: number): string {
   const window = text.slice(0, max);
   const space = window.lastIndexOf(' ');
   const cut = space > max * 0.6 ? space : max;
-  return window
-    .slice(0, cut)
-    .replace(/[\s,;:—–-]+$/, '')
+  const trimmed = window.slice(0, cut).replace(DANGLING_PUNCTUATION, '').trim();
+  const withoutDanglingWords = trimmed
+    .replace(DANGLING_WORD, '')
+    .replace(DANGLING_PUNCTUATION, '')
     .trim();
+  // Only keep the extra trim when something real is left to say.
+  return withoutDanglingWords.length > 0 ? withoutDanglingWords : trimmed;
 }
 
 /**

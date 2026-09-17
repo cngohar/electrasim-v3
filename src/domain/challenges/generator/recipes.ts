@@ -20,10 +20,13 @@
  * contain. These are not new rules; they are the existing rules read
  * carefully (see ADR 0002):
  *
- *  1. `circuitValidation.ts` assumes 1.5 mm² for any wire that declares a
- *     `lengthMeters`, so a protective device rated above 20 A raises the
- *     error-severity `mcb_overrated_group`. Hence
- *     {@link PROTECTION_RATING_CEILING_AMPS}.
+ *  1. `circuitValidation.ts` compares each protective device against the
+ *     conductors it actually sits on, and every generated wire declares its own
+ *     `customCableMm2` — so the In ≤ Iz check here reads real data. Generated
+ *     circuits stay inside {@link PROTECTION_RATING_CEILING_AMPS} because that
+ *     matches a domestic final circuit, not because the validator needs them to.
+ *     (It used to: a wire with a `lengthMeters` was costed at 1.5 mm² whatever
+ *     it declared, so any device above 20 A raised `mcb_overrated_group`.)
  *  2. The same module treats a load as "undersized" unless its cable matches
  *     its recommendation, so every component carries an explicit
  *     `customCableMm2`.
@@ -40,11 +43,15 @@ import { type NodeRef, type TopologyBuilder, createTopologyBuilder } from './top
 /**
  * Highest protective-device rating a generated circuit may use.
  *
- * BS 7671 domestic final circuits sit at 6/10/16/20 A, and
- * `circuitValidation.ts` flags anything above 20 A against a 1.5 mm² cable
- * assumption. Devices whose registry rating exceeds this (`rcd` 80 A,
+ * BS 7671 domestic final circuits sit at 6/10/16/20 A, so that is the envelope
+ * these recipes target. Devices whose registry rating exceeds this (`rcd` 80 A,
  * `main-switch` 100 A, `mcb-type-c` 32 A, `isolator-switch` 100 A) are outside
  * the Phase A envelope.
+ *
+ * Raised deliberately, not because the validator forces it: generated wires
+ * declare their conductor size, and `circuitValidation.ts` now reads that
+ * declaration instead of assuming 1.5 mm². Lifting the ceiling is a difficulty
+ * decision, not a bug fix.
  */
 export const PROTECTION_RATING_CEILING_AMPS = 20;
 

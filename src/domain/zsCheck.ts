@@ -27,6 +27,7 @@
  *  - R1+R2 uses the SMALLEST cable on the run (conservative) at 20 °C.
  */
 
+import { instanceLabel } from './componentLabel';
 import { COMPONENT_DEFS } from './components';
 import { isResidualDevice } from './protectionRoles';
 import { connectedNetworkComponents } from './simulation/faultPropagation';
@@ -220,7 +221,10 @@ export function checkDeviceDisconnection(
 
   return {
     deviceId: device.id,
-    deviceLabel: device.state.autoLabel ?? def.label ?? device.type,
+    // `instanceLabel` attaches the rating the check actually used: the
+    // catalogue label embeds the *default* rating ("RCBO (32A 30mA)"), so a
+    // derated instance used to be described as the device it is not.
+    deviceLabel: device.state.autoLabel ?? instanceLabel(device),
     curve,
     ratingAmps: rating,
     assuredFaultCurrentAmps: ZS_MAGNETIC_UPPER[curve] * rating,

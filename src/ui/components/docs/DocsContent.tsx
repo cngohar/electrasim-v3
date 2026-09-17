@@ -129,9 +129,11 @@ function GuidedCircuitsSection() {
   const guideRows = (templates: GuidedCircuitTemplate[]) =>
     templates.map((template) => {
       const anchor = GUIDE_WALKTHROUGH_ANCHORS[template.id];
+      // The guide hub became a route table in v2.0.3: the template list and the
+      // feature tour moved to /guide/templates/, so the fallback follows them.
       const siteHref = anchor
         ? `https://electrasim.com/guide/${anchor}`
-        : 'https://electrasim.com/guide/#templates-h';
+        : 'https://electrasim.com/guide/templates/#templates-h';
       return (
         <div
           key={template.id}
@@ -362,8 +364,8 @@ function WiringSection() {
         </div>
       </div>
       <div className="mt-3">
-        <ExternalLink href="https://electrasim.com/guide/#circuit-walkthroughs">
-          Eight step-by-step circuit walkthroughs on the website
+        <ExternalLink href="https://electrasim.com/guide/circuits/">
+          Twenty step-by-step circuit walkthroughs on the website
         </ExternalLink>
       </div>
     </section>
@@ -460,7 +462,7 @@ function SimulationSection() {
         </div>
       </div>
       <div className="mt-3">
-        <ExternalLink href="https://electrasim.com/guide/#latest-features">
+        <ExternalLink href="https://electrasim.com/guide/templates/#latest-features">
           Fault simulation and the full workflow on the website
         </ExternalLink>
       </div>
@@ -552,7 +554,7 @@ function LearningModesSection() {
         </div>
       </div>
       <div className="mt-3">
-        <ExternalLink href="https://electrasim.com/guide/#templates-h">
+        <ExternalLink href="https://electrasim.com/guide/templates/#templates-h">
           Every built-in guided circuit, listed on the website
         </ExternalLink>
       </div>

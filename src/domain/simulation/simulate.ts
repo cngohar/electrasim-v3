@@ -6,6 +6,7 @@
  * body and option contract are unchanged.
  */
 
+import { instanceLabel } from '../componentLabel';
 import { COMPONENT_DEFS } from '../components';
 import { calculateElectricalValues, getStandardCableAmpacity } from '../electricalCalculations';
 import { FAULT_REGISTRY } from '../faults';
@@ -104,7 +105,10 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
       if (trippedIds.has(dev.id)) continue;
       trippedIds.add(dev.id);
       const devDef = defs[dev.type];
-      const label = devDef?.label ?? dev.type;
+      /* Instance rating, not the catalogue default: the guided templates
+         re-spec devices (a 20 A RCBO, a 20 A AFDD-RCBO), and the trip dialog
+         was naming them by the catalogue part they were derived from. */
+      const label = dev.state.autoLabel ?? instanceLabel(dev);
       if (kind === 'short-circuit') {
         const rating = dev.state.customMaxAmps ?? devDef?.maxAmps ?? 32;
         // Bolted fault: supply over an assumed fault-loop impedance. The loop
@@ -429,7 +433,10 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
         const reason = `Circuit current (${totalCircuitAmps.toFixed(1)} A) exceeded rated limit (${effectiveLimit} A).${clearingText}`;
         trippedComponents.push({
           id: c.id,
-          label: def.label,
+          /* The instance rating, not the catalogue default: a template that
+             re-specs the device (e.g. a 20 A RCBO) was being announced as the
+             32 A catalogue part everywhere the trip was described. */
+          label: instanceLabel(c),
           cause: 'overload',
           reason,
           currentAmps: totalCircuitAmps,
@@ -439,7 +446,7 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
           ...(curve ? { currentMultiple: curve.currentMultiple } : {}),
         });
         errors.push(
-          `PROTECTION TRIPPED: ${def.label} tripped! Load current (${totalCircuitAmps.toFixed(1)} A) exceeded capacity (${effectiveLimit} A).${clearingText}`,
+          `PROTECTION TRIPPED: ${instanceLabel(c)} tripped! Load current (${totalCircuitAmps.toFixed(1)} A) exceeded capacity (${effectiveLimit} A).${clearingText}`,
         );
       }
 
@@ -703,7 +710,7 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
         for (const dev of residualDevices) {
           const rcdType = dev.state.rcdType ?? 'A';
           if (rcdType === 'B') continue;
-          const devLabel = defs[dev.type]?.label ?? dev.type;
+          const devLabel = instanceLabel(dev);
           const tolerance = rcdType === 'F' ? '≤10 mA' : rcdType === 'A' ? '≤6 mA' : 'none';
           pushFaultNarrationError(
             `${devLabel} (Type ${rcdType}) DID NOT TRIP: smooth DC residual current is outside Type ${rcdType} detection (superimposed-DC tolerance ${tolerance}) — this load needs a Type B device or 6 mA RDC-DD protection.`,

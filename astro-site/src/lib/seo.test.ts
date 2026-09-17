@@ -63,6 +63,16 @@ describe('metaDescription', () => {
     expect(metaDescription('one two three four five six seven', 11).length).toBeLessThanOrEqual(11);
   });
 
+  it('does not end a snippet on a connector word', () => {
+    /* A word-boundary cut can land right after "and" or "to the", which reads
+       as truncation rather than an ending — the exact thing this helper is
+       here to prevent. The cut in this copy falls after "and". */
+    const text = `${'cable '.repeat(14)}and the earthing conductor is then run to the main earthing terminal and labelled`;
+    const result = metaDescription(text);
+    expect(result.endsWith('terminal')).toBe(true);
+    expect(/\s(?:and|the|to|of)$/.test(result)).toBe(false);
+  });
+
   it('never returns copy longer than the limit', () => {
     const long = `${'A fairly long clause about wiring. '.repeat(12)}`;
     expect(metaDescription(long).length).toBeLessThanOrEqual(MAX_DESCRIPTION);
@@ -89,6 +99,17 @@ describe('metaTitle', () => {
     );
     expect(result).toBe('How to Wire a Ceiling Rose and Light Fitting');
     expect(result.length).toBeLessThanOrEqual(MAX_TITLE);
+  });
+
+  it('does not leave a dangling ampersand when the cut lands before a conjunction', () => {
+    /* The homepage title was 70 characters, so the word-boundary cut fell
+       between "Simulator" and "Circuit Trainer" and shipped "…Simulator &".
+       The landing copy now fits, but a title that does not must not end here. */
+    const result = metaTitle(
+      'ElectraSim — Free Online Electrical Wiring Simulator & Circuit Trainer',
+    );
+    expect(result).toBe('ElectraSim — Free Online Electrical Wiring Simulator');
+    expect(result.endsWith('&')).toBe(false);
   });
 
   it('keeps the subject rather than shaving to a stub', () => {

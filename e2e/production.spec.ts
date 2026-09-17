@@ -1,8 +1,16 @@
 import { expect, test } from '@playwright/test';
 
-const HOME_TITLE = 'ElectraSim — Free Online Electrical Wiring Simulator & Circuit Trainer';
+/* Both strings are the exact homepage copy from
+   astro-site/src/content/pages/landing.json. They are deliberately inside the
+   snippet budget (title ≤ 60, description ≤ 157) so `metaTitle`/`metaDescription`
+   in astro-site/src/lib/seo.ts ship them unchanged; the earlier 70-character
+   title came back from the clamp as "…Simulator &" and the description as a cut
+   mid-list, which is what `check-seo.mjs` exists to prevent. */
+const HOME_TITLE = 'ElectraSim — Free Online Electrical Wiring Simulator';
 const HOME_DESCRIPTION =
-  'Build, energise and fault-find real domestic wiring in your browser. 115 components, live simulation, Guided Circuits, Challenge and Diagnosis modes, fault simulation and an electrical toolbox. Free, offline-capable, no sign-up.';
+  'Build, energise and fault-find real domestic wiring in your browser. 115 components, live simulation, Guided Circuits, Challenge and Diagnosis modes.';
+const HOME_TITLE_MAX = 60;
+const HOME_DESCRIPTION_MAX = 157;
 const HOME_VISIBLE_KEYPHRASE = 'electrical';
 
 test.describe('production Pages output', () => {
@@ -14,6 +22,10 @@ test.describe('production Pages output', () => {
       'content',
       HOME_DESCRIPTION,
     );
+    /* Matching the string is not enough — the point of the expectations above is
+       that the copy fits, so assert the budget too. */
+    expect(HOME_TITLE.length).toBeLessThanOrEqual(HOME_TITLE_MAX);
+    expect(HOME_DESCRIPTION.length).toBeLessThanOrEqual(HOME_DESCRIPTION_MAX);
     await expect(page.locator('h1')).toContainText('Real electrical wiring');
 
     const visibleText = await page.locator('body').innerText();

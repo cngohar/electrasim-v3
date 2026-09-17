@@ -38,9 +38,11 @@ test.describe('zs check panel', () => {
     await expect(panel).toBeVisible();
     await expect(panel).toContainText('Zs / Disconnection Check');
 
-    // The template's RCBO (32A, Type B curve) must show the A4:2026 Cmin-corrected Zs limit.
-    await expect(panel).toContainText('RCBO (32A 30mA)');
-    await expect(panel).toContainText('Max Zs (Type B 32A) = 1.37 Ω');
+    // The template's RCBO is a 20 A device on a 2.5 mm² socket radial (In ≤ Iz),
+    // so the panel must name the rating it actually used and show that device's
+    // A4:2026 Cmin-corrected Zs limit — not the catalogue default in the label.
+    await expect(panel).toContainText('RCBO (20 A)');
+    await expect(panel).toContainText('Max Zs (Type B 20A) = 2.19 Ω');
     await expect(panel.locator('[data-zs-verdict]').first()).toBeVisible();
 
     // TN-C-S is the default; switching to TN-S raises Ze and the computed Zs.

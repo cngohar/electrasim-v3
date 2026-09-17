@@ -334,9 +334,9 @@ function contactorMotorTemplate(): GuidedCircuitTemplate {
   const id = 'contactor-motor';
   const live = component(id, 'live', 'live-terminal', 110, 230);
   const neutral = component(id, 'neutral', 'neutral-terminal', 110, 400);
-  const mcb = component(id, 'mcb', 'mcb', 290, 230, { on: true });
+  const mcb = component(id, 'mcb', 'mcb-type-d', 290, 230, { on: true, customMaxAmps: 16 });
   const contactor = component(id, 'contactor', 'contactor', 520, 250, { on: true });
-  const motor = component(id, 'motor', 'motor', 780, 250);
+  const motor = component(id, 'motor', 'motor', 780, 250, { customCableMm2: 1.5 });
 
   return {
     id,
@@ -450,8 +450,8 @@ function rcboProtectedSocketTemplate(): GuidedCircuitTemplate {
   const live = component(id, 'live', 'live-terminal', 100, 180);
   const neutral = component(id, 'neutral', 'neutral-terminal', 100, 360);
   const earth = component(id, 'earth', 'earth-terminal', 100, 540);
-  const rcbo = component(id, 'rcbo', 'rcbo', 330, 260, { on: true });
-  const socket = component(id, 'socket', 'socket-3pin', 600, 260);
+  const rcbo = component(id, 'rcbo', 'rcbo', 330, 260, { on: true, customMaxAmps: 20 });
+  const socket = component(id, 'socket', 'socket-3pin', 600, 260, { customCableMm2: 2.5 });
   const testLamp = component(id, 'test-lamp', 'bulb', 850, 260);
 
   return {
@@ -501,11 +501,11 @@ function threePhaseDolStarterTemplate(): GuidedCircuitTemplate {
   const live2 = component(id, 'live-2', 'live-terminal', 100, 250);
   const live3 = component(id, 'live-3', 'live-terminal', 100, 360);
   const earth = component(id, 'earth', 'earth-terminal', 100, 480);
-  const mcb1 = component(id, 'mcb-l1', 'mcb-type-d', 300, 140, { on: true });
-  const mcb2 = component(id, 'mcb-l2', 'mcb-type-d', 300, 250, { on: true });
-  const mcb3 = component(id, 'mcb-l3', 'mcb-type-d', 300, 360, { on: true });
+  const mcb1 = component(id, 'mcb-l1', 'mcb-type-d', 300, 140, { on: true, customMaxAmps: 16 });
+  const mcb2 = component(id, 'mcb-l2', 'mcb-type-d', 300, 250, { on: true, customMaxAmps: 16 });
+  const mcb3 = component(id, 'mcb-l3', 'mcb-type-d', 300, 360, { on: true, customMaxAmps: 16 });
   const contactor = component(id, 'contactor', 'contactor-3p', 560, 250, { on: true });
-  const motor = component(id, 'motor', 'motor-3phase', 860, 250);
+  const motor = component(id, 'motor', 'motor-3phase', 860, 250, { customCableMm2: 2.5 });
 
   return {
     id,
@@ -550,9 +550,17 @@ function evChargerCircuitTemplate(): GuidedCircuitTemplate {
   const live = component(id, 'live', 'live-terminal', 100, 200);
   const neutral = component(id, 'neutral', 'neutral-terminal', 100, 350);
   const earth = component(id, 'earth', 'earth-terminal', 100, 500);
-  const isolator = component(id, 'isolator', 'isolator-switch', 330, 260, { on: true });
-  const rcbo = component(id, 'rcbo', 'rcbo', 570, 260, { on: true });
-  const ev = component(id, 'ev', 'ev-charger', 820, 260);
+  // One 10 mm² run from origin to charge point (the size the charger itself
+  // recommends), so every device in the chain declares the conductor it sits
+  // on. The drop check walks the whole path, and an undeclared hop is costed
+  // at the 2.5 mm² default — which reported a 7.6 % drop on a circuit whose
+  // cable was never undersized.
+  const isolator = component(id, 'isolator', 'isolator-switch', 330, 260, {
+    on: true,
+    customCableMm2: 10,
+  });
+  const rcbo = component(id, 'rcbo', 'rcbo', 570, 260, { on: true, customCableMm2: 10 });
+  const ev = component(id, 'ev', 'ev-charger', 820, 260, { customCableMm2: 10 });
 
   return {
     id,
@@ -638,9 +646,9 @@ function underfloorHeatingTemplate(): GuidedCircuitTemplate {
   const id = 'pro-underfloor-heating';
   const live = component(id, 'live', 'live-terminal', 110, 220);
   const neutral = component(id, 'neutral', 'neutral-terminal', 110, 390);
-  const mcb = component(id, 'mcb', 'mcb-type-c', 300, 220, { on: true });
+  const mcb = component(id, 'mcb', 'mcb-type-c', 300, 220, { on: true, customMaxAmps: 16 });
   const thermostat = component(id, 'thermostat', 'heating-thermostat', 530, 250, { on: true });
-  const heating = component(id, 'heating', 'underfloor-heating', 780, 250);
+  const heating = component(id, 'heating', 'underfloor-heating', 780, 250, { customCableMm2: 2.5 });
 
   return {
     id,
@@ -760,9 +768,9 @@ function cookerInductionTemplate(): GuidedCircuitTemplate {
   const id = 'pro-cooker-induction';
   const live = component(id, 'live', 'live-terminal', 110, 220);
   const neutral = component(id, 'neutral', 'neutral-terminal', 110, 400);
-  const mcb = component(id, 'mcb', 'mcb', 300, 220, { on: true });
-  const cooker = component(id, 'cooker', 'cooker-unit', 530, 250, { on: true });
-  const hob = component(id, 'hob', 'induction-hob', 790, 250);
+  const mcb = component(id, 'mcb', 'mcb-type-d', 300, 220, { on: true, customMaxAmps: 20 });
+  const cooker = component(id, 'cooker', 'cooker-unit', 530, 250, { on: true, customCableMm2: 6 });
+  const hob = component(id, 'hob', 'induction-hob', 790, 250, { customCableMm2: 4 });
 
   return {
     id,
@@ -803,8 +811,8 @@ function spdConsumerUnitTemplate(): GuidedCircuitTemplate {
   const earth = component(id, 'earth', 'earth-terminal', 100, 510);
   const spd = component(id, 'spd', 'spd', 330, 240);
   const board = component(id, 'board', 'distribution-board', 560, 240);
-  const rcbo = component(id, 'rcbo', 'rcbo', 820, 200, { on: true });
-  const socket = component(id, 'socket', 'double-socket', 1080, 200);
+  const rcbo = component(id, 'rcbo', 'rcbo', 820, 200, { on: true, customMaxAmps: 20 });
+  const socket = component(id, 'socket', 'double-socket', 1080, 200, { customCableMm2: 2.5 });
   const lamp = component(id, 'lamp', 'bulb', 1080, 380);
 
   return {
@@ -894,8 +902,8 @@ function afddBedroomTemplate(): GuidedCircuitTemplate {
   const live = component(id, 'live', 'live-terminal', 100, 200);
   const neutral = component(id, 'neutral', 'neutral-terminal', 100, 360);
   const earth = component(id, 'earth', 'earth-terminal', 100, 520);
-  const afdd = component(id, 'afdd', 'afdd', 350, 260, { on: true });
-  const socket = component(id, 'socket', 'double-socket', 640, 200);
+  const afdd = component(id, 'afdd', 'afdd', 350, 260, { on: true, customMaxAmps: 20 });
+  const socket = component(id, 'socket', 'double-socket', 640, 200, { customCableMm2: 2.5 });
   const light = component(id, 'light', 'led-downlight', 640, 360);
 
   return {
