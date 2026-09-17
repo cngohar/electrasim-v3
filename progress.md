@@ -7,6 +7,55 @@ A running, append-only log of work on the ElectraSim rewrite. Every coding sessi
 
 ---
 
+## Session 2026-09-17 — Release v2.0.4: guided-circuit correctness
+
+**Request:** analyse the whole architecture for the most likely regressions, fix them step by step,
+then commit locally, push to GitHub, deploy to Pages with Wrangler and bump the version with a
+changelog entry.
+
+**Done:**
+1. Four regressions found and fixed, in `src/domain/circuitValidation.ts`, `compliance.ts`,
+   `templates.ts`, `zsCheck.ts`, `src/ui/components/docs/DocsContent.tsx`, `src/ui/tour/steps.ts`
+   and a new guard test `src/lib/site-links.test.ts`:
+   - The over-rated-breaker check assumed 1.5 mm² for any wire without a declared size and stopped at
+     the first wire, so 6–8 of the 20 guided circuits reported a fabricated error and the EV circuit
+     was credited with a 7.6 % voltage drop. Size now resolves declared → smallest explicit endpoint
+     → 2.5 mm² default, worst case over all attached wires; undeclared cable is a warning; eight
+     templates declare what they wire and all twenty validate cleanly under the default standard.
+   - The docs panel linked to guide anchors that no longer exist (`#circuit-walkthroughs`,
+     `#latest-features`, `#templates-h`) and quoted eight walkthroughs; corrected to the real routes
+     and to twenty.
+   - Counts in the tour and the vitest comment said eighteen/eighteen; now twenty, checked by
+     `src/lib/site-links.test.ts` against `GUIDED_CIRCUIT_TEMPLATES` and `guide.json`.
+   - The Zs panel and mini-EIC named devices from the catalogue label; `instanceLabel` now, so a
+     derated 20 A RCBO is not reported as a 32 A part.
+2. Follow-on fixes found by the failing gates: `astro-site/src/lib/seo.ts` drops dangling punctuation
+   and connector words after a word-boundary cut; the homepage title/description were brought inside
+   the snippet budget in `astro-site/src/content/pages/landing.json`; `simulate.ts` names tripped
+   devices by instance rating in the trip dialog, narration and smooth-DC message; the stale
+   expectations in `e2e/production.spec.ts`, `e2e/faults-and-editing.spec.ts` and `e2e/zs-check.spec.ts`
+   were updated.
+3. Version bumped to 2.0.4 in the root manifest, the astro workspace manifest and the three
+   workspace entries in `package-lock.json`, so the landing release popup re-arms and the three
+   versionless marketing scripts (`theme.js`, `site-nav.js`, `scroll-top.js`) get a new `?v=` key.
+4. The release post carries a v2.0.4 note, a new section 14, `version: "v2.0.4"`, the tag and an
+   updated date. `CHANGELOG.md` cuts the Unreleased block as `## [2.0.4] — 2026-09-17` with a fresh
+   Unreleased above it, and `TRACKING.md` gains the release record.
+
+**Verified:** `npm run check` (97 files, 1464 tests), `npm run build`, `check:perf` (227 kB gzip of
+250 kB), `check:links` (192), `check:seo` (190), `check:csp`, `stress:generator` (3726 challenges, 0
+collisions), `benchmark:simulation` (2.20 ms median), `benchmark:browser`, the chromium e2e suite
+(103 passed, 2 skipped) and the production suite (53 passed). The SEO clamp's effect was measured by
+diffing all 192 built pages before and after: eleven changed, ten of them blog snippets that had been
+ending on a connector word.
+
+**Left open:** `pro-ev-charger-circuit` still scores 70 under the `uk`/`us`/`eu` presets because
+`recommendCurveForLoad` classes an EV charge point as a motor load while the registry's RCBO only
+exists with a B curve; it is clean under the default `int` preset. That is a product decision
+(stop treating EVSE as motor-class, or add C-curve RCBO/AFDD variants), not a regression.
+
+---
+
 ## Session 2026-09-09 — Release v2.0.3: a start-here post for the guide
 
 **Request:** write a detailed blog post on how to use the guide from beginner level to pro level,

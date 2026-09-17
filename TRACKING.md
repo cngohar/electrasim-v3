@@ -234,6 +234,7 @@ Wrangler preview.
 
 | Version | Date | Summary |
 |---|---|---|
+| v2.0.4 | 2026-09-17 | The correctness release: the guided-circuit validator stops reporting an over-rated breaker on circuits whose cable was never undersized, eight templates declare the conductor and device rating they wire, device names use the instance rating everywhere, the homepage snippet fits its budget, and the app's guide links point at routes that exist. |
 | v2.0.3 | 2026-09-09 | The guide release: 20 circuit walkthroughs, 22 component anatomy pages (16 with interactive cutaways), 8 tool pages, a 37-term glossary, and a start-here post routing readers through all of it. Every guide page gained a snippet that fits, its own social card and marked-up breadcrumbs. |
 | v2.0.2 | 2026-09-04 | `/compare/` rebuilt as a research bench: SVG research map, task-fit plots, filterable matrix and a dated first-party evidence ledger. |
 

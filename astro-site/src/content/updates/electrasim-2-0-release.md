@@ -2,11 +2,11 @@
 title: "ElectraSim 2.0: Challenge Mode, the Diagnosis Lab, Guided Circuits and the Electrical Toolbox"
 description: "ElectraSim 2.0 is the learning release: three structured learning modes judged by the real simulation engine, eight Guided Circuits with checklists, a live Fault Lab, compliance reporting, and a multi-standard Electrical Toolbox — plus a long list of honesty and correctness fixes. Here is everything that changed and why."
 pubDate: 2026-08-31
-updatedDate: 2026-09-09
+updatedDate: 2026-09-17
 author: ElectraSim
 category: App Update
-version: "v2.0.3"
-tags: [ElectraSim, v2.0, v2.0.1, v2.0.2, v2.0.3, release notes, challenge mode, diagnosis lab, ohmageddon, guided circuits, fault lab, electrical toolbox, cable sizing, voltage drop, circuit simulator]
+version: "v2.0.4"
+tags: [ElectraSim, v2.0, v2.0.1, v2.0.2, v2.0.3, v2.0.4, release notes, challenge mode, diagnosis lab, ohmageddon, guided circuits, fault lab, electrical toolbox, cable sizing, voltage drop, circuit simulator]
 featured: true
 ---
 
@@ -21,6 +21,8 @@ This post is the complete tour. Everything linked below is live today, free, wit
 > **v2.0.2 Update:** The simulator comparison has been rebuilt as a current research bench with task filters, instrument plots, and linked first-party evidence.
 
 > **v2.0.3 Update:** The Circuit Guide is now a complete route through the subject — 20 circuit walkthroughs, 22 component anatomy pages (16 with interactive cutaways), 8 tool pages and a 37-term glossary — and there is a [start-here post](/blog/how-to-use-the-electrasim-guide-beginner-to-pro/) that walks you through it from beginner level to pro.
+
+> **v2.0.4 Update:** A correctness pass over the guided circuits and the guide's plumbing. The validator no longer reports an "over-rated breaker" on circuits whose cable was never undersized, the eight affected templates now declare the conductor and device rating they actually wire, every learner-facing device name uses the rating in front of you (canvas, Inspector, Zs panel, mini-EIC and trip dialog agree), the homepage snippet fits its budget, and the app's links into the guide point at the routes the guide serves.
 
 ---
 
@@ -129,6 +131,18 @@ The guide used to be a good reference with no obvious way in. Twenty circuit wal
 The [circuit walkthroughs](/guide/circuits/) each end with their own link into the app, so a walkthrough you have just read opens pre-built on the canvas. The [glossary](/glossary/) catches the 37 terms those walkthroughs actually use, linked both ways, so a definition is one click away and the way back is another.
 
 Behind the scenes the guide also got the plumbing a reference site needs: every guide page now carries its own social card, so a link pasted into a chat shows that page rather than the site's generic image, and the breadcrumb trail on each page is marked up as well as rendered.
+
+---
+
+## 14. What's new in v2.0.4: the guided circuits stop arguing with themselves
+
+Every Guided Circuit is checked by the same validator the app runs, and that validator had a bug of its own. The over-rated-breaker check read the first attached wire and, when that wire had no declared size, assumed 1.5 mm² — the size of a lighting circuit. On a template that wires a 2.5 mm² socket radial or a 10 mm² EV supply, the check reported a fault that did not exist: **six to eight of the twenty guided circuits failed validation out of the box**, and the EV circuit was credited with a 7.6 % voltage drop it never had.
+
+The check now resolves conductor size honestly: a declared size on the wire wins, then the smallest size an endpoint explicitly declares, then a 2.5 mm² default — and it takes the worst case across every wire attached to the load rather than stopping at the first one. A cable that declares no size at all is a *warning* that names what could not be checked, not a blocking error, and the recommendation names the next size up the ladder. Eight templates were corrected to declare what they wire, from the D-curve 16 A contactor circuit to the EV charger whose isolator, RCBO and charge point all now declare the same 10 mm² run. All twenty templates validate cleanly under the default standard.
+
+The same pass fixed how the app names things. A device's catalogue label carries a default rating — "RCBO (32A 30mA)" — while the circuit in front of you may be a 20 A device. The canvas, Inspector, Zs panel and mini-EIC certificate had been corrected to the real rating; the trip dialog, the trip narration and the smooth-DC blinding message had not, so the same breaker was two different devices depending on where you looked. All of them now use the instance rating.
+
+Two smaller corrections round it out. The homepage title and description were over the length Google actually displays, so the snippet clamp was shipping a title ending in a bare "&" and a description cut mid-sentence — the copy now fits, and the clamp drops dangling punctuation and connector words so ten other pages stop ending on "and" or "to the". And the app's docs panel was linking to guide anchors that stopped existing when the guide became a route table; those links, and the counts beside them, now point at pages that are really there — checked by a new test that compares the app's URLs against the Astro routes.
 
 ---
 

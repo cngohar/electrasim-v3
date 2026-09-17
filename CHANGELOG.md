@@ -1,5 +1,14 @@
 ## [Unreleased]
 
+---
+
+## [2.0.4] — 2026-09-17
+
+A correctness release. The guided circuits stop reporting faults they do not have, protective
+devices are named by the rating actually in front of you, the homepage snippet fits the space
+Google gives it, and the app's links into the guide point at the routes the guide now serves.
+The guide engineering work listed below was already committed but is released here.
+
 ### Added
 
 - **Guide engineering hardening.** Search indexing now has one typed source for guide circuits,
@@ -8,6 +17,11 @@
   improve the reading path; and legacy guide redirects moved to a cache-busted external script.
   Production verification now includes strict-CSP parity and a browser test that checks every circuit
   schematic's conductor colours under the real security policy.
+- **A regression guard for the app → guide links.** `src/lib/site-links.test.ts` checks every
+  in-app URL against the Astro routes and the `id="…"` anchors that actually exist, the legacy
+  `#circuit-N` anchors against the circuit count in `guide.json`, and the counts the app quotes
+  ("twenty ready-made circuits", "twenty step-by-step walkthroughs") against the guided templates,
+  so the two sides of the site cannot drift apart again.
 
 ### Fixed
 
@@ -16,6 +30,33 @@
   do not match the page, and rendered template placeholders.
 - Moved circuit-schematic styling into the external guide stylesheet so the site's strict
   Content-Security-Policy cannot block it and leave SVG paths rendered as filled blocks.
+- **Guided circuits no longer fail on a cable size nobody declared.** The over-rated-breaker check
+  read the first attached wire and fell back to a 1.5 mm² assumption when that wire had no declared
+  size, which reported a fabricated "Over-rated Breaker" error on six to eight of the twenty guided
+  circuits; the same assumption reported a 7.6 % voltage drop on the EV circuit. Conductor size now
+  resolves from the declared wire, then the smallest explicit endpoint size, then a 2.5 mm² default,
+  taking the worst case across every attached wire; an undeclared cable is a warning naming the size
+  that could not be checked, not a blocking error, and the recommendation names the next size up.
+  Eight templates were corrected to declare what they wire: D-curve contactor and motor at 16 A,
+  RCBO-protected socket at 20 A on 2.5 mm², three-phase DOL at D16 per phase, an EV charger whose
+  isolator, RCBO and charge point all declare the same 10 mm² run, underfloor heating on C16,
+  cooker and hob at 20 A with 6/4 mm², the SPD board RCBO at 20 A, and the AFDD bedroom circuit at
+  20 A. All twenty templates now score 100 under the default standard.
+- **Device names use the rating the circuit actually has.** The trip dialog, the trip narration and
+  the smooth-DC blinding message quoted the catalogue part ("RCBO (32A 30mA)") while the canvas, the
+  Inspector, the Zs panel and the mini-EIC certificate named the instance ("RCBO (20 A)"). Every
+  learner-facing name now comes from the instance rating, which is the rule `domain/componentLabel.ts`
+  already documented.
+- **The homepage snippet fits its budget.** The title was 70 characters and the description 228, so
+  the snippet clamp shipped `ElectraSim — Free Online Electrical Wiring Simulator &` and a
+  description cut mid-list. The landing copy is now 52 and 149 characters, and the clamp itself drops
+  dangling punctuation and connector words, so no page can end a snippet on "&", "and" or "to the"
+  (ten blog pages had been doing exactly that).
+- **In-app guide links point at routes that exist.** The docs panel linked to
+  `/guide/#circuit-walkthroughs`, `#latest-features` and `#templates-h` — anchors the guide stopped
+  serving when it became a route table — and described the guide as eight walkthroughs. They now
+  point at `/guide/circuits/`, `/guide/templates/#latest-features` and `/guide/templates/#templates-h`,
+  and the counts that had drifted say twenty.
 
 ---
 
