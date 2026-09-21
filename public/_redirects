@@ -7,8 +7,6 @@
 /index.html  /  301
 /index.php   /  301
 # Handle nested paths at any depth, e.g. /blog/tags/rcd/index.html.
-/*/index.html  /:splat/  301
-/*/index.php   /:splat/  301
 
 # Product release notes moved out of the blog into the changelog section (301)
 /blog/electrasim-new-components-rcd-contactor-timer-dimmer-distribution-board-bell  /updates/electrasim-new-components-rcd-contactor-timer-dimmer-distribution-board-bell/  301
@@ -27,10 +25,8 @@
 # equity instead of 404ing indexed routes).
 /experimental  /explore/  301
 /experimental/  /explore/  301
-/experimental/*  /explore/  301
 /explore/edison-bulb  /explore/  301
 /explore/edison-bulb/  /explore/  301
-/explore/edison-bulb/*  /explore/  301
 
 # Historical blog slug redirects (GSC 404 resolution)
 /blog/How-to-wire-an-immersion-heater-and-cylinder-single-dual-and-economy  /blog/how-to-wire-an-immersion-heater-cylinder/  301
@@ -100,11 +96,6 @@
 /blog/how-to-add-a-spur-from-a-ring-main-rules-methods-and-step-by-step-guide/  /blog/how-to-add-a-spur-from-a-ring-main/  301
 /blog/how-to-add-a-spur-from-a-ring-main-rules-methods-and-step-by-step/  /blog/how-to-add-a-spur-from-a-ring-main/  301
 /blog/how-to-add-a-spur-from-a-ring-main:  /blog/how-to-add-a-spur-from-a-ring-main/  301
-/blog/how-to-add-a-spur-from-a-ring-main:-rules,-methods-and-step-by  /blog/how-to-add-a-spur-from-a-ring-main/  301
-/blog/how-to-add-a-spur-from-a-ring-main:-rules,-methods-and-step-by/  /blog/how-to-add-a-spur-from-a-ring-main/  301
-/blog/how-to-add-a-spur-from-a-ring-main:/  /blog/how-to-add-a-spur-from-a-ring-main/  301
-/blog/how-to-add-a-spur-from-a-ring-main:rules,-methods-and-step-by-step-guide  /blog/how-to-add-a-spur-from-a-ring-main/  301
-/blog/how-to-add-a-spur-from-a-ring-main:rules,-methods-and-step-by-step-guide/  /blog/how-to-add-a-spur-from-a-ring-main/  301
 /blog/how-to-add-a-spur-from-main-rules-methods-and-step-by-  /blog/how-to-add-a-spur-from-a-ring-main/  301
 /blog/how-to-add-a-spur-from-main-rules-methods-and-step-by-/  /blog/how-to-add-a-spur-from-a-ring-main/  301
 /blog/how-to-install-an-ev-charger-dedicated-circuit  /blog/how-to-install-an-ev-charger-dedicated-circuit-guide/  301
@@ -132,15 +123,12 @@
 /blog/how-to-trace-an-electric-fault-safely  /blog/how-to-trace-an-electrical-fault-safely/  301
 /blog/how-to-trace-an-electric-fault-safely/  /blog/how-to-trace-an-electrical-fault-safely/  301
 /blog/how-to-trace-an-electrical-fault-safely:  /blog/how-to-trace-an-electrical-fault-safely/  301
-/blog/how-to-trace-an-electrical-fault-safely:/  /blog/how-to-trace-an-electrical-fault-safely/  301
 /blog/how-to-wire-a-ceiling-rose-and-light-fitting-  /blog/how-to-wire-a-lighting-circuit/  301
 /blog/how-to-wire-a-ceiling-rose-and-light-fitting-/  /blog/how-to-wire-a-lighting-circuit/  301
 /blog/how-to-wire-a-ceiling-rose-and-light-fitting-loop-in-junction-box-and-3  /blog/how-to-wire-a-lighting-circuit/  301
 /blog/how-to-wire-a-ceiling-rose-and-light-fitting-loop-in-junction-box-and-3-plate-methods  /blog/how-to-wire-a-lighting-circuit/  301
 /blog/how-to-wire-a-ceiling-rose-and-light-fitting-loop-in-junction-box-and-3-plate-methods/  /blog/how-to-wire-a-lighting-circuit/  301
 /blog/how-to-wire-a-ceiling-rose-and-light-fitting-loop-in-junction-box-and-3/  /blog/how-to-wire-a-lighting-circuit/  301
-/blog/how-to-wire-a-ceiling-rose-and-light-fitting:loop-in,-junction-box...  /blog/how-to-wire-a-lighting-circuit/  301
-/blog/how-to-wire-a-ceiling-rose-and-light-fitting:loop-in,-junction-box.../  /blog/how-to-wire-a-lighting-circuit/  301
 /blog/how-to-wire-a-cooker-electric-oven-/'  /blog/how-to-wire-a-cooker-electric-oven-uk/  301
 /blog/how-to-wire-a-cooker-electric-oven-/'/  /blog/how-to-wire-a-cooker-electric-oven-uk/  301
 /blog/how-to-wire-a-cooker-electric-oven-circuits  /blog/how-to-wire-a-cooker-electric-oven-uk/  301
@@ -194,8 +182,6 @@
 /blog/how-to-wire-an-electric-oven-uk-circuit-guide-electrasim/  /blog/how-to-wire-a-cooker-electric-oven-uk/  301
 /blog/how-to-wire-an-electric-shower-cable-size-mcv-guide  /blog/electrical-cable-sizes-explained/  301
 /blog/how-to-wire-an-electric-shower-cable-size-mcv-guide/  /blog/electrical-cable-sizes-explained/  301
-/blog/how-to-wire-an-electric-shower:cable-size-mcb-guide  /blog/what-is-an-mcb-breaker/  301
-/blog/how-to-wire-an-electric-shower:cable-size-mcb-guide/  /blog/what-is-an-mcb-breaker/  301
 /blog/how-to-wire-an-outbuilding  /blog/how-to-wire-a-shed-or-outbuilding/  301
 /blog/how-to-wire-an-outbuilding/  /blog/how-to-wire-a-shed-or-outbuilding/  301
 /blog/how-to-wire-as-cooker-electric-oven-uk  /blog/how-to-wire-a-cooker-electric-oven-uk/  301
@@ -366,9 +352,26 @@
 /blog/tags/v=ir/  /blog/tags/circuit-design/  301
 /blog/tags/wiring-mistakes  /blog/tags/wiring/  301
 /blog/tags/wiring-mistakes/  /blog/tags/wiring/  301
-/blog/tags/*  /blog/  301
 
-# Legacy nested and malformed path catch-alls (301)
+# --- Pattern rules (splats/placeholders) ---
+# Cloudflare counts every rule AFTER the first dynamic rule against its
+# 100-dynamic-rule budget, so these must stay at the end of the file.
+#
+/*/index.html  /:splat/  301
+/*/index.php   /:splat/  301
+/experimental/*  /explore/  301
+/explore/edison-bulb/*  /explore/  301
+/blog/how-to-add-a-spur-from-a-ring-main:-rules,-methods-and-step-by  /blog/how-to-add-a-spur-from-a-ring-main/  301
+/blog/how-to-add-a-spur-from-a-ring-main:-rules,-methods-and-step-by/  /blog/how-to-add-a-spur-from-a-ring-main/  301
+/blog/how-to-add-a-spur-from-a-ring-main:/  /blog/how-to-add-a-spur-from-a-ring-main/  301
+/blog/how-to-add-a-spur-from-a-ring-main:rules,-methods-and-step-by-step-guide  /blog/how-to-add-a-spur-from-a-ring-main/  301
+/blog/how-to-add-a-spur-from-a-ring-main:rules,-methods-and-step-by-step-guide/  /blog/how-to-add-a-spur-from-a-ring-main/  301
+/blog/how-to-trace-an-electrical-fault-safely:/  /blog/how-to-trace-an-electrical-fault-safely/  301
+/blog/how-to-wire-a-ceiling-rose-and-light-fitting:loop-in,-junction-box...  /blog/how-to-wire-a-lighting-circuit/  301
+/blog/how-to-wire-a-ceiling-rose-and-light-fitting:loop-in,-junction-box.../  /blog/how-to-wire-a-lighting-circuit/  301
+/blog/how-to-wire-an-electric-shower:cable-size-mcb-guide  /blog/what-is-an-mcb-breaker/  301
+/blog/how-to-wire-an-electric-shower:cable-size-mcb-guide/  /blog/what-is-an-mcb-breaker/  301
+/blog/tags/*  /blog/  301
 /blog/blog/*  /blog/  301
 /blog/post/*  /blog/  301
 /blog/electrasim.com/*  /blog/  301
