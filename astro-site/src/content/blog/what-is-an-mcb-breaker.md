@@ -1,6 +1,6 @@
 ---
-title: "What is an MCB Breaker and How Does It Protect Your Circuit?"
-description: "MCBs are the first line of defence against overloads and short circuits. This guide explains exactly how they work, why they trip, and how to use a free electrical simulator to test MCB behaviour safely."
+title: "What is an MCB Breaker? Types B, C, D & How MCBs Work"
+description: "What is an MCB and how does it protect circuits? Learn how miniature circuit breakers trip on overloads and short circuits, plus Type B, C, and D ratings."
 pubDate: 2026-05-05
 author: ElectraSim
 category: Beginner Guide

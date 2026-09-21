@@ -37,6 +37,44 @@ const blogHighlights = selectPostsById(
       "image":"https://electrasim.com/og-image.png",
       "offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}
     })} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is ElectraSim free to use?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, ElectraSim is 100% free with all 115+ components unlocked. No account sign-up, subscription, or software installation is required."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I run the electrical wiring simulator on PC and mobile?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. ElectraSim runs in any modern browser on PC, Mac, Linux, Chromebook, iPad, tablets, and smartphones. It also works offline as an installable Progressive Web App (PWA)."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What circuits and components can I simulate?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "ElectraSim supports full house wiring: MCBs, RCDs, RCBOs, SPDs, single-pole switches, two-way and intermediate switches, socket outlets, lighting circuits, and distribution boards."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does ElectraSim simulate real electrical faults and trips?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. The simulator features a real-time solver that accurately simulates breaker trips, earth faults, open circuits, short circuits, and reversed polarity according to electrical principles."
+          }
+        }
+      ]
+    })} />
     <script is:inline defer src={`/js/landing-hero.js?v=${packageMetadata.version}`}></script>
   </Fragment>
 

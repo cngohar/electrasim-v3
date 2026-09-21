@@ -1,6 +1,6 @@
 ---
-title: "Live, Neutral and Earth Wires Explained"
-description: "What do the brown, blue and green-yellow wires actually do? This complete guide explains the roles of live, neutral and earth in UK wiring, what happens when they're mixed up, and how to safely explore all three conductors in a free circuit simulator."
+title: "Live, Neutral & Earth Wires Explained: UK Roles & Colours"
+description: "Learn what live, neutral, and earth wires do in UK electrical systems. Understand brown, blue, and green-yellow colour codes, functions, and wiring safety."
 pubDate: 2026-05-14
 author: ElectraSim
 category: Beginner Guide

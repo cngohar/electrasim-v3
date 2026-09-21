@@ -1,6 +1,6 @@
 ---
-title: "Electrical Cable Sizes Explained: 1mm², 1.5mm², 2.5mm², 6mm² and Beyond"
-description: "A complete UK guide to electrical cable sizes — current ratings, maximum lengths, correct applications for every circuit type, and how to choose the right cable size for sockets, lighting, cookers and EV chargers."
+title: "UK Electrical Cable Sizes: 1mm², 1.5mm², 2.5mm² & 6mm²"
+description: "Complete UK electrical cable size guide: current ratings, uses, and rules for 1mm², 1.5mm², 2.5mm², 6mm², and 10mm² Twin & Earth in domestic circuits."
 pubDate: 2026-05-18
 author: ElectraSim
 category: Beginner Guide

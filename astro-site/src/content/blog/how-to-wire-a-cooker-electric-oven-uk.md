@@ -1,6 +1,6 @@
 ---
-title: "How to Wire a Cooker or Electric Oven: UK Circuit Guide"
-description: "Wiring a cooker or electric oven requires a dedicated high-current circuit, a cooker control unit, and the right cable size. This UK guide covers everything — cable sizing, cooker switch, consumer unit connection, diversity, and Part P."
+title: "How to Wire a Cooker or Electric Oven: UK Installation Guide"
+description: "UK guide to wiring an electric cooker or oven: cable sizing (6mm² vs 10mm²), 32A vs 45A cooker switches, diversity calculations, and Part P compliance."
 pubDate: 2026-05-24
 author: ElectraSim
 category: Wiring Guide

@@ -1,6 +1,6 @@
 ---
-title: "How to Add a Spur from a Ring Main: Rules, Methods and Step-by-Step Guide"
-description: "Adding a spur from a ring main is one of the most common DIY electrical tasks in the UK. This guide covers BS 7671 spur rules, fused vs unfused spurs, how to find a safe take-off point, step-by-step wiring, and when the work is notifiable under Part P."
+title: "How to Add a Spur from a Ring Main: UK Rules & Methods"
+description: "UK regulations and step-by-step methods for adding a spur from a ring main: fused vs unfused spurs, 2.5mm² cable sizing, socket limits, and safety testing."
 pubDate: 2026-06-12
 author: ElectraSim
 category: Wiring Guide

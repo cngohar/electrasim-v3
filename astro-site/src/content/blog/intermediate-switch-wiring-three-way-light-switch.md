@@ -1,6 +1,6 @@
 ---
-title: "Intermediate Switch Wiring: How to Control a Light from Three or More Locations"
-description: "Want to control one light from three switches — at the bottom of the stairs, the top, and a landing? That requires an intermediate switch. This guide explains two-way and intermediate switching with clear wiring diagrams."
+title: "Intermediate Switch Wiring Diagram: 3-Way Switching Guide"
+description: "Clear intermediate switch wiring diagrams and guide. Control a light from 3 or more locations using two-way and intermediate switches in UK installations."
 pubDate: 2026-05-18
 author: ElectraSim
 category: Beginner Guide
@@ -63,7 +63,7 @@ The intermediate switch is inserted into the **strapper cables** between two two
 
 ---
 
-## Wiring Three-Location Switching
+## Intermediate Switch Wiring Diagram: Three-Location Switching
 
 The complete circuit for three-location control uses:
 - **1 × two-way switch** at each end (2 switches total)

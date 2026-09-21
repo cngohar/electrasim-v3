@@ -1,6 +1,6 @@
 ---
-title: "Series vs Parallel Circuits: What's the Difference and Which One Should You Use?"
-description: "Series and parallel circuits behave completely differently — and knowing which to use could save your appliances (or your life). This guide explains both with clear examples you can simulate for free."
+title: "Series vs Parallel Circuits: Differences, Rules & Diagrams"
+description: "Difference between series and parallel circuits explained with diagrams. Compare voltage, current, and resistance rules with interactive wiring examples."
 pubDate: 2026-05-04
 author: ElectraSim
 category: Beginner Guide
@@ -45,7 +45,7 @@ Think of multiple pipes branching off the same main supply. Each pipe carries it
 
 > <span class="em em-bulb" role="img" aria-label="tip"></span> **Try it in ElectraSim:** Place a Battery → MCB, then wire two bulbs in **parallel** branches. Run the simulation. Now disconnect one bulb — the other stays lit at full brightness. [Try it now →](/app/)
 
-## Series vs Parallel: Side-by-Side Comparison
+## Difference Between Series and Parallel Circuits: Side-by-Side Comparison
 
 | Property | Series Circuit | Parallel Circuit |
 |---|---|---|

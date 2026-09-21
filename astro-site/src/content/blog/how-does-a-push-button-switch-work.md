@@ -1,6 +1,6 @@
 ---
-title: "How Does a Push Button Switch Work? Momentary Contacts"
-description: "Learn how momentary push buttons work, the difference between normally open and normally closed contacts, and how they control doorbells and machinery."
+title: "How Push Button Switches Work: Momentary vs Maintained"
+description: "Learn how push button switches work: differences between momentary and maintained contacts, normally open (NO) vs normally closed (NC), and circuit uses."
 pubDate: 2026-07-20
 author: ElectraSim
 category: Beginner Guide
@@ -60,7 +60,11 @@ The mechanical action determines what happens after your finger leaves the contr
 | **Momentary** | Contact changes state | Spring returns it immediately | Doorbell, start button, test button |
 | **Maintained** | Contact changes state | New state remains until another action | Push-on/push-off lamp, selector control |
 
-A doorbell button normally needs only a short pulse, so a momentary action makes sense. A table-lamp button may need to remember whether the lamp is on, so it can use a maintained action instead.
+### What is a Maintained Contact Push Button?
+
+A **maintained contact push button** (often called a latching push button or alternate-action switch) stays in its activated state after being pressed. Instead of springing back immediately like a momentary switch, internal mechanical latching holds the contacts in place. A second press (or twist-to-release action on an emergency stop) releases the latch and returns the contacts to their normal resting state.
+
+A doorbell button normally needs only a short pulse, so a momentary action makes sense. A table-lamp button or machine power button may need to remember whether power is on, so it can use a maintained contact push button instead.
 
 Some systems use a momentary button but still keep the equipment running. In that case, the button is not doing the remembering. A relay, contactor auxiliary contact, electronic controller, or software input provides the holding logic.
 

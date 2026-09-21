@@ -1,6 +1,6 @@
 ---
-title: "Types of Earthing Systems Explained: TN-S, TN-C-S (PME) and TT"
-description: "TN-S, TN-C-S (PME) and TT are the three earthing systems used in UK domestic installations. This guide explains exactly how each one works, how to identify yours, and why earthing is the foundation of electrical safety."
+title: "UK Earthing Systems Explained: TN-S, TN-C-S (PME) and TT"
+description: "Complete guide to UK earthing systems: compare TN-S, TN-C-S (PME), and TT setups, supply earthing arrangements, Ze values, and safety requirements."
 pubDate: 2026-05-19
 author: ElectraSim
 category: Beginner Guide

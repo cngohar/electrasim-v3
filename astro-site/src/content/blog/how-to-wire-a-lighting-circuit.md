@@ -1,6 +1,6 @@
 ---
-title: "How to Wire a Lighting Circuit: Loop-In and Junction Box Methods Explained"
-description: "A complete UK guide to wiring a domestic lighting circuit from the consumer unit — cable sizing, MCB selection, loop-in method, junction box method, switch drops, two-way switching, and how many lights a circuit can supply. Includes step-by-step wiring for both methods."
+title: "How to Wire a Lighting Circuit: Loop-In & Junction Box Guide"
+description: "Complete UK guide to wiring lighting circuits: loop-in ceiling rose method, junction box wiring, 1mm² and 1.5mm² cable sizes, and switch connections."
 pubDate: 2026-06-15
 author: ElectraSim
 category: Wiring Guide

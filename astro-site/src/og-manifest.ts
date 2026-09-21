@@ -7,6 +7,7 @@ export const OG_BLOG_MANIFEST: Record<string, string> = {
   'cable-clipping-and-containment-how-to-run-cables-safely': 'e3600d4385',
   'consumer-unit-upgrade-what-to-expect': 'fbe758898f',
   'distribution-board-explained-how-a-consumer-unit-is-wired': '681f68eb90',
+  'earth-fault-loop-impedance-zs-explained': 'f306b1b02a',
   'eicr-codes-explained-c1-c2-c3-fi': '1c8cac40a9',
   'electric-underfloor-heating-wiring-guide': '9488f08107',
   'electrical-cable-sizes-explained': '6d5742eaa2',

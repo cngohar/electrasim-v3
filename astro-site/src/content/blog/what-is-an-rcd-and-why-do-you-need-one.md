@@ -1,6 +1,6 @@
 ---
-title: "What is an RCD and Why Do You Need One?"
-description: "An RCD can disconnect a dangerous earth fault fast enough to save your life. This guide explains exactly how Residual Current Devices work, why they're mandatory in modern wiring, and how to test RCD protection safely using a free electrical circuit simulator."
+title: "What is an RCD? How Residual Current Devices Work (UK)"
+description: "What is an RCD and how does it protect you? Learn how residual current devices detect earth faults, trip in milliseconds, and prevent deadly electric shock."
 pubDate: 2026-05-10
 author: ElectraSim
 category: Beginner Guide
@@ -15,11 +15,11 @@ This guide explains what an RCD is, how it works, why a regular MCB can't do its
 
 > <span class="em em-bulb" role="img" aria-label="tip"></span> **Try it now:** ElectraSim includes a fully functional RCD component. Build a protected circuit, simulate an earth fault, and watch the RCD trip — all in your browser, no sign-up required. [Open ElectraSim →](/app/)
 
-## What Does RCD Stand For?
+## What is an RCD? (Residual Current Device)
 
-**RCD** stands for **Residual Current Device**. It's a fast-acting safety switch that monitors the current flowing into a circuit and the current flowing back out. In a healthy circuit these two values are equal. When they differ beyond the device threshold, the RCD trips and cuts power.
+An **RCD (Residual Current Device)** is a sensitive life-saving safety switch that automatically cuts off electrical power in milliseconds when it detects an earth leakage fault. It continuously compares the current flowing in through the Live wire against the current returning through the Neutral wire. If the two currents do not balance, electricity is leaking to earth (often through a person or damaged wire), and the RCD instantly trips to prevent fatal electric shocks and electrical fires.
 
-That difference in current is called **residual current**. It means current has found an unintended path to earth — for example, through a person who has touched a live wire, through a damaged cable insulation leaking to a metal casing, or through water that has entered an outdoor socket.
+That difference in current is called **residual current**. It means current has found an unintended path to earth — for example, through a person who has touched a live wire, through damaged cable insulation leaking to a metal casing, or through water that has entered an outdoor socket.
 
 RCDs are also sold and labelled as:
 - **RCCB** — Residual Current Circuit Breaker (same device, European terminology)

@@ -1,6 +1,6 @@
 ---
-title: "How to Wire a Ring Main Circuit: The UK Ring Final Circuit Explained"
-description: "The ring main is uniquely British and widely misunderstood. This guide explains exactly how a ring final circuit works, why it uses 32 A protection with 2.5mm² cable, how spurs work, and what BS 7671 requires."
+title: "How to Wire a Ring Main: Complete UK Socket Circuit Guide"
+description: "Step-by-step UK guide to wiring a ring main circuit: 2.5mm² Twin & Earth cable routing, 32A MCB protection, socket connections, and continuity testing."
 pubDate: 2026-05-18
 author: ElectraSim
 category: Beginner Guide

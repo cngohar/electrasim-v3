@@ -1,6 +1,6 @@
 ---
-title: "Old vs New UK Wire Colours Explained: Red, Black and Green to Brown, Blue and Green-Yellow"
-description: "The UK changed its electrical wiring colour code in 2004. This guide explains what changed, why it changed, how to identify old and new wiring, what the colours mean in single-phase and three-phase systems, and how to work safely on installations that mix both."
+title: "UK Wire Colours (Old vs New): Red & Black to Brown & Blue"
+description: "UK wiring colours explained: identify old (red, black, green) vs new (brown, blue, green/yellow) cables, 2004 changes, and mixed installation safety rules."
 pubDate: 2026-06-13
 author: ElectraSim
 category: Beginner Guide

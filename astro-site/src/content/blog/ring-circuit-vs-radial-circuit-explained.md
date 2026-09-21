@@ -1,6 +1,6 @@
 ---
-title: "Ring Circuit vs Radial Circuit: What's the Difference?"
-description: "Ring circuits and radial circuits are the two ways to wire socket outlets in UK homes. This guide explains how each works, when to use each, cable sizes, spur rules, and how to simulate both topologies in a free browser-based circuit simulator."
+title: "Ring Circuit vs Radial Circuit: Differences, Pros & Cons"
+description: "Compare UK ring final vs radial circuits: understand differences in cable sizes, 32A vs 20A MCBs, spur limits, floor area rules, and fault risks."
 pubDate: 2026-05-15
 author: ElectraSim
 category: Wiring Guide

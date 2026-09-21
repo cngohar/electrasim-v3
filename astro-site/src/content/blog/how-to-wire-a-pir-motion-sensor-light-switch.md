@@ -1,6 +1,6 @@
 ---
-title: "How to Wire a Motion Sensor / PIR Light Switch: Indoor and Outdoor Guide"
-description: "A PIR motion sensor switch automatically turns lights on when it detects movement and off after a set time. This UK guide covers how PIR switches work, the difference between 2-wire and 3-wire units, step-by-step wiring for indoor and outdoor installations, override switching, and Part P rules."
+title: "How to Wire a PIR Motion Sensor Light Switch (UK Guide)"
+description: "Step-by-step UK guide to wiring a PIR motion sensor light switch. Learn 2-wire vs 3-wire connections, indoor & outdoor setup, manual override, and Part P."
 pubDate: 2026-06-14
 author: ElectraSim
 category: Wiring Guide
