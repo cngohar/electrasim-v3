@@ -28,6 +28,7 @@ let anchorHost: HTMLDivElement;
 beforeEach(() => {
   window.localStorage.clear();
   vi.spyOn(window, 'confirm').mockReturnValue(true);
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
   anchorHost = document.createElement('div');
   anchorHost.innerHTML = ANCHORS.map((a) => `<button ${a}>x</button>`).join('');
   document.body.appendChild(anchorHost);

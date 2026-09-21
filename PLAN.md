@@ -559,7 +559,7 @@ WebRTC peer-to-peer sync via shareable link, no backend needed. Risky on flaky c
 
 ## 13. v1.0 Launch Checklist
 
-> **Live working copy is in [`LAUNCH.md`](./LAUNCH.md)** — that file is the go/no-go gate, includes the 2026-04-30 code-sweep findings (blockers P1–P9), quality gates, smoke-test checklist, and step-by-step launch day instructions.
+> **Live working copy is in [`LAUNCH.md`](./docs/archive/LAUNCH.md)** — that file is the go/no-go gate, includes the 2026-04-30 code-sweep findings (blockers P1–P9), quality gates, smoke-test checklist, and step-by-step launch day instructions.
 > The items below are the original planning-time checklist kept here for historical reference.
 
 Every item must be ticked before the public launch announcement. Items prefixed `B` map to the "must-have" bucket from the launch readiness analysis (2026-04-30 conversation).

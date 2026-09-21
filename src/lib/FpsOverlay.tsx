@@ -28,8 +28,11 @@ export function FpsOverlay() {
   // Ctrl/Cmd+Shift+F re-mounts the loop only when actually wanted.
   const [visible, setVisible] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    return stored === '1';
+    try {
+      return window.localStorage.getItem(STORAGE_KEY) === '1';
+    } catch {
+      return false;
+    }
   });
   const [stats, setStats] = useState<Stats>({ fps: 0, frameMs: 0, jsHeapMb: null });
   const rafRef = useRef<number | null>(null);

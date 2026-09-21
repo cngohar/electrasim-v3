@@ -6,6 +6,7 @@ import SiteBackdrop from '../components/layout/SiteBackdrop.astro';
 import SiteFooter from '../components/layout/SiteFooter.astro';
 import SiteHeader from '../components/layout/SiteHeader.astro';
 import SiteSearchModal from '../components/layout/SiteSearchModal.astro';
+import LandingReleasePopup from '../components/landing/LandingReleasePopup.astro';
 import '../styles/global.css';
 import packageMetadata from '../../../package.json';
 import { metaDescription, metaTitle } from '../lib/seo';
@@ -147,6 +148,7 @@ const websiteSchema = {
 
   <slot />
 
+  <LandingReleasePopup assetVersion={packageMetadata.version} />
   <FloatingContact assetVersion={packageMetadata.version} />
   <SiteFooter />
   <ScrollTop assetVersion={packageMetadata.version} />

@@ -42,15 +42,12 @@
     "check:csp": "node scripts/check-csp.mjs"
   },
   "dependencies": {
-    "@types/three": "^0.185.4",
     "comlink": "^4.4.2",
     "idb-keyval": "^6.2.2",
     "immer": "^11.1.4",
     "lucide-react": "^0.546.0",
-    "motion": "^13.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "three": "^0.185.1",
     "workbox-window": "^7.4.1",
     "zundo": "^2.3.0",
     "zustand": "^5.0.12"

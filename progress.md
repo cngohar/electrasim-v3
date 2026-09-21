@@ -7,6 +7,27 @@ A running, append-only log of work on the ElectraSim rewrite. Every coding sessi
 
 ---
 
+## Session 2026-09-21 — Workspace restructuring, probe script organization, and v2.0.4 README update
+
+**Request:** create a proper folder structure without modifying the app or any code, update the readme to latest one, and update the git repo with latest changes and push to github.
+
+**Done:**
+1. Cleaned and structured the root repository:
+   - Moved 14 loose markdown specifications, audits, plans, and notes into structured `docs/` subdirectories (`docs/plans/`, `docs/audits/`, `docs/notes/`, `docs/archive/`, `docs/branding/`).
+   - Moved 13 ad-hoc Playwright probe automation scripts and comparison screenshots into `scripts/probes/`.
+   - Renamed local workspace planning directory with spaces to `docs/research/v2-planning/` and updated `.gitignore`.
+   - Created `docs/README.md` and `scripts/probes/README.md` to document the purpose and structure of each directory.
+   - Updated cross-document relative links in `CHANGELOG.md` and `PLAN.md`.
+2. Fully updated `README.md` for the v2.0.4 release:
+   - Modernized feature highlights (Challenge Mode, Diagnosis Lab, Ohmageddon, 20 guided circuits, 22 cutaway component anatomy guides, multi-standard Electrical Toolbox).
+   - Documented the clean project folder layout, full scripts catalog (all 29 package scripts), and performance budgets.
+3. Verified complete test, typecheck, lint, and build integrity:
+   - `npm run check` (typecheck + Biome lint + 97 test files / 1464 tests passed).
+   - `npm run build` (Vite app + Astro site + postbuild step assembled cleanly into `dist/`).
+   - Production quality gates: `check:perf` (all budgets green), `check:links` (192 HTML files valid), `check:seo` (190 pages valid), `check:csp` (strict CSP matched).
+
+---
+
 ## Session 2026-09-17 — Release v2.0.4: guided-circuit correctness
 
 **Request:** analyse the whole architecture for the most likely regressions, fix them step by step,

@@ -1,5 +1,12 @@
 ## [Unreleased]
 
+### Changed
+- **Repository directory structure reorganization**: Organized loose root documents, feature plans, audit reports, implementation notes, and launch archives into structured `docs/` subdirectories (`docs/plans/`, `docs/audits/`, `docs/notes/`, `docs/archive/`, `docs/branding/`).
+- Moved ad-hoc Playwright automation and probe inspection scripts into `scripts/probes/` alongside diagnostic screenshots.
+- Added comprehensive documentation indexes (`docs/README.md` and `scripts/probes/README.md`).
+- Updated `README.md` to reflect the v2.0.4 release status, architecture, full scripts index, and reorganized folder structure.
+- Cleaned up unused dependencies (`three`, `@types/three`, `motion`) and updated `.gitignore`.
+
 ---
 
 ## [2.0.4] — 2026-09-17
@@ -653,7 +660,7 @@ viewBox is `y 200 h 380`, so art above y≈200 is off-screen. A bird placed at y
 
 ### Added & Enhanced — Session 2026-08-28 (part 7): Cable Sizing Cutaway Stage, Shared Scene Contract & Toolbox Chrome
 
-1. **`/tools/cable-size-calculator/` became a visual learning tool**, with a deliberately different metaphor from the voltage-drop landscape (design brief: [`ElectraSim-Cable-Sizing-Visual-Plan.md`](./ElectraSim-Cable-Sizing-Visual-Plan.md)). Cable sizing is a heat-balance problem, so the new scene is a **cutaway**: an exploded isometric stack of the layers around the cable (cable plane → containment → insulation → surface → room air), the cable running through it with current particles, grouped-neighbour tubes that glow, heat chevrons that rise — or stall and bounce back when the environment will not shed them — a trapped-heat pool, a magnified **conductor specimen** whose copper actually grows with the answer, and the **IEC size ladder** with insufficient rungs flagged.
+1. **`/tools/cable-size-calculator/` became a visual learning tool**, with a deliberately different metaphor from the voltage-drop landscape (design brief: [`ElectraSim-Cable-Sizing-Visual-Plan.md`](./docs/plans/ElectraSim-Cable-Sizing-Visual-Plan.md)). Cable sizing is a heat-balance problem, so the new scene is a **cutaway**: an exploded isometric stack of the layers around the cable (cable plane → containment → insulation → surface → room air), the cable running through it with current particles, grouped-neighbour tubes that glow, heat chevrons that rise — or stall and bounce back when the environment will not shed them — a trapped-heat pool, a magnified **conductor specimen** whose copper actually grows with the answer, and the **IEC size ladder** with insufficient rungs flagged.
 2. **Constraint crossover chart**, drawn from the same tables: required mm² against run length, with the flat ampacity gate, the rising volt-drop gate, and a marker for the length where the binding constraint flips (~33 m for a 32 A Method C circuit at 5%). Backed by a new exported `cableSizingCurve()` in `src/lib/tools/cable-sizing/calculation.ts` with 7 tests, incl. the verified 1.5 mm² Method A = 14.5 A vs Method C = 20 A step.
 3. **Ampacity gauge HUD** — the entire sizing rule `Ib ≤ In ≤ Iz` as one bar with load/ceiling markers that **drains** as the environment worsens — plus a “Why this size?” **factor waterfall** (tabulated → ×Ca → ×Cg → ×Ci → Iz vs It) that explains every answer in the same panel.
 4. **Shared scene contract**, so the next tool is cheap rather than a copy: `public/js/scene-stage.js` (aspect-fitted viewBox, reduced motion, ResizeObserver/zoom/orientation, `ElectraStage.paint`), `src/lib/tools/stage-spec.ts` (fit caps + the documented CSS-variable paint contract), and `src/styles/tool-stage.css` (`ts-*` stage/panel/sheet shell with pinned footers and scroll affordances). The voltage-drop engine now delegates its fitting and all chrome to these, deleting ~250 duplicated lines; `ToolWorkspace.astro` became slot-based with a `variant` + `toolScript` prop.

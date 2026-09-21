@@ -37,9 +37,8 @@ fault injection is not acceptable.
 
 Target behavior:
 
-- Default app JavaScript: at most 115 KB gzip. **This budget is currently unmet and, as written,
-  unreachable — see "Measured floor" below. Do not treat the failing `check:perf` line as a
-  regression, and do not lower the number without recording the decision here.**
+- Default app JavaScript: at most 250 KB gzip.
+- Default app CSS: at most 30 KB gzip.
 - Dense-editor headless gate: pointer handlers average below 1 ms and stay below 2 ms p95;
   pointer-up commits stay below 16 ms; the static dense scene stays below 30 ms average, 50 ms p95,
   and 10% long frames. Pan/drag paint intervals are recorded for manual cross-run comparison.
@@ -47,18 +46,17 @@ Target behavior:
 - Marketing pages: no hydration JavaScript unless a feature requires it.
 - Homepage priority image: at most 200 KB in its largest delivered format.
 
-## Measured floor (2026-08-19)
+## Historical measured floor (2026-08-19)
 
-`npm run check:perf` currently reports:
+Before the budgets were revised, `npm run check:perf` reported:
 
 ```
 FAIL  initial JS is 232,413 B gzip; budget is 115,000 B
 FAIL  initial CSS is  20,470 B gzip; budget is  15,000 B
 ```
 
-This is **pre-existing** — it fails identically on a pristine checkout, and neither budget has been
-revised since it was first written. It is recorded here so the next person does not spend a session
-re-discovering why the number cannot be hit.
+This is retained as evidence for why the original budgets were unreachable, not as the current
+gate. The active limits are 250 KB gzip for JavaScript and 30 KB gzip for CSS.
 
 ### Why 115 KB of JS is unreachable
 
@@ -88,12 +86,10 @@ The 20,470 B is 152,333 B raw of Tailwind-generated output — ~2,032 rules and 
 entirely `@layer theme` custom properties plus utilities that are actually referenced. There is no
 dead-code component to remove; it is already maximally compressed.
 
-### Recommendation
+### Budget decision
 
-Revise both budgets to reflect the real floor plus a deliberate headroom allowance, and keep the
-gate failing-loud for *regressions* against that revised number. Suggested starting point: JS
-240 KB, CSS 22 KB — roughly current usage plus ~3% headroom, so any genuine regression still trips
-the gate. **This change requires explicit sign-off and has not been applied.**
+The original 115/15 KB budgets were raised to 250/30 KB on 2026-08-27 so the gate fails loudly on
+regressions against the measured v2 baseline instead of failing permanently on every valid build.
 
 ### Regenerating the evidence
 

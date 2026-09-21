@@ -72,10 +72,7 @@ test.describe('Rage 4 — compound faults (§26, §27)', () => {
   test('the reported symptom follows the real circuit as faults are cleared', async ({
     page,
   }, testInfo) => {
-    test.setTimeout(180_000);
-    // `setTimeout` replaces the budget outright, so re-apply the WebKit
-    // allowance the beforeEach hook granted (see the note there).
-    test.slow(testInfo.project.name === 'tablet-safari');
+    test.setTimeout(testInfo.project.name === 'tablet-safari' ? 360_000 : 180_000);
     await page.goto('/');
     await enableOhmageddon(page);
     await openDiagnosisLab(page);
@@ -265,8 +262,10 @@ test.describe('Ohmageddon Mode', () => {
    * store to "know" the answer would test the store, not the exercise, and
    * would pass even if the panel never surfaced the second fault.
    */
-  test('a Rage 3 exercise takes two findings to complete (§27, §53)', async ({ page }) => {
-    test.slow();
+  test('a Rage 3 exercise takes two findings to complete (§27, §53)', async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(testInfo.project.name === 'tablet-safari' ? 180_000 : 90_000);
     await page.goto('/');
     await enableOhmageddon(page);
     await openDiagnosisLab(page);
