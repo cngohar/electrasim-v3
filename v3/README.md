@@ -113,6 +113,7 @@ docs/ADVANCED_AUTHORING_V0_7.md  selection, duplication, rotation, containment, 
 docs/GUIDED_DIAGNOSTICS_V0_8.md  fault exercises, lesson evaluation, lock release, and LMS boundary
 docs/WORKER_TRANSIENT_SCALE_V0_9.md  worker queue/cancellation, motor inrush, bundles, and energy evidence
 docs/CONTROL_LMS_SCALE_V0_10.md  coil/contact control, durable LMS evidence, and 100-branch scale
+docs/DUAL_VISUALS_REGIONAL_CONVERSION_V0_11.md  beginner/technical views, live wires, regional conversion
 scripts/benchmark-renderers.ts reproducible npm-Chromium renderer benchmark
 ```
 

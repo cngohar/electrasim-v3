@@ -34,7 +34,7 @@ A 100-parallel-branch, 104-component authored circuit is validated and run throu
 
 ## Validation
 
-The complete repository gate passes with 164 tests and 782 assertions, strict TypeScript, Biome, server/worker bundles, and no failures.
+The complete repository gate passes with 164 tests and 787 assertions, strict TypeScript, Biome, server/worker bundles, and no failures.
 
 ## Deliberate boundaries
 

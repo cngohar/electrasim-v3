@@ -85,6 +85,11 @@ describe("integrated electrical-blue application shell", () => {
     expect(simulatorJs).toContain("containedPosition");
     expect(simulatorJs).toContain("copySelection");
     expect(simulatorJs).toContain("rotateSelection");
+    expect(simulatorHtml).toContain('id="visual-style"');
+    expect(simulatorJs).toContain("iconEquipmentSvg");
+    expect(simulatorJs).toContain("updateLiveWires");
+    expect(simulatorJs).toContain("Convert compatible existing equipment");
+    expect(simulatorJs).toContain("controlsContactIds");
     expect(simulatorJs).toContain("repairRequired");
     expect(() => new Function(simulatorJs)).not.toThrow();
 
