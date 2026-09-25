@@ -43,7 +43,7 @@ The application binds to `0.0.0.0:$PORT` and provides:
 - `GET /api/account/workspaces` — authenticated personal/instructor/institution workspace discovery.
 - `GET /api/workspaces/:workspaceId/organization` and `POST .../{campuses|departments}` — exact-workspace hierarchy administration.
 - `GET /api/workspaces/:workspaceId/members` and `PUT .../members/:membershipId/status` — permission-bounded roster and step-up-protected access changes.
-- `GET /simulator` — responsive free deterministic simulator vertical slice with mandatory event-driven animation.
+- `GET /simulator` — responsive free deterministic simulator with event-driven animation, beginner/technical visuals, target-aware keyboard-accessible context menus, and a visible 30–375% zoom range.
 - `GET /simulator/shared/:shareId` — read-only public presentation of an explicitly shared circuit.
 - `POST /api/simulator/run` — bounded deterministic electrical, protection, and thermal execution.
 - `POST /api/simulator/command` — validated free-form add/remove/connect/update/layout commands with inverse-command undo evidence.

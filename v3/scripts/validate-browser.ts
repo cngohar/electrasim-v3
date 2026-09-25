@@ -59,6 +59,30 @@ try {
         (count) => document.querySelectorAll(".wire-group").length === count,
         wiresBefore,
       );
+      const liveWireBefore = await page
+        .locator(".wire-group")
+        .first()
+        .locator(".circuit-wire")
+        .getAttribute("d");
+      const breakerBox = await page.locator('.equipment[data-component="breaker"]').boundingBox();
+      if (breakerBox) {
+        await page.mouse.move(
+          breakerBox.x + breakerBox.width / 2,
+          breakerBox.y + breakerBox.height / 2,
+        );
+        await page.mouse.down();
+        await page.mouse.move(
+          breakerBox.x + breakerBox.width / 2 + 40,
+          breakerBox.y + breakerBox.height / 2 + 20,
+        );
+      }
+      const liveWireDuring = await page
+        .locator(".wire-group")
+        .first()
+        .locator(".circuit-wire")
+        .getAttribute("d");
+      if (breakerBox) await page.mouse.up();
+      await page.waitForTimeout(150);
       await page.selectOption("#diagnostic-isolation", "breaker");
       await page.selectOption("#diagnostic-work", "load");
       for (const [button, expected] of [
@@ -95,6 +119,19 @@ try {
       await page.click("#redo");
       await page.locator(".equipment").first().waitFor();
       const afterRedo = await page.locator(".equipment").count();
+      await page.locator(".equipment").first().click({ button: "right" });
+      const componentContextVisible = await page.locator("#canvas-context-menu").isVisible();
+      const componentContextText = await page.locator("#canvas-context-menu").textContent();
+      await page.keyboard.press("Escape");
+      await page.locator("#circuit-svg").click({ button: "right", position: { x: 600, y: 30 } });
+      const canvasContextText = await page.locator("#canvas-context-menu").textContent();
+      await page.getByRole("menuitem", { name: /Zoom in/ }).click();
+      const zoomAfterContextAction = await page.locator("#zoom-level").textContent();
+      await page.selectOption("#visual-style", "technical");
+      const technicalStyle = await page
+        .locator("body")
+        .evaluate((body) => body.classList.contains("technical-style"));
+      await page.selectOption("#visual-style", "icon");
       for (const part of [
         "junction",
         "neutral_bar",
@@ -133,6 +170,12 @@ try {
         assemblyToolCount,
         multiSelected,
         customScenario,
+        liveWireMovedDuringDrag: liveWireBefore !== liveWireDuring,
+        componentContextVisible,
+        componentContextText,
+        canvasContextText,
+        zoomAfterContextAction,
+        technicalStyle,
       };
       if (
         before !== 4 ||
@@ -146,7 +189,13 @@ try {
         afterRedo !== 1 ||
         assemblyToolCount !== 8 ||
         multiSelected !== 2 ||
-        customScenario !== "custom"
+        customScenario !== "custom" ||
+        liveWireBefore === liveWireDuring ||
+        !componentContextVisible ||
+        !componentContextText?.includes("Rotate 90°") ||
+        !canvasContextText?.includes("Paste disconnected copy") ||
+        zoomAfterContextAction !== "125%" ||
+        !technicalStyle
       ) {
         errors.push("Free-form blank/add/undo/redo authoring journey failed");
       }

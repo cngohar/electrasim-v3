@@ -76,10 +76,15 @@ export class WorkerSimulationJobHost implements SimulationJobHost {
     const worker = new Worker(this.workerUrl.href);
     const timeoutMs = this.options.timeoutMs ?? 5_000;
     let timeout: ReturnType<typeof setTimeout> | undefined;
-    const cancelled = () => worker.terminate();
+    let rejectRun: ((error: Error) => void) | undefined;
+    const cancelled = () => {
+      worker.terminate();
+      rejectRun?.(new Error("simulation_cancelled"));
+    };
     job.signal?.addEventListener("abort", cancelled, { once: true });
     try {
       const run = await new Promise<SimulationRun>((resolve, reject) => {
+        rejectRun = reject;
         timeout = setTimeout(() => {
           worker.terminate();
           reject(new Error("simulation_timeout"));

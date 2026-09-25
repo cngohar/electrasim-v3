@@ -51,6 +51,7 @@ All notable v3 planning and implementation changes are recorded here. The comple
 - Worker/transient/scale hardening v0.9: bounded worker-hosted simulation with abort/timeout/queue controls, separately bundled production worker, deterministic motor inrush that feeds protection and thermal calculations, and selected-component voltage-drop/current/real-power evidence.
 - Control/LMS/scale v0.10: solved AC control coils with deterministic relay/contactor coupling and pickup/release events, validated contact references, authenticated immutable lesson submissions with forced-RLS PostgreSQL persistence, a workbench LMS submission action, and a 100-branch worker-hosted scale case.
 - Dual visuals and regional conversion v0.11: persistent beginner-icon/technical-hybrid switching across the component bench and canvas, immediate live wire movement during component dragging, and confirmation-gated conversion of compatible source, protection, load, coil, and outlet defaults when changing regional supply families.
+- Context menu and engineering review v0.12: target-aware component/wire/canvas commands, keyboard menu operation, a visible and consistently enforced 30–375% zoom range, browser proof of pre-release live-wire movement, immediate active-worker cancellation, escaped Account Security dynamic values, and reduced drag-routing work.
 
 ### Changed
 - Declared v3 a line-1 rewrite; v2 remains a behavioral reference and fixture source only.

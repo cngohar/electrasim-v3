@@ -63,9 +63,13 @@ describe("deterministic simulator kernel v0", () => {
     expect(first).toEqual(second);
     const controller = new AbortController();
     controller.abort();
-    expect(host.run(circuit, 1_000, 100, controller.signal)).rejects.toThrow(
+    await expect(host.run(circuit, 1_000, 100, controller.signal)).rejects.toThrow(
       "simulation_cancelled",
     );
+    const activeController = new AbortController();
+    const activeRun = host.run(circuit, 120_000, 10, activeController.signal);
+    activeController.abort();
+    await expect(activeRun).rejects.toThrow("simulation_cancelled");
   });
 
   test("runs a 100-branch authored circuit within bounded worker limits", async () => {

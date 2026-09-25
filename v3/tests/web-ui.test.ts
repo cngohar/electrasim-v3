@@ -89,6 +89,10 @@ describe("integrated electrical-blue application shell", () => {
     expect(simulatorJs).toContain("iconEquipmentSvg");
     expect(simulatorJs).toContain("updateLiveWires");
     expect(simulatorJs).toContain("Convert compatible existing equipment");
+    expect(simulatorHtml).toContain('id="canvas-context-menu"');
+    expect(simulatorJs).toContain("openContextMenu");
+    expect(simulatorJs).toContain("Zoom in · maximum 375%");
+    expect(simulatorJs).toContain("event.shiftKey&&event.key==='F10'");
     expect(simulatorJs).toContain("controlsContactIds");
     expect(simulatorJs).toContain("repairRequired");
     expect(() => new Function(simulatorJs)).not.toThrow();
@@ -98,6 +102,8 @@ describe("integrated electrical-blue application shell", () => {
     expect(securityHtml).toContain("Passkeys and account access");
     expect(securityHtml).toContain("Create a teaching workspace");
     expect(securityJs).toContain("navigator.credentials.create");
+    expect(securityJs).toContain("esc(x.userAgent");
+    expect(securityJs).toContain("(data.backupCodes||[]).map(esc)");
     expect(() => new Function(securityJs)).not.toThrow();
   });
 
