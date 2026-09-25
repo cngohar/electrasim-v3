@@ -1,0 +1,35 @@
+{
+  "name": "@electrasim/v3-foundation",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "bun@1.4.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun --watch apps/api/src/server.ts",
+    "start": "bun apps/api/src/server.ts",
+    "build": "bun build apps/api/src/server.ts --target=bun --minify --sourcemap=linked --outdir=dist && bun build packages/simulator-domain/src/simulation-worker.ts --target=bun --minify --sourcemap=linked --outdir=dist",
+    "content:inventory": "bun scripts/build-content-import-manifest.ts",
+    "content:import": "bun scripts/import-legacy-content.ts",
+    "browser:validate": "bun scripts/validate-browser.ts",
+    "benchmark:renderers": "bun scripts/benchmark-renderers.ts",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check apps packages scripts tests package.json tsconfig.json biome.json",
+    "format": "biome check --write apps packages scripts tests package.json tsconfig.json biome.json",
+    "check": "bun run lint && bun run typecheck && bun test && bun run build"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.2.4",
+    "@electric-sql/pglite": "0.5.8",
+    "@sparticuz/chromium": "153.0.0",
+    "@types/bun": "1.4.2",
+    "drizzle-orm": "0.45.3",
+    "pixi.js": "8.21.0",
+    "playwright-core": "1.63.0",
+    "typescript": "7.0.2"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "Preserve",
+    "moduleResolution": "Bundler",
+    "paths": {
+      "@electrasim/auth": ["./packages/auth/src/index.ts"],
+      "@electrasim/authorization": ["./packages/authorization/src/index.ts"],
+      "@electrasim/content-studio": ["./packages/content-studio/src/index.ts"],
+      "@electrasim/database": ["./packages/database/src/index.ts"],
+      "@electrasim/identity": ["./packages/identity/src/index.ts"],
+      "@electrasim/invitations": ["./packages/invitations/src/index.ts"],
+      "@electrasim/jobs": ["./packages/jobs/src/index.ts"],
+      "@electrasim/localization": ["./packages/localization/src/index.ts"],
+      "@electrasim/object-storage": ["./packages/object-storage/src/index.ts"],
+      "@electrasim/http-application": ["./packages/http-application/src/index.ts"],
+      "@electrasim/platform-contracts": ["./packages/platform-contracts/src/index.ts"],
+      "@electrasim/simulator-domain": ["./packages/simulator-domain/src/index.ts"],
+      "@electrasim/web-ui": ["./packages/web-ui/src/index.ts"],
+      "@electrasim/workspace-administration": ["./packages/workspace-administration/src/index.ts"]
+    },
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "useUnknownInCatchVariables": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "types": ["bun"],
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true
+  },
+  "include": ["apps/**/*.ts", "packages/**/*.ts", "scripts/**/*.ts", "tests/**/*.ts"]
+}

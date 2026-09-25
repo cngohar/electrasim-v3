@@ -1,0 +1,12 @@
+{
+  "name": "@electrasim/jobs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@electrasim/database": "workspace:*",
+    "@electrasim/identity": "workspace:*",
+    "@electrasim/platform-contracts": "workspace:*"
+  }
+}

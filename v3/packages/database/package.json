@@ -1,0 +1,19 @@
+{
+  "name": "@electrasim/database",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@electrasim/authorization": "workspace:*",
+    "@electrasim/identity": "workspace:*",
+    "@electrasim/invitations": "workspace:*",
+    "@electrasim/platform-contracts": "workspace:*",
+    "@electrasim/workspace-administration": "workspace:*",
+    "drizzle-orm": "0.45.3",
+    "postgres": "3.4.9"
+  },
+  "devDependencies": {
+    "drizzle-kit": "0.31.11"
+  }
+}

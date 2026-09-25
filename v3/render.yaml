@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: electrasim-v3-foundation
+    runtime: docker
+    rootDir: v3
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: APP_VERSION
+        sync: false

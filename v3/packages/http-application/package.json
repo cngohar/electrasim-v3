@@ -1,0 +1,15 @@
+{
+  "name": "@electrasim/http-application",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@electrasim/authorization": "workspace:*",
+    "@electrasim/identity": "workspace:*",
+    "@electrasim/invitations": "workspace:*",
+    "@electrasim/platform-contracts": "workspace:*",
+    "@electrasim/web-ui": "workspace:*",
+    "@electrasim/workspace-administration": "workspace:*"
+  }
+}

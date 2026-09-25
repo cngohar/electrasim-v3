@@ -1,0 +1,27 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: electrasim
+      POSTGRES_USER: electrasim_migration
+      POSTGRES_PASSWORD: electrasim-migration-local
+    ports:
+      - "127.0.0.1:54329:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U electrasim_migration -d electrasim"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - electrasim-postgres:/var/lib/postgresql/data
+      - ./packages/database/migrations/0001_tenancy_foundation.sql:/docker-entrypoint-initdb.d/10_tenancy.sql:ro
+      - ./packages/database/migrations/0002_auth_account_lifecycle.sql:/docker-entrypoint-initdb.d/11_auth.sql:ro
+      - ./packages/database/migrations/0003_authorization_catalog.sql:/docker-entrypoint-initdb.d/12_authorization.sql:ro
+      - ./packages/database/migrations/0004_durable_system_jobs.sql:/docker-entrypoint-initdb.d/13_jobs.sql:ro
+      - ./packages/database/migrations/0005_step_up_sessions.sql:/docker-entrypoint-initdb.d/14_step_up.sql:ro
+      - ./packages/database/migrations/0006_content_studio.sql:/docker-entrypoint-initdb.d/15_content_studio.sql:ro
+      - ./packages/database/roles/001_runtime_roles.sql:/docker-entrypoint-initdb.d/20_runtime_roles.sql:ro
+      - ./local/99_local_logins.sql:/docker-entrypoint-initdb.d/99_local_logins.sql:ro
+
+volumes:
+  electrasim-postgres:

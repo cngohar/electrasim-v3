@@ -1,0 +1,10 @@
+{
+  "name": "@electrasim/web-ui",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@electrasim/simulator-domain": "workspace:*"
+  },
+  "exports": "./src/index.ts"
+}

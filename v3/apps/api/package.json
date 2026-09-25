@@ -1,0 +1,16 @@
+{
+  "name": "@electrasim/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@electrasim/auth": "workspace:*",
+    "@electrasim/database": "workspace:*",
+    "@electrasim/http-application": "workspace:*",
+    "@electrasim/identity": "workspace:*",
+    "@electrasim/invitations": "workspace:*",
+    "@electrasim/jobs": "workspace:*",
+    "@electrasim/platform-contracts": "workspace:*",
+    "@electrasim/workspace-administration": "workspace:*"
+  }
+}
