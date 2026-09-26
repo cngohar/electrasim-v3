@@ -1,18 +1,22 @@
-/**
- * zsCheck.test.ts — locks the web-verified BS 7671 / OSG figures and the
- * verdict logic of the disconnection checker. Table values were cross-checked
- * against BS 7671:2018+A4:2026 (Cmin 0.95) and OSG/GN3 T&E tables on
- * 2026-08-15 (see progress.md part 10).
- */
+/** Independent arithmetic fixtures for the limited UK TN teaching model. */
 
 import { describe, expect, it } from 'vitest';
 import type { Circuit, ComponentInstance, WireInstance } from './types';
 import {
-  checkDeviceDisconnection,
+  type ZsContext,
+  checkDeviceDisconnection as assessDevice,
   getMaxZsOhms,
   getR1R2MilliOhmPerMetre,
   runZsChecks,
 } from './zsCheck';
+
+const context: ZsContext = { standard: 'uk', earthing: 'TN-C-S' };
+function checkDeviceDisconnection(device: ComponentInstance, circuit: Circuit) {
+  const result = assessDevice(device, circuit, context);
+  if (result?.status !== 'estimated')
+    throw new Error(`Expected estimate: ${JSON.stringify(result)}`);
+  return result;
+}
 
 let nextId = 0;
 const uid = (prefix: string) => `${prefix}${++nextId}`;
@@ -143,9 +147,9 @@ describe('zsCheck — circuit disconnection check', () => {
     expect(result!.runLengthMeters).toBe(10);
   });
 
-  it('returns null for curve-free devices (plain RCD — upstream disconnection)', () => {
-    const { result } = build('rcd', 20);
-    expect(result).toBeNull();
+  it('does not treat plain RCDs as an assessed overcurrent curve', () => {
+    const device = C('rcd');
+    expect(assessDevice(device, circuit([device], []), context)?.status).toBe('not-assessed');
   });
 
   it('runZsChecks covers every overcurrent device on the canvas', () => {
@@ -161,8 +165,9 @@ describe('zsCheck — circuit disconnection check', () => {
       W({ c: rcbo, p: 2 }, { c: bulb, p: 0 }, 5),
       W({ c: rcbo, p: 3 }, { c: bulb, p: 1 }, 5),
     ];
-    const rows = runZsChecks(circuit([l, n, rcbo, bulb, afdd], wires));
-    expect(rows.map((r) => r.deviceId)).toEqual([rcbo.id]);
+    const rows = runZsChecks(circuit([l, n, rcbo, bulb, afdd], wires), context);
+    expect(rows.filter((r) => r.status === 'estimated').map((r) => r.deviceId)).toEqual([rcbo.id]);
+    expect(rows.find((r) => r.deviceId === afdd.id)?.status).toBe('not-assessed');
   });
 
   it('respects a custom device rating when computing max Zs', () => {
@@ -177,5 +182,75 @@ describe('zsCheck — circuit disconnection check', () => {
     ];
     const result = checkDeviceDisconnection(mcb, circuit([l, n, mcb, bulb], wires));
     expect(result!.maxZsOhms).toBeCloseTo(2.7313, 3);
+  });
+});
+
+describe('Zs applicability boundaries', () => {
+  const fixture = () => {
+    const device = C('rcbo', { on: true });
+    const load = C('bulb');
+    const source = C('live-terminal');
+    return {
+      device,
+      c: circuit(
+        [source, device, load],
+        [
+          W({ c: source, p: 0 }, { c: device, p: 0 }, 1),
+          W({ c: device, p: 2 }, { c: load, p: 0 }, 10),
+        ],
+      ),
+    };
+  };
+  it.each(['us', 'eu', 'int'] as const)(
+    'does not certify profile %s with UK tables',
+    (standard) => {
+      const { device, c } = fixture();
+      const result = assessDevice(device, c, { ...context, standard });
+      expect(result?.status).toBe('not-assessed');
+      expect(result).not.toHaveProperty('passHot');
+    },
+  );
+  it('does not pass TT merely because the circuit has an RCBO', () => {
+    const { device, c } = fixture();
+    expect(assessDevice(device, c, { ...context, earthing: 'TT' })?.status).toBe('not-assessed');
+  });
+  it('uses explicit U0 = 230 V for a 400 V line-to-line supply', () => {
+    const { device, c } = fixture();
+    c.globalVoltage = 400;
+    expect(assessDevice(device, c, context)?.status).toBe('not-assessed');
+    const r = assessDevice(device, c, { ...context, lineToEarthVoltage: 230 });
+    expect(r?.status).toBe('estimated');
+    if (r?.status !== 'estimated') throw new Error('Expected explicit U0 estimate');
+    expect(r.maxZsOhms).toBeCloseTo(1.365625, 6);
+    expect(assessDevice(device, c, { ...context, lineToEarthVoltage: 400 })?.status).toBe(
+      'not-assessed',
+    );
+  });
+  it.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY, 120])(
+    'does not assess unsupported supply %s',
+    (globalVoltage) => {
+      const { device, c } = fixture();
+      expect(assessDevice(device, { ...c, globalVoltage }, context)?.status).toBe('not-assessed');
+    },
+  );
+  it('rejects unsupported cable, trip rating, distribution and invalid Ze inputs', () => {
+    const { device, c } = fixture();
+    for (const patch of [
+      { material: 'aluminum' as const },
+      { gauge: 12 },
+      { customCableMm2: 3 },
+      { lengthMeters: -1 },
+    ]) {
+      expect(
+        assessDevice(device, { ...c, wires: [{ ...c.wires[0], ...patch }] }, context)?.status,
+      ).toBe('not-assessed');
+    }
+    expect(assessDevice({ ...device, state: { customMaxAmps: 63 } }, c, context)?.status).toBe(
+      'not-assessed',
+    );
+    expect(assessDevice(device, c, { ...context, zeOhms: -1 })?.status).toBe('not-assessed');
+    expect(assessDevice(device, c, { ...context, circuitKind: 'distribution' })?.status).toBe(
+      'not-assessed',
+    );
   });
 });

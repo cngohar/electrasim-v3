@@ -81,4 +81,4 @@ Do not require the same 7.4 kW / 32 A UK charging template to score 100 under UK
 
 A passing model check means only that the scenario satisfies the checks actually implemented under its stated assumptions. It is not a certificate of installation compliance. Paid and free users receive the same electrical truth; access policy only controls the available exercise/component features.
 
-Next: complete Phase 1.0 inventory, then implement 1.1 under the [revised Phase 1 plan](../phases/phase-1-simulator-core.md). All gates are local; no remote deployment is authorized by this audit.
+Implementation evidence and remaining numerical limits: [Phase 1.1 implementation](phase-1-standards-implementation.md). Continue under the [revised Phase 1 plan](../phases/phase-1-simulator-core.md). All gates are local; no remote deployment is authorized by this audit.

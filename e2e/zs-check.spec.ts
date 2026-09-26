@@ -32,11 +32,15 @@ test.describe('zs check panel', () => {
       timeout: 15_000,
     });
 
-    await page.getByRole('button', { name: 'Circuit Safety & Validation' }).click();
+    // Choose UK explicitly; the default generic IEC profile is not a UK Zs assessment.
+    await page.getByRole('button', { name: /^student$/i }).click();
+    await page.locator('[data-standard-selector]').click();
+    await page.getByRole('button', { name: /United Kingdom/ }).click();
+    await page.getByRole('button', { name: 'Validate', exact: true }).click();
 
     const panel = page.getByTestId('zs-check-panel');
     await expect(panel).toBeVisible();
-    await expect(panel).toContainText('Zs / Disconnection Check');
+    await expect(panel).toContainText('Zs / Loop Estimate');
 
     // The template's RCBO is a 20 A device on a 2.5 mm² socket radial (In ≤ Iz),
     // so the panel must name the rating it actually used and show that device's
@@ -50,5 +54,15 @@ test.describe('zs check panel', () => {
     await expect(zsCell).toContainText('Ze 0.35');
     await panel.getByLabel(/Earthing arrangement/).selectOption('TN-S');
     await expect(zsCell).toContainText('Ze 0.80');
+    await panel.getByLabel(/Earthing arrangement/).selectOption('TT');
+    await expect(panel.locator('[data-zs-verdict="not-assessed"]').first()).toContainText(
+      'RCD presence alone',
+    );
+    await expect(panel.locator('[data-zs-verdict="pass-cold"]')).toHaveCount(0);
+    await panel.getByLabel(/Earthing arrangement/).selectOption('TN-C-S');
+    await page.locator('[data-standard-selector]').click();
+    await page.getByRole('button', { name: /United States/ }).click();
+    await expect(panel.locator('[data-zs-verdict="not-assessed"]').first()).toBeVisible();
+    await expect(panel.locator('[data-zs-verdict="pass-cold"]')).toHaveCount(0);
   });
 });

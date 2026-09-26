@@ -82,10 +82,15 @@ app.get('/api/standards', async (c) => {
   };
   const res = await db
     .prepare(
-      'SELECT code,label,shortLabel,citation,flag,nominalVoltage,frequencyHz FROM electrical_standards ORDER BY code',
+      'SELECT code,label,shortLabel,citation,flag,nominalVoltage,frequencyHz,metadataJson,version FROM electrical_standards ORDER BY code',
     )
     .all();
-  return c.json({ standards: res.results ?? [] });
+  return c.json({
+    standards: (res.results as Array<Record<string, unknown>>).map(({ metadataJson, ...row }) => ({
+      ...row,
+      metadata: JSON.parse(String(metadataJson ?? '{}')),
+    })),
+  });
 });
 
 // ── Better Auth — mount at /api/auth/* ──

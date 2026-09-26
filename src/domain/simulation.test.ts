@@ -608,7 +608,7 @@ describe('simulate — faults operate upstream protection', () => {
     expect(tripIds).not.toContain(rcdIsolated.id);
   });
 
-  it('uses region-aware residual language and threshold (GFCI for US, RCD elsewhere)', () => {
+  it('preserves device residual ratings across profiles and does not report IEC timing as US timing', () => {
     const build = (standard: 'uk' | 'us') => {
       const l = C('live-terminal');
       const n = C('neutral-terminal');
@@ -634,15 +634,19 @@ describe('simulate — faults operate upstream protection', () => {
       expect.stringMatching(/rcd-/),
     );
 
-    // UK message says RCD + 30 mA; US message says GFCI + 6 mA.
+    // Selecting a profile must not turn this 30 mA RCD into a 6 mA GFCI.
     expect(ukResult.errors.some((e) => e.includes('RCD') && e.includes('30 mA'))).toBe(true);
-    expect(usResult.errors.some((e) => e.includes('GFCI') && e.includes('6 mA'))).toBe(true);
+    expect(usResult.errors.some((e) => e.includes('30 mA') && e.includes('not assessed'))).toBe(
+      true,
+    );
 
-    // Ground-fault trip metadata reflects the region threshold.
+    // Both contexts retain the actual device rating.
     const ukTrip = (ukResult.trippedComponents ?? []).find((t) => t.reason === 'ground-fault');
     const usTrip = (usResult.trippedComponents ?? []).find((t) => t.reason === 'ground-fault');
     expect(ukTrip?.ratingAmps).toBe(0.03); // 30 mA
-    expect(usTrip?.ratingAmps).toBe(0.006); // 6 mA GFCI
+    expect(usTrip?.ratingAmps).toBe(0.03);
+    expect(usTrip?.clearingTimeSeconds).toBeUndefined();
+    expect(ukTrip?.clearingTimeSeconds).toBeDefined();
   });
 
   it('scales prospective short-circuit fault current by the region supply voltage', () => {
@@ -800,7 +804,9 @@ describe('simulate — arc fault detection (BS EN 62606 / Reg 421.1.7)', () => {
 
     expect((result.trippedComponents ?? []).map((t) => t.id)).not.toContain(prot.id);
     expect(result.errors.some((e) => e.includes('NO AFDD'))).toBe(true);
-    expect(result.errors.some((e) => e.includes('421.1.7'))).toBe(true);
+    expect(result.errors.some((e) => e.includes('check arc-fault protection requirements'))).toBe(
+      true,
+    );
   });
 
   it('an RCBO (no arc detection) also stays closed on an arc', () => {
@@ -945,4 +951,22 @@ describe('simulate — protection operates to its published curve', () => {
     expect(trip?.cause).toBe('overload');
     expect(trip?.reason.length).toBeGreaterThan('overload'.length);
   });
+});
+
+it('uses actual supply voltage in switched-neutral hazard messages', () => {
+  const l = C('live-terminal');
+  const n = C('neutral-terminal');
+  const load = C('bulb', { fault: 'switched-neutral' });
+  const c = {
+    ...circuit(
+      [l, n, load],
+      [W({ c: l, p: 0 }, { c: load, p: 0 }), W({ c: n, p: 0 }, { c: load, p: 1 })],
+    ),
+    globalVoltage: 120,
+  };
+  const messages = simulate(c, { standard: 'us' }).errors;
+  expect(
+    messages.some((message) => message.includes('SWITCHED NEUTRAL') && message.includes('120 V')),
+  ).toBe(true);
+  expect(messages.some((message) => message.includes('230V'))).toBe(false);
 });

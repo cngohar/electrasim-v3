@@ -1,25 +1,26 @@
-/**
- * ZsCheckPanel — earth-fault loop impedance / disconnection-time checker
- * (BS 7671 Reg 411.3, Tables 41.2–41.4 with A4:2026 Cmin correction; OSG
- * Table I1 R1+R2). One row per protective device that carries an overcurrent
- * curve; plain RCDs are listed as relying on upstream disconnection.
- *
- * Educational estimates — see zsCheck.ts header for the simplifications.
- */
+/** UK TN educational loop estimate with explicit unsupported results. */
 
 import { Activity } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { COMPONENT_DEFS } from '../../../domain';
-import {
-  ZE_DEFAULT_OHMS,
-  type ZsCheckResult,
-  type ZsEarthArrangement,
-  runZsChecks,
-} from '../../../domain/zsCheck';
-import { useCircuitStore } from '../../../store';
+import { type ZsAssessment, type ZsEarthArrangement, runZsChecks } from '../../../domain/zsCheck';
+import { useCircuitStore, useSettingsStore } from '../../../store';
 
-function Row({ result }: { result: ZsCheckResult }) {
-  const verdict = result.passCold ? 'PASS (cold ≤80%)' : result.passHot ? 'PASS (table)' : 'FAIL';
+function Row({ result }: { result: ZsAssessment }) {
+  if (result.status === 'not-assessed')
+    return (
+      <div
+        data-zs-verdict="not-assessed"
+        className="rounded-lg border border-amber-200 p-2 text-xs"
+      >
+        <strong>{result.deviceLabel}: Not assessed</strong>
+        <p>{result.reason}</p>
+      </div>
+    );
+  const verdict = result.passCold
+    ? 'Within cold model limit'
+    : result.passHot
+      ? 'Within model limit'
+      : 'Exceeds model limit';
   const verdictClass = result.passCold
     ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
     : result.passHot
@@ -53,8 +54,11 @@ function Row({ result }: { result: ZsCheckResult }) {
           {result.runLengthEstimated ? ' (assumed 10 m/wire — set wire lengths!)' : ''}
         </span>
         <span>
-          Psvc fault ≈ {Math.round(result.prospectiveFaultCurrentAmps)} A ≥{' '}
-          {result.assuredFaultCurrentAmps} A → clears in ≤{result.disconnectionSeconds} s
+          Estimated fault current: {Math.round(result.prospectiveFaultCurrentAmps)} A. Model
+          threshold: {result.assuredFaultCurrentAmps} A.
+          {result.passHot
+            ? ' Within assumed instantaneous threshold.'
+            : ' Disconnection time not established.'}
         </span>
         {result.furthestComponentLabel && (
           <span className="col-span-2">Furthest point: {result.furthestComponentLabel}</span>
@@ -67,17 +71,17 @@ function Row({ result }: { result: ZsCheckResult }) {
 export function ZsCheckPanel() {
   const components = useCircuitStore((s) => s.components);
   const wires = useCircuitStore((s) => s.wires);
+  const standard = useSettingsStore((s) => s.regulationStandard);
+  const globalVoltage = useCircuitStore((s) => s.globalVoltage);
   const [earthing, setEarthing] = useState<ZsEarthArrangement>('TN-C-S');
 
-  const circuit = useMemo(() => ({ components, wires }), [components, wires]);
-  const rows = useMemo(() => runZsChecks(circuit, ZE_DEFAULT_OHMS[earthing]), [circuit, earthing]);
-  const curveFreeCount = useMemo(
-    () =>
-      components.filter((c) => {
-        const def = COMPONENT_DEFS[c.type];
-        return def?.isProtection && !def.mcbType;
-      }).length,
-    [components],
+  const circuit = useMemo(
+    () => ({ components, wires, globalVoltage }),
+    [components, wires, globalVoltage],
+  );
+  const rows = useMemo(
+    () => runZsChecks(circuit, { standard, earthing }),
+    [circuit, standard, earthing],
   );
 
   return (
@@ -85,7 +89,7 @@ export function ZsCheckPanel() {
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
           <Activity className="size-3.5 text-sky-500" />
-          <span className="text-xs">Zs / Disconnection Check (Reg 411.3)</span>
+          <span className="text-xs">Zs / Loop Estimate</span>
         </div>
         <select
           aria-label="Earthing arrangement (Ze)"
@@ -93,8 +97,9 @@ export function ZsCheckPanel() {
           onChange={(e) => setEarthing(e.target.value as ZsEarthArrangement)}
           className="rounded-md border border-slate-300 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200"
         >
-          <option value="TN-C-S">TN-C-S · Ze 0.35 Ω</option>
-          <option value="TN-S">TN-S · Ze 0.80 Ω</option>
+          <option value="TN-C-S">TN-C-S · assumed Ze 0.35 Ω</option>
+          <option value="TN-S">TN-S · assumed Ze 0.80 Ω</option>
+          <option value="TT">TT · not assessed</option>
         </select>
       </div>
 
@@ -107,19 +112,11 @@ export function ZsCheckPanel() {
         rows.map((r) => <Row key={r.deviceId} result={r} />)
       )}
 
-      {curveFreeCount > 0 && (
-        <p className="text-[10px] text-slate-500 dark:text-slate-400">
-          {curveFreeCount} curve-free residual device(s) on the canvas rely on upstream overcurrent
-          protection for earth-fault disconnection and are not listed.
-        </p>
-      )}
-
       <p className="text-[10px] leading-snug text-slate-400 dark:text-slate-500">
-        Educational estimate: Zs = Ze + (R1+R2), R1+R2 at 20 °C from OSG Table I1 on the smallest
-        cable in the run; max Zs = 230 V × 0.95 (Cmin) ÷ (upper magnetic × rating) per BS 7671
-        Tables 41.2–41.4 (A4:2026). “PASS (table)” but not “cold ≤80%” means a real 20 °C
-        measurement might exceed the GN3 site limit — shorten the run or upsize the cable. TT
-        systems rely on RCD disconnection (Table 41.5) and are out of scope here.
+        Educational estimate for UK TN final circuits up to 32 A, U0 = 230 V and copper T&E at 20
+        °C. Uses assumed CPC sizes, Ze and network paths; it does not verify protective continuity
+        or certify disconnection. Unsupported profiles, TT and unspecified line-to-earth voltage are
+        not assessed.
       </p>
     </div>
   );

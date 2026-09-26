@@ -48,9 +48,8 @@ export function ComponentPropertiesView({
   const regulationStandard = useSettingsStore((s) => s.regulationStandard);
   const isPro = appMode === 'pro';
   const faultsArmed = isPro && manualFaultInjection;
-  // The per-component "Operating Voltage" is a design override for breaker
-  // sizing (Pro feature). In Student mode it is read-only and reflects the
-  // actual circuit supply so it can never diverge from the global voltage.
+  // Per-component voltage remains an equipment setting; the illustrative
+  // rating below uses the actual selected supply voltage.
   const isSource = Boolean(
     def.isSource ||
       selectedComp.type.includes('supply') ||
@@ -59,10 +58,9 @@ export function ComponentPropertiesView({
   );
   const standard = getStandard(regulationStandard);
 
-  // Recommended breaker: pick the smallest standard rating >= 1.25 × design
-  // current (P/V) and the correct trip curve for motor / inductive loads.
+  // Illustrative P/V rating; actual equipment and installation data are still needed.
   const loadPower = selectedComp.state.customPowerWatts ?? def.powerWatts ?? 0;
-  const loadVoltage = selectedComp.state.customVoltage ?? def.maxVolts ?? standard.nominalVoltage;
+  const loadVoltage = globalVoltage ?? standard.nominalVoltage;
   const protectionRecommendation = recommendMcbrating(loadPower, loadVoltage, standard);
   const recommendedCurve = recommendCurveForLoad(selectedComp.type, standard);
   const isProtectionOrSupply =
@@ -388,7 +386,9 @@ export function ComponentPropertiesView({
                 MCB Rating
               </div>
               <div className="font-mono text-sm font-bold text-emerald-700 dark:text-emerald-300">
-                {protectionRecommendation.ratingAmps} A
+                {protectionRecommendation.ratingAmps === null
+                  ? 'Not assessed'
+                  : `${protectionRecommendation.ratingAmps} A`}
               </div>
             </div>
             <div className="rounded-lg border border-emerald-200 bg-white px-2 py-1.5 text-center dark:border-emerald-900 dark:bg-slate-900">
@@ -396,7 +396,7 @@ export function ComponentPropertiesView({
                 Curve
               </div>
               <div className="font-mono text-sm font-bold text-emerald-700 dark:text-emerald-300">
-                {recommendedCurve}
+                {recommendedCurve ?? 'Check equipment'}
               </div>
             </div>
             <div className="rounded-lg border border-emerald-200 bg-white px-2 py-1.5 text-center dark:border-emerald-900 dark:bg-slate-900">
@@ -409,8 +409,8 @@ export function ComponentPropertiesView({
             </div>
           </div>
           <p className="text-[10px] text-emerald-800 dark:text-emerald-300/80">
-            Sized for {loadPower} W @ {loadVoltage} V per {standard.citation}. Curve{' '}
-            {recommendedCurve} accommodates this load type&apos;s inrush.
+            {protectionRecommendation.note} Curve selection needs manufacturer inrush data; MCB
+            curve and RCD waveform type are separate choices.
           </p>
         </div>
       )}

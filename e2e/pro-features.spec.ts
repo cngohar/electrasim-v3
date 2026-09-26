@@ -12,7 +12,7 @@ import { type Page, expect, test } from '@playwright/test';
  */
 
 /** A complete UK socket circuit with no upstream RCD/RCBO. It is electrically
- * runnable but has one unambiguous blocking compliance issue. */
+ * runnable and needs residual-protection advice. */
 function unprotectedSocketShareUrl(): string {
   const payload = {
     version: 1,
@@ -202,43 +202,18 @@ test.describe('Dual standard & pro features', () => {
     await expect(essentials.locator('[data-palette-type="socket-schuko"]')).toBeVisible();
   });
 
-  test('compliance gate explains, overrides, audits, and persists a violation', async ({
+  test('keeps residual safety advice visible without treating an approximate scan as a regulatory block', async ({
     page,
   }) => {
     await page.goto(unprotectedSocketShareUrl(), { waitUntil: 'domcontentloaded' });
     await page.locator('[data-circuit-canvas]').waitFor({ state: 'attached' });
     await ensureProMode(page);
-
     await page.getByRole('button', { name: /run simulation/i }).click({ force: true });
-
-    const banner = page.locator('[data-compliance-gate-banner]');
-    await expect(banner).toBeVisible();
-    await expect(banner).toContainText(/Fix 1 blocking issue to enable Run/i);
-    await expect(banner).toContainText(/RCD|GFCI/i);
-    // Regulatory rejection is not presented as a simulated electrical trip.
-    await expect(page.getByText(/unresolved electrical fault/i)).toHaveCount(0);
-
-    await banner.locator('[data-compliance-override]').click();
     await expect(page.getByRole('button', { name: /^stop$/i })).toBeVisible();
-    await expect(banner).toHaveCount(0);
-
-    await page
-      .getByRole('button', { name: /simulation history \(audit log\)/i })
-      .click({ force: true });
-    const auditEntry = page.locator('[data-history-event="manual_intervention"]');
-    await expect(auditEntry).toContainText(/Teacher\/demo override/i);
-
-    // IndexedDB autosave is debounced. A reload must hydrate the audit event
-    // before React renders so the history cannot flash empty or disappear.
-    await page.waitForTimeout(250);
-    await page.reload({ waitUntil: 'domcontentloaded' });
-    await page.locator('[data-circuit-canvas]').waitFor({ state: 'attached' });
-    await page
-      .getByRole('button', { name: /simulation history \(audit log\)/i })
-      .click({ force: true });
-    await expect(page.locator('[data-history-event="manual_intervention"]')).toContainText(
-      /Teacher\/demo override/i,
-    );
+    await expect(page.locator('[data-compliance-gate-banner]')).toHaveCount(0);
+    await page.getByRole('button', { name: 'Validate', exact: true }).click();
+    await expect(page.getByText(/No residual protection found for/).first()).toBeVisible();
+    await expect(page.getByText(/Regulation Compliance/)).toHaveCount(0);
   });
 
   test('simulation history tab is visible in pro inspector', async ({ page }) => {

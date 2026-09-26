@@ -818,19 +818,25 @@ export function validateCircuit(
       issues.push({
         id: 'missing_rcd_sockets',
         severity: 'info',
-        title: '30mA RCD Protection Recommendation',
+        title: 'Residual Protection Recommendation',
         description:
-          'Socket outlets and wet-room loads benefit from 30mA RCD/RCBO residual current protection.',
+          'Review additional residual-current protection for socket outlets and wet-room loads under the applicable rules.',
         recommendation: 'Add an RCD or RCBO breaker module for enhanced shock protection.',
         category: 'protection',
-        quickFix: {
-          label: 'Add 30mA RCD Module',
-          type: 'add_rcd',
-        },
+        quickFix:
+          standard === 'us'
+            ? undefined
+            : {
+                label: 'Add teaching RCD module',
+                type: 'add_rcd',
+              },
         detailedBreakdown: {
-          bs7671Regulation: 'BS 7671 Regulation 411.3.3 (Additional Protection by RCD ≤ 30mA)',
+          bs7671Regulation:
+            standard === 'us'
+              ? 'Check the locally adopted NEC GFCI requirements'
+              : 'UK teaching reference: BS 7671 Regulation 411.3.3 (additional protection)',
           physicsExplanation:
-            '30mA Residual Current Devices continuously compare vector sum currents I_Live and I_Neutral. If residual imbalance ΔI > 30mA (e.g., current flowing through a human body to ground), the device trips within 40ms to prevent fatal ventricular fibrillation.',
+            'Residual devices detect current imbalance. Operating time depends on residual current, waveform and device type; they do not guarantee prevention of injury.',
           steps: [
             {
               stepNumber: 1,
@@ -840,7 +846,7 @@ export function validateCircuit(
             {
               stepNumber: 2,
               title: 'Residual Device Check',
-              description: 'No upstream 30mA RCD / RCBO protection module was detected.',
+              description: 'No residual-current device was detected on the canvas.',
             },
             {
               stepNumber: 3,
@@ -849,14 +855,15 @@ export function validateCircuit(
             },
           ],
           practicalTip:
-            'BS 7671 requires 30mA RCD protection on all socket outlets rated up to 32A.',
+            'Required locations, residual current rating, waveform type and operating time depend on the applicable rules and equipment.',
         },
       });
     } else {
       passedChecks.push({
         id: 'pass_rcd',
-        title: 'RCD Protection Installed',
-        description: '30mA RCD/RCBO protection is present for socket outlets.',
+        title: 'Residual Device Present',
+        description:
+          'A residual device is present. Placement, sensitivity, timing and coverage still require assessment.',
       });
     }
   }
@@ -869,13 +876,15 @@ export function validateCircuit(
   for (const c of compliance.issues) {
     issues.push({ ...c, blocking: c.blocking });
   }
-  if (compliance.errorCount === 0) {
-    passedChecks.push({
-      id: 'pass_compliance',
-      title: `${getStandard(standard).shortLabel} Regulation Compliance`,
-      description: `Voltage drop, residual protection and breaker-curve rules pass under ${getStandard(standard).citation}.`,
-    });
-  }
+  issues.push({
+    id: 'standards_coverage',
+    severity: 'info',
+    category: 'protection',
+    title: `${getStandard(standard).shortLabel} teaching checks — ${compliance.status === 'not-assessed' ? 'not assessed' : 'limited coverage'}`,
+    description: compliance.coverageNotes.join(' '),
+    recommendation:
+      'Use the selected profile as a teaching aid; verify applicable installation rules separately.',
+  });
 
   // 9. SIMULATION ACTIVE FAULT
   if (simResult?.errors && simResult.errors.length > 0) {

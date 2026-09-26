@@ -11,29 +11,21 @@ if (args.length !== 1 || args[0] !== '--local') {
 }
 
 async function seedLocal() {
-  const Database = (await import('better-sqlite3')).default;
-  const { readdirSync } = await import('node:fs');
-  const dir = '.wrangler/state/v3/d1/miniflare-D1DatabaseObject';
-  const files = readdirSync(dir).filter(
-    (f: string) => f.endsWith('.sqlite') && !f.startsWith('metadata'),
-  );
-  const file = files.find((f) => !f.includes('metadata')) ?? files[0];
-  if (!file)
-    throw new Error(
-      'No D1 sqlite file found — run `bun x wrangler d1 migrations apply electrasim --local` first',
-    );
-  const path = `${dir}/${file}`;
-  const db = new Database(path) as unknown as {
-    prepare: (sql: string) => { run: (...a: unknown[]) => unknown; all: () => unknown[] };
-    close: () => void;
-  };
-  const now = new Date().toISOString();
-  const stmt = db.prepare(`INSERT OR REPLACE INTO electrical_standards
-(code,label,shortLabel,citation,flag,nominalVoltage,frequencyHz,wireColorsJson,wireColorsDarkJson,voltageDropJson,defaultMcbCurve,motorMcbCurve,rcdThresholdMa,rcdRequiredOnSockets,socketCircuitAmps,lightingCircuitAmps,conductorLegendJson,version,seededAt)
-VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
-  let n = 0;
-  for (const s of STANDARD_LIST) {
-    stmt.run(
+  const { execFileSync } = await import('node:child_process');
+  const { mkdtempSync, writeFileSync, rmSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const sqlValue = (value: unknown): string =>
+    value === null
+      ? 'NULL'
+      : typeof value === 'number'
+        ? String(value)
+        : `'${String(value).replaceAll("'", "''")}'`;
+  const now = Math.floor(Date.now() / 1000);
+  const columns =
+    'code,label,shortLabel,citation,flag,nominalVoltage,frequencyHz,wireColorsJson,wireColorsDarkJson,voltageDropJson,defaultMcbCurve,motorMcbCurve,rcdThresholdMa,rcdRequiredOnSockets,socketCircuitAmps,lightingCircuitAmps,conductorLegendJson,metadataJson,version,seededAt';
+  const statements = STANDARD_LIST.map((s) => {
+    const values = [
       s.id,
       s.label,
       s.shortLabel,
@@ -51,25 +43,45 @@ VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
       s.socketCircuitAmps,
       s.lightingCircuitAmps,
       JSON.stringify(s.conductorLegend),
-      '1',
+      JSON.stringify(s.metadata),
+      '2',
       now,
+    ];
+    return `INSERT OR REPLACE INTO electrical_standards (${columns}) VALUES (${values.map(sqlValue).join(',')});`;
+  });
+  for (const [key, value] of [
+    ['seededAt', String(now)],
+    ['electricalStandardsCount', String(STANDARD_LIST.length)],
+  ]) {
+    statements.push(
+      `INSERT OR REPLACE INTO app_meta (key,value,updatedAt) VALUES (${sqlValue(key)},${sqlValue(value)},${now});`,
     );
-    n++;
   }
-  db.prepare('INSERT OR REPLACE INTO app_meta (key,value,updatedAt) VALUES (?,?,?)').run(
-    'seededAt',
-    now,
-    now,
-  );
-  db.prepare('INSERT OR REPLACE INTO app_meta (key,value,updatedAt) VALUES (?,?,?)').run(
-    'electricalStandardsCount',
-    String(n),
-    now,
-  );
-  console.log(
-    `Seeded ${n} standards (local) — ${STANDARD_LIST.map((s) => s.id).join(', ')} → ${path}`,
-  );
-  db.close();
+  const dir = mkdtempSync(join(tmpdir(), 'electrasim-standards-'));
+  try {
+    const file = join(dir, 'seed.sql');
+    writeFileSync(file, statements.join('\n'));
+    // Resolve the configured DB binding; never guess the first SQLite file.
+    execFileSync(
+      'bun',
+      [
+        'x',
+        'wrangler',
+        'd1',
+        'execute',
+        'DB',
+        '--local',
+        '--persist-to',
+        '.wrangler/state',
+        '--file',
+        file,
+      ],
+      { stdio: 'inherit' },
+    );
+    console.log(`Seeded ${STANDARD_LIST.length} local standards with reviewed reference metadata.`);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 }
 
 seedLocal()

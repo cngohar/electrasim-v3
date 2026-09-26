@@ -34,7 +34,8 @@ export const FAULT_REGISTRY: Record<FaultType, FaultDefinition> = {
     category: 'conductor',
     targetType: 'any',
     severity: 'error',
-    standardReference: 'BS 7671 Part 6 (Continuity Testing)',
+    standardReference:
+      'UK teaching reference (not a global rule): BS 7671 Part 6 (Continuity Testing)',
     icon: 'Scissors',
     description:
       'Complete conductor discontinuity or internal break. Prevents all electrical current from flowing through this path.',
@@ -52,14 +53,14 @@ export const FAULT_REGISTRY: Record<FaultType, FaultDefinition> = {
     category: 'conductor',
     targetType: 'any',
     severity: 'error',
-    standardReference: 'BS 7671 Reg 643.2.1',
+    standardReference: 'UK teaching reference (not a global rule): BS 7671 Reg 643.2.1',
     icon: 'Unlink',
     description:
       'The Line (Live / L) conductor is severed or disconnected. Downstream equipment receives no active potential from the supply.',
     simulationEffect:
       'Live rail traversal terminates at the break. Neutral and Earth paths remain physically intact.',
     detectionBehavior:
-      'Voltage tester detects 0 V between Line and Neutral / Earth downstream of the break; 230 V present upstream.',
+      'Voltage tester detects 0 V between Line and Neutral / Earth downstream of the break; the supply line-to-earth voltage is present upstream.',
     repairBehavior:
       'Restore Line conductor continuity across the junction, terminal, or cable run.',
   },
@@ -70,14 +71,15 @@ export const FAULT_REGISTRY: Record<FaultType, FaultDefinition> = {
     category: 'conductor',
     targetType: 'any',
     severity: 'error',
-    standardReference: 'BS 7671 Reg 643.2.1 / Floating Neutral Hazard',
+    standardReference:
+      'UK teaching reference (not a global rule): BS 7671 Reg 643.2.1 / Floating Neutral Hazard',
     icon: 'Unlink',
     description:
       'The Neutral (N) return path is broken. Live voltage still reaches the appliance, creating a dangerous elevated potential on floating neutral terminals.',
     simulationEffect:
       'Live rail reaches load terminals, but Neutral return cannot complete the circuit back to the source. Load does not run.',
     detectionBehavior:
-      'Downstream Neutral reads 230 V to Earth when load is connected (floating neutral). No current flows.',
+      'Downstream Neutral can approach the supply line-to-earth voltage relative to Earth when load is connected (floating neutral). No current flows.',
     repairBehavior:
       'Trace and re-connect the Neutral return conductor back to the distribution board neutral busbar.',
   },
@@ -88,7 +90,8 @@ export const FAULT_REGISTRY: Record<FaultType, FaultDefinition> = {
     category: 'conductor',
     targetType: 'any',
     severity: 'warning',
-    standardReference: 'BS 7671 Reg 411.3.1.1 (Protective Earthing Continuity)',
+    standardReference:
+      'UK teaching reference (not a global rule): BS 7671 Reg 411.3.1.1 (Protective Earthing Continuity)',
     icon: 'ShieldOff',
     description:
       'The Circuit Protective Conductor (CPC / Earth) is broken or disconnected. Circuit operates normally until a second fault occurs, creating a severe electric shock hazard.',
@@ -106,7 +109,8 @@ export const FAULT_REGISTRY: Record<FaultType, FaultDefinition> = {
     category: 'conductor',
     targetType: 'port',
     severity: 'error',
-    standardReference: 'BS 7671 Reg 526.1 (Electrical Connections)',
+    standardReference:
+      'UK teaching reference (not a global rule): BS 7671 Reg 526.1 (Electrical Connections)',
     icon: 'Wrench',
     description:
       'Screw terminal or push-in connector is loose, corroded, or disconnected at a specific component port.',
@@ -125,14 +129,15 @@ export const FAULT_REGISTRY: Record<FaultType, FaultDefinition> = {
     category: 'polarity',
     targetType: 'any',
     severity: 'error',
-    standardReference: 'BS 7671 Reg 643.6 (Polarity Testing)',
+    standardReference:
+      'UK teaching reference (not a global rule): BS 7671 Reg 643.6 (Polarity Testing)',
     icon: 'ArrowRightLeft',
     description:
       'Line and Neutral conductors are cross-connected. Appliances and switch mechanisms are placed on the return path, leaving Edison screw shells and internal circuits permanently live.',
     simulationEffect:
       'Swaps logical Live and Neutral feeds at this point. In single-pole switches, switching operates on the neutral leg.',
     detectionBehavior:
-      'Polarity tester or socket test plug indicates Live/Neutral reversal. Voltage to earth on Neutral terminal reads 230 V.',
+      'Polarity tester or socket test plug indicates Live/Neutral reversal. Voltage to earth on Neutral terminal can approach supply voltage.',
     repairBehavior:
       'Swap Line (Brown) and Neutral (Blue) conductors back to their designated terminal positions.',
   },
@@ -147,11 +152,11 @@ export const FAULT_REGISTRY: Record<FaultType, FaultDefinition> = {
       'BS 7671 Reg 132.14 & 537.1.2 (Single-pole switching in line conductor only)',
     icon: 'AlertOctagon',
     description:
-      'A single-pole control switch is wired into the Neutral conductor instead of the Live line. Turning the switch OFF stops the load, but the appliance remains energized at 230 V lethal potential!',
+      'A single-pole control switch is wired into the Neutral conductor instead of the Live line. Turning the switch OFF stops the load, but the appliance remains energized at a potentially lethal supply voltage!',
     simulationEffect:
       'Switch cuts the neutral return path. The load turns off, but the load terminals remain connected to Live voltage.',
     detectionBehavior:
-      'Voltage tester detects 230 V to Earth at the lamp holder or load terminal even when the wall switch is in the OFF position.',
+      'Voltage tester can detect the supply line-to-earth voltage at the lamp holder or load terminal even when the wall switch is in the OFF position.',
     repairBehavior: 'Rewire switch into the Line (Phase) conductor feed before the load.',
   },
 
@@ -162,7 +167,8 @@ export const FAULT_REGISTRY: Record<FaultType, FaultDefinition> = {
     category: 'earth',
     targetType: 'any',
     severity: 'critical',
-    standardReference: 'BS 7671 Reg 411.3.2 (Automatic Disconnection of Supply - ADS)',
+    standardReference:
+      'UK teaching reference (not a global rule): BS 7671 Reg 411.3.2 (Automatic Disconnection of Supply - ADS)',
     icon: 'Flame',
     description:
       'Direct low-impedance contact between Line conductor and earthed metalwork or CPC, producing high fault current.',
@@ -180,14 +186,15 @@ export const FAULT_REGISTRY: Record<FaultType, FaultDefinition> = {
     category: 'earth',
     targetType: 'any',
     severity: 'critical',
-    standardReference: 'BS 7671 Reg 643.3 (Insulation Resistance)',
+    standardReference:
+      'UK teaching reference (not a global rule): BS 7671 Reg 643.3 (Insulation Resistance)',
     icon: 'Activity',
     description:
-      'Degraded insulation allows residual leakage current (> 30 mA) from Live conductor into protective earth.',
+      'Degraded insulation allows residual leakage current from Live conductor into protective earth.',
     simulationEffect:
       'Simulates >35 mA earth leakage current, instantly tripping any 30mA RCD/RCBO protective device upstream.',
     detectionBehavior:
-      'Insulation resistance (500V DC test) reads < 1 MΩ (BS 7671 minimum). Clamp meter detects differential earth leakage current.',
+      'Insulation resistance is reduced. Test voltage and acceptable resistance depend on the equipment and applicable rules; a residual-current clamp can reveal leakage.',
     repairBehavior: 'Replace moisture-damaged, degraded, or pinched cable run.',
   },
 
@@ -197,7 +204,8 @@ export const FAULT_REGISTRY: Record<FaultType, FaultDefinition> = {
     category: 'earth',
     targetType: 'component',
     severity: 'critical',
-    standardReference: 'BS EN 62423 & BS 7671 Reg 531.3.3 (RCD type selection)',
+    standardReference:
+      'UK teaching reference (not a global rule): BS EN 62423 & BS 7671 Reg 531.3.3 (RCD type selection)',
     icon: 'Waves',
     description:
       'Power-electronic loads (EV chargers, PV inverters, variable-speed drives) can leak smooth DC residual current that the toroidal core of Type AC/A/F RCDs cannot detect — the device stays closed on a live earth fault.',
@@ -215,7 +223,8 @@ export const FAULT_REGISTRY: Record<FaultType, FaultDefinition> = {
     category: 'thermal',
     targetType: 'component',
     severity: 'critical',
-    standardReference: 'BS EN 62606 & BS 7671 Reg 421.1.7 (AFDD requirements)',
+    standardReference:
+      'UK teaching reference (not a global rule): BS EN 62606 & BS 7671 Reg 421.1.7 (AFDD requirements)',
     icon: 'Flame',
     description:
       'A damaged conductor, loose terminal or crushed cable arcs in series with the load (or across insulation in parallel). Arc current sits at or below load current and creates no earth imbalance, so MCBs and RCDs stay closed while the arc reaches ignition temperatures.',
@@ -224,7 +233,7 @@ export const FAULT_REGISTRY: Record<FaultType, FaultDefinition> = {
     detectionBehavior:
       'AFDD trips on the arc signature. MCB/RCD/RCBO give no response — their thermal/magnetic elements and residual-current toroid are blind to this fault by design.',
     repairBehavior:
-      'Fit an AFDD (BS EN 62606) at the origin of the circuit — mandatory on ≤32 A socket final circuits in HRRBs, HMOs, student accommodation and care homes (BS 7671 Reg 421.1.7) — and repair the damaged conductor or terminal.',
+      'Repair the damaged conductor or terminal and assess arc-fault protection against the applicable installation rules and equipment instructions.',
   },
 
   // ── 4. Protection Faults ──────────────────────────────────────────────────
@@ -234,7 +243,8 @@ export const FAULT_REGISTRY: Record<FaultType, FaultDefinition> = {
     category: 'protection',
     targetType: 'component',
     severity: 'warning',
-    standardReference: 'BS 7671 Chapter 53 (Protection, Isolation, Switching)',
+    standardReference:
+      'UK teaching reference (not a global rule): BS 7671 Chapter 53 (Protection, Isolation, Switching)',
     icon: 'Lock',
     description:
       'Circuit breaker or switch mechanism is mechanically jammed or locked in the open position and will not conduct.',
@@ -250,7 +260,8 @@ export const FAULT_REGISTRY: Record<FaultType, FaultDefinition> = {
     category: 'protection',
     targetType: 'component',
     severity: 'critical',
-    standardReference: 'BS 7671 Reg 433.1 / 434.1 (Overcurrent Protection Mandatory)',
+    standardReference:
+      'UK teaching reference (not a global rule): BS 7671 Reg 433.1 / 434.1 (Overcurrent Protection Mandatory)',
     icon: 'ZapOff',
     description:
       'Protective fuse or breaker has been bridged/shorted (e.g. copper wire over a fuse carrier). Fails to trip during overloads or short circuits!',
@@ -267,7 +278,8 @@ export const FAULT_REGISTRY: Record<FaultType, FaultDefinition> = {
     category: 'protection',
     targetType: 'any',
     severity: 'critical',
-    standardReference: 'BS 7671 Reg 434.5.2 (Short-Circuit Breaking Capacity)',
+    standardReference:
+      'UK teaching reference (not a global rule): BS 7671 Reg 434.5.2 (Short-Circuit Breaking Capacity)',
     icon: 'Zap',
     description:
       'Direct zero-resistance connection between Line (Live) and Neutral supply rails with no load impedance.',

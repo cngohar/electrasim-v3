@@ -9,6 +9,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 
 ### Changed
 
+- Phase 1.1: corrected standards references/adoption claims, scoped UK loop estimates with explicit unsupported results, removed universal EVSE/125% sizing policies and blanket compliance passes, and propagated supply/model context to the inspector and EIC export. Local D1 standards projection is version 2.
+- Simulator trip reports retain actual device residual ratings across profiles and omit unmodelled US clearing times; switched-neutral hazards use actual supply voltage.
+- Fixed intermediate-size cable resistance lookup and Bun Astro script invocation; retained documented limits of the numerical teaching models.
+
 - Phase 1.0: confirmed manual-membership scope, inventoried 115 components (41 Pro) and accepted SVG/visual-only Matter ADR 0007.
 - Development is local-only pending a new Cloudflare account. Removed the old shared local Wrangler login; disabled deployment and remote seeding, pinned bindings/test targets to local use and preserved the live account unchanged.
 

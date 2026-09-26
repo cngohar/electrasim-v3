@@ -15,14 +15,15 @@ export const electricalStandards = sqliteTable('electrical_standards', {
   wireColorsJson: text('wireColorsJson').notNull(),
   wireColorsDarkJson: text('wireColorsDarkJson').notNull(),
   voltageDropJson: text('voltageDropJson').notNull(),
-  defaultMcbCurve: text('defaultMcbCurve').notNull(),
-  motorMcbCurve: text('motorMcbCurve').notNull(),
+  defaultMcbCurve: text('defaultMcbCurve'),
+  motorMcbCurve: text('motorMcbCurve'),
   rcdThresholdMa: integer('rcdThresholdMa').notNull(),
   rcdRequiredOnSockets: integer('rcdRequiredOnSockets', { mode: 'boolean' }).notNull(),
   socketCircuitAmps: integer('socketCircuitAmps').notNull(),
   lightingCircuitAmps: integer('lightingCircuitAmps').notNull(),
   conductorLegendJson: text('conductorLegendJson').notNull(),
-  version: text('version').notNull().default('1'),
+  metadataJson: text('metadataJson').notNull().default('{}'),
+  version: text('version').notNull().default('2'),
   seededAt: integer('seededAt', { mode: 'timestamp' }).notNull(),
 });
 

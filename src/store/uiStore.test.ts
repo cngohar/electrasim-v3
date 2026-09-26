@@ -64,7 +64,7 @@ describe('simulation safety guards', () => {
     expect(useUiStore.getState().faultAlert?.title).toContain('UNRESOLVED');
   });
 
-  it('audits a Pro compliance override without allowing it to bypass physical faults', () => {
+  it('keeps approximate protection advice non-blocking while physical faults still prevent a run', async () => {
     useSettingsStore.setState({ appMode: 'pro', regulationStandard: 'uk' });
     useCircuitStore.setState({
       components: [
@@ -107,18 +107,16 @@ describe('simulation safety guards', () => {
     });
 
     useUiStore.getState().setSimRunning(true);
-    expect(useUiStore.getState().simRunning).toBe(false);
-    expect(useUiStore.getState().complianceGateBlocked).toBe(true);
-    expect(useUiStore.getState().faultAlert).toBeNull();
-
-    useUiStore.getState().runWithComplianceOverride();
     expect(useUiStore.getState().simRunning).toBe(true);
     expect(useUiStore.getState().complianceGateBlocked).toBe(false);
-    expect(useUiStore.getState().eventHistory[0]).toMatchObject({
-      eventType: 'manual_intervention',
-      severity: 'warning',
-      details: { standard: 'uk' },
-    });
+    expect(useUiStore.getState().faultAlert).toBeNull();
+    useUiStore.getState().runCircuitValidation();
+    await vi.waitFor(() => expect(useUiStore.getState().isValidatingCircuit).toBe(false));
+    expect(
+      useUiStore
+        .getState()
+        .validationReport?.issues.some((issue) => issue.id === 'socket_rcd_socket'),
+    ).toBe(true);
 
     useCircuitStore.setState((state) => ({
       components: state.components.map((component) =>

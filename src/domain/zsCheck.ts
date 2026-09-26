@@ -1,36 +1,14 @@
-/**
- * zsCheck.ts — Earth-fault loop impedance (Zs) & disconnection-time checker.
- *
- * Standards basis (web-verified 2026-08):
- *  - BS 7671:2018+A4:2026 Tables 41.2–41.4 maximum Zs values are now Cmin-
- *    corrected: Zs_max = (Uo × 0.95) / Ia where Ia = upper magnetic
- *    threshold × In for BS EN 60898 curves (B 5×In, C 10×In, D 20×In)
- *    → B32 = 218.5/160 = 1.37 Ω, C32 = 0.68 Ω, D32 = 0.34 Ω.
- *  - Reg 411.3.1.2 / 411.3.2.2: 0.4 s disconnection for final circuits ≤32 A
- *    (socket-outlets ≤63 A); 5 s for distribution circuits. The magnetic
- *    element clears deep in its instantaneous zone, so meeting the 0.4 s Zs
- *    figure also covers 5 s cases for canvas-scale final circuits.
- *  - IET Guidance Note 3 / On-Site Guide Table I1: R1+R2 at 20 °C for
- *    BS 6004 T&E (e.g. 2.5/1.5 mm² = 19.51 mΩ/m). Tabulated Zs maxima are
- *    70 °C figures, so a cold (20 °C) measured/designed Zs should sit below
- *    0.8 × Zs_max to leave headroom for conductor heating (the "80% rule").
- *  - Zs = Ze + (R1 + R2); Ze default 0.35 Ω (TN-C-S typical design max),
- *    0.8 Ω (TN-S). TT relies on RCD disconnection (50 V / 30 mA → 1667 Ω,
- *    Table 41.5) and is out of scope for this panel.
- *
- * Teaching simplifications (documented here and in the UI):
- *  - The one-way run length to the furthest point is the weighted longest
- *    shortest-path over the device's connected wire network (lengthMeters,
- *    10 m assumed and flagged when a wire has none). On ElectraSim's radial
- *    canvas circuits this equals the live-rail run; exotic looped topologies
- *    read as an estimate.
- *  - R1+R2 uses the SMALLEST cable on the run (conservative) at 20 °C.
+/** Limited UK TN copper T&E teaching estimate, not a compliance assessment.
+ * Existing 0.95/0.8 factors and resistance tables are retained as model
+ * assumptions; publisher edition summaries do not verify their full applicability.
+ * The component-network path estimate does not prove CPC continuity or selectivity.
  */
 
 import { instanceLabel } from './componentLabel';
 import { COMPONENT_DEFS } from './components';
 import { isResidualDevice } from './protectionRoles';
 import { connectedNetworkComponents } from './simulation/faultPropagation';
+import type { StandardId } from './standards';
 import type { Circuit, ComponentInstance, WireInstance } from './types';
 
 export const ZS_CMIN = 0.95;
@@ -78,23 +56,48 @@ export function getR1R2MilliOhmPerMetre(lineMm2: number): {
   return { r1, r2, sum: r1 + r2, cpcMm2 };
 }
 
-/** Maximum earth-fault loop impedance for a 0.4 s disconnection (Cmin-corrected). */
-export function getMaxZsOhms(curve: 'B' | 'C' | 'D', ratingAmps: number): number {
-  return (ZS_NOMINAL_VOLTAGE * ZS_CMIN) / (ZS_MAGNETIC_UPPER[curve] * ratingAmps);
+/** Arithmetic ceiling for the assumed IEC magnetic threshold using U0. */
+export function getMaxZsOhms(
+  curve: 'B' | 'C' | 'D',
+  ratingAmps: number,
+  lineToEarthVoltage = ZS_NOMINAL_VOLTAGE,
+): number {
+  return (lineToEarthVoltage * ZS_CMIN) / (ZS_MAGNETIC_UPPER[curve] * ratingAmps);
 }
 
-export type ZsEarthArrangement = 'TN-C-S' | 'TN-S';
-export const ZE_DEFAULT_OHMS: Record<ZsEarthArrangement, number> = {
+export type ZsEarthArrangement = 'TN-C-S' | 'TN-S' | 'TT';
+export const ZE_DEFAULT_OHMS: Record<Exclude<ZsEarthArrangement, 'TT'>, number> = {
   'TN-C-S': 0.35,
   'TN-S': 0.8,
 };
 
+export interface ZsContext {
+  standard: StandardId;
+  earthing: ZsEarthArrangement;
+  /** Explicit U0, never an inferred line-to-line voltage. */
+  lineToEarthVoltage?: number;
+  zeOhms?: number;
+  circuitKind?: 'final' | 'distribution';
+}
+
+export interface ZsNotAssessed {
+  status: 'not-assessed';
+  deviceId: string;
+  deviceLabel: string;
+  reason: string;
+}
+export type ZsAssessment = ZsCheckResult | ZsNotAssessed;
+
 export interface ZsCheckResult {
+  status: 'estimated';
+  lineToEarthVoltage: number;
+  assumptions: string;
+  residualMilliAmps?: number;
   deviceId: string;
   deviceLabel: string;
   curve: 'B' | 'C' | 'D';
   ratingAmps: number;
-  /** Current that guarantees operation inside 0.4 s (upper magnetic band). */
+  /** Upper magnetic threshold in this simplified model. */
   assuredFaultCurrentAmps: number;
   maxZsOhms: number;
   /** Cold (20 °C) design/test ceiling = 0.8 × max. */
@@ -118,7 +121,7 @@ export interface ZsCheckResult {
 const DEFAULT_RUN_METERS = 10;
 
 function wireMm2(wire: WireInstance, byId: Map<string, ComponentInstance>): number {
-  if (wire.customCableMm2) return wire.customCableMm2;
+  if (wire.customCableMm2 !== undefined) return wire.customCableMm2;
   // Endpoint *recommendedCableMm2* is deliberately NOT consulted: many small
   // components (terminals, switches) recommend 1.0 mm² for their own tails,
   // which would incorrectly drag a whole run to the worst OSG figure. The
@@ -135,24 +138,108 @@ function wireMm2(wire: WireInstance, byId: Map<string, ComponentInstance>): numb
 /**
  * Disconnection check for one protective device: Dijkstra over the device's
  * connected network for the furthest point, then Zs = Ze + R1R2(run).
- * Returns null when the device guards nothing (isolated on the canvas).
+ * Non-protective components return null; unsupported devices return not-assessed.
  */
 export function checkDeviceDisconnection(
   device: ComponentInstance,
   circuit: Circuit,
-  zeOhms: number = ZE_DEFAULT_OHMS['TN-C-S'],
-): ZsCheckResult | null {
+  context: ZsContext,
+): ZsAssessment | null {
   const def = COMPONENT_DEFS[device.type];
   const curve = def?.mcbType as 'B' | 'C' | 'D' | undefined;
-  if (!def?.isProtection || !curve) return null;
-
+  if (!def?.isProtection) return null;
+  const unassessed = (reason: string): ZsNotAssessed => ({
+    status: 'not-assessed',
+    deviceId: device.id,
+    deviceLabel: device.state.autoLabel ?? instanceLabel(device),
+    reason,
+  });
+  if (context.standard !== 'uk')
+    return unassessed(
+      'Only the UK TN teaching model is supported; this is not a national compliance check.',
+    );
+  if (context.earthing !== 'TN-S' && context.earthing !== 'TN-C-S')
+    return unassessed(
+      'TT needs electrode resistance, residual-device characteristics and disconnection criteria. RCD presence alone cannot establish a pass.',
+    );
+  if (!curve)
+    return unassessed(
+      'Device trip model not assessed. An RCD can provide earth-fault disconnection; this overcurrent-curve model does not assess residual operation.',
+    );
+  if (context.circuitKind === 'distribution')
+    return unassessed('Distribution-circuit disconnection is not assessed.');
+  const supplyVoltage = circuit.globalVoltage ?? 230;
+  const u0 = context.lineToEarthVoltage ?? (supplyVoltage === 230 ? 230 : undefined);
+  if (u0 !== 230 || (supplyVoltage !== 230 && supplyVoltage !== 400))
+    return unassessed(
+      'This model supports U0 = 230 V only. Supply voltage is not automatically line-to-earth voltage; 400 V line-to-line requires explicit U0.',
+    );
+  const zeOhms = context.zeOhms ?? ZE_DEFAULT_OHMS[context.earthing];
+  if (!Number.isFinite(zeOhms) || zeOhms < 0)
+    return unassessed('Ze must be a finite non-negative value.');
+  const rating = device.state.customMaxAmps ?? def.maxAmps;
+  if (!rating || !Number.isFinite(rating) || rating <= 0 || rating > 32)
+    return unassessed('Only final-circuit teaching ratings up to 32 A are assessed.');
   const network = connectedNetworkComponents(device.id, circuit);
   const networkWires = circuit.wires.filter(
     (w) => network.has(w.fromComponentId) && network.has(w.toComponentId),
   );
-  if (networkWires.length === 0) return null;
-
+  if (!networkWires.length) return unassessed('No connected circuit to assess.');
   const byId = new Map(circuit.components.map((c) => [c.id, c]));
+  const connected = circuit.components.filter((c) => network.has(c.id));
+  if (!connected.some((c) => COMPONENT_DEFS[c.type]?.sourceType === 'live')) {
+    return unassessed('No supported supply is connected to this circuit.');
+  }
+  if (
+    networkWires.some((w) => {
+      const from = byId.get(w.fromComponentId);
+      const to = byId.get(w.toComponentId);
+      return (
+        !from ||
+        !to ||
+        !COMPONENT_DEFS[from.type]?.ports[w.fromPortIndex] ||
+        !COMPONENT_DEFS[to.type]?.ports[w.toPortIndex]
+      );
+    }) ||
+    connected.some(
+      (c) =>
+        c.state.customCableMm2 !== undefined &&
+        (!Number.isFinite(c.state.customCableMm2) || c.state.customCableMm2 <= 0),
+    )
+  ) {
+    return unassessed('Invalid conductor size or terminal connection.');
+  }
+
+  if (
+    connected.some(
+      (c) =>
+        c.state.fault ||
+        (COMPONENT_DEFS[c.type]?.isSource &&
+          (!['live-terminal', 'neutral-terminal', 'earth-terminal', 'ac-mains-supply'].includes(
+            c.type,
+          ) ||
+            (c.state.customVoltage !== undefined && c.state.customVoltage !== u0))),
+    ) ||
+    circuit.faults?.length ||
+    networkWires.some((w) => w.fault || w.isBusted)
+  ) {
+    return unassessed(
+      'Faulted circuits or unsupported source models require a separate assessment.',
+    );
+  }
+  if (
+    networkWires.some(
+      (w) =>
+        (w.material && w.material !== 'copper') ||
+        w.gauge !== undefined ||
+        (w.lengthMeters !== undefined &&
+          (!Number.isFinite(w.lengthMeters) || w.lengthMeters <= 0)) ||
+        !CPC_MM2[wireMm2(w, byId)],
+    )
+  )
+    return unassessed(
+      'Only the listed copper T&E sizes with positive run lengths are supported; other cable models are not assessed.',
+    );
 
   // Adjacency with run-length weights (10 m assumed when a wire has none).
   const adjacency = new Map<string, { to: string; meters: number; estimated: boolean }[]>();
@@ -201,16 +288,15 @@ export function checkDeviceDisconnection(
       furthestId = id;
     }
   }
-  if (!furthestId || runLength === 0) return null;
+  if (!furthestId || runLength === 0) return unassessed('No usable run length to assess.');
 
   const smallestMm2 = Math.min(...networkWires.map((w) => wireMm2(w, byId)));
   const loop = getR1R2MilliOhmPerMetre(smallestMm2);
   const r1r2Ohms = (loop.sum * runLength) / 1000;
 
-  const rating = device.state.customMaxAmps ?? def.maxAmps ?? 32;
-  const maxZs = getMaxZsOhms(curve, rating);
+  const maxZs = getMaxZsOhms(curve, rating, u0);
   const zs = zeOhms + r1r2Ohms;
-  const pfc = (ZS_NOMINAL_VOLTAGE * ZS_CMIN) / zs;
+  const pfc = (u0 * ZS_CMIN) / zs;
 
   const furthestComp = byId.get(furthestId);
   const furthestLabel = furthestComp
@@ -220,6 +306,11 @@ export function checkDeviceDisconnection(
     : null;
 
   return {
+    status: 'estimated',
+    lineToEarthVoltage: u0,
+    assumptions:
+      'UK TN final-circuit model, copper T&E at 20 °C, assumed CPC pairing and component-network path. Ze is a design input, not a measurement; CPC continuity, full topology and device coordination are not verified.',
+    residualMilliAmps: def.ratedLeakage_mA,
     deviceId: device.id,
     // `instanceLabel` attaches the rating the check actually used: the
     // catalogue label embeds the *default* rating ("RCBO (32A 30mA)"), so a
@@ -247,12 +338,9 @@ export function checkDeviceDisconnection(
   };
 }
 
-/** All protective devices on the canvas that carry an overcurrent curve. */
-export function runZsChecks(
-  circuit: Circuit,
-  zeOhms: number = ZE_DEFAULT_OHMS['TN-C-S'],
-): ZsCheckResult[] {
+/** All protective devices; unsupported or isolated devices have explicit reasons. */
+export function runZsChecks(circuit: Circuit, context: ZsContext): ZsAssessment[] {
   return circuit.components
-    .map((c) => checkDeviceDisconnection(c, circuit, zeOhms))
-    .filter((r): r is ZsCheckResult => r !== null);
+    .map((c) => checkDeviceDisconnection(c, circuit, context))
+    .filter((r): r is ZsAssessment => r !== null);
 }

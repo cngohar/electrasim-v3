@@ -1,21 +1,11 @@
-/**
- * eicReport.ts — Mini Electrical Installation Certificate (print-HTML).
- *
- * Generates a self-contained, printable HTML certificate styled on the
- * BS 7671 Appendix 6 model form ("Mini EIC"), populated with values computed
- * by the Zs/disconnection checker (Reg 411.3, Tables 41.2–41.4 A4:2026
- * Cmin-corrected; R1+R2 per OSG Table I1). No dependencies — a plain string
- * document with inline print CSS plus a screen-only print button.
- *
- * Educational instrument: figures are COMPLIANCE ESTIMATES from the simulated
- * topology, not dead/live test measurements; the document states this on its
- * face and may never be used as an actual certificate.
- */
+/** Printable educational schedule; never a certificate or field measurement. */
 
+import { getStandard } from '../../domain/standards';
 import type { Circuit } from '../../domain/types';
 import {
   ZE_DEFAULT_OHMS,
-  type ZsCheckResult,
+  type ZsAssessment,
+  type ZsContext,
   type ZsEarthArrangement,
   runZsChecks,
 } from '../../domain/zsCheck';
@@ -36,13 +26,16 @@ export interface EicCircuitRow {
   maxZsOhms: string;
   pfcAmps: string;
   disconnection: string;
-  verdict: 'PASS' | 'PASS*' | 'FAIL';
+  verdict: 'WITHIN MODEL' | 'MARGIN LOW' | 'EXCEEDS MODEL' | 'NOT ASSESSED';
 }
 
 export interface EicReportData {
   generatedIso: string;
   earthing: ZsEarthArrangement;
-  zeOhms: number;
+  zeOhms: number | null;
+  supplyVoltage: number;
+  frequencyHz: number;
+  reference: string;
   rows: EicCircuitRow[];
   wireCount: number;
   componentCount: number;
@@ -50,9 +43,28 @@ export interface EicReportData {
   anyEstimatedLength: boolean;
 }
 
-const fmt = (n: number, digits = 2) => (Number.isFinite(n) ? n.toFixed(digits) : '—');
+const fmt = (n: number | null, digits = 2) =>
+  n !== null && Number.isFinite(n) ? n.toFixed(digits) : '—';
 
-function rowFromZs(result: ZsCheckResult, index: number): EicCircuitRow {
+function rowFromZs(result: ZsAssessment, index: number): EicCircuitRow {
+  if (result.status === 'not-assessed')
+    return {
+      ref: result.deviceLabel,
+      description: result.reason,
+      device: result.deviceLabel,
+      curve: '—',
+      ratingAmps: 0,
+      residual: '—',
+      cableMm2: '—',
+      runMeters: '—',
+      r1r2Ohms: '—',
+      zeOhms: '—',
+      zsOhms: '—',
+      maxZsOhms: '—',
+      pfcAmps: '—',
+      disconnection: 'Not assessed',
+      verdict: 'NOT ASSESSED',
+    };
   return {
     ref: result.deviceLabel || `Circuit ${index + 1}`,
     description: result.furthestComponentLabel
@@ -61,7 +73,9 @@ function rowFromZs(result: ZsCheckResult, index: number): EicCircuitRow {
     device: result.deviceLabel,
     curve: result.curve,
     ratingAmps: result.ratingAmps,
-    residual: result.rcdType ? `30 mA Type ${result.rcdType}` : '—',
+    residual: result.rcdType
+      ? `${result.residualMilliAmps ?? 'Unknown'} mA Type ${result.rcdType}`
+      : '—',
     cableMm2: `${result.smallestCableMm2}/${result.cpcMm2} T&E`,
     runMeters: result.runLengthEstimated
       ? `~${fmt(result.runLengthMeters, 0)}`
@@ -71,21 +85,25 @@ function rowFromZs(result: ZsCheckResult, index: number): EicCircuitRow {
     zsOhms: fmt(result.zsOhms, 3),
     maxZsOhms: fmt(result.maxZsOhms),
     pfcAmps: String(Math.round(result.prospectiveFaultCurrentAmps)),
-    disconnection: `≤ ${result.disconnectionSeconds} s`,
-    verdict: result.passCold ? 'PASS' : result.passHot ? 'PASS*' : 'FAIL',
+    disconnection: result.passHot ? `Model ≤ ${result.disconnectionSeconds} s` : 'Not established',
+    verdict: result.passCold ? 'WITHIN MODEL' : result.passHot ? 'MARGIN LOW' : 'EXCEEDS MODEL',
   };
 }
 
 export function buildEicReportData(
   circuit: Circuit,
-  earthing: ZsEarthArrangement = 'TN-C-S',
+  context: ZsContext,
   now: Date = new Date(),
 ): EicReportData {
-  const checks = runZsChecks(circuit, ZE_DEFAULT_OHMS[earthing]);
+  const checks = runZsChecks(circuit, context);
   return {
     generatedIso: now.toISOString(),
-    earthing,
-    zeOhms: ZE_DEFAULT_OHMS[earthing],
+    earthing: context.earthing,
+    zeOhms:
+      context.earthing === 'TT' ? null : (context.zeOhms ?? ZE_DEFAULT_OHMS[context.earthing]),
+    supplyVoltage: circuit.globalVoltage ?? getStandard(context.standard).nominalVoltage,
+    frequencyHz: getStandard(context.standard).frequencyHz,
+    reference: getStandard(context.standard).citation,
     rows: checks.map(rowFromZs),
     wireCount: circuit.wires.length,
     componentCount: circuit.components.length,
@@ -119,10 +137,10 @@ export function renderEicHtml(data: EicReportData): string {
     ? data.rows
         .map(
           (r, i) => `
-        <tr class="${r.verdict === 'FAIL' ? 'fail' : ''}">
+        <tr class="${r.verdict === 'EXCEEDS MODEL' ? 'fail' : ''}">
           <td>${i + 1}</td>
           <td>${e(r.ref)}<div class="muted">${e(r.description)}</div></td>
-          <td>${e(r.curve)}${r.ratingAmps}</td>
+          <td>${e(r.curve)}${r.ratingAmps || ''}</td>
           <td>${e(r.residual)}</td>
           <td>${e(r.cableMm2)}</td>
           <td>${e(r.runMeters)}</td>
@@ -131,7 +149,7 @@ export function renderEicHtml(data: EicReportData): string {
           <td>${e(r.maxZsOhms)}</td>
           <td>${e(r.pfcAmps)}</td>
           <td>${e(r.disconnection)}</td>
-          <td class="verdict ${r.verdict === 'FAIL' ? 'no' : 'yes'}">${r.verdict}</td>
+          <td class="verdict ${r.verdict === 'EXCEEDS MODEL' ? 'no' : r.verdict === 'WITHIN MODEL' ? 'yes' : 'muted'}">${r.verdict}</td>
         </tr>`,
         )
         .join('')
@@ -183,11 +201,11 @@ export function renderEicHtml(data: EicReportData): string {
   <div class="grid">
     <div class="field"><label>Client / occupier</label></div>
     <div class="field"><label>Installation address</label></div>
-    <div class="field"><label>Supply: 230 V, 1-phase, 50 Hz (simulated)</label></div>
-    <div class="field"><label>Earthing arrangement: ${e(data.earthing)} — Ze taken as ${e(fmt(data.zeOhms))} Ω</label></div>
+    <div class="field"><label>Selected supply: ${e(fmt(data.supplyVoltage, 0))} V; profile ${data.frequencyHz} Hz (simulated)</label></div>
+    <div class="field"><label>Earthing arrangement: ${e(data.earthing)} — assumed Ze ${e(fmt(data.zeOhms))} Ω</label></div>
   </div>
 
-  <h2>Part 2 — Schedule of circuit results (Reg 411.3 disconnection check)</h2>
+  <h2>Part 2 — Teaching estimates · ${e(data.reference)}</h2>
   <table>
     <thead>
       <tr>
@@ -200,12 +218,12 @@ export function renderEicHtml(data: EicReportData): string {
     </tbody>
   </table>
   <div class="note">
-    <strong>Method.</strong> Zs = Ze + (R1+R2); R1+R2 computed at 20 °C from OSG Table I1 T&amp;E
-    figures on a ${e(data.earthing)} supply (Ze ${e(fmt(data.zeOhms))} Ω). Max Zs = 230 V × 0.95
-    (C<sub>min</sub>, BS 7671:2018+A4:2026) ÷ (upper magnetic threshold × rating) per Tables
-    41.2–41.4 for 0.4 s disconnection. Verdict <strong>PASS</strong> also clears the GN3 80 % cold
-    rule; <strong>PASS*</strong> meets the table maximum but not the 80 % margin (a cold on-site
-    reading could fail); <strong>FAIL</strong> exceeds the table maximum.
+    <strong>Method and scope.</strong> Only supported UK TN final-circuit cases use the
+    existing copper T&amp;E model: Zs = Ze + (R1+R2) at 20 °C, U0 = 230 V line-to-earth,
+    magnetic thresholds B/C/D = 5/10/20 × rating, and model factors 0.95 and 0.8.
+    These assumptions and a result within the model limit do not verify CPC continuity,
+    device coordination or installation compliance. Unsupported cases are <strong>NOT ASSESSED</strong>.
+    TT is not assessed from RCD presence alone. Ze is an assumed design input, not a measurement.
     ${data.anyEstimatedLength ? '<br><strong>⚠ Some wires have no set length and were assumed 10 m each — set wire lengths in the Inspector before relying on these figures.</strong>' : ''}
     ${data.totalRunMeters > 0 ? `<br>Total wired run on canvas: ${e(fmt(data.totalRunMeters, 0))} m across ${data.wireCount} wires / ${data.componentCount} components.` : ''}
   </div>

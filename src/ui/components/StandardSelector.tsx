@@ -1,16 +1,4 @@
-/**
- * StandardSelector — Country / Region control.
- *
- * A single dropdown with two independent sections:
- *   1. **Electrical standard** (voltage, wire colours, ratings, compliance):
- *      UK (BS 7671), US (NEC), EU (IEC), International 230V/50Hz (IEC-style —
- *      covers AU/NZ, India, South Africa and every other 230V/50Hz country).
- *      Selecting one applies its nominal voltage as the global supply voltage
- *      and re-runs validation.
- *   2. **Plug / socket type** (which socket tiles show in the palette):
- *      independent of the standard — a user picks their electrical rules once,
- *      then their regional plug.
- */
+/** Independent teaching profile and plug-family selector. */
 
 import { ChevronDown, Globe, Lock, Plug, ShieldCheck, Wrench } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -125,7 +113,7 @@ export function StandardSelector({ compact = false }: Props) {
             <p className="mt-1.5 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
               Student mode keeps every learner on one consistent rule set ({current.label},{' '}
               {current.nominalVoltage} V / {current.frequencyHz} Hz). Pro mode unlocks the full
-              country / standard and plug-type selector.
+              country / standard and plug-type selector. {current.metadata.coverage}
             </p>
             <button
               type="button"
@@ -210,6 +198,7 @@ export function StandardSelector({ compact = false }: Props) {
                   <span className="block text-[10px] text-slate-500 dark:text-slate-400">
                     {s.citation}
                   </span>
+                  <span className="block text-[9px] text-slate-500">{s.metadata.adoption}</span>
                   <span className="mt-1 flex flex-wrap gap-1 font-mono text-[9px] text-slate-500 dark:text-slate-400">
                     <span className="rounded bg-slate-100 px-1 py-0.5 dark:bg-slate-800">
                       {s.nominalVoltage}V
@@ -218,10 +207,12 @@ export function StandardSelector({ compact = false }: Props) {
                       {s.frequencyHz}Hz
                     </span>
                     <span className="rounded bg-slate-100 px-1 py-0.5 dark:bg-slate-800">
-                      ΔU ≤ {s.voltageDrop.lightingPercent}/{s.voltageDrop.powerPercent}%
+                      {s.voltageDrop.lightingPercent === null
+                        ? 'ΔU not assessed'
+                        : `ΔU guide ${s.voltageDrop.lightingPercent}/${s.voltageDrop.powerPercent}%`}
                     </span>
                     <span className="rounded bg-slate-100 px-1 py-0.5 dark:bg-slate-800">
-                      {s.rcdThresholdMa}mA RCD
+                      {s.id === 'us' ? 'GFCI model limited' : `${s.rcdThresholdMa}mA RCD guide`}
                     </span>
                   </span>
                 </span>
@@ -257,8 +248,8 @@ export function StandardSelector({ compact = false }: Props) {
           </div>
 
           <p className="mt-2 border-t border-slate-200 pt-1.5 text-[9px] leading-snug text-slate-400 dark:border-slate-800">
-            The electrical standard sets voltage, conductor colours and the rule set used by the
-            compliance checker. Plug type only changes which sockets appear in the palette.
+            {current.metadata.coverage} Plug type only changes the palette; it does not establish
+            national compliance. Display theme colours are not conductor identification.
           </p>
         </div>
       )}

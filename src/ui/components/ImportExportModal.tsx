@@ -26,7 +26,7 @@ import {
   exportSVG,
   importJSON,
 } from '../../lib/exportImport';
-import { useCircuitStore, useUiStore } from '../../store';
+import { useCircuitStore, useSettingsStore, useUiStore } from '../../store';
 import { EmojiGlyph } from './EmojiGlyph';
 import { Modal } from './Modal';
 
@@ -133,8 +133,11 @@ export function ImportExportModal({ open, onClose, svgRef }: Props) {
   const handleExportEic = useCallback(() => {
     clearMessages();
     promptFilename('mini-eic', '.eic.html', (filename) => {
-      const { components, wires } = useCircuitStore.getState();
-      const html = renderEicHtml(buildEicReportData({ components, wires } as Circuit));
+      const { components, wires, globalVoltage } = useCircuitStore.getState();
+      const standard = useSettingsStore.getState().regulationStandard;
+      const html = renderEicHtml(
+        buildEicReportData({ components, wires, globalVoltage }, { standard, earthing: 'TN-C-S' }),
+      );
       downloadText(html, filename, 'text/html');
       setSuccess(`Mini EIC exported as "${filename}" — open it, then Print / Save as PDF.`);
       useUiStore.getState().addLog(`Mini EIC report exported: ${filename}`, 'success');

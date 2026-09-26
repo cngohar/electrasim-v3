@@ -6,7 +6,11 @@
 
 import { describe, expect, it } from 'vitest';
 import type { Circuit, ComponentInstance, WireInstance } from '../../domain/types';
-import { buildEicReportData, escapeHtml, renderEicHtml } from './eicReport';
+import { buildEicReportData as buildReport, escapeHtml, renderEicHtml } from './eicReport';
+
+function buildEicReportData(circuit: Circuit, earthing: 'TN-C-S' | 'TN-S' = 'TN-C-S', now?: Date) {
+  return buildReport(circuit, { standard: 'uk', earthing }, now);
+}
 
 let nextId = 0;
 const uid = (prefix: string) => `${prefix}${++nextId}`;
@@ -60,7 +64,7 @@ describe('eicReport — data assembly', () => {
     // 10 m live run, 2.5/1.5 T&E: R1+R2 = 19.51×10/1000 = 0.1951, Zs = 0.35 + 0.1951 ≈ 0.545
     expect(row.r1r2Ohms).toBe('0.195');
     expect(row.zsOhms).toBe('0.545');
-    expect(row.verdict).toBe('PASS');
+    expect(row.verdict).toBe('WITHIN MODEL');
     expect(data.earthing).toBe('TN-C-S');
     expect(data.zeOhms).toBe(0.35);
   });
@@ -69,7 +73,7 @@ describe('eicReport — data assembly', () => {
     const circuit = rcboCircuit();
     const longWires = circuit.wires.map((w) => ({ ...w, lengthMeters: 200 }));
     const data = buildEicReportData({ ...circuit, wires: longWires });
-    expect(data.rows[0].verdict).toBe('FAIL');
+    expect(data.rows[0].verdict).toBe('EXCEEDS MODEL');
   });
 
   it('flags estimated lengths when any wire lacks one', () => {
@@ -112,4 +116,25 @@ describe('eicReport — HTML rendering', () => {
     expect(html).not.toContain('<script>alert(1)</script>');
     expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
   });
+});
+
+it('exports unsupported supply/profile/TT as unassessed without a green verdict', () => {
+  for (const context of [
+    { standard: 'us' as const, earthing: 'TN-C-S' as const },
+    { standard: 'uk' as const, earthing: 'TT' as const },
+  ]) {
+    const data = buildReport({ ...rcboCircuit(), globalVoltage: 120 }, context);
+    expect(data.rows.every((r) => r.verdict === 'NOT ASSESSED')).toBe(true);
+    const html = renderEicHtml(data);
+    expect(html).toContain('Selected supply: 120 V');
+    expect(html).not.toContain('class="verdict yes"');
+  }
+});
+
+it('does not claim a disconnection time for a failed estimate', () => {
+  const c = rcboCircuit();
+  c.wires.forEach((w) => {
+    w.lengthMeters = 500;
+  });
+  expect(buildEicReportData(c).rows[0].disconnection).toBe('Not established');
 });

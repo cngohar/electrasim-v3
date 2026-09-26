@@ -40,7 +40,7 @@ const MV_PER_AMP_METER_COPPER: readonly (readonly [number, number])[] = [
 export function getMillivoltAmpMeter(mm2: number, material: 'copper' | 'aluminum'): number {
   if (material === 'copper' && Number.isFinite(mm2) && mm2 > 0) {
     for (const [size, mv] of MV_PER_AMP_METER_COPPER) {
-      if (mm2 <= size) return mv;
+      if (mm2 === size) return mv;
     }
   }
   const resistivity =

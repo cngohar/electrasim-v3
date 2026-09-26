@@ -31,13 +31,8 @@ export interface SimulateOptions {
   defs?: Record<string, ComponentDef>;
   /** App mode — 'pro' enables stress testing for overvoltage, overcurrent, and overload. */
   appMode?: 'basic' | 'pro';
-  /**
-   * Active electrical standard (region). Drives region-aware fault behaviour:
-   *   - prospective fault current is scaled by the region's nominal voltage,
-   *   - residual-device language uses GFCI (US) vs RCD (elsewhere),
-   *   - RCD/GFCI threshold and the disconnection-time wording follow the region.
-   * Defaults to UK if omitted.
-   */
+  /** Teaching profile. US device timing is not assessed; choosing a profile
+   * never changes a component's physical residual-current rating. */
   standard?: StandardId;
 }
 
@@ -49,8 +44,8 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
   const defs = options.defs ?? COMPONENT_DEFS;
   // Region-aware fault behaviour (see SimulateOptions.standard).
   const standardPreset = getStandard(options.standard);
-  const residualName = standardPreset.id === 'us' ? 'GFCI' : 'RCD';
-  const residualThresholdMa = standardPreset.rcdThresholdMa;
+  const timingAssessed = standardPreset.id !== 'us';
+  const residualName = standardPreset.id === 'us' ? 'Residual device' : 'RCD';
 
   const energizedComponents = new Set<string>();
   const energizedWires = new Set<string>();
@@ -69,6 +64,11 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
   const trippedIds = new Set<string>();
   const errors: string[] = [];
   const warnings: string[] = [];
+  if (!timingAssessed && circuit.components.some((c) => defs[c.type]?.isProtection)) {
+    warnings.push(
+      'US protective-device timing is not assessed; device operation uses the generic teaching model, not UL/NEC certification.',
+    );
+  }
 
   // Messages emitted below narrate the *injected fault itself* ("TERMINAL
   // DISCONNECT: ...", "SHORT CIRCUIT FAULT: ..."). In Diagnosis mode that is
@@ -115,7 +115,7 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
         // impedance is region-agnostic at the device terminals, but the
         // prospective fault current scales with the supply voltage, so it is
         // naturally higher on 230 V systems than 120 V systems. Deep in the
-        // instantaneous magnetic zone of any IEC 60898-1 / UL 489 curve.
+        // IEC teaching curve model; actual device characteristics vary.
         const faultLoopOhms = 0.5;
         const prospectiveAmps = Math.round(supplyVoltage / faultLoopOhms);
         /* Ask the IEC 60898-1 curve rather than asserting "<0.1 s": for a
@@ -137,25 +137,25 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
           reason: 'short-circuit',
           currentAmps: prospectiveAmps,
           ratingAmps: rating,
-          ...(curve.timeToTrip !== undefined ? { clearingTimeSeconds: curve.timeToTrip } : {}),
+          ...(timingAssessed && curve.timeToTrip !== undefined
+            ? { clearingTimeSeconds: curve.timeToTrip }
+            : {}),
           ...(curve.tripReason ? { mechanism: curve.tripReason } : {}),
           currentMultiple: curve.currentMultiple,
         });
         // Names the fault kind ("bolted short circuit") — must be withholdable.
         pushFaultNarrationError(
-          curve.tripReason === 'magnetic'
-            ? `${label} TRIPPED: bolted short circuit — prospective ${prospectiveAmps} A is ${curve.currentMultiple.toFixed(1)}×In, inside the instantaneous magnetic band of a Type ${devDef?.mcbType ?? 'B'} ${rating} A device; cleared in ≤${formatClearingTime(curve.timeToTrip ?? 0.1)} per IEC 60898-1 / UL 489.`
-            : `${label} TRIPPED: bolted short circuit — prospective ${prospectiveAmps} A is only ${curve.currentMultiple.toFixed(1)}×In, BELOW the Type ${devDef?.mcbType ?? 'B'} instantaneous band, so the thermal element cleared it in ≈${formatClearingTime(curve.timeToTrip ?? 0)} per IEC 60898-1. A lower-numbered curve would have cleared it instantly.`,
+          !timingAssessed
+            ? `${label} TRIPPED in the teaching model: prospective fault current ${prospectiveAmps} A. US clearing time is not assessed.`
+            : curve.tripReason === 'magnetic'
+              ? `${label} TRIPPED: bolted short circuit — prospective ${prospectiveAmps} A is ${curve.currentMultiple.toFixed(1)}×In, inside the instantaneous magnetic band of a Type ${devDef?.mcbType ?? 'B'} ${rating} A device; cleared in ≤${formatClearingTime(curve.timeToTrip ?? 0.1)} in the IEC teaching curve model.`
+              : `${label} TRIPPED: bolted short circuit — prospective ${prospectiveAmps} A is only ${curve.currentMultiple.toFixed(1)}×In, BELOW the Type ${devDef?.mcbType ?? 'B'} instantaneous band, so the thermal element cleared it in ≈${formatClearingTime(curve.timeToTrip ?? 0)} in the IEC teaching curve model; verify actual device characteristics.`,
         );
       } else if (kind === 'ground-fault') {
-        // Ground / earth-leakage fault: the residual device trips on the
-        // imbalance between live and neutral. Threshold and naming follow the
-        // active region — a Class A GFCI trips at ≤6 mA (US), an RCD at
-        // 30 mA (most other regions).
+        // Illustrative 45 mA fault. Device rating is a component property,
+        // not the selected country's default. IEC time bands do not assess GFCI timing.
+        const residualThresholdMa = devDef?.ratedLeakage_mA ?? 30;
         const leakAmps = Math.max(residualThresholdMa / 1000 + 0.015, 0.045);
-        /* Break time from IEC 61008-1 rather than a bare assertion — the
-           standard's own stepped maximums (300/150/40 ms at 1/2/5×IΔn) are what
-           makes "the RCD disconnected in time" a checkable statement. */
         const residual = calculateRCDTrip(
           leakAmps * 1000,
           devDef?.ratedLeakage_mA ?? residualThresholdMa,
@@ -168,7 +168,7 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
           reason: 'ground-fault',
           currentAmps: leakAmps,
           ratingAmps: residualThresholdMa / 1000,
-          ...(residual.timeToTrip !== undefined
+          ...(timingAssessed && residual.timeToTrip !== undefined
             ? { clearingTimeSeconds: residual.timeToTrip }
             : {}),
           mechanism: 'residual',
@@ -176,7 +176,7 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
         });
         // Names the fault kind ("residual leakage") — must be withholdable.
         pushFaultNarrationError(
-          `${label} TRIPPED: ${residualName} operated on ${Math.round(leakAmps * 1000)} mA residual leakage (threshold ${residualThresholdMa} mA) — supply disconnected in ≤${formatClearingTime(residual.timeToTrip ?? 0.3)} per IEC 61008-1.`,
+          `${label} TRIPPED: ${residualName} operated on ${Math.round(leakAmps * 1000)} mA residual leakage (threshold ${residualThresholdMa} mA) — ${timingAssessed ? `IEC teaching-model time ≤${formatClearingTime(residual.timeToTrip ?? 0.3)}` : 'US operating time not assessed'}.`,
         );
       } else {
         // Arc fault: current floats around load level — far below the device
@@ -427,9 +427,10 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
 
         blownComponents.push({ id: c.id, reason: 'overcurrent' });
         errorComponents.add(c.id);
-        const clearingText = curve?.timeToTrip
-          ? ` Type ${def.mcbType} curve clears ${curve.currentMultiple.toFixed(2)}×In in ≈${formatClearingTime(curve.timeToTrip)}.`
-          : '';
+        const clearingText =
+          timingAssessed && curve?.timeToTrip
+            ? ` Type ${def.mcbType} teaching curve clears ${curve.currentMultiple.toFixed(2)}×In in ≈${formatClearingTime(curve.timeToTrip)}.`
+            : '';
         const reason = `Circuit current (${totalCircuitAmps.toFixed(1)} A) exceeded rated limit (${effectiveLimit} A).${clearingText}`;
         trippedComponents.push({
           id: c.id,
@@ -441,7 +442,9 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
           reason,
           currentAmps: totalCircuitAmps,
           ratingAmps: effectiveLimit,
-          ...(curve?.timeToTrip !== undefined ? { clearingTimeSeconds: curve.timeToTrip } : {}),
+          ...(timingAssessed && curve?.timeToTrip !== undefined
+            ? { clearingTimeSeconds: curve.timeToTrip }
+            : {}),
           ...(curve?.tripReason ? { mechanism: curve.tripReason } : {}),
           ...(curve ? { currentMultiple: curve.currentMultiple } : {}),
         });
@@ -678,7 +681,7 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
       );
     } else if (fault.type === 'switched-neutral') {
       pushFaultNarrationError(
-        'SWITCHED NEUTRAL HAZARD: Switch cuts Neutral; appliance remains LIVE at 230V when OFF (BS 7671 Reg 132.14 / 537.1)!',
+        `SWITCHED NEUTRAL HAZARD: Switch cuts Neutral; appliance can remain LIVE at the ${supplyVoltage} V supply when OFF!`,
       );
     } else if (fault.type === 'live-to-earth' || fault.type === 'earth-fault') {
       pushFaultNarrationError(
@@ -694,7 +697,7 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
       }
     } else if (fault.type === 'smooth-dc-residual') {
       pushFaultNarrationError(
-        `SMOOTH DC RESIDUAL: Power-electronic earth leakage on ${def.label} — only Type B residual devices can detect a smooth DC component (BS EN 62423, BS 7671 Reg 531.3.3).`,
+        `SMOOTH DC RESIDUAL: Power-electronic earth leakage on ${def.label} — among the modeled AC/A/F/B devices only Type B detects this smooth DC component; equipment-specific DC detection arrangements need separate assessment.`,
       );
       if (faultAnchorId) {
         const isResidual = (t: string) => isResidualDevice(t, defs);
@@ -734,7 +737,7 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
         );
         if (afdds.length === 0) {
           pushFaultNarrationError(
-            'NO AFDD IN THIS NETWORK: the arc keeps burning while MCB/RCD/RCBO stay closed. BS 7671 Reg 421.1.7 requires AFDDs on single-phase socket final circuits up to 32 A in higher-risk residential buildings, HMOs, student accommodation and care homes — and recommends them for all other premises.',
+            'NO AFDD IN THIS NETWORK: the modeled arc persists while MCB/RCD/RCBO stay closed. Repair the fault and check arc-fault protection requirements for the applicable location and equipment.',
           );
         }
       }

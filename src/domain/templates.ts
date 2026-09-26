@@ -571,7 +571,7 @@ function evChargerCircuitTemplate(): GuidedCircuitTemplate {
     summary:
       'A 7.4 kW EV charge point on its own dedicated circuit: rotary isolator, RCBO protection and a direct protective earth.',
     teaches:
-      'EV chargers are high, sustained loads — they get a dedicated circuit with a local isolator for maintenance and combined RCD/overcurrent protection. Smooth DC leakage is why Type B RCDs are recommended for EVs.',
+      'EV chargers are high, sustained loads — they get a dedicated circuit with a local isolator for maintenance and combined RCD/overcurrent protection. Residual protection must suit the charging equipment and DC-leakage provisions (for example Type B, or a permitted Type A arrangement with suitable DC detection). MCB curve selection is a separate equipment-specific choice.',
     expected:
       'Run the simulation: the charge point energises. Opening the isolator or the RCBO de-energises the charger while its earth stays connected.',
     steps: [

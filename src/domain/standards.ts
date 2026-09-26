@@ -1,33 +1,9 @@
-/**
- * standards.ts — international electrical standard presets & compliance helpers.
- *
- * Centralises the regulatory differences between the electrical rule sets the
- * app exposes:
- *
- *   - `uk` — BS 7671 (IET Wiring Regulations, 18th Edition Amendment 3/4):
- *            230 V / 50 Hz, brown/blue/green-yellow conductors, Type B/C/D
- *            MCBs, 30 mA RCD on sockets, 3 % (lighting) / 5 % (power) drop.
- *   - `us` — NFPA 70 (National Electrical Code, NEC):
- *            120 V / 60 Hz, black/white/green conductors, 15/20 A branch
- *            circuits, GFCI on wet/outdoor receptacles, 3 % / 5 % drop.
- *   - `eu` — IEC 60364:
- *            230 V / 50 Hz, brown/blue/green-yellow (harmonised HD 308 S2),
- *            C-curve breakers on motor circuits, same drop limits as UK.
- *   - `int` — International 230 V / 50 Hz (IEC-style). This single standard
- *            covers every other 230 V / 50 Hz country (Australia/NZ, India,
- *            South Africa, most of Asia/Africa/the Gulf, etc.) because their
- *            electrical rules are identical — only the plug/socket differs,
- *            which is handled separately by the plug-type selector.
- *
- * The plug/socket system is a SEPARATE concept from the electrical standard
- * (see `PLUG_SYSTEMS` below): a user picks their electrical rules once and
- * then their regional plug type, rather than duplicating near-identical
- * standards for every country.
- *
- * Keep this module pure & dependency-free so the simulator worker and the
- * validation engine can both import it without dragging React in.
+/** Code-owned teaching profiles. Edition, model coverage and local adoption are
+ * separate facts. Matching voltage or plug family does not establish compliance.
+ * Source register: docs/audits/electrical-standards-gap.md (2026-09-26).
  */
 
+import { STANDARD_METADATA, type StandardMetadata } from './standardsReferences';
 import type { PortType } from './types';
 
 // ─── Types ────────────────────────────────────────────────────────────────
@@ -44,20 +20,21 @@ export type PlugSystemId =
   | 'bs546' // India / South Africa / Pakistan / Gulf
   | 'all'; // Show every socket type
 
-/** Maximum permissible voltage drop at the furthest point of a final circuit. */
+/** Simplified public-LV teaching thresholds, not a national compliance decision. */
 export interface VoltageDropLimits {
-  /** Lighting final circuits (BS 7671 Appendix 4 / NEC 210.19(A) FPN 4). */
-  lightingPercent: number;
+  /** Lighting; null when this metric model is not applicable. */
+  lightingPercent: number | null;
   /** Power / socket-outlet final circuits. */
-  powerPercent: number;
+  powerPercent: number | null;
 }
 
 /** One quick-switchable regulatory preset. */
 export interface StandardPreset {
   id: StandardId;
+  metadata: StandardMetadata;
   label: string;
   shortLabel: string;
-  /** Short citation shown under the selector, e.g. "BS 7671 18th Ed. Amd 3/4". */
+  /** Short citation shown under the selector, separate from implemented coverage. */
   citation: string;
   /** Flag emoji used as a light-weight visual cue. */
   flag: string;
@@ -69,15 +46,15 @@ export interface StandardPreset {
   wireColors: Record<PortType, string>;
   /** Dark-mode conductor colours. */
   wireColorsDark: Record<PortType, string>;
-  /** Regulatory voltage-drop ceilings (%). */
+  /** Teaching thresholds (%); no generic US metric-cable assessment. */
   voltageDrop: VoltageDropLimits;
   /** Default MCB trip curve for generic circuits. */
-  defaultMcbCurve: 'B' | 'C' | 'D';
-  /** Required MCB curve for motor / high-inrush inductive loads. */
-  motorMcbCurve: 'B' | 'C' | 'D';
+  defaultMcbCurve: 'B' | 'C' | 'D' | null;
+  /** Illustrative IEC curve to investigate for inrush; never a requirement. */
+  motorMcbCurve: 'B' | 'C' | 'D' | null;
   /** Residual-current device threshold in milliamps for socket circuits. */
   rcdThresholdMa: number;
-  /** Whether RCD/GFCI protection is mandatory on socket outlets. */
+  /** Whether the teaching profile flags sockets without a residual device. */
   rcdRequiredOnSockets: boolean;
   /** Nominal domestic socket branch rating (Amps). */
   socketCircuitAmps: number;
@@ -92,9 +69,10 @@ export interface StandardPreset {
 export const STANDARDS: Record<StandardId, StandardPreset> = {
   uk: {
     id: 'uk',
+    metadata: STANDARD_METADATA.uk,
     label: 'United Kingdom',
     shortLabel: 'UK',
-    citation: 'BS 7671 18th Ed. (Amd 3/4)',
+    citation: 'BS 7671:2018+A4:2026',
     flag: 'flag-gb',
     nominalVoltage: 230,
     frequencyHz: 50,
@@ -115,18 +93,19 @@ export const STANDARDS: Record<StandardId, StandardPreset> = {
   },
   us: {
     id: 'us',
+    metadata: STANDARD_METADATA.us,
     label: 'United States',
     shortLabel: 'US',
-    citation: 'NFPA 70 (NEC)',
+    citation: 'NFPA 70-2026 (NEC)',
     flag: 'flag-us',
     nominalVoltage: 120,
     frequencyHz: 60,
     // NEC: black/red "hot", white/gray "grounded conductor", green/bare equipment ground.
     wireColors: { live: '#1e293b', neutral: '#64748b', earth: '#15803d' },
     wireColorsDark: { live: '#38bdf8', neutral: '#f1f5f9', earth: '#4ade80' },
-    voltageDrop: { lightingPercent: 3, powerPercent: 5 },
-    defaultMcbCurve: 'C',
-    motorMcbCurve: 'D',
+    voltageDrop: { lightingPercent: null, powerPercent: null },
+    defaultMcbCurve: null,
+    motorMcbCurve: null,
     rcdThresholdMa: 6, // Class A GFCI trips at 4–6 mA
     rcdRequiredOnSockets: true,
     socketCircuitAmps: 20,
@@ -139,7 +118,8 @@ export const STANDARDS: Record<StandardId, StandardPreset> = {
   },
   eu: {
     id: 'eu',
-    label: 'European Union',
+    metadata: STANDARD_METADATA.eu,
+    label: 'European IEC teaching profile',
     shortLabel: 'EU',
     citation: 'IEC 60364 / HD 60364',
     flag: 'flag-eu',
@@ -161,15 +141,12 @@ export const STANDARDS: Record<StandardId, StandardPreset> = {
     },
   },
 
-  // ─── International 230 V / 50 Hz (IEC-style) ───────────────────────────
-  // Covers Australia/NZ, India, South Africa, and every other 230 V / 50 Hz
-  // country. Their electrical rules are identical; only the plug type differs,
-  // which is handled by the separate plug-type selector.
   int: {
     id: 'int',
-    label: 'International',
+    metadata: STANDARD_METADATA.int,
+    label: 'IEC teaching profile',
     shortLabel: 'Intl',
-    citation: 'IEC 60364 · 230 V / 50 Hz',
+    citation: 'IEC 60364 series · teaching model',
     flag: 'earth',
     nominalVoltage: 230,
     frequencyHz: 50,
@@ -198,7 +175,7 @@ export const STANDARD_LIST: StandardPreset[] = [
 ];
 
 export function getStandard(id: StandardId | undefined | null): StandardPreset {
-  return STANDARDS[id ?? 'uk'];
+  return STANDARDS[id ?? 'int'] ?? STANDARDS.int;
 }
 
 // ─── Plug / socket systems ────────────────────────────────────────────────
@@ -296,64 +273,57 @@ export function primarySocketForPlug(plug: PlugSystemId): string {
 
 // ─── Compliance helpers ───────────────────────────────────────────────────
 
-/**
- * Recommend a standard MCB rating (Amps) for a load given its power draw and
- * the selected standard. Rounds UP to the next common domestic rating.
- *
- *   Ib = P / V   (design current)
- *   In ≥ Ib, chosen from a prefered-size list so the breaker is the smallest
- *   standard rating that comfortably carries the load.
- */
+/** P/V load estimate only. Cable capacity, diversity, continuous loads,
+ * inrush and manufacturer's instructions still need a separate design check. */
 export function recommendMcbrating(
   powerWatts: number,
   voltage: number,
   standard: StandardPreset,
-): { ratingAmps: number; curve: 'B' | 'C' | 'D'; designCurrentAmps: number } {
-  const safeV = voltage > 0 ? voltage : standard.nominalVoltage;
-  const designCurrentAmps = powerWatts > 0 && safeV > 0 ? powerWatts / safeV : 0;
-
-  // Preferred ratings to IEC 60898 / NEC 240.6(A) common sizes.
-  const preferredSizes = [6, 10, 15, 16, 20, 25, 32, 40, 50, 63];
-  let ratingAmps = preferredSizes[preferredSizes.length - 1];
-  for (const size of preferredSizes) {
-    if (size >= designCurrentAmps * 1.25) {
-      // 1.25 = continuous-load margin (NEC 210.20 / BS 7671 Ib ≤ In guidance).
-      ratingAmps = size;
-      break;
-    }
-  }
+): {
+  ratingAmps: number | null;
+  curve: 'B' | 'C' | 'D' | null;
+  designCurrentAmps: number;
+  note: string;
+} {
+  const valid =
+    Number.isFinite(powerWatts) && powerWatts > 0 && Number.isFinite(voltage) && voltage > 0;
+  const designCurrentAmps = valid ? powerWatts / voltage : 0;
+  const preferredSizes = [6, 10, 16, 20, 25, 32, 40, 50, 63];
+  const ratingAmps =
+    valid && standard.id !== 'us'
+      ? (preferredSizes.find((size) => size >= designCurrentAmps) ?? null)
+      : null;
   return {
     ratingAmps,
     curve: standard.defaultMcbCurve,
     designCurrentAmps,
+    note: !valid
+      ? 'Not assessed: enter finite positive load power and supply voltage.'
+      : standard.id === 'us'
+        ? 'Not assessed: NEC load sizing and listed US breaker models are not implemented.'
+        : ratingAmps === null
+          ? 'Not assessed: load exceeds the available teaching ratings.'
+          : 'Illustrative rating at or above P/V, without a blanket 125% factor. Verify cable capacity, load duty and equipment instructions.',
   };
 }
 
-/**
- * Choose the correct MCB trip curve for a load. Inductive / motor loads
- * (compressors, fans, EVSE) require C or D curves to ride through inrush;
- * resistive/electronic loads use B.
- */
+export function isInrushLoad(componentType: string): boolean {
+  return /motor|compressor|pump|transformer|air-conditioner/.test(componentType.toLowerCase());
+}
+
+/** Illustrative IEC curve only; EVSE/electronic loads need equipment data.
+ * MCB curves B/C/D are distinct from RCD waveform types AC/A/F/B. */
 export function recommendCurveForLoad(
   componentType: string,
   standard: StandardPreset,
-): 'B' | 'C' | 'D' {
-  const t = componentType.toLowerCase();
-  const isMotor =
-    t.includes('motor') ||
-    t.includes('compressor') ||
-    t.includes('pump') ||
-    t.includes('transformer') ||
-    t.includes('ev-charger') ||
-    t.includes('air-conditioner') ||
-    t.includes('induction-hob');
-  if (isMotor) return standard.motorMcbCurve;
-  return standard.defaultMcbCurve;
+): 'B' | 'C' | 'D' | null {
+  if (standard.id === 'us' || /ev-charger|induction-hob/.test(componentType)) return null;
+  return isInrushLoad(componentType) ? standard.motorMcbCurve : standard.defaultMcbCurve;
 }
 
 /**
  * Classify a component as "lighting" vs "power" so the correct voltage-drop
- * ceiling applies (3 % lighting, 5 % power under all three standards).
+ * teaching threshold applies where this cable model is supported.
  */
 export function isLightingLoad(componentType: string): boolean {
   const t = componentType.toLowerCase();
@@ -368,7 +338,7 @@ export function isLightingLoad(componentType: string): boolean {
 }
 
 /** Voltage-drop ceiling (percent) for a load under the given standard. */
-export function voltageDropCeiling(componentType: string, standard: StandardPreset): number {
+export function voltageDropCeiling(componentType: string, standard: StandardPreset): number | null {
   return isLightingLoad(componentType)
     ? standard.voltageDrop.lightingPercent
     : standard.voltageDrop.powerPercent;

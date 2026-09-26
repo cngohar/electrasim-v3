@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   calculateElectricalValues,
   calculateLoadCurrent,
+  getMillivoltAmpMeter,
   getStandardCableAmpacity,
 } from './electricalCalculations';
 
@@ -113,4 +114,10 @@ describe('electrical calculations', () => {
     expect(result.cableMm2).toBe(2.08);
     expect(result.status).toBe('pass');
   });
+});
+
+it('does not use the next larger tabulated conductor for an intermediate size', () => {
+  // Fallback: 2 × 0.0175 Ω mm²/m × 1.2 × 1000 / 2 mm² = 21 mV/A/m.
+  expect(getMillivoltAmpMeter(2, 'copper')).toBeCloseTo(21, 6);
+  expect(getMillivoltAmpMeter(2.5, 'copper')).toBe(18);
 });

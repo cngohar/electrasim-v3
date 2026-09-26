@@ -150,7 +150,7 @@ export type FaultType =
 /**
  * Residual-current device classification (BS 7671 Reg 531.3.3 selects by
  * the fault-current waveforms the load may produce):
- * - `'AC'` sinusoidal AC residual only (legacy — not for new installs)
+ * - `'AC'` sinusoidal AC residual only (applicability depends on equipment and local rules)
  * - `'A'`  AC + pulsating DC; tolerates ≤6 mA smooth DC, does not detect it
  * - `'F'`  Type A + mixed/high frequency; tolerates ≤10 mA smooth DC
  * - `'B'`  all-current-sensitive — also detects smooth DC (BS EN 62423)

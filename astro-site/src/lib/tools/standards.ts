@@ -1,12 +1,10 @@
-/**
- * standards.ts — Electrical Standards Profiles
- *
- * Single source of truth for the regional wiring standards supported by the
- * ElectraSim toolbox. Metric engines (BS 7671 / IEC 60364) share physical
- * conductor data — BS 7671 Appendix 4 tables are harmonized with
- * IEC 60364-5-52 — but differ in published limits and citations.
- * The US NEC profile uses AWG/kcmil conductors, feet, and NEC Chapter 9 data.
+/** Toolbox models have richer cable/temperature inputs than the simulator.
+ * They share reference metadata, not a claim of identical numerical coverage.
  */
+import {
+  STANDARD_METADATA,
+  type StandardMetadata,
+} from '../../../../src/domain/standardsReferences';
 
 export type StandardId = 'uk-bs7671' | 'iec-60364' | 'us-nec';
 
@@ -35,6 +33,7 @@ export interface VoltageDropLimitProfile {
 
 export interface StandardProfile {
   id: StandardId;
+  metadata: StandardMetadata;
   /** Full designation, e.g. "BS 7671:2018+A4:2026" */
   label: string;
   /** Region this standard applies to */
@@ -53,11 +52,12 @@ export interface StandardProfile {
 export const STANDARD_PROFILES: Record<StandardId, StandardProfile> = {
   'uk-bs7671': {
     id: 'uk-bs7671',
+    metadata: STANDARD_METADATA.uk,
     label: 'BS 7671:2018+A4:2026',
     regionLabel: 'United Kingdom',
     badge: 'BS 7671 · UK',
     citation:
-      'BS 7671:2018+A4:2026 (IET Wiring Regulations, 18th Edition) — Regulation 525.1 and Appendix 4 Table 4Ab: 3% lighting / 5% other uses, measured from the origin of the installation for a public LV supply (6% / 8% from a private LV supply). Ampacity and mV/A/m data from Appendix 4.',
+      'BS 7671:2018+A4:2026 (IET Wiring Regulations, 18th Edition) — Regulation 525.1 and Appendix 4 Table 4Ab: 3% lighting / 5% other uses, measured from the origin of the installation for a public LV supply (6% / 8% from a private LV supply). Existing Appendix 4 teaching tables; full A4 numerical verification remains pending. A2:2022 with A3:2024 remains valid until 15 October 2026.',
     defaultVoltages: { single: 230, three: 400 },
     vdrop: {
       lightingPct: 3,
@@ -70,11 +70,12 @@ export const STANDARD_PROFILES: Record<StandardId, StandardProfile> = {
   },
   'iec-60364': {
     id: 'iec-60364',
+    metadata: STANDARD_METADATA.int,
     label: 'IEC 60364',
     regionLabel: 'International (IEC)',
     badge: 'IEC 60364 · Intl',
     citation:
-      'IEC 60364 (international metric) — IEC 60364-5-52 Annex G, Table G.52.1 voltage-drop guidance: 3% lighting / 5% other uses from a public LV supply, 6% / 8% from a private LV supply, with up to +0.5% allowed on runs over 100 m (0.005% per metre). Informative only — national annexes vary. Ampacity data harmonized with IEC 60364-5-52 Table B.52.4.',
+      'IEC 60364 (international metric) — IEC 60364-5-52 Annex G, Table G.52.1 voltage-drop guidance: 3% lighting / 5% other uses from a public LV supply, 6% / 8% from a private LV supply, with up to +0.5% allowed on runs over 100 m (0.005% per metre). Informative only — national annexes vary. Uses an existing metric cable model; national table equivalence is not verified.',
     defaultVoltages: { single: 230, three: 400 },
     vdrop: {
       // Table G.52.1 (Annex G) — 3 % lighting / 5 % other uses on a public LV
@@ -96,11 +97,12 @@ export const STANDARD_PROFILES: Record<StandardId, StandardProfile> = {
   },
   'us-nec': {
     id: 'us-nec',
-    label: 'US NEC (NFPA 70)',
+    metadata: STANDARD_METADATA.us,
+    label: 'NFPA 70-2026 (NEC) teaching profile',
     regionLabel: 'United States',
     badge: 'NEC · US',
     citation:
-      'US NEC (NFPA 70) — NEC 210.19(A) Informational Note No. 4 & 215.2(A)(1) Informational Note No. 2 recommend max 3% drop on any branch circuit or feeder and 5% total. Conductor DC resistance from NEC Chapter 9, Table 8 (stranded, 75 °C). Advisory guidance only — not an enforceable NEC requirement.',
+      'US NEC (NFPA 70) — NEC 210.19(A) Informational Note No. 4 & 215.2(A)(1) Informational Note No. 2 recommend max 3% drop on any branch circuit or feeder and 5% total. Conductor DC resistance from NEC Chapter 9, Table 8 (stranded, 75 °C). Advisory guidance only — general advisory guidance; specific applications and local adoption may impose requirements. Numerical tables and clause numbering have not been fully reverified for NEC 2026.',
     defaultVoltages: { single: 120, three: 208 },
     vdrop: {
       lightingPct: 3,

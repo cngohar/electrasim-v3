@@ -146,7 +146,9 @@ export function StressZoneOverlay({ circuit, simulation, componentsById, orthogo
         if (!fromComp || !toComp) return null;
         const ceiling = voltageDropCeiling(fromComp.type, standard);
         const dropRatio =
-          overlayMode === 'heat-vdrop' && calc ? calc.voltageDropPercent / ceiling : 0;
+          overlayMode === 'heat-vdrop' && calc && ceiling !== null
+            ? calc.voltageDropPercent / ceiling
+            : 0;
         const ratio = Math.max(heatRatio, dropRatio, wire.isBusted ? 1 : 0);
         if (ratio < 0.25) return null;
 

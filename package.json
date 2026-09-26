@@ -11,10 +11,10 @@
   },
   "scripts": {
     "dev": "vite --port=3000 --strictPort --host=0.0.0.0",
-    "dev:marketing": "bun --filter astro-site run dev",
+    "dev:marketing": "bun run --cwd astro-site dev",
     "dev:worker": "wrangler dev --local --ip 127.0.0.1 --persist-to .wrangler/state",
     "build": "vite build && bun run build:astro && bun scripts/postbuild.mjs",
-    "build:astro": "bun --filter astro-site run build",
+    "build:astro": "bun run --cwd astro-site build",
     "build:stats": "BUILD_STATS=1 vite build && bun run build:astro && bun scripts/postbuild.mjs",
     "benchmark:simulation": "bun scripts/benchmark-simulation.ts",
     "stress:generator": "bun scripts/stress-challenge-generator.ts",

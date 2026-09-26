@@ -59,3 +59,15 @@ Completed inventory and ADR 0007; the actual registry has 115 components, includ
 At the user's request, deleted `/home/ali-gohar/.config/.wrangler/config/default.toml` (OAuth/refresh tokens) locally. No account logout/revocation or remote operation was performed. Added the local-only workspace rule, explicit local Wrangler bindings, disabled deploy/remote seed paths and loopback-only browser test targets. A new account will be configured after development.
 
 Validation: `bun run typecheck`; changed-file Biome lint; deploy/default-seed/remote-seed refusal checks; local/nonlocal URL checks; `wrangler dev --local` on port 8791 reports all bindings local and `/api/health` returns 200. Continue from Phase 1.1 standards corrections.
+
+
+## Session 2026-09-26 — Phase 1.1 standards corrections
+
+Completed the claim/applicability gate described in [implementation evidence](docs/audits/phase-1-standards-implementation.md). The source register remains the reviewed IET/NFPA/IEC audit; full normative tables are explicitly unverified. Basic physical-fault guards and safety findings remain available.
+
+Validation: all 99 Vitest files / 1,488 tests passed; all project typechecks and repository lint passed. Five Chromium flows passed (profile/plug switching, rating advice, safety advice, UK/TN-S/TT/US Zs boundaries, and EIC download). Initial browser runs found missing Chromium and stale test selectors; installed the matching browser and corrected the selectors. `bun run build` passed after fixing the pre-existing Bun Astro script invocation. Migration 0003 and standards seed ran only on local D1; `/api/standards` on port 8791 returned version 2 metadata for all four profiles. The old credential file is still absent; no remote operation occurred.
+
+Next: Phase 1.2 shared domain package. Membership/API/UI implementation remains pending in 1.3–1.8.
+
+
+Phase 1.1 follow-up before extraction: corrected the solver's residual-trip metadata so selecting US does not relabel a 30 mA device as 6 mA; US trip timing is now unassessed. Removed IEC/UL curve equivalence and used actual supply voltage in switched-neutral warnings. The focused simulation/curve regressions include these cases. Included the Astro calculator's regenerated checked-in bundle from the successful build.
