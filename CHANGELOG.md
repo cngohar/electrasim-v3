@@ -7,6 +7,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 
 ## [Unreleased]
 
+### Changed
+
+- Phase 1.0: confirmed manual-membership scope, inventoried 115 components (41 Pro) and accepted SVG/visual-only Matter ADR 0007.
+- Development is local-only pending a new Cloudflare account. Removed the old shared local Wrangler login; disabled deployment and remote seeding, pinned bindings/test targets to local use and preserved the live account unchanged.
+
 ### Planning
 
 - **V3 full rewrite plan locked.** See `docs/REWRITE_PLAN_V3_FULL.md` — the real V3 (paper v3 never shipped).

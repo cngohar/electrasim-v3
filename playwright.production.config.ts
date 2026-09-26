@@ -1,7 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
+import { localTestUrl } from './scripts/local-test-url';
 
-const remoteBaseURL = process.env.PLAYWRIGHT_BASE_URL;
-const baseURL = remoteBaseURL ?? 'http://127.0.0.1:8788';
+const configuredBaseURL = process.env.PLAYWRIGHT_BASE_URL;
+const baseURL = localTestUrl(configuredBaseURL, 'http://127.0.0.1:8788', 'PLAYWRIGHT_BASE_URL');
 
 export default defineConfig({
   testDir: 'e2e',
@@ -19,7 +20,7 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
-  webServer: remoteBaseURL
+  webServer: configuredBaseURL
     ? undefined
     : {
         command: 'node scripts/preview-server.mjs',

@@ -50,3 +50,12 @@ Append-only. Every coding session adds an entry. Every entry names files + measu
 ---
 
 <!-- Next session appends below. Keep append-only. -->
+
+
+## Session 2026-09-26 — Phase 1.0 and Cloudflare isolation
+
+Completed inventory and ADR 0007; the actual registry has 115 components, including 41 Pro. Membership scope and standards-source corrections are recorded in the Phase 1 and membership plans.
+
+At the user's request, deleted `/home/ali-gohar/.config/.wrangler/config/default.toml` (OAuth/refresh tokens) locally. No account logout/revocation or remote operation was performed. Added the local-only workspace rule, explicit local Wrangler bindings, disabled deploy/remote seed paths and loopback-only browser test targets. A new account will be configured after development.
+
+Validation: `bun run typecheck`; changed-file Biome lint; deploy/default-seed/remote-seed refusal checks; local/nonlocal URL checks; `wrangler dev --local` on port 8791 reports all bindings local and `/api/health` returns 200. Continue from Phase 1.1 standards corrections.

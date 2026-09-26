@@ -37,40 +37,38 @@ Locale-prefixed marketing routes become `/:locale/...` (e.g. `/en/guide`, `/fr/g
 - **Electrical standards (§32):** **immutable** — `domain/standards.ts` + `electricalCalculations.ts` + `tripCurves.ts` + `compliance.ts` are code-owned (git). D1 `electrical_standards` is read-only projection; super admin viewer only, no write endpoints. Changes only via reviewed PR + migration + release. SEO never claims a standard changed via Admin.
 - **D1 at scale (§33):** every new query ships with `EXPLAIN QUERY PLAN` on hot tables; reads prefer `withSession(bookmark)` replicas, writes are short `D1.batch()`, hot reads sit behind KV (60–300s), no feed/gradebook without `LIMIT` on an indexed `ORDER BY`.
 
-## Build & Deploy (V3 — Local-First Contract)
+## Local development only
 
-> **Rule:** every change is verified **locally** via `wrangler dev --local` (and `--persist-to`) before any `--remote` deploy.
+The current Cloudflare account serves the live `electrasim.com` website. Its local Wrangler login was removed at the user's request on 2026-09-26; the live account/resources were not changed. A **new account will be configured after development**. Passing tests does not authorize remote operations. See [AGENTS.md](./AGENTS.md).
+
+`wrangler.jsonc` uses local resource placeholders and local bindings. No Cloudflare login or remote resource creation is required. `bun run deploy` deliberately exits with an error, and the standards seed accepts only `--local`.
 
 ```bash
-# Install / dev / typecheck / lint / tests — all via Bun (no npm)
 bun install
-bun run dev              # vite (or wrangler dev --local) — port 3000
-bun x wrangler dev --local --persist-to .wrangler/state   # full Worker locally (D1/R2/KV/DO all local)
-bun run typecheck && bun run lint && bun test
+bun run dev
+bun run typecheck
+bun run lint
+bun run test
 
-# DB (all local first)
-bun x wrangler d1 create electrasim            # once
-bun x wrangler d1 migrations create electrasim <msg>
-bun x wrangler d1 migrations apply electrasim --local
-bun x wrangler d1 execute electrasim --local --command "SELECT 1"
-bun run seed:standards -- --local              # seed immutable electrical_standards projection from domain/standards.ts
+# The local emulator creates its database when migrations are applied.
+bun x wrangler d1 migrations apply electrasim --local --persist-to .wrangler/state
+bun x wrangler d1 execute electrasim --local --persist-to .wrangler/state --command "SELECT 1"
+bun run seed:standards --local
 
-# Build + local preview + gates
 bun run build
-bun x wrangler dev --local --port 8788         # preview of built artifact, no --remote
-bun run check:perf && bun run check:links && bun run check:seo && bun run check:csp
-bun x playwright test                            # e2e against local preview
-bun x playwright test --config playwright.production.config.ts  # production suite, still against local
-# Parallel scale check (§33) — proves no SQLITE_BUSY under burst
-for i in {1..200}; do curl -s http://127.0.0.1:8787/api/circuits?limit=20 & done | tail
-bun x wrangler d1 insights electrasim --local
+bun run dev:worker
+# Or the built Worker and assets on localhost:8788:
+bun run preview
 
-# Only after all local gates pass → remote
-bun x wrangler d1 migrations apply electrasim --remote
-bun x wrangler deploy
+bun run check:perf
+bun run check:links
+bun run check:seo
+bun run check:csp
+bun run e2e
+bun run e2e:production
 ```
 
-Live snapshot after deploy: `https://electrasim.com/` (verify `/` and `/app` with smoke + Lighthouse + CSP).
+Both browser configurations reject non-local test targets. Website URLs in SEO content remain publication metadata, not test/deployment targets. Do not run remote account, resource, migration or deployment commands against the existing account.
 
 ## Versioning & Cache
 

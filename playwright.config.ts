@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs';
 import { defineConfig, devices } from '@playwright/test';
+import { localTestUrl } from './scripts/local-test-url';
 
 /**
  * Playwright config — end-to-end browser tests.
@@ -11,10 +12,10 @@ import { defineConfig, devices } from '@playwright/test';
  * The browser binaries are NOT installed automatically by `npm install` to
  * keep onboarding lean and CI cheap. CI / dev only pulls them when needed.
  *
- * Set PLAYWRIGHT_BASE_URL to test an already-running production preview.
+ * Set PLAYWRIGHT_BASE_URL to test an already-running local preview.
  */
 const localBaseURL = 'http://127.0.0.1:3000';
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? localBaseURL;
+const baseURL = localTestUrl(process.env.PLAYWRIGHT_BASE_URL, localBaseURL, 'PLAYWRIGHT_BASE_URL');
 
 /**
  * The Astro tool pages (landing, blog, /tools/*) are not served by the Vite dev
@@ -24,7 +25,11 @@ const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? localBaseURL;
  * the spec skips itself (see the guard at the top of the file).
  */
 const localAstroURL = 'http://127.0.0.1:8788';
-const astroURL = process.env.PLAYWRIGHT_ASTRO_BASE_URL ?? localAstroURL;
+const astroURL = localTestUrl(
+  process.env.PLAYWRIGHT_ASTRO_BASE_URL,
+  localAstroURL,
+  'PLAYWRIGHT_ASTRO_BASE_URL',
+);
 const astroBuilt = existsSync('dist/tools/cable-size-calculator/index.html');
 
 export default defineConfig({

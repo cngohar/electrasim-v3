@@ -1,17 +1,18 @@
 # ElectraSim V3 — Full Rewrite Plan (From Line 1) — The Real V3
 
-**Version:** 3.0.0-DRAFT — 2026-09-25 (supersedes `REWRITE_PLAN_V4_FULL.md`)  
-**Status:** `PLANNING` — awaiting sign-off  
+**Version:** 3.0.0-DRAFT — revised 2026-09-26 (supersedes `REWRITE_PLAN_V4_FULL.md`)
+
+**Status:** `PLANNING` — membership scope confirmed; implementation pending
 **Runtime:** **Bun** everywhere · **Platform:** **100% Cloudflare Workers** (no external DB/compute)  
 **Previous state:** Paper plan only — no v3 code shipped. This *is* v3, built live on `electrasim.com`.  
 **Target:** React 19 + Hono on Workers + Better Auth + **D1 (SQLite)** + R2 + KV + Durable Objects + Matter.js + Tailwind v4
 
 > **Prime directive:** `NO THING IS HARD CODED — EVERYTHING CAN BE CHANGED FROM ADMIN PANEL EXCEPT MANDATORY THINGS.`
-> Mandatory = migrations, RLS-equivalent app-level guards, API contracts, crypto webhook sig verify, traversal algorithm. Everything else (components, tables, pricing, XP curve, themes, templates, copy) is a DB row.
+> Mandatory = migrations, app-level authorization guards, API contracts, crypto webhook signature verification, electrical physics and code-owned standards (§32). Pricing, supported benefit configuration, XP, themes, templates and copy are data. Membership administration is super-admin-only; basic fault/diagnosis access is a protected public baseline (§9).
 
 > **Clarification — "Circuit" (2026-09-25):** there are two circuits. **Lab Circuit** = the live electrical graph in the simulator (components + wires + `simulate()`) — the heart; **NOT deferred**. **Published Circuit** = a saved lab circuit shared to the social feed (`circuits.visibility='public'`, `/feed`, `/explore`, `/c/<id>`, fork chain) — **deferred** (ships with Community, Phase 2+, which naturally comes after the simulator can create it). Earlier misread is corrected here.
 
-> **Local-first contract:** every change is verified **locally** (`bun x wrangler dev --local --persist-to .wrangler/state`, `d1 migrations apply --local`, Playwright vs local preview) **before any `--remote` deploy**. No remote D1/R2/KV/DO touched until local gates pass. See `TRACKING.md` for the full command sequence.
+> **Local-only contract (2026-09-26):** the existing Cloudflare account serves the live website and must not be used by this rewrite. Its credentials were deleted locally. All development, databases and tests remain local; a new account will be configured after development. Remote operations then need explicit user authorization. This overrides older remote-cutover wording below; passing local gates is not deployment permission. See root `AGENTS.md` and `TRACKING.md`.
 
 ---
 
@@ -25,7 +26,7 @@
 6. [D1 Data Model (SQLite) & Performance](#6-d1)
 7. [Auth — Better Auth on D1 (Bun + Workers)](#7-auth)
 8. [RBAC & Admin-Configurable Permissions](#8-rbac)
-9. [Pro Entitlements — Fully Admin-Editable](#9-pro)
+9. [Paid Membership — Super-Admin Managed](#9-paid-membership--super-admin-managed)
 10. [Gamification — Demo + Fully Editable](#10-gami)
 11. [LMS (Tenancy, Exams, Gradebook)](#11-lms)
 12. [Dashboards — Personal vs LMS](#12-dash)
@@ -62,7 +63,7 @@
 | Node + npm + Postgres 17 (Neon) | **Bun** + **D1 SQLite** + R2/KV/DO/Queues — zero non-Cloudflare infra |
 | Version label V4 | **V3** (paper plan never shipped — this is the real v3) |
 | Redesign from existing UI | **Rebuild from line 1** — reference current `labGlassLight/Dark` + `editorBackground` tokens, but every screen redesigned with ample whitespace & electrical identity |
-| Hard-coded pricing/levels | **Pro benefits, achievements, levels, XP, pricing model (per-seat vs flat) all admin-editable** |
+| Hard-coded pricing/levels | **Super-admin-managed paid plans and supported benefits in Phase 1**; achievements/XP remain admin-editable, online checkout and institution pricing in Phase 7 |
 | Single pricing model | Institution pricing **configurable per plan**: `flat` (cap) or `perSeat` — switch without code |
 | Card payments deferred | **Card = stub only** (Stripe not available) — hidden behind `feature_flags.cardPayments=OFF` |
 | OAuth Google/GitHub/Discord | **Google + GitHub + Microsoft** (Microsoft for .edu) |
@@ -331,46 +332,32 @@ Triple gate: **Hono middleware** (route) + **query WHERE** (row) + **handler `re
 
 ---
 
-## 9. Pro Entitlements — Fully Admin-Editable
+## 9. Paid Membership — Super-Admin Managed
 
-Not hard-coded. Two tables + `app_config.pricing`:
+**Confirmed 2026-09-26:** manual paid memberships in Phase 1; online checkout in Phase 7. Implementation detail and acceptance gates: [Paid Membership Plan](./plans/PAID_MEMBERSHIP_PLAN.md), sequenced in [Phase 1](./phases/phase-1-simulator-core.md).
 
-```ts
-// pro benefits are data, not code
-export const proFeatures = sqliteTable("pro_features", {
-  id: text("id").primaryKey(), // e.g., industrial_comps, cloud_sync, export_pdf
-  slug: text("slug").notNull().unique(),
-  name: text("name").notNull(),
-  description: text("description").notNull(),
-  isActive: integer("isActive", { mode: "boolean" }).notNull().default(true),
-  sortOrder: integer("sortOrder").notNull().default(0),
-});
+| Capability | Guest / free account | Active paid member |
+|------------|----------------------|--------------------|
+| Basic simulator/components, single basic fault exercise, basic diagnosis | Available, including guests | Available |
+| Basic safety findings, including multiple naturally occurring wiring mistakes | Available | Available |
+| Existing Pro components | Preview only | Available |
+| Advanced fault mode / multiple deliberate injected faults | Preview only | Available |
+| Advanced diagnostic mode / Ohmageddon | Preview only | Available |
+| Additional benefits | Existing free access preserved | Configurable framework only; no additional benefit enabled yet |
 
-export const plans = sqliteTable("plans", {
-  id: text("id").primaryKey(), // free, pro_monthly, pro_yearly, institution_flat, institution_per_seat
-  name: text("name").notNull(),
-  pricingModel: text("pricingModel", { enum: ["free","flat","perSeat"] }).notNull(),
-  price: integer("price").notNull(), // cents
-  currency: text("currency").notNull().default("USD"),
-  interval: text("interval", { enum: ["month","year","oneTime"] }),
-  seatsIncluded: integer("seatsIncluded"), // for flat with cap
-  maxSeats: integer("maxSeats"),
-  featuresJson: text("featuresJson", { mode: "json" }).notNull(), // array of proFeatures ids
-  isActive: integer("isActive", { mode: "boolean" }).notNull().default(true),
-});
+`pro_components`, `advanced_faults` and `advanced_diagnostics` are the initial paid capabilities. Membership is independent of global/organization roles. Basic capabilities cannot be removed through paid-plan configuration; billing does not change electrical truth.
 
-export const entitlements = sqliteTable("entitlements", {
-  id: text("id").primaryKey(),
-  userId: text("userId"),
-  orgId: text("orgId"),
-  planId: text("planId").notNull().references(() => plans.id),
-  status: text("status", { enum: ["active","past_due","canceled","trialing"] }).notNull(),
-  currentPeriodEnd: integer("currentPeriodEnd", { mode: "timestamp" }),
-});
-// payments table tracks NOWPayments/Binance Pay intents; webhook → upsert entitlements
-```
+**Data:** `plans`, `pro_features`, normalized `plan_features`, `entitlements`, `audit_logs`. This replaces the earlier draft `plans.featuresJson` mapping. A manual entitlement records user, plan, source, status, validity dates, actor, reason and version. Resolve access from active grants whose validity includes the current time, not from client `appMode`. Multiple valid grants contribute their capability union.
 
-Admin (`/admin/pro`) can **add / edit / delete / reorder / toggle** features and plans; institution pricing flips between `flat` (cap 50) and `perSeat` without code. Middleware checks `entitlements` — never client `appMode`. Example seed: `basic_sim`, `pro_sim`, `industrial_comps`, `three_phase`, `thermal_overlay`, `phasor_view`, `export_bundle`, `private_circuits`, `cloud_sync`.
+**Super admin only:** `/admin/pro` and its membership management APIs create/edit/delete plans, configure supported benefits and grant/edit/extend/suspend/revoke memberships for any individual account. Normal admins, instructors and organization owners cannot perform these operations. Add a trusted global role and controlled first-super-admin bootstrap; signup/profile input cannot grant that role. These guards cannot be broadened by the generic permission matrix.
+
+Deletion of an assignment revokes access and preserves audit history. Archive referenced plans/benefits; hard-delete only unused drafts. Archive stops new assignments without deleting valid grants. Plan capability edits affect existing grants on their next check, with affected-member counts shown; price/default-duration edits affect future grants. Dates on existing grants change only through explicit membership edits.
+
+**Enforcement:** one policy for palette/actions, imports/templates/paste, fault injection, diagnosis start/resume/shared seeds and server save/simulation/submission. Recompute requirements from canonical content; reject forged client capabilities. Fresh primary D1 authorization observes revocation on the next protected request. Preserve existing premium circuits/scenarios read-only on downgrade, with raw backup and an explicit basic-copy path. Basic offline use continues; Phase 1 premium operations require online validation. Downloaded browser code is not tamper-proof licensing.
+
+Benefits must map to implemented, validated handler keys. Super admin can add/configure supported benefits and marketing text, but a DB row cannot implement a new simulator feature. No new quota/export restriction, trial or commercial price is assumed. Electrical rules and the free basic-diagnostic baseline stay code-owned.
+
+Phase 7 adds NOWPayments/Binance Pay events and provider-origin grants, retaining manual membership support and keeping manual grants independent of refunds/provider reconciliation. Institution seats/pricing are handled there; organization membership alone does not grant paid access. Card remains a disabled stub.
 
 ---
 
@@ -450,11 +437,11 @@ This keeps GitHub's valuable part (fork graph) and replaces Instagram with a dom
 
 | Provider | V3.0 |
 |----------|------|
-| **NOWPayments** | ✅ Live — hosted invoice + IPN webhook |
-| **Binance Pay** | ✅ Live — API v3 + webhook |
+| **NOWPayments** | Phase 7 — hosted invoice + IPN webhook |
+| **Binance Pay** | Phase 7 — provider API + webhook |
 | **Card** | 🚧 **Stub only** — hidden (`feature_flags.cardPayments=OFF`), shows "Card payments coming soon" if ever enabled |
 
-Webhooks `POST /api/webhooks/nowpayments|binance` verify signatures → `D1.batch()` upsert `payments` → `entitlements` → `audit_logs` → Queue retries. Institution billing supports **both models** per plan: `flat` (cap) or `perSeat` (admin flips without code; checkout math respects `pricingModel`).
+Phase 7 webhooks `POST /api/webhooks/nowpayments|binance` verify signatures → `D1.batch()` upsert `payments` → `entitlements` → `audit_logs` → Queue retries. Institution billing supports **both models** per plan: `flat` (cap) or `perSeat` (admin flips without code; checkout math respects `pricingModel`).
 
 ---
 
@@ -519,11 +506,11 @@ See §22.
 
 ### New Mechanics
 
-1. AC phasor view, 2. Thermal heat-map overlay, 3. Fault injection lab (instructor, 15 `FaultType`s), 4. Draggable multi-meter probe, 5. Time-domain `simulateAtTime(t)` for timers/contactors, 6. Export bundle (PDF schematic + BoM + BS7671 checklist).
+1. AC phasor view, 2. Thermal heat-map overlay, 3. Fault injection/diagnosis lab (basic for everyone; advanced for paid members per §9; currently 14 `FaultType`s), 4. Draggable multi-meter probe, 5. Time-domain `simulateAtTime(t)` for timers/contactors, 6. Export bundle (PDF schematic + BoM + modeled-check report). Additional mechanics are not automatically promised membership benefits; each needs implementation and an explicit benefit decision.
 
 ### Pro gating
 
-`components_catalog.isPro` (data) — palette filtered server-side; API rejects `save/simulate` with pro comps unless `entitlements` active.
+Seed `components_catalog.isPro` from existing component tiers. Show premium previews/locks; authorize actual component use, advanced faults and advanced diagnosis through §9 capabilities. The API independently validates save/simulation/submission requests. Basic fault detection/diagnosis remains free, and downgrade preserves original premium documents read-only.
 
 ---
 
@@ -553,13 +540,13 @@ export function generateExamVariants(tid: string, studentIds: string[]): Map<use
 
 ## 21. Admin Panel
 
-`/admin/*` — `super_admin`/`admin` (middleware). Every row is a config that hot-reloads via `GET /api/config` (KV-cached 60s, invalidated on write, `audit_logs`).
+`/admin/*` — `super_admin`/`admin` where authorized; `/admin/pro` and all membership mutation APIs are **super-admin-only**. Public display config may use KV caching; authorization must use fresh primary D1 data (§9). Electrical standards remain read-only (§32).
 
 | Domain | Admin Action | Stored |
 |--------|-------------|--------|
 | Components | add/edit/disable, set `isPro`, upload SVG → R2, Matter body | `components_catalog` |
-| Electrical standards | cable/derating tables, BS7671 prose | `electrical_standards` |
-| Pricing & entitlements | add/edit/delete plans, flip `flat`↔`perSeat`, manage `pro_features` | `plans`, `pro_features`, `entitlements` |
+| Electrical standards | Read-only viewer; changes through code review + migration + release | `electrical_standards` projection |
+| Paid memberships | Super admin: plan/benefit CRUD, assign/edit/extend/suspend/revoke members and view audit (Phase 1); checkout/seat billing in Phase 7 | `plans`, `pro_features`, `plan_features`, `entitlements`, `audit_logs` |
 | Gamification | add/edit/delete levels/badges/quests, curve, criteria | `levels`, `badges`, `quests`, `app_config.levelCurve` |
 | Procedural | templates, difficulty, zones | `procedural_templates` |
 | Content studio | approve/reject pages/posts, SEO | `content_pages/posts` |
@@ -667,18 +654,20 @@ On course completion (threshold in `app_config.lms.certificateThreshold`), Worke
 
 ---
 
-## 28. Phased Roadmap (Bun + Workers) — 22 Weeks
+## 28. Phased Roadmap (Bun + Workers) — Original 22-Week Estimate
+
+The added Phase 1 membership/admin scope requires re-estimation after inventory. The detailed [Phase 1 sequence](./phases/phase-1-simulator-core.md) overrides the earlier 1.0–1.7 breakdown; all Phase 1 gates remain local.
 
 | Phase | Weeks | Scope | Exit |
 |-------|-------|-------|------|
 | **0 — Foundation** | 1–2 | Bun workspaces + Hono Worker + Vite+Assets, D1 + Drizzle + Better Auth (sqlite) + Google/GitHub/Microsoft OAuth, KV+DO+Queues+R2 bindings, `packages/domain` extraction, `app_config`/`feature_flags` + admin shell, `nodejs_compat` | `bun run dev` serves营销+app, auth works, RBAC gates `/admin`, domain tests via `bun test` |
-| **1 — Simulator Core** | 3–5 | **Lab Circuit heart** — `packages/domain` extraction, SVG canvas + **Matter visual-only** (overload tear/sag), Zustand trim, TanStack Query for circuits, D1 CRUD via `D1.batch()` (Sessions API), pro gating via `entitlements`/`pro_features`, first 30 component SVGs → R2, inspector v2 + telemetry, tokens §22 — local-first | Simulator parity with paper sim, cloud save, overload tear demo, pro lock server-enforced |
+| **1 — Simulator Core + Manual Memberships** | Re-estimate after inventory | Standards corrections, domain extraction, SVG + visual-only Matter, state/persistence, trusted roles, super-admin plan/benefit/member CRUD, server-checked Pro components and advanced faults/diagnosis; basic modes free | Local simulator/performance gates plus real Wrangler/D1 grant → unlock → edit/revoke flow, free guest diagnosis, expiry/import/restore coverage |
 | **2 — Community (Published Circuit deferred until here)** | 6–8 | **Published Circuit** sharing deferred until simulator can create it — `circuits.visibility='public'`, `/feed` `/explore` `/c/[circuitId]`, `follows`/`reactions`/`comments`/`collections`, FTS5, `/u/[handle]` SSR+OG, DO live feed, notifications (Queue+email) | Publish/fork/comment/follow live |
 | **3 — Gamification** | 9–10 | `levels`/`badges`/`quests`/`xp_events`/`streaks`, demo seeds, leaderboards (Queue→KV), level-up UI, admin CRUD for all | XP server-validated, curve editable live |
 | **4 — Procedural Engine** | 11–12 | `packages/procedural-engine` (mulberry32), `procedural_templates/seeds`, homepage variant (live mini-sim circuit per visit), game generators, exam `HMAC` variants — now has real lab circuits to generate | Homepage differs per visit, variant audit works |
 | **5 — Wiring Games + Content Studio** | 13–15 | `/games/*` (Wire-Up, Fault Hunt, Speed Wire, etc. — all need circuit) + Content Studio mini-CMS (blog+static, approval), both depend on simulator | Games playable, CMS publish flow live |
 | **6 — LMS** | 16–18 | Better Auth org → institutions, courses/classes/enrollments, assignments/submissions (starter circuit + procedural exam), gradebook, analytics, attendance, certs, provider-agnostic email invites, **scoped lab** (assignment-preloaded simulator) | Institution signup → gradebook end-to-end |
-| **7 — Payments + Pro Polish** | 19–20 | NOWPayments+Binance Pay + card stub (`OFF`), `plans`/`pro_features` admin UI, remaining 60 component SVGs, thermal/phasor overlays, export bundle, cert procedural render → R2 | Crypto pay → entitlement, all pro features gated |
+| **7 — Payments + Pro Polish** | Original 19–20; re-estimate | NOWPayments+Binance Pay checkout/webhooks and card stub (`OFF`), provider grants using Phase 1 memberships, institution pricing/seats, later artwork/overlays/export work | Verified payment → entitlement; idempotent refund/reconciliation preserves manual grants; benefit claims match implemented features |
 | **8 — Hardening & Live Cutover** | 21–22 | Guest migration `POST /api/migrate/guest`, URL compat (legacy fragment + `/c/<id>` + marketing slugs), PWA offline queue, perf budgets (150kB gzip, simulate <5ms, Matter throttle), Playwright RBAC/LMS/payments (all vs `wrangler dev --local`), CSP, SEO parity, Time Travel backup drill → **only then** `--remote` deploy | `bun run verify` + `e2e:production` (via `wrangler dev --local`) green, then remote cutover with 301s |
 
 Post-V3.1: SCORM/xAPI, collaborative cursors, vector search (Vectorize), Workers AI tutor proxy.
@@ -812,7 +801,9 @@ glossary_terms { slug, locale, term, definition … }
 
 ### Rule (new — non-negotiable)
 
-**All electrical standards are global and immutable at runtime.**
+**All supported electrical rule definitions are shared and immutable at runtime.** “Global” means consistent definitions across users, not one universal national standard. Membership cannot alter rule values or suppress basic safety findings.
+
+The [2026-09-26 source audit](./audits/electrical-standards-gap.md) pins BS 7671 A4:2026 with the 15 October transition, NEC 2026 with jurisdiction-specific adoption, IEC 60364-1:2025, 8-81:2026 and 8-82:2022+AMD1:2026. Reference edition, implemented coverage and legal adoption are separate. `int` is a generic IEC teaching profile; unsupported national/device/earthing cases must not return a compliance pass.
 
 | Concern | Policy |
 |---------|--------|
@@ -947,5 +938,5 @@ Deep reads (lines + exports) confirmed on: `src/domain/{types,standards,electric
 
 Let me know if you need additional detail on:
 - Locale list & priority (which languages first — `en` is default; `fr`/`de`/`es`/`ar` next? RTL scope?)
-- Standards version pin (BS 7671 Amd 3/4, NEC edition, IEC year) and update cadence
+- Standards update cadence and future national profiles; publication references and current scope corrections are recorded in the [source audit](./audits/electrical-standards-gap.md).
 - Whether Arabic (RTL) is in V3.0 or V3.1 (it doubles the layout work)
