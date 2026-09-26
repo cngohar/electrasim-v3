@@ -1,6 +1,6 @@
+import { GUIDED_CIRCUIT_TEMPLATES } from '@electrasim/domain/templates';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { GUIDED_CIRCUIT_TEMPLATES } from '../../domain/templates';
 import { useCircuitStore, useSettingsStore, useUiStore } from '../../store';
 import { TemplatesModal } from './TemplatesModal';
 

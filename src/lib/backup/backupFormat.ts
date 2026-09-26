@@ -18,7 +18,7 @@
  *      waits for explicit confirmation.
  */
 
-import type { Circuit } from '../../domain';
+import type { Circuit } from '@electrasim/domain';
 import { type UserSettings, sanitizeSettingsPayload } from '../../store/settingsStore';
 import { normalizeCircuit, validateCircuitJSON } from '../export/circuitFormat';
 

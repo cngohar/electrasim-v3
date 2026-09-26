@@ -1,5 +1,5 @@
+import { COMPONENT_DEFS } from '@electrasim/domain';
 import { describe, expect, it } from 'vitest';
-import { COMPONENT_DEFS } from '../../../domain';
 import { CATEGORY_ORDER, buildComponentGroups } from './data';
 
 describe('documentation component groups', () => {

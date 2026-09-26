@@ -4,15 +4,15 @@
  * Full screen height toggleable left panel.
  */
 
-import { ChevronDown, ChevronLeft, ChevronRight, Layers, Search, X } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
-import { COMPONENT_DEFS } from '../../domain';
+import { COMPONENT_DEFS } from '@electrasim/domain';
 import {
   PLUG_SYSTEMS,
   type StandardId,
   getStandard,
   primarySocketForPlug,
-} from '../../domain/standards';
+} from '@electrasim/domain/standards';
+import { ChevronDown, ChevronLeft, ChevronRight, Layers, Search, X } from 'lucide-react';
+import { useCallback, useMemo, useState } from 'react';
 import { useUiStore } from '../../store';
 import { useSettingsStore } from '../../store/settingsStore';
 import { getDefaultArt } from '../canvas/componentArt';

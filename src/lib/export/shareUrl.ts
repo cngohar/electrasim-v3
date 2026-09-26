@@ -1,4 +1,4 @@
-import type { Circuit } from '../../domain';
+import type { Circuit } from '@electrasim/domain';
 import { exportJSON, importJSON } from './circuitFormat';
 
 const SHARE_PARAM = 'c';

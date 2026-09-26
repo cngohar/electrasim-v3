@@ -7,6 +7,7 @@
  * Enter-to-run. No new state — every command calls an existing store action.
  */
 
+import { COMPONENT_DEFS } from '@electrasim/domain';
 import {
   BookOpen,
   Copy,
@@ -23,7 +24,6 @@ import {
   Zap,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { COMPONENT_DEFS } from '../../domain';
 import { modShortcut } from '../../lib/platform';
 import { useCircuitStore, useClipboardStore, useUiStore, useViewportStore } from '../../store';
 import { useSettingsStore } from '../../store/settingsStore';

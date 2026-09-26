@@ -4,8 +4,8 @@
  * vocabulary matches the panel.
  */
 
+import type { Circuit, ComponentInstance, WireInstance } from '@electrasim/domain/types';
 import { describe, expect, it } from 'vitest';
-import type { Circuit, ComponentInstance, WireInstance } from '../../domain/types';
 import { buildEicReportData as buildReport, escapeHtml, renderEicHtml } from './eicReport';
 
 function buildEicReportData(circuit: Circuit, earthing: 'TN-C-S' | 'TN-S' = 'TN-C-S', now?: Date) {

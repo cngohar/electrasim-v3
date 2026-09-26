@@ -7,7 +7,7 @@ import {
   computeOrthogonalPath,
   getPortControlOffset,
   getPortPos,
-} from '../../domain';
+} from '@electrasim/domain';
 
 export function screenToSvg(svg: SVGSVGElement, clientX: number, clientY: number): Point2D {
   const point = svg.createSVGPoint();

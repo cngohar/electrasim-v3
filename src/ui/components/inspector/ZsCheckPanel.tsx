@@ -1,8 +1,12 @@
 /** UK TN educational loop estimate with explicit unsupported results. */
 
+import {
+  type ZsAssessment,
+  type ZsEarthArrangement,
+  runZsChecks,
+} from '@electrasim/domain/zsCheck';
 import { Activity } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { type ZsAssessment, type ZsEarthArrangement, runZsChecks } from '../../../domain/zsCheck';
 import { useCircuitStore, useSettingsStore } from '../../../store';
 
 function Row({ result }: { result: ZsAssessment }) {

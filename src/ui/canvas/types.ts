@@ -1,4 +1,4 @@
-import type { PortType } from '../../domain';
+import type { PortType } from '@electrasim/domain';
 
 export interface CanvasTheme {
   bg: string;

@@ -20,8 +20,8 @@
  * IndexedDB without writing the boilerplate ourselves.
  */
 
+import type { Circuit } from '@electrasim/domain';
 import { get, set } from 'idb-keyval';
-import type { Circuit } from '../domain';
 import { normalizeCircuit, validateCircuitJSON } from '../lib/exportImport';
 import { useCircuitStore } from './circuitStore';
 import { saveChallengeCircuit } from './declarativeChallengePersistence';

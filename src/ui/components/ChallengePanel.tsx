@@ -22,6 +22,19 @@
  */
 
 import {
+  CHALLENGE_DEFINITIONS,
+  type ChallengeDefinition,
+  describeExtraComponents,
+  formatElapsedDeclarative,
+  getChallengeStepProgress,
+  validateChallenge,
+} from '@electrasim/domain/challenges/declarative';
+import type {
+  ChallengeVerdict,
+  RequirementStatus,
+  RuleResult,
+} from '@electrasim/domain/challenges/declarative';
+import {
   Check,
   ChevronRight,
   CircleAlert,
@@ -39,19 +52,6 @@ import {
   X,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import {
-  CHALLENGE_DEFINITIONS,
-  type ChallengeDefinition,
-  describeExtraComponents,
-  formatElapsedDeclarative,
-  getChallengeStepProgress,
-  validateChallenge,
-} from '../../domain/challenges/declarative';
-import type {
-  ChallengeVerdict,
-  RequirementStatus,
-  RuleResult,
-} from '../../domain/challenges/declarative';
 import {
   hasSeenFirstChallengeTutorialOffer,
   markFirstChallengeTutorialOfferSeen,

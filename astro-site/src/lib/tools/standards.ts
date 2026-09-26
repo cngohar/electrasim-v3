@@ -1,10 +1,7 @@
 /** Toolbox models have richer cable/temperature inputs than the simulator.
  * They share reference metadata, not a claim of identical numerical coverage.
  */
-import {
-  STANDARD_METADATA,
-  type StandardMetadata,
-} from '../../../../src/domain/standardsReferences';
+import { STANDARD_METADATA, type StandardMetadata } from '@electrasim/domain/standardsReferences';
 
 export type StandardId = 'uk-bs7671' | 'iec-60364' | 'us-nec';
 

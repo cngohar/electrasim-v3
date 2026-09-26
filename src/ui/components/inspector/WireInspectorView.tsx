@@ -3,9 +3,9 @@
  * from the previous monolithic `Inspector.tsx`.
  */
 
+import type { InstallationMethod, SimulationResult, WireInstance } from '@electrasim/domain';
+import { awgToMm2, getStandardCableAmpacity } from '@electrasim/domain/electricalCalculations';
 import { AlertTriangle, Flame, RefreshCw, Trash2 } from 'lucide-react';
-import type { InstallationMethod, SimulationResult, WireInstance } from '../../../domain';
-import { awgToMm2, getStandardCableAmpacity } from '../../../domain/electricalCalculations';
 import { useCircuitStore, useUiStore } from '../../../store';
 import { requestDeleteWire } from '../../canvas-actions';
 

@@ -5,8 +5,8 @@
  * Shows error/warning/info counts in the collapsed header when present.
  */
 
+import type { LogEntry } from '@electrasim/domain';
 import { ChevronUp } from 'lucide-react';
-import type { LogEntry } from '../../domain';
 import { useUiStore } from '../../store';
 
 interface Props {

@@ -15,8 +15,7 @@
  * `declarativeChallengePersistence.ts`.
  */
 
-import { create } from 'zustand';
-import type { Circuit } from '../domain';
+import type { Circuit } from '@electrasim/domain';
 import {
   CHALLENGE_DEFINITIONS,
   type ChallengeDefinition,
@@ -25,7 +24,8 @@ import {
   cloneStarter,
   getChallengeDefinition,
   validateChallenge,
-} from '../domain/challenges/declarative';
+} from '@electrasim/domain/challenges/declarative';
+import { create } from 'zustand';
 import { downloadText, exportJSON } from '../lib/exportImport';
 import { useCircuitStore } from './circuitStore';
 import {

@@ -1,7 +1,7 @@
+import type { ComponentDef } from '@electrasim/domain';
 import { ArrowUpRight } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
-import type { ComponentDef } from '../../../domain';
 import { EmojiGlyph } from '../EmojiGlyph';
 
 export function WireSeparator({ color = 'blue' }: { color?: 'blue' | 'slate' }) {

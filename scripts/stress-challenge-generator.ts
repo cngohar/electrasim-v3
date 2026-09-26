@@ -28,17 +28,17 @@ import {
   type GeneratedChallenge,
   computeChallengeIdentity,
   tryGenerateChallenge,
-} from '../src/domain/challenges';
-import { validateCircuit } from '../src/domain/circuitValidation';
-import { COMPONENT_DEFS } from '../src/domain/components';
+} from '@electrasim/domain/challenges';
+import { validateCircuit } from '@electrasim/domain/circuitValidation';
+import { COMPONENT_DEFS } from '@electrasim/domain/components';
 import {
   createInjectedFault,
   isFaultResolved,
   normalizeCircuitFaults,
   validateFaultCoexistence,
-} from '../src/domain/faults';
-import { collectObstacles, computeOrthogonalPath, getPortPos } from '../src/domain/geometry';
-import { simulate } from '../src/domain/simulation';
+} from '@electrasim/domain/faults';
+import { collectObstacles, computeOrthogonalPath, getPortPos } from '@electrasim/domain/geometry';
+import { simulate } from '@electrasim/domain/simulation';
 import type {
   Circuit,
   ComponentInstance,
@@ -47,7 +47,7 @@ import type {
   InjectedFault,
   Point2D,
   SimulationResult,
-} from '../src/domain/types';
+} from '@electrasim/domain/types';
 
 // ---------------------------------------------------------------------------
 // Configuration

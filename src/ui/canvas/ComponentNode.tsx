@@ -6,7 +6,6 @@
  * Behaviour and rendering output are unchanged.
  */
 
-import type { MouseEvent, PointerEvent } from 'react';
 import {
   COMPONENT_DEFS,
   COMP_H,
@@ -16,7 +15,8 @@ import {
   checkFastCompatibility,
   instanceLabel,
   isAutomaticProtection,
-} from '../../domain';
+} from '@electrasim/domain';
+import type { MouseEvent, PointerEvent } from 'react';
 import { emojiDataUri } from '../../lib/emoji/emojiSvg';
 import { useSettingsStore } from '../../store';
 import { getComponentIcon, getComponentImage } from '../components/componentImages';

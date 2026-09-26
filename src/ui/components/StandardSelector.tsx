@@ -1,7 +1,5 @@
 /** Independent teaching profile and plug-family selector. */
 
-import { ChevronDown, Globe, Lock, Plug, ShieldCheck, Wrench } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
 import {
   PLUG_SYSTEMS,
   PLUG_SYSTEM_LIST,
@@ -10,7 +8,9 @@ import {
   type StandardId,
   getStandard,
   primarySocketForPlug,
-} from '../../domain/standards';
+} from '@electrasim/domain/standards';
+import { ChevronDown, Globe, Lock, Plug, ShieldCheck, Wrench } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useCircuitStore, useSettingsStore, useUiStore } from '../../store';
 import { EmojiGlyph } from './EmojiGlyph';
 

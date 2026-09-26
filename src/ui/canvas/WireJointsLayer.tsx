@@ -12,14 +12,14 @@
  * Pure visual overlay: it does not alter connectivity or add data-model nodes.
  */
 
-import { useMemo } from 'react';
 import {
   COMPONENT_DEFS,
   type ComponentInstance,
   type WireInstance,
   getPortPos,
   sampleWire,
-} from '../../domain';
+} from '@electrasim/domain';
+import { useMemo } from 'react';
 import type { CanvasTheme } from './types';
 
 interface WireJointsLayerProps {

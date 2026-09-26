@@ -8,6 +8,12 @@
  */
 
 import {
+  COMPONENT_DEFS,
+  type ComponentInstance,
+  type SimulationResult,
+  type WireInstance,
+} from '@electrasim/domain';
+import {
   ChevronLeft,
   ChevronRight,
   Clock,
@@ -21,12 +27,6 @@ import {
   Zap,
 } from 'lucide-react';
 import { Suspense, lazy } from 'react';
-import {
-  COMPONENT_DEFS,
-  type ComponentInstance,
-  type SimulationResult,
-  type WireInstance,
-} from '../../../domain';
 import { useCircuitStore, useSettingsStore, useUiStore } from '../../../store';
 import { InspectorConnectionsContent } from './InspectorConnectionsContent';
 import { InspectorPropertiesContent } from './InspectorPropertiesContent';

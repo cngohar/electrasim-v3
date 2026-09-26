@@ -1,7 +1,7 @@
+import { simulate } from '@electrasim/domain/simulation';
+import { cloneTemplateCircuit, getGuidedCircuitTemplate } from '@electrasim/domain/templates';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { simulate } from '../../domain/simulation';
-import { cloneTemplateCircuit, getGuidedCircuitTemplate } from '../../domain/templates';
 import { useCircuitStore, useUiStore } from '../../store';
 import { GuidedCircuitPanel } from './GuidedCircuitPanel';
 

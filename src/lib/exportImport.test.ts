@@ -1,7 +1,7 @@
 /** Circuit file-format validation and round-trip regression tests. */
 
+import type { Circuit } from '@electrasim/domain';
 import { describe, expect, it } from 'vitest';
-import type { Circuit } from '../domain';
 import { exportJSON, importJSON, validateCircuitJSON } from './exportImport';
 
 const SEED: Circuit = {

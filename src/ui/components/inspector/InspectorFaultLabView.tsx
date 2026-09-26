@@ -15,6 +15,12 @@
  */
 
 import {
+  COMPONENT_DEFS,
+  type FaultType,
+  type InjectedFault,
+  isWireFaultType,
+} from '@electrasim/domain';
+import {
   AlertTriangle,
   Crosshair,
   Eraser,
@@ -30,12 +36,6 @@ import {
   Waves,
   Zap,
 } from 'lucide-react';
-import {
-  COMPONENT_DEFS,
-  type FaultType,
-  type InjectedFault,
-  isWireFaultType,
-} from '../../../domain';
 import { focusFaultTarget, useCircuitStore, useUiStore } from '../../../store';
 import { faultFxConfig } from '../../canvas/faultFx';
 import { useReducedMotion } from '../../hooks/useReducedMotion';

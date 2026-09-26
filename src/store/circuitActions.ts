@@ -7,7 +7,7 @@
  * this module.
  */
 
-import { COMPONENT_DEFS, type Circuit } from '../domain';
+import { COMPONENT_DEFS, type Circuit } from '@electrasim/domain';
 import { useCircuitStore } from './circuitStore';
 import type { CircuitState } from './circuitStore.types';
 import { useUiStore } from './uiStore';

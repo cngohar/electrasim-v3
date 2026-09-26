@@ -1,3 +1,4 @@
+import { COMPONENT_DEFS } from '@electrasim/domain';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -9,7 +10,6 @@ import {
   Zap,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { COMPONENT_DEFS } from '../../domain';
 import { useCircuitStore, useUiStore } from '../../store';
 import { useSettingsStore } from '../../store/settingsStore';
 import { useDialogFocus } from '../hooks/useDialogFocus';

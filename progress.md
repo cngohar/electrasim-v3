@@ -71,3 +71,16 @@ Next: Phase 1.2 shared domain package. Membership/API/UI implementation remains 
 
 
 Phase 1.1 follow-up before extraction: corrected the solver's residual-trip metadata so selecting US does not relabel a 30 mA device as 6 mA; US trip timing is now unassessed. Removed IEC/UL curve equivalence and used actual supply voltage in switched-neutral warnings. The focused simulation/curve regressions include these cases. Included the Astro calculator's regenerated checked-in bundle from the successful build.
+
+
+## Session 2026-09-26 — Phase 1.2 shared domain package
+
+Moved the electrical domain to `packages/domain/src`, updated all application/Worker/tool imports to `@electrasim/domain`, and retained direct challenge subpaths for lazy loading. The package has no runtime dependencies; its 84 runtime modules pass a boundary check and compile with ES2022 types only (no DOM/framework types). The single `Circuit` contract is unchanged. Domain tests now run in Node, application tests in jsdom; shipped-demo integration coverage stays with the app.
+
+Legacy fault normalization previously read `Date.now()` and `Math.random()` during `simulate()`. It now derives stable IDs and uses timestamp 0 for unknown creation time, while preserving explicit saved records. Before/after extraction comparisons matched all electrical results across 480 cases, excluding only that intentional identity-metadata change. An isolated real local Hono/workerd fixture then produced exactly identical complete outputs to Bun for all 480 cases.
+
+Gates: 101 Vitest files / 1,491 tests passed; all four TypeScript projects, boundary checks and repository lint passed; `bun run build` passed; five local Chromium flows passed. The simulation benchmark passed at 3.67 ms median / 6.34 ms p95 on 200 components / 396 wires when rerun after other CPU-heavy gates finished (the simultaneous benchmark was distorted by test/build contention). Frozen-lockfile installation passed; lockfile changes only add the workspace package, with no dependency upgrades.
+
+Local fixtures: `wrangler.domain-test.jsonc` and `scripts/check-domain-worker.ts`; see [package README](packages/domain/README.md). The isolated test Worker is not imported by the application and must never be deployed. Main Worker `/api/standards` still serves four profiles locally. No live Cloudflare operation occurred.
+
+Next: Phase 1.3 trusted roles, manual membership schema/resolver/APIs and local cookie-authenticated authorization tests. The paid-membership feature is still pending; Phase 1.1/1.2 establish its electrical/domain foundations.

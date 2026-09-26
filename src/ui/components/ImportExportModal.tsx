@@ -1,5 +1,6 @@
 /** Coordinates circuit file, image, print, and share-link workflows. */
 
+import type { Circuit } from '@electrasim/domain';
 import {
   Check,
   ClipboardCopy,
@@ -14,7 +15,6 @@ import {
   X,
 } from 'lucide-react';
 import { useCallback, useRef, useState } from 'react';
-import type { Circuit } from '../../domain';
 import { buildEicReportData, renderEicHtml } from '../../lib/export/eicReport';
 import {
   downloadBlob,

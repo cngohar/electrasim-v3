@@ -3,7 +3,7 @@ import {
   type Circuit,
   type ComponentInstance,
   type WireInstance,
-} from '../../domain';
+} from '@electrasim/domain';
 
 const MAX_IMPORT_BYTES = 10 * 1024 * 1024;
 const MAX_COMPONENTS = 5_000;

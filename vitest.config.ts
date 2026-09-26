@@ -11,7 +11,7 @@ process.env.NODE_ENV = 'test';
 /**
  * Vitest config (separate from vite.config.ts to keep dev/build lean).
  *
- * - jsdom env so React component tests can render against a virtual DOM.
+ * - Node domain tests plus jsdom app tests for React components.
  * - Globals enabled so tests can use `describe/it/expect` without imports.
  * - Coverage via v8 (Node-native, fast). Results land in /coverage.
  * - App and Astro helper tests run under one root quality gate.
@@ -25,8 +25,6 @@ export default defineConfig({
   },
   test: {
     globals: true,
-    environment: 'jsdom',
-    setupFiles: ['./src/test/setup.ts'],
     css: true,
     /*
      * The default 5 s is not enough headroom for the heaviest render tests when
@@ -37,7 +35,25 @@ export default defineConfig({
      * with the code under test.
      */
     testTimeout: 20_000,
-    include: ['src/**/*.{test,spec}.{ts,tsx}', 'astro-site/src/**/*.{test,spec}.{ts,tsx}'],
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: 'app',
+          environment: 'jsdom',
+          setupFiles: ['./src/test/setup.ts'],
+          include: ['src/**/*.{test,spec}.{ts,tsx}', 'astro-site/src/**/*.{test,spec}.{ts,tsx}'],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: 'domain',
+          environment: 'node',
+          include: ['packages/domain/src/**/*.{test,spec}.{ts,tsx}'],
+        },
+      },
+    ],
     exclude: ['node_modules', 'dist', 'e2e'],
     coverage: {
       provider: 'v8',

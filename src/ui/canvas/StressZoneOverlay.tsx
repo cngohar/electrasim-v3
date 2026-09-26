@@ -23,8 +23,8 @@ import {
   type Circuit,
   type ComponentInstance,
   type SimulationResult,
-} from '../../domain';
-import { getStandard, voltageDropCeiling } from '../../domain/standards';
+} from '@electrasim/domain';
+import { getStandard, voltageDropCeiling } from '@electrasim/domain/standards';
 import { useSettingsStore } from '../../store';
 import { buildWirePath } from './geometry';
 

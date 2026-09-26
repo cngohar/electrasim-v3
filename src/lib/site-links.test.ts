@@ -16,8 +16,8 @@
 
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
+import { GUIDED_CIRCUIT_TEMPLATES } from '@electrasim/domain/templates';
 import { describe, expect, it } from 'vitest';
-import { GUIDED_CIRCUIT_TEMPLATES } from '../domain/templates';
 import { GUIDE_WALKTHROUGH_ANCHORS } from '../ui/components/docs/data';
 
 const root = process.cwd();

@@ -1,6 +1,6 @@
 # Phase 1 — Simulator Core (Lab Circuit Heart)
 
-> **Status:** IMPLEMENTING — 1.0 inventory and local-only isolation completed 2026-09-26; 1.1 standards corrections completed; 1.2 domain extraction next. Membership and later simulator changes remain pending. See [inventory evidence](../audits/phase-1-inventory.md).
+> **Status:** IMPLEMENTING — 1.0 inventory and local-only isolation completed 2026-09-26; 1.1 standards corrections completed; 1.2 domain extraction completed; 1.3 memberships/roles next. Membership and later simulator changes remain pending. See [inventory evidence](../audits/phase-1-inventory.md).
 > **Method:** Sub-phase → Steps → Gate. Each implementation sub-phase ships as its own scoped commit. All development is local-only: the old live-account credentials were removed locally; a new account will be configured after development. Passing a gate never authorizes remote access (see root `AGENTS.md`).
 > **Previous baseline:** Phase 0 recorded `typecheck/lint/vitest 97/1464`, local D1 14 tables and auth 200. These are historical results, not checks rerun for this planning revision.
 > **Principle:** Electrical standards are code-owned (§32). D1 `electrical_standards` remains read-only, including for super admins. Membership controls features, never electrical rules or the truth of basic safety diagnostics.
@@ -52,7 +52,7 @@ This replaces the previous 1.0–1.7 sequence. Membership foundations precede pe
 | Sub-phase | Title | Scope | Key files / planned modules | Local exit gate |
 |-----------|-------|-------|-----------------------------|-----------------|
 | **1.0** | **Inventory and scope** | Refresh domain/UI census; trace tiers, faults, imports, seeds and auth; finish standards register and renderer ADR | `docs/audits/*`, `docs/decisions/0007-*.md`, membership plan | Confirmed requirements map to implementation/tests; uncertain clauses marked unverified |
-| **1.1** | **Standards corrections** | Correct claims/edition metadata; review EVSE, Zs applicability, voltage-drop/rating policies and regional diagnostic text; reseed verified changes | `src/domain/{standards,zsCheck,compliance,faults,templates}.ts`, electrical helpers, relevant Astro tools, migrations | Typecheck + targeted Vitest; independent expected-value fixtures; unsupported cases never yield a false compliance pass |
+| **1.1** | **Standards corrections** | Correct claims/edition metadata; review EVSE, Zs applicability, voltage-drop/rating policies and regional diagnostic text; reseed verified changes | `packages/domain/src/{standards,zsCheck,compliance,faults,templates}.ts`, electrical helpers, relevant Astro tools, migrations | Typecheck + targeted Vitest; independent expected-value fixtures; unsupported cases never yield a false compliance pass |
 | **1.2** | **Domain package** | Extract pure `packages/domain`; retain one `Circuit` format; separate electrical computation from access policy | `packages/domain/**`, workspace/import configuration | Typecheck all projects; browser/Hono Worker compatibility; parity tests |
 | **1.3** | **Membership and roles** | Trusted global role, super-admin bootstrap, plans/features/entitlements/audit schema, resolver and manual APIs | `packages/db/**`, migrations, planned `packages/access/**`, Hono routes | Local D1 + cookie-authenticated role/entitlement tests; signup cannot self-assign role/access |
 | **1.4** | **Canvas base** | SVG layers, routing, fitRegion, measured culling/LOD, theme CSS variables | `src/ui/canvas/**` | Browser/a11y checks; measure 200-component/400-wire workload |
@@ -78,7 +78,7 @@ Revisit the roadmap estimate after inventory; added membership/admin work is not
 | 1.3.1 | Implement trusted role/bootstrap and schema before membership CRUD | No self-grants; super-admin action audited |
 | 1.3.2 | Implement manual memberships and common capability resolver | Active, scheduled, expired, suspended and revoked behavior covered |
 
-The 1.0 inventory and 1.1 claim/applicability gates are complete; continue with 1.2. See [standards implementation evidence](../audits/phase-1-standards-implementation.md). Later sub-phases remain gated on their predecessors.
+The 1.0 inventory, 1.1 claim/applicability and 1.2 domain-package gates are complete; continue with 1.3. See [standards implementation evidence](../audits/phase-1-standards-implementation.md). Later sub-phases remain gated on their predecessors.
 
 ## 3. Membership acceptance scenarios
 

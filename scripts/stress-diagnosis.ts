@@ -34,9 +34,9 @@ import {
   evaluateDiagnosis,
   primaryScenarioFault,
   scoreDiagnosis,
-} from '../src/domain/challenges';
-import { normalizeCircuitFaults } from '../src/domain/faults';
-import type { Circuit } from '../src/domain/types';
+} from '@electrasim/domain/challenges';
+import { normalizeCircuitFaults } from '@electrasim/domain/faults';
+import type { Circuit } from '@electrasim/domain/types';
 
 const DIFFICULTIES: ChallengeDifficulty[] = ['beginner', 'intermediate', 'advanced'];
 const DEFAULT_SEEDS = 200;

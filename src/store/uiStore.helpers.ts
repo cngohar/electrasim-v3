@@ -7,7 +7,7 @@
  * `create()` without an import cycle.
  */
 
-import { COMPONENT_DEFS, type ComponentInstance, type WireInstance } from '../domain';
+import { COMPONENT_DEFS, type ComponentInstance, type WireInstance } from '@electrasim/domain';
 
 let nextEntityId = 0;
 

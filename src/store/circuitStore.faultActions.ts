@@ -7,7 +7,7 @@
  * zustand+immer setter passed through from `create()`.
  */
 
-import { createInjectedFault, isWireFaultType, validateFaultCoexistence } from '../domain';
+import { createInjectedFault, isWireFaultType, validateFaultCoexistence } from '@electrasim/domain';
 import type { CircuitState } from './circuitStore.types';
 import { useUiStore } from './uiStore';
 

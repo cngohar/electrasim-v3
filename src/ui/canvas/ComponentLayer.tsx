@@ -1,5 +1,5 @@
+import type { ComponentInstance, SimulationResult } from '@electrasim/domain';
 import type { MouseEvent, PointerEvent } from 'react';
-import type { ComponentInstance, SimulationResult } from '../../domain';
 import { ComponentNode } from './ComponentNode';
 import type { CanvasTheme, PortLoc } from './types';
 

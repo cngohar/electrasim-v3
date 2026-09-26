@@ -18,8 +18,14 @@
  *   swaps, which is exactly what the physical mis-wiring looks like.
  */
 
-import { COMPONENT_DEFS } from '../../domain';
-import type { Circuit, ComponentInstance, FaultType, PortType, WireInstance } from '../../domain';
+import { COMPONENT_DEFS } from '@electrasim/domain';
+import type {
+  Circuit,
+  ComponentInstance,
+  FaultType,
+  PortType,
+  WireInstance,
+} from '@electrasim/domain';
 
 /** Which persistent canvas indicator a fault kind uses. */
 export type FaultFxIndicator =

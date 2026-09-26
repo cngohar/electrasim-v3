@@ -1,6 +1,6 @@
+import type { ComponentInstance } from '@electrasim/domain';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { ComponentInstance } from '../../domain';
 import { clearHistory, useCircuitStore, useUiStore } from '../../store';
 import { ContextMenu } from './ContextMenu';
 import { Inspector } from './Inspector';

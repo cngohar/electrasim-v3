@@ -503,6 +503,22 @@ export function createInjectedFault(
  * Normalizes all faults in the circuit (including legacy ComponentState.fault and WireInstance.fault)
  * into a single unified list of InjectedFault objects.
  */
+/** Legacy fields have no creation timestamp. Derive stable identity instead of
+ * creating a fresh user action every time the solver reads the same circuit. */
+function legacyInjectedFault(
+  type: FaultType,
+  target: Extract<FaultTarget, { type: 'component' | 'wire' }>,
+): InjectedFault {
+  return {
+    id: `legacy_${target.type}_${encodeURIComponent(target.id)}_${type}`,
+    type,
+    category: getFaultDefinition(type).category,
+    target,
+    createdAt: 0,
+    resolved: false,
+  };
+}
+
 export function normalizeCircuitFaults(circuit: Circuit): InjectedFault[] {
   const result: InjectedFault[] = [];
   const seenKeys = new Set<string>();
@@ -522,7 +538,7 @@ export function normalizeCircuitFaults(circuit: Circuit): InjectedFault[] {
       const key = `component:${c.id}:${c.state.fault}`;
       if (!seenKeys.has(key)) {
         seenKeys.add(key);
-        result.push(createInjectedFault(c.state.fault, { type: 'component', id: c.id }));
+        result.push(legacyInjectedFault(c.state.fault, { type: 'component', id: c.id }));
       }
     }
   }
@@ -533,7 +549,7 @@ export function normalizeCircuitFaults(circuit: Circuit): InjectedFault[] {
       const key = `wire:${w.id}:${w.fault}`;
       if (!seenKeys.has(key)) {
         seenKeys.add(key);
-        result.push(createInjectedFault(w.fault, { type: 'wire', id: w.id }));
+        result.push(legacyInjectedFault(w.fault, { type: 'wire', id: w.id }));
       }
     }
   }

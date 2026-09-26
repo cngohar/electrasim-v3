@@ -1,6 +1,5 @@
 /** Accessible SVG renderer and interaction controller for the circuit editor. */
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import {
   COMPONENT_DEFS,
   type Circuit,
@@ -9,7 +8,8 @@ import {
   VIEW_H,
   VIEW_W,
   getPortPos,
-} from '../domain';
+} from '@electrasim/domain';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useCircuitStore, useSettingsStore, useUiStore, useViewportStore } from '../store';
 import {
   applyReroute,

@@ -7,8 +7,8 @@
  * thread and produce a result identical to the synchronous engine.
  */
 
+import { simulate } from '@electrasim/domain/simulation/simulate';
 import { describe, expect, it } from 'vitest';
-import { simulate } from '../domain/simulation/simulate';
 import { buildSeedCircuit } from '../store/seed';
 import { simWorkerActive, simulateAsync, terminateSimWorker } from './client';
 

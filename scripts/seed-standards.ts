@@ -1,6 +1,6 @@
-// Seeds D1 electrical_standards from src/domain/standards.ts — IMMUTABLE projection.
+// Seeds D1 electrical_standards from packages/domain/src/standards.ts — IMMUTABLE projection.
 // Local SQLite only. No remote account is configured for this rewrite.
-import { STANDARD_LIST } from '../src/domain/standards';
+import { STANDARD_LIST } from '@electrasim/domain/standards';
 
 const args = process.argv.slice(2);
 if (args.length !== 1 || args[0] !== '--local') {
@@ -87,7 +87,7 @@ async function seedLocal() {
 seedLocal()
   .then(() => {
     console.log(
-      'Source is code (domain/standards.ts) — D1 is read-only projection. No POST /api/standards exists.',
+      'Source is code (@electrasim/domain/standards) — D1 is read-only projection. No POST /api/standards exists.',
     );
   })
   .catch((e) => {

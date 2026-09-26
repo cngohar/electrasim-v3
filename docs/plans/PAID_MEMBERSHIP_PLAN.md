@@ -15,11 +15,11 @@ Membership is an entitlement, not a global role. Buying or receiving it does not
 
 | Existing code | Observed behavior | Required change |
 |---------------|-------------------|-----------------|
-| `src/domain/components/*.ts`, `src/ui/components/Palette.tsx` | Registry has `tier: 'pro'`; palette filters by `appMode` | Seed mapping from actual component IDs; authorize placement/use |
+| `packages/domain/src/components/*.ts`, `src/ui/components/Palette.tsx` | Registry has `tier: 'pro'`; palette filters by `appMode` | Seed mapping from actual component IDs; authorize placement/use |
 | `src/store/settingsStore.ts`, `src/ui/components/Toolbar.tsx` | IndexedDB stores `appMode`; anyone can toggle it; Pro components stay functional in Basic mode | Presentation preference cannot grant access; replace public unlock toggle |
-| `src/store/useSimulation.ts`, `src/domain/simulation/simulate.ts` | `appMode` affects stress behavior | Separate electrical results/basic warnings from premium exercise controls |
-| `src/domain/faults.ts`, `src/store/circuitStore.faultActions.ts`, Inspector | 14 fault types; manual setting described as Pro-only | Explicit basic/advanced policy, enforced at actions |
-| `src/store/diagnosisStore.ts`, `src/domain/challenges/{diagnosis,rage}/*` | Three difficulty levels/four rage tiers; start/restore trust browser settings | Check actual requirements on start, regeneration, resume and submission |
+| `src/store/useSimulation.ts`, `packages/domain/src/simulation/simulate.ts` | `appMode` affects stress behavior | Separate electrical results/basic warnings from premium exercise controls |
+| `packages/domain/src/faults.ts`, `src/store/circuitStore.faultActions.ts`, Inspector | 14 fault types; manual setting described as Pro-only | Explicit basic/advanced policy, enforced at actions |
+| `src/store/diagnosisStore.ts`, `packages/domain/src/challenges/{diagnosis,rage}/*` | Three difficulty levels/four rage tiers; start/restore trust browser settings | Check actual requirements on start, regeneration, resume and submission |
 | `packages/db/{schema,auth-schema,auth}.ts`, `src/worker.ts` | Auth/org foundation; no plans, entitlements, global role field or membership routes | Trusted role, migrations, resolver, APIs and admin UI |
 
 These are observations from 2026-09-26, not claims that membership is implemented.

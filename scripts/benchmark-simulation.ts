@@ -1,6 +1,6 @@
 import { performance } from 'node:perf_hooks';
-import { simulate } from '../src/domain/simulation';
-import type { Circuit, ComponentInstance, WireInstance } from '../src/domain/types';
+import { simulate } from '@electrasim/domain/simulation';
+import type { Circuit, ComponentInstance, WireInstance } from '@electrasim/domain/types';
 
 const LOADS = 198;
 const WARMUP_RUNS = 20;

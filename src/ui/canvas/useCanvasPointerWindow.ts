@@ -1,4 +1,3 @@
-import { type RefObject, useEffect } from 'react';
 import {
   COMP_H,
   COMP_W,
@@ -6,7 +5,8 @@ import {
   type Point2D,
   type WireInstance,
   snapToGrid,
-} from '../../domain';
+} from '@electrasim/domain';
+import { type RefObject, useEffect } from 'react';
 import {
   type PendingCustomPath,
   useCircuitStore,

@@ -1,3 +1,5 @@
+import { COMPONENT_DEFS } from '@electrasim/domain';
+import { getComponentHelp } from '@electrasim/domain/componentHelp';
 import {
   Activity,
   AlertTriangle,
@@ -18,8 +20,6 @@ import {
   Zap,
 } from 'lucide-react';
 import { type FC, useEffect, useRef, useState } from 'react';
-import { COMPONENT_DEFS } from '../../domain';
-import { getComponentHelp } from '../../domain/componentHelp';
 import { useUiStore } from '../../store/uiStore';
 import { useDialogFocus } from '../hooks/useDialogFocus';
 import { getComponentImage } from './componentImages';

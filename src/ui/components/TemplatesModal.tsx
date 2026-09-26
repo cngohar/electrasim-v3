@@ -12,9 +12,9 @@
  * the palette and toolbox match the guide's components.
  */
 
+import { GUIDED_CIRCUIT_TEMPLATES, type GuidedCircuitTemplate } from '@electrasim/domain/templates';
 import { BookOpen, CheckCircle2, CircuitBoard, Search, Sparkles, Wrench, X } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
-import { GUIDED_CIRCUIT_TEMPLATES, type GuidedCircuitTemplate } from '../../domain/templates';
 import { isGuideCompleted } from '../../lib/guideProgressPersistence';
 import { loadGuidedCircuitIntoEditor } from '../../lib/guidedCircuitLoader';
 import { useDialogFocus } from '../hooks/useDialogFocus';

@@ -4,7 +4,7 @@
  * `Inspector.tsx`. Public API unchanged.
  */
 
-import type { ComponentInstance, WireInstance } from '../../../domain';
+import type { ComponentInstance, WireInstance } from '@electrasim/domain';
 import { useCircuitStore, useUiStore } from '../../../store';
 
 export function useInspectorSelectionState({

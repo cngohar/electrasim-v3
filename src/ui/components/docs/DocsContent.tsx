@@ -1,3 +1,5 @@
+import { COMPONENT_DEFS } from '@electrasim/domain';
+import { GUIDED_CIRCUIT_TEMPLATES, type GuidedCircuitTemplate } from '@electrasim/domain/templates';
 import {
   BookOpen,
   Cpu,
@@ -9,8 +11,6 @@ import {
   Shield,
   Zap,
 } from 'lucide-react';
-import { COMPONENT_DEFS } from '../../../domain';
-import { GUIDED_CIRCUIT_TEMPLATES, type GuidedCircuitTemplate } from '../../../domain/templates';
 import { loadGuidedCircuitIntoEditor } from '../../../lib/guidedCircuitLoader';
 import { remapShortcutLabel } from '../../../lib/platform';
 import { useUiStore } from '../../../store';

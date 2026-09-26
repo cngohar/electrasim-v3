@@ -18,9 +18,9 @@
  * editor, exactly like the existing circuit autosave.
  */
 
+import type { Circuit } from '@electrasim/domain';
+import type { ChallengeId } from '@electrasim/domain/challenges/declarative';
 import { get, set } from 'idb-keyval';
-import type { Circuit } from '../domain';
-import type { ChallengeId } from '../domain/challenges/declarative';
 
 const SCHEMA_VERSION = 1 as const;
 const ACTIVE_KEY = `electrasim:challenge2:active:v${SCHEMA_VERSION}`;

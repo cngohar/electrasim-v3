@@ -1,8 +1,8 @@
+import { COMPONENT_DEFS } from '@electrasim/domain/components';
+import { getStandard } from '@electrasim/domain/standards';
 import { ChevronDown, ChevronRight, Edit2, Layers, Route, Sliders, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { COMPONENT_DEFS } from '../../domain/components';
-import { getStandard } from '../../domain/standards';
 import { useCircuitStore, useSettingsStore, useUiStore } from '../../store';
 const VOLTAGE_PRESETS = [
   { label: '12V DC', val: 12 },

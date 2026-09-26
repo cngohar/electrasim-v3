@@ -12,9 +12,9 @@
  * The worker module itself is small and pure; see `./sim.worker.ts`.
  */
 
+import type { SimulateOptions } from '@electrasim/domain/simulation/simulate';
+import type { Circuit, SimulationResult } from '@electrasim/domain/types';
 import * as Comlink from 'comlink';
-import type { SimulateOptions } from '../domain/simulation/simulate';
-import type { Circuit, SimulationResult } from '../domain/types';
 import type { SimWorkerApi } from './sim.worker';
 import SimWorker from './sim.worker?worker';
 
@@ -23,15 +23,16 @@ import SimWorker from './sim.worker?worker';
 let proxy: Comlink.Remote<SimWorkerApi> | null = null;
 let workerInstance: Worker | null = null;
 let initFailed = false;
-let mainThreadSimulationPromise: Promise<typeof import('../domain/simulation/simulate')> | null =
-  null;
+let mainThreadSimulationPromise: Promise<
+  typeof import('@electrasim/domain/simulation/simulate')
+> | null = null;
 
 /** Load the synchronous engine only when a worker fallback is actually needed. */
 async function simulateOnMainThread(
   circuit: Circuit,
   options?: SimulateOptions,
 ): Promise<SimulationResult> {
-  mainThreadSimulationPromise ??= import('../domain/simulation/simulate');
+  mainThreadSimulationPromise ??= import('@electrasim/domain/simulation/simulate');
   const { simulate } = await mainThreadSimulationPromise;
   return simulate(circuit, options);
 }

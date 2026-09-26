@@ -10,7 +10,7 @@ import {
   COMP_W,
   type ComponentInstance,
   type SimulationResult,
-} from '../../domain';
+} from '@electrasim/domain';
 
 export interface ComponentTooltipProps {
   component: ComponentInstance | undefined;

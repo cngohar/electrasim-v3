@@ -10,8 +10,8 @@
  * re-generates fresh IDs so copies are independent instances.
  */
 
+import type { ComponentInstance } from '@electrasim/domain';
 import { create } from 'zustand';
-import type { ComponentInstance } from '../domain';
 
 interface ClipboardState {
   /** Components currently on the clipboard. Empty = nothing copied. */

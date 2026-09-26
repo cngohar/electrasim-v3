@@ -3,13 +3,13 @@
  * verbatim from the previous monolithic `Inspector.tsx`.
  */
 
-import { AlertTriangle, Lock, OctagonAlert, Zap } from 'lucide-react';
 import {
   COMPONENT_DEFS,
   type ComponentInstance,
   type SimulationResult,
   type WireInstance,
-} from '../../../domain';
+} from '@electrasim/domain';
+import { AlertTriangle, Lock, OctagonAlert, Zap } from 'lucide-react';
 import { useCircuitStore, useSettingsStore, useUiStore } from '../../../store';
 import { EmojiGlyph } from '../EmojiGlyph';
 import type { InspectorSelectionState } from './useInspectorSelectionState';

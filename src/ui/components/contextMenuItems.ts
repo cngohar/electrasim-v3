@@ -5,6 +5,7 @@
  * builders (no JSX): the presentational dialog lives in `ContextMenu.tsx`.
  */
 
+import { COMPONENT_DEFS } from '@electrasim/domain';
 import {
   AlertTriangle,
   ArrowRightLeft,
@@ -29,7 +30,6 @@ import {
   Zap,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { COMPONENT_DEFS } from '../../domain';
 import { type ContextMenuState, useCircuitStore, useSettingsStore, useUiStore } from '../../store';
 import {
   requestClearAll,

@@ -1,5 +1,5 @@
+import type { Circuit } from '@electrasim/domain';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Circuit } from '../../domain';
 import {
   MAX_SHARE_DECOMPRESSED_BYTES,
   decodeShareURL,

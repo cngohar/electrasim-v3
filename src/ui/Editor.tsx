@@ -1,8 +1,8 @@
 /** Composition root for the interactive editor and its optional surfaces. */
 
+import { isGuidedCircuitId } from '@electrasim/domain/guidedCircuitIds';
+import { getGuidedCircuitTemplate } from '@electrasim/domain/templates';
 import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
-import { isGuidedCircuitId } from '../domain/guidedCircuitIds';
-import { getGuidedCircuitTemplate } from '../domain/templates';
 import { loadGuidedCircuitIntoEditor } from '../lib/guidedCircuitLoader';
 import { useDevice } from '../lib/useDevice';
 import {

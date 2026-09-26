@@ -1,6 +1,6 @@
+import type { ComponentInstance, SimulationResult, WireInstance } from '@electrasim/domain';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { ComponentInstance, SimulationResult, WireInstance } from '../domain';
 import {
   clearHistory,
   setMomentarySwitchState,

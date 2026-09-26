@@ -9,8 +9,8 @@
  * components + viewport. No per-frame work outside those subscriptions.
  */
 
+import { COMP_H, COMP_W } from '@electrasim/domain';
 import { useCallback, useMemo, useRef } from 'react';
-import { COMP_H, COMP_W } from '../../domain';
 import { useCircuitStore, useUiStore, useViewportStore } from '../../store';
 
 const MM_W = 160;

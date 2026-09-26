@@ -1,3 +1,4 @@
+import type { ValidationIssue, ValidationReport } from '@electrasim/domain/circuitValidation';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -13,7 +14,6 @@ import {
   XCircle,
 } from 'lucide-react';
 import { useState } from 'react';
-import type { ValidationIssue, ValidationReport } from '../../domain/circuitValidation';
 import { useCircuitStore, useSettingsStore } from '../../store';
 import { useUiStore } from '../../store/uiStore';
 

@@ -1,6 +1,6 @@
+import { COMPONENT_DEFS } from '@electrasim/domain';
 import { AlertTriangle, Flame, HelpCircle, RefreshCw, X, Zap } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { COMPONENT_DEFS } from '../../domain';
 import { useCircuitStore, useSettingsStore, useUiStore } from '../../store';
 import { useDialogFocus } from '../hooks/useDialogFocus';
 import { MECHANISM_LABEL, formatClearingTime } from './faultAlertFormat';

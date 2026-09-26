@@ -15,7 +15,7 @@ import type {
   InjectedFault,
   WireFaultType,
   WireInstance,
-} from '../domain';
+} from '@electrasim/domain';
 
 export type EditableWireProperties = Pick<
   WireInstance,
@@ -108,17 +108,17 @@ export interface CircuitState {
   /** Fault simulation: inject a structured fault into the circuit. */
   injectFault: (
     faultOrParams:
-      | import('../domain').InjectedFault
+      | import('@electrasim/domain').InjectedFault
       | {
           type: FaultType;
-          target: import('../domain').FaultTarget;
+          target: import('@electrasim/domain').FaultTarget;
           parameters?: Record<string, unknown>;
         },
   ) => string;
   /** Fault simulation: remove a specific injected fault by ID. */
   removeFault: (faultId: string) => void;
   /** Fault simulation: toggle a specific fault type on a target. */
-  toggleFault: (type: FaultType, target: import('../domain').FaultTarget) => void;
+  toggleFault: (type: FaultType, target: import('@electrasim/domain').FaultTarget) => void;
   /** Fault simulation: inject or clear a fault on one wire. */
   setWireFault: (id: string, fault: WireFaultType | undefined) => void;
   /** Fault simulation: inject or clear a fault on one component. */
@@ -127,7 +127,10 @@ export interface CircuitState {
   clearAllFaults: () => void;
 
   /** Pro Mode Customizations: update custom voltage, power, cable size or threshold parameters. */
-  updateComponentState: (id: string, updates: Partial<import('../domain').ComponentState>) => void;
+  updateComponentState: (
+    id: string,
+    updates: Partial<import('@electrasim/domain').ComponentState>,
+  ) => void;
   /** Change component variant type and reset/sync relevant component parameters. */
   updateComponentType: (id: string, newType: string) => void;
   /** Repair a blown component after overvoltage/overcurrent overload. */

@@ -6,6 +6,7 @@
       "name": "electrasim",
       "dependencies": {
         "@better-auth/drizzle-adapter": "^1.7.6",
+        "@electrasim/domain": "workspace:*",
         "better-auth": "^1.7.6",
         "comlink": "^4.4.2",
         "drizzle-orm": "^0.45.3",
@@ -52,6 +53,9 @@
     "astro-site": {
       "name": "astro-site",
       "version": "3.0.0",
+      "dependencies": {
+        "@electrasim/domain": "workspace:*",
+      },
       "devDependencies": {
         "@astrojs/check": "^0.9.10",
         "@astrojs/sitemap": "^3.7.3",
@@ -64,6 +68,10 @@
         "three": "^0.174.0",
         "vitest": "^3.2.4",
       },
+    },
+    "packages/domain": {
+      "name": "@electrasim/domain",
+      "version": "3.0.0",
     },
   },
   "packages": {
@@ -392,6 +400,8 @@
     "@csstools/css-tokenizer": ["@csstools/css-tokenizer@3.0.4", "", {}, "sha512-Vd/9EVDiu6PPJt9yAh6roZP6El1xHrdvIVGjyBsHR0RYwNHgL7FJPyIIW4fANJNG6FtyZfvlRPpFI4ZM/lubvw=="],
 
     "@drizzle-team/brocli": ["@drizzle-team/brocli@0.10.2", "", {}, "sha512-z33Il7l5dKjUgGULTqBsQBQwckHh5AbIuxhdsIxDDiZAzBOrZO6q9ogcWC65kU382AfynTfgNumVcNIjuIua6w=="],
+
+    "@electrasim/domain": ["@electrasim/domain@workspace:packages/domain"],
 
     "@emmetio/abbreviation": ["@emmetio/abbreviation@2.3.3", "", { "dependencies": { "@emmetio/scanner": "^1.0.4" } }, "sha512-mgv58UrU3rh4YgbE/TzgLQwJ3pFsHHhCLqY20aJq+9comytTXUDNGG/SMtSeMJdkpxgXSXunBGLD8Boka3JyVA=="],
 

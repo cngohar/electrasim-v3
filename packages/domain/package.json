@@ -1,0 +1,20 @@
+{
+  "name": "@electrasim/domain",
+  "version": "3.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./challenges/declarative": "./src/challenges/declarative/index.ts",
+    "./challenges": "./src/challenges/index.ts",
+    "./challenges/rage": "./src/challenges/rage/index.ts",
+    "./componentHelp": "./src/componentHelp/index.ts",
+    "./components": "./src/components/index.ts",
+    "./electrical": "./src/electrical/index.ts",
+    "./simulation": "./src/simulation/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "bun x tsc --noEmit -p tsconfig.json"
+  }
+}

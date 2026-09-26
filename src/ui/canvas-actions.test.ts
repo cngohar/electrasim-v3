@@ -1,5 +1,5 @@
+import type { ComponentInstance } from '@electrasim/domain';
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { ComponentInstance } from '../domain';
 import { useCircuitStore, useUiStore } from '../store';
 import { dropComponentAt, validateWire } from './canvas-actions';
 

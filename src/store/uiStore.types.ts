@@ -13,13 +13,13 @@ import type {
   Point2D,
   PortRef,
   SimulationResult,
-} from '../domain';
-import type { RuleTarget } from '../domain/challenges/declarative/rules';
+} from '@electrasim/domain';
+import type { RuleTarget } from '@electrasim/domain/challenges/declarative/rules';
 import type {
   QuickFixAction,
   ValidationIssue,
   ValidationReport,
-} from '../domain/circuitValidation';
+} from '@electrasim/domain/circuitValidation';
 
 export interface RerouteState {
   wireId: string;

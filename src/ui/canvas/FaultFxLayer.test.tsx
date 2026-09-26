@@ -5,9 +5,9 @@
  * strokes, badge chips) and the pre-commit arming effect.
  */
 
+import type { ComponentInstance, WireInstance } from '@electrasim/domain';
 import { act, render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import type { ComponentInstance, WireInstance } from '../../domain';
 import { useUiStore } from '../../store';
 import { FaultFxLayer } from './FaultFxLayer';
 import { collectFaultFx } from './faultFx';

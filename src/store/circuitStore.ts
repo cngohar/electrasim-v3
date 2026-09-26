@@ -12,10 +12,10 @@
  * Undoing a selection click would be confusing UX.
  */
 
+import { COMPONENT_DEFS, type ComponentInstance, type WireInstance } from '@electrasim/domain';
 import { temporal } from 'zundo';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import { COMPONENT_DEFS, type ComponentInstance, type WireInstance } from '../domain';
 import { createFaultActions } from './circuitStore.faultActions';
 import { componentsForHistory } from './circuitStore.history';
 import type { CircuitState } from './circuitStore.types';

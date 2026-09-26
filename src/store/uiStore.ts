@@ -11,8 +11,6 @@
  * keep working.
  */
 
-import { create } from 'zustand';
-import { immer } from 'zustand/middleware/immer';
 import {
   COMPONENT_DEFS,
   type Circuit,
@@ -20,8 +18,10 @@ import {
   VIEW_CENTER,
   getPortPos,
   isWireFaultType,
-} from '../domain';
-import { validateCircuit } from '../domain/circuitValidation';
+} from '@electrasim/domain';
+import { validateCircuit } from '@electrasim/domain/circuitValidation';
+import { create } from 'zustand';
+import { immer } from 'zustand/middleware/immer';
 import { prefersReducedMotionNow } from '../lib/reducedMotion';
 import { isDemoSeedCircuit, useCircuitStore } from './circuitStore';
 import { useSettingsStore } from './settingsStore';

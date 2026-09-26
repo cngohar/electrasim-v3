@@ -6,9 +6,9 @@
  * Only the canvas subscribes to the mouse position.
  */
 
+import { COMP_H, COMP_W, type Point2D } from '@electrasim/domain';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import { COMP_H, COMP_W, type Point2D } from '../domain';
 
 interface ViewportState {
   pan: Point2D;

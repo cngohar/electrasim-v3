@@ -20,10 +20,10 @@
  * (defaults are sane). The first user mutation flushes the merged state.
  */
 
+import type { PlugSystemId, StandardId } from '@electrasim/domain/standards';
 import { get, set } from 'idb-keyval';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import type { PlugSystemId, StandardId } from '../domain/standards';
 
 const SCHEMA_VERSION = 2 as const;
 const STORAGE_KEY = `electrasim:settings:v${SCHEMA_VERSION}`;

@@ -1,3 +1,6 @@
+import { COMPONENT_DEFS } from '@electrasim/domain/components';
+import { getGuideProgress } from '@electrasim/domain/guideProgress';
+import { cloneTemplateCircuit, getGuidedCircuitTemplate } from '@electrasim/domain/templates';
 import {
   BookOpen,
   Check,
@@ -10,9 +13,6 @@ import {
   X,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { COMPONENT_DEFS } from '../../domain/components';
-import { getGuideProgress } from '../../domain/guideProgress';
-import { cloneTemplateCircuit, getGuidedCircuitTemplate } from '../../domain/templates';
 import { markGuideCompleted } from '../../lib/guideProgressPersistence';
 import { useCircuitStore, useUiStore } from '../../store';
 

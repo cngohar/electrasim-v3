@@ -3,8 +3,8 @@
  * from the previous monolithic `Inspector.tsx`.
  */
 
+import type { SimulationResult } from '@electrasim/domain';
 import { Copy, Lightbulb, MousePointerClick, RotateCw, ShieldCheck, Trash2 } from 'lucide-react';
-import type { SimulationResult } from '../../../domain';
 import { useCircuitStore, useUiStore } from '../../../store';
 import { requestDeleteSelection } from '../../canvas-actions';
 import { ComponentPropertiesView } from './ComponentPropertiesView';

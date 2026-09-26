@@ -13,9 +13,9 @@
  * announces steps via aria-live, and respects prefers-reduced-motion.
  */
 
+import { COMPONENT_DEFS, VIEW_H, VIEW_W, getPortPos } from '@electrasim/domain';
 import { ArrowRight, Check, History, RotateCcw, Sparkles, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { COMPONENT_DEFS, VIEW_H, VIEW_W, getPortPos } from '../../domain';
 import { useCircuitStore, useViewportStore } from '../../store';
 import { useSettingsStore } from '../../store/settingsStore';
 import { useUiStore } from '../../store/uiStore';

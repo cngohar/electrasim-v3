@@ -23,6 +23,22 @@
  * respects `prefers-reduced-motion` (§19).
  */
 
+import { COMP_H, COMP_W } from '@electrasim/domain';
+import type {
+  ChallengeDifficulty,
+  FaultLocationChoice,
+  RageTierId,
+} from '@electrasim/domain/challenges';
+import {
+  GENERATOR_VERSION,
+  RAGE_TIERS,
+  RAGE_TIER_IDS,
+  formatElapsed,
+  formatShareText,
+  locationKeyForTarget,
+  observeSymptom,
+  parseShareText,
+} from '@electrasim/domain/challenges';
 import {
   Check,
   ChevronRight,
@@ -39,18 +55,6 @@ import {
   X,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { COMP_H, COMP_W } from '../../domain';
-import type { ChallengeDifficulty, FaultLocationChoice, RageTierId } from '../../domain/challenges';
-import {
-  GENERATOR_VERSION,
-  RAGE_TIERS,
-  RAGE_TIER_IDS,
-  formatElapsed,
-  formatShareText,
-  locationKeyForTarget,
-  observeSymptom,
-  parseShareText,
-} from '../../domain/challenges';
 import { useCircuitStore, useSettingsStore, useUiStore, useViewportStore } from '../../store';
 import { useDiagnosisStore } from '../../store/diagnosisStore';
 import { MAX_ZOOM, MIN_ZOOM } from '../../store/viewportStore';

@@ -21,8 +21,8 @@
  * start (see `client.ts`).
  */
 
+import { COMPONENT_DEFS } from '@electrasim/domain';
 import { useEffect, useRef } from 'react';
-import { COMPONENT_DEFS } from '../domain';
 import { simulateAsync } from '../sim-worker/client';
 import { useCircuitStore } from './circuitStore';
 import { useSettingsStore } from './settingsStore';

@@ -15,7 +15,7 @@ vi.mock('idb-keyval', () => ({
   }),
 }));
 
-import { primaryScenarioFault } from '../domain/challenges';
+import { primaryScenarioFault } from '@electrasim/domain/challenges';
 import { useCircuitStore } from './circuitStore';
 import { useDiagnosisStore } from './diagnosisStore';
 import { useSettingsStore } from './settingsStore';

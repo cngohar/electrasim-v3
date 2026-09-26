@@ -22,10 +22,10 @@
  * Every function is non-throwing: storage failure must never break the editor.
  */
 
+import type { ChallengeDifficulty, RageTierId } from '@electrasim/domain/challenges';
+import { isRageTierId } from '@electrasim/domain/challenges';
+import type { FaultType } from '@electrasim/domain/types';
 import { get, set } from 'idb-keyval';
-import type { ChallengeDifficulty, RageTierId } from '../domain/challenges';
-import { isRageTierId } from '../domain/challenges';
-import type { FaultType } from '../domain/types';
 
 const SCHEMA_VERSION = 1 as const;
 const ACTIVE_KEY = `electrasim:diagnosis:active:v${SCHEMA_VERSION}`;

@@ -1,5 +1,5 @@
+import { COMPONENT_DEFS } from '@electrasim/domain';
 import { ArrowLeft, BookOpen } from 'lucide-react';
-import { COMPONENT_DEFS } from '../../../domain';
 import { APP_VERSION } from '../../../version';
 import { DOCS_TOC } from './data';
 

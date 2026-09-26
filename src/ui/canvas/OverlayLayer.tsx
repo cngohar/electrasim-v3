@@ -1,4 +1,3 @@
-import type { PointerEvent, ReactNode, RefObject } from 'react';
 import {
   COMPONENT_DEFS,
   COMP_H,
@@ -8,7 +7,8 @@ import {
   getPortControlOffset,
   getPortPos,
   snapToGrid,
-} from '../../domain';
+} from '@electrasim/domain';
+import type { PointerEvent, ReactNode, RefObject } from 'react';
 import { emojiDataUri, emojiTextSymbol } from '../../lib/emoji/emojiSvg';
 import { type PendingCustomPath, useSettingsStore, useUiStore } from '../../store';
 import { useEmojiGlyphsReady } from '../hooks/useEmojiGlyphsReady';

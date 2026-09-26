@@ -3,9 +3,9 @@
  * Moved verbatim from the previous monolithic `Inspector.tsx`.
  */
 
+import { COMPONENT_DEFS, type ComponentInstance, type SimulationResult } from '@electrasim/domain';
 import { Activity, Sparkles, Thermometer } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { COMPONENT_DEFS, type ComponentInstance, type SimulationResult } from '../../../domain';
 import { useCircuitStore, useSettingsStore, useUiStore } from '../../../store';
 import { AnimatedNumber } from '../AnimatedNumber';
 

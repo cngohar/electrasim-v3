@@ -9,6 +9,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 
 ### Changed
 
+- Phase 1.2: extracted `@electrasim/domain` for the simulator, Comlink Worker and Astro consumers; added an ES2022-only compile/import boundary and real local Hono Worker parity checks. Existing circuit format is unchanged.
+- Legacy fault normalization now preserves deterministic identity instead of generating fresh fault IDs/timestamps on each solver call.
+
 - Phase 1.1: corrected standards references/adoption claims, scoped UK loop estimates with explicit unsupported results, removed universal EVSE/125% sizing policies and blanket compliance passes, and propagated supply/model context to the inspector and EIC export. Local D1 standards projection is version 2.
 - Simulator trip reports retain actual device residual ratings across profiles and omit unmodelled US clearing times; switched-neutral hazards use actual supply voltage.
 - Fixed intermediate-size cable resistance lookup and Bun Astro script invocation; retained documented limits of the numerical teaching models.

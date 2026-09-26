@@ -22,7 +22,6 @@
  * also guarantees a resumed exercise cannot drift from the generator.
  */
 
-import { create } from 'zustand';
 import {
   type ChallengeDifficulty,
   type DiagnosisAnswer,
@@ -34,7 +33,8 @@ import {
   buildDiagnosisScenario,
   evaluateDiagnosis,
   scoreDiagnosis,
-} from '../domain/challenges';
+} from '@electrasim/domain/challenges';
+import { create } from 'zustand';
 import { useCircuitStore } from './circuitStore';
 import {
   type DiagnosisStatsRecord,

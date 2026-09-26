@@ -34,11 +34,11 @@ import {
   buildDiagnosisScenario,
   evaluateDiagnosis,
   primaryScenarioFault,
-} from '../src/domain/challenges';
-import { validateCircuit } from '../src/domain/circuitValidation';
-import { validateCircuitRules } from '../src/domain/electrical/validation';
-import { simulate } from '../src/domain/simulation';
-import type { Circuit } from '../src/domain/types';
+} from '@electrasim/domain/challenges';
+import { validateCircuit } from '@electrasim/domain/circuitValidation';
+import { validateCircuitRules } from '@electrasim/domain/electrical/validation';
+import { simulate } from '@electrasim/domain/simulation';
+import type { Circuit } from '@electrasim/domain/types';
 
 const DIFFICULTIES: ChallengeDifficulty[] = ['beginner', 'intermediate', 'advanced'];
 const DEFAULT_SEEDS = 120;

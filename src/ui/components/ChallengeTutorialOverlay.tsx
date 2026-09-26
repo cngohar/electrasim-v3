@@ -1,7 +1,10 @@
+import { VIEW_H, VIEW_W } from '@electrasim/domain';
+import {
+  getChallengeStepProgress,
+  validateChallenge,
+} from '@electrasim/domain/challenges/declarative';
 import { Target } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
-import { VIEW_H, VIEW_W } from '../../domain';
-import { getChallengeStepProgress, validateChallenge } from '../../domain/challenges/declarative';
 import { useCircuitStore, useViewportStore } from '../../store';
 import { useDeclarativeChallengeStore } from '../../store/declarativeChallengeStore';
 import { type ResolvedVisual, resolveVisualTarget } from './ChallengeHintOverlay';

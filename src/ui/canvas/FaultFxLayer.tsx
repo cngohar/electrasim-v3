@@ -46,7 +46,7 @@ import {
   type ComponentInstance,
   type WireInstance,
   getPortPos,
-} from '../../domain';
+} from '@electrasim/domain';
 import { emojiDataUri } from '../../lib/emoji/emojiSvg';
 import { useUiStore } from '../../store';
 import { useEmojiGlyphsReady } from '../hooks/useEmojiGlyphsReady';

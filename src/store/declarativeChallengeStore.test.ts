@@ -22,7 +22,7 @@ vi.mock('idb-keyval', () => ({
   }),
 }));
 
-import type { Circuit } from '../domain';
+import type { Circuit } from '@electrasim/domain';
 import { useCircuitStore } from './circuitStore';
 import {
   __CHALLENGE2_ACTIVE_KEY,

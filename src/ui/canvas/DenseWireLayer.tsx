@@ -1,11 +1,11 @@
-import type { MouseEvent } from 'react';
 import {
   COMPONENT_DEFS,
   type ComponentInstance,
   type SimulationResult,
   type WireInstance,
   getPortPos,
-} from '../../domain';
+} from '@electrasim/domain';
+import type { MouseEvent } from 'react';
 import { emojiDataUri } from '../../lib/emoji/emojiSvg';
 import { useEmojiGlyphsReady } from '../hooks/useEmojiGlyphsReady';
 import { buildWirePath } from './geometry';

@@ -3,7 +3,7 @@
 // - Better Auth tables re-exported from auth-schema.ts so drizzle-kit sees the full schema.
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
-// ── Electrical standards — immutable, seeded from src/domain/standards.ts at build ──
+// ── Electrical standards — immutable, seeded from packages/domain/src/standards.ts at build ──
 export const electricalStandards = sqliteTable('electrical_standards', {
   code: text('code').primaryKey(), // uk | us | eu | int
   label: text('label').notNull(),

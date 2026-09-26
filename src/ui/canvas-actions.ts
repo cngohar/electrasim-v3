@@ -14,7 +14,7 @@ import {
   type WireInstance,
   snapToGrid,
   validateConnection,
-} from '../domain';
+} from '@electrasim/domain';
 import {
   buildSeedCircuitForMode,
   clearHistory,

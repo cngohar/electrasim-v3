@@ -9,10 +9,10 @@
  * the worker bundle stays small and portable.
  */
 
+import { simulate } from '@electrasim/domain/simulation/simulate';
+import type { SimulateOptions } from '@electrasim/domain/simulation/simulate';
+import type { Circuit, SimulationResult } from '@electrasim/domain/types';
 import * as Comlink from 'comlink';
-import { simulate } from '../domain/simulation/simulate';
-import type { SimulateOptions } from '../domain/simulation/simulate';
-import type { Circuit, SimulationResult } from '../domain/types';
 
 const api = {
   simulate(circuit: Circuit, options?: SimulateOptions): SimulationResult {

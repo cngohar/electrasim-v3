@@ -1,14 +1,14 @@
 /** Printable educational schedule; never a certificate or field measurement. */
 
-import { getStandard } from '../../domain/standards';
-import type { Circuit } from '../../domain/types';
+import { getStandard } from '@electrasim/domain/standards';
+import type { Circuit } from '@electrasim/domain/types';
 import {
   ZE_DEFAULT_OHMS,
   type ZsAssessment,
   type ZsContext,
   type ZsEarthArrangement,
   runZsChecks,
-} from '../../domain/zsCheck';
+} from '@electrasim/domain/zsCheck';
 import { emojiDataUri } from '../emoji/emojiSvg';
 
 export interface EicCircuitRow {

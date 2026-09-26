@@ -6,7 +6,7 @@
  * `create()` without an import cycle.
  */
 
-import { COMPONENT_DEFS, type ComponentInstance } from '../domain';
+import { COMPONENT_DEFS, type ComponentInstance } from '@electrasim/domain';
 
 const historyComponentCache = new WeakMap<ComponentInstance[], ComponentInstance[]>();
 

@@ -12,6 +12,7 @@
  * system-aware (⌘ on macOS, Search on Windows, Ctrl elsewhere).
  */
 
+import { COMPONENT_DEFS } from '@electrasim/domain';
 import {
   BookOpen,
   Command,
@@ -32,7 +33,6 @@ import {
   Wrench,
   Zap,
 } from 'lucide-react';
-import { COMPONENT_DEFS } from '../../domain';
 import { isMacPlatform, remapShortcutLabel } from '../../lib/platform';
 import { redo, undo, useCircuitStore, useUiStore } from '../../store';
 import { useSettingsStore } from '../../store/settingsStore';

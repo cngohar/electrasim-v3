@@ -3,7 +3,7 @@
  * the canvas + UI panels. Locked in Phase 0b (ADR 0001).
  */
 
-import { getStandard } from '../domain/standards';
+import { getStandard } from '@electrasim/domain/standards';
 import type { UserSettings } from '../store/settingsStore';
 import type { CanvasTheme } from './CircuitCanvas';
 

@@ -1,5 +1,5 @@
+import type { ComponentInstance, WireInstance } from '@electrasim/domain';
 import { describe, expect, it } from 'vitest';
-import type { ComponentInstance, WireInstance } from '../../domain';
 import { buildBezierPath, buildOrthogonalPath, pointsToLinePath, svgToWorld } from './geometry';
 
 function wire(overrides: Partial<WireInstance> = {}): WireInstance {

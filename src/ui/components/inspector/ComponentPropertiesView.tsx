@@ -3,6 +3,12 @@
  * Moved verbatim from the previous monolithic `Inspector.tsx`.
  */
 
+import { COMPONENT_DEFS, type ComponentInstance, type SimulationResult } from '@electrasim/domain';
+import {
+  getStandard,
+  recommendCurveForLoad,
+  recommendMcbrating,
+} from '@electrasim/domain/standards';
 import {
   Activity,
   FlaskConical,
@@ -13,8 +19,6 @@ import {
   ShieldCheck,
   Trash2,
 } from 'lucide-react';
-import { COMPONENT_DEFS, type ComponentInstance, type SimulationResult } from '../../../domain';
-import { getStandard, recommendCurveForLoad, recommendMcbrating } from '../../../domain/standards';
 import {
   setMomentarySwitchState,
   useCircuitStore,

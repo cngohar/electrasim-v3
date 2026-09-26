@@ -8,8 +8,8 @@
  *    attached runs — never the ports (live can never land on neutral).
  */
 
+import type { ComponentInstance, WireInstance } from '@electrasim/domain';
 import { describe, expect, it } from 'vitest';
-import type { ComponentInstance, WireInstance } from '../../domain';
 import {
   collectFaultFx,
   faultFxConfig,

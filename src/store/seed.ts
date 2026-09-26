@@ -27,8 +27,8 @@
  * layout targets the 1200×720 logical canvas with COMP_W=100 / COMP_H=70.
  */
 
-import type { Circuit, ComponentInstance, WireInstance } from '../domain';
-import { COMPONENT_DEFS } from '../domain';
+import type { Circuit, ComponentInstance, WireInstance } from '@electrasim/domain';
+import { COMPONENT_DEFS } from '@electrasim/domain';
 
 let nextId = 0;
 const uid = (prefix: string) => `${prefix}${++nextId}`;

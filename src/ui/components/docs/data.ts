@@ -1,3 +1,4 @@
+import { COMPONENT_DEFS, type ComponentDef } from '@electrasim/domain';
 import {
   BookOpen,
   Cpu,
@@ -10,7 +11,6 @@ import {
   Shield,
   Zap,
 } from 'lucide-react';
-import { COMPONENT_DEFS, type ComponentDef } from '../../../domain';
 
 export const SHORTCUTS: Array<[key: string, action: string]> = [
   ['Space', 'Toggle simulation (Run / Pause)'],

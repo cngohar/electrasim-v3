@@ -1,3 +1,4 @@
+import type { ValidationIssue } from '@electrasim/domain/circuitValidation';
 import {
   AlertTriangle,
   BookOpen,
@@ -8,7 +9,6 @@ import {
   Wrench,
   Zap,
 } from 'lucide-react';
-import type { ValidationIssue } from '../../domain/circuitValidation';
 import { useCircuitStore } from '../../store/circuitStore';
 import { useUiStore } from '../../store/uiStore';
 import { Modal } from './Modal';

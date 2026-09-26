@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import {
   COMPONENT_DEFS,
   type ComponentInstance,
@@ -6,8 +5,9 @@ import {
   VIEW_H,
   VIEW_W,
   getPortPos,
-} from '../../domain';
-import type { ChallengeVisualTarget } from '../../domain/challenges/declarative';
+} from '@electrasim/domain';
+import type { ChallengeVisualTarget } from '@electrasim/domain/challenges/declarative';
+import { useMemo } from 'react';
 import { useCircuitStore, useViewportStore } from '../../store';
 import { useDeclarativeChallengeStore } from '../../store/declarativeChallengeStore';
 

@@ -3,7 +3,7 @@
  * blocking fault alert and the "What happened?" recap so the two never drift.
  */
 
-export { formatClearingTime } from '../../domain/simulation/tripCurves';
+export { formatClearingTime } from '@electrasim/domain/simulation/tripCurves';
 
 /**
  * Which element inside the device operated. Naming it is the point: a thermal

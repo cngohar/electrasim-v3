@@ -1,5 +1,3 @@
-import { Focus } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
 import {
   COMPONENT_DEFS,
   type ComponentInstance,
@@ -8,8 +6,10 @@ import {
   VIEW_W,
   type WireInstance,
   getPortPos,
-} from '../../domain';
-import type { RuleTarget } from '../../domain/challenges/declarative';
+} from '@electrasim/domain';
+import type { RuleTarget } from '@electrasim/domain/challenges/declarative';
+import { Focus } from 'lucide-react';
+import { useEffect, useMemo } from 'react';
 import { useCircuitStore, useUiStore, useViewportStore } from '../../store';
 
 function pointForTarget(

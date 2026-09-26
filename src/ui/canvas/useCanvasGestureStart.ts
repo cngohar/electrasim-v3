@@ -1,5 +1,5 @@
+import type { ComponentInstance, InteractionMode, Point2D } from '@electrasim/domain';
 import type { PointerEvent, RefObject, WheelEvent } from 'react';
-import type { ComponentInstance, InteractionMode, Point2D } from '../../domain';
 import { useCircuitStore, useUiStore, useViewportStore } from '../../store';
 import type { PendingCustomPath, RerouteState } from '../../store/uiStore';
 import { dropComponentAt } from '../canvas-actions';

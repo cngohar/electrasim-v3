@@ -6,7 +6,7 @@
  * non-empty canvas, install the cloned circuit, activate the guide checklist,
  * reset simulation/wiring state, promote to Pro mode for Pro guides, and log.
  */
-import { type GuidedCircuitTemplate, cloneTemplateCircuit } from '../domain/templates';
+import { type GuidedCircuitTemplate, cloneTemplateCircuit } from '@electrasim/domain/templates';
 import { useCircuitStore, useSettingsStore, useUiStore } from '../store';
 
 export function loadGuidedCircuitIntoEditor(template: GuidedCircuitTemplate): void {
