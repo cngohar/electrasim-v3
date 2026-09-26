@@ -1,7 +1,51 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "electrasim",
-  "pages_build_output_dir": "./dist",
-  "compatibility_date": "2026-04-30",
-  "send_metrics": false
+  "main": "src/worker.ts",
+  "compatibility_date": "2024-09-23",
+  "compatibility_flags": ["nodejs_compat"],
+  "send_metrics": false,
+  "observability": {
+    "enabled": false
+  },
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "electrasim",
+      "database_id": "local-placeholder",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "R2",
+      "bucket_name": "electrasim-assets"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "KV",
+      "id": "local-placeholder"
+    }
+  ],
+  "queues": {
+    "producers": [{ "binding": "QUEUE", "queue": "electrasim-jobs" }],
+    "consumers": [{ "queue": "electrasim-jobs", "max_batch_size": 10, "max_batch_timeout": 5 }]
+  },
+  "durable_objects": {
+    "bindings": [{ "name": "PRESENCE", "class_name": "PresenceRoom" }]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["PresenceRoom"]
+    }
+  ],
+  "vars": {
+    "ENV": "local"
+  }
 }

@@ -2,8 +2,9 @@
   "name": "astro-site",
   "private": true,
   "type": "module",
-  "version": "2.0.4",
+  "version": "3.0.0",
   "engines": {
+    "bun": ">=1.3.0",
     "node": ">=22.12.0"
   },
   "scripts": {
@@ -11,10 +12,10 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "gen:og": "node scripts/generate-og-images.mjs",
-    "prebuild": "node scripts/build-tool-engines.mjs",
-    "predev": "node scripts/build-tool-engines.mjs",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "gen:og": "bun scripts/generate-og-images.mjs",
+    "prebuild": "bun scripts/build-tool-engines.mjs",
+    "predev": "bun scripts/build-tool-engines.mjs",
+    "typecheck": "bun x tsc --noEmit -p tsconfig.json"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",

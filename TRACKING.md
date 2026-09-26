@@ -1,263 +1,89 @@
-# ElectraSim SEO, Privacy & Delivery Reference
+# ElectraSim V3 — Privacy, SEO & Delivery Reference
 
-This file describes the current tracking policy, SEO ownership, content structure, and
-production build for both ElectraSim surfaces.
+> **Release reference:** V3.0 in development (Bun + 100% Cloudflare Workers). V2 record through `2.0.4` is at
+> [`docs/archive/v2/TRACKING-v2.md`](./docs/archive/v2/TRACKING-v2.md).
+> **Master plan:** [`docs/REWRITE_PLAN_V3_FULL.md`](./docs/REWRITE_PLAN_V3_FULL.md).
 
-> **Production release reference:** v1.6.1, 2026-07-21, verified at
-> `https://63e4c5d6.electrasim.pages.dev` and `https://electrasim.com/`. Keep this document
-> aligned with the app, marketing site, privacy page, CSP, and Wrangler deployment artifact.
->
-> **Pending branch (2026-08-23):** `arena/01a0287b-electrasim-ai3` — onboarding tours,
-> dual demo benches, validation check 10, International default standard, marketing↔app
-> content sync, and site search/nav/hero upgrades. Before merging/deploying: bump the
-> release version (marketing `?v=` cache keys must change), run the full Playwright suite
-> locally (see CHANGELOG "Architecture Regression Analysis" notes), and resolve the
-> pre-existing `check:perf` bundle-budget failure.
+## Surfaces (V3)
 
-## Repository Ownership
+| Surface | Path | Stack |
+|---------|------|-------|
+| Marketing + blog + guide + glossary + compare + toolbox | `/`, `/guide/*`, `/glossary`, `/compare`, `/toolbox`, `/blog/*`, `/legal/*` | Hono on Workers + Content Studio (D1 + R2), SSR via Worker |
+| Simulator lab (Lab Circuit — heart) | `/app`, `/app/c/[id]` | React 19 + Hono Worker Assets, Phase 1 (**not deferred**) |
+| Published circuits (social) | `/feed`, `/explore`, `/c/[circuitId]` | **Deferred — Phase 2+** (needs lab to have created circuits) |
+| LMS | `/lms`, `/lms/institution/[slug]`, `/lms/class/[id]` | Workers + D1 |
+| Community + profiles | `/feed`, `/explore`, `/c/[circuitId]`, `/u/[handle]` | Workers + D1 + R2 + Durable Objects |
+| Admin | `/admin/*` | Workers, `super_admin`/`admin` only |
+| Platform | `/api/*`, `/api/auth/*`, webhooks | Hono on Workers |
 
-- **Active private backup:** `https://github.com/cngohar/electrasimw` (`origin`). It is intentionally not connected to Cloudflare and must remain deployment-neutral until a later migration is approved.
-- **Legacy Cloudflare-connected repository:** `https://github.com/cngohar/electrasim` (`legacy-electrasim`). Keep this remote only as migration history; do not use it for current pushes or pull requests.
-- The Sveltia CMS repository setting targets the active backup so a future hosting migration will not write content into the legacy repository. This source change was not redeployed to the current Cloudflare site.
+All routes served by **one Worker** (`wrangler.jsonc` → `dist` assets + `src/worker.ts`). No separate Pages/Workers split.
+Locale-prefixed marketing routes become `/:locale/...` (e.g. `/en/guide`, `/fr/guide`) with bare `/` redirecting via `Accept-Language` + `hreflang`; `/app` stays locale-agnostic but reads `users.locale`.
 
-## Surfaces
+## Tracking & Privacy
 
-| Surface | Production path | Technology | Source |
-|---|---|---|---|
-| Simulator | `/app/*` | React 19 + Vite | `index.html`, `src/` |
-| Marketing and blog | `/`, `/guide/`, `/compare/`, `/blog/*`, legal pages | Astro static site | `astro-site/` |
-
-The surfaces are built together and published as one Cloudflare Pages artifact. They are
-not deployed independently.
-
-## Tracking Policy
-
-ElectraSim currently runs **no analytics or advertising scripts** on either surface:
-
-- No Plausible, Google Analytics, Google Tag Manager, or tracking pixels.
-- No tracking or advertising cookies.
-- Simulator circuits and settings remain in browser storage.
-- User-created share links carry compressed circuit data in the URL fragment, which browsers do
-  not send to Cloudflare or the origin. Decoding is capped at 1 MiB before text materialization.
-  Legacy `?c=` links remain readable, but the payload moves into the fragment immediately after
-  decode and stays there only until local persistence succeeds.
-- Cloudflare may retain infrastructure access logs under its own policies.
-- Google Forms and Facebook are only reached after a user follows an explicit external link.
-
-The public policy is maintained in
-[`astro-site/src/content/pages/privacy.json`](./astro-site/src/content/pages/privacy.json).
-Do not add a tracking provider without updating that policy, reviewing the Content Security
-Policy in [`public/_headers`](./public/_headers), and documenting the data flow here.
-
-The marketing site uses the local system font stack from
-[`astro-site/src/styles/global.css`](./astro-site/src/styles/global.css); it makes no Google
-Fonts request.
+- **No analytics or advertising scripts by default** (same posture as V2).
+- No tracking/advertising cookies.
+- Simulator circuits/settings: **D1 as source of truth**; IndexedDB is L2 offline cache + offline queue (last-write-wins per `circuitId`). Share links: canonical `https://electrasim.com/c/<id>` (DB-backed) + legacy `#c=<gzip>` fragment (client-decoded) kept.
+- Cloudflare may retain infrastructure logs per its policies.
+- Google Forms / Facebook only after explicit external link follow.
+- Privacy copy: `content_pages` entry `privacy` (Content Studio), reviewed before any tracker is added — must also update `public/_headers` CSP and this file.
 
 ## SEO Ownership
 
-### Simulator
+- **App shell:** `index.html` — canonical `https://electrasim.com/app/`, OG, `SoftwareApplication` JSON-LD, PWA icons.
+- **Marketing + CMS:** Worker SSR owns canonical/robots/OG/Twitter/`WebSite` JSON-LD. Per-route content from Content Studio (`content_pages`/`content_posts`) + sitemap at `/sitemap.xml` (or `sitemap-index.xml` if we split). **i18n (§31):** sitemap emits one `<url>` per locale, every page carries `hreflang` alternates + `x-default` → `/en/`.
+- **Guide/circuit/blog cards:** per-page OG `1200×630` PNG-8 generated via Satori → **R2** (not `public/`).
+- **Live URLs preserved:** every V2 marketing URL (`/`, `/guide`, `/glossary`, `/toolbox`, `/compare`, `/blog/*`, `/#c=`) keeps its path or gets a `301` (see `docs/REWRITE_PLAN_V3_FULL.md` §24).
+- **Electrical standards (§32):** **immutable** — `domain/standards.ts` + `electricalCalculations.ts` + `tripCurves.ts` + `compliance.ts` are code-owned (git). D1 `electrical_standards` is read-only projection; super admin viewer only, no write endpoints. Changes only via reviewed PR + migration + release. SEO never claims a standard changed via Admin.
+- **D1 at scale (§33):** every new query ships with `EXPLAIN QUERY PLAN` on hot tables; reads prefer `withSession(bookmark)` replicas, writes are short `D1.batch()`, hot reads sit behind KV (60–300s), no feed/gradebook without `LIMIT` on an indexed `ORDER BY`.
 
-The app shell metadata lives in [`index.html`](./index.html):
+## Build & Deploy (V3 — Local-First Contract)
 
-- Canonical URL: `https://electrasim.com/app/`
-- Open Graph and Twitter metadata
-- `SoftwareApplication` JSON-LD
-- PWA links and app icons
-
-### Marketing Site
-
-[`astro-site/src/layouts/Base.astro`](./astro-site/src/layouts/Base.astro) owns shared
-canonical, robots, Open Graph, Twitter, and `WebSite` JSON-LD metadata. Route-specific
-content comes from:
-
-| Route | Content source |
-|---|---|
-| Homepage | `astro-site/src/content/pages/landing.json` |
-| Guide | `astro-site/src/content/pages/guide.json` |
-| Simulator comparison bench | `astro-site/src/pages/compare.astro`, `astro-site/src/lib/competitor-bench.ts`, and `astro-site/src/styles/compare-bench.css` |
-| Blog index | `astro-site/src/content/pages/blog-index.json` |
-| About, contact, privacy, terms | matching JSON file under `astro-site/src/content/pages/` |
-| Blog article | frontmatter and Markdown under `astro-site/src/content/blog/` |
-
-Astro generates `sitemap-index.xml`. The sitemap integration excludes admin and 404
-routes and adds `/app/` explicitly.
-
-## Marketing Structure
-
-```text
-astro-site/src/
-├── components/
-│   ├── layout/       Header, footer, background, contact, scroll-to-top
-│   ├── landing/      Homepage sections and responsive hero
-│   ├── guide/        Guide overview, circuit cards, CTA
-│   └── blog/         Post cards, grids, topic navigation, pagination
-├── content/
-│   ├── blog/         Markdown articles
-│   └── pages/        CMS-editable page JSON
-├── layouts/
-│   └── Base.astro    Document shell and shared metadata
-├── lib/
-│   └── blog.ts       Blog ordering, pagination, tag slugs, reading time
-├── pages/            Astro routes
-└── styles/
-    ├── global.css
-    ├── compare-bench.css
-    ├── landing.css
-    ├── guide.css
-    └── blog/         Index, article, and tag styles
-```
-
-The homepage hero uses responsive 480, 800, and 1200 pixel AVIF/WebP files in
-`astro-site/public/images/`. The root `public/og-image.png` remains the social-sharing
-image.
-
-## Appearance
-
-The simulator stores its Light, Dark, or System preference with the rest of the app settings.
-The marketing site uses the small same-origin `astro-site/public/js/theme.js` bootstrap and the
-`electrasim:color-scheme` local-storage key. The script runs in the document head so the correct
-theme is applied before the page is painted, updates the browser theme colour, and remains valid
-under the strict self-only script policy. Marketing colours are defined through shared variables
-in `astro-site/src/styles/global.css`; page styles should consume those variables rather than add
-light-only surfaces.
-
-## Blog Generation
-
-Blog behavior is centralized in
-[`astro-site/src/lib/blog.ts`](./astro-site/src/lib/blog.ts):
-
-- `BLOG_PAGE_SIZE = 9`: `/blog/` and `/blog/2/` onward are statically paginated.
-- `MIN_TAG_POSTS = 3`: a tag archive is generated only after at least three published
-  articles use that normalized tag.
-- Article tag links are emitted only for generated archives, so they cannot point to
-  nonexistent tag pages.
-- Topic navigation is derived from the full corpus rather than filtering only the current
-  page in JavaScript.
-- Each existing nine-post page slice is presented in separate App Update and learning-article
-  sections. Classification happens after pagination, so existing page counts, routes, canonical
-  URLs, and previous/next relationships do not move.
-- Homepage article metadata comes from the blog collection; only the curated article ID
-  list is maintained in code.
-
-There is no client-side blog filter or pagination script.
-
-### Adding a Blog Article
-
-1. Add `astro-site/src/content/blog/<slug>.md` with valid frontmatter.
-2. Run `npm run build`.
-3. Check the article, blog pagination, and any qualifying tag archive.
-4. To feature it on the homepage, update `HOMEPAGE_ARTICLE_IDS` in
-   `astro-site/src/lib/blog.ts`.
-5. Deploy with `npm run deploy`.
-
-A new tag does not get an archive until it reaches the three-article threshold.
-
-### Current Editorial Status
-
-The regular article **“How Does a Push Button Switch Work? Momentary Contacts”** was published on
-2026-07-20. It covers momentary and maintained actions, NO and NC contacts, doorbells, real-world
-contactor holding logic, emergency-stop boundaries, and an exercise that matches ElectraSim's
-current two-terminal Push Button. The non-featured post includes a responsive 1200 x 630 original
-illustration and is live at `/blog/how-does-a-push-button-switch-work/`.
-
-## Combined Build and Deploy
-
-From the repository root:
+> **Rule:** every change is verified **locally** via `wrangler dev --local` (and `--persist-to`) before any `--remote` deploy.
 
 ```bash
-npm run build
-npm run preview
-npm run deploy
+# Install / dev / typecheck / lint / tests — all via Bun (no npm)
+bun install
+bun run dev              # vite (or wrangler dev --local) — port 3000
+bun x wrangler dev --local --persist-to .wrangler/state   # full Worker locally (D1/R2/KV/DO all local)
+bun run typecheck && bun run lint && bun test
+
+# DB (all local first)
+bun x wrangler d1 create electrasim            # once
+bun x wrangler d1 migrations create electrasim <msg>
+bun x wrangler d1 migrations apply electrasim --local
+bun x wrangler d1 execute electrasim --local --command "SELECT 1"
+bun run seed:standards -- --local              # seed immutable electrical_standards projection from domain/standards.ts
+
+# Build + local preview + gates
+bun run build
+bun x wrangler dev --local --port 8788         # preview of built artifact, no --remote
+bun run check:perf && bun run check:links && bun run check:seo && bun run check:csp
+bun x playwright test                            # e2e against local preview
+bun x playwright test --config playwright.production.config.ts  # production suite, still against local
+# Parallel scale check (§33) — proves no SQLITE_BUSY under burst
+for i in {1..200}; do curl -s http://127.0.0.1:8787/api/circuits?limit=20 & done | tail
+bun x wrangler d1 insights electrasim --local
+
+# Only after all local gates pass → remote
+bun x wrangler d1 migrations apply electrasim --remote
+bun x wrangler deploy
 ```
 
-`npm run build` performs the complete production pipeline:
+Live snapshot after deploy: `https://electrasim.com/` (verify `/` and `/app` with smoke + Lighthouse + CSP).
 
-1. Vite builds the simulator.
-2. Astro builds the marketing site and blog into `dist-astro/`.
-3. `scripts/postbuild.mjs` moves the SPA under `dist/app/`, overlays the Astro output at
-   the site root, and removes `dist-astro/`.
+## Versioning & Cache
 
-`npm run deploy` runs that build and publishes the resulting `dist/` directory to the
-`electrasim` Cloudflare Pages project through Wrangler.
-
-Each Pages deployment is a complete immutable snapshot of `dist/`. Wrangler hashes files
-and reuses identical uploads, but the new deployment does not merge an old page tree into
-the current one. Only files referenced by the newly published snapshot remain reachable
-through the active production deployment.
-
-The active v1.6.1 production snapshot is `https://63e4c5d6.electrasim.pages.dev` and is
-served through `https://electrasim.com/`. The root `/sw.js` is a no-cache retirement worker
-for the obsolete site-wide registration; the simulator's active PWA worker is `/app/sw.js`
-and remains scoped to `/app/`.
-
-Astro, the sitemap integration, and the Markdown renderer are static build tools and live in
-the marketing workspace's `devDependencies`. After upgrading Astro to `6.4.8`,
-`npm audit --omit=dev` reports zero production vulnerabilities. The full development audit
-retains two linked low-severity entries for esbuild's Windows-only development-server issue;
-the offered remediation is an Astro 7 major upgrade and is intentionally deferred for a
-separate compatibility pass.
-
-HTML routes in [`public/_headers`](./public/_headers) use `Cache-Control: no-transform`.
-Keep that directive in place while the site advertises a strict CSP and no browser analytics:
-it prevents delivery-layer HTML rewriting from injecting scripts that are absent from the
-reviewed build.
-
-The three versionless marketing scripts are requested with the root release version
-(`theme.js?v=<version>`, `site-nav.js?v=<version>`, and `scroll-top.js?v=<version>`). This keeps them correct when a
-Cloudflare custom-domain cache policy raises their browser TTL above the one-hour value in
-`_headers`; a release bump changes the cache key without duplicating version strings in Astro.
-
-## Performance Gates
-
-```bash
-npm run build:stats          # full build plus app bundle treemap
-npm run benchmark:simulation # dense solver benchmark; p95 budget is 8 ms
-npm run benchmark:browser    # opt-in dense-editor Playwright frame benchmark
-npm run check:perf           # enforce built bundle, HTML, tag-page, and hero budgets
-```
-
-Run `npm run build` before `npm run check:perf`. Current enforced limits live in
-[`scripts/check-performance.mjs`](./scripts/check-performance.mjs), not in this document,
-so changing a budget requires a reviewed code change.
-
-The full release gate is `npm run verify`. It adds typechecking, linting, unit/integration
-tests, internal-link validation, dense solver and browser benchmarks, responsive E2E flows,
-and a separate Wrangler-preview production suite. After deployment, verify both `/` and
-`/app/` against the public domain, including canonical metadata, console errors, canvas
-rendering, and the Run-to-Live workflow.
-
-Set `PLAYWRIGHT_BASE_URL=https://electrasim.com` when running `npm run e2e:production` to
-exercise the same production suite against the live domain instead of starting a local
-Wrangler preview.
+- **Release version:** `package.json` `version` → `3.0.0` line. Bumps invalidate:
+  - Landing release popup key `electrasim:release-popup:<version>`.
+  - Marketing scripts `?v=<version>` (`theme.js`, `site-nav.js`, `scroll-top.js`).
+- **OG cards:** content-hashed via `scripts/generate-og-images.mjs` → R2, independent of `?v=`.
+- **Headers:** `public/_headers` — `Cache-Control: no-transform` on HTML + strict CSP (`payment=()` etc.) — keep for Workers Assets.
 
 ## Release Record
 
 | Version | Date | Summary |
-|---|---|---|
-| v2.0.4 | 2026-09-17 | The correctness release: the guided-circuit validator stops reporting an over-rated breaker on circuits whose cable was never undersized, eight templates declare the conductor and device rating they wire, device names use the instance rating everywhere, the homepage snippet fits its budget, and the app's guide links point at routes that exist. |
-| v2.0.3 | 2026-09-09 | The guide release: 20 circuit walkthroughs, 22 component anatomy pages (16 with interactive cutaways), 8 tool pages, a 37-term glossary, and a start-here post routing readers through all of it. Every guide page gained a snippet that fits, its own social card and marked-up breadcrumbs. |
-| v2.0.2 | 2026-09-04 | `/compare/` rebuilt as a research bench: SVG research map, task-fit plots, filterable matrix and a dated first-party evidence ledger. |
+|---------|------|---------|
+| 3.0.0 | — | V3.0 in development (Bun + Workers + D1). V2 `2.0.4` (2026-09-17) remains live. |
 
-A release bump is not cosmetic on this site. Three things key off the version in the root
-`package.json`:
-
-- **The landing release popup** (`astro-site/src/components/landing/LandingReleasePopup.astro`)
-  stores dismissal under `electrasim:release-popup:<version>`, so a bump is what re-arms the
-  announcement for returning visitors. The copy in that component is about 2.0 and is not rewritten
-  for a patch — check it before a minor or major.
-- **The three versionless marketing scripts** (`theme.js`, `site-nav.js`, `scroll-top.js`) request
-  `?v=<version>`, so a bump is also their cache invalidation.
-- **The app's own version** (`src/version.ts`) reads the same manifest.
-
-The marketing `?v=` keys and the OG card hashes are separate mechanisms and do not need to move
-together: card hashes are content digests written by `scripts/generate-og-images.mjs`, and they
-change only when the artwork changes.
-
-### Content and SEO state
-
-- 192 HTML routes build from `dist/`, of which 190 are checked by `npm run check:seo` (`/app/` and
-  `/admin/` are noindex shells and are skipped).
-- The pre-release gate is `npm run verify`, which now includes `check:seo` between `check:links`
-  and `benchmark:simulation`.
-- Guide pages are checked for a per-page social card, a `BreadcrumbList` that matches the trail
-  rendered on the page, and (on circuit walkthroughs) a `HowTo` whose step anchors resolve.
+A bump is not cosmetic: popup dismissal + `?v=` keys both move with the version.
