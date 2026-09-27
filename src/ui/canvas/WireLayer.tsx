@@ -5,6 +5,7 @@ import {
   type WireInstance,
   getPortPos,
 } from '@electrasim/domain';
+import { memo } from 'react';
 import type { KeyboardEvent, MouseEvent, PointerEvent } from 'react';
 import { emojiDataUri } from '../../lib/emoji/emojiSvg';
 import { useEmojiGlyphsReady } from '../hooks/useEmojiGlyphsReady';
@@ -33,7 +34,7 @@ interface WireLayerProps {
   onContextMenu: (id: string, event: MouseEvent<SVGGElement>) => void;
 }
 
-export function WireLayer({
+export const WireLayer = memo(function WireLayer({
   wires,
   componentsById,
   theme,
@@ -51,26 +52,43 @@ export function WireLayer({
   onArmReroute,
   onContextMenu,
 }: WireLayerProps) {
-  if (reducedDetails) {
-    return (
-      <DenseWireLayer
-        wires={wires}
-        componentsById={componentsById}
-        theme={theme}
-        wireWidth={wireWidth}
-        simulation={simulation}
-        selectedWireId={selectedWireId}
-        orthogonalPaths={orthogonalPaths}
-        onSelectWire={onSelectWire}
-        onArmReroute={onArmReroute}
-        onContextMenu={onContextMenu}
-      />
-    );
-  }
+  // Keep the batch renderer for ordinary conductors; safety and trace
+  // states use the same renderer at every circuit size so LOD cannot hide evidence.
+  const detailedWires = reducedDetails
+    ? wires.filter(
+        (wire) =>
+          flaggedWireIds?.has(wire.id) ||
+          traceWireIds?.has(wire.id) ||
+          severedWireIds?.has(wire.id) ||
+          wire.fault ||
+          wire.isBusted ||
+          simulation?.errorWires.has(wire.id) ||
+          simulation?.overloadedWires?.has(wire.id) ||
+          simulation?.bustedWires?.has(wire.id) ||
+          (simulation?.wireHeatRatios?.[wire.id] ?? 0) > 0.8,
+      )
+    : wires;
+  const detailedIds = new Set(detailedWires.map((wire) => wire.id));
 
   return (
     <g>
-      {wires.map((wire) => (
+      {reducedDetails && (
+        <g opacity={traceWireIds != null ? 0.15 : 1}>
+          <DenseWireLayer
+            wires={wires.filter((wire) => !detailedIds.has(wire.id))}
+            componentsById={componentsById}
+            theme={theme}
+            wireWidth={wireWidth}
+            simulation={simulation}
+            selectedWireId={selectedWireId}
+            orthogonalPaths={orthogonalPaths}
+            onSelectWire={onSelectWire}
+            onArmReroute={onArmReroute}
+            onContextMenu={onContextMenu}
+          />
+        </g>
+      )}
+      {detailedWires.map((wire) => (
         <WirePath
           key={wire.id}
           wire={wire}
@@ -95,7 +113,7 @@ export function WireLayer({
       ))}
     </g>
   );
-}
+});
 
 interface WirePathProps {
   wire: WireInstance;

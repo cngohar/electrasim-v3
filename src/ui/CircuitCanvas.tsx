@@ -9,7 +9,16 @@ import {
   VIEW_W,
   getPortPos,
 } from '@electrasim/domain';
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import {
+  type CSSProperties,
+  type MouseEvent,
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useCircuitStore, useSettingsStore, useUiStore, useViewportStore } from '../store';
 import {
   applyReroute,
@@ -33,6 +42,8 @@ import {
   type CanvasPanState,
   useCanvasPointerWindow,
 } from './canvas/useCanvasPointerWindow';
+
+import './canvas/canvas.css';
 
 export type { CanvasTheme } from './canvas/types';
 const REDUCED_EFFECTS_AUTO_THRESHOLD = 50;
@@ -314,29 +325,32 @@ export function CircuitCanvas({
   }, [mode, pendingWireFrom, reroute]);
 
   // ── Port click → wire creation OR reroute commit OR custom-path step ──
-  const handlePortClick = (compId: string, portIndex: number) => {
-    // A compatibility click from a secondary touch must not alter wiring while
-    // the primary pointer still owns a drag or pan gesture.
-    if (activePointerIdRef.current !== null) return;
-    const ui = useUiStore.getState();
-    const r = ui.reroute;
-    if (r) {
-      applyReroute(r.wireId, r.end, { componentId: compId, portIndex });
-      return;
-    }
-    // In custom wiring mode an in-flight path turns this port into the destination.
-    if (customWiringMode && ui.pendingCustomPath) {
-      commitCustomPath(compId, portIndex);
-      customCursorRef.current = null;
-      return;
-    }
-    // Otherwise this port starts a custom path.
-    if (customWiringMode && !ui.pendingCustomPath) {
-      ui.startCustomPath({ componentId: compId, portIndex });
-      return;
-    }
-    runPortClickFsm(compId, portIndex, byId);
-  };
+  const handlePortClick = useCallback(
+    (compId: string, portIndex: number) => {
+      // A compatibility click from a secondary touch must not alter wiring while
+      // the primary pointer still owns a drag or pan gesture.
+      if (activePointerIdRef.current !== null) return;
+      const ui = useUiStore.getState();
+      const r = ui.reroute;
+      if (r) {
+        applyReroute(r.wireId, r.end, { componentId: compId, portIndex });
+        return;
+      }
+      // In custom wiring mode an in-flight path turns this port into the destination.
+      if (customWiringMode && ui.pendingCustomPath) {
+        commitCustomPath(compId, portIndex);
+        customCursorRef.current = null;
+        return;
+      }
+      // Otherwise this port starts a custom path.
+      if (customWiringMode && !ui.pendingCustomPath) {
+        ui.startCustomPath({ componentId: compId, portIndex });
+        return;
+      }
+      runPortClickFsm(compId, portIndex, byId);
+    },
+    [byId, customWiringMode],
+  );
 
   const cancelArmedReroute = () => {
     const ui = useUiStore.getState();
@@ -345,13 +359,13 @@ export function CircuitCanvas({
     ui.addLog('Reroute cancelled.', 'info');
   };
 
-  const armWireTargetReroute = (wireId: string) => {
+  const armWireTargetReroute = useCallback((wireId: string) => {
     useCircuitStore.getState().selectWire(wireId);
     const ui = useUiStore.getState();
     ui.setMode('wiring');
     ui.setReroute({ wireId, end: 'to', source: 'armed' });
     ui.addLog('Reroute armed - choose a compatible port.', 'info');
-  };
+  }, []);
 
   return (
     <div ref={panPreviewRef} className={className} style={{ background: theme.bg }}>
@@ -362,17 +376,26 @@ export function CircuitCanvas({
         className={['block h-full w-full', challengePaused ? 'pointer-events-none' : ''].join(' ')}
         data-challenge-paused={challengePaused ? 'true' : undefined}
         aria-disabled={challengePaused}
-        style={{
-          background: theme.bg,
-          fontFamily: theme.font,
-          cursor: panRef.current
-            ? 'grabbing'
-            : pendingWireFrom || placingType || reroute
-              ? 'crosshair'
-              : 'default',
-          touchAction: 'none',
-        }}
+        style={
+          {
+            '--canvas-bg': theme.bg,
+            '--canvas-surface': theme.component.bg,
+            '--canvas-text': theme.component.text,
+            '--canvas-muted': theme.component.subtext,
+            '--canvas-accent': theme.component.selectedRing,
+            '--canvas-mono': theme.monoFont ?? theme.font,
+            background: theme.bg,
+            fontFamily: theme.font,
+            cursor: panRef.current
+              ? 'grabbing'
+              : pendingWireFrom || placingType || reroute
+                ? 'crosshair'
+                : 'default',
+            touchAction: 'none',
+          } as CSSProperties
+        }
         data-circuit-canvas
+        data-reduced-effects={reducedEffects ? 'true' : undefined}
         data-interaction-mode={mode}
         data-reroute-active={reroute ? `${reroute.wireId}:${reroute.end}` : undefined}
         role="application"
@@ -497,21 +520,9 @@ export function CircuitCanvas({
             flaggedWireIds={flaggedWireIds}
             traceWireIds={traceWireIds}
             severedWireIds={severedWireIds}
-            onSelectWire={(id) => {
-              useCircuitStore.getState().selectWire(id);
-              useUiStore.getState().setInspectorCollapsed(false);
-            }}
+            onSelectWire={selectCanvasWire}
             onArmReroute={armWireTargetReroute}
-            onContextMenu={(id, event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              useCircuitStore.getState().selectWire(id);
-              useUiStore.getState().setContextMenu({
-                x: event.clientX,
-                y: event.clientY,
-                target: { kind: 'wire', id },
-              });
-            }}
+            onContextMenu={openWireMenu}
           />
 
           <WireJointsLayer
@@ -552,23 +563,13 @@ export function CircuitCanvas({
               reducedDetails={reducedDetails}
               flaggedIds={flaggedComponentIds}
               traceComponentIds={traceComponentIds}
-              onPointerDown={(component, event) => {
-                handleComponentPointerDown(component, event);
-              }}
+              onPointerDown={handleComponentPointerDown}
               onSelect={onSelect}
               onToggleSwitch={onToggleSwitch}
               onSetSwitchState={onSetSwitchState}
               onPortClick={handlePortClick}
-              onHoverChange={(id) => useUiStore.getState().setHoveredComponentId(id)}
-              onContextMenu={(id, event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                useUiStore.getState().setContextMenu({
-                  x: event.clientX,
-                  y: event.clientY,
-                  target: { kind: 'component', id },
-                });
-              }}
+              onHoverChange={hoverCanvasComponent}
+              onContextMenu={openComponentMenu}
             />
           </CanvasOverlayLayer>
 
@@ -610,3 +611,26 @@ export function CircuitCanvas({
 }
 
 export { requestDeleteWire };
+
+function selectCanvasWire(id: string) {
+  useCircuitStore.getState().selectWire(id);
+  useUiStore.getState().setInspectorCollapsed(false);
+}
+function hoverCanvasComponent(id: string | null) {
+  useUiStore.getState().setHoveredComponentId(id);
+}
+function openComponentMenu(id: string, event: MouseEvent<SVGGElement>) {
+  event.preventDefault();
+  event.stopPropagation();
+  useUiStore
+    .getState()
+    .setContextMenu({ x: event.clientX, y: event.clientY, target: { kind: 'component', id } });
+}
+function openWireMenu(id: string, event: MouseEvent<SVGGElement>) {
+  event.preventDefault();
+  event.stopPropagation();
+  useCircuitStore.getState().selectWire(id);
+  useUiStore
+    .getState()
+    .setContextMenu({ x: event.clientX, y: event.clientY, target: { kind: 'wire', id } });
+}

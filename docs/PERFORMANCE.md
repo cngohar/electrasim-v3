@@ -8,10 +8,10 @@ maintainability change unless it also creates a dynamic import boundary or reduc
 Run:
 
 ```bash
-npm run build
-npm run check:perf
-npm run benchmark:simulation
-npm run benchmark:browser
+bun run build
+bun run check:perf
+bun run benchmark:simulation
+bun run benchmark:browser
 ```
 
 The budget check covers the default app JavaScript and CSS, generated HTML volume, tag archive
@@ -24,16 +24,60 @@ use the same threshold. This keeps the static output bounded as the article corp
 
 ## Interaction baseline
 
-`npm run benchmark:browser` builds its own dense fixture (currently 202 components and 300 wires)
-from a share URL, runs the simulation, dispatches frame-paced pan and component-drag
-gestures, measures pointer-handler and release-commit CPU time, and records
-`requestAnimationFrame` intervals in headless Chromium. The strict gate covers application-owned
-CPU work and the static-scene frame baseline. Gesture paint intervals remain attached telemetry:
-software-rasterized headless SVG throughput varies substantially by runner and is not a substitute
-for profiling trusted pointer input on target devices.
-The development-only Pixi prototype is an exploratory comparison until v1.1 and is not part of the
-current parity or production gate. A benchmark improvement that breaks wire routing, selection, or
-fault injection is not acceptable.
+`bun run benchmark:browser` imports a deterministic **200-component / 400-wire** circuit through
+normal JSON import, runs simulation, and measures idle, frame-paced pan, drag and wheel zoom in
+headless Chromium. It verifies the actual component/wire counts and that enhanced artwork remains
+present. The earlier gzip share fixture exceeded the share-link size limit at 400 wires; importing
+JSON fixes the harness without raising the product's share limit.
+
+The normal Playwright configuration serves Vite development assets. For a production-asset run,
+start `PORT=8788 node scripts/preview-server.mjs` after building and set
+`PLAYWRIGHT_BASE_URL=http://127.0.0.1:8788/app/`. All targets must remain localhost.
+
+The strict gate covers pointer-handler CPU, release commits and static-scene frame intervals.
+Gesture frame intervals and wheel-handler CPU are attached telemetry, **not a 60 fps acceptance
+claim**. Do not run the benchmark alongside builds, tests or other CPU-heavy tasks.
+
+`PERF_COMPARE=1 bun run benchmark:browser` also runs a test-only Canvas 2D paint experiment. It
+uses the current 200-component circuit, actual SVG wire paths and cached device artwork inside
+the same editor shell, with equivalent pan/drag/zoom deltas. It starts from the scene after the
+SVG gestures, uses programmatic transforms rather than production input handling, and omits
+editing, accessibility, diagnostics and export parity. Its frame times are directional evidence,
+not an interchangeable renderer benchmark. It is never imported by production code.
+
+### Phase 1.4 measurements (2026-09-27)
+
+Local headless Chromium, desktop Playwright viewport, no concurrent build/test load.
+Development assets unless the row explicitly says production assets. Average / p95 frame intervals in milliseconds:
+
+| Scene | Idle | Pan | Drag | Wheel zoom |
+| --- | --- | --- | --- | --- |
+| Original renderer, 200/400 | 16.97 / 16.8 | 98.30 / 166.7 | 43.50 / 99.9 | not recorded |
+| Enhanced SVG, final comparison run | 18.76 / 16.8 | 20.90 / 33.4 | 40.96 / 66.6 | 133.89 / 183.3 |
+| Enhanced SVG, production assets | 19.82 / 16.8 | 20.90 / 33.4 | 21.18 / 66.6 | 148.58 / 233.4 |
+| Canvas 2D paint experiment | not recorded | 45.48 / 66.6 | 45.20 / 50.1 | 42.65 / 50.1 |
+
+Final SVG pan/drag handlers average 0.10/0.06 ms, p95 0.20/0.10 ms; release commits 0.30/2.00 ms.
+Development wheel handlers average 1.58 ms, p95 3.70 ms. The separate production-asset run
+passed the same gates; wheel handlers average 3.96 ms, p95 37.30 ms, while pan/drag handlers
+average 0.11/0.07 ms with 0.20/0.20 ms p95 and 0.30/1.80 ms release commits. Before layer memoization and preserving the zoom
+gesture's reduced-blur state, zoom was 294.06 ms average with 17.21 ms average handler work.
+Orthogonal routes remain memoized by circuit geometry; viewport changes do not invalidate them.
+These measurements separate event CPU from frame delivery, but are not a full GPU/paint trace.
+
+The **60 fps dense-interaction target remains unmet**, particularly for zoom. SVG remains the
+Phase 1 renderer: the paint experiment improves zoom but slows pan, lacks application parity,
+and also misses 60 fps. Before any renderer migration, profile trusted input on target hardware
+and production assets, then run matched-view comparisons with interaction/accessibility/export
+parity. See [ADR 0007](decisions/0007-renderer-svg-matter-only.md).
+
+Canvas 1.4 retains every component and wire in the scene. Count-based LOD removes decorative
+animation and secondary labels while retaining device bodies, focusable terminals and safety
+indicators. Viewport culling is deferred: gesture previews and offscreen wires crossing the view
+must remain correct, and snapshots must not lose offscreen circuit content.
+
+Raw local logs: `.wrangler/phase-1.4-baseline.log`, `.wrangler/phase-1.4-renderer-comparison.log`,
+`.wrangler/phase-1.4-production-benchmark.log`.
 
 Target behavior:
 
@@ -48,7 +92,7 @@ Target behavior:
 
 ## Historical measured floor (2026-08-19)
 
-Before the budgets were revised, `npm run check:perf` reported:
+Before the budgets were revised, `bun run check:perf` reported:
 
 ```
 FAIL  initial JS is 232,413 B gzip; budget is 115,000 B

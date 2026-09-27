@@ -5,6 +5,11 @@ export interface PrintMetadata {
 }
 
 const SNAPSHOT_STYLES = `
+  .device-rotor { animation: device-rotation 1.5s linear infinite; transform-origin: 0 0; }
+  @keyframes device-rotation { to { transform: rotate(360deg); } }
+  [data-reduced-effects="true"] * { animation: none !important; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+
   .electrasim-wire-flow { animation: electrasim-wire-flow 1.1s linear infinite; }
   @keyframes electrasim-wire-flow { to { stroke-dashoffset: -28; } }
   .electrasim-fan-spin { animation: electrasim-fan-spin 1.4s linear infinite; transform-origin: center; transform-box: fill-box; }
@@ -55,6 +60,13 @@ export function exportSVG(svgElement: SVGSVGElement): string {
   const clone = svgElement.cloneNode(true) as SVGSVGElement;
   clone.removeAttribute('class');
   clone.removeAttribute('style');
+  // Keep the self-contained theme without carrying editor sizing or cursor styles.
+  for (const property of Array.from(svgElement.style)) {
+    if (property.startsWith('--canvas-')) {
+      clone.style.setProperty(property, svgElement.style.getPropertyValue(property));
+    }
+  }
+  clone.removeAttribute('data-canvas-gesture');
 
   const dimensions = getSvgDimensions(clone);
   if (dimensions) {

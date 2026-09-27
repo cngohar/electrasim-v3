@@ -11,6 +11,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useCircuitStore, useSettingsStore, useUiStore, useViewportStore } from '../../store';
+import { fitCanvasView } from '../canvas/fitView';
 
 interface Props {
   simRunning: boolean;
@@ -190,14 +191,7 @@ export function StatusPill({
         <div className="flex items-center gap-0.5">
           <button
             type="button"
-            onClick={() =>
-              useViewportStore
-                .getState()
-                .zoomToFit(
-                  { width: window.innerWidth, height: window.innerHeight },
-                  useCircuitStore.getState().components,
-                )
-            }
+            onClick={fitCanvasView}
             className="flex items-center gap-1 rounded px-1.5 py-0.5 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
             title="Zoom to fit (F)"
           >

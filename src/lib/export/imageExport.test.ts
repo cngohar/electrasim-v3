@@ -31,6 +31,23 @@ describe('image export', () => {
     expect(exported.querySelector('circle')).not.toBeNull();
   });
 
+  it('retains the canvas theme and reduced effects in standalone exports', () => {
+    const svg = createSvg();
+    svg.style.setProperty('--canvas-text', '#f8fafc');
+    svg.style.setProperty('--canvas-surface', '#0f172a');
+    svg.setAttribute('data-canvas-gesture', 'pan');
+    svg.setAttribute('data-reduced-effects', 'true');
+    const exported = new DOMParser().parseFromString(
+      exportSVG(svg),
+      'image/svg+xml',
+    ).documentElement;
+    expect(exported.getAttribute('style')).toContain('--canvas-text: #f8fafc');
+    expect(exported.getAttribute('style')).not.toContain('background');
+    expect(exported.hasAttribute('data-canvas-gesture')).toBe(false);
+    expect(exported.getAttribute('data-reduced-effects')).toBe('true');
+    expect(svg.getAttribute('data-canvas-gesture')).toBe('pan');
+  });
+
   it('sizes PNG output from the SVG viewBox instead of the browser image default', async () => {
     const canvas = document.createElement('canvas');
     const context = { scale: vi.fn(), drawImage: vi.fn() };

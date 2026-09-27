@@ -1,3 +1,4 @@
+import { fitCanvasView } from '../canvas/fitView';
 /**
  * useKeyboardShortcuts — global keyboard bindings for the editor.
  *
@@ -33,7 +34,6 @@ import {
   useClipboardStore,
   useSettingsStore,
   useUiStore,
-  useViewportStore,
 } from '../../store';
 import { requestDeleteSelection, requestRotateSelection } from '../canvas-actions';
 
@@ -366,16 +366,7 @@ export function useKeyboardShortcuts() {
         return;
       }
       if (e.key === 'f' || e.key === 'F') {
-        const el = document.querySelector('[data-circuit-canvas]') as HTMLElement | null;
-        const rect = el?.getBoundingClientRect();
-        if (rect) {
-          useViewportStore
-            .getState()
-            .zoomToFit(
-              { width: rect.width, height: rect.height },
-              useCircuitStore.getState().components,
-            );
-        }
+        fitCanvasView();
         return;
       }
       if (e.key === 'r' || e.key === 'R') {

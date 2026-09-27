@@ -2,8 +2,8 @@
  * ComponentNode — the per-component SVG node renderer (body, glyph, ports,
  * fault overlays, spark states).
  *
- * Split verbatim from the former monolithic `ComponentLayer.tsx`.
- * Behaviour and rendering output are unchanged.
+ * Physical device artwork shares canonical terminal geometry with the domain.
+ * Safety overlays and keyboard targets remain independent of detail level.
  */
 
 import {
@@ -19,9 +19,8 @@ import {
 import type { MouseEvent, PointerEvent } from 'react';
 import { emojiDataUri } from '../../lib/emoji/emojiSvg';
 import { useSettingsStore } from '../../store';
-import { getComponentIcon, getComponentImage } from '../components/componentImages';
 import { useEmojiGlyphsReady } from '../hooks/useEmojiGlyphsReady';
-import { getDefaultArt } from './componentArt';
+import { DeviceArtwork } from './DeviceArtwork';
 import type { CanvasTheme, PortLoc } from './types';
 
 const PORT_R = 5;
@@ -42,109 +41,6 @@ function fitLabel(label: string, fontSize: number): string {
   const maxChars = Math.max(5, Math.floor(usablePx / avgAdvance));
   if (label.length <= maxChars) return label;
   return `${label.slice(0, Math.max(1, maxChars - 1))}…`;
-}
-
-/**
- * MotorGlyph — near-realistic inline motor. Unlike the old behaviour (the whole
- * icon spun 360°), a real electric motor's BODY is stationary: only the shaft
- * rotor spins. Here the static body, fins, terminal box and feet never move,
- * while the rotor on the shaft rotates via `electrasim-motor-spin`.
- */
-function MotorGlyph({ spinning, suffix }: { spinning: boolean; suffix: string }) {
-  const uid = `motor-${suffix}`;
-  return (
-    <svg
-      viewBox="0 0 64 64"
-      width="24"
-      height="24"
-      style={{ display: 'block', pointerEvents: 'none' }}
-      aria-hidden="true"
-    >
-      <defs>
-        <linearGradient id={`${uid}body`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#cbd5e1" />
-          <stop offset="0.5" stopColor="#94a3b8" />
-          <stop offset="1" stopColor="#64748b" />
-        </linearGradient>
-        <linearGradient id={`${uid}endcap`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#f1f5f9" />
-          <stop offset="1" stopColor="#94a3b8" />
-        </linearGradient>
-        <linearGradient id={`${uid}tbox`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#e2e8f0" />
-          <stop offset="1" stopColor="#64748b" />
-        </linearGradient>
-      </defs>
-
-      {/* Static cylindrical body (fins) */}
-      <rect
-        x="12"
-        y="24"
-        width="36"
-        height="22"
-        rx="4"
-        fill={`url(#${uid}body)`}
-        stroke="#475569"
-        strokeWidth="1.5"
-      />
-      <g stroke="#64748b" strokeWidth="1.2">
-        <line x1="20" y1="24" x2="20" y2="46" />
-        <line x1="25" y1="24" x2="25" y2="46" />
-        <line x1="30" y1="24" x2="30" y2="46" />
-        <line x1="35" y1="24" x2="35" y2="46" />
-        <line x1="40" y1="24" x2="40" y2="46" />
-        <line x1="45" y1="24" x2="45" y2="46" />
-      </g>
-      {/* Left end cap */}
-      <rect
-        x="8"
-        y="24"
-        width="6"
-        height="22"
-        rx="2"
-        fill={`url(#${uid}endcap)`}
-        stroke="#64748b"
-        strokeWidth="1.2"
-      />
-      {/* Terminal box on top */}
-      <rect
-        x="25"
-        y="15"
-        width="14"
-        height="10"
-        rx="2"
-        fill={`url(#${uid}tbox)`}
-        stroke="#475569"
-        strokeWidth="1.2"
-      />
-      <rect x="28" y="17" width="8" height="6" rx="1" fill="#0f172a" />
-      <circle cx="32" cy="20" r="1" fill="#38bdf8" />
-      {/* Feet */}
-      <path d="M14 46 h32 v3 h-32 Z" fill="#64748b" />
-
-      {/* Shaft */}
-      <rect
-        x="48"
-        y="31"
-        width="8"
-        height="7"
-        rx="1"
-        fill="#94a3b8"
-        stroke="#64748b"
-        strokeWidth="1"
-      />
-
-      {/* SPINNING rotor on the shaft — the only moving part */}
-      <g className={spinning ? 'electrasim-motor-spin' : undefined}>
-        <circle cx="50" cy="34.5" r="6.5" fill="none" stroke="#334155" strokeWidth="2" />
-        <g stroke="#e0f2fe" strokeWidth="2" strokeLinecap="round">
-          <line x1="50" y1="29" x2="50" y2="40" />
-          <line x1="45" y1="34.5" x2="55" y2="34.5" />
-        </g>
-        <circle cx="50" cy="34.5" r="1.6" fill="#f59e0b" />
-      </g>
-    </svg>
-  );
 }
 
 export interface ComponentNodeProps {
@@ -201,7 +97,11 @@ export function ComponentNode({
   // Catalogue labels embed a *default* rating ("RCBO (32A 30mA)"); an instance
   // may override it via `state.customMaxAmps`. Draw the instance's real rating
   // so the canvas agrees with the inspector, the brief and the Diagnosis Lab.
-  const displayLabel = instanceLabel(component);
+  const baseLabel = instanceLabel(component);
+  const displayLabel =
+    definition?.isLoad && component.state.customPowerWatts !== undefined
+      ? `${baseLabel.replace(/\s*\([^)]*W[^)]*\)/g, '')} (${component.state.customPowerWatts}W)`
+      : baseLabel;
   if (!definition) return null;
 
   const isOn = component.state.on === true;
@@ -242,9 +142,6 @@ export function ComponentNode({
     component.type === 'tube-light';
 
   const showBulbGlow = activeLoadEffects && energized && isBulbLike;
-  const showFanSpin = activeLoadEffects && energized && component.type === 'ceiling-fan';
-  const showMotorSpin = activeLoadEffects && energized && component.type === 'motor';
-  const showBellPulse = activeLoadEffects && energized && component.type === 'bell';
   const changeoverPositionIndex = definition.changeover
     ? isOn
       ? definition.changeover.onPortIndex
@@ -389,6 +286,7 @@ export function ComponentNode({
           />
         )}
         <rect
+          data-device-frame
           width={COMP_W}
           height={COMP_H}
           rx={theme.component.rounded}
@@ -396,6 +294,12 @@ export function ComponentNode({
           fill={theme.component.bg}
           stroke={stroke}
           strokeWidth={selected || error ? 2 : active ? 1.5 : 1}
+        />
+        <DeviceArtwork
+          component={component}
+          energized={energized && fault !== 'open-circuit'}
+          compact={reducedDetails && !selected}
+          animate={activeLoadEffects}
         />
         {(active || error) && (
           <circle cx={COMP_W - 8} cy={8} r={3} fill={error ? '#ef4444' : theme.component.accent} />
@@ -678,164 +582,25 @@ export function ComponentNode({
             })()}
           </g>
         )}
-        {reducedDetails ? (
-          <text
-            x={COMP_W / 2}
-            y={COMP_H / 2 + 3}
-            textAnchor="middle"
-            fontSize="8"
-            fontFamily={theme.monoFont ?? theme.font}
-            fill={theme.component.text}
-            style={{ userSelect: 'none', pointerEvents: 'none' }}
-          >
-            {fitLabel(definition.label, 8)}
-          </text>
-        ) : (
-          <>
-            {(() => {
-              const isLightingBulb =
-                definition.category === 'lighting' ||
-                component.type.startsWith('bulb') ||
-                component.type === 'led-downlight' ||
-                component.type === 'tube-light';
-
-              // Near-realistic SVG art upgrade (default components only).
-              const art = getDefaultArt(component.type);
-
-              if (art) {
-                // The motor uses an inline glyph so only its shaft rotor spins
-                // (the body stays stationary — realistic), not the whole icon.
-                if (component.type === 'motor') {
-                  return (
-                    <g transform={`translate(${COMP_W / 2 - 12} 16)`}>
-                      <MotorGlyph spinning={showMotorSpin} suffix={component.id} />
-                    </g>
-                  );
-                }
-                const isLit =
-                  isLightingBulb &&
-                  energized &&
-                  !component.state.isBlown &&
-                  fault !== 'open-circuit';
-                return (
-                  <g
-                    transform={`translate(${COMP_W / 2 - (isLightingBulb ? 13 : 12)} ${
-                      isLightingBulb ? 13 : 16
-                    })`}
-                  >
-                    <image
-                      href={art}
-                      width={isLightingBulb ? 26 : 24}
-                      height={isLightingBulb ? 26 : 24}
-                      preserveAspectRatio="xMidYMid meet"
-                      className={
-                        isLit
-                          ? 'drop-shadow-[0_0_8px_rgba(250,204,21,0.85)] filter'
-                          : showFanSpin
-                            ? 'electrasim-fan-spin'
-                            : showBellPulse
-                              ? 'electrasim-bell-pulse'
-                              : undefined
-                      }
-                      style={{ pointerEvents: 'none' }}
-                    />
-                  </g>
-                );
-              }
-
-              if (isLightingBulb) {
-                const bulbImg = getComponentImage(component.type, definition.category);
-                const isLit = energized && !component.state.isBlown && fault !== 'open-circuit';
-                return (
-                  <g transform={`translate(${COMP_W / 2 - 13} 13)`}>
-                    <image
-                      href={bulbImg}
-                      width="26"
-                      height="26"
-                      preserveAspectRatio="xMidYMid meet"
-                      className={
-                        isLit
-                          ? 'drop-shadow-[0_0_8px_rgba(250,204,21,0.85)] filter'
-                          : 'drop-shadow-xs'
-                      }
-                      style={{ pointerEvents: 'none' }}
-                    />
-                  </g>
-                );
-              }
-
-              const icon = getComponentIcon(component.type, definition.icon);
-              return (
-                <g transform={`translate(${COMP_W / 2 - 12} 16)`}>
-                  {icon.startsWith('data:image/svg+xml') ? (
-                    <image
-                      href={icon}
-                      width="24"
-                      height="24"
-                      preserveAspectRatio="xMidYMid meet"
-                      className={
-                        showFanSpin
-                          ? 'electrasim-fan-spin'
-                          : showMotorSpin
-                            ? 'electrasim-motor-spin'
-                            : showBellPulse
-                              ? 'electrasim-bell-pulse'
-                              : undefined
-                      }
-                      style={{ pointerEvents: 'none' }}
-                    />
-                  ) : (
-                    <text
-                      x="12"
-                      y="16"
-                      textAnchor="middle"
-                      fontSize="20"
-                      style={{ userSelect: 'none', pointerEvents: 'none' }}
-                      className={
-                        showFanSpin
-                          ? 'electrasim-fan-spin'
-                          : showMotorSpin
-                            ? 'electrasim-motor-spin'
-                            : showBellPulse
-                              ? 'electrasim-bell-pulse'
-                              : undefined
-                      }
-                    >
-                      {icon}
-                    </text>
-                  )}
-                </g>
-              );
-            })()}
-            <text
-              x={COMP_W / 2}
-              y={50}
-              textAnchor="middle"
-              fontSize={displayLabel.length > 10 ? '7.5' : '8.5'}
-              fontFamily={theme.monoFont ?? theme.font}
-              fill={theme.component.text}
-              style={{ userSelect: 'none', pointerEvents: 'none', letterSpacing: '0.01em' }}
-            >
-              {fitLabel(
-                autoLabelsEnabled && component.state.autoLabel
-                  ? `[${component.state.autoLabel}] ${displayLabel}`
-                  : displayLabel,
-                displayLabel.length > 10 ? 7.5 : 8.5,
-              )}
-            </text>
-            <text
-              x={COMP_W / 2}
-              y={62}
-              textAnchor="middle"
-              fontSize="7"
-              fontFamily={theme.monoFont ?? theme.font}
-              fill={theme.component.subtext}
-              style={{ userSelect: 'none', pointerEvents: 'none' }}
-            >
-              {component.id}
-            </text>
-          </>
-        )}
+        <text
+          x={COMP_W / 2}
+          y={67}
+          textAnchor="middle"
+          fontSize={7.5}
+          fontFamily="var(--canvas-mono)"
+          fill="var(--canvas-text)"
+          style={{ userSelect: 'none', pointerEvents: 'none' }}
+        >
+          <title>
+            {displayLabel} · {component.id}
+          </title>
+          {fitLabel(
+            autoLabelsEnabled && component.state.autoLabel
+              ? `[${component.state.autoLabel}] ${definition.label.replace(/\s*\([^)]*\)/g, '')}`
+              : definition.label.replace(/\s*\([^)]*\)/g, ''),
+            7.5,
+          )}
+        </text>
       </g>
 
       {definition.isMomentary && (
@@ -910,7 +675,7 @@ export function ComponentNode({
         const isWarning = compat?.status === 'warning';
         const isInvalid = compat?.status === 'invalid';
 
-        const showPortLabel = Boolean(definition.changeover && port.label && !reducedDetails);
+        const showPortLabel = Boolean(port.label && (!reducedDetails || selected));
         const isSelectedPosition = changeoverPositionIndex === portIndex;
         const labelInsideLeftEdge = port.relX === 0;
 
@@ -947,6 +712,14 @@ export function ComponentNode({
               strokeWidth={portStrokeWidth}
               pointerEvents="none"
             />
+            {!reducedDetails && (
+              <path
+                d={`M${port.relX * COMP_W - 2} ${port.relY * COMP_H}h4`}
+                stroke={portStroke}
+                strokeWidth={0.9}
+                pointerEvents="none"
+              />
+            )}
             {/* Expanded Touchscreen Target Area (28px diameter target padding) */}
             <circle
               data-port-touch-target
@@ -982,9 +755,9 @@ export function ComponentNode({
             {showPortLabel && (
               <text
                 data-port-label={port.label}
-                x={port.relX * COMP_W + (labelInsideLeftEdge ? 9 : -9)}
-                y={port.relY * COMP_H + 2.5}
-                textAnchor={labelInsideLeftEdge ? 'start' : 'end'}
+                x={port.relX * COMP_W + (port.relX === 0 ? 9 : port.relX === 1 ? -9 : 0)}
+                y={port.relY * COMP_H + (port.relY === 0 ? 12 : port.relY === 1 ? -9 : 2.5)}
+                textAnchor={labelInsideLeftEdge ? 'start' : port.relX === 1 ? 'end' : 'middle'}
                 fontSize="7"
                 fontWeight={isSelectedPosition ? 700 : 600}
                 fontFamily={theme.monoFont ?? theme.font}

@@ -31,7 +31,10 @@ export function LogPanel({ isPhone, open, simRunning, logs }: Props) {
   const issues = errors + warnings;
 
   return (
-    <div className="absolute bottom-7 left-1/2 z-10 w-[min(560px,calc(100%-2rem))] -translate-x-1/2 overflow-hidden rounded-lg border border-white/80 bg-white/95 shadow-2xl shadow-slate-900/10 ring-1 ring-slate-900/5 backdrop-blur-xl backdrop-saturate-150 dark:border-slate-700/80 dark:bg-slate-900/95 dark:ring-slate-700/50">
+    <div
+      data-canvas-occluder
+      className="absolute bottom-7 left-1/2 z-10 w-[min(560px,calc(100%-2rem))] -translate-x-1/2 overflow-hidden rounded-lg border border-white/80 bg-white/95 shadow-2xl shadow-slate-900/10 ring-1 ring-slate-900/5 backdrop-blur-xl backdrop-saturate-150 dark:border-slate-700/80 dark:bg-slate-900/95 dark:ring-slate-700/50"
+    >
       <button
         type="button"
         onClick={() => useUiStore.getState().toggleLog()}

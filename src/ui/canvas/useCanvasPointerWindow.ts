@@ -247,7 +247,10 @@ export function useCanvasPointerWindow({
         if (component) drag.previewComponents.set(id, { ...component, x, y });
         const node = drag.componentNodes.get(id);
         if (node) {
-          node.setAttribute('transform', `translate(${x - COMP_W / 2} ${y - COMP_H / 2})`);
+          node.setAttribute(
+            'transform',
+            `translate(${x - COMP_W / 2} ${y - COMP_H / 2}) rotate(${(component?.rotation ?? 0) % 360} ${COMP_W / 2} ${COMP_H / 2})`,
+          );
           node.style.removeProperty('translate');
           node.style.removeProperty('will-change');
         }
@@ -326,6 +329,9 @@ export function useCanvasPointerWindow({
     };
 
     const finishInteraction = (commit: boolean) => {
+      if (svgRef.current?.getAttribute('data-canvas-gesture') !== 'zoom') {
+        svgRef.current?.removeAttribute('data-canvas-gesture');
+      }
       finishDrag(commit);
       finishSelection(commit);
       finishPan(commit);

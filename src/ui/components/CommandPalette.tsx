@@ -1,3 +1,4 @@
+import { fitCanvasView } from '../canvas/fitView';
 /**
  * CommandPalette — Workbench experiment (Ctrl+K).
  *
@@ -25,7 +26,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { modShortcut } from '../../lib/platform';
-import { useCircuitStore, useClipboardStore, useUiStore, useViewportStore } from '../../store';
+import { useCircuitStore, useClipboardStore, useUiStore } from '../../store';
 import { useSettingsStore } from '../../store/settingsStore';
 import { requestDeleteSelection } from '../canvas-actions';
 
@@ -127,16 +128,7 @@ export function CommandPalette() {
         icon: Maximize2,
         keywords: 'fit frame center view',
         run: () => {
-          const el = document.querySelector('[data-circuit-canvas]') as HTMLElement | null;
-          const rect = el?.getBoundingClientRect();
-          if (rect) {
-            useViewportStore
-              .getState()
-              .zoomToFit(
-                { width: rect.width, height: rect.height },
-                useCircuitStore.getState().components,
-              );
-          }
+          fitCanvasView();
           setOpen(false);
         },
       },

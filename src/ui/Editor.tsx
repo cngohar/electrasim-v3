@@ -289,7 +289,7 @@ export function Editor() {
 
   return (
     <div
-      className="relative h-full w-full overflow-hidden"
+      className="electrasim-editor relative h-full w-full overflow-hidden"
       style={{ fontFamily: canvasTheme.font, background: bgGradient }}
     >
       <CircuitCanvas

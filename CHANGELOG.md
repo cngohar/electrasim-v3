@@ -9,12 +9,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 
 ### Added
 
+- Phase 1.4 canvas foundation: cached physical-device vector artwork for all 115 component types, live instance markings and actuator states, terminal labels and reduced-motion support.
+- Desktop/phone browser coverage for keyboard wiring, rotated drag cancellation, panel-aware fitting and SVG/PNG exports; opt-in 200-component/400-wire pan/drag/zoom measurement and test-only Canvas 2D paint comparison.
+
 - Phase 1.3: trusted global roles, explicit audited local super-admin bootstrap, and canonical plans/features/manual entitlements/audit tables (migration 0004).
 - Super-admin membership APIs with same-origin protection, primary D1 authorization, version conflicts and atomic audit; public plan and private own-membership reads preserve expiry/revocation and archive semantics.
 - Pure `@electrasim/access` capability resolver and canonical content policy; 19 real local D1/cookie acceptance groups, added to `bun run verify`. Simulator gates and membership screens follow in 1.5/1.7/1.8; checkout remains Phase 7.
 
 
 ### Changed
+
+- Shared fit-to-view now uses SVG units, rotated footprints and measured floating panels across keyboard, desktop, phone and command-palette controls.
+- Dense wire rendering retains diagnostic, trace, severed, short and melted-wire indicators. Canvas theme variables survive standalone exports.
+- Memoized scene layers and gesture-aware panel blur substantially reduce dense pan work; the 60 fps dense-interaction target remains open, especially during zoom. SVG remains the production renderer; no dependency changes.
 
 - Phase 1.2: extracted `@electrasim/domain` for the simulator, Comlink Worker and Astro consumers; added an ES2022-only compile/import boundary and real local Hono Worker parity checks. Existing circuit format is unchanged.
 - Legacy fault normalization now preserves deterministic identity instead of generating fresh fault IDs/timestamps on each solver call.

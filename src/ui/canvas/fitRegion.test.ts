@@ -190,4 +190,25 @@ describe('fitComponentsIntoRegion', () => {
     if (!view) throw new Error('expected a view');
     expect(view.zoom).toBeGreaterThan(0.25);
   });
+  it('includes the rotated footprint at both quarter turns and arbitrary angles', () => {
+    const region = { x: 90, y: 40, width: 100, height: 140 };
+    for (const rotation of [45, 90, 135, 270]) {
+      const view = fitComponentsIntoRegion(region, [{ x: 400, y: 200, rotation }], {
+        compW: 100,
+        compH: 70,
+        pad: 0,
+      });
+      if (!view) throw new Error('expected fit');
+      const angle = (rotation * Math.PI) / 180;
+      for (const x of [-50, 50])
+        for (const y of [-35, 35]) {
+          const px = view.pan.x + (400 + x * Math.cos(angle) - y * Math.sin(angle)) * view.zoom;
+          const py = view.pan.y + (200 + x * Math.sin(angle) + y * Math.cos(angle)) * view.zoom;
+          expect(px).toBeGreaterThanOrEqual(region.x - 0.001);
+          expect(px).toBeLessThanOrEqual(region.x + region.width + 0.001);
+          expect(py).toBeGreaterThanOrEqual(region.y - 0.001);
+          expect(py).toBeLessThanOrEqual(region.y + region.height + 0.001);
+        }
+    }
+  });
 });

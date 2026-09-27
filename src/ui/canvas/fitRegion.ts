@@ -141,7 +141,7 @@ export function computeVisibleRegion(
  */
 export function fitComponentsIntoRegion(
   region: Rect,
-  components: ReadonlyArray<{ x: number; y: number }>,
+  components: ReadonlyArray<{ x: number; y: number; rotation?: number }>,
   opts: { compW: number; compH: number; pad?: number; minZoom?: number; maxZoom?: number },
 ): { pan: { x: number; y: number }; zoom: number } | null {
   if (components.length === 0) return null;
@@ -156,10 +156,13 @@ export function fitComponentsIntoRegion(
   let maxX = Number.NEGATIVE_INFINITY;
   let maxY = Number.NEGATIVE_INFINITY;
   for (const c of components) {
-    minX = Math.min(minX, c.x - halfW);
-    minY = Math.min(minY, c.y - halfH);
-    maxX = Math.max(maxX, c.x + halfW);
-    maxY = Math.max(maxY, c.y + halfH);
+    const angle = ((c.rotation ?? 0) * Math.PI) / 180;
+    const extentX = Math.abs(Math.cos(angle)) * halfW + Math.abs(Math.sin(angle)) * halfH;
+    const extentY = Math.abs(Math.sin(angle)) * halfW + Math.abs(Math.cos(angle)) * halfH;
+    minX = Math.min(minX, c.x - extentX);
+    minY = Math.min(minY, c.y - extentY);
+    maxX = Math.max(maxX, c.x + extentX);
+    maxY = Math.max(maxY, c.y + extentY);
   }
   const bw = maxX - minX + pad * 2;
   const bh = maxY - minY + pad * 2;
@@ -191,7 +194,7 @@ const toRect = (r: DOMRect): Rect => ({ x: r.x, y: r.y, width: r.width, height: 
  * or the canvas is not mounted, so callers can leave the view untouched.
  */
 export function fitCircuitIntoVisibleRegion(options: {
-  components: ReadonlyArray<{ x: number; y: number }>;
+  components: ReadonlyArray<{ x: number; y: number; rotation?: number }>;
   compW: number;
   compH: number;
   occluderSelectors: readonly string[];

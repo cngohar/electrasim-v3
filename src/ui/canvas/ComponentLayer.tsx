@@ -1,4 +1,5 @@
 import type { ComponentInstance, SimulationResult } from '@electrasim/domain';
+import { memo } from 'react';
 import type { MouseEvent, PointerEvent } from 'react';
 import { ComponentNode } from './ComponentNode';
 import type { CanvasTheme, PortLoc } from './types';
@@ -25,7 +26,7 @@ interface ComponentLayerProps {
   onContextMenu: (id: string, event: MouseEvent<SVGGElement>) => void;
 }
 
-export function ComponentLayer({
+export const ComponentLayer = memo(function ComponentLayer({
   components,
   componentsById,
   simulation,
@@ -81,7 +82,7 @@ export function ComponentLayer({
       ))}
     </g>
   );
-}
+});
 
 // ─── Extracted modules (moved verbatim; re-exported for API parity) ─────────
 export { ComponentNode, type ComponentNodeProps } from './ComponentNode';

@@ -1,3 +1,4 @@
+import { fitCanvasView } from '../canvas/fitView';
 /**
  * PhoneDock — bottom-mounted button strip for the phone layout.
  *
@@ -14,7 +15,7 @@ import {
   Settings,
   Trash2,
 } from 'lucide-react';
-import { useCircuitStore, useUiStore, useViewportStore } from '../../store';
+import { useCircuitStore, useUiStore } from '../../store';
 import { requestDeleteComponent, requestDeleteWire } from '../canvas-actions';
 
 export function PhoneDock() {
@@ -30,17 +31,11 @@ export function PhoneDock() {
     else if (selectedWireId) requestDeleteWire(selectedWireId);
   };
 
-  const zoomToFit = () => {
-    const canvas = document.querySelector('[data-circuit-canvas]') as HTMLElement | null;
-    const rect = canvas?.getBoundingClientRect();
-    if (!rect) return;
-    useViewportStore
-      .getState()
-      .zoomToFit({ width: rect.width, height: rect.height }, useCircuitStore.getState().components);
-  };
-
   return (
-    <div className="absolute bottom-2 left-1/2 z-10 flex w-[calc(100%-1rem)] -translate-x-1/2 items-center gap-0.5 overflow-x-auto rounded-full border border-white/80 bg-white/80 p-1.5 shadow-2xl ring-1 ring-slate-900/5 backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-900/85 dark:ring-slate-700/50">
+    <div
+      data-canvas-occluder
+      className="absolute bottom-2 left-1/2 z-10 flex w-[calc(100%-1rem)] -translate-x-1/2 items-center gap-0.5 overflow-x-auto rounded-full border border-white/80 bg-white/80 p-1.5 shadow-2xl ring-1 ring-slate-900/5 backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-900/85 dark:ring-slate-700/50"
+    >
       <PhoneBtn
         icon={Plus}
         label="Add"
@@ -78,7 +73,7 @@ export function PhoneDock() {
         disabled={!hasSelection || simRunning}
         onClick={deleteSelection}
       />
-      <PhoneBtn icon={Maximize2} label="Fit" onClick={zoomToFit} />
+      <PhoneBtn icon={Maximize2} label="Fit" onClick={fitCanvasView} />
       <PhoneBtn
         icon={Settings}
         label="Cfg"

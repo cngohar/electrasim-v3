@@ -1,6 +1,6 @@
 # Phase 1 — Simulator Core (Lab Circuit Heart)
 
-> **Status:** IMPLEMENTING — 1.0 inventory and local-only isolation completed 2026-09-26; 1.1 standards corrections completed; 1.2 domain extraction completed; 1.3 memberships/roles completed locally on 2026-09-27; 1.4 canvas base next. Simulator membership enforcement and UI remain pending in 1.5/1.7/1.8. See [inventory evidence](../audits/phase-1-inventory.md).
+> **Status:** IMPLEMENTING — 1.0 inventory and local-only isolation completed 2026-09-26; 1.1 standards corrections completed; 1.2 domain extraction completed; 1.3 memberships/roles completed locally on 2026-09-27; 1.4 canvas foundation implemented locally (dense 60 fps target remains open); 1.5 state/persistence next. Simulator membership enforcement and UI remain pending in 1.5/1.7/1.8. See [inventory evidence](../audits/phase-1-inventory.md).
 > **Method:** Sub-phase → Steps → Gate. Each implementation sub-phase ships as its own scoped commit. All development is local-only: the old live-account credentials were removed locally; a new account will be configured after development. Passing a gate never authorizes remote access (see root `AGENTS.md`).
 > **Previous baseline:** Phase 0 recorded `typecheck/lint/vitest 97/1464`, local D1 14 tables and auth 200. These are historical results, not checks rerun for this planning revision.
 > **Principle:** Electrical standards are code-owned (§32). D1 `electrical_standards` remains read-only, including for super admins. Membership controls features, never electrical rules or the truth of basic safety diagnostics.
@@ -9,7 +9,7 @@
 
 ### 0A. Retain SVG; Matter is visual only
 
-Keep the accessible SVG renderer, `labGlassLight/Dark`, `editorBackground`, orthogonal routing and existing artwork. Introduce viewport culling, LOD and dirty-flag rendering as measurements require. Target 60 fps at 200 components + 400 wires and simulation median <5 ms; remeasure during this phase.
+Keep the accessible SVG renderer, `labGlassLight/Dark`, `editorBackground` and orthogonal routing. Enhance existing component artwork to resemble physical electrical devices using clean vector illustrations, as confirmed by the user on 2026-09-27. Introduce viewport culling, LOD and dirty-flag rendering as measurements require. Target 60 fps at 200 components + 400 wires and simulation median <5 ms; measure renderer and solver costs separately during this phase. The current 202-component/300-wire headless fixture does not establish the new rendering target; use ADR 0007's measurement-based decision boundary before considering another renderer.
 
 Matter.js is limited to sag, snapping and overload effects. It must never change `simulate()` results. Pixi/Three remain outside this phase. Record the decision in `docs/decisions/0007-renderer-svg-matter-only.md` during inventory.
 
@@ -45,6 +45,18 @@ Membership is separate from platform/organization roles. Ordinary admins, instru
 
 Use the same theme tokens with two densities: spacious marketing shells and a dense simulator. Preserve search, plug-family filtering, recent components, resizable panels, minimap, command palette and zoom-to-fit. Inspector v2 groups Properties, Wiring, Simulation and Analytics. Lock indicators explain membership features without hiding free diagnostics.
 
+### 0E. Component appearance — user-confirmed 2026-09-27
+
+Enhance the current SVG artwork into consistent, recognizable illustrations of actual device families. The user approved the rest of the proposed canvas direction: a large wiring surface, compact surrounding controls, clear routing/terminals and uncluttered navigation.
+
+- Use meaningful silhouettes, housing proportions, terminal blocks, screws, toggles, knobs and restrained shading. Keep drawings legible in both themes and at working zoom levels. Photorealistic raster imagery is outside this brief.
+- Distinguish device families: DIN-rail protection with toggles/test-button markings as applicable; region-appropriate socket faceplates; contactors with terminal blocks; motors with fins, terminal boxes and shafts; switches/dimmers with recognizable actuators.
+- Printed ratings and animated states must match the configured component and solver state. Replace hardcoded illustrative ratings when they can disagree with the device configuration. Artwork must not imply unsupported terminals, functions or electrical findings.
+- Preserve canonical component/terminal IDs, connectivity and saved-circuit compatibility. Align artwork with the existing interactive terminal anchors; any geometry change needs explicit routing and restore regression checks.
+- Build reusable artwork by device family and evaluate the enhanced catalog in the dense-circuit benchmark. Reduce decorative detail at distant zoom levels while retaining important state and fault cues.
+
+This visual work belongs to 1.4's component rendering foundation. The broader palette/toolbar/inspector redesign remains in 1.7; physical cable effects remain in 1.6.
+
 ## 1. Revised sub-phase map
 
 This replaces the previous 1.0–1.7 sequence. Membership foundations precede persistence; the final local gate is now **1.9**.
@@ -55,7 +67,7 @@ This replaces the previous 1.0–1.7 sequence. Membership foundations precede pe
 | **1.1** | **Standards corrections** | Correct claims/edition metadata; review EVSE, Zs applicability, voltage-drop/rating policies and regional diagnostic text; reseed verified changes | `packages/domain/src/{standards,zsCheck,compliance,faults,templates}.ts`, electrical helpers, relevant Astro tools, migrations | Typecheck + targeted Vitest; independent expected-value fixtures; unsupported cases never yield a false compliance pass |
 | **1.2** | **Domain package** | Extract pure `packages/domain`; retain one `Circuit` format; separate electrical computation from access policy | `packages/domain/**`, workspace/import configuration | Typecheck all projects; browser/Hono Worker compatibility; parity tests |
 | **1.3** | **Membership and roles** | Trusted global role, super-admin bootstrap, plans/features/entitlements/audit schema, resolver and manual APIs | `packages/db/**`, migrations, planned `packages/access/**`, Hono routes | Local D1 + cookie-authenticated role/entitlement tests; signup cannot self-assign role/access |
-| **1.4** | **Canvas base** | SVG layers, routing, fitRegion, measured culling/LOD, theme CSS variables | `src/ui/canvas/**` | Browser/a11y checks; measure 200-component/400-wire workload |
+| **1.4** | **Canvas base** | SVG layers, enhanced physical-device artwork, routing, fitRegion, measured culling/LOD, theme CSS variables | `src/ui/canvas/**` | Browser/a11y checks; measure 200-component/400-wire workload with enhanced artwork |
 | **1.5** | **State, simulation and persistence** | Slim Zustand; `comlink`; circuit CRUD; gate premium actions, imports, copies, restores and server results | `src/store/**`, `src/sim-worker/**`, Hono circuit/scenario routes | Free local sim without login; fresh paid authorization; imported content cannot bypass gates; downgrade preserves documents |
 | **1.6** | **Matter visuals** | Sag/snap/overload effects, throttling and offscreen sleep | planned `src/ui/canvas/MatterLayer.tsx` | Same electrical output with effects on/off; reduced-motion and perf checks |
 | **1.7** | **Simulator UI and modes** | Palette/Inspector/commands; basic vs advanced controls; membership status; read-only premium documents | `src/ui/components/**`, access client state | Guest completes basic diagnosis; paid member runs advanced/Ohmageddon; keyboard and restore paths obey policy |
@@ -78,7 +90,7 @@ Revisit the roadmap estimate after inventory; added membership/admin work is not
 | 1.3.1 | Implement trusted role/bootstrap and schema before membership CRUD | No self-grants; super-admin action audited |
 | 1.3.2 | Implement manual memberships and common capability resolver | Active, scheduled, expired, suspended and revoked behavior covered |
 
-The 1.0 inventory, 1.1 claim/applicability, 1.2 domain-package and 1.3 membership/role gates are complete; continue with 1.4. Phase 1.3 passed 19 real local D1/cookie API groups, all 1,514 unit tests, typechecks, lint and the production asset build. Migration 0004 is applied locally. See the [membership API and bootstrap contract](../api/membership.md). See [standards implementation evidence](../audits/phase-1-standards-implementation.md). Later sub-phases remain gated on their predecessors.
+The 1.0 inventory, 1.1 claim/applicability, 1.2 domain-package and 1.3 membership/role gates are complete. The 1.4 canvas foundation and measurement gate are complete locally; continue with 1.5. Dense interaction performance is not yet 60 fps; see [performance evidence](../PERFORMANCE.md). Phase 1.3 passed 19 real local D1/cookie API groups, all 1,514 unit tests, typechecks, lint and the production asset build. Migration 0004 is applied locally. See the [membership API and bootstrap contract](../api/membership.md). See [standards implementation evidence](../audits/phase-1-standards-implementation.md). Later sub-phases remain gated on their predecessors.
 
 ## 3. Membership acceptance scenarios
 

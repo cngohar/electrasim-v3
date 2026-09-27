@@ -1,0 +1,40 @@
+/* Shared SVG vocabulary; values live inline on the SVG so snapshots can retain them. */
+[data-circuit-canvas] {
+  isolation: isolate;
+}
+[data-circuit-canvas] [role="button"]:focus-visible {
+  outline: 2px solid var(--canvas-accent);
+  outline-offset: 3px;
+}
+[data-component-hitbox]:focus-visible > [data-device-frame] {
+  stroke: var(--canvas-accent);
+  stroke-width: 2;
+}
+.device-rotor {
+  animation: device-rotation 1.5s linear infinite;
+  transform-origin: 0 0;
+}
+@keyframes device-rotation {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* Moving a large scene beneath frosted panels forces repeated backdrop rasterization.
+ * Keep the panel's opaque tint during gestures, restore its blur after committing. */
+.electrasim-editor:has([data-canvas-gesture]) [class*="backdrop-blur"] {
+  backdrop-filter: none !important;
+}
+[data-canvas-gesture] .device-rotor {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-circuit-canvas] *,
+  [data-circuit-canvas] *::before,
+  [data-circuit-canvas] *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+[data-circuit-canvas][data-reduced-effects="true"] * {
+  animation: none !important;
+}

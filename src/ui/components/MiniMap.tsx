@@ -111,6 +111,7 @@ export function MiniMap({ consoleOffset = 'none' }: Props) {
 
   return (
     <div
+      data-canvas-occluder
       className={`absolute ${rightClass} z-10 overflow-hidden rounded-xl border border-white/60 bg-white/70 shadow-lg ring-1 ring-slate-900/5 backdrop-blur-xl transition-all duration-150 dark:border-slate-700/60 dark:bg-slate-900/70 ${bottomClass}`}
     >
       <svg

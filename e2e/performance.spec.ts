@@ -1,5 +1,5 @@
-import { gzipSync } from 'node:zlib';
 import { type Page, expect, test } from '@playwright/test';
+import { compareCanvas2D } from './helpers/canvas2d-comparison';
 
 interface FrameStats {
   count: number;
@@ -17,7 +17,7 @@ interface GestureStats extends FrameStats {
 
 /** A deterministic dense circuit. The old benchmark depended on a removed
  * dev-only toolbar button, which meant the opt-in benchmark could not run. */
-function denseCircuitShareUrl(): string {
+function denseCircuitJson(): string {
   const components: Array<{
     id: string;
     type: string;
@@ -37,7 +37,7 @@ function denseCircuitShareUrl(): string {
     controlPoints: never[];
   }> = [];
 
-  for (let index = 0; index < 100; index += 1) {
+  for (let index = 0; index < 99; index += 1) {
     const switchId = `switch-${index}`;
     const bulbId = `bulb-${index}`;
     const column = index % 10;
@@ -83,10 +83,29 @@ function denseCircuitShareUrl(): string {
     );
   }
 
-  const encoded = gzipSync(
-    JSON.stringify({ version: 1, exportedAt: 0, circuit: { components, wires } }),
-  ).toString('base64');
-  return `/?e2e=performance#c=${encodeURIComponent(encoded)}`;
+  // Additional parallel feeders exercise a denser mesh without inventing ports.
+  for (let index = 0; index < 99; index++) {
+    wires.push({
+      id: `ring-live-${index}`,
+      fromComponentId: `switch-${index}`,
+      fromPortIndex: 0,
+      toComponentId: `switch-${(index + 1) % 99}`,
+      toPortIndex: 0,
+      controlPoints: [],
+    });
+  }
+  for (let index = 0; index < 4; index++) {
+    wires.push({
+      id: `ring-neutral-${index}`,
+      fromComponentId: `bulb-${index}`,
+      fromPortIndex: 1,
+      toComponentId: `bulb-${index + 1}`,
+      toPortIndex: 1,
+      controlPoints: [],
+    });
+  }
+
+  return JSON.stringify({ version: 1, exportedAt: 0, circuit: { components, wires } });
 }
 
 async function measurePointerGesture(
@@ -163,6 +182,45 @@ async function measurePointerGesture(
   }, options);
 }
 
+async function measureZoom(
+  page: Page,
+): Promise<FrameStats & { handlerAverage: number; handlerP95: number }> {
+  return page.evaluate(async () => {
+    const svg = document.querySelector('[data-circuit-canvas]')!;
+    const box = svg.getBoundingClientRect();
+    const frames: number[] = [];
+    const handlers: number[] = [];
+    let previous = 0;
+    for (let i = 0; i < 60; i++) {
+      const now = await new Promise<number>(requestAnimationFrame);
+      if (previous) frames.push(now - previous);
+      previous = now;
+      const start = performance.now();
+      svg.dispatchEvent(
+        new WheelEvent('wheel', {
+          bubbles: true,
+          cancelable: true,
+          clientX: box.x + box.width / 2,
+          clientY: box.y + box.height / 2,
+          deltaY: i < 30 ? -4 : 4,
+        }),
+      );
+      handlers.push(performance.now() - start);
+    }
+    const average = (values: number[]) => values.reduce((sum, v) => sum + v, 0) / values.length;
+    const p95 = (values: number[]) =>
+      [...values].sort((a, b) => a - b)[Math.floor(values.length * 0.95)];
+    return {
+      count: frames.length,
+      average: average(frames),
+      p95: p95(frames),
+      longFrameRatio: frames.filter((v) => v > 50).length / frames.length,
+      handlerAverage: average(handlers),
+      handlerP95: p95(handlers),
+    };
+  });
+}
+
 test.describe('dense editor benchmark', () => {
   const explicitlySelected = process.argv.some((arg) => arg.includes('performance.spec'));
   test.skip(
@@ -170,16 +228,32 @@ test.describe('dense editor benchmark', () => {
     'Run explicitly with `npm run benchmark:browser`.',
   );
 
+  test.setTimeout(60_000);
+
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
       window.localStorage.setItem('electrasim:welcomed', '1');
     });
   });
 
-  test('keeps the SVG editing path responsive at roughly 200 components', async ({ page }) => {
-    await page.goto(denseCircuitShareUrl());
-    await expect(page.locator('[data-component-id]')).toHaveCount(202);
-    await expect(page.locator('path[data-wire-id]')).toHaveCount(300);
+  test('keeps the SVG editing path responsive at 200 components and 400 wires', async ({
+    page,
+  }) => {
+    await page.goto('?e2e=performance');
+    await expect(page.getByRole('button', { name: /^Run Simulation$/ })).toBeVisible();
+    await page.keyboard.press('Control+e');
+    const modal = page.getByRole('dialog');
+    await modal.getByRole('button', { name: /^Import$/ }).click();
+    await modal.locator('textarea').fill(denseCircuitJson());
+    await modal.getByRole('button', { name: 'Import from paste' }).click();
+    await expect(
+      modal.getByText('Loaded 200 components, 400 wires.', { exact: true }),
+    ).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(modal).toHaveCount(0);
+    await expect(page.locator('[data-component-id]')).toHaveCount(200);
+    await expect(page.locator('[data-wire-id]')).toHaveCount(400);
+    await expect(page.locator('[data-device-art]')).toHaveCount(200);
 
     await page.getByRole('button', { name: /^Run Simulation$/ }).click();
     await page.waitForTimeout(500);
@@ -281,7 +355,13 @@ test.describe('dense editor benchmark', () => {
       contentType: 'application/json',
     });
 
-    console.info('Dense interaction frames', JSON.stringify({ panFrames, dragFrames }));
+    const zoomFrames = await measureZoom(page);
+    await expect(page.locator('[data-circuit-canvas]')).not.toHaveAttribute('data-canvas-gesture');
+    await test.info().attach('zoom-frame-budget.json', {
+      body: Buffer.from(JSON.stringify(zoomFrames, null, 2)),
+      contentType: 'application/json',
+    });
+    console.info('Dense interaction frames', JSON.stringify({ panFrames, dragFrames, zoomFrames }));
     expect(componentTransformAfter).not.toBe(componentTransformBefore);
 
     const frames = await page.evaluate(
@@ -325,5 +405,13 @@ test.describe('dense editor benchmark', () => {
     expect(frames.average).toBeLessThan(30);
     expect(frames.p95).toBeLessThanOrEqual(50);
     expect(frames.longFrameRatio).toBeLessThan(0.1);
+    if (process.env.PERF_COMPARE === '1') {
+      const comparison = await compareCanvas2D(page);
+      console.info('Canvas2D paint comparison', JSON.stringify(comparison));
+      await test.info().attach('canvas2d-comparison.json', {
+        body: Buffer.from(JSON.stringify(comparison, null, 2)),
+        contentType: 'application/json',
+      });
+    }
   });
 });
