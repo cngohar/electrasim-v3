@@ -36,6 +36,7 @@ export const appMeta = sqliteTable('app_meta', {
 
 // ── Better Auth — re-export so drizzle-kit generates migrations for all tables ──
 export * from './auth-schema';
+export * from './membership-schema';
 
 // ── i18n foundation (0.4) ──
 export const i18nStrings = sqliteTable('i18n_strings', {

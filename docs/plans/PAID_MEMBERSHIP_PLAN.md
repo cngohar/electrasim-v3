@@ -1,6 +1,6 @@
 # Paid Membership — Phase 1 Implementation Plan
 
-> **Status:** PLANNED, not implemented. Decisions confirmed by the user on 2026-09-26.
+> **Status:** Phase 1.3 backend foundation completed locally on 2026-09-27: trusted roles/bootstrap, canonical schema, shared resolver and audited manual APIs. Simulator enforcement/persistence (1.5), simulator controls (1.7) and admin UI (1.8) remain pending. Decisions confirmed by the user on 2026-09-26. See [API contract and local verification](../api/membership.md).
 > **Parent:** [Phase 1](../phases/phase-1-simulator-core.md), [Master plan §9](../REWRITE_PLAN_V3_FULL.md#9-paid-membership--super-admin-managed).
 
 ## 1. Confirmed scope
@@ -20,9 +20,9 @@ Membership is an entitlement, not a global role. Buying or receiving it does not
 | `src/store/useSimulation.ts`, `packages/domain/src/simulation/simulate.ts` | `appMode` affects stress behavior | Separate electrical results/basic warnings from premium exercise controls |
 | `packages/domain/src/faults.ts`, `src/store/circuitStore.faultActions.ts`, Inspector | 14 fault types; manual setting described as Pro-only | Explicit basic/advanced policy, enforced at actions |
 | `src/store/diagnosisStore.ts`, `packages/domain/src/challenges/{diagnosis,rage}/*` | Three difficulty levels/four rage tiers; start/restore trust browser settings | Check actual requirements on start, regeneration, resume and submission |
-| `packages/db/{schema,auth-schema,auth}.ts`, `src/worker.ts` | Auth/org foundation; no plans, entitlements, global role field or membership routes | Trusted role, migrations, resolver, APIs and admin UI |
+| `packages/db/*`, `packages/access/*`, `src/api/*`, `src/worker.ts` | Phase 1.3 roles, plans, entitlements, resolver and manual APIs implemented locally | Integrate simulator enforcement and admin UI in 1.5/1.7/1.8 |
 
-These are observations from 2026-09-26, not claims that membership is implemented.
+Simulator observations are from 2026-09-26; the backend row was updated after the 1.3 local gate on 2026-09-27. Backend completion does not mean simulator entry points or admin screens are gated yet.
 
 ## 3. Capability boundary
 

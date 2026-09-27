@@ -50,7 +50,10 @@ export default defineConfig({
         test: {
           name: 'domain',
           environment: 'node',
-          include: ['packages/domain/src/**/*.{test,spec}.{ts,tsx}'],
+          include: [
+            'packages/domain/src/**/*.{test,spec}.{ts,tsx}',
+            'packages/access/src/**/*.test.ts',
+          ],
         },
       },
     ],

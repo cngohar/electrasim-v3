@@ -6,6 +6,13 @@ import { organization } from 'better-auth/plugins/organization';
 import * as authSchema from './auth-schema';
 import { createDrizzle } from './drizzle';
 
+// This is server-owned. Signup and update-user must never accept role claims.
+const trustedUserFields = {
+  additionalFields: {
+    globalRole: { type: 'string', defaultValue: 'individual', input: false },
+  },
+} as const;
+
 export const auth = betterAuth({
   database: drizzleAdapter({ _: { fullSchema: authSchema } } as unknown as never, {
     provider: 'sqlite',
@@ -16,6 +23,8 @@ export const auth = betterAuth({
     'local-dev-secret-please-set-BETTER_AUTH_SECRET-in-wrangler-must-be-32-chars',
   baseURL: process.env.BETTER_AUTH_URL ?? 'http://localhost:8789',
   emailAndPassword: { enabled: true, requireEmailVerification: false },
+  user: trustedUserFields,
+  session: { cookieCache: { enabled: false } },
   plugins: [organization({ allowUserToCreateOrganization: true, organizationLimit: 3 })],
   advanced: { database: { generateId: () => crypto.randomUUID() } },
 });
@@ -28,6 +37,8 @@ export function createAuth(d1: unknown, opts: { baseURL: string; secret: string 
     secret: opts.secret,
     baseURL: opts.baseURL,
     emailAndPassword: { enabled: true, requireEmailVerification: false },
+    user: trustedUserFields,
+    session: { cookieCache: { enabled: false } },
     plugins: [organization({ allowUserToCreateOrganization: true, organizationLimit: 3 })],
     advanced: { database: { generateId: () => crypto.randomUUID() } },
   });

@@ -1,6 +1,6 @@
 # Phase 1 — Simulator Core (Lab Circuit Heart)
 
-> **Status:** IMPLEMENTING — 1.0 inventory and local-only isolation completed 2026-09-26; 1.1 standards corrections completed; 1.2 domain extraction completed; 1.3 memberships/roles next. Membership and later simulator changes remain pending. See [inventory evidence](../audits/phase-1-inventory.md).
+> **Status:** IMPLEMENTING — 1.0 inventory and local-only isolation completed 2026-09-26; 1.1 standards corrections completed; 1.2 domain extraction completed; 1.3 memberships/roles completed locally on 2026-09-27; 1.4 canvas base next. Simulator membership enforcement and UI remain pending in 1.5/1.7/1.8. See [inventory evidence](../audits/phase-1-inventory.md).
 > **Method:** Sub-phase → Steps → Gate. Each implementation sub-phase ships as its own scoped commit. All development is local-only: the old live-account credentials were removed locally; a new account will be configured after development. Passing a gate never authorizes remote access (see root `AGENTS.md`).
 > **Previous baseline:** Phase 0 recorded `typecheck/lint/vitest 97/1464`, local D1 14 tables and auth 200. These are historical results, not checks rerun for this planning revision.
 > **Principle:** Electrical standards are code-owned (§32). D1 `electrical_standards` remains read-only, including for super admins. Membership controls features, never electrical rules or the truth of basic safety diagnostics.
@@ -78,7 +78,7 @@ Revisit the roadmap estimate after inventory; added membership/admin work is not
 | 1.3.1 | Implement trusted role/bootstrap and schema before membership CRUD | No self-grants; super-admin action audited |
 | 1.3.2 | Implement manual memberships and common capability resolver | Active, scheduled, expired, suspended and revoked behavior covered |
 
-The 1.0 inventory, 1.1 claim/applicability and 1.2 domain-package gates are complete; continue with 1.3. See [standards implementation evidence](../audits/phase-1-standards-implementation.md). Later sub-phases remain gated on their predecessors.
+The 1.0 inventory, 1.1 claim/applicability, 1.2 domain-package and 1.3 membership/role gates are complete; continue with 1.4. Phase 1.3 passed 19 real local D1/cookie API groups, all 1,514 unit tests, typechecks, lint and the production asset build. Migration 0004 is applied locally. See the [membership API and bootstrap contract](../api/membership.md). See [standards implementation evidence](../audits/phase-1-standards-implementation.md). Later sub-phases remain gated on their predecessors.
 
 ## 3. Membership acceptance scenarios
 

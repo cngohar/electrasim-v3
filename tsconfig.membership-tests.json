@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "types": ["node"] },
+  "include": [
+    "scripts/bootstrap-super-admin.ts",
+    "scripts/test-membership.ts",
+    "scripts/local-test-url.ts"
+  ]
+}

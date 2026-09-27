@@ -1,6 +1,7 @@
 // V3 Worker — Hono on Workers. Serves API + assets. Local-first: `bun x wrangler dev --local`.
 import { Hono } from 'hono';
-import { createAuth } from '../packages/db/auth';
+import { type ApiEnv, requestAuth } from './api/context';
+import { membershipApi } from './api/membership';
 
 // ── Durable Object stub ──
 export class PresenceRoom {
@@ -11,18 +12,7 @@ export class PresenceRoom {
   }
 }
 
-type Env = {
-  DB: unknown;
-  KV: unknown;
-  R2: unknown;
-  QUEUE: unknown;
-  PRESENCE: unknown;
-  ENV: string;
-  BETTER_AUTH_SECRET?: string;
-  BETTER_AUTH_URL?: string;
-};
-
-const app = new Hono<{ Bindings: Env }>();
+const app = new Hono<ApiEnv>();
 
 // ── i18n helpers (§31) ──
 const SUPPORTED_LOCALES = ['en', 'fr', 'de', 'es', 'ar'] as const;
@@ -45,7 +35,7 @@ function localeFromPath(pathname: string): Locale | null {
   return seg && (SUPPORTED_LOCALES as readonly string[]).includes(seg) ? (seg as Locale) : null;
 }
 
-app.get('/api/health', (c) => c.json({ ok: true, version: '3.0.0', phase: '0.4' }));
+app.get('/api/health', (c) => c.json({ ok: true, version: '3.0.0', phase: '1.3' }));
 
 app.get('/api/config', (c) =>
   c.json({
@@ -94,27 +84,8 @@ app.get('/api/standards', async (c) => {
 });
 
 // ── Better Auth — mount at /api/auth/* ──
-app.on(['GET', 'POST'], '/api/auth/*', async (c) => {
-  const baseURL = c.env.BETTER_AUTH_URL ?? new URL(c.req.url).origin;
-  const secret =
-    c.env.BETTER_AUTH_SECRET ?? 'local-dev-secret-please-set-BETTER_AUTH_SECRET-in-wrangler';
-  const auth = createAuth(c.env.DB, { baseURL, secret });
-  return auth.handler(c.req.raw);
-});
-
-// Admin gate stub (real RBAC middleware lands next — for now prove auth protects a route).
-app.get('/api/admin/ping', async (c) => {
-  const baseURL = c.env.BETTER_AUTH_URL ?? new URL(c.req.url).origin;
-  const secret =
-    c.env.BETTER_AUTH_SECRET ?? 'local-dev-secret-please-set-BETTER_AUTH_SECRET-in-wrangler';
-  const auth = createAuth(c.env.DB, { baseURL, secret });
-  const session = await auth.api.getSession({ headers: c.req.header() as unknown as Headers });
-  if (!session) return c.json({ error: 'unauthorized' }, 401);
-  return c.json({
-    ok: true,
-    userId: (session as unknown as { user: { id: string } }).user?.id ?? null,
-  });
-});
+app.on(['GET', 'POST'], '/api/auth/*', (c) => requestAuth(c).handler(c.req.raw));
+app.route('/api', membershipApi);
 
 // ── Locale redirect + hreflang (applied to every non-API/asset request) ──
 app.use('*', async (c, next) => {

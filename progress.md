@@ -84,3 +84,16 @@ Gates: 101 Vitest files / 1,491 tests passed; all four TypeScript projects, boun
 Local fixtures: `wrangler.domain-test.jsonc` and `scripts/check-domain-worker.ts`; see [package README](packages/domain/README.md). The isolated test Worker is not imported by the application and must never be deployed. Main Worker `/api/standards` still serves four profiles locally. No live Cloudflare operation occurred.
 
 Next: Phase 1.3 trusted roles, manual membership schema/resolver/APIs and local cookie-authenticated authorization tests. The paid-membership feature is still pending; Phase 1.1/1.2 establish its electrical/domain foundations.
+
+
+## Session 2026-09-27 — Phase 1.3 memberships and trusted roles
+
+Completed the local backend foundation in `packages/db/{auth,auth-schema,membership-schema}.ts`, migration `0004_membership_foundation.sql`, `packages/access/`, and `src/api/`. Better Auth rejects/ignores protected role inputs; an explicit known-user operator command bootstraps the first local super admin with an atomic audit. Staff and organization roles never imply paid capabilities or membership administration.
+
+The manual APIs manage plans, supported benefits and grants, with localized benefit copy, strict fields/dates, pagination, impact counts, same-origin checks, fresh primary D1 reads and optimistic versions. Random mutation tokens bind plan feature replacement and audit to the winning write in one D1 transaction. Deletion archives referenced plans/benefits and revokes grants while retaining history. Public marketing archive is separate from explicit capability disablement. No commercial plans or memberships are seeded.
+
+Added [the API/bootstrap contract](docs/api/membership.md), local test configuration and `bun run test:membership`. That gate migrates isolated local D1, registers real Better Auth users and uses issued cookies. All **19 acceptance groups passed**, including role/CSRF denial, signup/profile role injection, overlapping/scheduled/expired/no-expiry grants, suspension/extension/revocation with the same cookie, concurrent plan/feature/grant edits, audit rollback, unavailable D1, archive/hard-delete behavior and staff demotion. Evidence remains in `.wrangler/membership-tests-zzVhBB/`; tests shut down their isolated Worker.
+
+Validation: **102 Vitest files / 1,514 tests passed**, including 23 resolver/classification tests; domain/access isolation compiles, all application/E2E/Astro/API-script typechecks and repository lint passed. `bun run build` passed. Drizzle regeneration reports no schema drift. Migration 0004 applied to the regular **local** `.wrangler/state` database; the local Worker on port 8791 returns phase 1.3 health, empty public plans and a 401 for unauthenticated admin access. Logs: `.wrangler/phase-1.3-{check,build}.log`. No dependency versions were upgraded.
+
+Phase 1.3 is complete; next is **1.4 canvas base**. Simulator redesign spans 1.4 (canvas), 1.6 (visual effects) and 1.7 (main interface). Simulator action/persistence enforcement remains in 1.5/1.7 and the membership administration UI in 1.8. Development remains local-only; no live Cloudflare account or remote resource was used.

@@ -7,6 +7,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 
 ## [Unreleased]
 
+### Added
+
+- Phase 1.3: trusted global roles, explicit audited local super-admin bootstrap, and canonical plans/features/manual entitlements/audit tables (migration 0004).
+- Super-admin membership APIs with same-origin protection, primary D1 authorization, version conflicts and atomic audit; public plan and private own-membership reads preserve expiry/revocation and archive semantics.
+- Pure `@electrasim/access` capability resolver and canonical content policy; 19 real local D1/cookie acceptance groups, added to `bun run verify`. Simulator gates and membership screens follow in 1.5/1.7/1.8; checkout remains Phase 7.
+
+
 ### Changed
 
 - Phase 1.2: extracted `@electrasim/domain` for the simulator, Comlink Worker and Astro consumers; added an ES2022-only compile/import boundary and real local Hono Worker parity checks. Existing circuit format is unchanged.

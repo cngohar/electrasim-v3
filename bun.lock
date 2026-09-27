@@ -6,6 +6,7 @@
       "name": "electrasim",
       "dependencies": {
         "@better-auth/drizzle-adapter": "^1.7.6",
+        "@electrasim/access": "workspace:*",
         "@electrasim/domain": "workspace:*",
         "better-auth": "^1.7.6",
         "comlink": "^4.4.2",
@@ -67,6 +68,13 @@
         "sharp": "^0.35.4",
         "three": "^0.174.0",
         "vitest": "^3.2.4",
+      },
+    },
+    "packages/access": {
+      "name": "@electrasim/access",
+      "version": "3.0.0",
+      "dependencies": {
+        "@electrasim/domain": "workspace:*",
       },
     },
     "packages/domain": {
@@ -400,6 +408,8 @@
     "@csstools/css-tokenizer": ["@csstools/css-tokenizer@3.0.4", "", {}, "sha512-Vd/9EVDiu6PPJt9yAh6roZP6El1xHrdvIVGjyBsHR0RYwNHgL7FJPyIIW4fANJNG6FtyZfvlRPpFI4ZM/lubvw=="],
 
     "@drizzle-team/brocli": ["@drizzle-team/brocli@0.10.2", "", {}, "sha512-z33Il7l5dKjUgGULTqBsQBQwckHh5AbIuxhdsIxDDiZAzBOrZO6q9ogcWC65kU382AfynTfgNumVcNIjuIua6w=="],
+
+    "@electrasim/access": ["@electrasim/access@workspace:packages/access"],
 
     "@electrasim/domain": ["@electrasim/domain@workspace:packages/domain"],
 

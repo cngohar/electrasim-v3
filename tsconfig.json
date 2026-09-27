@@ -32,6 +32,12 @@
     "forceConsistentCasingInFileNames": true,
     "verbatimModuleSyntax": false
   },
-  "include": ["src", "packages/domain/src", "vite.config.ts", "vitest.config.ts"],
+  "include": [
+    "src",
+    "packages/domain/src",
+    "packages/access/src",
+    "vite.config.ts",
+    "vitest.config.ts"
+  ],
   "exclude": ["node_modules", "dist"]
 }
