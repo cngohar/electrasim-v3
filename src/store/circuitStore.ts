@@ -13,9 +13,11 @@
  */
 
 import { COMPONENT_DEFS, type ComponentInstance, type WireInstance } from '@electrasim/domain';
+import { normalizeCircuitDocument } from '@electrasim/domain/core/normalize';
 import { temporal } from 'zundo';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
+import { guardedCircuitSet } from './circuitAccess';
 import { createFaultActions } from './circuitStore.faultActions';
 import { componentsForHistory } from './circuitStore.history';
 import type { CircuitState } from './circuitStore.types';
@@ -78,731 +80,742 @@ export function isDemoSeedCircuit(state: {
 
 export const useCircuitStore = create<CircuitState>()(
   temporal(
-    immer<CircuitState>((set) => ({
-      components: seed.components,
-      wires: seed.wires,
-      globalVoltage: 230,
-      faults: [],
-      selectedComponentId: null,
-      selectedWireIds: [],
-      selectedComponentIds: [],
-      componentGroups: [],
+    immer<CircuitState>((commit, get) => {
+      const set = guardedCircuitSet(get, (state) => commit(state));
+      return {
+        components: seed.components,
+        wires: seed.wires,
+        globalVoltage: 230,
+        faults: [],
+        selectedComponentId: null,
+        selectedWireIds: [],
+        selectedComponentIds: [],
+        componentGroups: [],
 
-      setCircuit: (circuit) =>
-        set((s) => {
-          s.components = circuit.components;
-          s.wires = circuit.wires;
-          s.faults = circuit.faults ? [...circuit.faults] : [];
-          const nextVoltage = circuit.globalVoltage ?? 230;
-          s.globalVoltage = Number.isFinite(nextVoltage) && nextVoltage > 0 ? nextVoltage : 230;
-          s.selectedComponentId = null;
-          s.selectedComponentIds = [];
-          s.selectedWireIds = [];
-        }),
+        setCircuit: (circuit) =>
+          commit((s) => {
+            // Authored exercises may intentionally supply a held contact. File/backup
+            // adapters release momentary inputs before calling this in-memory boundary.
+            const normalized = normalizeCircuitDocument(circuit, false);
+            s.componentGroups = [];
+            s.components = normalized.components;
+            s.wires = normalized.wires;
+            s.faults = normalized.faults ? [...normalized.faults] : [];
+            const nextVoltage = circuit.globalVoltage ?? 230;
+            s.globalVoltage = Number.isFinite(nextVoltage) && nextVoltage > 0 ? nextVoltage : 230;
+            s.selectedComponentId = null;
+            s.selectedComponentIds = [];
+            s.selectedWireIds = [];
+          }),
 
-      swapDemoSocketForPlug: (socketType) =>
-        set((s) => {
-          // Only swap when the circuit is still an untouched demo seed
-          // (either the Student or the Pro variant), so a user who has
-          // built their own circuit is never silently rewritten. The
-          // reference is built with the circuit's current socket so that
-          // repeated plug changes keep working.
-          const currentSocket =
-            s.components.find((c) => REGIONAL_SOCKET_TYPES.has(c.type))?.type ?? 'socket-3pin';
-          const current = { components: s.components, wires: s.wires };
-          const builder = sameCircuitShape(current, buildStudentSeedCircuit(currentSocket))
-            ? buildStudentSeedCircuit
-            : sameCircuitShape(current, buildProSeedCircuit(currentSocket))
-              ? buildProSeedCircuit
-              : null;
-          if (!builder) return;
-          const next = builder(socketType);
-          s.components = next.components;
-          s.wires = next.wires;
-        }),
+        swapDemoSocketForPlug: (socketType) =>
+          set((s) => {
+            // Only swap when the circuit is still an untouched demo seed
+            // (either the Student or the Pro variant), so a user who has
+            // built their own circuit is never silently rewritten. The
+            // reference is built with the circuit's current socket so that
+            // repeated plug changes keep working.
+            const currentSocket =
+              s.components.find((c) => REGIONAL_SOCKET_TYPES.has(c.type))?.type ?? 'socket-3pin';
+            const current = { components: s.components, wires: s.wires };
+            const builder = sameCircuitShape(current, buildStudentSeedCircuit(currentSocket))
+              ? buildStudentSeedCircuit
+              : sameCircuitShape(current, buildProSeedCircuit(currentSocket))
+                ? buildProSeedCircuit
+                : null;
+            if (!builder) return;
+            const next = builder(socketType);
+            s.components = next.components;
+            s.wires = next.wires;
+          }),
 
-      swapDemoForMode: (mode) =>
-        set((s) => {
-          // Mode switch keeps each audience on its own demo bench — but only
-          // while the canvas is still an untouched demo seed. A user's own
-          // circuit is never rewritten.
-          const currentSocket =
-            s.components.find((c) => REGIONAL_SOCKET_TYPES.has(c.type))?.type ?? 'socket-3pin';
-          const current = { components: s.components, wires: s.wires };
-          const isStudentDemo = sameCircuitShape(current, buildStudentSeedCircuit(currentSocket));
-          const isProDemo =
-            !isStudentDemo && sameCircuitShape(current, buildProSeedCircuit(currentSocket));
-          if (!isStudentDemo && !isProDemo) return;
-          const next =
-            mode === 'pro'
-              ? buildProSeedCircuit(currentSocket)
-              : buildStudentSeedCircuit(currentSocket);
-          s.components = next.components;
-          s.wires = next.wires;
-          s.faults = [];
-          s.selectedComponentId = null;
-          s.selectedComponentIds = [];
-          s.selectedWireIds = [];
-        }),
+        swapDemoForMode: (mode) =>
+          set((s) => {
+            // Mode switch keeps each audience on its own demo bench — but only
+            // while the canvas is still an untouched demo seed. A user's own
+            // circuit is never rewritten.
+            const currentSocket =
+              s.components.find((c) => REGIONAL_SOCKET_TYPES.has(c.type))?.type ?? 'socket-3pin';
+            const current = { components: s.components, wires: s.wires };
+            const isStudentDemo = sameCircuitShape(current, buildStudentSeedCircuit(currentSocket));
+            const isProDemo =
+              !isStudentDemo && sameCircuitShape(current, buildProSeedCircuit(currentSocket));
+            if (!isStudentDemo && !isProDemo) return;
+            const next =
+              mode === 'pro'
+                ? buildProSeedCircuit(currentSocket)
+                : buildStudentSeedCircuit(currentSocket);
+            s.components = next.components;
+            s.wires = next.wires;
+            s.faults = [];
+            s.selectedComponentId = null;
+            s.selectedComponentIds = [];
+            s.selectedWireIds = [];
+          }),
 
-      setGlobalSupplyVoltage: (voltage) =>
-        set((s) => {
-          if (!Number.isFinite(voltage) || voltage <= 0) return;
-          s.globalVoltage = voltage;
-          let updatedAny = false;
-          for (const comp of s.components) {
-            const def = COMPONENT_DEFS[comp.type];
-            if (
-              def?.isSource ||
-              comp.type.includes('terminal') ||
-              comp.type.includes('supply') ||
-              comp.type.includes('battery') ||
-              comp.type.includes('generator') ||
-              comp.type.includes('solar')
-            ) {
-              comp.state.customVoltage = voltage;
-              updatedAny = true;
+        setGlobalSupplyVoltage: (voltage) =>
+          set((s) => {
+            if (!Number.isFinite(voltage) || voltage <= 0) return;
+            s.globalVoltage = voltage;
+            let updatedAny = false;
+            for (const comp of s.components) {
+              const def = COMPONENT_DEFS[comp.type];
+              if (
+                def?.isSource ||
+                comp.type.includes('terminal') ||
+                comp.type.includes('supply') ||
+                comp.type.includes('battery') ||
+                comp.type.includes('generator') ||
+                comp.type.includes('solar')
+              ) {
+                comp.state.customVoltage = voltage;
+                updatedAny = true;
+              }
             }
-          }
-          if (!updatedAny && s.components.length > 0) {
-            s.components[0].state.customVoltage = voltage;
-          }
-        }),
-
-      addComponent: (comp) =>
-        set((s) => {
-          s.components.push(comp);
-        }),
-
-      removeComponent: (id) =>
-        set((s) => {
-          if (useUiStore.getState().simRunning) return;
-          s.components = s.components.filter((c) => c.id !== id);
-          const removedWireIds = new Set<string>();
-          s.wires = s.wires.filter((w) => {
-            if (w.fromComponentId === id || w.toComponentId === id) {
-              removedWireIds.add(w.id);
-              return false;
+            if (!updatedAny && s.components.length > 0) {
+              s.components[0].state.customVoltage = voltage;
             }
-            return true;
-          });
-          s.faults = s.faults.filter(
-            (f) =>
-              !(f.target.type === 'component' && f.target.id === id) &&
-              !(f.target.type === 'port' && f.target.componentId === id) &&
-              !(f.target.type === 'wire' && removedWireIds.has(f.target.id)),
-          );
-          s.selectedComponentIds = s.selectedComponentIds.filter((selectedId) => selectedId !== id);
-          if (s.selectedComponentId === id) {
-            s.selectedComponentId = s.selectedComponentIds[0] ?? null;
-          }
-        }),
+          }),
 
-      moveComponent: (id, x, y) =>
-        set((s) => {
-          const c = s.components.find((c) => c.id === id);
-          if (c) {
-            c.x = x;
-            c.y = y;
-          }
-        }),
+        addComponent: (comp) =>
+          set((s) => {
+            s.components.push(comp);
+          }),
 
-      toggleSwitch: (id) =>
-        set((s) => {
-          const c = s.components.find((c) => c.id === id);
-          if (!c) return;
-          const def = COMPONENT_DEFS[c.type];
-          if (!def?.isSwitch || def.isMomentary) return;
-          c.state.on = !c.state.on;
-        }),
-
-      setSwitchState: (id, on) =>
-        set((s) => {
-          const c = s.components.find((component) => component.id === id);
-          if (!c || !COMPONENT_DEFS[c.type]?.isSwitch || c.state.on === on) return;
-          c.state.on = on;
-        }),
-
-      addWire: (wire) =>
-        set((s) => {
-          s.wires.push(wire);
-        }),
-
-      applyGraphChanges: ({ addComponents = [], addWires = [], removeWireIds = [] }) =>
-        set((s) => {
-          const removedWireIds = new Set(removeWireIds);
-          if (removedWireIds.size > 0) {
-            s.wires = s.wires.filter((wire) => !removedWireIds.has(wire.id));
-            s.selectedWireIds = s.selectedWireIds.filter((id) => !removedWireIds.has(id));
-          }
-
-          const componentIds = new Set(s.components.map((component) => component.id));
-          for (const component of addComponents) {
-            if (componentIds.has(component.id) || !COMPONENT_DEFS[component.type]) continue;
-            s.components.push(component);
-            componentIds.add(component.id);
-          }
-
-          const wireIds = new Set(s.wires.map((wire) => wire.id));
-          for (const wire of addWires) {
-            if (wireIds.has(wire.id)) continue;
-            const fromComponent = s.components.find(
-              (component) => component.id === wire.fromComponentId,
+        removeComponent: (id) =>
+          set((s) => {
+            if (useUiStore.getState().simRunning) return;
+            s.components = s.components.filter((c) => c.id !== id);
+            const removedWireIds = new Set<string>();
+            s.wires = s.wires.filter((w) => {
+              if (w.fromComponentId === id || w.toComponentId === id) {
+                removedWireIds.add(w.id);
+                return false;
+              }
+              return true;
+            });
+            s.faults = s.faults.filter(
+              (f) =>
+                !(f.target.type === 'component' && f.target.id === id) &&
+                !(f.target.type === 'port' && f.target.componentId === id) &&
+                !(f.target.type === 'wire' && removedWireIds.has(f.target.id)),
             );
-            const toComponent = s.components.find(
-              (component) => component.id === wire.toComponentId,
+            s.selectedComponentIds = s.selectedComponentIds.filter(
+              (selectedId) => selectedId !== id,
             );
-            const fromPort = fromComponent
-              ? COMPONENT_DEFS[fromComponent.type]?.ports[wire.fromPortIndex]
-              : undefined;
-            const toPort = toComponent
-              ? COMPONENT_DEFS[toComponent.type]?.ports[wire.toPortIndex]
-              : undefined;
-            if (!fromPort || !toPort || fromPort.type !== toPort.type) continue;
-            s.wires.push(wire);
-            wireIds.add(wire.id);
-          }
-        }),
+            if (s.selectedComponentId === id) {
+              s.selectedComponentId = s.selectedComponentIds[0] ?? null;
+            }
+          }),
 
-      removeWire: (id) =>
-        set((s) => {
-          if (useUiStore.getState().simRunning) return;
-          s.wires = s.wires.filter((w) => w.id !== id);
-          s.faults = s.faults.filter((f) => !(f.target.type === 'wire' && f.target.id === id));
-          s.selectedWireIds = s.selectedWireIds.filter((wid) => wid !== id);
-        }),
-
-      clearAllWires: () =>
-        set((s) => {
-          if (useUiStore.getState().simRunning) return;
-          s.wires = [];
-          s.faults = s.faults.filter((f) => f.target.type !== 'wire');
-          s.selectedWireIds = [];
-        }),
-
-      clearAllComponents: () =>
-        set((s) => {
-          if (useUiStore.getState().simRunning) return;
-          s.components = [];
-          s.wires = [];
-          s.faults = [];
-          s.selectedComponentId = null;
-          s.selectedWireIds = [];
-          s.selectedComponentIds = [];
-        }),
-
-      setComponentPositions: (updates) =>
-        set((s) => {
-          for (const { id, x, y } of updates) {
+        moveComponent: (id, x, y) =>
+          set((s) => {
             const c = s.components.find((c) => c.id === id);
             if (c) {
               c.x = x;
               c.y = y;
             }
-          }
-        }),
+          }),
 
-      moveComponents: (ids, dx, dy) =>
-        set((s) => {
-          for (const id of ids) {
+        toggleSwitch: (id) =>
+          set((s) => {
             const c = s.components.find((c) => c.id === id);
-            if (c) {
-              c.x += dx;
-              c.y += dy;
+            if (!c) return;
+            const def = COMPONENT_DEFS[c.type];
+            if (!def?.isSwitch || def.isMomentary) return;
+            c.state.on = !c.state.on;
+          }),
+
+        setSwitchState: (id, on) =>
+          set((s) => {
+            const c = s.components.find((component) => component.id === id);
+            if (!c || !COMPONENT_DEFS[c.type]?.isSwitch || c.state.on === on) return;
+            c.state.on = on;
+          }),
+
+        addWire: (wire) =>
+          set((s) => {
+            s.wires.push(wire);
+          }),
+
+        applyGraphChanges: ({ addComponents = [], addWires = [], removeWireIds = [] }) =>
+          set((s) => {
+            const removedWireIds = new Set(removeWireIds);
+            if (removedWireIds.size > 0) {
+              s.wires = s.wires.filter((wire) => !removedWireIds.has(wire.id));
+              s.selectedWireIds = s.selectedWireIds.filter((id) => !removedWireIds.has(id));
             }
-          }
-        }),
 
-      removeComponents: (componentIds) =>
-        set((s) => {
-          if (useUiStore.getState().simRunning) return;
-          const ids = new Set(componentIds);
-          if (ids.size === 0) return;
-          s.components = s.components.filter((component) => !ids.has(component.id));
-          const removedWireIds = new Set<string>();
-          s.wires = s.wires.filter((wire) => {
-            if (ids.has(wire.fromComponentId) || ids.has(wire.toComponentId)) {
-              removedWireIds.add(wire.id);
-              return false;
+            const componentIds = new Set(s.components.map((component) => component.id));
+            for (const component of addComponents) {
+              if (componentIds.has(component.id) || !COMPONENT_DEFS[component.type]) continue;
+              s.components.push(component);
+              componentIds.add(component.id);
             }
-            return true;
-          });
-          s.faults = s.faults.filter(
-            (f) =>
-              !(f.target.type === 'component' && ids.has(f.target.id)) &&
-              !(f.target.type === 'port' && ids.has(f.target.componentId)) &&
-              !(f.target.type === 'wire' && removedWireIds.has(f.target.id)),
-          );
-          const remainingWireIds = new Set(s.wires.map((wire) => wire.id));
-          s.selectedWireIds = s.selectedWireIds.filter((id) => remainingWireIds.has(id));
-          s.selectedComponentIds = s.selectedComponentIds.filter((id) => !ids.has(id));
-          if (s.selectedComponentId && ids.has(s.selectedComponentId)) {
-            s.selectedComponentId = s.selectedComponentIds[0] ?? null;
-          }
-        }),
 
-      removeSelectedComponents: () =>
-        set((s) => {
-          if (useUiStore.getState().simRunning) return;
-          const ids = new Set(s.selectedComponentIds);
-          if (s.selectedComponentId) ids.add(s.selectedComponentId);
-          if (ids.size === 0) return;
-          s.components = s.components.filter((c) => !ids.has(c.id));
-          const removedWireIds = new Set<string>();
-          s.wires = s.wires.filter((w) => {
-            if (ids.has(w.fromComponentId) || ids.has(w.toComponentId)) {
-              removedWireIds.add(w.id);
-              return false;
+            const wireIds = new Set(s.wires.map((wire) => wire.id));
+            for (const wire of addWires) {
+              if (wireIds.has(wire.id)) continue;
+              const fromComponent = s.components.find(
+                (component) => component.id === wire.fromComponentId,
+              );
+              const toComponent = s.components.find(
+                (component) => component.id === wire.toComponentId,
+              );
+              const fromPort = fromComponent
+                ? COMPONENT_DEFS[fromComponent.type]?.ports[wire.fromPortIndex]
+                : undefined;
+              const toPort = toComponent
+                ? COMPONENT_DEFS[toComponent.type]?.ports[wire.toPortIndex]
+                : undefined;
+              if (!fromPort || !toPort || fromPort.type !== toPort.type) continue;
+              s.wires.push(wire);
+              wireIds.add(wire.id);
             }
-            return true;
-          });
-          s.faults = s.faults.filter(
-            (f) =>
-              !(f.target.type === 'component' && ids.has(f.target.id)) &&
-              !(f.target.type === 'port' && ids.has(f.target.componentId)) &&
-              !(f.target.type === 'wire' && removedWireIds.has(f.target.id)),
-          );
-          s.selectedComponentId = null;
-          s.selectedComponentIds = [];
-          s.selectedWireIds = [];
-        }),
+          }),
 
-      removeSelected: () =>
-        set((s) => {
-          if (useUiStore.getState().simRunning) return;
-          const compIds = new Set(s.selectedComponentIds);
-          if (s.selectedComponentId) compIds.add(s.selectedComponentId);
-          const wireIds = new Set(s.selectedWireIds);
+        removeWire: (id) =>
+          set((s) => {
+            if (useUiStore.getState().simRunning) return;
+            s.wires = s.wires.filter((w) => w.id !== id);
+            s.faults = s.faults.filter((f) => !(f.target.type === 'wire' && f.target.id === id));
+            s.selectedWireIds = s.selectedWireIds.filter((wid) => wid !== id);
+          }),
 
-          if (compIds.size === 0 && wireIds.size === 0) return;
+        clearAllWires: () =>
+          set((s) => {
+            if (useUiStore.getState().simRunning) return;
+            s.wires = [];
+            s.faults = s.faults.filter((f) => f.target.type !== 'wire');
+            s.selectedWireIds = [];
+          }),
 
-          s.components = s.components.filter((c) => !compIds.has(c.id));
-          const removedWireIds = new Set<string>(wireIds);
-          s.wires = s.wires.filter((w) => {
-            if (
-              wireIds.has(w.id) ||
-              compIds.has(w.fromComponentId) ||
-              compIds.has(w.toComponentId)
-            ) {
-              removedWireIds.add(w.id);
-              return false;
+        clearAllComponents: () =>
+          set((s) => {
+            if (useUiStore.getState().simRunning) return;
+            s.components = [];
+            s.wires = [];
+            s.faults = [];
+            s.selectedComponentId = null;
+            s.selectedWireIds = [];
+            s.selectedComponentIds = [];
+          }),
+
+        setComponentPositions: (updates) =>
+          set((s) => {
+            for (const { id, x, y } of updates) {
+              const c = s.components.find((c) => c.id === id);
+              if (c) {
+                c.x = x;
+                c.y = y;
+              }
             }
-            return true;
-          });
-          s.faults = s.faults.filter(
-            (f) =>
-              !(f.target.type === 'component' && compIds.has(f.target.id)) &&
-              !(f.target.type === 'port' && compIds.has(f.target.componentId)) &&
-              !(f.target.type === 'wire' && removedWireIds.has(f.target.id)),
-          );
-          s.selectedComponentId = null;
-          s.selectedComponentIds = [];
-          s.selectedWireIds = [];
-        }),
+          }),
 
-      rotateComponent: (id, deltaDegrees = 90) =>
-        set((s) => {
-          const comp = s.components.find((c) => c.id === id);
-          if (comp) {
-            comp.rotation = ((comp.rotation ?? 0) + deltaDegrees + 360) % 360;
-          }
-        }),
+        moveComponents: (ids, dx, dy) =>
+          set((s) => {
+            for (const id of ids) {
+              const c = s.components.find((c) => c.id === id);
+              if (c) {
+                c.x += dx;
+                c.y += dy;
+              }
+            }
+          }),
 
-      rotateSelected: (deltaDegrees = 90) =>
-        set((s) => {
-          const targetIds =
-            s.selectedComponentIds.length > 0
-              ? s.selectedComponentIds
-              : s.selectedComponentId
-                ? [s.selectedComponentId]
-                : [];
-          for (const id of targetIds) {
+        removeComponents: (componentIds) =>
+          set((s) => {
+            if (useUiStore.getState().simRunning) return;
+            const ids = new Set(componentIds);
+            if (ids.size === 0) return;
+            s.components = s.components.filter((component) => !ids.has(component.id));
+            const removedWireIds = new Set<string>();
+            s.wires = s.wires.filter((wire) => {
+              if (ids.has(wire.fromComponentId) || ids.has(wire.toComponentId)) {
+                removedWireIds.add(wire.id);
+                return false;
+              }
+              return true;
+            });
+            s.faults = s.faults.filter(
+              (f) =>
+                !(f.target.type === 'component' && ids.has(f.target.id)) &&
+                !(f.target.type === 'port' && ids.has(f.target.componentId)) &&
+                !(f.target.type === 'wire' && removedWireIds.has(f.target.id)),
+            );
+            const remainingWireIds = new Set(s.wires.map((wire) => wire.id));
+            s.selectedWireIds = s.selectedWireIds.filter((id) => remainingWireIds.has(id));
+            s.selectedComponentIds = s.selectedComponentIds.filter((id) => !ids.has(id));
+            if (s.selectedComponentId && ids.has(s.selectedComponentId)) {
+              s.selectedComponentId = s.selectedComponentIds[0] ?? null;
+            }
+          }),
+
+        removeSelectedComponents: () =>
+          set((s) => {
+            if (useUiStore.getState().simRunning) return;
+            const ids = new Set(s.selectedComponentIds);
+            if (s.selectedComponentId) ids.add(s.selectedComponentId);
+            if (ids.size === 0) return;
+            s.components = s.components.filter((c) => !ids.has(c.id));
+            const removedWireIds = new Set<string>();
+            s.wires = s.wires.filter((w) => {
+              if (ids.has(w.fromComponentId) || ids.has(w.toComponentId)) {
+                removedWireIds.add(w.id);
+                return false;
+              }
+              return true;
+            });
+            s.faults = s.faults.filter(
+              (f) =>
+                !(f.target.type === 'component' && ids.has(f.target.id)) &&
+                !(f.target.type === 'port' && ids.has(f.target.componentId)) &&
+                !(f.target.type === 'wire' && removedWireIds.has(f.target.id)),
+            );
+            s.selectedComponentId = null;
+            s.selectedComponentIds = [];
+            s.selectedWireIds = [];
+          }),
+
+        removeSelected: () =>
+          set((s) => {
+            if (useUiStore.getState().simRunning) return;
+            const compIds = new Set(s.selectedComponentIds);
+            if (s.selectedComponentId) compIds.add(s.selectedComponentId);
+            const wireIds = new Set(s.selectedWireIds);
+
+            if (compIds.size === 0 && wireIds.size === 0) return;
+
+            s.components = s.components.filter((c) => !compIds.has(c.id));
+            const removedWireIds = new Set<string>(wireIds);
+            s.wires = s.wires.filter((w) => {
+              if (
+                wireIds.has(w.id) ||
+                compIds.has(w.fromComponentId) ||
+                compIds.has(w.toComponentId)
+              ) {
+                removedWireIds.add(w.id);
+                return false;
+              }
+              return true;
+            });
+            s.faults = s.faults.filter(
+              (f) =>
+                !(f.target.type === 'component' && compIds.has(f.target.id)) &&
+                !(f.target.type === 'port' && compIds.has(f.target.componentId)) &&
+                !(f.target.type === 'wire' && removedWireIds.has(f.target.id)),
+            );
+            s.selectedComponentId = null;
+            s.selectedComponentIds = [];
+            s.selectedWireIds = [];
+          }),
+
+        rotateComponent: (id, deltaDegrees = 90) =>
+          set((s) => {
             const comp = s.components.find((c) => c.id === id);
             if (comp) {
               comp.rotation = ((comp.rotation ?? 0) + deltaDegrees + 360) % 360;
             }
-          }
-        }),
+          }),
 
-      autoLabelAllComponents: () =>
-        set((s) => {
-          const prefixCounts: Record<string, number> = {};
-          const getPrefix = (type: string): string => {
-            if (type.includes('switch') || type.includes('button')) return 'S';
-            if (
-              type.includes('bulb') ||
-              type.includes('light') ||
-              type.includes('lamp') ||
-              type.includes('led') ||
-              type.includes('cfl') ||
-              type.includes('halogen')
-            )
-              return 'L';
-            if (
-              type.includes('mcb') ||
-              type.includes('breaker') ||
-              type.includes('fuse') ||
-              type.includes('rcbo') ||
-              type.includes('rcd')
-            )
-              return 'CB';
-            if (type.includes('socket')) return 'SK';
-            if (type.includes('motor') || type.includes('fan')) return 'M';
-            if (type.includes('battery') || type.includes('source') || type.includes('terminal'))
-              return 'PWR';
-            if (type.includes('junction') || type.includes('wago') || type.includes('strip'))
-              return 'J';
-            if (type.includes('meter') || type.includes('gauge')) return 'MTR';
-            return 'U';
-          };
-
-          for (const comp of s.components) {
-            const prefix = getPrefix(comp.type);
-            prefixCounts[prefix] = (prefixCounts[prefix] ?? 0) + 1;
-            comp.state.autoLabel = `${prefix}${prefixCounts[prefix]}`;
-          }
-        }),
-
-      // Reroute returns false when validation fails (unknown wire, unknown
-      // component/port, or a port-type mismatch). The store only mutates on
-      // success so the UI can keep the in-progress drag visually intact and
-      // surface a log entry from the caller.
-      rerouteWire: (id, end, target) => {
-        let ok = false;
-        set((s) => {
-          const wire = s.wires.find((w) => w.id === id);
-          if (!wire) return;
-          const otherEnd = end === 'from' ? wire.toComponentId : wire.fromComponentId;
-          const otherPortIdx = end === 'from' ? wire.toPortIndex : wire.fromPortIndex;
-          if (target.componentId === otherEnd && target.portIndex === otherPortIdx) {
-            return; // would create a zero-length wire
-          }
-          if (target.componentId === otherEnd) {
-            return; // self-loop; both ends on the same component
-          }
-          const targetComp = s.components.find((c) => c.id === target.componentId);
-          if (!targetComp) return;
-          const targetDef = COMPONENT_DEFS[targetComp.type];
-          const targetPort = targetDef?.ports[target.portIndex];
-          const otherComp = s.components.find((c) => c.id === otherEnd);
-          const otherDef = otherComp ? COMPONENT_DEFS[otherComp.type] : undefined;
-          const otherPort = otherDef?.ports[otherPortIdx];
-          if (!targetPort || !otherPort) return;
-          if (targetPort.type !== otherPort.type) return;
-
-          if (end === 'from') {
-            wire.fromComponentId = target.componentId;
-            wire.fromPortIndex = target.portIndex;
-          } else {
-            wire.toComponentId = target.componentId;
-            wire.toPortIndex = target.portIndex;
-          }
-          // Clear any stale control points; reroute invalidates the curve.
-          wire.controlPoints = [];
-          ok = true;
-        });
-        return ok;
-      },
-
-      selectComponent: (id) =>
-        set((s) => {
-          s.selectedComponentId = id;
-          s.selectedComponentIds = id ? [id] : [];
-          s.selectedWireIds = [];
-        }),
-
-      selectWire: (id) =>
-        set((s) => {
-          s.selectedWireIds = id ? [id] : [];
-          s.selectedComponentId = null;
-          s.selectedComponentIds = [];
-        }),
-
-      toggleWireSelection: (id) =>
-        set((s) => {
-          const i = s.selectedWireIds.indexOf(id);
-          if (i >= 0) s.selectedWireIds.splice(i, 1);
-          else s.selectedWireIds.push(id);
-          s.selectedComponentId = null;
-          s.selectedComponentIds = [];
-        }),
-
-      clearSelection: () =>
-        set((s) => {
-          s.selectedComponentId = null;
-          s.selectedComponentIds = [];
-          s.selectedWireIds = [];
-        }),
-
-      toggleComponentSelection: (id) =>
-        set((s) => {
-          const i = s.selectedComponentIds.indexOf(id);
-          if (i >= 0) {
-            s.selectedComponentIds.splice(i, 1);
-            if (s.selectedComponentId === id) {
-              s.selectedComponentId = s.selectedComponentIds[0] ?? null;
+        rotateSelected: (deltaDegrees = 90) =>
+          set((s) => {
+            const targetIds =
+              s.selectedComponentIds.length > 0
+                ? s.selectedComponentIds
+                : s.selectedComponentId
+                  ? [s.selectedComponentId]
+                  : [];
+            for (const id of targetIds) {
+              const comp = s.components.find((c) => c.id === id);
+              if (comp) {
+                comp.rotation = ((comp.rotation ?? 0) + deltaDegrees + 360) % 360;
+              }
             }
-          } else {
-            s.selectedComponentIds.push(id);
-            s.selectedComponentId = id; // last clicked = primary
-          }
-          s.selectedWireIds = [];
-        }),
+          }),
 
-      setMultiSelection: (ids) =>
-        set((s) => {
-          s.selectedComponentIds = ids;
-          s.selectedComponentId = ids[ids.length - 1] ?? null;
-          s.selectedWireIds = [];
-        }),
-
-      ...createFaultActions(set),
-
-      updateComponentState: (id, updates) =>
-        set((s) => {
-          const c = s.components.find((comp) => comp.id === id);
-          if (c) {
-            c.state = { ...c.state, ...updates };
-          }
-        }),
-
-      updateComponentType: (id, newType) =>
-        set((s) => {
-          const c = s.components.find((comp) => comp.id === id);
-          if (c && COMPONENT_DEFS[newType]) {
-            c.type = newType;
-            const newDef = COMPONENT_DEFS[newType];
-            // Synchronize/reset state according to the new variant's specifications
-            c.state = {
-              ...c.state,
-              customPowerWatts: newDef.powerWatts,
-              customMaxAmps: newDef.maxAmps,
-              customCableMm2: newDef.recommendedCableMm2,
-              isBlown: false,
-              blownReason: undefined,
+        autoLabelAllComponents: () =>
+          set((s) => {
+            const prefixCounts: Record<string, number> = {};
+            const getPrefix = (type: string): string => {
+              if (type.includes('switch') || type.includes('button')) return 'S';
+              if (
+                type.includes('bulb') ||
+                type.includes('light') ||
+                type.includes('lamp') ||
+                type.includes('led') ||
+                type.includes('cfl') ||
+                type.includes('halogen')
+              )
+                return 'L';
+              if (
+                type.includes('mcb') ||
+                type.includes('breaker') ||
+                type.includes('fuse') ||
+                type.includes('rcbo') ||
+                type.includes('rcd')
+              )
+                return 'CB';
+              if (type.includes('socket')) return 'SK';
+              if (type.includes('motor') || type.includes('fan')) return 'M';
+              if (type.includes('battery') || type.includes('source') || type.includes('terminal'))
+                return 'PWR';
+              if (type.includes('junction') || type.includes('wago') || type.includes('strip'))
+                return 'J';
+              if (type.includes('meter') || type.includes('gauge')) return 'MTR';
+              return 'U';
             };
-          }
-        }),
 
-      repairBlownComponent: (id) =>
-        set((s) => {
-          const c = s.components.find((comp) => comp.id === id);
-          if (c) {
-            c.state.isBlown = false;
-            c.state.blownReason = undefined;
-          }
-        }),
-
-      repairAllBlownComponents: () =>
-        set((s) => {
-          for (const c of s.components) {
-            c.state.isBlown = false;
-            c.state.blownReason = undefined;
-          }
-        }),
-
-      repairAllFaults: () =>
-        set((s) => {
-          for (const c of s.components) {
-            c.state.isBlown = false;
-            c.state.blownReason = undefined;
-          }
-          for (const w of s.wires) {
-            w.isBusted = false;
-            w.bustedReason = undefined;
-            if (w.fault === 'open-circuit') w.fault = undefined;
-          }
-        }),
-
-      setWireBusted: (id, isBusted, reason) =>
-        set((s) => {
-          const w = s.wires.find((item) => item.id === id);
-          if (w) {
-            w.isBusted = isBusted;
-            w.bustedReason = reason;
-          }
-        }),
-
-      updateWireProperties: (id, updates) =>
-        set((s) => {
-          const w = s.wires.find((item) => item.id === id);
-          if (!w) return;
-
-          if ('controlPoints' in updates && Array.isArray(updates.controlPoints)) {
-            const validPoints = updates.controlPoints.filter(
-              (point) => Number.isFinite(point.x) && Number.isFinite(point.y),
-            );
-            if (validPoints.length === updates.controlPoints.length) {
-              w.controlPoints = validPoints.map((point) => ({ ...point }));
+            for (const comp of s.components) {
+              const prefix = getPrefix(comp.type);
+              prefixCounts[prefix] = (prefixCounts[prefix] ?? 0) + 1;
+              comp.state.autoLabel = `${prefix}${prefixCounts[prefix]}`;
             }
-          }
-          if (updates.pathKind === 'bezier' || updates.pathKind === 'orthogonal') {
-            w.pathKind = updates.pathKind;
-          }
-          if (
-            'lengthMeters' in updates &&
-            (updates.lengthMeters === undefined ||
-              (Number.isFinite(updates.lengthMeters) && updates.lengthMeters > 0))
-          ) {
-            w.lengthMeters = updates.lengthMeters;
-          }
-          if (
-            'deratingFactor' in updates &&
-            (updates.deratingFactor === undefined ||
-              (Number.isFinite(updates.deratingFactor) &&
-                updates.deratingFactor >= 0.1 &&
-                updates.deratingFactor <= 1))
-          ) {
-            w.deratingFactor = updates.deratingFactor;
-          }
-          if (
-            'customCableMm2' in updates &&
-            (updates.customCableMm2 === undefined ||
-              (Number.isFinite(updates.customCableMm2) && updates.customCableMm2 > 0))
-          ) {
-            w.customCableMm2 = updates.customCableMm2;
-          }
-          if (
-            'installationMethod' in updates &&
-            (updates.installationMethod === undefined ||
-              updates.installationMethod === 'C' ||
-              updates.installationMethod === 'B1' ||
-              updates.installationMethod === 'A')
-          ) {
-            w.installationMethod = updates.installationMethod;
-          }
-          if (updates.material === 'copper' || updates.material === 'aluminum') {
-            w.material = updates.material;
-          }
-          if (
-            'gauge' in updates &&
-            (updates.gauge === undefined || (Number.isFinite(updates.gauge) && updates.gauge > 0))
-          ) {
-            w.gauge = updates.gauge;
-          }
-        }),
+          }),
 
-      swapWireEndpoints: (id) =>
-        set((s) => {
-          const w = s.wires.find((item) => item.id === id);
-          if (w) {
-            const tempComp = w.fromComponentId;
-            const tempPort = w.fromPortIndex;
-            w.fromComponentId = w.toComponentId;
-            w.fromPortIndex = w.toPortIndex;
-            w.toComponentId = tempComp;
-            w.toPortIndex = tempPort;
-            if (w.controlPoints && w.controlPoints.length > 0) {
-              w.controlPoints = [...w.controlPoints].reverse();
+        // Reroute returns false when validation fails (unknown wire, unknown
+        // component/port, or a port-type mismatch). The store only mutates on
+        // success so the UI can keep the in-progress drag visually intact and
+        // surface a log entry from the caller.
+        rerouteWire: (id, end, target) => {
+          let ok = false;
+          const applied = set((s) => {
+            const wire = s.wires.find((w) => w.id === id);
+            if (!wire) return;
+            const otherEnd = end === 'from' ? wire.toComponentId : wire.fromComponentId;
+            const otherPortIdx = end === 'from' ? wire.toPortIndex : wire.fromPortIndex;
+            if (target.componentId === otherEnd && target.portIndex === otherPortIdx) {
+              return; // would create a zero-length wire
             }
-          }
-        }),
+            if (target.componentId === otherEnd) {
+              return; // self-loop; both ends on the same component
+            }
+            const targetComp = s.components.find((c) => c.id === target.componentId);
+            if (!targetComp) return;
+            const targetDef = COMPONENT_DEFS[targetComp.type];
+            const targetPort = targetDef?.ports[target.portIndex];
+            const otherComp = s.components.find((c) => c.id === otherEnd);
+            const otherDef = otherComp ? COMPONENT_DEFS[otherComp.type] : undefined;
+            const otherPort = otherDef?.ports[otherPortIdx];
+            if (!targetPort || !otherPort) return;
+            if (targetPort.type !== otherPort.type) return;
 
-      resetTrippedComponent: (id) =>
-        set((s) => {
-          const c = s.components.find((comp) => comp.id === id);
-          if (c) {
-            c.state.isTripped = false;
-            c.state.tripReason = undefined;
-          }
-        }),
-
-      resetAllTrippedComponents: () =>
-        set((s) => {
-          for (const c of s.components) {
-            c.state.isTripped = false;
-            c.state.tripReason = undefined;
-          }
-        }),
-
-      pasteComponents: (items, offset) =>
-        set((s) => {
-          const newIds: string[] = [];
-          for (const src of items) {
-            const newId = `${src.type.split('-')[0]}-paste-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-            s.components.push({
-              ...src,
-              id: newId,
-              x: src.x + offset.x,
-              y: src.y + offset.y,
-              state: COMPONENT_DEFS[src.type]?.isMomentary
-                ? { ...src.state, on: false }
-                : { ...src.state },
-            });
-            newIds.push(newId);
-          }
-          // Select pasted group so the user can immediately drag/delete them.
-          s.selectedComponentIds = newIds;
-          s.selectedComponentId = newIds[newIds.length - 1] ?? null;
-          s.selectedWireIds = [];
-        }),
-
-      // Component Grouping Implementation
-      createGroup: (name, componentIds) =>
-        set((s) => {
-          if (componentIds.length === 0) return;
-          const components = s.components.filter((c) => componentIds.includes(c.id));
-          if (components.length === 0) return;
-
-          const avgX = components.reduce((sum, c) => sum + c.x, 0) / components.length;
-          const avgY = components.reduce((sum, c) => sum + c.y, 0) / components.length;
-
-          const groupId = `group-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-          s.componentGroups.push({
-            id: groupId,
-            name: name || `Group ${s.componentGroups.length + 1}`,
-            componentIds: [...componentIds],
-            position: { x: avgX, y: avgY },
+            if (end === 'from') {
+              wire.fromComponentId = target.componentId;
+              wire.fromPortIndex = target.portIndex;
+            } else {
+              wire.toComponentId = target.componentId;
+              wire.toPortIndex = target.portIndex;
+            }
+            // Clear any stale control points; reroute invalidates the curve.
+            wire.controlPoints = [];
+            ok = true;
           });
-        }),
+          return applied instanceof Promise
+            ? applied.then((committed) => committed && ok)
+            : applied && ok;
+        },
 
-      ungroup: (groupId) =>
-        set((s) => {
-          const index = s.componentGroups.findIndex((g) => g.id === groupId);
-          if (index >= 0) {
-            s.componentGroups.splice(index, 1);
-          }
-        }),
+        selectComponent: (id) =>
+          set((s) => {
+            s.selectedComponentId = id;
+            s.selectedComponentIds = id ? [id] : [];
+            s.selectedWireIds = [];
+          }),
 
-      moveGroup: (groupId, dx, dy) =>
-        set((s) => {
-          const group = s.componentGroups.find((g) => g.id === groupId);
-          if (!group) return;
+        selectWire: (id) =>
+          set((s) => {
+            s.selectedWireIds = id ? [id] : [];
+            s.selectedComponentId = null;
+            s.selectedComponentIds = [];
+          }),
 
-          group.position.x += dx;
-          group.position.y += dy;
+        toggleWireSelection: (id) =>
+          set((s) => {
+            const i = s.selectedWireIds.indexOf(id);
+            if (i >= 0) s.selectedWireIds.splice(i, 1);
+            else s.selectedWireIds.push(id);
+            s.selectedComponentId = null;
+            s.selectedComponentIds = [];
+          }),
 
-          for (const compId of group.componentIds) {
-            const comp = s.components.find((c) => c.id === compId);
-            if (comp) {
-              comp.x += dx;
-              comp.y += dy;
+        clearSelection: () =>
+          set((s) => {
+            s.selectedComponentId = null;
+            s.selectedComponentIds = [];
+            s.selectedWireIds = [];
+          }),
+
+        toggleComponentSelection: (id) =>
+          set((s) => {
+            const i = s.selectedComponentIds.indexOf(id);
+            if (i >= 0) {
+              s.selectedComponentIds.splice(i, 1);
+              if (s.selectedComponentId === id) {
+                s.selectedComponentId = s.selectedComponentIds[0] ?? null;
+              }
+            } else {
+              s.selectedComponentIds.push(id);
+              s.selectedComponentId = id; // last clicked = primary
             }
-          }
-        }),
+            s.selectedWireIds = [];
+          }),
 
-      deleteGroup: (groupId, deleteComponents) =>
-        set((s) => {
-          const groupIndex = s.componentGroups.findIndex((g) => g.id === groupId);
-          if (groupIndex < 0) return;
+        setMultiSelection: (ids) =>
+          set((s) => {
+            s.selectedComponentIds = ids;
+            s.selectedComponentId = ids[ids.length - 1] ?? null;
+            s.selectedWireIds = [];
+          }),
 
-          const group = s.componentGroups[groupIndex];
-          s.componentGroups.splice(groupIndex, 1);
+        ...createFaultActions(set),
 
-          if (deleteComponents) {
-            const idsToDelete = new Set(group.componentIds);
-            s.components = s.components.filter((c) => !idsToDelete.has(c.id));
-            s.wires = s.wires.filter(
-              (w) => !idsToDelete.has(w.fromComponentId) && !idsToDelete.has(w.toComponentId),
-            );
-            s.selectedComponentIds = s.selectedComponentIds.filter((id) => !idsToDelete.has(id));
-            s.selectedComponentId =
-              s.selectedComponentId && idsToDelete.has(s.selectedComponentId)
-                ? (s.selectedComponentIds[0] ?? null)
-                : s.selectedComponentId;
-          }
-        }),
-    })),
+        updateComponentState: (id, updates) =>
+          set((s) => {
+            const c = s.components.find((comp) => comp.id === id);
+            if (c) {
+              c.state = { ...c.state, ...updates };
+            }
+          }),
+
+        updateComponentType: (id, newType) =>
+          set((s) => {
+            const c = s.components.find((comp) => comp.id === id);
+            if (c && COMPONENT_DEFS[newType]) {
+              c.type = newType;
+              const newDef = COMPONENT_DEFS[newType];
+              // Synchronize/reset state according to the new variant's specifications
+              c.state = {
+                ...c.state,
+                customPowerWatts: newDef.powerWatts,
+                customMaxAmps: newDef.maxAmps,
+                customCableMm2: newDef.recommendedCableMm2,
+                isBlown: false,
+                blownReason: undefined,
+              };
+            }
+          }),
+
+        repairBlownComponent: (id) =>
+          set((s) => {
+            const c = s.components.find((comp) => comp.id === id);
+            if (c) {
+              c.state.isBlown = false;
+              c.state.blownReason = undefined;
+            }
+          }),
+
+        repairAllBlownComponents: () =>
+          set((s) => {
+            for (const c of s.components) {
+              c.state.isBlown = false;
+              c.state.blownReason = undefined;
+            }
+          }),
+
+        repairAllFaults: () =>
+          set((s) => {
+            for (const c of s.components) {
+              c.state.isBlown = false;
+              c.state.blownReason = undefined;
+            }
+            for (const w of s.wires) {
+              w.isBusted = false;
+              w.bustedReason = undefined;
+              if (w.fault === 'open-circuit') w.fault = undefined;
+            }
+          }),
+
+        setWireBusted: (id, isBusted, reason) =>
+          set((s) => {
+            const w = s.wires.find((item) => item.id === id);
+            if (w) {
+              w.isBusted = isBusted;
+              w.bustedReason = reason;
+            }
+          }),
+
+        updateWireProperties: (id, updates) =>
+          set((s) => {
+            const w = s.wires.find((item) => item.id === id);
+            if (!w) return;
+
+            if ('controlPoints' in updates && Array.isArray(updates.controlPoints)) {
+              const validPoints = updates.controlPoints.filter(
+                (point) => Number.isFinite(point.x) && Number.isFinite(point.y),
+              );
+              if (validPoints.length === updates.controlPoints.length) {
+                w.controlPoints = validPoints.map((point) => ({ ...point }));
+              }
+            }
+            if (updates.pathKind === 'bezier' || updates.pathKind === 'orthogonal') {
+              w.pathKind = updates.pathKind;
+            }
+            if (
+              'lengthMeters' in updates &&
+              (updates.lengthMeters === undefined ||
+                (Number.isFinite(updates.lengthMeters) && updates.lengthMeters > 0))
+            ) {
+              w.lengthMeters = updates.lengthMeters;
+            }
+            if (
+              'deratingFactor' in updates &&
+              (updates.deratingFactor === undefined ||
+                (Number.isFinite(updates.deratingFactor) &&
+                  updates.deratingFactor >= 0.1 &&
+                  updates.deratingFactor <= 1))
+            ) {
+              w.deratingFactor = updates.deratingFactor;
+            }
+            if (
+              'customCableMm2' in updates &&
+              (updates.customCableMm2 === undefined ||
+                (Number.isFinite(updates.customCableMm2) && updates.customCableMm2 > 0))
+            ) {
+              w.customCableMm2 = updates.customCableMm2;
+            }
+            if (
+              'installationMethod' in updates &&
+              (updates.installationMethod === undefined ||
+                updates.installationMethod === 'C' ||
+                updates.installationMethod === 'B1' ||
+                updates.installationMethod === 'A')
+            ) {
+              w.installationMethod = updates.installationMethod;
+            }
+            if (updates.material === 'copper' || updates.material === 'aluminum') {
+              w.material = updates.material;
+            }
+            if (
+              'gauge' in updates &&
+              (updates.gauge === undefined || (Number.isFinite(updates.gauge) && updates.gauge > 0))
+            ) {
+              w.gauge = updates.gauge;
+            }
+          }),
+
+        swapWireEndpoints: (id) =>
+          set((s) => {
+            const w = s.wires.find((item) => item.id === id);
+            if (w) {
+              const tempComp = w.fromComponentId;
+              const tempPort = w.fromPortIndex;
+              w.fromComponentId = w.toComponentId;
+              w.fromPortIndex = w.toPortIndex;
+              w.toComponentId = tempComp;
+              w.toPortIndex = tempPort;
+              if (w.controlPoints && w.controlPoints.length > 0) {
+                w.controlPoints = [...w.controlPoints].reverse();
+              }
+            }
+          }),
+
+        resetTrippedComponent: (id) =>
+          set((s) => {
+            const c = s.components.find((comp) => comp.id === id);
+            if (c) {
+              c.state.isTripped = false;
+              c.state.tripReason = undefined;
+            }
+          }),
+
+        resetAllTrippedComponents: () =>
+          set((s) => {
+            for (const c of s.components) {
+              c.state.isTripped = false;
+              c.state.tripReason = undefined;
+            }
+          }),
+
+        pasteComponents: (items, offset) =>
+          set((s) => {
+            const newIds: string[] = [];
+            for (const src of items) {
+              const newId = `${src.type.split('-')[0]}-paste-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+              s.components.push({
+                ...src,
+                id: newId,
+                x: src.x + offset.x,
+                y: src.y + offset.y,
+                state: COMPONENT_DEFS[src.type]?.isMomentary
+                  ? { ...src.state, on: false }
+                  : { ...src.state },
+              });
+              newIds.push(newId);
+            }
+            // Select pasted group so the user can immediately drag/delete them.
+            s.selectedComponentIds = newIds;
+            s.selectedComponentId = newIds[newIds.length - 1] ?? null;
+            s.selectedWireIds = [];
+          }),
+
+        // Component Grouping Implementation
+        createGroup: (name, componentIds) =>
+          set((s) => {
+            if (componentIds.length === 0) return;
+            const components = s.components.filter((c) => componentIds.includes(c.id));
+            if (components.length === 0) return;
+
+            const avgX = components.reduce((sum, c) => sum + c.x, 0) / components.length;
+            const avgY = components.reduce((sum, c) => sum + c.y, 0) / components.length;
+
+            const groupId = `group-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+            s.componentGroups.push({
+              id: groupId,
+              name: name || `Group ${s.componentGroups.length + 1}`,
+              componentIds: [...componentIds],
+              position: { x: avgX, y: avgY },
+            });
+          }),
+
+        ungroup: (groupId) =>
+          set((s) => {
+            const index = s.componentGroups.findIndex((g) => g.id === groupId);
+            if (index >= 0) {
+              s.componentGroups.splice(index, 1);
+            }
+          }),
+
+        moveGroup: (groupId, dx, dy) =>
+          set((s) => {
+            const group = s.componentGroups.find((g) => g.id === groupId);
+            if (!group) return;
+
+            group.position.x += dx;
+            group.position.y += dy;
+
+            for (const compId of group.componentIds) {
+              const comp = s.components.find((c) => c.id === compId);
+              if (comp) {
+                comp.x += dx;
+                comp.y += dy;
+              }
+            }
+          }),
+
+        deleteGroup: (groupId, deleteComponents) =>
+          set((s) => {
+            const groupIndex = s.componentGroups.findIndex((g) => g.id === groupId);
+            if (groupIndex < 0) return;
+
+            const group = s.componentGroups[groupIndex];
+            s.componentGroups.splice(groupIndex, 1);
+
+            if (deleteComponents) {
+              const idsToDelete = new Set(group.componentIds);
+              s.components = s.components.filter((c) => !idsToDelete.has(c.id));
+              s.wires = s.wires.filter(
+                (w) => !idsToDelete.has(w.fromComponentId) && !idsToDelete.has(w.toComponentId),
+              );
+              s.selectedComponentIds = s.selectedComponentIds.filter((id) => !idsToDelete.has(id));
+              s.selectedComponentId =
+                s.selectedComponentId && idsToDelete.has(s.selectedComponentId)
+                  ? (s.selectedComponentIds[0] ?? null)
+                  : s.selectedComponentId;
+            }
+          }),
+      };
+    }),
     {
       // Only the *graph + fault scenario* is undoable. Selection clicks are
       // not. `faults` must be tracked: injectFault also stamps a mirrored

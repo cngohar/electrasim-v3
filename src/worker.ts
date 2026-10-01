@@ -1,6 +1,8 @@
 // V3 Worker — Hono on Workers. Serves API + assets. Local-first: `bun x wrangler dev --local`.
 import { Hono } from 'hono';
+import { circuitsApi } from './api/circuits';
 import { type ApiEnv, requestAuth } from './api/context';
+import { diagnosisApi } from './api/diagnosis';
 import { membershipApi } from './api/membership';
 
 // ── Durable Object stub ──
@@ -35,7 +37,7 @@ function localeFromPath(pathname: string): Locale | null {
   return seg && (SUPPORTED_LOCALES as readonly string[]).includes(seg) ? (seg as Locale) : null;
 }
 
-app.get('/api/health', (c) => c.json({ ok: true, version: '3.0.0', phase: '1.3' }));
+app.get('/api/health', (c) => c.json({ ok: true, version: '3.0.0', phase: '1.5' }));
 
 app.get('/api/config', (c) =>
   c.json({
@@ -86,6 +88,8 @@ app.get('/api/standards', async (c) => {
 // ── Better Auth — mount at /api/auth/* ──
 app.on(['GET', 'POST'], '/api/auth/*', (c) => requestAuth(c).handler(c.req.raw));
 app.route('/api', membershipApi);
+app.route('/api', circuitsApi);
+app.route('/api', diagnosisApi);
 
 // ── Locale redirect + hreflang (applied to every non-API/asset request) ──
 app.use('*', async (c, next) => {

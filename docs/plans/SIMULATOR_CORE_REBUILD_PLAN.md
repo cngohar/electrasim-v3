@@ -1,0 +1,131 @@
+# Simulator core rebuild — audit reconciliation and delivery plan
+
+**Updated:** 2026-10-01. **Status:** 1.5A and **1.5B are complete locally**; the full contracts/graph phase gate passed. The replacement numerical engine starts in **1.5C** and is not implemented by the compiler. See [1.5B contracts and evidence](../audits/phase-1-electrical-contracts.md), [1.5A evidence](../audits/phase-1-audit-baseline.md), [dependency review](../audits/phase-1-dependencies.md) and [ADR 0008](../decisions/0008-staged-electrical-core.md).
+
+This extends [Phase 1](../phases/phase-1-simulator-core.md) with **1.5A–1.5F before 1.6 Matter effects**. It supersedes the full roadmap's old requirement to retain BFS-per-rail as the electrical solver. SVG, Bun, the local Worker architecture, membership decisions and code-owned standards remain the agreed foundations.
+
+## 1. What the audit establishes
+
+The supplied [deep scan](../../v3-audit.md) describes **V2 `e9673c8`**, not this V3 working tree. The reconciliation used **`d054468` plus the existing uncommitted Phase 1.5 changes**, Bun 1.4.2, local source reads, direct solver probes and selected tests. Completed historical milestones are not proof that all electrical models are correct.
+
+Keep the supplied audit intact as evidence. Its companion proposal/UI links do not resolve from this repository root, its `src/domain` paths moved to `packages/domain/src`, and its npm/lockfile instructions are obsolete for this Bun workspace. Its appendix contains partial fixtures, not the deleted complete harness. Do not claim to have reproduced its entire 26,450-run matrix.
+
+Two corrections matter when planning:
+
+- **S3 was retracted by the auditor:** the benchmark failure came from a different launcher. Preserve `bun run benchmark:simulation` and its budget; do not loosen it on that evidence. A passing browser gate around 33 ms/frame also does not establish 60 fps. Current dense zoom limitations remain in [PERFORMANCE](../PERFORMANCE.md).
+- **Electrical advice needs review:** PE is a protective conductor, not an ordinary power source; no current in healthy PE is expected. A socket's capacity is not an attached load. A main switch is an isolator, not an automatic breaker. Selectivity cannot be guaranteed by always tripping the nearest device. Do not apply the audit's suggested universal EV B→C change or a blanket RCD rule based on load wattage. The [standards review](../audits/electrical-standards-gap.md) and explicit model applicability govern these decisions.
+
+### Current finding register
+
+The table below preserves the planning review's pre-1.5A assessment. The [1.5A implementation record](../audits/phase-1-audit-baseline.md) and [1.5B contracts record](../audits/phase-1-electrical-contracts.md) supersede its status for repaired/guarded findings. In 1.5B, N13 defaults, N17 direct-input validation and the malformed-port part of N26 have ordinary passing regressions; N20 uses shared wire resolution. Source, pole and winding contracts prepare N11/N12/N19/N22/N28 for later numerical integration. Guarded or merely compiled models are not considered implemented physics.
+
+**Reproduced** means a local execution in this review. **Partial** means some behavior is fixed but related scope remains. **Inspected** means source/metadata evidence only; it is not a new runtime or advisory verification. Owners below are implementation milestones, not completion claims.
+
+| Audit ID | Current V3 assessment | Required disposition / owner |
+|---|---|---|
+| 2.1 | Reproduced: two series bulbs energize neither load. | Solve connected load branches; independent resistive-series fixtures, **1.5C**. Do not assume an LED driver is a resistor. |
+| 2.2 | Reproduced: 2 kW heater and 9 W bulb in parallel give **8.7348 A on every branch wire**, although load telemetry is 8.6957 A and 0.03913 A. | Branch currents, KCL and shared-feeder totals, **1.5C**; downstream protection uses those currents. |
+| 2.3 / N14 | Partial: coil-driven relay operation/isolation now has passing regressions. Coil electrical consumption, pickup/dropout thresholds and delay behavior remain unmodeled. | Preserve Phase 1.5 relay fix; add voltage-aware coil models and time state, **1.5D**. |
+| 2.4 / N12 | Reproduced: 12 V transformer secondary still reports 230 V; a shorted secondary is called a mains L–N short. | Separate windings, coupled power transfer and source/fault impedance assumptions, **1.5C**. |
+| 2.5 / N27 | Reproduced: a motor with only U connected draws 13.0435 A; registry has **115 components and no multi-live-port source**. | Unsupported-operation guard first (**1.5A**); real source/phase identity and supported motor model, **1.5E**. Isolated contactor poles alone do not implement three-phase. |
+| 2.6 | Inspected: electrical resolution still uses only live/neutral walks. Separate validation has some PE continuity checks. The audit's earth-only lamp is not a valid success expectation. | Distinguish PE continuity, N–PE bonds and fault returns from normal power flow, **1.5B/C**; forbid using PE as normal return without a finding. |
+| 2.7 | Inspected: no electrical time-state API; relay feedback is a bounded static resolution. | Explicit clock/state/events for timers and protection, **1.5D**. |
+| N8 | Fixed for the reproduced 32.1739 A/B16 case: basic and Pro electrical outputs match; both report the overload and cable hazards. `SimulateOptions`/catalogue prose still describes Pro-only stress. | Preserve equality as a regression; correct stale descriptions in **1.5A/F**. Do not replace the fix with warnings-only physics. |
+| N9 | Reproduced with changed detail: 100 A main switch is reported tripped at an inferred **27 A** limit alongside B16; static network-wide fault propagation remains. | Correct device roles immediately (**1.5A**); branch-aware, time-dependent coordination **1.5D**. Cable capacity must not become a breaker's nameplate/trip rating. |
+| N10 | Reproduced: explicit 12 V produces the misleading “110V rated equipment” error. | Numeric rated ranges, AC/DC compatibility and actual terminal voltage, **1.5B/C**. |
+| N11 | Reproduced: `dc-battery-12v` produces 230 V. Source overrides still update a single shared scalar. | Source metadata and independent domains, **1.5B/C**; never choose voltage by component iteration order. |
+| N13 | Reproduced: omitted MCB `on` stays open both raw and after `normalizeCircuit`. | Canonical default-state policy at every entry point, **1.5B**; preserve explicit false and versioned legacy behavior. |
+| N15 | Reproduced: enabled dimmer at speed 0 and 3 has identical results. | Defined dimming control and supported load response, **1.5D**; retain unsupported-load diagnostics. |
+| N16 | Reproduced: B16 reports 460 A prospective fault current while wire telemetry is 0 A. | Separate pre-fault/prospective/event/post-clearing quantities, **1.5D**. They need consistent meanings, not necessarily equal numbers. |
+| N17 | Partial: shared file validation rejects unknown components and bad port indices; direct `simulate` still ignores invalid topology. | One normalization/validation contract before compilation, with structured errors, **1.5B**. |
+| N18 | Inspected: socket rating metadata is not a load. That alone is not a physics defect. | Separate capacity from consumption; explicitly connected appliance/load model, **1.5B/C**; explanatory inspector copy, **1.7**. |
+| N19 | Inspected: sources share global rails and voltage. Multiple terminals on one supply can legitimately be aliases. | Distinguish supply aliases from independent voltage sources; reject inconsistent source constraints, **1.5B/C/E**. |
+| N20 | Inspected: simulator still min-clamps endpoint sizes when no wire override exists; validator/Zs use different fallback rules. | One wire-property resolver with provenance, **1.5B/C**; editor agreement **1.7**. Preserve explicit saved wire values. |
+| N21 | Fixed in the current relay regressions: exclusive NO/NC, isolated DPDT poles and contactor poles. | Keep these as mandatory parity fixtures in **1.5D/F**; do not reapply the old suggested one-field patch. |
+| N22 | Partial, reproduced: forced-open disconnects the load; bypassed B16 still trips and is marked blown. | Full topology and protection semantics for all 14 injected fault types, **1.5B/D**. |
+| N23 | Reproduced: a B16 clearing the overload also appears as a destroyed component. | Distinguish resettable trip, fuse operation and modeled damage, **1.5A/D**. |
+| N24 | Reproduced with a physical bridge across RCD outputs: the plain RCCB trips as a Type B magnetic breaker. An injected wire-short variant did not trip it, so fault entry paths also disagree. | Use typed overcurrent/residual/arc/isolation roles across every entry path, **1.5A/D**; real L–N vs L–PE fixtures. |
+| N25 | Reproduced: a bulb with maximum 110 V on 230 V has two identical damage entries. | Unique state transition per device/event, **1.5A/D**. |
+| N26 | Reproduced: reversed L/N, switched neutral, PE-fed load and invalid port still get score 100 from direct validation, now with a limited-coverage info note. Unprotected heater also passes. | Structural errors cannot pass; topology-based polarity/PE checks and explicit protection applicability/unknown status, **1.5B/F**. Do not invent a universal heater/RCD requirement. |
+| N28 | Partial: device residual ratings and US timing caveats were corrected in 1.1. Direct `standard: 'us'` still gives 230 V when no supply is specified. | Define new-document defaults from the profile, explicit source configuration and regional device labels, **1.5B/C**. Changing a standards view must not silently rewire an existing supply or relabel a 30 mA RCCB as a 6 mA GFCI. |
+| N29 | Partial: the three cited templates now simulate without the old errors. EV still emits cable warnings; DOL still relies on the missing three-phase model. Error-free execution alone does not validate the lesson. | Per-template expected operation, faults and limits, **1.5E/F**; revalidate on model/profile changes. |
+| N30 | Reproduced: the single localhost homepage Playwright case fails on the old title expectation. Description copy differs in source too. | Align intended copy and assertions, rerun the complete local built-assets suite, **1.5A**. Do not weaken SEO assertions to make a gate pass. |
+| N31 | Inspected: `.github/` remains absent. Existing local hooks and scripts are not hosted CI. | Reproducible local acceptance runner and CI-ready command specification in **1.5A**. Hosted CI activation waits for explicit permission to change the local-only testing restriction; no remote workflow runs now. |
+
+### Other audit sections
+
+| Area | Assessment and planned work |
+|---|---|
+| §6.1 determinism/layering | Phase 1.2 already moved domain tests away from store seeds and stabilized legacy fault normalization; inspected in current source/package notes. Keep electrical outputs deterministic, inject runtime clock/state, keep report timestamps at the boundary, and retain cross-runtime tests (**1.5B/F**). |
+| §6.2 indexed access | `noUncheckedIndexedAccess` remains false. Enable it for the new numerical core/domain incrementally with real guards, not blanket assertions (**1.5B**); broader app cleanup belongs to **Phase 8**. |
+| §6.3 security/console | Historical static findings are not a complete current security assessment. Preserve no-eval/input boundaries; review storage-error logging and Worker payload limits in **1.5F/Phase 8**. |
+| §6.4 accessibility | Add a keyboard/screen-reader-readable connection list and diagnostic/measurement equivalents in **1.7**; keep terminal focus/labels through solver integration. Counted ARIA attributes are not an accessibility pass. |
+| §6.5 dependencies | **Reviewed in 1.5A.2:** current Bun advisories led to targeted Astro, Vitest 4.1.11, Wrangler and transitive updates. One moderate esbuild advisory remains in Drizzle's old transform-only loader; its vulnerable serving API is not used here. See [versions, exposure and disposition](../audits/phase-1-dependencies.md). This is not a clean audit. Repeat dependency review in **Phase 8**; no separate later Vitest major upgrade is scheduled. |
+| §7 robust subsystems | Retain useful curve, cable, Zs, fault, serialization, routing and access tests. Numerical helpers retain their documented applicability; an existing passing test is not automatically an independent oracle. |
+
+## 2. Rebuild the engine through a stable boundary
+
+**Recommendation: implement a new electrical core inside `packages/domain`, then replace the legacy solver after gated comparison.** A whole-application restart would also discard working editor behavior, keyboard access, artwork, import/export, local persistence, memberships and server authorization without addressing their separate causes. Moving the old solver into a package improved architecture; it did not replace its electrical model.
+
+The replacement has the stages accepted in [ADR 0008](../decisions/0008-staged-electrical-core.md):
+
+1. **Validate and normalize:** canonical component/port IDs, defaults, bounded input, fault targeting and legacy document adaptation. Reject structurally invalid input with diagnostics; preserve a recoverable original document.
+2. **Compile a terminal graph:** conductive nets, load branches, isolated contact poles, source identity, AC/DC/phase/frequency, winding boundaries, neutral/reference and PE/bonding relationships. Port labels describe intended roles; they must not prevent detecting a real miswire.
+3. **Solve supported electrical networks:** a nodal/modified-nodal formulation for declared load/source models, with source/wire impedance where needed, real branch current and terminal voltage. Validate model choice and tolerances on small analytical fixtures before optimizing. Graph walks remain useful for connectivity; they do not substitute for electrical equations.
+4. **Advance device state:** explicit simulation time, timers, coil pickup/dropout, protection integrators and ordered events. Re-solve after a contact/trip/fuse change. Bounded iteration, convergence diagnostics and a stable reset/step/replay contract are mandatory.
+5. **Derive results and teaching checks:** versioned measurements, state/events, structured diagnostics and `supported`/`estimated`/`not-assessed` coverage. The UI, Worker and server consume the same electrical result; presentation/access policy remains outside physics.
+
+Separate `Circuit` document data, transient `SimulationState` and `SimulationResult`. The current `simulate()` entry point can be an adapter during migration, but must not fabricate legacy measurements it cannot derive. Keep canonical saved IDs/terminal indices and explicit version migration for any new persisted fields. Carry engine/model version in saved results and accepted diagnosis attempts; historical scores must not be silently recomputed under different physics.
+
+**Bounded enhancement scope:** first linear resistive DC and single-phase AC teaching models, then ideal isolated transformers, declared coil/timer/dimmer models and balanced three-phase RMS/phasor teaching cases. A catalogue LED, motor or power-electronic load needs a declared approximation/operating range; do not reinterpret every `powerWatts` value as resistance. Detailed semiconductor switching, harmonics, motor transients, arbitrary unbalanced networks and a general SPICE replacement are outside this increment. Unsupported cases must produce an explicit result and cannot earn a “safe/pass” score.
+
+## 3. Phase 1 insertion and exit gates
+
+The existing 1.0–1.5 completion records remain historical evidence of their defined scope. Add these milestones without renumbering 1.6–1.9. Do not start Matter overload effects against telemetry known to be wrong.
+
+| Milestone | Deliverable | Local exit gate |
+|---|---|---|
+| **1.5A — Evidence and immediate corrections** | Restore the local acceptance baseline (N30); verify dependency findings; preserve successful N8/N21/forced-open fixes; address device-role/damage/duplicate-event defects; visibly guard unsupported advertised models. Commit reproducible audit fixtures with case IDs and independent expected outcomes. Record ADR 0008 and the local/hosted CI boundary. | Correctly classified reproduced findings; targeted fixes pass their fixtures; local `check`, build and built-assets tests pass. No full-gate claim until `verify` itself passes. Unsupported three-phase/transformer results cannot masquerade as valid measurements. |
+| **1.5B — Contracts and graph** | Typed source/device models and result coverage, shared defaults/wire properties, input validation and a compiler behind the existing app boundary. Preserve source aliasing, fault semantics and saved terminal IDs. | Deterministic normalization, invalid-input rejection, topology/isolation fixtures, explicit false/default handling, import/export/undo/restore compatibility and domain boundary/type checks. |
+| **1.5C — Voltages and branch currents** | DC and single-phase network solve, multiple independent supplies, supported load models, wire losses and PE/fault paths; ideal transformer coupling with explicit fault-impedance limits. | Analytical series/parallel/shared-feeder fixtures; KCL/KVL and power balance within documented tolerances; no iteration-order voltage change; 12/24/48/120/230 V source cases; winding isolation and unsupported fault-current handling. |
+| **1.5D — Devices, time and protection** | Preserve relay NO/NC behavior; add declared coil consumption/thresholds, delay timers, dimming response, timed overload/fuse/residual events and branch-aware protection. Implement protection bypass throughout. | Step/reset/replay determinism; outputs agree for basic/Pro access; RCD ignores balanced L–N overcurrent while RCCB/RCBO roles stay distinct; no automatic isolator trip; resettable breaker survives modeled clearing; prospective current and post-trip telemetry clearly separated. Coordination fixtures cover selective and non-selective cases. |
+| **1.5E — Three-phase teaching models** | Actual L1/L2/L3 source identity, line-to-line versus line-to-neutral voltage, isolated contactors and a declared balanced motor model. | Correct phase voltages/current convention, phase loss/sequence and phase-to-phase fault diagnostics. DOL example follows its lesson; unsupported unbalanced/transient behavior is labeled. Source labels alone do not close N27. |
+| **1.5F — Integration and legacy retirement** | Same engine through direct domain, Comlink and local Hono paths; validator/inspector/diagnosis/generators/exports consume its contract. Revalidate guided lessons, seeds, recoveries and access enforcement. Retire the old runtime solver after migration acceptance. | Independent correctness fixtures plus reviewed legacy differences; per-template behavior matrix; real local D1/session/browser acceptance; `bun run verify`, simulator acceptance and three stress commands pass. Benchmark solver, serialization and dense interaction separately. |
+
+Re-estimate after 1.5A and the first 1.5C vertical slice. The original 22-week roadmap is not a credible date commitment after this added engine scope. Extend Phase 1 if its gates are unmet; do not push electrical correctness into “Pro polish” or hide failing cases to meet a date.
+
+### Independent acceptance fixtures
+
+- A dedicated **resistive** fixture: 12 V across two 6 Ω resistors in series gives 1 A and 6 V each; in parallel gives 2 A per branch and 4 A at the source. Account for modeled wire resistance explicitly. Do not use the legacy solver as the expected-value generator.
+- Distinct branches fed by a shared conductor obey KCL; open branches draw zero while an exposed live terminal may still have voltage. In ideal zero-resistance parallel wire loops where individual current is indeterminate, report that or require declared impedance; never invent a split.
+- Independent 12 V DC and 230 V AC circuits do not change each other's measurements. Compatible aliases share a source; conflicting ideal supplies produce a diagnostic. Transformer windings remain galvanically separate and transfer power under the declared ideal/loss model; a secondary short without adequate impedance data has an unassessed current, not an invented 460 A mains value.
+- Correct and reversed polarity, switched neutral, broken PE, intended bonding and an unintended PE return are separate fixtures. Missing/unsupported installation context cannot become a full compliance pass. Naturally occurring hazards remain visible in every access tier; exercise answer narration can be withheld separately.
+- B16 overload and L–N short, plain RCCB balanced short, L–PE leakage, RCBO combined roles, fuse replacement and non-operating isolator are distinct cases. Selectivity depends on actual current paths and modeled curves/settings; where manufacturer coordination data is needed, mark it unassessed.
+- Relay NO/NC exclusivity and coil isolation survive migration. A supported 12 V control circuit can operate a relay that switches a separate 230 V circuit. Timers do not close early; reset/replay gives identical events; feedback that cannot settle returns a diagnostic.
+- All current guided templates have documented initial state, actions, expected loads, expected diagnostics and model/profile scope. An intentional fault demonstration need not score 100. Validate lessons and challenge repairs against the new physics, not only crash counts or unchanged seed hashes.
+- Equivalent fixtures through direct domain, Comlink and **local** Hono produce equal electrical results. Membership expiry/revocation cannot alter equations, erase a document or accept an unauthorized paid result.
+
+## 4. Responsibilities in later phases
+
+| Phase | Audit-driven requirement |
+|---|---|
+| **1.6 effects** | Consume typed state/events only after 1.5F. A breaker trip does not trigger a destruction animation. Effects on/off/reduced motion leave electrical output identical. Keep dense performance acceptance honest. |
+| **1.7 simulator UI** | Explain measured versus prospective values, model coverage and supply configuration. Unify cable editors, clarify capacity versus consumption, surface unsupported functions, add accessible netlist/diagnostic equivalents and version-aware replay controls. |
+| **1.8 membership admin** | Continue the existing manual membership plan; no admin can edit physics or standards. Avoid promises for unsupported device models. |
+| **1.9 full Phase 1 gate** | Close or explicitly scope every audit row with evidence. Recheck all guest/paid, import/restore, browser/Worker, correctness and performance paths; source review alone does not close a runtime finding. |
+| **2 community** | Published/forked circuits preserve format and model version plus applicability; never present stale cached results as a fresh safety assessment. Authoritative simulation uses the shared validated engine. |
+| **3 gamification** | Award results against recorded engine/exercise versions and authorized server outcomes; old/new scores must not be mixed silently. |
+| **4 procedural engine** | Version generators and replay fixtures; prove generated exercise outcomes and repairability under supported models. Deterministic hashes alone do not prove electrical correctness. |
+| **5 games/content** | Run authored lessons/templates through model-aware acceptance; unsupported features are not advertised as working. |
+| **6 LMS** | Pin model/standard/exercise versions to attempts and assessment evidence. Unassessed physics cannot generate a false competency/compliance pass. |
+| **7 checkout/Pro polish** | Reuse the already-correct core and membership boundaries. Electrical correctness is not a paid upgrade or a deferred payment feature. |
+| **8 hardening** | Repeat advisory/dependency, access, accessibility, recovery and performance reviews. Hosted CI remains an explicitly authorized future change to local-only testing. Any Cloudflare remote work additionally requires the user's new account and explicit operation authorization. |
+
+## 5. Historical evidence from the planning review
+
+These results predate 1.5A implementation. See the [completed acceptance evidence](../audits/phase-1-audit-baseline.md) for the later regression corpus, corrections, passing local gates and scoped remaining work.
+
+- Direct Bun probes reproduced the values recorded in the table against this working tree; local probe source/results are retained in ignored `.wrangler/audit-reconciliation-2026-09-30/`. The durable regression corpus is a **1.5A deliverable**, not claimed to exist yet.
+- `bun x vitest run packages/domain/src/simulation/relays.test.ts packages/domain/src/circuitFormat.test.ts`: **2 files, 11 tests passed**. This verifies the selected existing fixes, not the whole engine.
+- `bun x playwright test --config=playwright.production.config.ts --grep 'renders the required homepage SEO' --reporter=list`: **1 failed**, expected old title versus current “Electrical Wiring Simulator — Free Online Lab | ElectraSim”, against localhost existing built assets. The source copy agrees with the received title. No fresh build or full `verify` was run for this planning review.
+- No full fuzz matrix, fresh dependency advisory scan, full browser suite or new numerical solver was executed/implemented here. No remote service, live website or Cloudflare account was used. This update changes plans; it does not close the outstanding engine defects.

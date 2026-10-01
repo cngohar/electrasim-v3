@@ -21,7 +21,12 @@ function resetStores() {
 }
 
 beforeEach(() => resetStores());
-afterEach(() => resetStores());
+afterEach(async () => {
+  // Opening the menu preloads lazy dialogs. Let those imports finish before
+  // Vitest tears down this file's environment, including nested imports.
+  await vi.dynamicImportSettled();
+  resetStores();
+});
 
 describe('MenuOverlay', () => {
   it('presents the command hub: feature tiles, utility tiles and footer', () => {

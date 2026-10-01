@@ -2,6 +2,10 @@
 
 This directory contains technical documentation, Architecture Decision Records (ADRs), specifications, feature plans, audits, and design references for the ElectraSim project.
 
+Current work: [Phase 1 simulator core](phases/phase-1-simulator-core.md). The [deep-scan reconciliation and electrical-core rebuild plan](plans/SIMULATOR_CORE_REBUILD_PLAN.md) inserts 1.5A–1.5F before visual effects and maps the root audit to current V3 findings and later-phase gates. Development and testing remain local-only under root `AGENTS.md`.
+
+[Phase 1.5B contracts and evidence](audits/phase-1-electrical-contracts.md) records input/default/wire policy, deterministic source/pole/winding topology, fault coverage and saved-document compatibility. **1.5B is complete locally; its full acceptance gate passed. Next is 1.5C voltage and branch solving.** [Phase 1.5A acceptance evidence](audits/phase-1-audit-baseline.md) retains the earlier fixes and passing gates. The [dependency review](audits/phase-1-dependencies.md) covers the Vitest 4.1.11 migration and one remaining, currently unexposed tooling advisory. [ADR 0008](decisions/0008-staged-electrical-core.md) defines the replacement core and migration boundary.
+
 ## Directory Structure
 
 ```

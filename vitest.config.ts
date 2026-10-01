@@ -1,7 +1,6 @@
-/// <reference types="vitest/config" />
 import path from 'node:path';
 import react from '@vitejs/plugin-react';
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 
 // React's production build drops `React.act`, which @testing-library needs.
 // Force the environment before Vite starts resolving modules so an ambient
@@ -20,7 +19,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, '.'),
+      '@': path.resolve(import.meta.dirname, '.'),
     },
   },
   test: {

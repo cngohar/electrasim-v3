@@ -6,9 +6,9 @@ import { expect, test } from '@playwright/test';
    in astro-site/src/lib/seo.ts ship them unchanged; the earlier 70-character
    title came back from the clamp as "…Simulator &" and the description as a cut
    mid-list, which is what `check-seo.mjs` exists to prevent. */
-const HOME_TITLE = 'ElectraSim — Free Online Electrical Wiring Simulator';
+const HOME_TITLE = 'Electrical Wiring Simulator — Free Online Lab | ElectraSim';
 const HOME_DESCRIPTION =
-  'Build, energise and fault-find real domestic wiring in your browser. 115 components, live simulation, Guided Circuits, Challenge and Diagnosis modes.';
+  'Free online electrical wiring simulator. Wire real house circuits with MCBs, RCDs, switches, and sockets. Test live trips and faults directly in browser.';
 const HOME_TITLE_MAX = 60;
 const HOME_DESCRIPTION_MAX = 157;
 const HOME_VISIBLE_KEYPHRASE = 'electrical';
@@ -375,6 +375,12 @@ test.describe('production Pages output', () => {
     await page.addInitScript(() => {
       window.localStorage.setItem('electrasim:welcomed', '1');
     });
+    // This preview serves built assets only. Supply an empty access snapshot
+    // so missing API responses do not obscure failed offline asset requests.
+    // Real guest/paid authorization is exercised by the local Worker/D1 gate.
+    await page.route('**/api/me/membership', (route) =>
+      route.fulfill({ json: { capabilities: [], nextChangeAt: null } }),
+    );
 
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));

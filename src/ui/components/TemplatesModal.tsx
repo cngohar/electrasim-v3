@@ -12,6 +12,7 @@
  * the palette and toolbox match the guide's components.
  */
 
+import { getSimulationLimitations } from '@electrasim/domain/simulationCoverage';
 import { GUIDED_CIRCUIT_TEMPLATES, type GuidedCircuitTemplate } from '@electrasim/domain/templates';
 import { BookOpen, CheckCircle2, CircuitBoard, Search, Sparkles, Wrench, X } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
@@ -45,6 +46,7 @@ function GuideCard({
   onLoad: (template: GuidedCircuitTemplate) => void;
 }) {
   const completed = isGuideCompleted(template.id);
+  const limitations = getSimulationLimitations(template.circuit);
   return (
     <article className="flex min-h-[210px] flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/5 transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md dark:border-slate-700 dark:bg-slate-900/70 dark:hover:border-blue-700">
       <div className="flex items-start justify-between gap-3">
@@ -89,6 +91,13 @@ function GuideCard({
       <p className="mt-1.5 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
         {template.teaches}
       </p>
+      {limitations.length > 0 && (
+        <p className="mt-2 text-xs text-amber-800 dark:text-amber-200">
+          {limitations.some((l) => l.blocking)
+            ? 'Drawing only: electrical simulation is not assessed for this guide. You can load, edit and export it.'
+            : 'Manual switching only: timing or dimming response is not assessed.'}
+        </p>
+      )}
 
       <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 dark:border-slate-700/70 dark:bg-slate-800/60">
         <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">

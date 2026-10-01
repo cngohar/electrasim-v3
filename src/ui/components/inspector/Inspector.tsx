@@ -13,6 +13,7 @@ import {
   type SimulationResult,
   type WireInstance,
 } from '@electrasim/domain';
+import { getSimulationLimitations } from '@electrasim/domain/simulationCoverage';
 import {
   ChevronLeft,
   ChevronRight,
@@ -94,6 +95,9 @@ export function Inspector({
   const isPro = appMode === 'pro';
   // Any injected fault shows as an amber dot on the Fault Lab tab button.
   const injectedFaultCount = useCircuitStore((s) => s.faults.length);
+  const modelBlocked = useCircuitStore((s) =>
+    getSimulationLimitations({ components: s.components, wires: [] }).some((l) => l.blocking),
+  );
 
   const validationReport = useUiStore((s) => s.validationReport);
   const runCircuitValidation = useUiStore((s) => s.runCircuitValidation);
@@ -379,7 +383,13 @@ export function Inspector({
             <InspectorConnectionsContent selectionState={selectionState} />
           )}
 
-          {activeInspectorTab === 'simulation' && (
+          {modelBlocked && ['simulation', 'analytics'].includes(activeInspectorTab) && (
+            <output className="block p-4 text-sm text-amber-800 dark:text-amber-200">
+              Electrical measurements are not assessed because this drawing contains an unsupported
+              model. You can edit and export the drawing.
+            </output>
+          )}
+          {activeInspectorTab === 'simulation' && !modelBlocked && (
             <InspectorSimulationContent selectionState={selectionState} simResult={simResult} />
           )}
 
@@ -398,7 +408,7 @@ export function Inspector({
               />
             ))}
 
-          {activeInspectorTab === 'analytics' && (
+          {activeInspectorTab === 'analytics' && !modelBlocked && (
             <Suspense fallback={<TabLoadingFallback />}>
               <InspectorAnalyticsView
                 simResult={simResult}

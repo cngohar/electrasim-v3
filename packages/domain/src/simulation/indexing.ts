@@ -11,6 +11,8 @@ import type { Circuit, ComponentInstance, InjectedFault, WireInstance } from '..
 // ─── Indexed views over a Circuit (rebuilt each tick — cheap) ──────────────
 
 export interface CircuitIndex {
+  coilStates?: Map<string, boolean>;
+  unstableCoils?: boolean;
   /** componentId → component */
   byId: Map<string, ComponentInstance>;
   /** "compId:portIdx" → wires touching that port (both directions). */

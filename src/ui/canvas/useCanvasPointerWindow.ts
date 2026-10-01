@@ -247,9 +247,10 @@ export function useCanvasPointerWindow({
         if (component) drag.previewComponents.set(id, { ...component, x, y });
         const node = drag.componentNodes.get(id);
         if (node) {
+          const start = drag.starts.get(id) ?? { x, y };
           node.setAttribute(
             'transform',
-            `translate(${x - COMP_W / 2} ${y - COMP_H / 2}) rotate(${(component?.rotation ?? 0) % 360} ${COMP_W / 2} ${COMP_H / 2})`,
+            `translate(${start.x - COMP_W / 2} ${start.y - COMP_H / 2}) rotate(${(component?.rotation ?? 0) % 360} ${COMP_W / 2} ${COMP_H / 2})`,
           );
           node.style.removeProperty('translate');
           node.style.removeProperty('will-change');
@@ -260,14 +261,13 @@ export function useCanvasPointerWindow({
           selectionNode.style.removeProperty('will-change');
         }
       }
-      for (const { wire, group, originalOpacity, paths } of drag.connectedWires) {
+      for (const { group, originalOpacity, paths } of drag.connectedWires) {
         if (group) {
           if (originalOpacity) group.style.opacity = originalOpacity;
           else group.style.removeProperty('opacity');
         }
-        const previewPath = moved ? buildWirePreviewPath(wire, drag.previewComponents) : null;
         for (const { element, originalD } of paths) {
-          const path = previewPath ?? originalD;
+          const path = originalD;
           if (path) element.setAttribute('d', path);
           else element.removeAttribute('d');
         }

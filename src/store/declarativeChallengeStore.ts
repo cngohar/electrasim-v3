@@ -1,3 +1,5 @@
+import { sameDocument } from './circuitAccess';
+import { accessGeneration, authorizeCircuit, requiredForEditor } from './simulatorAccess';
 /**
  * declarativeChallengeStore — Challenge Mode session state (plan §5, §11).
  *
@@ -179,34 +181,50 @@ export const useDeclarativeChallengeStore = create<DeclarativeChallengeState>((s
   check: () => {
     const { definition, status, paused } = get();
     if (!definition || status !== 'active' || paused) return null;
-    const { components, wires, globalVoltage } = useCircuitStore.getState();
-    const verdict = validateChallenge(definition, { components, wires, globalVoltage });
-    const attempts = get().attempts + 1;
-    set({ verdict, attempts });
-    void saveActiveDeclarativeChallenge({
-      challengeId: definition.id,
-      attemptId: get().attemptId ?? newAttemptId(),
-      startedAt: get().startedAt ?? 0,
-      elapsedMs: get().elapsedMs,
-      hintsUsed: get().hintsUsed,
-      attempts,
-      paused: get().paused,
-    });
-    if (verdict.state === 'complete') {
-      const elapsedMs = get().totalElapsedMs();
-      set({ status: 'completed', elapsedMs, startedAt: null });
-      useUiStore.getState().setChallengeAllowedComponents(null);
-      useUiStore.getState().setChallengeAttemptId(null);
-      void clearActiveDeclarativeChallenge();
-      const attemptId = get().attemptId;
-      if (attemptId) void clearChallengeCircuit(attemptId);
-      void recordChallengeProgress(definition.id, {
-        elapsedMs,
-        attempts,
+    const before = useCircuitStore.getState();
+    const generation = accessGeneration();
+    const apply = () => {
+      if (
+        generation !== accessGeneration() ||
+        !sameDocument(before, useCircuitStore.getState()) ||
+        get().definition !== definition ||
+        get().status !== 'active'
+      )
+        return null;
+      const { components, wires, globalVoltage, faults } = before;
+      const verdict = validateChallenge(definition, { components, wires, globalVoltage, faults });
+      const attempts = get().attempts + 1;
+      set({ verdict, attempts });
+      void saveActiveDeclarativeChallenge({
+        challengeId: definition.id,
+        attemptId: get().attemptId ?? newAttemptId(),
+        startedAt: get().startedAt ?? 0,
+        elapsedMs: get().elapsedMs,
         hintsUsed: get().hintsUsed,
-      }).then((progress) => set({ progress }));
-    }
-    return verdict;
+        attempts,
+        paused: get().paused,
+      });
+      if (verdict.state === 'complete') {
+        const elapsedMs = get().totalElapsedMs();
+        set({ status: 'completed', elapsedMs, startedAt: null });
+        useUiStore.getState().setChallengeAllowedComponents(null);
+        useUiStore.getState().setChallengeAttemptId(null);
+        void clearActiveDeclarativeChallenge();
+        const attemptId = get().attemptId;
+        if (attemptId) void clearChallengeCircuit(attemptId);
+        void recordChallengeProgress(definition.id, {
+          elapsedMs,
+          attempts,
+          hintsUsed: get().hintsUsed,
+        }).then((progress) => set({ progress }));
+      }
+      return verdict;
+    };
+    if (!requiredForEditor(before).length) return apply();
+    void authorizeCircuit(before)
+      .then(apply)
+      .catch(() => {});
+    return null;
   },
 
   revealHint: () => {
@@ -394,9 +412,9 @@ export const useDeclarativeChallengeStore = create<DeclarativeChallengeState>((s
 
   /** §13 "Keep a Copy": export the challenge circuit as normal JSON. */
   keepCopy: () => {
-    const { components, wires, globalVoltage } = useCircuitStore.getState();
+    const { components, wires, globalVoltage, faults } = useCircuitStore.getState();
     downloadText(
-      exportJSON({ components, wires, globalVoltage }),
+      exportJSON({ components, wires, globalVoltage, faults }),
       'challenge-circuit.electrasim.json',
       'application/json',
     );

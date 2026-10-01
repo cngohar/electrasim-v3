@@ -92,7 +92,10 @@ membershipApi.get('/plans', async (c) => {
 membershipApi.use('/me/*', requireSession);
 membershipApi.get('/me/membership', async (c) => {
   const { limit, offset } = pagination(c.req.query());
-  return c.json(await ownMembership(c.get('db'), c.get('actor').id, limit, offset));
+  return c.json({
+    userId: c.get('actor').id,
+    ...(await ownMembership(c.get('db'), c.get('actor').id, limit, offset)),
+  });
 });
 
 membershipApi.use('/admin/*', requireSession, requireSuperAdmin, sameOriginMutation);

@@ -1,10 +1,10 @@
-# ElectraSim V3 — Full Rewrite Plan (From Line 1) — The Real V3
+# ElectraSim V3 — Full Rewrite Plan and Staged Simulator Core Rebuild
 
-**Version:** 3.0.0-DRAFT — revised 2026-09-26 (supersedes `REWRITE_PLAN_V4_FULL.md`)
+**Version:** 3.0.0-DRAFT — revised 2026-10-01 (supersedes `REWRITE_PLAN_V4_FULL.md`)
 
-**Status:** `PLANNING` — membership scope confirmed; implementation pending
+**Status:** `IMPLEMENTING LOCALLY` — Phase 1.0–1.5 milestones recorded; 1.5A and 1.5B complete locally; next is 1.5C; numerical/device rebuild and integration remain in 1.5C–1.5F
 **Runtime:** **Bun** everywhere · **Platform:** **100% Cloudflare Workers** (no external DB/compute)  
-**Previous state:** Paper plan only — no v3 code shipped. This *is* v3, built live on `electrasim.com`.  
+**Current state:** V3 is developed locally. The existing live `electrasim.com` site/account is separate and must not be used for this work.
 **Target:** React 19 + Hono on Workers + Better Auth + **D1 (SQLite)** + R2 + KV + Durable Objects + Matter.js + Tailwind v4
 
 > **Prime directive:** `NO THING IS HARD CODED — EVERYTHING CAN BE CHANGED FROM ADMIN PANEL EXCEPT MANDATORY THINGS.`
@@ -13,6 +13,8 @@
 > **Clarification — "Circuit" (2026-09-25):** there are two circuits. **Lab Circuit** = the live electrical graph in the simulator (components + wires + `simulate()`) — the heart; **NOT deferred**. **Published Circuit** = a saved lab circuit shared to the social feed (`circuits.visibility='public'`, `/feed`, `/explore`, `/c/<id>`, fork chain) — **deferred** (ships with Community, Phase 2+, which naturally comes after the simulator can create it). Earlier misread is corrected here.
 
 > **Local-only contract (2026-09-26):** the existing Cloudflare account serves the live website and must not be used by this rewrite. Its credentials were deleted locally. All development, databases and tests remain local; a new account will be configured after development. Remote operations then need explicit user authorization. This overrides older remote-cutover wording below; passing local gates is not deployment permission. See root `AGENTS.md` and `TRACKING.md`.
+
+> **Simulator revision (2026-09-30):** [audit reconciliation and core rebuild](./plans/SIMULATOR_CORE_REBUILD_PLAN.md) inserts **1.5A–1.5F before Matter effects**. Replace the electrical engine in tested stages while retaining the useful application foundations. The previous “from line 1” title and BFS-only requirement did not describe the implementation: Phase 1.2 extracted the existing solver. Source/domain, time/protection and branch-current correctness are now explicit delivery gates.
 
 ---
 
@@ -495,18 +497,18 @@ See §22.
 
 ### Matter.js — visual only, never electrical
 
-`simulate()` stays pure graph traversal (BFS per rail) in `packages/domain` — Matter never touches it. Matter runs in `rAF`, throttled >150 bodies (sleep offscreen):
+Electrical computation stays deterministic in `packages/domain`, with explicit simulation state/time inputs and no renderer dependency. **BFS per rail is no longer the required solver:** 1.5B–1.5E introduce a terminal graph, declared electrical models, branch-current/voltage equations and timed device events. See the [core rebuild plan](./plans/SIMULATOR_CORE_REBUILD_PLAN.md). Matter starts after 1.5F integration and never changes electrical results. It runs in `rAF`, throttled >150 bodies (sleep offscreen):
 
 | Visual | How |
 |--------|-----|
-| **Overload tear** | When `simulate()` reports `bustedWires`/`isBlown`/`overloadedWires`, Matter fractures the SVG group into shards (bodies) with impulse — wire "tears", component "pops" |
+| **Overload/damage effects** | Consume explicit damage events from the corrected engine. A warning or ordinary resettable breaker trip must not produce wire/component destruction; effects leave electrical state unchanged. |
 | Cable sag | Bezier wires as `Constraint` with `stiffness/damping` — toggle `Physics: on/off` |
 | Collision/snap | Components as `100×70` bodies; `MouseConstraint` drag; `Query` for overlap |
 | Confetti | Level-up reuse |
 
 ### New Mechanics
 
-1. AC phasor view, 2. Thermal heat-map overlay, 3. Fault injection/diagnosis lab (basic for everyone; advanced for paid members per §9; currently 14 `FaultType`s), 4. Draggable multi-meter probe, 5. Time-domain `simulateAtTime(t)` for timers/contactors, 6. Export bundle (PDF schematic + BoM + modeled-check report). Additional mechanics are not automatically promised membership benefits; each needs implementation and an explicit benefit decision.
+Phase 1.5B–1.5F first deliver correct branch measurements, declared voltage domains, isolated transformers, timed controls/protection and supported three-phase teaching cases. Phase 1.7 presents supply/model coverage, accessible connection/diagnostic views and time controls. The time API must take explicit state/events, not infer history from `t` alone. Enhanced phasor/thermal overlays, draggable multi-meter probes and export bundles follow supported models and their acceptance gates. Fault injection/diagnosis remains basic for everyone and advanced for paid members per §9 (currently 14 `FaultType`s). Additional mechanics are not automatically promised membership benefits.
 
 ### Pro gating
 
@@ -656,23 +658,23 @@ On course completion (threshold in `app_config.lms.certificateThreshold`), Worke
 
 ## 28. Phased Roadmap (Bun + Workers) — Original 22-Week Estimate
 
-The added Phase 1 membership/admin scope requires re-estimation after inventory. The detailed [Phase 1 sequence](./phases/phase-1-simulator-core.md) overrides the earlier 1.0–1.7 breakdown; all Phase 1 gates remain local.
+The added Phase 1 membership/admin and electrical-rebuild scope requires re-estimation after 1.5A and the first 1.5C vertical slice. Week ranges below are the historical estimate, not current delivery commitments. The detailed [Phase 1 sequence](./phases/phase-1-simulator-core.md) and [audit-driven phase responsibilities](./plans/SIMULATOR_CORE_REBUILD_PLAN.md#4-responsibilities-in-later-phases) govern implementation; all development/testing remains local.
 
 | Phase | Weeks | Scope | Exit |
 |-------|-------|-------|------|
 | **0 — Foundation** | 1–2 | Bun workspaces + Hono Worker + Vite+Assets, D1 + Drizzle + Better Auth (sqlite) + Google/GitHub/Microsoft OAuth, KV+DO+Queues+R2 bindings, `packages/domain` extraction, `app_config`/`feature_flags` + admin shell, `nodejs_compat` | `bun run dev` serves营销+app, auth works, RBAC gates `/admin`, domain tests via `bun test` |
-| **1 — Simulator Core + Manual Memberships** | Re-estimate after inventory | Standards corrections, domain extraction, SVG + visual-only Matter, state/persistence, trusted roles, super-admin plan/benefit/member CRUD, server-checked Pro components and advanced faults/diagnosis; basic modes free | Local simulator/performance gates plus real Wrangler/D1 grant → unlock → edit/revoke flow, free guest diagnosis, expiry/import/restore coverage |
-| **2 — Community (Published Circuit deferred until here)** | 6–8 | **Published Circuit** sharing deferred until simulator can create it — `circuits.visibility='public'`, `/feed` `/explore` `/c/[circuitId]`, `follows`/`reactions`/`comments`/`collections`, FTS5, `/u/[handle]` SSR+OG, DO live feed, notifications (Queue+email) | Publish/fork/comment/follow live |
-| **3 — Gamification** | 9–10 | `levels`/`badges`/`quests`/`xp_events`/`streaks`, demo seeds, leaderboards (Queue→KV), level-up UI, admin CRUD for all | XP server-validated, curve editable live |
-| **4 — Procedural Engine** | 11–12 | `packages/procedural-engine` (mulberry32), `procedural_templates/seeds`, homepage variant (live mini-sim circuit per visit), game generators, exam `HMAC` variants — now has real lab circuits to generate | Homepage differs per visit, variant audit works |
-| **5 — Wiring Games + Content Studio** | 13–15 | `/games/*` (Wire-Up, Fault Hunt, Speed Wire, etc. — all need circuit) + Content Studio mini-CMS (blog+static, approval), both depend on simulator | Games playable, CMS publish flow live |
-| **6 — LMS** | 16–18 | Better Auth org → institutions, courses/classes/enrollments, assignments/submissions (starter circuit + procedural exam), gradebook, analytics, attendance, certs, provider-agnostic email invites, **scoped lab** (assignment-preloaded simulator) | Institution signup → gradebook end-to-end |
+| **1 — Simulator Core + Manual Memberships** | Re-estimate after 1.5A/1.5C | Standards/domain/membership/persistence foundations; **1.5A–1.5F electrical core rebuild before Matter**; SVG, accessible simulator UI, super-admin member CRUD; basic diagnostics free | Independent electrical fixtures, versioned results, template and cross-runtime parity; full local simulator/performance/Worker/D1/access gates |
+| **2 — Community (Published Circuit deferred until here)** | 6–8 | Published Circuit sharing, feed/explore/forks, follows/reactions/comments/collections, FTS5, SSR+OG and notifications; preserve circuit/model versions and applicability | Local publish/fork/comment/follow flow; stale results cannot masquerade as a fresh assessment |
+| **3 — Gamification** | 9–10 | Levels/badges/quests/XP/streaks, leaderboards and admin CRUD; pin accepted exercise/model versions | Server-validated XP and comparable versioned results, tested locally |
+| **4 — Procedural Engine** | 11–12 | Seeded templates, homepage variants, games and HMAC exam variants; version generator and engine contracts | Local variant audit, deterministic replay and electrically verified solvability/repairs |
+| **5 — Wiring Games + Content Studio** | 13–15 | Games and content approval/CMS; model-aware authored lesson and template acceptance | Local game/CMS flows; lessons produce their stated outcomes within supported model scope |
+| **6 — LMS** | 16–18 | Institutions/classes/courses, assignments, gradebook, analytics, attendance/certificates, scoped lab and provider-agnostic invites; pin model/standard/exercise versions | Local institution → gradebook flow; unassessed physics cannot produce a false assessment pass |
 | **7 — Payments + Pro Polish** | Original 19–20; re-estimate | NOWPayments+Binance Pay checkout/webhooks and card stub (`OFF`), provider grants using Phase 1 memberships, institution pricing/seats, later artwork/overlays/export work | Verified payment → entitlement; idempotent refund/reconciliation preserves manual grants; benefit claims match implemented features |
-| **8 — Hardening & Live Cutover** | 21–22 | Guest migration `POST /api/migrate/guest`, URL compat (legacy fragment + `/c/<id>` + marketing slugs), PWA offline queue, perf budgets (150kB gzip, simulate <5ms, Matter throttle), Playwright RBAC/LMS/payments (all vs `wrangler dev --local`), CSP, SEO parity, Time Travel backup drill → **only then** `--remote` deploy | `bun run verify` + `e2e:production` (via `wrangler dev --local`) green, then remote cutover with 301s |
+| **8 — Hardening & Future Cutover** | 21–22 | Local migration/URL/PWA/recovery, performance, access, dependency/security and accessibility checks; local Worker tests plus built-assets SEO/CSP. Hosted CI and eventual remote cutover are separately gated future operations. | Full local acceptance and backup/restore evidence; hosted testing needs a change to the local-only rule; Cloudflare cutover additionally needs the user's new account and explicit authorization |
 
 Post-V3.1: SCORM/xAPI, collaborative cursors, vector search (Vectorize), Workers AI tutor proxy.
 
-> **Local-first rule (all phases):** nothing is marked done until it passes `bun x wrangler dev --local --persist-to .wrangler/state` + `d1 migrations apply --local` + Playwright vs local preview. Remote (`--remote` / `wrangler deploy`) only after local gates.
+> **Local-only rule (all phases):** use local Wrangler with local persistence and localhost browser targets. Local gates never authorize remote testing, account/resource operations or deployment. Hosted CI requires explicit permission to change the local-only testing restriction. Cloudflare remote work additionally requires the new account supplied by the user and explicit authorization for the operation; the old live account is excluded.
 
 ---
 
@@ -700,11 +702,7 @@ Post-V3.1: SCORM/xAPI, collaborative cursors, vector search (Vectorize), Workers
 
 ### Next Step
 
-Say **“lock V3 and scaffold Phase 0”** and I’ll:
-1. Convert this into `TRACKING.md` tasks + close `REWRITE_PLAN_V4_FULL.md` as superseded.
-2. Scaffold `bun` workspaces + Hono Worker + D1 (`wrangler d1 create electrasim`) + Drizzle + Better Auth (`bun x auth@latest generate`) in one pass.
-
-If you want **Vite+Workers Assets** vs **OpenNext/Cloudflare** for React SSR, call it now — it changes `apps/web` in Phase 0.
+**Phase 1.5B contracts and graph are complete locally; the full acceptance gate passed.** [Contracts and evidence](./audits/phase-1-electrical-contracts.md) document the source/device models, validation/defaults, wire properties, terminal isolation and compatibility boundary. The next implementation milestone is **1.5C voltage and branch solving**, followed by devices, three-phase models and integration before effects. Use [Phase 1](./phases/phase-1-simulator-core.md) for current status and [the rebuild plan](./plans/SIMULATOR_CORE_REBUILD_PLAN.md) for audit IDs and exit gates. No Cloudflare account/resource operation is authorized by these local results.
 
 ---
 

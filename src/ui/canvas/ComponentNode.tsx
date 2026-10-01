@@ -104,7 +104,8 @@ export function ComponentNode({
       : baseLabel;
   if (!definition) return null;
 
-  const isOn = component.state.on === true;
+  const coilState = simulation?.coilStates?.[component.id];
+  const isOn = coilState ?? component.state.on === true;
   const isTripped = component.state.isTripped === true;
   const active = energized || (definition.isSwitch && (Boolean(definition.changeover) || isOn));
   const fault = component.state.fault;
@@ -257,15 +258,16 @@ export function ComponentNode({
         }}
         onDoubleClick={(event) => {
           event.stopPropagation();
-          if (definition.isSwitch && !definition.isMomentary) onToggleSwitch?.(component.id);
+          if (definition.isSwitch && !definition.isMomentary && coilState === undefined)
+            onToggleSwitch?.(component.id);
         }}
         onKeyDown={(event) => {
           if (event.key !== 'Enter' && event.key !== ' ') return;
           event.preventDefault();
           event.stopPropagation();
           onSelect?.(component.id);
-          if (definition.isSwitch && !definition.isMomentary) {
-            onToggleSwitch?.(component.id);
+          if (definition.isSwitch && !definition.isMomentary && coilState === undefined) {
+            if (coilState === undefined) onToggleSwitch?.(component.id);
           }
         }}
       >
@@ -296,7 +298,11 @@ export function ComponentNode({
           strokeWidth={selected || error ? 2 : active ? 1.5 : 1}
         />
         <DeviceArtwork
-          component={component}
+          component={
+            coilState === undefined
+              ? component
+              : { ...component, state: { ...component.state, on: coilState } }
+          }
           energized={energized && fault !== 'open-circuit'}
           compact={reducedDetails && !selected}
           animate={activeLoadEffects}

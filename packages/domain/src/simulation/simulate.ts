@@ -2,15 +2,25 @@
  * Simulation engine — pure function that takes a `Circuit` and returns a
  * `SimulationResult`. No React, no DOM, no side effects.
  *
- * Split verbatim from the former monolithic `simulation.ts`; the engine
- * body and option contract are unchanged.
+ * Legacy rail-continuity model with explicit coverage guards. Numerical
+ * branch/source models and time evolution are replaced in Phase 1.5B–1.5F.
  */
 
 import { instanceLabel } from '../componentLabel';
 import { COMPONENT_DEFS } from '../components';
+import { ELECTRICAL_MODEL_VERSION } from '../core/contracts';
+import { validateCircuitInput } from '../core/input';
+import { normalizeCircuitDocument } from '../core/normalize';
+import { resolveWireProperties } from '../core/wireProperties';
 import { calculateElectricalValues, getStandardCableAmpacity } from '../electricalCalculations';
 import { FAULT_REGISTRY } from '../faults';
-import { isArcFaultDevice, isResidualDevice } from '../protectionRoles';
+import {
+  isArcFaultDevice,
+  isFuseDevice,
+  isOvercurrentDevice,
+  isResidualDevice,
+} from '../protectionRoles';
+import { getSimulationLimitations } from '../simulationCoverage';
 import { type StandardId, getStandard } from '../standards';
 import type {
   Circuit,
@@ -19,9 +29,9 @@ import type {
   FaultDiagnostic,
   SimulationResult,
 } from '../types';
+import { resolveCoils } from './coils';
 import { findProtectionDevicesInNetwork } from './faultPropagation';
 import { indexCircuit, portKey } from './indexing';
-import { traverseSources } from './traversal';
 import { calculateMCBTrip, calculateRCDTrip, formatClearingTime } from './tripCurves';
 
 // ─── Public entry point ────────────────────────────────────────────────────
@@ -29,7 +39,7 @@ import { calculateMCBTrip, calculateRCDTrip, formatClearingTime } from './tripCu
 export interface SimulateOptions {
   /** Override the registry (used in tests). Defaults to COMPONENT_DEFS. */
   defs?: Record<string, ComponentDef>;
-  /** App mode — 'pro' enables stress testing for overvoltage, overcurrent, and overload. */
+  /** Presentation compatibility only. Electrical behavior is identical in both modes. */
   appMode?: 'basic' | 'pro';
   /** Teaching profile. US device timing is not assessed; choosing a profile
    * never changes a component's physical residual-current rating. */
@@ -41,6 +51,50 @@ export interface SimulateOptions {
  * Idempotent — calling twice with the same input yields equal output.
  */
 export function simulate(circuit: Circuit, options: SimulateOptions = {}): SimulationResult {
+  const defs = options.defs ?? COMPONENT_DEFS;
+  const input = validateCircuitInput(circuit, defs);
+  if (!input.valid)
+    return {
+      energizedComponents: new Set(),
+      energizedWires: new Set(),
+      errorComponents: new Set(
+        input.diagnostics.flatMap((d) => (d.componentId ? [d.componentId] : [])),
+      ),
+      errorWires: new Set(input.diagnostics.flatMap((d) => (d.wireId ? [d.wireId] : []))),
+      errors: input.diagnostics.map((d) => d.message),
+      warnings: [],
+      faultsCleared: false,
+      electricalContract: {
+        version: 1,
+        engineVersion: 'legacy-rail-1.5b',
+        modelVersion: ELECTRICAL_MODEL_VERSION,
+        status: 'invalid',
+        coverage: [],
+        diagnostics: input.diagnostics,
+      },
+    };
+  const result = simulateLegacy(normalizeCircuitDocument(input.circuit, false, defs), options);
+  const unavailable = result.modelLimitations?.some((limitation) => limitation.blocking) === true;
+  result.electricalContract = {
+    version: 1,
+    engineVersion: 'legacy-rail-1.5b',
+    modelVersion: ELECTRICAL_MODEL_VERSION,
+    status: unavailable ? 'not-assessed' : 'estimated',
+    diagnostics: [],
+    coverage: [
+      {
+        subjectId: 'circuit',
+        aspect: 'measurements',
+        status: unavailable ? 'not-assessed' : 'estimated',
+        reason:
+          'Legacy rail-continuity estimates. The new terminal compiler does not yet solve branch currents or independent source voltages.',
+      },
+    ],
+  };
+  return result;
+}
+
+function simulateLegacy(circuit: Circuit, options: SimulateOptions): SimulationResult {
   const defs = options.defs ?? COMPONENT_DEFS;
   // Region-aware fault behaviour (see SimulateOptions.standard).
   const standardPreset = getStandard(options.standard);
@@ -64,6 +118,28 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
   const trippedIds = new Set<string>();
   const errors: string[] = [];
   const warnings: string[] = [];
+  const modelLimitations = getSimulationLimitations(circuit, defs);
+  const blocked = modelLimitations.filter((limitation) => limitation.blocking);
+  if (blocked.length > 0) {
+    return {
+      energizedComponents,
+      energizedWires,
+      errorComponents: new Set(blocked.map((l) => l.componentId)),
+      errorWires,
+      errors: blocked.map((l) => l.message),
+      warnings: [],
+      modelLimitations,
+      faultsCleared: false,
+    };
+  }
+  warnings.push(...modelLimitations.map((l) => l.message));
+  const blownComponents: NonNullable<SimulationResult['blownComponents']> = [];
+  const damagedIds = new Set<string>();
+  const markDamage = (id: string, reason: 'overvoltage' | 'overcurrent' | 'overload') => {
+    if (damagedIds.has(id)) return;
+    damagedIds.add(id);
+    blownComponents.push({ id, reason });
+  };
   if (!timingAssessed && circuit.components.some((c) => defs[c.type]?.isProtection)) {
     warnings.push(
       'US protective-device timing is not assessed; device operation uses the generic teaching model, not UL/NEC certification.',
@@ -89,18 +165,32 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
 
   /**
    * Fault-driven protection operation (all app modes — a bolted fault must
-   * operate protection regardless of the Pro-only stress-testing gate).
-   * Trips every protective device in the faulted component's connected
-   * network (see faultPropagation.ts for the selectivity caveat).
+   * operate capable protection regardless of presentation mode).
+   * Network-wide candidates remain a teaching approximation; selectivity
+   * requires the branch and time models planned in Phase 1.5D.
    */
   const tripProtectionForFault = (
     faultedId: string,
     kind: 'short-circuit' | 'ground-fault' | 'arc-fault',
     extraFilter?: (type: string, device: (typeof circuit.components)[number]) => boolean,
   ) => {
-    const devices = findProtectionDevicesInNetwork(faultedId, circuit, defs).filter(
-      (d) => !extraFilter || extraFilter(d.type, d),
-    );
+    const devices = findProtectionDevicesInNetwork(faultedId, circuit, defs).filter((d) => {
+      const capable =
+        kind === 'short-circuit'
+          ? isOvercurrentDevice(d.type, defs)
+          : kind === 'ground-fault'
+            ? isResidualDevice(d.type, defs)
+            : isArcFaultDevice(d.type, defs);
+      return (
+        capable &&
+        (!extraFilter || extraFilter(d.type, d)) &&
+        !d.state.isBlown &&
+        !d.state.isTripped &&
+        !index.faultsByComponent
+          .get(d.id)
+          ?.some((f) => f.type === 'protection-bypass' || f.type === 'protection-forced-open')
+      );
+    });
     for (const dev of devices) {
       if (trippedIds.has(dev.id)) continue;
       trippedIds.add(dev.id);
@@ -109,6 +199,12 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
          re-spec devices (a 20 A RCBO, a 20 A AFDD-RCBO), and the trip dialog
          was naming them by the catalogue part they were derived from. */
       const label = dev.state.autoLabel ?? instanceLabel(dev);
+      if (kind === 'ground-fault' && devDef?.ratedLeakage_mA === undefined) {
+        warnings.push(
+          `${label}: residual-current rating is unspecified; device operation is not assessed.`,
+        );
+        continue;
+      }
       if (kind === 'short-circuit') {
         const rating = dev.state.customMaxAmps ?? devDef?.maxAmps ?? 32;
         // Bolted fault: supply over an assumed fault-loop impedance. The loop
@@ -124,12 +220,10 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
            real clearing time is seconds, not milliseconds. That distinction is
            the whole point of curve selection, so the message now reports what
            the curve says. */
-        const curve = calculateMCBTrip(
-          prospectiveAmps,
-          rating,
-          devDef?.mcbType ?? 'B',
-          Number.POSITIVE_INFINITY,
-        );
+        const curve = devDef?.mcbType
+          ? calculateMCBTrip(prospectiveAmps, rating, devDef.mcbType, Number.POSITIVE_INFINITY)
+          : undefined;
+        if (isFuseDevice(dev.type, defs)) markDamage(dev.id, 'overcurrent');
         trippedComponents.push({
           id: dev.id,
           label,
@@ -137,19 +231,21 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
           reason: 'short-circuit',
           currentAmps: prospectiveAmps,
           ratingAmps: rating,
-          ...(timingAssessed && curve.timeToTrip !== undefined
+          ...(timingAssessed && curve?.timeToTrip !== undefined
             ? { clearingTimeSeconds: curve.timeToTrip }
             : {}),
-          ...(curve.tripReason ? { mechanism: curve.tripReason } : {}),
-          currentMultiple: curve.currentMultiple,
+          ...(curve?.tripReason ? { mechanism: curve.tripReason } : {}),
+          currentMultiple: prospectiveAmps / rating,
         });
         // Names the fault kind ("bolted short circuit") — must be withholdable.
         pushFaultNarrationError(
-          !timingAssessed
-            ? `${label} TRIPPED in the teaching model: prospective fault current ${prospectiveAmps} A. US clearing time is not assessed.`
-            : curve.tripReason === 'magnetic'
-              ? `${label} TRIPPED: bolted short circuit — prospective ${prospectiveAmps} A is ${curve.currentMultiple.toFixed(1)}×In, inside the instantaneous magnetic band of a Type ${devDef?.mcbType ?? 'B'} ${rating} A device; cleared in ≤${formatClearingTime(curve.timeToTrip ?? 0.1)} in the IEC teaching curve model.`
-              : `${label} TRIPPED: bolted short circuit — prospective ${prospectiveAmps} A is only ${curve.currentMultiple.toFixed(1)}×In, BELOW the Type ${devDef?.mcbType ?? 'B'} instantaneous band, so the thermal element cleared it in ≈${formatClearingTime(curve.timeToTrip ?? 0)} in the IEC teaching curve model; verify actual device characteristics.`,
+          !curve
+            ? `${label} OPERATED in the teaching model: prospective fault current ${prospectiveAmps} A. Device-specific clearing time is not assessed${isFuseDevice(dev.type, defs) ? '; replace the fuse link' : ''}.`
+            : !timingAssessed
+              ? `${label} TRIPPED in the teaching model: prospective fault current ${prospectiveAmps} A. US clearing time is not assessed.`
+              : curve.tripReason === 'magnetic'
+                ? `${label} TRIPPED: bolted short circuit — prospective ${prospectiveAmps} A is ${curve.currentMultiple.toFixed(1)}×In, inside the instantaneous magnetic band of a Type ${devDef?.mcbType ?? 'B'} ${rating} A device; cleared in ≤${formatClearingTime(curve.timeToTrip ?? 0.1)} in the IEC teaching curve model.`
+                : `${label} TRIPPED: bolted short circuit — prospective ${prospectiveAmps} A is only ${curve.currentMultiple.toFixed(1)}×In, BELOW the Type ${devDef?.mcbType ?? 'B'} instantaneous band, so the thermal element cleared it in ≈${formatClearingTime(curve.timeToTrip ?? 0)} in the IEC teaching curve model; verify actual device characteristics.`,
         );
       } else if (kind === 'ground-fault') {
         // Illustrative 45 mA fault. Device rating is a component property,
@@ -199,7 +295,6 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
       errorComponents.add(dev.id);
     }
   };
-  const blownComponents: { id: string; reason: 'overvoltage' | 'overcurrent' | 'overload' }[] = [];
   const wireCalculations: NonNullable<SimulationResult['wireCalculations']> = {};
   // Per-component live telemetry (voltage / current / power). Populated so the
   // inspector's Live Telemetry section reflects the running simulation instead
@@ -254,8 +349,17 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
   if (liveSources.length === 0) warnings.push('No Live source found.');
   if (neutralSources.length === 0) warnings.push('No Neutral source found.');
 
-  const live = traverseSources(liveSources, 'live', index, defs);
-  const neutral = traverseSources(neutralSources, 'neutral', index, defs);
+  const { live, neutral, coilStates, unstable } = resolveCoils(
+    circuit,
+    index,
+    defs,
+    liveSources,
+    neutralSources,
+  );
+  if (unstable)
+    errors.push(
+      'Relay feedback does not settle in the static teaching model. Controlled contacts are left open; use a supported stable control circuit.',
+    );
 
   // A component is marked energised when both rails reach it. Loads without
   // any neutral port (e.g. the three-phase motor, which carries L1/L2/L3 + PE
@@ -324,8 +428,9 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
     return total + watts / Math.max(1, supplyVoltage);
   }, 0);
 
-  // ── Pro Mode Stress Testing: Overvoltage & Overcurrent ──────────────────
-  if (options.appMode === 'pro') {
+  // ── Mode-independent stress estimates ──────────────────────────────────
+  {
+    // Physical stress and hazards are independent of membership or presentation mode.
     let totalCircuitAmps = 0;
 
     // 1. Calculate active load currents & overvoltage checks on energized components
@@ -337,7 +442,7 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
       // Overvoltage check
       const maxVolts = c.state.customMaxVolts ?? def.maxVolts ?? 250;
       if (supplyVoltage > maxVolts) {
-        blownComponents.push({ id: c.id, reason: 'overvoltage' });
+        markDamage(c.id, 'overvoltage');
         errorComponents.add(c.id);
         errors.push(
           `OVERVOLTAGE EXPLOSION: ${def.label} blew up! Supply (${supplyVoltage}V) exceeds max rating (${maxVolts}V).`,
@@ -351,9 +456,11 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
         const loadAmps = watts / supplyVoltage;
         totalCircuitAmps += loadAmps;
 
-        const maxAmps = c.state.customMaxAmps ?? def.maxAmps ?? 15;
-        if (loadAmps > maxAmps) {
-          blownComponents.push({ id: c.id, reason: 'overload' });
+        const maxAmps = c.state.customMaxAmps ?? def.maxAmps;
+        // No device burnout rating is inferred from a generic household current.
+        // Cable capacity and upstream protection are still assessed below.
+        if (maxAmps !== undefined && loadAmps > maxAmps) {
+          markDamage(c.id, 'overload');
           errorComponents.add(c.id);
           errors.push(
             `OVERLOAD BURNOUT: ${def.label} burned out! Load current (${loadAmps.toFixed(1)}A) exceeds max rating (${maxAmps}A).`,
@@ -367,31 +474,40 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
       /*
        * Is there a live protective device in the current path?
        *
-       * `currentCarryingComponents` rather than `energizedComponents`, and
-       * `def.isProtection` rather than substring-sniffing the type name: an MCB
-       * is single-pole, so it was never in `energizedComponents`, which meant a
-       * circuit *with* a correctly-fitted breaker was told it had "NO active
-       * circuit protection" and its cable was melted anyway.
+       * Check current-carrying paths and automatic overcurrent capability.
+       * A single-pole MCB need not appear in `energizedComponents`; an RCCB
+       * or isolator's palette classification does not provide overcurrent
+       * protection. Branch-aware coordination remains part of Phase 1.5D.
        */
       const hasProtection = circuit.components.some((c) => {
         if (!currentCarryingComponents.has(c.id) || c.state.isBlown || c.state.isTripped) {
           return false;
         }
-        return Boolean(defs[c.type]?.isProtection);
+        return (
+          isOvercurrentDevice(c.type, defs) &&
+          !index.faultsByComponent.get(c.id)?.some((f) => f.type === 'protection-bypass')
+        );
       });
 
       for (const c of circuit.components) {
-        if (!currentCarryingComponents.has(c.id) || c.state.isBlown) continue;
+        if (!currentCarryingComponents.has(c.id) || c.state.isBlown || c.state.isTripped) continue;
         const def = defs[c.type];
         if (!def || def.isSource) continue;
 
-        const deviceMaxAmps = c.state.customMaxAmps ?? def.maxAmps ?? 32;
-        const cableMm2 = c.state.customCableMm2 ?? def.recommendedCableMm2 ?? 2.5;
-        // Copper: no wire is selected here, so there is no material to read.
-        const cableCap = getStandardCableAmpacity(cableMm2, 'copper');
-        const effectiveLimit = Math.min(deviceMaxAmps, cableCap);
-
         if (!(def.isProtection || def.isSwitch || def.isPassThrough)) continue;
+        const deviceMaxAmps = c.state.customMaxAmps ?? def.maxAmps;
+        if (deviceMaxAmps === undefined) continue;
+        if (!isOvercurrentDevice(c.type, defs)) {
+          if (totalCircuitAmps > deviceMaxAmps) {
+            warnings.push(
+              `DEVICE OVERLOAD: ${instanceLabel(c)} carries ${totalCircuitAmps.toFixed(1)} A above its ${deviceMaxAmps} A rating; it has no automatic overcurrent trip. Damage and clearing time are not assessed.`,
+            );
+          }
+          continue;
+        }
+        if (index.faultsByComponent.get(c.id)?.some((f) => f.type === 'protection-bypass'))
+          continue;
+        const effectiveLimit = deviceMaxAmps;
 
         /*
          * A breaker's rating is not a trip threshold.
@@ -409,10 +525,9 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
          * elapsedSeconds = ∞ — and reports how long the standard says it would
          * take, which is the number the UI now shows.
          *
-         * Devices with a published curve (`mcbType`) get the curve. Everything
-         * else in this branch — plain switches, fuses, pass-through accessories
-         * — has no time–current characteristic to consult, so it keeps the
-         * simple "carrying more than it is rated for" damage rule.
+         * Only overcurrent devices enter this branch. Fuses/MCCBs without a
+         * modeled curve use a rating-only estimate with timing unassessed.
+         * Cable ampacity is checked separately and never replaces In.
          */
         const curve = def.mcbType
           ? calculateMCBTrip(
@@ -425,12 +540,13 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
         const operates = curve ? curve.shouldTrip : totalCircuitAmps > effectiveLimit;
         if (!operates) continue;
 
-        blownComponents.push({ id: c.id, reason: 'overcurrent' });
+        if (isFuseDevice(c.type, defs)) markDamage(c.id, 'overcurrent');
+        trippedIds.add(c.id);
         errorComponents.add(c.id);
         const clearingText =
           timingAssessed && curve?.timeToTrip
             ? ` Type ${def.mcbType} teaching curve clears ${curve.currentMultiple.toFixed(2)}×In in ≈${formatClearingTime(curve.timeToTrip)}.`
-            : '';
+            : ' Device-specific clearing time is not assessed.';
         const reason = `Circuit current (${totalCircuitAmps.toFixed(1)} A) exceeded rated limit (${effectiveLimit} A).${clearingText}`;
         trippedComponents.push({
           id: c.id,
@@ -461,23 +577,11 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
         const toComp = index.byId.get(wire.toComponentId);
         if (!fromComp || !toComp) continue;
 
-        const fromDef = defs[fromComp.type];
-        const toDef = defs[toComp.type];
-
-        const fromCable = fromComp.state.customCableMm2 ?? fromDef?.recommendedCableMm2 ?? 2.5;
-        const toCable = toComp.state.customCableMm2 ?? toDef?.recommendedCableMm2 ?? 2.5;
-
-        const cableMm2 = Math.min(fromCable, toCable);
-        /* Aluminium is derated by the same 0.78 conductivity factor the
-           validator and wire inspector already apply. The engine previously
-           called the raw copper table here, so an aluminium conductor was
-           flagged as over capacity by the validator while the engine happily
-           declared it fine — the two disagreed about the same wire. */
-        const cableCap = getStandardCableAmpacity(
-          cableMm2,
-          wire.material ?? 'copper',
-          wire.installationMethod ?? 'C',
-        );
+        const properties = resolveWireProperties(wire, index.byId);
+        const cableMm2 = properties.cableMm2;
+        const cableCap =
+          getStandardCableAmpacity(cableMm2, properties.material, properties.installationMethod) *
+          properties.deratingFactor;
         const heatRatio = totalCircuitAmps / cableCap;
         wireHeatRatios[wire.id] = heatRatio;
 
@@ -527,35 +631,18 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
     const fromComp = index.byId.get(wire.fromComponentId);
     const toComp = index.byId.get(wire.toComponentId);
     if (!fromComp || !toComp) continue;
-    const fromDef = defs[fromComp.type];
-    const toDef = defs[toComp.type];
-    const cableMm2 =
-      wire.customCableMm2 ??
-      Math.min(
-        fromComp.state.customCableMm2 ?? fromDef?.recommendedCableMm2 ?? 2.5,
-        toComp.state.customCableMm2 ?? toDef?.recommendedCableMm2 ?? 2.5,
-      );
+    const properties = resolveWireProperties(wire, index.byId);
     const calculation = calculateElectricalValues({
       powerWatts: totalLoadAmps * supplyVoltage,
       voltage: supplyVoltage,
       currentAmps: totalLoadAmps,
-      cableMm2,
-      lengthMeters: wire.lengthMeters,
-      deratingFactor: wire.deratingFactor,
-      installationMethod: wire.installationMethod,
-      /* Conductor material is user-settable in the wire inspector and was
-         being dropped here, so the panel's own copper/aluminium selector had
-         no effect on the resistance and voltage drop the panel displayed.
-         `gauge` is deliberately not passed: the AWG selector writes an
-         equivalent `customCableMm2`, so mm² stays the single size input every
-         consumer (engine, validator, compliance, Zs) reads. */
-      material: wire.material,
+      ...properties,
     });
     wireCalculations[wire.id] = calculation;
-    if (options.appMode === 'pro' && calculation.status === 'warning') {
+    if (calculation.status === 'warning') {
       warnings.push(`VOLTAGE DROP: Wire ${wire.id} — ${calculation.message}`);
     }
-    if (options.appMode === 'pro' && calculation.status === 'fail') {
+    if (calculation.status === 'fail') {
       overloadedWires.add(wire.id);
       errorWires.add(wire.id);
       warnings.push(`CABLE CAPACITY: Wire ${wire.id} — ${calculation.message}`);
@@ -790,7 +877,7 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
       const ratedV = c.state.customMaxVolts ?? def?.maxVolts ?? 250;
       if (ratedV <= 130 && supplyVoltage >= 200) {
         errorComponents.add(c.id);
-        blownComponents.push({ id: c.id, reason: 'overvoltage' });
+        markDamage(c.id, 'overvoltage');
       }
     }
   }
@@ -865,6 +952,7 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
     errorWires,
     errors,
     warnings,
+    ...(coilStates.size ? { coilStates: Object.fromEntries(coilStates) } : {}),
     blownComponents: blownComponents.length > 0 ? blownComponents : undefined,
     overloadedWires: overloadedWires.size > 0 ? overloadedWires : undefined,
     supplyVoltage,
@@ -880,6 +968,7 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
     faultNarrationWarnings: faultNarrationWarnings.length > 0 ? faultNarrationWarnings : undefined,
     activeInjectedFaults: activeFaults.length > 0 ? activeFaults : undefined,
     faultsCleared: errors.length === 0,
+    ...(modelLimitations.length > 0 ? { modelLimitations } : {}),
     thermalData,
   };
 }

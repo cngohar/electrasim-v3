@@ -129,6 +129,14 @@ export function isOvercurrentDevice(
   return getProtectionRole(type, defs).overcurrent;
 }
 
+/** Fuse links require replacement after operation; circuit breakers reset. */
+export function isFuseDevice(
+  type: string,
+  defs: Record<string, ComponentDef> = COMPONENT_DEFS,
+): boolean {
+  return isOvercurrentDevice(type, defs) && (type === 'fuse' || type === 'fused-spur');
+}
+
 /** Residual-current device — RCD, RCBO, AFDD, GFCI outlet. */
 export function isResidualDevice(
   type: string,

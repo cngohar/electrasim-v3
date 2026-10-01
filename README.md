@@ -1,5 +1,7 @@
 # ElectraSim — Interactive Wiring Lab
 
+> **V3 workspace:** development and testing are local-only under [AGENTS.md](./AGENTS.md); the live V2 site/account below is separate. Follow [Phase 1](./docs/phases/phase-1-simulator-core.md). `bun run verify:phase-1.5b` checks the [electrical contracts and terminal graph](./docs/audits/phase-1-electrical-contracts.md), including isolated local Worker/D1 and browser acceptance. Deployment remains disabled.
+
 A browser-based interactive electrical wiring simulator and structured learning laboratory. Drag, drop, and wire real-world domestic and light-industrial electrical components — switches, MCBs, RCDs, RCBOs, fuses, sockets, lamps, fans, motors, EV chargers, and solar storage — and observe real-time circuit behavior and protection trips. Built to be rigorous enough for an electrical apprentice and engaging enough for a curious hobbyist.
 
 > **Current release:** **v2.0.4** (2026-09-17), live at [electrasim.com](https://electrasim.com/) — includes Challenge Mode, Diagnosis Lab, Ohmageddon, 20 guided circuit walkthroughs, 22 component anatomy cutaways, multi-standard Electrical Toolbox (BS 7671 / IEC 60364 / NEC), and a 36-term cross-referenced glossary. Release notes: [/updates/](https://electrasim.com/updates/). The accessible SVG editor and Astro marketing/guide site build together as one Cloudflare Pages artifact; see [`PLAN.md`](./PLAN.md) for roadmap phases and [`progress.md`](./progress.md) for the development session log.
@@ -173,7 +175,7 @@ npm run benchmark:simulation
 
 ### Prerequisites
 
-- **Node.js** `≥ 22.12.0`
+- **Node.js** `≥ 22.19.0` (required by the resolved build tools)
 - **npm** `≥ 10.0.0`
 
 ### Installation & Development
@@ -220,8 +222,10 @@ npm run verify
 | `npm run build:astro` | Build only the Astro marketing workspace into temporary `dist-astro/` |
 | `npm run build:stats` | Full build plus visual rollup bundle treemap at `dist/stats.html` |
 | `npm run preview` | Run local Cloudflare Pages preview server via Wrangler |
-| `npm run verify` | Full CI verification gate: checks, builds, tests, and validates budgets |
-| `npm run deploy` | Verify and deploy `dist/` to Cloudflare Pages |
+| `bun run verify` | Full local verification gate: checks, builds, tests, and validates budgets |
+| `bun run verify:phase-1.5b` | Electrical contracts/graph gate, local Worker parity, persistence and browser acceptance |
+| `bun run test:domain-local` | Compare 486 simulation/compiler cases between Bun and an isolated localhost Worker |
+| `bun run deploy` | Intentionally disabled under the V3 local-only workspace rules |
 | `npm run clean` | Clean build artifacts (`dist/`, `coverage/`, `playwright-report/`) |
 | `npm run typecheck` | Run `tsc` typechecks across root, e2e, and Astro workspace |
 | `npm run lint` | Check code with Biome linter |

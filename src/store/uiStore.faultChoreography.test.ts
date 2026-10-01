@@ -134,12 +134,12 @@ describe('uiStore — fault injection choreography', () => {
     })) as unknown as typeof window.matchMedia;
     try {
       const id = firstLoadId();
-      useUiStore.getState().beginFaultInjection('arc-fault', { componentId: id });
+      useUiStore.getState().beginFaultInjection('open-circuit', { componentId: id });
 
       // No arming window at all: committed synchronously, nothing pending.
       expect(useUiStore.getState().pendingFaultFx).toBeNull();
       expect(useCircuitStore.getState().components.find((c) => c.id === id)?.state.fault).toBe(
-        'arc-fault',
+        'open-circuit',
       );
     } finally {
       window.matchMedia = original;

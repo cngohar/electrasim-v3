@@ -1,9 +1,11 @@
 # Phase 1 — Simulator Core (Lab Circuit Heart)
 
-> **Status:** IMPLEMENTING — 1.0 inventory and local-only isolation completed 2026-09-26; 1.1 standards corrections completed; 1.2 domain extraction completed; 1.3 memberships/roles completed locally on 2026-09-27; 1.4 canvas foundation implemented locally (dense 60 fps target remains open); 1.5 state/persistence next. Simulator membership enforcement and UI remain pending in 1.5/1.7/1.8. See [inventory evidence](../audits/phase-1-inventory.md).
+> **Status:** IMPLEMENTING — 1.0 inventory and local-only isolation completed 2026-09-26; 1.1 standards corrections completed; 1.2 domain extraction completed; 1.3 memberships/roles completed locally on 2026-09-27; 1.4 canvas foundation implemented locally (dense 60 fps target remains open); 1.5 state/persistence, membership enforcement and relay switching completed locally on 2026-09-29 within their documented scope. **Updated 2026-10-01: 1.5A and 1.5B are complete locally. The full 1.5B contracts/graph gate passed. Next is 1.5C voltage and branch solving; 1.5C–1.5F still precede 1.6 effects.** Broader simulator/admin UI remains in 1.7/1.8. See [Phase 1.5B contracts and evidence](../audits/phase-1-electrical-contracts.md) and the [audit reconciliation and rebuild plan](../plans/SIMULATOR_CORE_REBUILD_PLAN.md).
 > **Method:** Sub-phase → Steps → Gate. Each implementation sub-phase ships as its own scoped commit. All development is local-only: the old live-account credentials were removed locally; a new account will be configured after development. Passing a gate never authorizes remote access (see root `AGENTS.md`).
 > **Previous baseline:** Phase 0 recorded `typecheck/lint/vitest 97/1464`, local D1 14 tables and auth 200. These are historical results, not checks rerun for this planning revision.
 > **Principle:** Electrical standards are code-owned (§32). D1 `electrical_standards` remains read-only, including for super admins. Membership controls features, never electrical rules or the truth of basic safety diagnostics.
+
+> **1.5A closure (2026-09-30):** immediate protection fixes, coverage guards, regression corpus and ADR 0008 are accepted within their documented scope. The complete local phase command passed: 1,574 unit tests plus seven expected core failures, all type/lint/build/assets checks, 53 built-output and 3 simulator browser cases. Real local Worker/D1 membership acceptance passed 25 groups. [Acceptance evidence](../audits/phase-1-audit-baseline.md) and [dependency review](../audits/phase-1-dependencies.md) record the Vitest 4.1.11 migration and one remaining, currently unexposed tooling advisory. The user resumed 1.5B on 2026-10-01; its [separate acceptance record](../audits/phase-1-electrical-contracts.md) supersedes the earlier deferral.
 
 ## 0. Decisions before code
 
@@ -57,9 +59,17 @@ Enhance the current SVG artwork into consistent, recognizable illustrations of a
 
 This visual work belongs to 1.4's component rendering foundation. The broader palette/toolbar/inspector redesign remains in 1.7; physical cable effects remain in 1.6.
 
+### 0F. Rebuild the electrical core before further effects
+
+The supplied [V2 deep scan](../../v3-audit.md) is a historical finding set, not a current V3 completion checklist. Local V3 probes on 2026-09-30 confirmed dead series loads, shared total current on separate branches, incorrect battery/transformer voltages, missing three-phase source semantics and protection/validation defects. Other findings are already fixed or partial: basic/Pro overload parity, relay NO/NC/coil operation, forced-open protection and strict file validation. The audit itself retracts its benchmark-failure claim.
+
+Use the [rebuild plan](../plans/SIMULATOR_CORE_REBUILD_PLAN.md) for the complete finding register, independent acceptance fixtures and later-phase dependencies. Replace the electrical computation in stages through the existing domain boundary; retain the editor, artwork, persistence, memberships and useful regression coverage. Extracting the domain package did not replace its BFS electrical model. Do not require parity with known incorrect legacy results.
+
+The new core separates document normalization, terminal graph compilation, source/load equations, timed device state and result/diagnostic derivation. Start with declared DC/single-phase load models and isolated transformers, then timed protection/controls and supported three-phase teaching models. Unsupported cases must be explicit and cannot earn a false pass. PE is not a normal power source; device ratings, cable capacity and protection operation are separate concepts. Electrical output remains independent of membership and visual effects.
+
 ## 1. Revised sub-phase map
 
-This replaces the previous 1.0–1.7 sequence. Membership foundations precede persistence; the final local gate is now **1.9**.
+This replaces the previous 1.0–1.7 sequence. Membership foundations precede persistence; **1.5A–1.5F** now precede effects without renumbering the existing UI/admin work. The final local gate remains **1.9**.
 
 | Sub-phase | Title | Scope | Key files / planned modules | Local exit gate |
 |-----------|-------|-------|-----------------------------|-----------------|
@@ -69,28 +79,36 @@ This replaces the previous 1.0–1.7 sequence. Membership foundations precede pe
 | **1.3** | **Membership and roles** | Trusted global role, super-admin bootstrap, plans/features/entitlements/audit schema, resolver and manual APIs | `packages/db/**`, migrations, planned `packages/access/**`, Hono routes | Local D1 + cookie-authenticated role/entitlement tests; signup cannot self-assign role/access |
 | **1.4** | **Canvas base** | SVG layers, enhanced physical-device artwork, routing, fitRegion, measured culling/LOD, theme CSS variables | `src/ui/canvas/**` | Browser/a11y checks; measure 200-component/400-wire workload with enhanced artwork |
 | **1.5** | **State, simulation and persistence** | Slim Zustand; `comlink`; circuit CRUD; gate premium actions, imports, copies, restores and server results | `src/store/**`, `src/sim-worker/**`, Hono circuit/scenario routes | Free local sim without login; fresh paid authorization; imported content cannot bypass gates; downgrade preserves documents |
+| **1.5A** | **Audit baseline and immediate corrections** | Reproducible fixtures; N30 local gate repair; dependency-advisory verification; device-role/damage fixes; unsupported-model guards; ADR 0008 | Rebuild plan, domain tests, local scripts, catalogue/help text | Findings classified; independent fixtures; targeted checks/build/built-assets tests pass; no hosted CI activation |
+| **1.5B** | **Electrical contracts and graph** | Source/device models, result coverage, canonical defaults, shared wire-property resolution, input validation and terminal graph | `packages/domain/**`, circuit-format adapters | Invalid topology cannot pass; deterministic normalization; source/pole/winding isolation; saved IDs and explicit states preserved |
+| **1.5C** | **Voltage and branch solver** | Supported DC/single-phase models, independent supplies, branch currents, wire losses, PE paths and isolated transformers | Planned electrical solver modules in `packages/domain` | Analytical series/parallel fixtures, KCL/KVL/power balance, correct source voltages; unsupported physics reported |
+| **1.5D** | **Time, controls and protection** | Coil models, timers, dimming, explicit state/events, bypass, branch-aware device operation and coordination | Domain device models, simulation state/result contract | Replay/reset deterministic; correct RCD/RCBO/isolator roles; no destroyed breaker on ordinary clearing; basic/Pro parity |
+| **1.5E** | **Three-phase teaching models** | Real source/phase identity, voltage conventions and supported motor/contactors | Source catalogue, domain models, DOL template | Phase loss/sequence and inter-phase faults; balanced model fixtures; no single-live success for a three-phase motor |
+| **1.5F** | **Integration and legacy retirement** | Validator, templates, generators, diagnosis, stores, Comlink/Hono and exports adopt versioned results; retire legacy solver after acceptance | Domain, app/Worker consumers, local regression suites | Reviewed legacy differences; template behavior matrix; local `verify`, simulator acceptance and stress suites; separate solver/render measurements |
 | **1.6** | **Matter visuals** | Sag/snap/overload effects, throttling and offscreen sleep | planned `src/ui/canvas/MatterLayer.tsx` | Same electrical output with effects on/off; reduced-motion and perf checks |
-| **1.7** | **Simulator UI and modes** | Palette/Inspector/commands; basic vs advanced controls; membership status; read-only premium documents | `src/ui/components/**`, access client state | Guest completes basic diagnosis; paid member runs advanced/Ohmageddon; keyboard and restore paths obey policy |
+| **1.7** | **Simulator UI and modes** | Palette/Inspector/commands; membership/read-only states; coverage and time/measurement semantics; consistent cable editors; accessible netlist/diagnostics | `src/ui/components/**`, access client state | Guest/paid flows work; keyboard and restore paths obey policy; unsupported models and prospective versus measured values are clear |
 | **1.8** | **Super-admin membership UI** | `/admin/pro` plans/benefits/members/audit; grant, edit, extend, suspend/revoke, archive/delete | admin UI + APIs from 1.3 | Create plan → assign member → unlock → edit → revoke; ordinary admin/org owner denied by API and UI |
 | **1.9** | **Verify** | Full local gate, authorization matrix, expiry/revocation, legacy migration, D1 burst and perf | scripts, local API/browser suites | `bun run verify` plus dedicated Worker API/E2E gates against local Wrangler; all required cases below pass |
 
-Revisit the roadmap estimate after inventory; added membership/admin work is not assumed to fit the original simulator-only estimate.
+Re-estimate after 1.5A and the first 1.5C vertical slice. The added membership/admin and electrical-core scope is not assumed to fit the original simulator-only estimate.
 
-## 2. Next implementation steps
+## 2. Implementation steps and status
 
 | Step | Action | Evidence / gate |
 |------|--------|-----------------|
-| 1.0.1 | Refresh inventory with `rg --files`; trace registry, stores, circuit entry points and Worker routes | Current paths/counts, not historical line counts |
-| 1.0.2 | Record authoritative standards, edition/adoption distinctions and unresolved clauses | [Audit](../audits/electrical-standards-gap.md), source linked to each decision |
-| 1.0.3 | Census all Pro component IDs and 14 current `FaultType` values; map diagnosis/rage profiles | Every ID covered; unknown IDs rejected at protected entry points |
-| 1.0.4 | Write ADR 0007 for SVG and visual-only Matter | Solver behavior stays independent |
-| 1.0.5 | Confirm scripts/dependencies; change dependencies only when required | No unverified latest-version claim or unrelated upgrade sweep |
-| 1.1.1 | Implement audited claim/applicability corrections before numerical changes | No automatic EVSE B→C patch |
-| 1.1.2 | Add independent regression fixtures for verified rules; update D1 through local migration | Supported valid and invalid cases; no demand for one UK EV template to score 100 under every profile |
-| 1.3.1 | Implement trusted role/bootstrap and schema before membership CRUD | No self-grants; super-admin action audited |
-| 1.3.2 | Implement manual memberships and common capability resolver | Active, scheduled, expired, suspended and revoked behavior covered |
+| 1.5A.1 — complete | Turn the reconciled audit cases into a durable regression corpus with independent expected outcomes | Every audit ID has a status, owner and local evidence; known incorrect legacy behavior is not the oracle |
+| 1.5A.2 — complete | Repair homepage test/copy drift and verify the current dependency advisories with Bun, including the required Vitest 3.2.7 → 4.1.11 migration | Local built-assets suite; [resolved versions, compatibility fixes and remaining tooling finding](../audits/phase-1-dependencies.md); further dependency review in Phase 8 |
+| 1.5A.3 — complete | Correct protection-role/damage reporting and guard unsupported advertised models; retain already-fixed free diagnostics and relay behavior | RCCB is not an MCB; isolator does not auto-trip; ordinary breaker clearing is not destruction; no false success for unsupported models |
+| 1.5A.4 — complete | Record ADR 0008, result/model version policy and the declared load-model scope | Staged core replacement, numerical fixtures and legacy migration boundaries are reviewable |
+| 1.5B.1 — complete | Introduce versioned source/device/coverage contracts and the terminal compiler behind the domain entry point | Explicit source identities, load approximations, contact/winding isolation and unassessed physics |
+| 1.5B.2 — complete | Share bounded input validation, canonical state defaults and wire-property resolution | N13 defaults and N17/invalid-port N26 regressions pass; saved values and wire provenance retained |
+| 1.5B.3 — complete | Compile deterministic fault topology and independent conductive domains | Earth short/open/leakage distinctions, pole bypasses, contact disconnection and polarity composition fixtures |
+| 1.5B.4 — complete | Verify import/export/undo/restore, runtime parity and local acceptance | [Full passing gate](../audits/phase-1-electrical-contracts.md): 1,645 unit passes plus five owned expected failures, 486 parity cases, 9 Worker/D1 groups and 56 browser cases; strict indexed-access checks for the core |
+| 1.5C.1 | Complete a resistive series/parallel plus independent-source vertical slice | Known analytical values, KCL/KVL/power balance and explicit convergence/coverage status |
 
-The 1.0 inventory, 1.1 claim/applicability, 1.2 domain-package and 1.3 membership/role gates are complete. The 1.4 canvas foundation and measurement gate are complete locally; continue with 1.5. Dense interaction performance is not yet 60 fps; see [performance evidence](../PERFORMANCE.md). Phase 1.3 passed 19 real local D1/cookie API groups, all 1,514 unit tests, typechecks, lint and the production asset build. Migration 0004 is applied locally. See the [membership API and bootstrap contract](../api/membership.md). See [standards implementation evidence](../audits/phase-1-standards-implementation.md). Later sub-phases remain gated on their predecessors.
+The 1.0–1.3 gates and the 1.4 canvas foundation/measurement gate are recorded complete locally. Phase 1.5 completed shared circuit-file validation, owner/version circuit CRUD, fresh premium-action authorization, server-owned diagnosis results, preserved downgrade/restore work, isolated relay contacts with coil-driven switching, and saved-document continuity across the modal lifecycle. Its historical validation passed 1,546 unit tests, typechecks/lint, the asset build and budgets, real local D1/cookie/browser acceptance, and all 51 selected desktop browser scenarios across the main run and targeted rerun. The final simulator and membership acceptance runs passed 9 and 25 groups respectively; migration 0005 was applied locally. These results are not a full electrical-correctness or current `verify` pass. See [Phase 1.5 evidence and limits](../audits/phase-1-persistence.md) and the [simulator API contract](../api/simulator.md).
+
+**1.5B is complete locally.** The next implementation milestone is **1.5C voltage and branch solver**, followed by 1.5D–1.5F. The compiler does not replace the legacy numerical runtime; see [contracts and acceptance scope](../audits/phase-1-electrical-contracts.md). Effects resume in 1.6 after corrected electrical results are integrated; a resettable protection trip must not trigger destruction artwork. The broader interface/admin work remains in 1.7/1.8 and the full verification matrix in 1.9. Dense interaction performance is not yet 60 fps; see [performance evidence](../PERFORMANCE.md). The [membership API/bootstrap contract](../api/membership.md) and [standards evidence](../audits/phase-1-standards-implementation.md) remain authoritative for those completed sub-phases.
 
 ## 3. Membership acceptance scenarios
 
@@ -105,10 +123,15 @@ The 1.0 inventory, 1.1 claim/applicability, 1.2 domain-package and 1.3 membershi
 
 ## 4. Verification and risks
 
-- Current `e2e:production` defaults to `scripts/preview-server.mjs`. Static preview cannot prove membership authorization. Add a suite using `wrangler dev --local --persist-to .wrangler/state` with isolated test data and real sessions/D1; pin Phase 1 URLs to localhost.
-- Preserve `bun run verify` (build, perf, links/SEO/CSP, simulation/browser benchmarks and E2E), and add Worker membership gates. Old test counts are not acceptance criteria.
+- Current `e2e:production` defaults to `scripts/preview-server.mjs`; it checks built assets, not membership authorization. Preserve the separate real local Worker/D1/session suites delivered in 1.5 (`test:membership` and `test:simulator`). All URLs stay pinned to localhost and local state.
+- Preserve `bun run verify` (including Worker membership acceptance) and the dedicated simulator acceptance. Add the independent engine fixtures and run all three stress commands at 1.5F/1.9. Old test counts and parity with incorrect legacy results are not acceptance criteria. The 2026-09-30 single homepage case reproduced N30; full `verify` was not rerun in this planning review.
 - Browser simulation code can be modified by its owner. UI gates cover supported flows; Hono protects server actions, premium content delivery and accepted results. Basic offline use remains; Phase 1 premium actions require online validation, without a tamper-proof offline licensing claim.
-- `appMode` currently controls palette visibility and some stress calculations. Separate access, presentation and fault reporting so payment cannot make an unsafe circuit appear safe.
+- `appMode` electrical parity was observed for the reproduced overload and existing relay cases; preserve it across the replacement engine. Audit stale comments/help text separately from actual behavior. Access, presentation and exercise answer narration must not change electrical truth.
 - Publisher summaries do not verify every numerical rule. Mark unsupported national rules, earthing arrangements and device models explicitly.
 - D1 authorization needs fresh primary reads and atomic conditional writes where needed; a 60-second public cache cannot extend revoked access. See the membership plan and §33.
 - No remote deployment, checkout activation or production membership migration is part of this planning update.
+- No hosted CI/test runs under the current local-only rule. Prepare reproducible local gates now; activation of hosted CI needs an explicit change to that rule. Never add live Cloudflare credentials to tests or workflows.
+
+## 5. Phase 1.5 relay correction (2026-09-28)
+
+The user-reported relay bug reproduced in the V3 solver: same-rail traversal joined coil, COM, NO and NC, and coil supply did not operate contacts. Corrected in 1.5 before effects work: isolated poles, exclusive NO/NC selection, automatic coil operation/dropout, derived visual state and regression tests. Canonical saved terminal indices are preserved. SPST/SPDT remain free; DPDT/industrial control relays remain Pro, as confirmed by the user. See [reproduction and limitations](../audits/phase-1-relay-regression.md) and [simulator API contract](../api/simulator.md).

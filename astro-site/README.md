@@ -180,7 +180,7 @@ standards mode, and the off-thread solver. Keep it in sync with `CHANGELOG.md`.
 
 ### Running it locally
 
-Astro 6 requires **Node >= 22.12**.
+This workspace requires **Node >= 22.19.0** for its resolved build tools.
 
 ```bash
 npm install                 # from the repo root (npm workspaces)

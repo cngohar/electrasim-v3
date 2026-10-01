@@ -1,3 +1,5 @@
+import { buildAccessibleDiagnosis } from '@electrasim/access/diagnosis';
+import { useSimulatorAccess } from './simulatorAccess';
 /**
  * diagnosisStore.test.ts — Diagnosis Lab session lifecycle
  * (plan §16, §17, §18, §21, §22, §34, §41).
@@ -38,8 +40,10 @@ function repairInEditor() {
 }
 
 beforeEach(async () => {
-  mem.clear();
   useDiagnosisStore.getState().exit();
+  mem.clear();
+  useDiagnosisStore.setState({ serverAttemptId: null, serverVersion: 0, accessBlocked: false });
+  useSimulatorAccess.setState({ exercise: null, capabilities: [] });
   useCircuitStore.getState().setCircuit({ components: [], wires: [], globalVoltage: 230 });
   await flush();
 });
@@ -83,12 +87,12 @@ describe('start', () => {
     expect(visible).not.toContain(primaryScenarioFault(scenario).fault.type);
   });
 
-  it('persists a resumable record without the circuit (§21)', async () => {
+  it('persists the original scenario and repair circuit for lossless recovery', async () => {
     await useDiagnosisStore.getState().start('beginner', 99);
     await flush();
     const raw = JSON.stringify(mem.get('electrasim:diagnosis:active:v1'));
     expect(raw).toContain('ES-DIAG-');
-    expect(raw).not.toContain('components');
+    expect(raw).toContain('components');
   });
 });
 
@@ -297,9 +301,9 @@ describe('resume (§21)', () => {
     const record = mem.get('electrasim:diagnosis:active:v1') as Record<string, unknown>;
     mem.set('electrasim:diagnosis:active:v1', { ...record, challengeId: 'ES-DIAG-000000' });
 
-    useDiagnosisStore.getState().exit();
+    useDiagnosisStore.setState({ status: 'idle', scenario: null });
     expect(await useDiagnosisStore.getState().resume()).toBe(false);
-    expect(mem.get('electrasim:diagnosis:active:v1')).toBeUndefined();
+    expect(mem.get('electrasim:diagnosis:active:v1')).toBeDefined();
   });
 });
 
@@ -316,20 +320,115 @@ describe('timing', () => {
   });
 });
 
-describe('timeLimit expiry (plan §27 Rage 4)', () => {
+describe('paid attempt completion and timeLimit expiry (plan §27 Rage 4)', () => {
+  let remote: {
+    id: string;
+    version: number;
+    scenario: ReturnType<typeof buildAccessibleDiagnosis>;
+    progress: {
+      status: string;
+      misdiagnoses: number;
+      incompleteRepairs: number;
+      hintsUsed: number;
+      identifiedFaultIds: string[];
+      elapsedMs: number;
+    };
+    score?: object;
+  };
   beforeEach(() => {
+    const capabilities = ['pro_components', 'advanced_faults', 'advanced_diagnostics'] as const;
+    useSimulatorAccess.setState({
+      capabilities: [...capabilities],
+      userId: 'paid-countdown-fixture',
+    });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, options?: RequestInit) => {
+        const body = options?.body ? JSON.parse(String(options.body)) : {};
+        if (url.includes('/simulator/authorize'))
+          return new Response(
+            JSON.stringify({ userId: 'paid-countdown-fixture', capabilities, nextChangeAt: null }),
+          );
+        if (url === '/api/diagnosis/attempts') {
+          remote = {
+            id: 'paid-countdown',
+            version: 1,
+            scenario: buildAccessibleDiagnosis(body),
+            progress: {
+              status: 'active',
+              misdiagnoses: 0,
+              incompleteRepairs: 0,
+              hintsUsed: 0,
+              identifiedFaultIds: [],
+              elapsedMs: 0,
+            },
+          };
+        } else if (body.action === 'expire') {
+          remote.progress.status = 'timed-out';
+          remote.progress.elapsedMs = (remote.scenario.rage?.timeLimitSeconds ?? 0) * 1000;
+          remote.version++;
+          remote.score = { points: 0, completeness: 0 };
+        } else if (body.action === 'submit') {
+          remote.progress.status = 'completed';
+          remote.progress.elapsedMs = 12_000;
+          remote.progress.identifiedFaultIds = remote.scenario.faults.map(
+            (entry) => entry.fault.id,
+          );
+          remote.score = { points: 75, completeness: 1 };
+          remote.version++;
+        } else if (body.action === 'abandon') {
+          remote.progress.status = 'abandoned';
+          remote.version++;
+        }
+        return new Response(JSON.stringify(remote));
+      }),
+    );
     useSettingsStore.getState().setSetting('ohmageddonMode', true);
   });
 
   afterEach(() => {
     useSettingsStore.getState().setSetting('ohmageddonMode', false);
+    vi.unstubAllGlobals();
   });
 
   it('does nothing on an untimed exercise', async () => {
     await useDiagnosisStore.getState().start('beginner', 33);
     useDiagnosisStore.getState().expire();
+    await flush();
     expect(useDiagnosisStore.getState().status).toBe('active');
     expect(useDiagnosisStore.getState().remainingMs()).toBeNull();
+  });
+
+  it('records a paid completion once and does not reopen it as active', async () => {
+    await useDiagnosisStore.getState().start('advanced', 42);
+    answerCorrectly();
+    useDiagnosisStore.getState().submit();
+    await vi.waitFor(() => expect(useDiagnosisStore.getState().stats?.completed).toBe(1));
+    expect(useDiagnosisStore.getState().stats?.totalPoints).toBe(75);
+    expect(mem.has('electrasim:diagnosis:active:v1')).toBe(false);
+    useDiagnosisStore.getState().revealHint();
+    await flush();
+    expect(useDiagnosisStore.getState().stats?.completed).toBe(1);
+    useDiagnosisStore.getState().exit();
+    expect(await useDiagnosisStore.getState().resume()).toBe(false);
+  });
+
+  it('clears a paid abandonment without counting it twice', async () => {
+    await useDiagnosisStore.getState().start('advanced', 42);
+    await useDiagnosisStore.getState().abandon();
+    expect(useDiagnosisStore.getState().stats?.abandoned).toBe(1);
+    expect(mem.has('electrasim:diagnosis:active:v1')).toBe(false);
+  });
+
+  it('recovers a completion accepted before the browser received the response', async () => {
+    await useDiagnosisStore.getState().start('advanced', 42);
+    remote.progress.status = 'completed';
+    remote.score = { points: 60, completeness: 1 };
+    useDiagnosisStore.getState().exit();
+    expect(await useDiagnosisStore.getState().resume()).toBe(true);
+    expect(useDiagnosisStore.getState().score?.points).toBe(60);
+    expect(useDiagnosisStore.getState().stats?.completed).toBe(1);
+    expect(mem.has('electrasim:diagnosis:active:v1')).toBe(false);
   });
 
   it('settles a Rage 4 run when the clock has already run out', async () => {
@@ -340,6 +439,7 @@ describe('timeLimit expiry (plan §27 Rage 4)', () => {
 
     useDiagnosisStore.setState({ elapsedMs: (limit ?? 0) * 1000 + 1, startedAt: Date.now() });
     useDiagnosisStore.getState().expire();
+    await flush();
 
     const state = useDiagnosisStore.getState();
     expect(state.status).toBe('timed-out');
@@ -348,6 +448,8 @@ describe('timeLimit expiry (plan §27 Rage 4)', () => {
     expect(state.remainingMs()).toBe(0);
     // A timeout is not a completion — the learner did not finish the job.
     expect(state.score?.completeness ?? 1).toBeLessThan(1);
+    expect(state.stats?.abandoned).toBe(1);
+    expect(mem.has('electrasim:diagnosis:active:v1')).toBe(false);
   });
 
   it('refuses further submissions after a timeout', async () => {
@@ -355,6 +457,7 @@ describe('timeLimit expiry (plan §27 Rage 4)', () => {
     const limit = useDiagnosisStore.getState().scenario?.rage?.timeLimitSeconds ?? 0;
     useDiagnosisStore.setState({ elapsedMs: limit * 1000 + 1, startedAt: Date.now() });
     useDiagnosisStore.getState().expire();
+    await flush();
     answerCorrectly();
     expect(useDiagnosisStore.getState().submit()).toBeNull();
   });
@@ -365,6 +468,7 @@ describe('timeLimit expiry (plan §27 Rage 4)', () => {
     const limit = useDiagnosisStore.getState().scenario?.rage?.timeLimitSeconds ?? 0;
     useDiagnosisStore.setState({ elapsedMs: limit * 1000 + 1, startedAt: Date.now() });
     useDiagnosisStore.getState().expire();
+    await flush();
     expect(useDiagnosisStore.getState().selectedFaultType).not.toBeNull();
     expect(useDiagnosisStore.getState().submit()).toBeNull();
     expect(useDiagnosisStore.getState().status).toBe('timed-out');
@@ -377,6 +481,9 @@ describe('timeLimit expiry (plan §27 Rage 4)', () => {
     await flush();
     const record = mem.get('electrasim:diagnosis:active:v1') as Record<string, unknown>;
     mem.set('electrasim:diagnosis:active:v1', { ...record, elapsedMs: limit * 1000 + 50 });
+    remote.progress.status = 'timed-out';
+    remote.progress.elapsedMs = limit * 1000;
+    remote.score = { points: 0, completeness: 0 };
 
     useDiagnosisStore.setState({
       status: 'idle',
@@ -393,5 +500,6 @@ describe('timeLimit expiry (plan §27 Rage 4)', () => {
     expect(state.scenario?.challengeId).toBe(original?.challengeId);
     expect(state.score).not.toBeNull();
     expect(state.remainingMs()).toBe(0);
+    expect(mem.has('electrasim:diagnosis:active:v1')).toBe(false);
   });
 });

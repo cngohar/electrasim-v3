@@ -536,7 +536,11 @@ export function requestReset(): void {
  * (with a log entry) on validation failure. Called by both the drag-
  * endpoint flow and the select-then-click flow.
  */
-export function applyReroute(wireId: string, end: 'from' | 'to', target: PortLoc): boolean {
+export function applyReroute(
+  wireId: string,
+  end: 'from' | 'to',
+  target: PortLoc,
+): boolean | Promise<boolean> {
   const ui = useUiStore.getState();
   const cs = useCircuitStore.getState();
   const wire = cs.wires.find((w) => w.id === wireId);
@@ -564,14 +568,18 @@ export function applyReroute(wireId: string, end: 'from' | 'to', target: PortLoc
     return false;
   }
 
-  const ok = cs.rerouteWire(wireId, end, target);
-  if (ok) {
-    ui.addLog(`Wire ${end === 'from' ? 'origin' : 'target'} rerouted.`, 'info');
-    logConnectionWarnings(validation, ui.addLog);
-  } else {
-    ui.addLog('Cannot reroute: invalid target port.', 'error');
-  }
-  if (ui.mode === 'wiring') ui.setMode('idle');
-  else ui.setReroute(null);
-  return ok;
+  const result = cs.rerouteWire(wireId, end, target);
+  const complete = (ok: boolean) => {
+    if (ok) {
+      ui.addLog(`Wire ${end === 'from' ? 'origin' : 'target'} rerouted.`, 'info');
+      logConnectionWarnings(validation, ui.addLog);
+    } else {
+      ui.addLog('Wire was not rerouted. Check the target and membership status.', 'error');
+    }
+    if (ui.mode === 'wiring') ui.setMode('idle');
+    else ui.setReroute(null);
+    return ok;
+  };
+  if (result instanceof Promise) return result.then(complete);
+  return complete(result);
 }

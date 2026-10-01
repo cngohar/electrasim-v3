@@ -1,5 +1,6 @@
 import { gzipSync } from 'node:zlib';
-import { type Page, expect, test } from '@playwright/test';
+import { type Page, expect } from '@playwright/test';
+import { test } from './helpers/paid-test';
 
 /**
  * End-to-end coverage for the Pro-mode feature set delivered in this branch:

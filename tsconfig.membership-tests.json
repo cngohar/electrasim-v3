@@ -4,6 +4,14 @@
   "include": [
     "scripts/bootstrap-super-admin.ts",
     "scripts/test-membership.ts",
+    "scripts/test-simulator.ts",
+    "scripts/test-simulator-browser.ts",
+    "scripts/start-browser-worker.ts",
+    "scripts/browser-test-worker.ts",
+    "scripts/test-domain-local.ts",
+    "scripts/domain-parity-fixture.ts",
+    "scripts/domain-parity.worker.ts",
+    "scripts/check-domain-worker.ts",
     "scripts/local-test-url.ts"
   ]
 }

@@ -36,6 +36,13 @@
       "when": 1790426082466,
       "tag": "0004_membership_foundation",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1790511071187,
+      "tag": "0005_circuit_persistence",
+      "breakpoints": true
     }
   ]
 }

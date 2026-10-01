@@ -30,7 +30,6 @@ import type {
   RageTierId,
 } from '@electrasim/domain/challenges';
 import {
-  GENERATOR_VERSION,
   RAGE_TIERS,
   RAGE_TIER_IDS,
   formatElapsed,
@@ -117,6 +116,13 @@ function useRemainingLabel(active: boolean): string | null {
 
 export function DiagnosisPanel({ isPhone }: Props) {
   const status = useDiagnosisStore((s) => s.status);
+  const accessBlocked = useDiagnosisStore((s) => s.accessBlocked);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      void useDiagnosisStore.getState().checkpoint();
+    }, 15000);
+    return () => clearInterval(timer);
+  }, []);
   const scenario = useDiagnosisStore((s) => s.scenario);
   const evaluation = useDiagnosisStore((s) => s.evaluation);
   const score = useDiagnosisStore((s) => s.score);
@@ -176,14 +182,14 @@ export function DiagnosisPanel({ isPhone }: Props) {
    * it reports what is *seen*, never what is wrong or where.
    */
   const liveObservation = useMemo(() => {
-    if (!scenario || status !== 'active') return null;
+    if (!scenario || status !== 'active' || accessBlocked) return null;
     return observeSymptom(scenario, {
       components: liveComponents,
       wires: liveWires,
       globalVoltage: liveVoltage,
       faults: liveFaults,
     });
-  }, [scenario, status, liveComponents, liveWires, liveVoltage, liveFaults]);
+  }, [scenario, status, accessBlocked, liveComponents, liveWires, liveVoltage, liveFaults]);
 
   /**
    * Has the picture changed since the exercise began?
@@ -350,13 +356,14 @@ export function DiagnosisPanel({ isPhone }: Props) {
       setReplayNote("That doesn't look like a seed or share code.");
       return;
     }
-    setReplayNote(
-      parsed.versionMismatch
-        ? `Replaying seed ${parsed.seed} on generator v${GENERATOR_VERSION}. It was created on v${parsed.generatorVersion}, so the circuit may differ.`
-        : null,
-    );
+    setReplayNote(`Replaying the original generator version ${parsed.generatorVersion}.`);
     setReplayText('');
-    void start(parsed.difficulty, parsed.seed, parsed.rageTier ?? selectedTier ?? undefined);
+    void start(
+      parsed.difficulty,
+      parsed.seed,
+      parsed.rageTier ?? selectedTier ?? undefined,
+      parsed.generatorVersion,
+    );
   };
 
   /** Point the canvas at whatever the learner is inspecting (§14 "trace wires"). */
@@ -783,6 +790,20 @@ export function DiagnosisPanel({ isPhone }: Props) {
           )}
           <output className="sr-only">{seedCopied ? 'Seed copied to clipboard' : ''}</output>
         </button>
+        {accessBlocked && (
+          <div className="p-3 text-sm">
+            <output>{error}</output>
+            <button
+              type="button"
+              className="ml-2 underline"
+              onClick={() => {
+                void useDiagnosisStore.getState().resume();
+              }}
+            >
+              Resume saved exercise
+            </button>
+          </div>
+        )}
         {/* §24: the status indicator. Never hide that the mode is active. */}
         {scenario.rage && (
           <span

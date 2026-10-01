@@ -15,6 +15,7 @@ import {
 import { startEventHistoryPersistence } from './store/eventHistoryPersistence';
 import { hydrateCircuit, persistCircuit, startAutosave } from './store/persistence';
 import { startSettingsPersistence, useSettingsStore } from './store/settingsStore';
+import { startAccessLifecycle } from './store/simulatorAccess';
 import { useUiStore } from './store/uiStore';
 import { applyDocumentTheme, readThemeHint, resolveThemePreference } from './ui/themePreference';
 import './index.css';
@@ -65,6 +66,7 @@ void (async () => {
   }
 
   startAutosave();
+  startAccessLifecycle();
 
   // Plan §14: defer the optional Challenge Mode recovery check until after
   // the editor has mounted. This keeps the first frame independent of the

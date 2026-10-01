@@ -1,3 +1,5 @@
+import type { DiagnosisScenario } from '@electrasim/domain/challenges';
+import type { Circuit } from '@electrasim/domain/types';
 /**
  * Diagnosis persistence — active exercise + aggregate stats (plan §20, §21).
  *
@@ -6,10 +8,9 @@
  * infrastructure. Do not create another persistence mechanism."
  *
  * Two records:
- *   - `activeDiagnosis` (§21) — the resumable slice. Only seed / version /
- *     difficulty describe the *scenario*, because generation is deterministic:
- *     the faulted circuit is regenerated on resume, never stored. That also
- *     means a saved exercise can never disagree with the generator.
+ *   - `activeDiagnosis` (§21, expanded in Phase 1.5) — generator identity,
+ *     original scenario, repair circuit and accepted progress. Legacy records
+ *     without circuit snapshots still regenerate from their original version.
  *   - `diagnosisStats` (§20) — small aggregate counters, not an event log.
  *
  * Diagnosis keeps its own counters rather than sharing Challenge Mode's,
@@ -43,6 +44,9 @@ export type DiagnosisStatus =
 
 /** The resumable slice of a diagnosis run (plan §21). */
 export interface ActiveDiagnosisRecord {
+  serverAttemptId?: string;
+  scenario?: DiagnosisScenario;
+  circuit?: Circuit;
   version: typeof SCHEMA_VERSION;
   seed: number;
   generatorVersion: number;

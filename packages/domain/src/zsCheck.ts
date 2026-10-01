@@ -1,3 +1,4 @@
+import { WIRE_DEFAULTS, resolveWireProperties } from './core/wireProperties';
 /** Limited UK TN copper T&E teaching estimate, not a compliance assessment.
  * Existing 0.95/0.8 factors and resistance tables are retained as model
  * assumptions; publisher edition summaries do not verify their full applicability.
@@ -118,21 +119,8 @@ export interface ZsCheckResult {
   rcdType?: 'AC' | 'A' | 'F' | 'B';
 }
 
-const DEFAULT_RUN_METERS = 10;
-
 function wireMm2(wire: WireInstance, byId: Map<string, ComponentInstance>): number {
-  if (wire.customCableMm2 !== undefined) return wire.customCableMm2;
-  // Endpoint *recommendedCableMm2* is deliberately NOT consulted: many small
-  // components (terminals, switches) recommend 1.0 mm² for their own tails,
-  // which would incorrectly drag a whole run to the worst OSG figure. The
-  // run size comes from the wire itself or explicit endpoint custom sizes,
-  // else the domestic-default 2.5 mm².
-  const sizes = [wire.fromComponentId, wire.toComponentId]
-    .map((id) => byId.get(id))
-    .filter((c): c is ComponentInstance => Boolean(c))
-    .map((c) => c.state.customCableMm2)
-    .filter((v): v is number => typeof v === 'number' && v > 0);
-  return sizes.length ? Math.min(...sizes) : 2.5;
+  return resolveWireProperties(wire, byId).cableMm2;
 }
 
 /**
@@ -245,7 +233,7 @@ export function checkDeviceDisconnection(
   const adjacency = new Map<string, { to: string; meters: number; estimated: boolean }[]>();
   for (const w of networkWires) {
     const hasLength = typeof w.lengthMeters === 'number' && w.lengthMeters > 0;
-    const meters = hasLength ? (w.lengthMeters as number) : DEFAULT_RUN_METERS;
+    const meters = hasLength ? (w.lengthMeters as number) : WIRE_DEFAULTS.lengthMeters;
     const estimated = !hasLength;
     for (const [a, b] of [
       [w.fromComponentId, w.toComponentId],

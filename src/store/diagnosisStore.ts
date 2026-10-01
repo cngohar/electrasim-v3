@@ -1,3 +1,14 @@
+import { buildAccessibleDiagnosis, scenarioRequirements } from '@electrasim/access/diagnosis';
+import { exportJSON, importJSON } from '@electrasim/domain/circuitFormat';
+import type { Circuit } from '@electrasim/domain/types';
+import {
+  accessGeneration,
+  accessMessage,
+  apiJSON,
+  authorizeCircuit,
+  canUseRequirements,
+  useSimulatorAccess,
+} from './simulatorAccess';
 /**
  * diagnosisStore — Diagnosis Lab session state (plan §34).
  *
@@ -17,9 +28,9 @@
  * lets them repair it with the ordinary tools. Nothing here duplicates a
  * domain type.
  *
- * Persistence follows §21: seed + version + difficulty + counters only. The
- * faulted circuit is regenerated from the seed on resume, never stored — which
- * also guarantees a resumed exercise cannot drift from the generator.
+ * Phase 1.5 preserves the original scenario and repair circuit alongside the
+ * generator identity. Paid attempts use server-owned progress and scores;
+ * finished attempts leave the active record and enter local aggregate stats.
  */
 
 import {
@@ -30,7 +41,6 @@ import {
   type DiagnosisScore,
   GENERATOR_VERSION,
   type RageTierId,
-  buildDiagnosisScenario,
   evaluateDiagnosis,
   scoreDiagnosis,
 } from '@electrasim/domain/challenges';
@@ -50,7 +60,28 @@ import {
 import { useSettingsStore } from './settingsStore';
 import { useUiStore } from './uiStore';
 
+interface ServerAttempt {
+  id: string;
+  version: number;
+  scenario: DiagnosisScenario;
+  circuit: Circuit;
+  readOnly?: boolean;
+  progress: {
+    status: 'active' | 'completed' | 'timed-out' | 'abandoned';
+    misdiagnoses: number;
+    incompleteRepairs: number;
+    hintsUsed: number;
+    identifiedFaultIds: string[];
+    elapsedMs: number;
+  };
+  evaluation?: DiagnosisEvaluation | null;
+  score?: DiagnosisScore | null;
+}
 export interface DiagnosisState {
+  serverAttemptId: string | null;
+  serverVersion: number;
+  accessBlocked: boolean;
+  checkpoint: () => Promise<void>;
   status: DiagnosisStatus;
   scenario: DiagnosisScenario | null;
   evaluation: DiagnosisEvaluation | null;
@@ -91,7 +122,12 @@ export interface DiagnosisState {
    * Begin an exercise. `rageTier` is only honoured when Ohmageddon Mode is
    * enabled in Settings — see the §24 gate in the implementation.
    */
-  start: (difficulty: ChallengeDifficulty, seed?: number, rageTier?: RageTierId) => Promise<void>;
+  start: (
+    difficulty: ChallengeDifficulty,
+    seed?: number,
+    rageTier?: RageTierId,
+    generatorVersion?: number,
+  ) => Promise<void>;
   selectFaultType: (type: DiagnosisAnswer['faultType'] | null) => void;
   selectLocation: (key: string | null) => void;
   submit: () => DiagnosisEvaluation | null;
@@ -124,6 +160,13 @@ function randomSeed(): number {
 }
 
 export const useDiagnosisStore = create<DiagnosisState>((set, get) => ({
+  serverAttemptId: null,
+  serverVersion: 0,
+  accessBlocked: false,
+  checkpoint: async () => {
+    if (get().serverAttemptId && get().status === 'active' && !get().accessBlocked)
+      await serverAction('checkpoint');
+  },
   status: 'idle',
   scenario: null,
   evaluation: null,
@@ -162,13 +205,23 @@ export const useDiagnosisStore = create<DiagnosisState>((set, get) => ({
 
   canSubmit: () => {
     const { status, selectedFaultType, selectedLocationKey } = get();
-    return status === 'active' && selectedFaultType !== null && selectedLocationKey !== null;
+    return (
+      !get().accessBlocked &&
+      status === 'active' &&
+      selectedFaultType !== null &&
+      selectedLocationKey !== null
+    );
   },
 
   expire: () => {
     const state = get();
     const scenario = state.scenario;
     if (!scenario || state.status !== 'active') return;
+    if (state.accessBlocked) return;
+    if (state.serverAttemptId) {
+      void serverAction('expire');
+      return;
+    }
     const limit = scenario.rage?.timeLimitSeconds;
     if (limit === null || limit === undefined) return;
     if (state.totalElapsedMs() < limit * 1000) return;
@@ -198,7 +251,10 @@ export const useDiagnosisStore = create<DiagnosisState>((set, get) => ({
     }).then((stats) => set({ stats }));
   },
 
-  start: async (difficulty, seed, rageTier) => {
+  start: async (difficulty, seed, rageTier, generatorVersion) => {
+    const previous = get();
+    const previousExercise = useSimulatorAccess.getState().exercise;
+    const generation = accessGeneration();
     set({ status: 'generating', error: null, confirmingNew: false });
     const chosenSeed = seed ?? randomSeed();
     /**
@@ -214,10 +270,37 @@ export const useDiagnosisStore = create<DiagnosisState>((set, get) => ({
      */
     const effectiveTier = useSettingsStore.getState().ohmageddonMode ? rageTier : undefined;
     try {
-      const scenario = buildDiagnosisScenario({
+      const request = {
         seed: chosenSeed,
         difficulty,
+        ...(generatorVersion !== undefined ? { generatorVersion } : {}),
         ...(effectiveTier ? { rageTier: effectiveTier } : {}),
+      };
+      const remote =
+        difficulty === 'advanced' ||
+        effectiveTier ||
+        (generatorVersion === 1 &&
+          scenarioRequirements(buildAccessibleDiagnosis(request)).length > 0)
+          ? await apiJSON<ServerAttempt>('/diagnosis/attempts', 'POST', request)
+          : null;
+      const scenario = remote?.scenario ?? buildAccessibleDiagnosis(request);
+      if (generation !== accessGeneration())
+        throw new Error('Session changed. Start the exercise again.');
+      useSimulatorAccess.setState({
+        exercise: {
+          circuit: scenario.faultedCircuit,
+          mode: scenario.rage
+            ? 'ohmageddon'
+            : scenario.difficulty === 'advanced'
+              ? 'advanced'
+              : 'basic',
+        },
+      });
+      await authorizeCircuit(scenario.faultedCircuit);
+      set({
+        serverAttemptId: remote?.id ?? null,
+        serverVersion: remote?.version ?? 0,
+        accessBlocked: false,
       });
       // The learner works on the *faulted* installation in the normal editor.
       useCircuitStore.getState().setCircuit(scenario.faultedCircuit);
@@ -241,6 +324,9 @@ export const useDiagnosisStore = create<DiagnosisState>((set, get) => ({
         generatorVersion: scenario.generatorVersion,
         difficulty: scenario.difficulty,
         mode: 'diagnosis',
+        serverAttemptId: remote?.id,
+        scenario,
+        circuit: scenario.faultedCircuit,
         ...(effectiveTier ? { rageTier: effectiveTier } : {}),
         challengeId: scenario.challengeId,
         status: 'active',
@@ -259,11 +345,9 @@ export const useDiagnosisStore = create<DiagnosisState>((set, get) => ({
       // Plan §47: never leave the user on a blank screen.
       const message = err instanceof Error ? err.message : String(err);
       console.warn('[diagnosis] generation failed:', message);
-      set({
-        status: 'idle',
-        scenario: null,
-        error: 'Could not build a diagnosis exercise. Please try again.',
-      });
+      useSimulatorAccess.setState({ exercise: previousExercise });
+      set({ ...previous, error: message });
+      accessMessage(message);
     }
   },
 
@@ -280,7 +364,15 @@ export const useDiagnosisStore = create<DiagnosisState>((set, get) => ({
   submit: () => {
     const state = get();
     const scenario = state.scenario;
-    if (!scenario || state.status !== 'active') return null;
+    if (!scenario || state.status !== 'active' || state.accessBlocked) return null;
+    if (state.serverAttemptId) {
+      void serverAction('submit');
+      return null;
+    }
+    if (scenarioRequirements(scenario).length) {
+      accessMessage('Resume this saved exercise online before submitting.');
+      return null;
+    }
     if (state.selectedFaultType === null || state.selectedLocationKey === null) return null;
 
     const { components, wires, globalVoltage, faults } = useCircuitStore.getState();
@@ -376,6 +468,11 @@ export const useDiagnosisStore = create<DiagnosisState>((set, get) => ({
   },
 
   revealHint: () => {
+    if (get().accessBlocked) return;
+    if (get().serverAttemptId) {
+      void serverAction('hint');
+      return;
+    }
     const { scenario, hintsUsed, status } = get();
     if (!scenario || status !== 'active') return;
     if (hintsUsed >= scenario.hints.length) return;
@@ -384,8 +481,11 @@ export const useDiagnosisStore = create<DiagnosisState>((set, get) => ({
   },
 
   abandon: async () => {
+    if (get().accessBlocked) return;
+    const serverAttempt = !!get().serverAttemptId;
+    if (serverAttempt && !(await serverAction('abandon'))) return;
     const { scenario, misdiagnoses, hintsUsed } = get();
-    if (scenario) {
+    if (scenario && !serverAttempt) {
       const stats = await recordDiagnosisAbandoned({
         difficulty: scenario.difficulty,
         faultTypes: scenario.faults.map((entry) => entry.fault.type),
@@ -440,9 +540,15 @@ export const useDiagnosisStore = create<DiagnosisState>((set, get) => ({
   cancelNew: () => set({ confirmingNew: false }),
 
   exit: () => {
-    void clearActiveDiagnosis();
+    // Keep interrupted work resumable; explicit abandonment clears it.
+    const state = get();
+    if (state.scenario && state.status === 'active') void persistProgress(state.scenario, state);
+    useSimulatorAccess.setState({ exercise: null });
     set({
       status: 'idle',
+      serverAttemptId: null,
+      serverVersion: 0,
+      accessBlocked: false,
       scenario: null,
       evaluation: null,
       score: null,
@@ -460,38 +566,85 @@ export const useDiagnosisStore = create<DiagnosisState>((set, get) => ({
   },
 
   /**
-   * Plan §21: rebuild an in-flight exercise after a page reload.
-   *
-   * Note this deliberately reloads the *pristine* faulted circuit: any repair
-   * work the learner had done is not persisted (§21 forbids storing the
-   * circuit), so resuming mid-repair would otherwise show a circuit whose
-   * state disagreed with the stored counters.
+   * Restore repairs after a reload, retaining the seed/version identity check.
+   * Legacy records without a circuit reopen the generated faulted installation.
    */
   resume: async () => {
     const record = await loadActiveDiagnosis();
     if (!record) return false;
     try {
-      // §24 again: a saved rage run is only resumable while the mode is still
-      // enabled. If the user turned it off, the stored run is discarded rather
-      // than silently downgraded — a downgrade would change the puzzle under
-      // them, and `challengeId` would no longer match anyway.
-      if (record.rageTier && !useSettingsStore.getState().ohmageddonMode) {
-        await clearActiveDiagnosis();
-        return false;
-      }
-      const scenario = buildDiagnosisScenario({
+      const scenario = buildAccessibleDiagnosis({
         seed: record.seed,
         difficulty: record.difficulty,
         generatorVersion: record.generatorVersion,
         ...(record.rageTier ? { rageTier: record.rageTier } : {}),
       });
-      // A generator-version bump invalidates the saved run rather than
-      // silently resuming a different fault (plan §31).
-      if (scenario.challengeId !== record.challengeId) {
-        await clearActiveDiagnosis();
-        return false;
+      if (scenario.challengeId !== record.challengeId)
+        throw new Error(
+          'Saved generator identity does not match. The original record is preserved.',
+        );
+      const circuit = record.circuit
+        ? importJSON(exportJSON(record.circuit))
+        : scenario.faultedCircuit;
+      useSimulatorAccess.setState({
+        exercise: {
+          circuit: scenario.faultedCircuit,
+          mode: scenario.rage
+            ? 'ohmageddon'
+            : scenario.difficulty === 'advanced'
+              ? 'advanced'
+              : 'basic',
+        },
+      });
+      useCircuitStore.getState().setCircuit(circuit);
+      set({
+        scenario,
+        status: 'active',
+        serverAttemptId: record.serverAttemptId ?? null,
+        accessBlocked: false,
+        misdiagnoses: record.misdiagnoses,
+        incompleteRepairs: record.incompleteRepairs,
+        hintsUsed: record.hintsUsed,
+        identifiedFaultIds: record.identifiedFaultIds ?? [],
+        elapsedMs: record.elapsedMs,
+        startedAt: null,
+      });
+      if (scenarioRequirements(scenario).length) {
+        try {
+          if (record.rageTier && !useSettingsStore.getState().ohmageddonMode)
+            throw new Error('Enable Ohmageddon Mode to resume this exercise.');
+          await authorizeCircuit(circuit);
+          let remote: ServerAttempt;
+          if (record.serverAttemptId)
+            remote = await apiJSON<ServerAttempt>(`/diagnosis/attempts/${record.serverAttemptId}`);
+          else
+            remote = await apiJSON<ServerAttempt>('/diagnosis/attempts', 'POST', {
+              seed: record.seed,
+              difficulty: record.difficulty,
+              generatorVersion: record.generatorVersion,
+              ...(record.rageTier ? { rageTier: record.rageTier } : {}),
+            });
+          if (remote.scenario.challengeId !== record.challengeId || remote.readOnly)
+            throw new Error('Exercise is read-only. Membership is required to continue.');
+          // Local repair backup is preserved; server owns accepted answers/counters.
+          set({
+            ...remote.progress,
+            score: remote.score ?? null,
+            accessBlocked: false,
+            serverAttemptId: remote.id,
+            serverVersion: remote.version,
+            startedAt: remote.progress.status === 'active' ? Date.now() : null,
+            error: null,
+          });
+          await persistServerProgress(scenario, remote);
+          return true;
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Exercise could not be resumed.';
+          set({ accessBlocked: true, startedAt: null, error: message });
+          accessMessage(message);
+          return true;
+        }
       }
-      useCircuitStore.getState().setCircuit(scenario.faultedCircuit);
       const limitMs =
         scenario.rage?.timeLimitSeconds === null || scenario.rage?.timeLimitSeconds === undefined
           ? null
@@ -555,7 +708,7 @@ export const useDiagnosisStore = create<DiagnosisState>((set, get) => ({
       return true;
     } catch (err) {
       console.warn('[diagnosis] resume failed:', err);
-      await clearActiveDiagnosis();
+      set({ error: 'Saved exercise could not be restored. Its backup has been preserved.' });
       return false;
     }
   },
@@ -583,6 +736,9 @@ function persistProgress(
     generatorVersion: scenario.generatorVersion,
     difficulty: scenario.difficulty,
     mode: 'diagnosis',
+    serverAttemptId: useDiagnosisStore.getState().serverAttemptId ?? undefined,
+    scenario,
+    circuit: snapshotCircuit(),
     // Derived from the scenario itself, so progress writes can never disagree
     // with what was actually generated.
     ...(scenario.rage ? { rageTier: scenario.rage.tier } : {}),
@@ -623,6 +779,131 @@ useDiagnosisStore.subscribe((state, previous) => {
 });
 
 /** Non-hook accessor mirroring the other stores' convention. */
+let serverBusy = false;
+function snapshotCircuit(): Circuit {
+  const { components, wires, faults, globalVoltage } = useCircuitStore.getState();
+  return { components, wires, faults, globalVoltage };
+}
+async function serverAction(
+  action: 'submit' | 'hint' | 'checkpoint' | 'abandon' | 'expire',
+): Promise<boolean> {
+  const state = useDiagnosisStore.getState();
+  if (
+    serverBusy ||
+    !state.serverAttemptId ||
+    !state.scenario ||
+    state.status !== 'active' ||
+    state.accessBlocked
+  )
+    return false;
+  if (action === 'submit' && !state.canSubmit()) return false;
+  serverBusy = true;
+  const generation = accessGeneration();
+  try {
+    await authorizeCircuit(snapshotCircuit());
+    const result = await apiJSON<ServerAttempt>(
+      `/diagnosis/attempts/${state.serverAttemptId}`,
+      'POST',
+      {
+        action,
+        version: state.serverVersion,
+        circuit: snapshotCircuit(),
+        ...(action === 'submit'
+          ? {
+              answer: {
+                faultType: state.selectedFaultType,
+                locationKey: state.selectedLocationKey,
+              },
+            }
+          : {}),
+      },
+    );
+    if (
+      generation !== accessGeneration() ||
+      useDiagnosisStore.getState().scenario !== state.scenario
+    )
+      return false;
+    useDiagnosisStore.setState({
+      ...result.progress,
+      serverVersion: result.version,
+      ...(result.evaluation ? { evaluation: result.evaluation } : {}),
+      ...(result.score ? { score: result.score } : {}),
+      startedAt: result.progress.status === 'active' ? Date.now() : null,
+      ...(result.evaluation?.progressed && result.evaluation.outstandingCount > 0
+        ? { selectedFaultType: null, selectedLocationKey: null }
+        : {}),
+    });
+    await persistServerProgress(state.scenario, result);
+    return true;
+  } catch (error) {
+    if (useDiagnosisStore.getState().scenario !== state.scenario) return false;
+    const message = error instanceof Error ? error.message : 'Exercise could not be verified.';
+    useDiagnosisStore.setState({
+      accessBlocked: true,
+      elapsedMs: state.totalElapsedMs(),
+      startedAt: null,
+      error: message,
+    });
+    accessMessage(message);
+    await persistProgress(state.scenario, useDiagnosisStore.getState());
+    return false;
+  } finally {
+    serverBusy = false;
+  }
+}
+/** A server-confirmed finish must never be written back as an active exercise. */
+async function persistServerProgress(scenario: DiagnosisScenario, result: ServerAttempt) {
+  if (result.progress.status === 'active') {
+    await persistProgress(scenario, useDiagnosisStore.getState());
+    return;
+  }
+  const common = {
+    difficulty: scenario.difficulty,
+    faultTypes: scenario.faults.map((entry) => entry.fault.type),
+    misdiagnoses: result.progress.misdiagnoses,
+    hintsUsed: result.progress.hintsUsed,
+  };
+  const stats =
+    result.progress.status === 'completed'
+      ? await recordDiagnosisCompleted({
+          ...common,
+          elapsedMs: result.progress.elapsedMs,
+          incompleteRepairs: result.progress.incompleteRepairs,
+          points: result.score?.points ?? 0,
+        })
+      : await recordDiagnosisAbandoned(common);
+  if (useDiagnosisStore.getState().scenario === scenario) useDiagnosisStore.setState({ stats });
+}
+useSimulatorAccess.subscribe(() => {
+  const state = useDiagnosisStore.getState();
+  if (
+    state.scenario &&
+    state.status === 'active' &&
+    !state.accessBlocked &&
+    !canUseRequirements(scenarioRequirements(state.scenario))
+  ) {
+    useDiagnosisStore.setState({
+      accessBlocked: true,
+      elapsedMs: state.totalElapsedMs(),
+      startedAt: null,
+      error: 'Membership must be verified to continue. Your exercise and repairs are preserved.',
+    });
+    void persistProgress(state.scenario, useDiagnosisStore.getState());
+  }
+});
+// Bank repair work as well as counters; selection changes do not write to IDB.
+useCircuitStore.subscribe((state, previous) => {
+  const diagnosis = useDiagnosisStore.getState();
+  if (
+    diagnosis.status === 'active' &&
+    diagnosis.scenario &&
+    (state.components !== previous.components ||
+      state.wires !== previous.wires ||
+      state.faults !== previous.faults ||
+      state.globalVoltage !== previous.globalVoltage)
+  )
+    void persistProgress(diagnosis.scenario, diagnosis);
+});
 export const diagnosisState = () => useDiagnosisStore.getState();
 
 export { GENERATOR_VERSION };

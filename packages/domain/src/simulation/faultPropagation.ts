@@ -6,11 +6,12 @@
  * Pure module: no React / DOM imports so it can ship into `simulation.worker.ts`.
  *
  * NOTE (teaching simplification): within the faulted connected network ALL
- * reachable protective devices operate. Real-world selectivity/discrimination
- * (only the *nearest upstream* device trips, BS 7671 Section 536) needs
- * direction-aware path analysis — flagged in the roadmap (Zs checker work).
+ * capable devices are candidates. Selectivity/discrimination requires actual
+ * current paths, device curves/settings and timing; nearest-device selection
+ * alone cannot establish it. The replacement core supplies those in Phase 1.5D.
  */
 
+import { isAutomaticProtection } from '../protectionRoles';
 import type { Circuit, ComponentDef, ComponentInstance } from '../types';
 
 /** ComponentDefMap alias matching the traverse/simulate modules. */
@@ -46,8 +47,8 @@ export function connectedNetworkComponents(startId: string, circuit: Circuit): S
 }
 
 /**
- * Protective devices (MCB / RCBO / fuse / MCCB — `isProtection` defs) that
- * share a connected wire network with the faulted component.
+ * Automatic devices in the connected network, including a fault target that
+ * is itself protective. The caller must filter for the fault's actual mechanism.
  */
 export function findProtectionDevicesInNetwork(
   faultedComponentId: string,
@@ -55,7 +56,5 @@ export function findProtectionDevicesInNetwork(
   defs: ComponentDefMap,
 ): ComponentInstance[] {
   const network = connectedNetworkComponents(faultedComponentId, circuit);
-  return circuit.components.filter(
-    (c) => c.id !== faultedComponentId && network.has(c.id) && defs[c.type]?.isProtection,
-  );
+  return circuit.components.filter((c) => network.has(c.id) && isAutomaticProtection(c.type, defs));
 }

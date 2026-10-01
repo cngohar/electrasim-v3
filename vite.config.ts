@@ -32,6 +32,7 @@ export default defineConfig(({ command }) => {
   const withStats = process.env.BUILD_STATS === '1';
   return {
     base: isProd ? '/app/' : '/',
+    optimizeDeps: { include: ['immer'] },
     build: {
       outDir: 'dist',
     },
@@ -131,6 +132,12 @@ export default defineConfig(({ command }) => {
       },
     },
     server: {
+      proxy: {
+        '/api': {
+          target: `http://127.0.0.1:${Number(process.env.LOCAL_WORKER_PORT) || 8791}`,
+          changeOrigin: false,
+        },
+      },
       // HMR can be disabled in constrained development environments.
       hmr: process.env.DISABLE_HMR !== 'true',
       // Sandboxed/cloud preview proxies (e2b, gitpod-style) forward under a

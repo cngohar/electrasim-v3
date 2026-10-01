@@ -183,6 +183,8 @@ export interface BuildDiagnosisScenarioRequest {
   difficulty: ChallengeDifficulty;
   generatorVersion?: number;
   recipeId?: string;
+  /** Explicit generation policy; omitted by legacy version 1 callers. */
+  allowedFaultTypes?: readonly FaultType[];
   /**
    * Bounded retries (plan §37). Each attempt re-seeds the generator, so a
    * circuit whose fault turned out to be invisible is replaced rather than
@@ -250,6 +252,8 @@ function tryBuildScenario(request: {
   difficulty: ChallengeDifficulty;
   generatorVersion: number;
   recipeId?: string;
+  /** Explicit generation policy; omitted by legacy version 1 callers. */
+  allowedFaultTypes?: readonly FaultType[];
   rageTier?: RageTierId;
 }): BuildOutcome {
   const { seed, difficulty, generatorVersion, recipeId, rageTier } = request;
@@ -313,7 +317,9 @@ function tryBuildScenario(request: {
     return { ok: false, reason: 'rage-modified baseline is not clean' };
   }
 
-  const allCandidates = collectFaultCandidates(healthyCircuit, scenarioInfo);
+  const allCandidates = collectFaultCandidates(healthyCircuit, scenarioInfo).filter(
+    (candidate) => !request.allowedFaultTypes || request.allowedFaultTypes.includes(candidate.type),
+  );
   let candidates = allCandidates;
   // The unranked-but-decoy-filtered pool a second fault may fall back to.
   // Starts as the full list and is replaced by the candidate stage, which is

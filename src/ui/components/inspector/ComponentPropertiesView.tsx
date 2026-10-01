@@ -4,6 +4,7 @@
  */
 
 import { COMPONENT_DEFS, type ComponentInstance, type SimulationResult } from '@electrasim/domain';
+import { getSimulationLimitations } from '@electrasim/domain/simulationCoverage';
 import {
   getStandard,
   recommendCurveForLoad,
@@ -41,7 +42,8 @@ export function ComponentPropertiesView({
   const def = COMPONENT_DEFS[selectedComp.type];
   if (!def) return null;
 
-  const isOn = selectedComp.state.on === true;
+  const coilState = simResult?.coilStates?.[selectedComp.id];
+  const isOn = coilState ?? selectedComp.state.on === true;
   const setPreviewVariant = useUiStore((s) => s.setPreviewVariant);
   const simRunning = useUiStore((s) => s.simRunning);
   const globalVoltage = useCircuitStore((s) => s.globalVoltage);
@@ -80,6 +82,14 @@ export function ComponentPropertiesView({
   // Get live simulation data for this component
   const isEnergized = simResult?.energizedComponents.has(selectedComp.id) ?? false;
   const compCalc = simResult?.componentCalculations?.[selectedComp.id];
+  const modelLimitations = getSimulationLimitations({ components: [selectedComp], wires: [] });
+  const circuitModelBlocked = useCircuitStore((s) =>
+    getSimulationLimitations({ components: s.components, wires: [] }).some((l) => l.blocking),
+  );
+  const telemetryBlocked =
+    circuitModelBlocked ||
+    modelLimitations.some((l) => l.blocking) ||
+    simResult?.modelLimitations?.some((l) => l.blocking);
   const liveVoltage = compCalc?.voltage ?? 0;
   const liveCurrent = compCalc?.currentAmps ?? 0;
   const livePower = compCalc?.powerWatts ?? 0;
@@ -284,88 +294,101 @@ export function ComponentPropertiesView({
             </span>
           )}
         </div>
-        <div className="grid grid-cols-3 gap-2">
-          <div
-            className={`rounded-lg border p-2 text-center transition ${
-              isOvervoltage
-                ? 'border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-950/40'
-                : 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800'
-            }`}
-          >
+        {modelLimitations.map((limitation) => (
+          <output key={limitation.code} className="block text-amber-800 dark:text-amber-200">
+            {limitation.message}
+          </output>
+        ))}
+        {telemetryBlocked ? (
+          <p className="text-slate-600 dark:text-slate-300">
+            Voltage, current and power: not assessed.
+          </p>
+        ) : (
+          <div className="grid grid-cols-3 gap-2">
             <div
-              className={`text-[9px] ${isOvervoltage ? 'text-red-600 dark:text-red-400' : 'text-slate-500 dark:text-slate-400'}`}
+              className={`rounded-lg border p-2 text-center transition ${
+                isOvervoltage
+                  ? 'border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-950/40'
+                  : 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800'
+              }`}
             >
-              Voltage
+              <div
+                className={`text-[9px] ${isOvervoltage ? 'text-red-600 dark:text-red-400' : 'text-slate-500 dark:text-slate-400'}`}
+              >
+                Voltage
+              </div>
+              <div
+                className={`font-mono text-sm font-bold ${isOvervoltage ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-slate-200'}`}
+              >
+                <AnimatedNumber
+                  value={simRunning ? liveVoltage : 0}
+                  decimals={1}
+                  suffix="V"
+                  duration={250}
+                />
+              </div>
             </div>
             <div
-              className={`font-mono text-sm font-bold ${isOvervoltage ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-slate-200'}`}
+              className={`rounded-lg border p-2 text-center transition ${
+                isOvercurrent
+                  ? 'border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-950/40'
+                  : 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800'
+              }`}
             >
-              <AnimatedNumber
-                value={simRunning ? liveVoltage : 0}
-                decimals={1}
-                suffix="V"
-                duration={250}
-              />
+              <div
+                className={`text-[9px] ${isOvercurrent ? 'text-red-600 dark:text-red-400' : 'text-slate-500 dark:text-slate-400'}`}
+              >
+                Current
+              </div>
+              <div
+                className={`font-mono text-sm font-bold ${isOvercurrent ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-slate-200'}`}
+              >
+                <AnimatedNumber
+                  value={simRunning ? liveCurrent : 0}
+                  decimals={2}
+                  suffix="A"
+                  duration={250}
+                />
+              </div>
+            </div>
+            <div
+              className={`rounded-lg border p-2 text-center transition ${
+                isOverload
+                  ? 'border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-950/40'
+                  : 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800'
+              }`}
+            >
+              <div
+                className={`text-[9px] ${isOverload ? 'text-red-600 dark:text-red-400' : 'text-slate-500 dark:text-slate-400'}`}
+              >
+                Power
+              </div>
+              <div
+                className={`font-mono text-sm font-bold ${isOverload ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-slate-200'}`}
+              >
+                <AnimatedNumber
+                  value={simRunning ? livePower : 0}
+                  decimals={0}
+                  suffix="W"
+                  duration={250}
+                />
+              </div>
             </div>
           </div>
-          <div
-            className={`rounded-lg border p-2 text-center transition ${
-              isOvercurrent
-                ? 'border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-950/40'
-                : 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800'
-            }`}
-          >
-            <div
-              className={`text-[9px] ${isOvercurrent ? 'text-red-600 dark:text-red-400' : 'text-slate-500 dark:text-slate-400'}`}
-            >
-              Current
-            </div>
-            <div
-              className={`font-mono text-sm font-bold ${isOvercurrent ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-slate-200'}`}
-            >
-              <AnimatedNumber
-                value={simRunning ? liveCurrent : 0}
-                decimals={2}
-                suffix="A"
-                duration={250}
-              />
-            </div>
-          </div>
-          <div
-            className={`rounded-lg border p-2 text-center transition ${
-              isOverload
-                ? 'border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-950/40'
-                : 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800'
-            }`}
-          >
-            <div
-              className={`text-[9px] ${isOverload ? 'text-red-600 dark:text-red-400' : 'text-slate-500 dark:text-slate-400'}`}
-            >
-              Power
-            </div>
-            <div
-              className={`font-mono text-sm font-bold ${isOverload ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-slate-200'}`}
-            >
-              <AnimatedNumber
-                value={simRunning ? livePower : 0}
-                decimals={0}
-                suffix="W"
-                duration={250}
-              />
-            </div>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Real-time Voltage Fluctuation Sparkline (Last 30 Seconds) */}
-      <ComponentVoltageSparkline
-        componentId={selectedComp.id}
-        componentLabel={def.label}
-        liveVoltage={liveVoltage}
-        isEnergized={isEnergized}
-        simRunning={simRunning}
-        nominalVoltage={selectedComp.state.customVoltage ?? 230}
-      />
+      {!telemetryBlocked && (
+        <ComponentVoltageSparkline
+          componentId={selectedComp.id}
+          componentLabel={def.label}
+          liveVoltage={liveVoltage}
+          isEnergized={isEnergized}
+          simRunning={simRunning}
+          nominalVoltage={selectedComp.state.customVoltage ?? 230}
+        />
+      )}
 
       {/* Recommended Protection badge (Pro Mode only).
           Suggests the optimal MCB rating/curve for the attached load under
@@ -451,7 +474,13 @@ export function ComponentPropertiesView({
           <div>
             <div className="font-bold text-slate-800 dark:text-slate-200">Switch Contact State</div>
             <div className="text-[10px] text-slate-500 dark:text-slate-400">
-              {def.isMomentary ? 'Hold to close the contact' : 'Toggle contact position'}
+              {coilState !== undefined
+                ? 'Automatic coil control · ideal rail model'
+                : def.isMomentary
+                  ? 'Hold to close the contact'
+                  : def.coilPorts
+                    ? 'Manual test; wire the coil for automatic operation'
+                    : 'Toggle contact position'}
             </div>
           </div>
           {def.isMomentary ? (
@@ -490,6 +519,7 @@ export function ComponentPropertiesView({
           ) : (
             <button
               type="button"
+              disabled={coilState !== undefined}
               onClick={() => useCircuitStore.getState().toggleSwitch(selectedComp.id)}
               className={`rounded-full px-3 py-1 text-xs font-bold transition shadow-2xs ${
                 isOn
@@ -497,7 +527,13 @@ export function ComponentPropertiesView({
                   : 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
               }`}
             >
-              {isOn ? 'CLOSED (ON)' : 'OPEN (OFF)'}
+              {def.switchContacts?.some((contact) => contact.nc !== undefined)
+                ? isOn
+                  ? 'NO selected'
+                  : 'NC selected'
+                : isOn
+                  ? 'CLOSED (ON)'
+                  : 'OPEN (OFF)'}
             </button>
           )}
         </div>

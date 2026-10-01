@@ -59,12 +59,18 @@ export default defineConfig({
     ? undefined
     : [
         {
+          command: 'bun scripts/start-browser-worker.ts',
+          url: 'http://127.0.0.1:8792/api/health',
+          reuseExistingServer: false,
+          timeout: 60000,
+        },
+        {
           // HMR off: a dev-server full-reload landing mid-test surfaced as a
           // random "unexpected navigation" failure (seen in ohmageddon and
           // challenge-mode specs under load). Nothing edits source during a
           // run, so hot reload has no value here and only adds a race.
           command: 'vite --port=3000 --strictPort --host=127.0.0.1',
-          env: { ...process.env, DISABLE_HMR: 'true' },
+          env: { ...process.env, DISABLE_HMR: 'true', LOCAL_WORKER_PORT: '8792' },
           url: localBaseURL,
           reuseExistingServer: !process.env.CI,
           timeout: 60_000,

@@ -12,7 +12,7 @@ export const PROTECTION_DEFS: Record<string, ComponentDef> = {
   mcb: {
     label: 'MCB Type B (16A)',
     description:
-      'Miniature Circuit Breaker Type B for domestic lighting and sockets. Pro mode provides an educational overload estimate, not standards-compliant fault-current thresholds or trip timing.',
+      'Miniature Circuit Breaker Type B for domestic lighting and sockets. All modes provide educational overcurrent estimates; device-specific certification and installation compliance are not assessed.',
     category: 'protection',
     isSwitch: true,
     isPassThrough: true,
@@ -30,7 +30,7 @@ export const PROTECTION_DEFS: Record<string, ComponentDef> = {
   'mcb-type-c': {
     label: 'MCB Type C (32A)',
     description:
-      'Type C breaker for motors, transformers, and inductive loads. Pro mode provides an educational overload estimate, not standards-compliant fault-current thresholds or trip timing.',
+      'Type C breaker for motors, transformers, and inductive loads. All modes provide educational overcurrent estimates; device-specific certification and installation compliance are not assessed.',
     category: 'protection',
     isSwitch: true,
     isPassThrough: true,
@@ -50,7 +50,7 @@ export const PROTECTION_DEFS: Record<string, ComponentDef> = {
   'mcb-type-d': {
     label: 'MCB Type D (63A)',
     description:
-      'Type D breaker for heavy industrial loads with high inrush current. Pro mode provides an educational overload estimate, not standards-compliant fault-current thresholds or trip timing.',
+      'Type D breaker for heavy industrial loads with high inrush current. All modes provide educational overcurrent estimates; device-specific certification and installation compliance are not assessed.',
     category: 'protection',
     isSwitch: true,
     isPassThrough: true,

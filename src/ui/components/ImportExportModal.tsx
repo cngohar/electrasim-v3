@@ -1,3 +1,4 @@
+import { CircuitLibrary } from './CircuitLibrary';
 /** Coordinates circuit file, image, print, and share-link workflows. */
 
 import type { Circuit } from '@electrasim/domain';
@@ -30,7 +31,7 @@ import { useCircuitStore, useSettingsStore, useUiStore } from '../../store';
 import { EmojiGlyph } from './EmojiGlyph';
 import { Modal } from './Modal';
 
-type Tab = 'export' | 'import';
+type Tab = 'export' | 'import' | 'account';
 
 interface FilenamePromptState {
   show: boolean;
@@ -87,8 +88,8 @@ export function ImportExportModal({ open, onClose, svgRef }: Props) {
   const handleExportJSON = useCallback(() => {
     clearMessages();
     promptFilename('circuit', '.electrasim.json', (filename) => {
-      const { components, wires } = useCircuitStore.getState();
-      const json = exportJSON({ components, wires });
+      const { components, wires, globalVoltage, faults } = useCircuitStore.getState();
+      const json = exportJSON({ components, wires, globalVoltage, faults });
       downloadText(json, filename, 'application/json');
       setSuccess(`JSON exported as "${filename}".`);
       useUiStore.getState().addLog(`Circuit exported as JSON: ${filename}`, 'success');
@@ -159,8 +160,8 @@ export function ImportExportModal({ open, onClose, svgRef }: Props) {
     clearMessages();
     setBusy(true);
     try {
-      const { components, wires } = useCircuitStore.getState();
-      const url = await encodeShareURL({ components, wires });
+      const { components, wires, globalVoltage, faults } = useCircuitStore.getState();
+      const url = await encodeShareURL({ components, wires, globalVoltage, faults });
       await navigator.clipboard.writeText(url);
       setSuccess('Share link copied to clipboard!');
       useUiStore.getState().addLog('Share link copied.', 'success');
@@ -331,6 +332,13 @@ export function ImportExportModal({ open, onClose, svgRef }: Props) {
             <Upload className="mr-1.5 inline size-3.5" />
             Import
           </button>
+          <button
+            type="button"
+            className="flex-1 py-2.5 text-xs font-semibold"
+            onClick={() => switchTab('account')}
+          >
+            Saved circuits
+          </button>
         </div>
 
         {/* Body */}
@@ -348,7 +356,9 @@ export function ImportExportModal({ open, onClose, svgRef }: Props) {
             </div>
           )}
 
-          {tab === 'export' ? (
+          {tab === 'account' ? (
+            <CircuitLibrary />
+          ) : tab === 'export' ? (
             <>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
                 Download your circuit or share it with a link. JSON round-trips perfectly; SVG and

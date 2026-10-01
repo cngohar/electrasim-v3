@@ -1,7 +1,11 @@
 import { runComplianceChecks } from './compliance';
 import { COMPONENT_DEFS } from './components';
+import { validateCircuitInput } from './core/input';
+import { normalizeCircuitDocument } from './core/normalize';
+import { resolveWireProperties } from './core/wireProperties';
 import { getStandardCableAmpacity } from './electricalCalculations';
 import { isOvercurrentDevice, isResidualDevice } from './protectionRoles';
+import { getSimulationLimitations } from './simulationCoverage';
 import { getStandard } from './standards';
 import type { StandardId } from './standards';
 import type { Circuit, ComponentInstance, SimulationResult, WireInstance } from './types';
@@ -22,41 +26,14 @@ export type {
   ValidationSeverity,
 } from './circuitValidationTypes';
 
-/**
- * Conductor size for one wire, resolved the way the rest of the domain does
- * (`zsCheck.wireMm2`): the wire's own declaration wins, then the smaller of the
- * two endpoints' explicit sizes, else the domestic default of 2.5 mm².
- *
- * `declared` distinguishes "the circuit told us the size" from "we assumed the
- * default" — check 5 needs that to decide between an error and a warning.
- *
- * Endpoint *recommendedCableMm2* is deliberately not consulted, for the same
- * reason `zsCheck` skips it: terminals and switches recommend 1.0 mm² for their
- * own tails, which would drag every run to the worst figure and invent
- * violations that no one wired.
- */
+/** Shared wire resolution; declared sizes retain their provenance for advice. */
 function resolveConductorMm2(
   wire: WireInstance,
   byId: Map<string, ComponentInstance>,
 ): { mm2: number; declared: boolean } {
-  if (typeof wire.customCableMm2 === 'number' && wire.customCableMm2 > 0) {
-    return { mm2: wire.customCableMm2, declared: true };
-  }
-
-  const endpointSizes = [wire.fromComponentId, wire.toComponentId]
-    .map((id) => byId.get(id))
-    .map((component) => component?.state?.customCableMm2)
-    .filter((value): value is number => typeof value === 'number' && value > 0);
-
-  if (endpointSizes.length > 0) {
-    return { mm2: Math.min(...endpointSizes), declared: true };
-  }
-
-  return { mm2: DEFAULT_CONDUCTOR_MM2, declared: false };
+  const resolved = resolveWireProperties(wire, byId);
+  return { mm2: resolved.cableMm2, declared: resolved.provenance.cableMm2 !== 'default' };
 }
-
-/** Domestic-default conductor when a circuit never names one. */
-const DEFAULT_CONDUCTOR_MM2 = 2.5;
 
 /** Candidate sizes for the upgrade advice, smallest first. */
 const CABLE_SIZE_LADDER = [1.0, 1.5, 2.5, 4, 6, 10, 16, 25, 35, 50];
@@ -71,10 +48,39 @@ function smallestSizeForAmps(amps: number): number {
 }
 
 export function validateCircuit(
-  circuit: Circuit,
+  rawCircuit: Circuit,
   simResult?: SimulationResult | null,
   standard: StandardId = 'uk',
 ): ValidationReport {
+  const input = validateCircuitInput(rawCircuit);
+  if (!input.valid)
+    return {
+      timestamp: Date.now(),
+      score: 0,
+      status: 'fail',
+      blockingErrorsCount: input.diagnostics.length,
+      summary: {
+        errorsCount: input.diagnostics.length,
+        warningsCount: 0,
+        infoCount: 0,
+        passedCount: 0,
+      },
+      issues: input.diagnostics.map((diagnostic, index) => ({
+        id: `input_${diagnostic.code}_${index}`,
+        severity: 'error',
+        category: 'configuration',
+        blocking: true,
+        title: 'Invalid circuit data',
+        description: diagnostic.message,
+        recommendation:
+          'Repair the referenced component, terminal, wire or fault before simulation.',
+        componentId: diagnostic.componentId,
+        wireId: diagnostic.wireId,
+      })),
+      passedChecks: [],
+      standard,
+    };
+  const circuit = normalizeCircuitDocument(input.circuit, false);
   const issues: ValidationIssue[] = [];
   const passedChecks: PassedCheck[] = [];
 
@@ -225,6 +231,21 @@ export function validateCircuit(
       ],
       passedChecks: [],
     };
+  }
+
+  const modelLimitations = getSimulationLimitations(circuit);
+  for (const limitation of modelLimitations) {
+    issues.push({
+      id: `model_${limitation.componentId}_${limitation.code}`,
+      componentId: limitation.componentId,
+      severity: limitation.blocking ? 'error' : 'warning',
+      title: 'Electrical model not assessed',
+      description: limitation.message,
+      recommendation:
+        'Keep this drawing for editing or export; use supported device models for electrical assessment.',
+      category: 'configuration',
+      blocking: limitation.blocking,
+    });
   }
 
   // Check for unwired components
@@ -566,7 +587,10 @@ export function validateCircuit(
 
     for (const w of compWiresMap.get(c.id) || []) {
       const { mm2, declared } = resolveConductorMm2(w, componentsById);
-      const ampacity = getStandardCableAmpacity(mm2);
+      const properties = resolveWireProperties(w, componentsById);
+      const ampacity =
+        getStandardCableAmpacity(mm2, properties.material, properties.installationMethod) *
+        properties.deratingFactor;
       if (declared) {
         if (!worstDeclared || ampacity < worstDeclared.ampacity) {
           worstDeclared = { cableMm2: mm2, ampacity };
@@ -887,7 +911,11 @@ export function validateCircuit(
   });
 
   // 9. SIMULATION ACTIVE FAULT
-  if (simResult?.errors && simResult.errors.length > 0) {
+  if (
+    simResult?.errors &&
+    simResult.errors.length > 0 &&
+    !simResult.modelLimitations?.some((l) => l.blocking)
+  ) {
     issues.push({
       id: 'sim_active_fault',
       severity: 'error',

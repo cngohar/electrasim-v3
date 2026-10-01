@@ -11,7 +11,7 @@ import { createInjectedFault, isWireFaultType, validateFaultCoexistence } from '
 import type { CircuitState } from './circuitStore.types';
 import { useUiStore } from './uiStore';
 
-type CircuitSetState = (recipe: (state: CircuitState) => void) => void;
+type CircuitSetState = (recipe: (state: CircuitState) => void) => boolean | Promise<boolean>;
 
 export const createFaultActions = (
   set: CircuitSetState,
@@ -26,7 +26,7 @@ export const createFaultActions = (
 > => ({
   injectFault: (faultOrParams) => {
     let faultId = '';
-    set((s) => {
+    const applied = set((s) => {
       const fault =
         'category' in faultOrParams
           ? faultOrParams
@@ -57,7 +57,11 @@ export const createFaultActions = (
       }
       useUiStore.getState().setSimRunning(false);
     });
-    return faultId;
+    return applied instanceof Promise
+      ? applied.then((ok) => (ok ? faultId : ''))
+      : applied
+        ? faultId
+        : '';
   },
 
   removeFault: (faultId) =>

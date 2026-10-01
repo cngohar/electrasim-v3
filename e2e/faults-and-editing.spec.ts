@@ -1,4 +1,5 @@
-import { type Locator, type Page, expect, test } from '@playwright/test';
+import { type Locator, type Page, expect } from '@playwright/test';
+import { test } from './helpers/paid-test';
 
 /**
  * Fault-injection → protection-trip → reset flows, plus the editing
@@ -115,7 +116,8 @@ test.describe('faults & editing', () => {
      * iPad project, so they blow the 30 s budget the moment workers compete for
      * the CPU. Widen the budget there rather than trimming the coverage.
      */
-    test.slow(testInfo.project.name === 'tablet-safari');
+    // Phase 1.5 also adds real membership round trips to protected mutations.
+    test.setTimeout(testInfo.project.name === 'tablet-safari' ? 90_000 : 60_000);
     await page.addInitScript(() => {
       window.localStorage.setItem('electrasim:welcomed', '1');
       window.localStorage.setItem('electrasim:mobile-suitability:v1', '1');

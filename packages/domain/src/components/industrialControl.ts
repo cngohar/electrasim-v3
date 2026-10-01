@@ -126,6 +126,8 @@ export const INDUSTRIAL_CONTROL_DEFS: Record<string, ComponentDef> = {
   },
 
   'relay-spst': {
+    switchContacts: [{ common: 2, no: 3 }],
+    coilPorts: [0, 1],
     label: 'SPST Power Relay',
     description: 'Single Pole Single Throw electromechanical relay with coil drive and NO contact.',
     category: 'relay',
@@ -141,6 +143,8 @@ export const INDUSTRIAL_CONTROL_DEFS: Record<string, ComponentDef> = {
   },
 
   'relay-spdt': {
+    switchContacts: [{ common: 2, no: 3, nc: 4 }],
+    coilPorts: [0, 1],
     label: 'SPDT Changeover Relay',
     description: 'Single Pole Double Throw relay switching COM terminal between NO and NC outputs.',
     category: 'relay',
@@ -157,6 +161,11 @@ export const INDUSTRIAL_CONTROL_DEFS: Record<string, ComponentDef> = {
   },
 
   'relay-dpdt': {
+    switchContacts: [
+      { common: 2, no: 3, nc: 6 },
+      { common: 4, no: 5, nc: 7 },
+    ],
+    coilPorts: [0, 1],
     label: 'DPDT Power Relay',
     description:
       'Double Pole Double Throw relay simultaneously controlling two isolated changeover circuits.',
@@ -171,11 +180,16 @@ export const INDUSTRIAL_CONTROL_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.4, label: 'NO1' },
       { type: 'live', relX: 1, relY: 0.6, label: 'C2' },
       { type: 'live', relX: 1, relY: 0.8, label: 'NO2' },
+      // Append NC terminals to preserve existing saved port indices 0 through 5.
+      { type: 'live', relX: 0.35, relY: 1, label: 'NC1' },
+      { type: 'live', relX: 0.7, relY: 1, label: 'NC2' },
     ],
     icon: 'wrench',
   },
 
   'control-relay': {
+    switchContacts: [{ common: 2, no: 3, nc: 4 }],
+    coilPorts: [0, 1],
     label: 'Industrial 8-Pin Control Relay',
     description:
       'Octal 8-pin plug-in control relay with LED status indicator for panel automation.',
@@ -194,6 +208,8 @@ export const INDUSTRIAL_CONTROL_DEFS: Record<string, ComponentDef> = {
   },
 
   'contactor-1p': {
+    switchContacts: [{ common: 0, no: 1 }],
+    coilPorts: [2, 3],
     label: 'Single-Pole Contactor (1P 25A)',
     description: '1-Pole AC contactor for switching single-phase heating or lighting loads.',
     category: 'contactor',
@@ -210,6 +226,10 @@ export const INDUSTRIAL_CONTROL_DEFS: Record<string, ComponentDef> = {
   },
 
   'contactor-2p': {
+    switchContacts: [
+      { common: 0, no: 2 },
+      { common: 1, no: 3 },
+    ],
     label: 'Double-Pole Contactor (2P 25A)',
     description: '2-Pole AC power contactor switching both Live and Neutral simultaneously.',
     category: 'contactor',
@@ -226,6 +246,11 @@ export const INDUSTRIAL_CONTROL_DEFS: Record<string, ComponentDef> = {
   },
 
   'contactor-3p': {
+    switchContacts: [
+      { common: 0, no: 3 },
+      { common: 1, no: 4 },
+      { common: 2, no: 5 },
+    ],
     label: 'Three-Pole Contactor (3P 40A)',
     description:
       'Heavy-duty 3-pole contactor for 3-phase motor starters and heavy inductive loads.',
@@ -246,6 +271,12 @@ export const INDUSTRIAL_CONTROL_DEFS: Record<string, ComponentDef> = {
   },
 
   'contactor-4p': {
+    switchContacts: [
+      { common: 0, no: 4 },
+      { common: 1, no: 5 },
+      { common: 2, no: 6 },
+      { common: 3, no: 7 },
+    ],
     label: 'Four-Pole Contactor (4P 63A)',
     description:
       '4-Pole power contactor for 3-phase + neutral mains changeover and generator transfer.',

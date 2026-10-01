@@ -60,7 +60,7 @@ export function traverse(
 
     // Switch state check
     let isOff = false;
-    if (def.isSwitch === true && !def.changeover) {
+    if (def.isSwitch === true && !def.changeover && !def.switchContacts) {
       if (hasSwitchedNeutral) {
         // Switched neutral: switch state ONLY controls Neutral path; Live bypasses switch
         isOff = rail === 'neutral' && comp.state.on !== true;
@@ -167,6 +167,18 @@ export function connectedPortIndices(
   if (hasShortCircuit) {
     // Injected internal short circuit bridges all terminals together
     return def.ports.map((_, i) => i).filter((i) => i !== entryPortIndex);
+  }
+
+  if (def.switchContacts) {
+    if (index?.unstableCoils && index.coilStates?.has(comp.id)) return [];
+    const on = index?.coilStates?.get(comp.id) ?? comp.state.on === true;
+    for (const contact of def.switchContacts) {
+      const selected = on ? contact.no : contact.nc;
+      if (selected === undefined) continue;
+      if (entryPortIndex === contact.common) return [selected];
+      if (entryPortIndex === selected) return [contact.common];
+    }
+    return []; // Coil terminals and separate poles never share an internal rail.
   }
 
   const changeover = def.changeover;

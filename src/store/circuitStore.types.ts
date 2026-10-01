@@ -79,7 +79,7 @@ export interface CircuitState {
     id: string,
     end: 'from' | 'to',
     target: { componentId: string; portIndex: number },
-  ) => boolean;
+  ) => boolean | Promise<boolean>;
 
   /** Phase 6.2.3: move multiple components by the same delta (no snap — snap on drag-end). */
   moveComponents: (ids: string[], dx: number, dy: number) => void;
@@ -114,7 +114,7 @@ export interface CircuitState {
           target: import('@electrasim/domain').FaultTarget;
           parameters?: Record<string, unknown>;
         },
-  ) => string;
+  ) => string | Promise<string>;
   /** Fault simulation: remove a specific injected fault by ID. */
   removeFault: (faultId: string) => void;
   /** Fault simulation: toggle a specific fault type on a target. */

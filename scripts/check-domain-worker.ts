@@ -7,4 +7,6 @@ if (!response.ok) throw new Error(`Local Worker returned ${response.status}`);
 const actual = await response.text();
 const expected = domainParityFixture();
 if (actual !== expected) throw new Error('Bun / workerd domain output differs');
-console.log(`Local Hono Worker parity passed for ${JSON.parse(actual).length} simulation cases.`);
+console.log(
+  `Local Hono Worker parity passed for ${JSON.parse(actual).length} simulation/compiler cases.`,
+);

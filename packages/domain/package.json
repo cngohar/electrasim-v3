@@ -12,6 +12,7 @@
     "./components": "./src/components/index.ts",
     "./electrical": "./src/electrical/index.ts",
     "./simulation": "./src/simulation/index.ts",
+    "./core": "./src/core/index.ts",
     "./*": "./src/*.ts"
   },
   "scripts": {

@@ -264,27 +264,34 @@ describe('guided circuit templates', () => {
     }
   });
 
-  it('energises the three-phase motor from the live rails alone', () => {
+  it('marks the DOL drawing unassessed until a real three-phase model is available', () => {
     const circuit = cloneTemplateCircuit(requireTemplate('pro-3phase-dol-starter'));
     const motorId = 'pro-3phase-dol-starter-motor';
     const contactor = requireComponent(circuit, 'pro-3phase-dol-starter-contactor');
 
     const result = simulate(circuit);
-    expect(result.energizedComponents.has(motorId)).toBe(true);
-    expect(result.errors).toEqual([]);
+    expect(result.energizedComponents.has(motorId)).toBe(false);
+    expect(result.modelLimitations).toEqual([
+      expect.objectContaining({ code: 'three-phase-model', blocking: true }),
+    ]);
+    expect(result.componentCalculations).toBeUndefined();
 
-    // Opening the contactor interrupts all three phases.
+    // Opening the contactor does not make the unsupported drawing assessable.
     contactor.state.on = false;
     expect(simulate(circuit).energizedComponents.has(motorId)).toBe(false);
   });
 
-  it('runs the solar DC system without voltage-mismatch errors', () => {
+  it('keeps the solar DC drawing without inventing source-voltage measurements', () => {
     const circuit = cloneTemplateCircuit(requireTemplate('pro-solar-dc-system'));
     const result = simulate(circuit);
 
-    expect(result.energizedComponents.has('pro-solar-dc-system-led')).toBe(true);
-    expect(result.errors).toEqual([]);
-    expect(result.supplyVoltage).toBe(12);
+    expect(result.energizedComponents.has('pro-solar-dc-system-led')).toBe(false);
+    expect(result.modelLimitations).toHaveLength(2);
+    expect(result.modelLimitations?.every((l) => l.code === 'dc-source-model' && l.blocking)).toBe(
+      true,
+    );
+    expect(result.componentCalculations).toBeUndefined();
+    expect(circuit.globalVoltage).toBe(12);
   });
 
   it('energises the generator backup loads through the generator earth path', () => {
@@ -296,11 +303,20 @@ describe('guided circuit templates', () => {
     expect(result.errors).toEqual([]);
   });
 
-  it('keeps every Pro circuit fault-free at rest (except the deliberate RCD demo fault)', () => {
+  it('assesses supported Pro guides and explicitly guards the two unsupported drawings', () => {
     for (const template of GUIDED_CIRCUIT_TEMPLATES) {
       if (template.tier !== 'pro') continue;
       const result = simulate(cloneTemplateCircuit(template));
-      expect(result.errors, `${template.id} should simulate without errors`).toEqual([]);
+      if (['pro-3phase-dol-starter', 'pro-solar-dc-system'].includes(template.id)) {
+        expect(
+          result.modelLimitations?.some((l) => l.blocking),
+          template.id,
+        ).toBe(true);
+        expect(result.componentCalculations, template.id).toBeUndefined();
+        expect(result.faultsCleared, template.id).toBe(false);
+      } else {
+        expect(result.errors, `${template.id} should simulate without errors`).toEqual([]);
+      }
     }
   });
 });

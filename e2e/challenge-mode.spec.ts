@@ -1,4 +1,5 @@
-import { type Page, expect, test } from '@playwright/test';
+import { type Page, expect } from '@playwright/test';
+import { test } from './helpers/paid-test';
 
 /**
  * Challenge Mode end-to-end (plan §38).

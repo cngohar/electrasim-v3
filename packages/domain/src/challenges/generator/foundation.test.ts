@@ -274,7 +274,7 @@ describe.each(CHALLENGE_DIFFICULTIES)(
       }
     });
 
-    it('scores a clean BS 7671 pass with no blocking issues', () => {
+    it('has no electrical errors and retains explicit manual-only model warnings', () => {
       for (const { circuit, metadata } of challenges) {
         const result = simulate(circuit, { appMode: 'pro' });
         const report = validateCircuit(circuit, result, 'uk');
@@ -282,7 +282,27 @@ describe.each(CHALLENGE_DIFFICULTIES)(
           report.issues.filter((i) => i.severity === 'error').map((i) => i.id),
           `seed ${metadata.seed} (${metadata.recipeId})`,
         ).toEqual([]);
-        expect(report.status, `seed ${metadata.seed}`).toBe('pass');
+        const manualOnly = circuit.components.filter((c) =>
+          [
+            'fan-dimmer',
+            'dimmer-switch',
+            'timer-switch',
+            'digital-weekly-timer',
+            'staircase-timer',
+            'countdown-timer',
+            'delay-timer',
+          ].includes(c.type),
+        );
+        const warnings = report.issues.filter((i) => i.severity === 'warning');
+        expect(warnings.map((i) => i.componentId).sort()).toEqual(
+          manualOnly.map((c) => c.id).sort(),
+        );
+        expect(
+          warnings.every(
+            (i) => i.category === 'configuration' && i.title === 'Electrical model not assessed',
+          ),
+        ).toBe(true);
+        expect(report.status, `seed ${metadata.seed}`).toBe(manualOnly.length ? 'warning' : 'pass');
       }
     });
 

@@ -8,8 +8,15 @@
  */
 
 import { COMPONENT_DEFS, type Circuit } from '@electrasim/domain';
+import { sameDocument } from './circuitAccess';
 import { useCircuitStore } from './circuitStore';
 import type { CircuitState } from './circuitStore.types';
+import {
+  accessGeneration,
+  accessMessage,
+  authorizeCircuit,
+  requiredForEditor,
+} from './simulatorAccess';
 import { useUiStore } from './uiStore';
 
 function reconcileSelection(): void {
@@ -80,22 +87,35 @@ function notifySpatialChange(
   }
 }
 
-export const undo = () => {
-  const before = new Map(
-    useCircuitStore.getState().components.map((c) => [c.id, { x: c.x, y: c.y }]),
-  );
-  useCircuitStore.temporal.getState().undo();
-  reconcileSelection();
-  notifySpatialChange(before, 'undo');
-};
-export const redo = () => {
-  const before = new Map(
-    useCircuitStore.getState().components.map((c) => [c.id, { x: c.x, y: c.y }]),
-  );
-  useCircuitStore.temporal.getState().redo();
-  reconcileSelection();
-  notifySpatialChange(before, 'redo');
-};
+function changeHistory(kind: 'undo' | 'redo') {
+  const state = useCircuitStore.getState();
+  const generation = accessGeneration();
+  const history = useCircuitStore.temporal.getState();
+  const target = (kind === 'undo' ? history.pastStates : history.futureStates).at(-1);
+  if (!target) return;
+  const candidate = { ...state, ...target };
+  const apply = () => {
+    if (generation !== accessGeneration() || !sameDocument(state, useCircuitStore.getState())) {
+      accessMessage('Circuit changed; retry undo or redo.');
+      return;
+    }
+    const before = new Map(state.components.map((c) => [c.id, { x: c.x, y: c.y }]));
+    history[kind]();
+    reconcileSelection();
+    notifySpatialChange(before, kind);
+  };
+  if (!requiredForEditor(state).length && !requiredForEditor(candidate).length) {
+    apply();
+    return;
+  }
+  void (async () => {
+    await authorizeCircuit(state);
+    await authorizeCircuit(candidate);
+    apply();
+  })().catch(() => {});
+}
+export const undo = () => changeHistory('undo');
+export const redo = () => changeHistory('redo');
 export const clearHistory = () => useCircuitStore.temporal.getState().clear();
 
 /**
@@ -103,28 +123,48 @@ export const clearHistory = () => useCircuitStore.temporal.getState().clear();
  * Keep press/release out of undo history while still publishing the component
  * update to the renderer and simulation worker.
  */
+const momentaryIntents = new Map<string, number>();
 export function setMomentarySwitchState(id: string, on: boolean): boolean {
-  const component = useCircuitStore.getState().components.find((item) => item.id === id);
+  const state = useCircuitStore.getState();
+  const generation = accessGeneration();
+  const component = state.components.find((item) => item.id === id);
   if (!component || !COMPONENT_DEFS[component.type]?.isMomentary) return false;
+  const intent = (momentaryIntents.get(id) ?? 0) + 1;
+  momentaryIntents.set(id, intent);
   if (component.state.on === on) return true;
-
-  const temporal = useCircuitStore.temporal.getState();
-  const shouldResume = temporal.isTracking;
-  if (shouldResume) temporal.pause();
-  try {
-    useCircuitStore.getState().setSwitchState(id, on);
-  } finally {
-    if (shouldResume) temporal.resume();
-  }
+  const apply = () => {
+    if (
+      momentaryIntents.get(id) !== intent ||
+      (on && generation !== accessGeneration()) ||
+      !sameDocument(state, useCircuitStore.getState())
+    )
+      return;
+    const temporal = useCircuitStore.temporal.getState();
+    const tracking = temporal.isTracking;
+    temporal.pause();
+    useCircuitStore.setState({
+      components: state.components.map((c) =>
+        c.id === id ? { ...c, state: { ...c.state, on } } : c,
+      ),
+    });
+    if (tracking) temporal.resume();
+  };
+  if (!on || !requiredForEditor(state).length) apply();
+  else
+    void authorizeCircuit(state)
+      .then(apply)
+      .catch(() => {});
   return true;
 }
 
-/** Release any contacts left down by an interrupted pointer or keyboard gesture. */
+/** Cancel pending presses as well as contacts already held down. */
 export function releaseMomentarySwitches(): void {
   for (const component of useCircuitStore.getState().components) {
-    if (component.state.on && COMPONENT_DEFS[component.type]?.isMomentary) {
+    if (
+      COMPONENT_DEFS[component.type]?.isMomentary &&
+      (component.state.on || momentaryIntents.has(component.id))
+    )
       setMomentarySwitchState(component.id, false);
-    }
   }
 }
 

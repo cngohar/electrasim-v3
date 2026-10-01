@@ -1,3 +1,4 @@
+import { test } from './helpers/paid-test';
 /**
  * Ohmageddon Mode e2e (plan §42, §44 "Rage", §57 Ohmageddon gate).
  *
@@ -11,7 +12,7 @@
  * never sees. Everything here is driven through real clicks.
  */
 
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
 
 const SETTINGS_KEY = 'electrasim:settings:v2';
 
@@ -308,8 +309,22 @@ test.describe('Ohmageddon Mode', () => {
         await typeRadios.nth(t).check();
         await locationRadios.nth(l).check();
         await active.getByRole('button', { name: /Carry out this repair/ }).click();
+        // Paid submissions are asynchronous. Wait for the accepted server
+        // version before choosing another answer; a fixed 120 ms raced the
+        // previous finding's selection reset and left the repair disabled.
+        const version = await page.evaluate(async () => {
+          const path = '/src/store/diagnosisStore.ts';
+          return (await import(path)).useDiagnosisStore.getState().serverVersion;
+        });
         await active.getByRole('button', { name: /Submit diagnosis/ }).click();
-        await page.waitForTimeout(120);
+        await expect
+          .poll(() =>
+            page.evaluate(async () => {
+              const path = '/src/store/diagnosisStore.ts';
+              return (await import(path)).useDiagnosisStore.getState().serverVersion;
+            }),
+          )
+          .toBeGreaterThan(version);
       }
       if ((await active.count()) === 0) break;
       if ((await found()) >= total) break;

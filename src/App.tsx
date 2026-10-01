@@ -7,11 +7,13 @@
  */
 import { Editor } from './ui/Editor';
 import { ErrorBoundary } from './ui/ErrorBoundary';
+import { SimulatorAccessBanner } from './ui/components/SimulatorAccessBanner';
 
 export default function App() {
   return (
     <ErrorBoundary>
       <Editor />
+      <SimulatorAccessBanner />
     </ErrorBoundary>
   );
 }

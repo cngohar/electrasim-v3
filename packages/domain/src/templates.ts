@@ -516,16 +516,16 @@ function threePhaseDolStarterTemplate(): GuidedCircuitTemplate {
     summary:
       'A direct-on-line starter: three phases feed a motor through per-phase Type-D breakers and a three-pole contactor, with a protective earth.',
     teaches:
-      'Industrial motors run on three live phases. Each phase gets its own overcurrent protection, a contactor switches all three poles at once, and the frame is earthed separately.',
+      'Trace the separate power poles and protective earth in this illustrative drawing. Actual motor protection, linked disconnection and starter coordination require equipment-specific design.',
     expected:
-      'Run the simulation: the 3-phase motor energises while all three breakers and the contactor are closed. Open any breaker or the contactor to stop it.',
+      'Drawing only: three-phase voltage, motor operation and phase-loss behavior are not assessed. You can inspect, edit and export this layout; electrical simulation is unavailable.',
     steps: [
       'Follow each live terminal (L1, L2, L3) through its own Type-D MCB into the contactor poles.',
       'Trace the three switched phases from the contactor to the motor windings U, V and W.',
-      'Confirm the motor frame PE conductor runs to the earth terminal, then run the simulation and open one breaker to see the motor stop.',
+      'Confirm the motor frame PE conductor runs to the earth terminal. Phase-loss and motor-operation tests require the future three-phase model.',
     ],
     faultPrompt:
-      'Fault check: inject a short circuit across one phase in the Fault Lab and compare the protection feedback with a healthy circuit.',
+      'Phase-to-phase fault currents and protection coordination are not assessed for this drawing.',
     circuit: {
       globalVoltage: 400,
       components: [live1, live2, live3, earth, mcb1, mcb2, mcb3, contactor, motor],
@@ -618,16 +618,16 @@ function solarDcSystemTemplate(): GuidedCircuitTemplate {
     summary:
       'A small DC system: a PV array and a battery share a DC bus through a lever connector, feeding a low-voltage LED load.',
     teaches:
-      'DC systems carry a positive and a negative rail. A combiner (here a Wago connector) joins the sources onto one bus, the battery both charges from and supports the panel, and every load still needs both rails.',
+      'Identify the positive and negative connections in this illustrative layout. A real PV/battery system needs suitable charge control and protection; a connector alone does not provide those functions.',
     expected:
-      'Run the simulation: the LED energises from the shared DC bus. The battery and panel are both live sources in this educational model.',
+      'Drawing only: source voltage, charging and AC/DC compatibility are not assessed. You can inspect, edit and export the layout; electrical simulation is unavailable.',
     steps: [
       'Follow DC+ from the PV panel into the Wago combiner, then out to the LED and the battery positive.',
       'Trace DC- from the panel to the battery negative and on to the LED negative.',
-      'Run the simulation and confirm the complete positive and negative loop energises the LED.',
+      'Identify where charge-control and protection equipment would be required; charging and source interaction are not simulated.',
     ],
     faultPrompt:
-      'Fault check: open the battery positive in the Fault Lab. The LED keeps running from the panel — the bus stays live because the sources share it.',
+      'PV/battery source interaction and fault currents are not assessed for this drawing.',
     circuit: {
       globalVoltage: 12,
       components: [panel, battery, combiner, led],

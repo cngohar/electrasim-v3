@@ -3,6 +3,12 @@
   "version": "3.0.0",
   "private": true,
   "type": "module",
-  "exports": { ".": "./src/index.ts" },
-  "dependencies": { "@electrasim/domain": "workspace:*" }
+  "exports": {
+    ".": "./src/index.ts",
+    "./circuit": "./src/circuit.ts",
+    "./diagnosis": "./src/diagnosis.ts"
+  },
+  "dependencies": {
+    "@electrasim/domain": "workspace:*"
+  }
 }

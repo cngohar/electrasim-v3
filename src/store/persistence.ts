@@ -133,7 +133,8 @@ export function startAutosave(): () => void {
     if (
       state.components === prev.components &&
       state.wires === prev.wires &&
-      state.globalVoltage === prev.globalVoltage
+      state.globalVoltage === prev.globalVoltage &&
+      state.faults === prev.faults
     ) {
       return;
     }
@@ -142,6 +143,7 @@ export function startAutosave(): () => void {
       components: state.components,
       wires: state.wires,
       globalVoltage: state.globalVoltage,
+      faults: state.faults,
     };
     timer = setTimeout(flushPending, DEBOUNCE_MS);
   });

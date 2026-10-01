@@ -21,6 +21,11 @@ export {
   type PendingCustomPath,
 } from './uiStore';
 export { useViewportStore } from './viewportStore';
+export {
+  DEFAULT_CIRCUIT_NAME,
+  useCircuitLibraryStore,
+  type CircuitLibraryDocument,
+} from './circuitLibraryStore';
 export { useSimulation } from './useSimulation';
 export { useClipboardStore } from './clipboardStore';
 export {

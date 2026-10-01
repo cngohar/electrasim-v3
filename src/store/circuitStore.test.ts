@@ -72,6 +72,38 @@ describe('circuitStore — selection', () => {
 });
 
 describe('circuitStore — mutations', () => {
+  it('preserves an explicitly held contact in an authored in-memory exercise', () => {
+    const circuit = {
+      components: [{ id: 'push', type: 'push-button', x: 0, y: 0, state: { on: true } }],
+      wires: [],
+    };
+    useCircuitStore.getState().setCircuit(circuit);
+    expect(useCircuitStore.getState().components[0].state.on).toBe(true);
+    expect(circuit.components[0].state.on).toBe(true);
+  });
+
+  it('normalizes restored breaker defaults while retaining IDs and explicit off through undo', () => {
+    const circuit = {
+      components: [
+        { id: 'default-mcb', type: 'mcb', x: 1, y: 2, state: {} },
+        { id: 'open-mcb', type: 'mcb', x: 3, y: 4, state: { on: false } },
+      ],
+      wires: [],
+    };
+    useCircuitStore.getState().setCircuit(circuit);
+    expect(useCircuitStore.getState().components.map((c) => [c.id, c.state.on])).toEqual([
+      ['default-mcb', true],
+      ['open-mcb', false],
+    ]);
+    useCircuitStore.getState().removeComponent('open-mcb');
+    undo();
+    expect(useCircuitStore.getState().components.map((c) => [c.id, c.state.on])).toEqual([
+      ['default-mcb', true],
+      ['open-mcb', false],
+    ]);
+    expect(circuit.components[0].state).toEqual({});
+  });
+
   it('removeComponent also removes its connected wires', () => {
     const before = useCircuitStore.getState();
     const target = before.components[0]!; // live-terminal

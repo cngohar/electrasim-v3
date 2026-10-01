@@ -77,6 +77,17 @@ function internalPorts(
   rail: Rail,
   ignoreSwitchState: boolean,
 ): number[] {
+  if (def.switchContacts) {
+    return def.switchContacts.flatMap((contact) => {
+      const outputs = ignoreSwitchState
+        ? [contact.no, contact.nc].filter((n): n is number => n !== undefined)
+        : [component.state.on === true ? contact.no : contact.nc].filter(
+            (n): n is number => n !== undefined,
+          );
+      if (entryPort === contact.common) return outputs;
+      return outputs.includes(entryPort) ? [contact.common] : [];
+    });
+  }
   if (!ignoreSwitchState) {
     if (def.changeover) {
       const selected =

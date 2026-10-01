@@ -57,3 +57,4 @@ export const contentPages = sqliteTable('content_pages', {
   authorId: text('authorId'),
   updatedAt: integer('updatedAt', { mode: 'timestamp' }).notNull(),
 });
+export * from './circuit-schema';

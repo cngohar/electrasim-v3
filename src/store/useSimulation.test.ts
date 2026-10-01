@@ -1,6 +1,8 @@
 import type { Circuit, SimulationResult } from '@electrasim/domain';
+import { simulate } from '@electrasim/domain/simulation';
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { component, protectedLoad } from '../../packages/domain/src/simulation/auditFixtures';
 
 const { simulateAsync } = vi.hoisted(() => ({
   simulateAsync: vi.fn(),
@@ -64,7 +66,7 @@ describe('useSimulation request sequencing', () => {
     await act(async () => vi.advanceTimersByTime(50));
     expect(simulateAsync).toHaveBeenLastCalledWith(
       expect.objectContaining({ globalVoltage: 120 }),
-      { appMode: 'basic', standard: 'int' },
+      { appMode: 'pro', standard: 'int' },
     );
   });
 
@@ -166,5 +168,35 @@ describe('useSimulation request sequencing', () => {
     const messages = useUiStore.getState().logs.map((l) => l.message);
     expect(messages.some((m) => m.includes('TERMINAL DISCONNECT'))).toBe(true);
     expect(messages.some((m) => m.includes('BREAKER JAMMED OPEN'))).toBe(true);
+  });
+
+  it('projects a real B16 overload as resettable without persisting destroyed state', async () => {
+    // Only the transport is stubbed; use the real electrical engine and store projection.
+    simulateAsync.mockImplementation(async (circuit) => simulate(circuit));
+    useCircuitStore.getState().setCircuit(protectedLoad());
+    renderHook(() => useSimulation());
+    act(() => useUiStore.getState().setSimRunning(true));
+    await act(async () => vi.advanceTimersByTime(50));
+    await act(async () => Promise.resolve());
+    const breaker = useCircuitStore.getState().components.find((c) => c.id === 'device');
+    expect(breaker?.state.isTripped).toBe(true);
+    expect(breaker?.state.isBlown).not.toBe(true);
+  });
+
+  it('preserves a drawing and reports a real unsupported-model result without damage', async () => {
+    const circuit = protectedLoad('mcb', 9);
+    circuit.components.push(component('transformer', 'transformer-12v'));
+    simulateAsync.mockImplementation(async (input) => simulate(input));
+    useCircuitStore.getState().setCircuit(circuit);
+    const original = JSON.stringify(useCircuitStore.getState().components);
+    renderHook(() => useSimulation());
+    // Exercise the result boundary directly, independently of the Pro validation preflight.
+    act(() => useUiStore.setState({ simRunning: true }));
+    await act(async () => vi.advanceTimersByTime(50));
+    await act(async () => Promise.resolve());
+    expect(JSON.stringify(useCircuitStore.getState().components)).toBe(original);
+    expect(useUiStore.getState().simResult?.modelLimitations?.[0].code).toBe('transformer-model');
+    expect(useUiStore.getState().simResult?.componentCalculations).toBeUndefined();
+    expect(useUiStore.getState().logs.some((l) => l.message.includes('not assessed'))).toBe(true);
   });
 });

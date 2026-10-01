@@ -26,6 +26,7 @@ import { useEffect, useRef } from 'react';
 import { simulateAsync } from '../sim-worker/client';
 import { useCircuitStore } from './circuitStore';
 import { useSettingsStore } from './settingsStore';
+import { AccessError, authorizeCircuit, useSimulatorAccess } from './simulatorAccess';
 import { useUiStore } from './uiStore';
 
 // Keep continuous drags out of the worker-clone path. A 50 ms quiet period is
@@ -41,7 +42,7 @@ export function useSimulation() {
   const globalVoltage = useCircuitStore((s) => s.globalVoltage);
   const faults = useCircuitStore((s) => s.faults);
   const simRunning = useUiStore((s) => s.simRunning);
-  const appMode = useSettingsStore((s) => s.appMode);
+  const accessRevision = useSimulatorAccess((s) => s.revision);
   const regulationStandard = useSettingsStore((s) => s.regulationStandard);
 
   // Track the last "errors signature" so we don't re-log identical errors.
@@ -56,6 +57,7 @@ export function useSimulation() {
     // debounce fires leaves a window where the previous worker request can
     // publish a result for a circuit that is no longer current.
     const mySeq = ++seqRef.current;
+    const membershipRevision = accessRevision;
 
     if (!simRunning) {
       if (timerRef.current) {
@@ -78,50 +80,75 @@ export function useSimulation() {
       // doesn't slip into the worker call we're about to make.
       const circuit = { components, wires, globalVoltage, faults };
 
-      void simulateAsync(circuit, { appMode, standard: regulationStandard })
+      void authorizeCircuit(circuit)
+        .then(() => {
+          if (mySeq !== seqRef.current || !useUiStore.getState().simRunning) return null;
+          return simulateAsync(circuit, { appMode: 'pro', standard: regulationStandard });
+        })
         .then((result) => {
           // Drop result if a newer request was kicked off in the meantime
           // or the user paused the sim while we were waiting.
-          if (mySeq !== seqRef.current) return;
+          if (
+            !result ||
+            mySeq !== seqRef.current ||
+            membershipRevision !== useSimulatorAccess.getState().revision
+          )
+            return;
           if (!useUiStore.getState().simRunning) return;
 
-          // If simulation detected blown components, persist state
-          if (result.blownComponents && result.blownComponents.length > 0) {
-            const cs = useCircuitStore.getState();
-            for (const item of result.blownComponents) {
-              const comp = cs.components.find((c) => c.id === item.id);
-              if (comp && !comp.state.isBlown) {
-                cs.updateComponentState(item.id, { isBlown: true, blownReason: item.reason });
-              }
-            }
-          }
-
-          // If simulation detected melted/busted wires, persist wire state
-          if (result.bustedWires && result.bustedWires.size > 0) {
-            const cs = useCircuitStore.getState();
-            for (const wireId of result.bustedWires) {
-              cs.setWireBusted(wireId, true, 'Cable melted due to current overload');
-            }
+          // Derived solver effects are one internal projection, not new user edits.
+          // Authorization was checked for this exact request; membership never changes physics.
+          const current = useCircuitStore.getState();
+          const changedComponents = current.components.some(
+            (component) =>
+              (result.blownComponents?.some((item) => item.id === component.id) &&
+                !component.state.isBlown) ||
+              (result.trippedComponents?.some((item) => item.id === component.id) &&
+                !component.state.isTripped),
+          );
+          const changedWires = current.wires.some(
+            (wire) => result.bustedWires?.has(wire.id) && !wire.isBusted,
+          );
+          if (changedComponents || changedWires) {
+            const history = useCircuitStore.temporal.getState();
+            const tracking = history.isTracking;
+            history.pause();
+            useCircuitStore.setState({
+              components: changedComponents
+                ? current.components.map((component) => {
+                    const blown = result.blownComponents?.find((item) => item.id === component.id);
+                    const trip = result.trippedComponents?.find((item) => item.id === component.id);
+                    if ((!blown || component.state.isBlown) && (!trip || component.state.isTripped))
+                      return component;
+                    return {
+                      ...component,
+                      state: {
+                        ...component.state,
+                        ...(blown ? { isBlown: true, blownReason: blown.reason } : {}),
+                        ...(trip ? { isTripped: true, tripReason: trip.cause } : {}),
+                      },
+                    };
+                  })
+                : current.components,
+              wires: changedWires
+                ? current.wires.map((wire) =>
+                    result.bustedWires?.has(wire.id) && !wire.isBusted
+                      ? {
+                          ...wire,
+                          isBusted: true,
+                          bustedReason: 'Cable melted due to current overload',
+                        }
+                      : wire,
+                  )
+                : current.wires,
+            });
+            if (tracking) history.resume();
           }
 
           useUiStore.getState().setSimResult(result);
 
           // Check if protection tripped or wire melted during simulation
           if (result.trippedComponents && result.trippedComponents.length > 0) {
-            const cs = useCircuitStore.getState();
-            // Set isTripped state on all tripped components
-            for (const trip of result.trippedComponents) {
-              const comp = cs.components.find((c) => c.id === trip.id);
-              if (comp && !comp.state.isTripped) {
-                /* `trip.cause` is the machine-readable enum; `trip.reason` is a
-                   full sentence for the overload branch and would fail
-                   `validateCircuitJSON` on export/re-import if persisted here. */
-                cs.updateComponentState(trip.id, {
-                  isTripped: true,
-                  tripReason: trip.cause,
-                });
-              }
-            }
             const trip = result.trippedComponents[0];
             const ui = useUiStore.getState();
             ui.setSimRunning(false); // Stop simulation immediately
@@ -385,8 +412,10 @@ export function useSimulation() {
           // letting it bubble as an unhandled rejection.
           if (mySeq !== seqRef.current) return;
           const msg = err instanceof Error ? err.message : String(err);
-          console.error('[useSimulation] simulation failed:', err);
+          if (!(err instanceof AccessError))
+            console.error('[useSimulation] simulation failed:', err);
           const ui = useUiStore.getState();
+          ui.setSimRunning(false);
           ui.setSimResult(null);
           ui.addLog(`Simulation failed: ${msg}`, 'error');
         });
@@ -401,5 +430,5 @@ export function useSimulation() {
       // change the replacement effect immediately allocates a newer revision.
       if (seqRef.current === mySeq) seqRef.current++;
     };
-  }, [components, wires, globalVoltage, faults, simRunning, appMode, regulationStandard]);
+  }, [components, wires, globalVoltage, faults, simRunning, accessRevision, regulationStandard]);
 }

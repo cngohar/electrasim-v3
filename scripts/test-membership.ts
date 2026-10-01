@@ -7,6 +7,7 @@ import { resolve } from 'node:path';
 import type { D1Database } from '@cloudflare/workers-types';
 import { getPlatformProxy } from 'wrangler';
 import { localTestUrl } from './local-test-url';
+import { runSimulatorTests } from './test-simulator';
 
 const config = 'wrangler.membership-test.jsonc';
 mkdirSync('.wrangler', { recursive: true });
@@ -296,529 +297,572 @@ try {
         expected: 201,
       })
     ).body;
-  let plan = await createPlan('pro');
-  let grant = await assign(plan.id);
-  await check(
-    'guest/free/paid/admin/moderator/org-owner/instructor cannot administer memberships',
-    async () => {
-      for (const user of [undefined, ordinary, paid, admin, moderator, owner, instructor]) {
-        const expected = user ? 403 : 401;
-        for (const resource of ['plans', 'features', 'memberships']) {
-          await api(`/admin/pro/${resource}`, { user, expected });
-          await api(`/admin/pro/${resource}`, { user, method: 'POST', data: {}, expected });
-          await api(`/admin/pro/${resource}/some-id`, {
-            user,
-            method: 'PATCH',
-            data: {},
-            expected,
-          });
-          await api(`/admin/pro/${resource}/some-id`, {
-            user,
-            method: 'DELETE',
-            data: {},
-            expected,
-          });
+  if (process.env.SIMULATOR_ONLY === '1') {
+    await runSimulatorTests({
+      api,
+      signup,
+      createPlan,
+      assign,
+      check,
+      superAdmin,
+      db,
+      origin,
+      persist,
+    });
+  } else {
+    let plan = await createPlan('pro');
+    let grant = await assign(plan.id);
+    await check(
+      'guest/free/paid/admin/moderator/org-owner/instructor cannot administer memberships',
+      async () => {
+        for (const user of [undefined, ordinary, paid, admin, moderator, owner, instructor]) {
+          const expected = user ? 403 : 401;
+          for (const resource of ['plans', 'features', 'memberships']) {
+            await api(`/admin/pro/${resource}`, { user, expected });
+            await api(`/admin/pro/${resource}`, { user, method: 'POST', data: {}, expected });
+            await api(`/admin/pro/${resource}/some-id`, {
+              user,
+              method: 'PATCH',
+              data: {},
+              expected,
+            });
+            await api(`/admin/pro/${resource}/some-id`, {
+              user,
+              method: 'DELETE',
+              data: {},
+              expected,
+            });
+          }
+          await api('/admin/ping', { user, expected });
+          await api('/admin/pro/audit', { user, expected });
+          await api('/admin/pro/users', { user, expected });
         }
-        await api('/admin/ping', { user, expected });
-        await api('/admin/pro/audit', { user, expected });
-        await api('/admin/pro/users', { user, expected });
-      }
-      await api('/admin/ping', { user: superAdmin, expected: 200 });
-      assert.deepEqual(
-        (await api('/me/membership', { user: superAdmin, expected: 200 })).body.capabilities,
-        [],
-      );
-    },
-  );
-  await check('same-origin JSON mutations and strict validation required', async () => {
-    for (const badOrigin of [null, 'https://evil.example'])
+        await api('/admin/ping', { user: superAdmin, expected: 200 });
+        assert.deepEqual(
+          (await api('/me/membership', { user: superAdmin, expected: 200 })).body.capabilities,
+          [],
+        );
+      },
+    );
+    await check('same-origin JSON mutations and strict validation required', async () => {
+      for (const badOrigin of [null, 'https://evil.example'])
+        await api('/admin/pro/plans', {
+          user: superAdmin,
+          origin: badOrigin,
+          method: 'POST',
+          data: planData('csrf'),
+          expected: 403,
+        });
       await api('/admin/pro/plans', {
         user: superAdmin,
-        origin: badOrigin,
         method: 'POST',
         data: planData('csrf'),
+        headers: { 'Sec-Fetch-Site': 'cross-site' },
         expected: 403,
       });
-    await api('/admin/pro/plans', {
-      user: superAdmin,
-      method: 'POST',
-      data: planData('csrf'),
-      headers: { 'Sec-Fetch-Site': 'cross-site' },
-      expected: 403,
-    });
-    await api('/admin/pro/plans', { user: superAdmin, method: 'POST', expected: 415 });
-    for (const extra of [
-      { priceMinor: 100 },
-      { durationDays: null },
-      { status: 'unknown' },
-      { features: [{ featureKey: 'not-implemented', enabled: true }] },
-      { globalRole: 'super_admin' },
-      { features: [{ featureKey: 'pro_components', enabled: true, config: { quota: 10 } }] },
-    ]) {
-      await api('/admin/pro/plans', {
+      await api('/admin/pro/plans', { user: superAdmin, method: 'POST', expected: 415 });
+      for (const extra of [
+        { priceMinor: 100 },
+        { durationDays: null },
+        { status: 'unknown' },
+        { features: [{ featureKey: 'not-implemented', enabled: true }] },
+        { globalRole: 'super_admin' },
+        { features: [{ featureKey: 'pro_components', enabled: true, config: { quota: 10 } }] },
+      ]) {
+        await api('/admin/pro/plans', {
+          user: superAdmin,
+          method: 'POST',
+          data: { ...planData('invalid'), ...extra },
+          expected: 400,
+        });
+      }
+      await api('/admin/pro/memberships', {
         user: superAdmin,
         method: 'POST',
-        data: { ...planData('invalid'), ...extra },
+        data: {
+          userId: paid.id,
+          planId: plan.id,
+          status: 'active',
+          startsAt: 5000,
+          endsAt: null,
+          noExpiry: false,
+          reason,
+        },
         expected: 400,
       });
-    }
-    await api('/admin/pro/memberships', {
-      user: superAdmin,
-      method: 'POST',
-      data: {
-        userId: paid.id,
-        planId: plan.id,
-        status: 'active',
-        startsAt: 5000,
-        endsAt: null,
-        noExpiry: false,
-        reason,
-      },
-      expected: 400,
+      await api('/admin/pro/plans?limit=101', { user: superAdmin, expected: 400 });
     });
-    await api('/admin/pro/plans?limit=101', { user: superAdmin, expected: 400 });
-  });
-  await check('private own membership resolves grants without exposing another user', async () => {
-    await api('/me/membership', { expected: 401 });
-    const result = await api('/me/membership', { user: paid, expected: 200 });
-    assert.match(result.res.headers.get('Cache-Control')!, /private.*no-store/);
-    assert.deepEqual(result.body.capabilities, ['pro_components']);
-    assert.deepEqual(
-      (await api(`/me/membership?userId=${paid.id}`, { user: ordinary, expected: 200 })).body
-        .capabilities,
-      [],
+    await check(
+      'private own membership resolves grants without exposing another user',
+      async () => {
+        await api('/me/membership', { expected: 401 });
+        const result = await api('/me/membership', { user: paid, expected: 200 });
+        assert.match(result.res.headers.get('Cache-Control')!, /private.*no-store/);
+        assert.deepEqual(result.body.capabilities, ['pro_components']);
+        assert.deepEqual(
+          (await api(`/me/membership?userId=${paid.id}`, { user: ordinary, expected: 200 })).body
+            .capabilities,
+          [],
+        );
+        await api('/admin/pro/users?q=paid', { user: superAdmin, expected: 200 });
+      },
     );
-    await api('/admin/pro/users?q=paid', { user: superAdmin, expected: 200 });
-  });
-  await check(
-    'price and duration edits preserve assigned dates and expose impact counts',
-    async () => {
-      const before = (
-        await api(`/admin/pro/memberships/${grant.id}`, { user: superAdmin, expected: 200 })
-      ).body;
-      const impact = (await api(`/admin/pro/plans/${plan.id}`, { user: superAdmin, expected: 200 }))
-        .body;
-      assert.equal(impact.affectedMemberCount, 1);
-      plan = (
-        await api(`/admin/pro/plans/${plan.id}`, {
-          user: superAdmin,
-          method: 'PATCH',
-          data: {
-            version: plan.version,
-            reason,
-            durationDays: 60,
-            priceMinor: 1250,
-            currency: 'USD',
-          },
-          expected: 200,
-        })
-      ).body;
-      const after = (
-        await api(`/admin/pro/memberships/${grant.id}`, { user: superAdmin, expected: 200 })
-      ).body;
-      assert.equal(after.startsAt, before.startsAt);
-      assert.equal(after.endsAt, before.endsAt);
-      assert.equal(after.version, before.version);
-    },
-  );
-  await check(
-    'concurrent stale edits commit exactly one plan change and matching audit',
-    async () => {
-      const results = await Promise.all(
-        Array.from({ length: 8 }, (_, index) =>
-          api(`/admin/pro/plans/${plan.id}`, {
+    await check(
+      'price and duration edits preserve assigned dates and expose impact counts',
+      async () => {
+        const before = (
+          await api(`/admin/pro/memberships/${grant.id}`, { user: superAdmin, expected: 200 })
+        ).body;
+        const impact = (
+          await api(`/admin/pro/plans/${plan.id}`, { user: superAdmin, expected: 200 })
+        ).body;
+        assert.equal(impact.affectedMemberCount, 1);
+        plan = (
+          await api(`/admin/pro/plans/${plan.id}`, {
             user: superAdmin,
             method: 'PATCH',
             data: {
               version: plan.version,
               reason,
-              name: `winner-${index}`,
-              features: [
-                {
-                  featureKey: index % 2 ? 'advanced_faults' : 'pro_components',
-                  enabled: true,
-                  config: {},
-                },
-              ],
+              durationDays: 60,
+              priceMinor: 1250,
+              currency: 'USD',
             },
-          }),
-        ),
-      );
-      assert.equal(results.filter((r) => r.res.status === 200).length, 1);
-      assert.equal(results.filter((r) => r.res.status === 409).length, 7);
-      const winner = results.find((r) => r.res.status === 200)!.body;
-      plan = (await api(`/admin/pro/plans/${plan.id}`, { user: superAdmin, expected: 200 })).body;
-      assert.equal(plan.name, winner.name);
-      assert.deepEqual(plan.features, winner.features);
-      const audit = (
-        await api(`/admin/pro/audit?targetId=${plan.id}`, { user: superAdmin, expected: 200 })
-      ).body;
-      assert.equal(audit.total, 3);
-      assert.equal(audit.items[0].after?.name, winner.name);
-      assert.deepEqual(
-        (await api('/me/membership', { user: paid, expected: 200 })).body.capabilities,
-        [plan.features[0].featureKey],
-      );
-      plan = (
-        await api(`/admin/pro/plans/${plan.id}`, {
-          user: superAdmin,
-          method: 'PATCH',
-          data: {
-            version: plan.version,
-            reason,
-            features: [{ featureKey: 'pro_components', enabled: true, config: {} }],
-          },
-          expected: 200,
-        })
-      ).body;
-    },
-  );
-  await check(
-    'overlap, suspension, extension and revocation refresh within the same session',
-    async () => {
-      const advanced = await createPlan('advanced', ['advanced_faults', 'advanced_diagnostics']);
-      let second = await assign(advanced.id);
-      assert.deepEqual(
-        (await api('/me/membership', { user: paid, expected: 200 })).body.capabilities,
-        ['pro_components', 'advanced_faults', 'advanced_diagnostics'],
-      );
-      grant = (
-        await api(`/admin/pro/memberships/${grant.id}`, {
-          user: superAdmin,
-          method: 'PATCH',
-          data: { version: grant.version, reason, status: 'suspended' },
-          expected: 200,
-        })
-      ).body;
-      assert.deepEqual(
-        (await api('/me/membership', { user: paid, expected: 200 })).body.capabilities,
-        ['advanced_faults', 'advanced_diagnostics'],
-      );
-      grant = (
-        await api(`/admin/pro/memberships/${grant.id}`, {
-          user: superAdmin,
-          method: 'PATCH',
-          data: {
-            version: grant.version,
-            reason,
-            status: 'active',
-            endsAt: Date.now() + 172800000,
-          },
-          expected: 200,
-        })
-      ).body;
-      second = (
+            expected: 200,
+          })
+        ).body;
+        const after = (
+          await api(`/admin/pro/memberships/${grant.id}`, { user: superAdmin, expected: 200 })
+        ).body;
+        assert.equal(after.startsAt, before.startsAt);
+        assert.equal(after.endsAt, before.endsAt);
+        assert.equal(after.version, before.version);
+      },
+    );
+    await check(
+      'concurrent stale edits commit exactly one plan change and matching audit',
+      async () => {
+        const results = await Promise.all(
+          Array.from({ length: 8 }, (_, index) =>
+            api(`/admin/pro/plans/${plan.id}`, {
+              user: superAdmin,
+              method: 'PATCH',
+              data: {
+                version: plan.version,
+                reason,
+                name: `winner-${index}`,
+                features: [
+                  {
+                    featureKey: index % 2 ? 'advanced_faults' : 'pro_components',
+                    enabled: true,
+                    config: {},
+                  },
+                ],
+              },
+            }),
+          ),
+        );
+        assert.equal(results.filter((r) => r.res.status === 200).length, 1);
+        assert.equal(results.filter((r) => r.res.status === 409).length, 7);
+        const winner = results.find((r) => r.res.status === 200)!.body;
+        plan = (await api(`/admin/pro/plans/${plan.id}`, { user: superAdmin, expected: 200 })).body;
+        assert.equal(plan.name, winner.name);
+        assert.deepEqual(plan.features, winner.features);
+        const audit = (
+          await api(`/admin/pro/audit?targetId=${plan.id}`, { user: superAdmin, expected: 200 })
+        ).body;
+        assert.equal(audit.total, 3);
+        assert.equal(audit.items[0].after?.name, winner.name);
+        assert.deepEqual(
+          (await api('/me/membership', { user: paid, expected: 200 })).body.capabilities,
+          [plan.features[0].featureKey],
+        );
+        plan = (
+          await api(`/admin/pro/plans/${plan.id}`, {
+            user: superAdmin,
+            method: 'PATCH',
+            data: {
+              version: plan.version,
+              reason,
+              features: [{ featureKey: 'pro_components', enabled: true, config: {} }],
+            },
+            expected: 200,
+          })
+        ).body;
+      },
+    );
+    await check(
+      'overlap, suspension, extension and revocation refresh within the same session',
+      async () => {
+        const advanced = await createPlan('advanced', ['advanced_faults', 'advanced_diagnostics']);
+        let second = await assign(advanced.id);
+        assert.deepEqual(
+          (await api('/me/membership', { user: paid, expected: 200 })).body.capabilities,
+          ['pro_components', 'advanced_faults', 'advanced_diagnostics'],
+        );
+        grant = (
+          await api(`/admin/pro/memberships/${grant.id}`, {
+            user: superAdmin,
+            method: 'PATCH',
+            data: { version: grant.version, reason, status: 'suspended' },
+            expected: 200,
+          })
+        ).body;
+        assert.deepEqual(
+          (await api('/me/membership', { user: paid, expected: 200 })).body.capabilities,
+          ['advanced_faults', 'advanced_diagnostics'],
+        );
+        grant = (
+          await api(`/admin/pro/memberships/${grant.id}`, {
+            user: superAdmin,
+            method: 'PATCH',
+            data: {
+              version: grant.version,
+              reason,
+              status: 'active',
+              endsAt: Date.now() + 172800000,
+            },
+            expected: 200,
+          })
+        ).body;
+        second = (
+          await api(`/admin/pro/memberships/${second.id}`, {
+            user: superAdmin,
+            method: 'DELETE',
+            data: { version: second.version, reason },
+            expected: 200,
+          })
+        ).body;
+        assert.equal(second.status, 'revoked');
+        assert.deepEqual(
+          (await api('/me/membership', { user: paid, expected: 200 })).body.capabilities,
+          ['pro_components'],
+        );
         await api(`/admin/pro/memberships/${second.id}`, {
           user: superAdmin,
-          method: 'DELETE',
-          data: { version: second.version, reason },
-          expected: 200,
-        })
-      ).body;
-      assert.equal(second.status, 'revoked');
-      assert.deepEqual(
-        (await api('/me/membership', { user: paid, expected: 200 })).body.capabilities,
-        ['pro_components'],
-      );
-      await api(`/admin/pro/memberships/${second.id}`, {
-        user: superAdmin,
-        method: 'PATCH',
-        data: { version: second.version, reason, status: 'active' },
-        expected: 400,
-      });
-    },
-  );
-  await check('scheduled/expired grants deny access; explicit no-expiry authorizes', async () => {
-    const timed = await signup('timed');
-    const now = Date.now();
-    await assign(plan.id, timed, { startsAt: now + 100000, endsAt: now + 200000 });
-    await assign(plan.id, timed, { startsAt: now - 2000, endsAt: now - 1000 });
-    assert.deepEqual(
-      (await api('/me/membership', { user: timed, expected: 200 })).body.capabilities,
-      [],
-    );
-    const history = (await api('/me/membership', { user: timed, expected: 200 })).body;
-    assert.deepEqual(history.grants.map((g) => g.state).sort(), ['expired', 'scheduled']);
-    await assign(plan.id, timed, { startsAt: now, endsAt: null, noExpiry: true });
-    assert.deepEqual(
-      (await api('/me/membership', { user: timed, expected: 200 })).body.capabilities,
-      ['pro_components'],
-    );
-  });
-  await check('membership and feature version conflicts cannot append success audits', async () => {
-    const memberAudit = (
-      await api(`/admin/pro/audit?targetId=${grant.id}`, { user: superAdmin, expected: 200 })
-    ).body.total;
-    const races = await Promise.all(
-      [0, 1, 2, 3].map((index) =>
-        api(`/admin/pro/memberships/${grant.id}`, {
-          user: superAdmin,
           method: 'PATCH',
-          data: { version: grant.version, reason, endsAt: Date.now() + 86400000 + index * 10000 },
-        }),
-      ),
+          data: { version: second.version, reason, status: 'active' },
+          expected: 400,
+        });
+      },
     );
-    assert.equal(races.filter((r) => r.res.status === 200).length, 1);
-    assert.equal(races.filter((r) => r.res.status === 409).length, 3);
-    grant = races.find((r) => r.res.status === 200)!.body;
-    assert.equal(
-      (await api(`/admin/pro/audit?targetId=${grant.id}`, { user: superAdmin, expected: 200 })).body
-        .total,
-      memberAudit + 1,
-    );
-    const feature = (
-      await api('/admin/pro/features/advanced_diagnostics', { user: superAdmin, expected: 200 })
-    ).body;
-    const edits = await Promise.all(
-      [0, 1, 2, 3].map((index) =>
-        api('/admin/pro/features/advanced_diagnostics', {
-          user: superAdmin,
-          method: 'PATCH',
-          data: { version: feature.version, reason, name: { en: `Advanced diagnosis ${index}` } },
-        }),
-      ),
-    );
-    assert.equal(edits.filter((r) => r.res.status === 200).length, 1);
-    assert.equal(edits.filter((r) => r.res.status === 409).length, 3);
-    const winner = edits.find((r) => r.res.status === 200)!.body;
-    await api('/admin/pro/features/advanced_diagnostics', {
-      user: superAdmin,
-      method: 'PATCH',
-      data: { version: winner.version, reason, handler: 'pro_components' },
-      expected: 400,
-    });
-    assert.equal(
-      (
-        await api('/admin/pro/audit?targetId=advanced_diagnostics', {
-          user: superAdmin,
-          expected: 200,
-        })
-      ).body.total,
-      1,
-    );
-  });
-  await check(
-    'pagination stays bounded and basic staff accounts have no automatic capabilities',
-    async () => {
-      const first = (
-        await api('/admin/pro/audit?limit=2&offset=0', { user: superAdmin, expected: 200 })
-      ).body;
-      const second = (
-        await api('/admin/pro/audit?limit=2&offset=2', { user: superAdmin, expected: 200 })
-      ).body;
-      assert.equal(first.items.length, 2);
-      assert.equal(second.items.length, 2);
-      assert(!first.items.some((entry) => second.items.some((other) => other.id === entry.id)));
-      for (const user of [ordinary, admin, moderator, owner, instructor])
-        assert.deepEqual(
-          (await api('/me/membership', { user, expected: 200 })).body.capabilities,
-          [],
-        );
-    },
-  );
-  await check('public plans omit unsupported features and all membership data', async () => {
-    const publicPlans = (await api('/plans', { expected: 200 })).body;
-    assert(publicPlans.items.some((p) => p.id === plan.id));
-    assert(!JSON.stringify(publicPlans).includes(paid.id));
-    await api('/admin/pro/features', {
-      user: superAdmin,
-      method: 'POST',
-      data: { key: 'fake', handler: 'cloud_quota', name: { en: 'Fake' }, enabled: true, reason },
-      expected: 400,
-    });
-    await db
-      .prepare(
-        "INSERT INTO pro_features (key, handler, name, description, enabled, version, mutation_id, created_at, updated_at) VALUES ('future', 'cloud_quota', '{}', '{}', 1, 1, 'test', ?, ?)",
-      )
-      .bind(Date.now(), Date.now())
-      .run();
-    await db
-      .prepare(
-        "INSERT INTO plan_features (plan_id, feature_key, enabled, config) VALUES (?, 'future', 1, '{}')",
-      )
-      .bind(plan.id)
-      .run();
-    assert(
-      !(await api('/plans', { expected: 200 })).body.items
-        .flatMap((p) => p.features)
-        .some((f) => f.key === 'future'),
-    );
-    assert.deepEqual(
-      (await api('/me/membership', { user: paid, expected: 200 })).body.capabilities,
-      ['pro_components'],
-    );
-    await db.prepare("DELETE FROM plan_features WHERE feature_key = 'future'").run();
-  });
-  await check(
-    'feature archive preserves grants; disabling explicitly removes capability',
-    async () => {
-      let benefit = (
-        await api('/admin/pro/features/pro_components', { user: superAdmin, expected: 200 })
-      ).body;
-      benefit = (
-        await api('/admin/pro/features/pro_components', {
-          user: superAdmin,
-          method: 'DELETE',
-          data: { version: benefit.version, reason },
-          expected: 200,
-        })
-      ).body;
-      assert(benefit.archivedAt);
+    await check('scheduled/expired grants deny access; explicit no-expiry authorizes', async () => {
+      const timed = await signup('timed');
+      const now = Date.now();
+      await assign(plan.id, timed, { startsAt: now + 100000, endsAt: now + 200000 });
+      await assign(plan.id, timed, { startsAt: now - 2000, endsAt: now - 1000 });
       assert.deepEqual(
-        (await api('/me/membership', { user: paid, expected: 200 })).body.capabilities,
-        ['pro_components'],
-      );
-      benefit = (
-        await api('/admin/pro/features/pro_components', {
-          user: superAdmin,
-          method: 'PATCH',
-          data: { version: benefit.version, reason, enabled: false },
-          expected: 200,
-        })
-      ).body;
-      assert.deepEqual(
-        (await api('/me/membership', { user: paid, expected: 200 })).body.capabilities,
+        (await api('/me/membership', { user: timed, expected: 200 })).body.capabilities,
         [],
       );
-      await api('/admin/pro/features/pro_components', {
-        user: superAdmin,
-        method: 'PATCH',
-        data: { version: benefit.version, reason, enabled: true, archived: false },
-        expected: 200,
-      });
-    },
-  );
-  await check(
-    'referenced plan deletion archives without revoking or accepting new assignments',
-    async () => {
-      plan = (await api(`/admin/pro/plans/${plan.id}`, { user: superAdmin, expected: 200 })).body;
-      plan = (
-        await api(`/admin/pro/plans/${plan.id}`, {
-          user: superAdmin,
-          method: 'DELETE',
-          data: { version: plan.version, reason },
-          expected: 200,
-        })
-      ).body;
-      assert.equal(plan.status, 'archived');
+      const history = (await api('/me/membership', { user: timed, expected: 200 })).body;
+      assert.deepEqual(history.grants.map((g) => g.state).sort(), ['expired', 'scheduled']);
+      await assign(plan.id, timed, { startsAt: now, endsAt: null, noExpiry: true });
       assert.deepEqual(
-        (await api('/me/membership', { user: paid, expected: 200 })).body.capabilities,
+        (await api('/me/membership', { user: timed, expected: 200 })).body.capabilities,
         ['pro_components'],
       );
-      assert(!(await api('/plans', { expected: 200 })).body.items.some((p) => p.id === plan.id));
-      await api('/admin/pro/memberships', {
-        user: superAdmin,
-        method: 'POST',
-        data: {
-          userId: ordinary.id,
-          planId: plan.id,
-          status: 'active',
-          startsAt: 1000,
-          endsAt: null,
-          noExpiry: true,
-          reason,
-        },
-        expected: 400,
-      });
-    },
-  );
-  await check('unused drafts and unreferenced benefits delete while audit survives', async () => {
-    const draft = (
-      await api('/admin/pro/plans', {
-        user: superAdmin,
-        method: 'POST',
-        data: { ...planData('unused', []), status: 'draft' },
-        expected: 201,
-      })
-    ).body;
-    assert(
-      (
-        await api(`/admin/pro/plans/${draft.id}`, {
+    });
+    await check(
+      'membership and feature version conflicts cannot append success audits',
+      async () => {
+        const memberAudit = (
+          await api(`/admin/pro/audit?targetId=${grant.id}`, { user: superAdmin, expected: 200 })
+        ).body.total;
+        const races = await Promise.all(
+          [0, 1, 2, 3].map((index) =>
+            api(`/admin/pro/memberships/${grant.id}`, {
+              user: superAdmin,
+              method: 'PATCH',
+              data: {
+                version: grant.version,
+                reason,
+                endsAt: Date.now() + 86400000 + index * 10000,
+              },
+            }),
+          ),
+        );
+        assert.equal(races.filter((r) => r.res.status === 200).length, 1);
+        assert.equal(races.filter((r) => r.res.status === 409).length, 3);
+        grant = races.find((r) => r.res.status === 200)!.body;
+        assert.equal(
+          (await api(`/admin/pro/audit?targetId=${grant.id}`, { user: superAdmin, expected: 200 }))
+            .body.total,
+          memberAudit + 1,
+        );
+        const feature = (
+          await api('/admin/pro/features/advanced_diagnostics', { user: superAdmin, expected: 200 })
+        ).body;
+        const edits = await Promise.all(
+          [0, 1, 2, 3].map((index) =>
+            api('/admin/pro/features/advanced_diagnostics', {
+              user: superAdmin,
+              method: 'PATCH',
+              data: {
+                version: feature.version,
+                reason,
+                name: { en: `Advanced diagnosis ${index}` },
+              },
+            }),
+          ),
+        );
+        assert.equal(edits.filter((r) => r.res.status === 200).length, 1);
+        assert.equal(edits.filter((r) => r.res.status === 409).length, 3);
+        const winner = edits.find((r) => r.res.status === 200)!.body;
+        await api('/admin/pro/features/advanced_diagnostics', {
           user: superAdmin,
-          method: 'DELETE',
-          data: { version: draft.version, reason },
-          expected: 200,
-        })
-      ).body.deleted,
+          method: 'PATCH',
+          data: { version: winner.version, reason, handler: 'pro_components' },
+          expected: 400,
+        });
+        assert.equal(
+          (
+            await api('/admin/pro/audit?targetId=advanced_diagnostics', {
+              user: superAdmin,
+              expected: 200,
+            })
+          ).body.total,
+          1,
+        );
+      },
     );
-    await api(`/admin/pro/plans/${draft.id}`, { user: superAdmin, expected: 404 });
-    assert.equal(
-      (await api(`/admin/pro/audit?targetId=${draft.id}`, { user: superAdmin, expected: 200 })).body
-        .total,
-      2,
+    await check(
+      'pagination stays bounded and basic staff accounts have no automatic capabilities',
+      async () => {
+        const first = (
+          await api('/admin/pro/audit?limit=2&offset=0', { user: superAdmin, expected: 200 })
+        ).body;
+        const second = (
+          await api('/admin/pro/audit?limit=2&offset=2', { user: superAdmin, expected: 200 })
+        ).body;
+        assert.equal(first.items.length, 2);
+        assert.equal(second.items.length, 2);
+        assert(!first.items.some((entry) => second.items.some((other) => other.id === entry.id)));
+        for (const user of [ordinary, admin, moderator, owner, instructor])
+          assert.deepEqual(
+            (await api('/me/membership', { user, expected: 200 })).body.capabilities,
+            [],
+          );
+      },
     );
-    const feature = (
+    await check('public plans omit unsupported features and all membership data', async () => {
+      const publicPlans = (await api('/plans', { expected: 200 })).body;
+      assert(publicPlans.items.some((p) => p.id === plan.id));
+      assert(!JSON.stringify(publicPlans).includes(paid.id));
       await api('/admin/pro/features', {
         user: superAdmin,
         method: 'POST',
-        data: {
-          key: 'unused',
-          handler: 'advanced_faults',
-          name: { en: 'Unused' },
-          enabled: true,
-          reason,
-        },
-        expected: 201,
-      })
-    ).body;
-    await api('/admin/pro/features/unused', {
-      user: superAdmin,
-      method: 'DELETE',
-      data: { version: feature.version, reason },
-      expected: 200,
-    });
-    await api('/admin/pro/features/unused', { user: superAdmin, expected: 404 });
-  });
-  await check('failed audit insertion rolls back the associated data mutation', async () => {
-    const before = (await api('/admin/pro/plans', { user: superAdmin, expected: 200 })).body
-      .items[0];
-    await db
-      .prepare(
-        "CREATE TRIGGER fail_audit BEFORE INSERT ON audit_logs BEGIN SELECT RAISE(ABORT, 'forced audit failure'); END",
-      )
-      .run();
-    try {
-      await api(`/admin/pro/plans/${before.id}`, {
-        user: superAdmin,
-        method: 'PATCH',
-        data: { version: before.version, reason, name: 'must roll back' },
-        expected: 503,
+        data: { key: 'fake', handler: 'cloud_quota', name: { en: 'Fake' }, enabled: true, reason },
+        expected: 400,
       });
-      const after = (
-        await api(`/admin/pro/plans/${before.id}`, { user: superAdmin, expected: 200 })
-      ).body;
-      assert.equal(after.version, before.version);
-      assert.equal(after.name, before.name);
-    } finally {
-      await db.prepare('DROP TRIGGER fail_audit').run();
-    }
-  });
-  await check('a D1 read failure returns unavailable without cached capabilities', async () => {
-    await db.prepare('ALTER TABLE entitlements RENAME TO entitlements_unavailable').run();
-    try {
-      const failed = await api('/me/membership', { user: paid, expected: 503 });
-      assert.equal(failed.body.capabilities, undefined);
-      assert.match(failed.res.headers.get('Cache-Control')!, /private.*no-store/);
-    } finally {
-      await db.prepare('ALTER TABLE entitlements_unavailable RENAME TO entitlements').run();
-    }
-    assert.deepEqual(
-      (await api('/me/membership', { user: paid, expected: 200 })).body.capabilities,
-      ['pro_components'],
-    );
-  });
-  await check('fresh role read denies a demoted super admin with the existing cookie', async () => {
-    await db
-      .prepare("UPDATE user SET global_role = 'individual' WHERE id = ?")
-      .bind(superAdmin.id)
-      .run();
-    await api('/admin/pro/plans', {
-      user: superAdmin,
-      method: 'POST',
-      data: planData('denied'),
-      expected: 403,
+      await db
+        .prepare(
+          "INSERT INTO pro_features (key, handler, name, description, enabled, version, mutation_id, created_at, updated_at) VALUES ('future', 'cloud_quota', '{}', '{}', 1, 1, 'test', ?, ?)",
+        )
+        .bind(Date.now(), Date.now())
+        .run();
+      await db
+        .prepare(
+          "INSERT INTO plan_features (plan_id, feature_key, enabled, config) VALUES (?, 'future', 1, '{}')",
+        )
+        .bind(plan.id)
+        .run();
+      assert(
+        !(await api('/plans', { expected: 200 })).body.items
+          .flatMap((p) => p.features)
+          .some((f) => f.key === 'future'),
+      );
+      assert.deepEqual(
+        (await api('/me/membership', { user: paid, expected: 200 })).body.capabilities,
+        ['pro_components'],
+      );
+      await db.prepare("DELETE FROM plan_features WHERE feature_key = 'future'").run();
     });
-  });
+    await check(
+      'feature archive preserves grants; disabling explicitly removes capability',
+      async () => {
+        let benefit = (
+          await api('/admin/pro/features/pro_components', { user: superAdmin, expected: 200 })
+        ).body;
+        benefit = (
+          await api('/admin/pro/features/pro_components', {
+            user: superAdmin,
+            method: 'DELETE',
+            data: { version: benefit.version, reason },
+            expected: 200,
+          })
+        ).body;
+        assert(benefit.archivedAt);
+        assert.deepEqual(
+          (await api('/me/membership', { user: paid, expected: 200 })).body.capabilities,
+          ['pro_components'],
+        );
+        benefit = (
+          await api('/admin/pro/features/pro_components', {
+            user: superAdmin,
+            method: 'PATCH',
+            data: { version: benefit.version, reason, enabled: false },
+            expected: 200,
+          })
+        ).body;
+        assert.deepEqual(
+          (await api('/me/membership', { user: paid, expected: 200 })).body.capabilities,
+          [],
+        );
+        await api('/admin/pro/features/pro_components', {
+          user: superAdmin,
+          method: 'PATCH',
+          data: { version: benefit.version, reason, enabled: true, archived: false },
+          expected: 200,
+        });
+      },
+    );
+    await check(
+      'referenced plan deletion archives without revoking or accepting new assignments',
+      async () => {
+        plan = (await api(`/admin/pro/plans/${plan.id}`, { user: superAdmin, expected: 200 })).body;
+        plan = (
+          await api(`/admin/pro/plans/${plan.id}`, {
+            user: superAdmin,
+            method: 'DELETE',
+            data: { version: plan.version, reason },
+            expected: 200,
+          })
+        ).body;
+        assert.equal(plan.status, 'archived');
+        assert.deepEqual(
+          (await api('/me/membership', { user: paid, expected: 200 })).body.capabilities,
+          ['pro_components'],
+        );
+        assert(!(await api('/plans', { expected: 200 })).body.items.some((p) => p.id === plan.id));
+        await api('/admin/pro/memberships', {
+          user: superAdmin,
+          method: 'POST',
+          data: {
+            userId: ordinary.id,
+            planId: plan.id,
+            status: 'active',
+            startsAt: 1000,
+            endsAt: null,
+            noExpiry: true,
+            reason,
+          },
+          expected: 400,
+        });
+      },
+    );
+    await check('unused drafts and unreferenced benefits delete while audit survives', async () => {
+      const draft = (
+        await api('/admin/pro/plans', {
+          user: superAdmin,
+          method: 'POST',
+          data: { ...planData('unused', []), status: 'draft' },
+          expected: 201,
+        })
+      ).body;
+      assert(
+        (
+          await api(`/admin/pro/plans/${draft.id}`, {
+            user: superAdmin,
+            method: 'DELETE',
+            data: { version: draft.version, reason },
+            expected: 200,
+          })
+        ).body.deleted,
+      );
+      await api(`/admin/pro/plans/${draft.id}`, { user: superAdmin, expected: 404 });
+      assert.equal(
+        (await api(`/admin/pro/audit?targetId=${draft.id}`, { user: superAdmin, expected: 200 }))
+          .body.total,
+        2,
+      );
+      const feature = (
+        await api('/admin/pro/features', {
+          user: superAdmin,
+          method: 'POST',
+          data: {
+            key: 'unused',
+            handler: 'advanced_faults',
+            name: { en: 'Unused' },
+            enabled: true,
+            reason,
+          },
+          expected: 201,
+        })
+      ).body;
+      await api('/admin/pro/features/unused', {
+        user: superAdmin,
+        method: 'DELETE',
+        data: { version: feature.version, reason },
+        expected: 200,
+      });
+      await api('/admin/pro/features/unused', { user: superAdmin, expected: 404 });
+    });
+    await check('failed audit insertion rolls back the associated data mutation', async () => {
+      const before = (await api('/admin/pro/plans', { user: superAdmin, expected: 200 })).body
+        .items[0];
+      await db
+        .prepare(
+          "CREATE TRIGGER fail_audit BEFORE INSERT ON audit_logs BEGIN SELECT RAISE(ABORT, 'forced audit failure'); END",
+        )
+        .run();
+      try {
+        await api(`/admin/pro/plans/${before.id}`, {
+          user: superAdmin,
+          method: 'PATCH',
+          data: { version: before.version, reason, name: 'must roll back' },
+          expected: 503,
+        });
+        const after = (
+          await api(`/admin/pro/plans/${before.id}`, { user: superAdmin, expected: 200 })
+        ).body;
+        assert.equal(after.version, before.version);
+        assert.equal(after.name, before.name);
+      } finally {
+        await db.prepare('DROP TRIGGER fail_audit').run();
+      }
+    });
+    await check('a D1 read failure returns unavailable without cached capabilities', async () => {
+      await db.prepare('ALTER TABLE entitlements RENAME TO entitlements_unavailable').run();
+      try {
+        const failed = await api('/me/membership', { user: paid, expected: 503 });
+        assert.equal(failed.body.capabilities, undefined);
+        assert.match(failed.res.headers.get('Cache-Control')!, /private.*no-store/);
+      } finally {
+        await db.prepare('ALTER TABLE entitlements_unavailable RENAME TO entitlements').run();
+      }
+      assert.deepEqual(
+        (await api('/me/membership', { user: paid, expected: 200 })).body.capabilities,
+        ['pro_components'],
+      );
+    });
+    await runSimulatorTests({
+      api,
+      signup,
+      createPlan,
+      assign,
+      check,
+      superAdmin,
+      db,
+      origin,
+      persist,
+    });
+    await check(
+      'fresh role read denies a demoted super admin with the existing cookie',
+      async () => {
+        await db
+          .prepare("UPDATE user SET global_role = 'individual' WHERE id = ?")
+          .bind(superAdmin.id)
+          .run();
+        await api('/admin/pro/plans', {
+          user: superAdmin,
+          method: 'POST',
+          data: planData('denied'),
+          expected: 403,
+        });
+      },
+    );
+  }
   console.log(
     `Membership acceptance passed: ${checks} groups against real local D1 and cookie sessions. Evidence: ${persist}`,
   );

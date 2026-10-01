@@ -9,6 +9,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 
 ### Added
 
+- Phase 1.5B versioned electrical contracts, deterministic terminal compiler, source/pole/winding isolation, shared wire properties and bounded input validation. **Completed locally on 2026-10-01:** the full gate passed with 1,645 unit passes plus five expected later-phase failures, 486 Bun/workerd parity cases, 9 real Worker/D1 groups and 56 browser cases. Numerical solving remains in 1.5C–1.5F.
+- Phase 1.5A executable audit corpus, explicit unsupported-model results, local acceptance runner and ADR 0008 for the staged electrical-core replacement. **Closed locally on 2026-09-30:** full phase command, 53 built-output plus 3 simulator browser cases, and 25 real Worker/D1 membership groups passed.
+- Phase 1.5 circuit CRUD and server-owned diagnosis attempts (local migration 0005), shared circuit validation, fresh membership enforcement for protected editor/simulation actions, and IndexedDB recovery with explicit basic-copy/export flows.
+- Real local D1/cookie/Chromium simulator acceptance and isolated paid browser fixtures; guest relay coverage checks coil-driven switching through Comlink.
+
 - Phase 1.4 canvas foundation: cached physical-device vector artwork for all 115 component types, live instance markings and actuator states, terminal labels and reduced-motion support.
 - Desktop/phone browser coverage for keyboard wiring, rotated drag cancellation, panel-aware fitting and SVG/PNG exports; opt-in 200-component/400-wire pan/drag/zoom measurement and test-only Canvas 2D paint comparison.
 
@@ -18,6 +23,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 
 
 ### Changed
+
+- Missing switch states now use canonical catalogue defaults at domain/file/store boundaries while explicit off/trip/damage values remain intact. Authored in-memory momentary states survive exercise loading; persistence still releases held controls.
+- Graph fault compilation distinguishes L–PE shorts, broken earth conductors and unassessed leakage impedance. Polarity swaps and terminal disconnections compose deterministically, and ambiguous fault paths remain unassessed.
+- Protection operation now uses device capabilities and nameplate ratings: plain RCCBs and isolators do not trip as overcurrent breakers; ordinary breaker clearing no longer destroys the device; fuse links remain replaceable and damage entries are unique. Bypass suppresses protective operation; open-switch bypass traversal remains tracked for the new core.
+- Unsupported DC source, transformer and three-phase drawings remain editable/exportable with electrical assessment unavailable. Timer/dimmer continuity limits are explicit; guide and inspector copy no longer presents unsupported results as measured behavior.
+- Homepage browser assertions match current SEO copy. Astro's native esbuild helper uses the installed Node runtime to avoid the reproduced Bun service-launch failure; Bun remains the command/package runner.
+- Relay contacts now isolate coils and poles, select NO/NC exclusively and operate/drop out from coil supply. DPDT adds NC terminals without renumbering saved ports; static coil-model limits remain documented.
+- Basic diagnosis selects free-eligible recipes without changing version-1 seed semantics. Paid completion, timeout and abandonment preserve accepted scores, update local statistics and clear active records; revocation/reload preserves repair work read-only.
 
 - Shared fit-to-view now uses SVG units, rotated footprints and measured floating panels across keyboard, desktop, phone and command-palette controls.
 - Dense wire rendering retains diagnostic, trace, severed, short and melted-wire indicators. Canvas theme variables survive standalone exports.
@@ -64,6 +77,9 @@ _Template for first V3 release — remove this block when 3.0.0 ships._
 - Runtime: Node/npm → Bun. DB: Postgres/Neon → D1. Auth: none → Better Auth (Google/GitHub/Microsoft).
 
 ### Fixed
+
+- Phase 1.5A dependency review: targeted Astro, Vitest 4.1.11, Wrangler and transitive updates; Vitest config typing and menu-preload teardown fixes; accurate Node >=22.19.0 tooling requirement. The remaining esbuild advisory is documented as currently unexposed tooling use, not reported as a clean audit.
+- Local acceptance fixtures now isolate the missing membership API in the offline built-assets test and explicitly open the inspector for unsupported transformer telemetry. Electrical and authorization assertions remain intact.
 - —
 
 ### Removed

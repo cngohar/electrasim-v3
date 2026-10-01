@@ -137,6 +137,7 @@ export const HVAC_SOUNDER_AND_DISTRIBUTION_DEFS: Record<string, ComponentDef> = 
 
   'motor-3phase': {
     label: '3-Phase AC Induction Motor (3kW / 4HP)',
+    maxVolts: 400, // This catalog model is rated for the 400 V line-to-line training supply.
     description: 'Heavy industrial 3-phase asynchronous squirrel-cage motor for machinery.',
     category: 'motor',
     isLoad: true,

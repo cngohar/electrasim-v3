@@ -357,7 +357,7 @@ describe('circuit import and export', () => {
     expect(() => importJSON(bad)).toThrow('Duplicate wire id');
   });
 
-  it('rejects wires joining incompatible conductor types', () => {
+  it('preserves cross-role wiring so electrical assessment can diagnose physical miswires', () => {
     const bad = JSON.stringify({
       version: 1,
       circuit: {
@@ -377,7 +377,7 @@ describe('circuit import and export', () => {
         ],
       },
     });
-    expect(() => importJSON(bad)).toThrow('incompatible live and neutral ports');
+    expect(importJSON(bad).wires[0]).toMatchObject(JSON.parse(bad).circuit.wires[0]);
   });
 
   it('rejects port index out of range', () => {

@@ -9,6 +9,8 @@
  * without dragging the rest of the app with it (PLAN.md §4 / §5).
  */
 
+import type { ElectricalDeviceModel, ElectricalDiagnostic, ModelCoverage } from './core/contracts';
+
 // ─── Geometry ──────────────────────────────────────────────────────────────
 
 export interface Point2D {
@@ -42,6 +44,8 @@ export interface PortDef {
 }
 
 export interface ComponentDef {
+  /** Explicit electrical model override; catalogue metadata, never a saved state field. */
+  electricalModel?: ElectricalDeviceModel;
   label: string;
   description?: string;
   category: string;
@@ -73,6 +77,10 @@ export interface ComponentDef {
     offPortIndex: number;
   };
 
+  /** Isolated switch poles. A closed pole joins only COM and its selected throw. */
+  switchContacts?: { common: number; no: number; nc?: number }[];
+  /** Coil terminal indices. Wiring either terminal enables ideal automatic coil control. */
+  coilPorts?: readonly [number, number];
   ports: PortDef[];
 
   /** Tier level for filtering between Basic Student Mode and Pro Electrician Mode. */
@@ -378,7 +386,33 @@ export interface ElectricalWireCalculation {
   message: string;
 }
 
+export interface SimulationLimitation {
+  code:
+    | 'transformer-model'
+    | 'dc-source-model'
+    | 'three-phase-model'
+    | 'timing-model'
+    | 'dimming-model';
+  componentId: string;
+  message: string;
+  /** No trustworthy electrical result can be produced for this circuit. */
+  blocking: boolean;
+}
+
 export interface SimulationResult {
+  /** Additive migration metadata. Legacy rail results remain estimates until 1.5F. */
+  electricalContract?: {
+    version: 1;
+    engineVersion: string;
+    modelVersion: string;
+    status: 'invalid' | 'estimated' | 'not-assessed';
+    coverage: ModelCoverage[];
+    diagnostics: ElectricalDiagnostic[];
+  };
+  /** Explicit model gaps; blocking gaps suppress electrical telemetry and effects. */
+  modelLimitations?: SimulationLimitation[];
+  /** Derived coil operation; never persisted into the manual switch state. */
+  coilStates?: Record<string, boolean>;
   /** Components reached by both Live and Neutral traversals, including loads and pass-throughs. */
   energizedComponents: Set<string>;
   /** Wires that carry current in either the Live or Neutral subgraphs. */
@@ -404,7 +438,7 @@ export interface SimulationResult {
   faultDiagnostics?: FaultDiagnostic[];
   /** All active injected faults evaluated in this simulation run. */
   activeInjectedFaults?: InjectedFault[];
-  /** Components that blew during Pro Mode overvoltage / overcurrent simulation. */
+  /** Mode-independent modeled damage, including operated fuse links. Resettable trips are separate. */
   blownComponents?: { id: string; reason: 'overvoltage' | 'overcurrent' | 'overload' }[];
   /** Wires where load current exceeds cable gauge capacity (Pro Mode). */
   overloadedWires?: Set<string>;
