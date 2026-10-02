@@ -17,6 +17,7 @@
     "build:astro": "bun run --cwd astro-site build",
     "build:stats": "BUILD_STATS=1 vite build && bun run build:astro && bun scripts/postbuild.mjs",
     "benchmark:simulation": "bun scripts/benchmark-simulation.ts",
+    "benchmark:mna": "bun scripts/benchmark-mna.ts",
     "stress:generator": "bun scripts/stress-challenge-generator.ts",
     "stress:diagnosis": "bun scripts/stress-diagnosis.ts",
     "stress:ohmageddon": "bun scripts/stress-ohmageddon.ts",
@@ -50,6 +51,7 @@
     "verify:phase-1.5a": "bun scripts/verify-phase15a.mjs",
     "verify:phase-1.5b": "bun scripts/verify-phase15b.mjs",
     "verify:phase-1.5c0": "bun scripts/verify-phase15c0.mjs",
+    "verify:phase-1.5c1": "bun scripts/verify-phase15c1.mjs",
     "test:domain-local": "bun scripts/test-domain-local.ts"
   },
   "dependencies": {

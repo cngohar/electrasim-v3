@@ -8,3 +8,4 @@ export * from './supplies';
 export * from './capabilities';
 export * from './compatibility';
 export * from './readiness';
+export { MNA_ENGINE_VERSION, MNA_LIMITS, solveCircuit, voltageBetween } from './mna';

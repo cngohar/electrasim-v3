@@ -5,10 +5,12 @@ import {
   compileCircuit,
   explicitSupplyProfile,
   resolveDeviceCapabilities,
+  solveCircuit,
 } from '@electrasim/domain/core';
 /** Shared test workload for local Bun / workerd parity; never served by the app. */
 import { simulate } from '@electrasim/domain/simulation';
 import { GUIDED_CIRCUIT_TEMPLATES } from '@electrasim/domain/templates';
+import { mnaAcceptanceCircuits } from '../packages/domain/src/core/mnaFixtures';
 import { component as C, wire as W } from '../packages/domain/src/simulation/auditFixtures';
 
 export function domainParityFixture(): string {
@@ -128,6 +130,8 @@ export function domainParityFixture(): string {
         return resolveDeviceCapabilities(component, { components: [component], wires: [] });
       }),
   });
+  for (const [name, circuit] of Object.entries(mnaAcceptanceCircuits()))
+    results.push({ mnaCase: name, result: solveCircuit(circuit) });
   return JSON.stringify(results, (_key, value) =>
     value instanceof Set ? [...value].sort() : value,
   );

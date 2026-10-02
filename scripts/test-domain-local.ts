@@ -69,7 +69,7 @@ try {
   const actual = await response.text();
   assert.equal(actual, domainParityFixture(), 'Bun and local workerd electrical contracts differ.');
   console.log(
-    `Local domain parity passed: ${JSON.parse(actual).length} simulation/compiler/preflight cases. Evidence: ${directory}`,
+    `Local domain parity passed: ${JSON.parse(actual).length} simulation/compiler/preflight/MNA cases. Evidence: ${directory}`,
   );
 } finally {
   if (worker.pid) {

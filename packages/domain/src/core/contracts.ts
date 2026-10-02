@@ -9,7 +9,7 @@ import type {
 } from '../types';
 
 export const ELECTRICAL_CONTRACT_VERSION = 1 as const;
-export const ELECTRICAL_MODEL_VERSION = '1.5c.0.1' as const;
+export const ELECTRICAL_MODEL_VERSION = '1.5c.1.1' as const;
 export type CoverageStatus = 'supported' | 'estimated' | 'not-assessed';
 
 export interface ElectricalDiagnostic {
@@ -20,6 +20,9 @@ export interface ElectricalDiagnostic {
   componentId?: string;
   wireId?: string;
   faultId?: string;
+  domainId?: string;
+  branchId?: string;
+  sourceId?: string;
 }
 
 export interface ModelCoverage {
@@ -201,7 +204,7 @@ export type CompileResult =
       coverage: ModelCoverage[];
     };
 
-/** Reserved solver boundary: a compiled graph is never a successful measurement. */
+/** Reserved time-step state; the linear solver does not advance devices or time. */
 export interface ElectricalSimulationState {
   modelVersion: string;
   elapsedSeconds: number;
@@ -218,4 +221,44 @@ export interface ElectricalSimulationResult {
   /** Present measurements only; prospective/event currents require separate fields in 1.5D. */
   terminalVoltages: Record<string, number>;
   branchCurrents: Record<string, number>;
+  /** Signed from branch.from to branch.to; omitted across independent references. */
+  branchVoltages: Record<string, number>;
+  /** Passive sign convention: negative source power means delivery. */
+  branchPowers: Record<string, number>;
+  wireLosses: Record<string, number>;
+  terminalDomains: Record<string, string>;
+  sourceBranches: Record<string, string>;
+  unavailableBranchVoltages: Record<string, 'independent-references'>;
+  references: ElectricalReference[];
+  checks: ElectricalConservationChecks | null;
+  operation: 'not-assessed';
+  assessment: 'not-assessed';
+}
+
+export interface ElectricalReference {
+  domainId: string;
+  netId: string;
+  terminalId: string;
+  kind: 'mathematical-gauge';
+  sourceIds: string[];
+  voltageConvention: 'dc' | 'signed-rms' | 'passive-relative';
+  frequencyHz?: number;
+}
+
+export interface ElectricalConservationChecks {
+  relativeTolerance: number;
+  absoluteTolerance: number;
+  maximumKclResidualAmps: number;
+  maximumSourceResidualVolts: number;
+  maximumPowerResidualWatts: number;
+  maximumResidualRatio: number;
+  domains: {
+    domainId: string;
+    unknowns: number;
+    minimumScaledPivot: number;
+    maximumEquationResidualRatio: number;
+    absorbedPowerWatts: number;
+    deliveredPowerWatts: number;
+    powerResidualWatts: number;
+  }[];
 }
