@@ -291,7 +291,7 @@ describe('1.5C.0 deterministic readiness without a solve or safety verdict', () 
     expect(group.result.reasons.some((r) => r.code === 'underpowered')).toBe(true);
   });
 
-  it('does not transfer supply or pretend to solve an isolated transformer secondary', () => {
+  it('traces transformer excitation without pretending the preflight solved secondary voltage', () => {
     const circuit: Circuit = {
       components: [
         C('ac', 'ac-mains-supply'),
@@ -306,13 +306,24 @@ describe('1.5C.0 deterministic readiness without a solve or safety verdict', () 
       ],
     };
     const result = assessCircuitReadiness(circuit);
-    expect(result.groups.find((g) => g.componentId === 'load')?.sourceIds).toEqual([]);
+    expect(result.groups.find((g) => g.componentId === 'load')?.sourceIds).toEqual([
+      JSON.stringify(['source', 'ac']),
+    ]);
+    expect(result.topology).toBe('connected');
+    expect(result.calculation).toBe('not-performed');
+    expect(
+      result.groups
+        .find((g) => g.componentId === 'load')
+        ?.result.reasons.some((reason) => reason.basis === 'nominal-supply'),
+    ).toBe(false);
     expect(
       result.capabilities.find((c) => c.componentId === 'tx')?.groups.map((g) => g.nominalVoltage),
     ).toEqual([expect.objectContaining({ value: 230 }), expect.objectContaining({ value: 12 })]);
-    expect(result.coverage.some((c) => c.subjectId === 'tx' && c.status === 'not-assessed')).toBe(
-      true,
-    );
+    expect(
+      result.coverage.some(
+        (c) => c.subjectId === 'tx' && c.aspect === 'load' && c.status === 'estimated',
+      ),
+    ).toBe(true);
   });
 
   it('is stable under input-order changes and cannot pass malformed documents', () => {

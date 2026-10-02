@@ -6,11 +6,12 @@
 | What | Where |
 |------|-------|
 | **Active plan (locked)** | [`docs/REWRITE_PLAN_V3_FULL.md`](./docs/REWRITE_PLAN_V3_FULL.md) — Bun + 100% Workers (D1/R2/KV/DO/Queues), Better Auth, electrical-native UI |
-| **Phase 1 — current detailed sequence** | [`docs/phases/phase-1-simulator-core.md`](./docs/phases/phase-1-simulator-core.md) — 1.5C.0–2 complete locally; next 1.5C.3 isolated transformers/PE; remaining 1.5C–1.5F work precedes effects |
+| **Phase 1 — current detailed sequence** | [`docs/phases/phase-1-simulator-core.md`](./docs/phases/phase-1-simulator-core.md) — 1.5C.0–3 complete locally; next 1.5C.4 essential editing/readiness UI; remaining 1.5C–1.5F work precedes effects |
 | **Deep-scan reconciliation and core rebuild** | [`docs/plans/SIMULATOR_CORE_REBUILD_PLAN.md`](./docs/plans/SIMULATOR_CORE_REBUILD_PLAN.md) — current findings, independent fixtures, replacement stages and later-phase requirements |
 | **Simulator behavior and lab integration** | [`docs/plans/SIMULATOR_BEHAVIOR_PLAN.md`](./docs/plans/SIMULATOR_BEHAVIOR_PLAN.md) — shared compatibility, confirmed supply edits, readiness, cable/current semantics and Fault Lab/Diagnosis Lab/Ohmageddon phase ownership |
 | **Current behavior audit** | [`docs/audits/phase-1-behavior-review.md`](./docs/audits/phase-1-behavior-review.md) — 42 local observations, source-inspected UI findings, existing safeguards and remaining requirements |
-| **MNA numerical decision** | [`docs/decisions/0009-mna-solver.md`](./docs/decisions/0009-mna-solver.md) — selected formulation; bounded linear slice and operating points implemented, full runtime integration pending |
+| **MNA numerical decision** | [`docs/decisions/0009-mna-solver.md`](./docs/decisions/0009-mna-solver.md) — selected formulation; bounded linear slice, operating points and isolated transformer/PE equations implemented, full runtime integration pending |
+| **Phase 1.5C.3 transformers and PE** | [`docs/audits/phase-1-transformers-pe.md`](./docs/audits/phase-1-transformers-pe.md) — coupled AC equations, explicit references, limited fault currents and passing local acceptance |
 | **Phase 1.5C.2 load response and wires** | [`docs/audits/phase-1-load-response.md`](./docs/audits/phase-1-load-response.md) — fixed-rating voltage sweeps, finite wire losses, per-pole currents, shared wire properties and passing local acceptance |
 | **Phase 1.5C.1 linear MNA** | [`docs/audits/phase-1-mna-solver.md`](./docs/audits/phase-1-mna-solver.md) — independent analytical fixtures, conservation checks and bounded numerical solve |
 | **Phase 1.5C.0 supplies and preflight** | [`docs/audits/phase-1-supply-preflight.md`](./docs/audits/phase-1-supply-preflight.md) — schema-2 migration, 115-variant capability inventory, shared compatibility/readiness and passing local acceptance |
@@ -46,7 +47,7 @@
 
 **Behavior revision (2026-10-01):** **1.5C** delivers MNA plus essential compatibility, confirmed supply changes/Undo, circuit readiness and cable/current correctness. **1.5D/E** add timed and three-phase models; **1.5F** completes existing labs, grading/replay and legacy retirement. **1.7** refines the UI; **Phases 3–6** expand scoring/generation/content/LMS after existing exercises use truthful results. Audit/planning is complete; these implementations remain pending.
 
-**Core progress (2026-10-02):** **1.5C.0–2 are complete locally**, covering persisted source profiles, shared preflight, bounded linear MNA, fixed-rating load response and wire-property corrections. The latest [1.5C.2 gate](docs/audits/phase-1-load-response.md) passed 1,818 unit checks plus five owned expected failures, 524 local runtime parity cases and four focused browser cases. **Next is 1.5C.3 isolated transformers/PE**; full confirmed supply editing and actual MNA runtime integration remain in 1.5C.4–5.
+**Core progress (2026-10-02):** **1.5C.0–3 are complete locally**, covering persisted supplies, shared preflight, bounded linear MNA, load/wire response and isolated transformer/PE equations. The latest [1.5C.3 gate](docs/audits/phase-1-transformers-pe.md) passed 1,878 unit checks plus five owned expected failures, 551 local runtime parity cases and four browser continuity cases. **Next is 1.5C.4 essential editing/readiness UI**; actual MNA application runtime integration remains 1.5C.5.
 
 **Deferral clarified 2026-09-25:** **Lab Circuit** (simulator `domain/simulation` + canvas + Matter.js visual) is **NOT deferred** — it is Phase 1.
 Deferred is **Published Circuit** (sharing to feed `/feed` `/explore` `/c/[id]` + fork chain), which naturally comes with Community (Phase 2+).

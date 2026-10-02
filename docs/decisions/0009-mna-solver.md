@@ -1,6 +1,6 @@
 # ADR 0009 — Use Modified Nodal Analysis for the replacement solver
 
-Date: 2026-10-01. Status: selected for implementation in **1.5C–1.5F**; the bounded linear slice shipped locally in [1.5C.1](../audits/phase-1-mna-solver.md), and operating points/wire-property corrections in [1.5C.2](../audits/phase-1-load-response.md). Transformer/PE equations are next in 1.5C.3. This does not claim the full solver or app runtime integration has shipped.
+Date: 2026-10-01. Status: selected for implementation in **1.5C–1.5F**; the bounded linear slice shipped locally in [1.5C.1](../audits/phase-1-mna-solver.md), operating points/wire-property corrections in [1.5C.2](../audits/phase-1-load-response.md), and isolated transformer/PE equations in [1.5C.3](../audits/phase-1-transformers-pe.md). Essential editing/readiness UI is next in 1.5C.4. This does not claim the full solver or application runtime integration has shipped.
 
 ## Context
 
@@ -61,3 +61,11 @@ The next implementation slice is deliberately bounded as follows:
 6. **Accept independently:** assert the two 6 Ω series elements at 12 V, unequal parallel branches, a shared feeder with declared resistance, independent floating sources, a dangling live end, a zero-current balanced branch and conflicting/redundant sources. Calculate expectations analytically with the fixture's actual wire resistance, and permute component/wire order. Add transformer energy/isolation assertions in 1.5C.3. Do not use the guarded legacy runtime as the numerical oracle.
 
 During 1.5C.0 the browser still uses the guarded legacy numerical engine. Persistence and source labels preserve the new profiles, while DC, reserved three-phase and mixed/conflicting source profiles cannot obtain legacy measurements. This does not close the MNA, complete readiness UI, confirmation/impact/Undo workflow, capability-based palette/inspector or exercise-operating-point gates in 1.5C.1–5 and 1.5F.
+
+## Transformer and reference implementation in 1.5C.3
+
+The [transformer/PE acceptance record](../audits/phase-1-transformers-pe.md) defines engine `mna-linear-2`, model `1.5c.3.1`. Ideal isolated transformers use `Vp - n·Vs = 0` and `Is = -n·Ip`, with one extra current unknown per transformer. Equation groups combine coupled domains for factorization while retaining one independent gauge per galvanic domain. The allocation bound is 512 unknowns for the complete coupled group, including winding currents. Finite conductor resistance remains unchanged.
+
+Winding power accounts for energy crossing an isolation boundary. Separate ratio/current/power checks supplement KCL, source voltage constraints and per-domain power balance. Source identity and AC frequency propagate through the coupling; joined sources with undeclared phase, DC excitation and unknown leakage models remain unavailable. An unconstrained floating ideal winding can return a singular result; no magnetizing resistance or ground is silently added.
+
+Shared preflight now traces complete winding/load paths and distinguishes secondary shorts from source shorts without assigning nominal primary voltage to secondary loads. Physical neutral/DC-negative/winding-to-PE connections are derived from drawn conductors, separately from mathematical references. Named earth rods provide no implicit soil path. Any accepted fault current remains an estimate of the declared network, with installation prospective current and clearing unassessed. Application MNA integration remains 1.5C.5.

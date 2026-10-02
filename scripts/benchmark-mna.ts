@@ -11,6 +11,10 @@ import {
   seriesFixture,
   sourceFixture,
 } from '../packages/domain/src/core/mnaFixtures';
+import {
+  transformerAcceptanceCircuits,
+  transformerFixture,
+} from '../packages/domain/src/core/transformerFixtures';
 
 const WARMUP_RUNS = 20;
 const SAMPLE_RUNS = 100;
@@ -50,6 +54,16 @@ const scenarios = [
     circuit: parallelCircuit(255),
     sourceCurrent: (255 * 12) / (24 + 2 * 0.07),
   },
+  {
+    name: 'isolated 230:12 V transformer',
+    circuit: transformerFixture(),
+    sourceCurrent: 230 / (0.14 + (230 / 12) ** 2 * 6.14),
+  },
+  {
+    name: 'two cascaded transformers',
+    circuit: transformerAcceptanceCircuits().cascade!,
+    sourceCurrent: 230 / (0.14 + (230 / 24) ** 2 * (0.14 + (230 / 12) ** 2 * 6.14)),
+  },
 ];
 
 console.log(
@@ -70,7 +84,7 @@ for (const { name, circuit, sourceCurrent } of scenarios) {
     const current = result.branchCurrents[branch];
     assert(current !== undefined);
     assert(Math.abs(current + sourceCurrent) <= 1e-9 + Math.abs(sourceCurrent) * 1e-6);
-    unknowns = Math.max(...result.checks.domains.map((domain) => domain.unknowns));
+    unknowns = Math.max(...result.checks.couplingGroups.map((group) => group.unknowns));
     if (index >= 0) samples.push(elapsed);
   }
   samples.sort((a, b) => a - b);

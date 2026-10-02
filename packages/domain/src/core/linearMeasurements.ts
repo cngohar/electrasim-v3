@@ -73,7 +73,9 @@ export function recoverLinkCurrents(graph: TerminalGraph, currents: Record<strin
 }
 
 /** Verify KCL at physical terminals (including recovered contacts), source KVL,
- * and power separately in every galvanic domain. An unrelated domain cannot
+ * transformer ratios/power, and power separately in every galvanic domain.
+ * Winding absorption/delivery accounts for energy crossing an isolation boundary.
+ * An unrelated domain cannot
  * cancel an error. Return false without a successful measurement if any check fails.
  */
 export function verifyLinearMeasurements(
@@ -117,6 +119,39 @@ export function verifyLinearMeasurements(
       Math.abs(residual),
     );
     checks.maximumResidualRatio = Math.max(checks.maximumResidualRatio, ratio);
+  }
+  for (const transformer of result.transformers) {
+    const {
+      turnsRatio: n,
+      primaryVoltageVolts: vp,
+      secondaryVoltageVolts: vs,
+      primaryCurrentAmps: ip,
+      secondaryCurrentAmps: is,
+      primaryPowerWatts: pp,
+      secondaryPowerWatts: ps,
+    } = transformer;
+    if ([n, vp, vs, ip, is, pp, ps].some((value) => !Number.isFinite(value))) return false;
+    const voltageResidual = vp - n * vs;
+    const currentResidual = n * ip + is;
+    const powerResidual = pp + ps;
+    checks.maximumTransformerVoltageResidualVolts = Math.max(
+      checks.maximumTransformerVoltageResidualVolts,
+      Math.abs(voltageResidual),
+    );
+    checks.maximumTransformerCurrentResidualAmps = Math.max(
+      checks.maximumTransformerCurrentResidualAmps,
+      Math.abs(currentResidual),
+    );
+    checks.maximumTransformerPowerResidualWatts = Math.max(
+      checks.maximumTransformerPowerResidualWatts,
+      Math.abs(powerResidual),
+    );
+    checks.maximumResidualRatio = Math.max(
+      checks.maximumResidualRatio,
+      residualRatio(voltageResidual, Math.abs(vp) + Math.abs(n * vs)),
+      residualRatio(currentResidual, Math.abs(n * ip) + Math.abs(is)),
+      residualRatio(powerResidual, Math.abs(pp) + Math.abs(ps)),
+    );
   }
   for (const domain of checks.domains) {
     const powers = powerByDomain.get(domain.domainId) ?? [];

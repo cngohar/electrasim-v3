@@ -10,8 +10,10 @@ import {
 /** Shared test workload for local Bun / workerd parity; never served by the app. */
 import { simulate } from '@electrasim/domain/simulation';
 import { GUIDED_CIRCUIT_TEMPLATES } from '@electrasim/domain/templates';
+import { earthingAcceptanceCircuits } from '../packages/domain/src/core/earthingFixtures';
 import { mnaAcceptanceCircuits } from '../packages/domain/src/core/mnaFixtures';
 import { operatingPointAcceptanceCircuits } from '../packages/domain/src/core/operatingPointFixtures';
+import { transformerAcceptanceCircuits } from '../packages/domain/src/core/transformerFixtures';
 import { component as C, wire as W } from '../packages/domain/src/simulation/auditFixtures';
 
 export function domainParityFixture(): string {
@@ -135,6 +137,10 @@ export function domainParityFixture(): string {
     results.push({ mnaCase: name, result: solveCircuit(circuit) });
   for (const [name, circuit] of Object.entries(operatingPointAcceptanceCircuits()))
     results.push({ operatingPointCase: name, result: solveCircuit(circuit) });
+  for (const [name, circuit] of Object.entries(transformerAcceptanceCircuits()))
+    results.push({ transformerCase: name, result: solveCircuit(circuit) });
+  for (const [name, circuit] of Object.entries(earthingAcceptanceCircuits()))
+    results.push({ earthingCase: name, result: solveCircuit(circuit) });
   return JSON.stringify(results, (_key, value) =>
     value instanceof Set ? [...value].sort() : value,
   );

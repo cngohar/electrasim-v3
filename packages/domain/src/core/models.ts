@@ -71,7 +71,7 @@ export function resolveDeviceModel(
       secondaryVoltage: type === 'transformer-8v' ? 8 : type === 'transformer-12v' ? 12 : 24,
       isolation: 'isolated',
       approximation:
-        'Ideal isolated AC windings; voltage/power coupling and fault impedance await the solver. No rectifier is modeled.',
+        'Ideal isolated AC windings with fixed turns ratio and lossless power transfer. No rectifier, magnetizing current, winding impedance, saturation or thermal model is declared.',
     };
   }
   if (def.category === 'transformer')

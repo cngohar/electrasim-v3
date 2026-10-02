@@ -146,9 +146,13 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
                 ...(model.fixedGroups ?? []).flat(),
               ].some((port) => port !== undefined && model.coil?.includes(port)))))) ||
       (model.kind === 'transformer' &&
-        (!Number.isFinite(model.primaryVoltage / model.secondaryVoltage) ||
+        (!Number.isFinite(model.primaryVoltage) ||
+          !Number.isFinite(model.secondaryVoltage) ||
+          !Number.isFinite(model.primaryVoltage / model.secondaryVoltage) ||
+          model.primaryVoltage / model.secondaryVoltage <= 0 ||
           model.primaryVoltage <= 0 ||
           model.secondaryVoltage <= 0 ||
+          model.isolation !== 'isolated' ||
           new Set(indices).size !== 4));
     if (invalidModel) {
       diagnostics.push({
@@ -344,12 +348,14 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
           componentId: component.id,
           primary: [t(model.primary[0]), t(model.primary[1])],
           secondary: [t(model.secondary[0]), t(model.secondary[1])],
+          primaryBranchId: JSON.stringify(['device', component.id, 'primary']),
+          secondaryBranchId: JSON.stringify(['device', component.id, 'secondary']),
           turnsRatio: model.primaryVoltage / model.secondaryVoltage,
         });
         coverage.push({
           subjectId: component.id,
           aspect: 'load',
-          status: 'not-assessed',
+          status: 'estimated',
           reason: model.approximation,
         });
         break;

@@ -2,7 +2,7 @@
 
 **Version:** 3.0.0-DRAFT — revised 2026-10-02 (supersedes `REWRITE_PLAN_V4_FULL.md`)
 
-**Status:** `IMPLEMENTING LOCALLY` — Phase 1.0–1.5 milestones recorded; 1.5A, 1.5B and 1.5C.0–2 complete locally; next is 1.5C.3 isolated transformers/PE; complete editing/readiness UI and later integration remain in 1.5C–1.5F
+**Status:** `IMPLEMENTING LOCALLY` — Phase 1.0–1.5 milestones recorded; 1.5A, 1.5B and 1.5C.0–3 complete locally; next is 1.5C.4 essential editing/readiness UI; complete editing/readiness UI and later integration remain in 1.5C–1.5F
 **Runtime:** **Bun** everywhere · **Platform:** **100% Cloudflare Workers** (no external DB/compute)  
 **Current state:** V3 is developed locally. The existing live `electrasim.com` site/account is separate and must not be used for this work.
 **Target:** React 19 + Hono on Workers + Better Auth + **D1 (SQLite)** + R2 + KV + Durable Objects + Matter.js + Tailwind v4
@@ -704,7 +704,7 @@ Post-V3.1: SCORM/xAPI, collaborative cursors, vector search (Vectorize), Workers
 
 ### Next Step
 
-**Phase 1.5C.0–2 are complete locally; their acceptance gates passed.** [Load-response and wire evidence](./audits/phase-1-load-response.md) extends the [linear MNA slice](./audits/phase-1-mna-solver.md) and [supply/preflight foundation](./audits/phase-1-supply-preflight.md) with operating points and consistent wire properties. The next step is **1.5C.3 isolated transformers/PE**, followed by the remaining [solver/behavior steps](./plans/SIMULATOR_BEHAVIOR_PLAN.md), devices, three-phase models and full existing-lab integration before effects. The app numerical runtime remains on the guarded legacy engine until 1.5C.5. The [behavior audit](./audits/phase-1-behavior-review.md) retains the earlier reproductions. Use [Phase 1](./phases/phase-1-simulator-core.md) for status and [the rebuild plan](./plans/SIMULATOR_CORE_REBUILD_PLAN.md) for audit IDs and exit gates. No Cloudflare account/resource operation is authorized by these local results.
+**Phase 1.5C.0–3 are complete locally; their acceptance gates passed.** [Transformer/PE evidence](./audits/phase-1-transformers-pe.md) extends [load-response and wire results](./audits/phase-1-load-response.md), the [linear MNA slice](./audits/phase-1-mna-solver.md) and [supply/preflight foundation](./audits/phase-1-supply-preflight.md) with coupled AC equations, explicit references and limited fault-current estimates. The next step is **1.5C.4 essential editing/readiness UI**, followed by the remaining [solver/behavior steps](./plans/SIMULATOR_BEHAVIOR_PLAN.md), devices, three-phase models and full existing-lab integration before effects. The app numerical runtime remains on the guarded legacy engine until 1.5C.5. The [behavior audit](./audits/phase-1-behavior-review.md) retains the earlier reproductions. Use [Phase 1](./phases/phase-1-simulator-core.md) for status and [the rebuild plan](./plans/SIMULATOR_CORE_REBUILD_PLAN.md) for audit IDs and exit gates. No Cloudflare account/resource operation is authorized by these local results.
 
 ---
 

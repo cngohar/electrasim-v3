@@ -2,16 +2,17 @@ import { COMPONENT_DEFS } from '../components';
 import { type DeviceCapabilities, resolveDeviceCapabilities } from './capabilities';
 import { type CompatibilityResult, assessTerminalCompatibility } from './compatibility';
 import { compileCircuit } from './compile';
+import { conductorPaths } from './conductorPaths';
 import {
   type CompileOptions,
   type CompileResult,
   ELECTRICAL_MODEL_VERSION,
-  type ElectricalBranch,
   type ElectricalDiagnostic,
   type ModelCoverage,
 } from './contracts';
+import { type EarthingTopology, assessEarthingTopology, emptyEarthingTopology } from './earthing';
+import { circuitExcitation } from './excitation';
 import { compareIds, terminalId } from './faultTopology';
-import { closedPathBlocks } from './pathBlocks';
 
 export type CircuitTopologyReadiness =
   | 'invalid'
@@ -45,13 +46,16 @@ export interface CircuitReadiness {
     sourceIds: string[];
   }[];
   shortedSourceIds: string[];
+  shortedWindings: {
+    componentId: string;
+    winding: 'primary' | 'secondary';
+    branchId: string;
+    sourceIds: string[];
+  }[];
   diagnostics: ElectricalDiagnostic[];
   coverage: ModelCoverage[];
   capabilities: DeviceCapabilities[];
-}
-
-function isConductor(branch: ElectricalBranch): boolean {
-  return branch.closed && (branch.idealConductor || branch.kind === 'wire');
+  earthing: EarthingTopology;
 }
 
 /** Shared preflight for every future UI/worker/exercise entry point. Independent
@@ -81,9 +85,11 @@ export function assessCompiledCircuitReadiness(
     groups: [],
     loadPaths: [],
     shortedSourceIds: [],
+    shortedWindings: [],
     diagnostics: [...compiled.diagnostics],
     coverage: [],
     capabilities: [],
+    earthing: emptyEarthingTopology(),
   };
   if (compiled.status === 'invalid') return base;
   const { graph, circuit } = compiled;
@@ -97,25 +103,10 @@ export function assessCompiledCircuitReadiness(
     });
     return base;
   }
-  const sourceBranches = new Map<string, string>();
-  for (const edge of graph.branches) {
-    if (edge.kind !== 'source' || !edge.closed) continue;
-    const source = graph.sources.find((s) => s.positive === edge.from && s.negative === edge.to);
-    if (source) sourceBranches.set(edge.id, source.id);
-  }
+  const { sourceBranches, pathSources, sourcesByBranch } = circuitExcitation(graph);
   const activeSourceIds = new Set(sourceBranches.values());
-  const pathSources = new Map<string, Set<string>>();
-  for (const block of closedPathBlocks(graph.branches)) {
-    if (block.length < 2) continue;
-    const sources = block.flatMap((edge) => {
-      const id = sourceBranches.get(edge.id);
-      return id ? [id] : [];
-    });
-    if (!sources.length) continue;
-    for (const edge of block) pathSources.set(edge.id, new Set(sources));
-  }
   base.loadPaths = graph.branches
-    .filter((b) => b.kind === 'load' || b.kind === 'coil' || b.kind === 'winding')
+    .filter((b) => b.kind === 'load' || b.kind === 'coil')
     .map((b) => ({
       branchId: b.id,
       componentId: b.componentId ?? '',
@@ -124,24 +115,7 @@ export function assessCompiledCircuitReadiness(
     }));
   // Connectivity of conductors only. This is a topology test, not a zero-resistance
   // approximation: finite wire resistance is retained by the compiler for MNA.
-  const conductorAdj = new Map<string, string[]>();
-  for (const edge of graph.branches.filter(isConductor)) {
-    conductorAdj.set(edge.from, [...(conductorAdj.get(edge.from) ?? []), edge.to]);
-    conductorAdj.set(edge.to, [...(conductorAdj.get(edge.to) ?? []), edge.from]);
-  }
-  const conductorGroup = new Map<string, string>();
-  for (const terminal of graph.terminals) {
-    if (conductorGroup.has(terminal.id)) continue;
-    const queue = [terminal.id];
-    conductorGroup.set(terminal.id, terminal.id);
-    for (let i = 0; i < queue.length; i++) {
-      for (const next of conductorAdj.get(queue[i] ?? '') ?? []) {
-        if (conductorGroup.has(next)) continue;
-        conductorGroup.set(next, terminal.id);
-        queue.push(next);
-      }
-    }
-  }
+  const conductorGroup = conductorPaths(graph).groupByTerminal;
   base.shortedSourceIds = graph.sources
     .filter(
       (s) =>
@@ -149,18 +123,33 @@ export function assessCompiledCircuitReadiness(
         conductorGroup.get(s.positive) === conductorGroup.get(s.negative),
     )
     .map((s) => s.id);
+  for (const transformer of graph.transformers)
+    for (const [winding, terminals, branchId] of [
+      ['primary', transformer.primary, transformer.primaryBranchId],
+      ['secondary', transformer.secondary, transformer.secondaryBranchId],
+    ] as const) {
+      const sourceIds = sourcesByBranch.get(branchId) ?? [];
+      if (sourceIds.length && conductorGroup.get(terminals[0]) === conductorGroup.get(terminals[1]))
+        base.shortedWindings.push({
+          componentId: transformer.componentId,
+          winding,
+          branchId,
+          sourceIds,
+        });
+    }
   const complete = base.loadPaths.filter((path) => path.state === 'closed-path').length;
-  base.topology = base.shortedSourceIds.length
-    ? 'short'
-    : !activeSourceIds.size
-      ? 'no-source'
-      : !base.loadPaths.length
-        ? 'no-load'
-        : !complete
-          ? 'open'
-          : complete < base.loadPaths.length
-            ? 'partial'
-            : 'connected';
+  base.topology =
+    base.shortedSourceIds.length || base.shortedWindings.length
+      ? 'short'
+      : !activeSourceIds.size
+        ? 'no-source'
+        : !base.loadPaths.length
+          ? 'no-load'
+          : !complete
+            ? 'open'
+            : complete < base.loadPaths.length
+              ? 'partial'
+              : 'connected';
   base.diagnosticRunAvailable = activeSourceIds.size > 0;
   const messages: Partial<Record<CircuitTopologyReadiness, string>> = {
     'no-source': 'No active modeled supply is connected; unsupported sources require model review.',
@@ -169,7 +158,7 @@ export function assessCompiledCircuitReadiness(
     open: 'No complete source/load path. Open switches may be intentional; diagnostic voltage requires a solve.',
     partial: 'Some loads have a complete source path; other branches are open or disconnected.',
     short:
-      'A conductive path bypasses the loads across a source. Fault current and clearing behavior require the solver and declared impedance.',
+      'A conductive path bypasses the loads across a source or transformer winding. Fault current and clearing behavior require the solver and declared impedance.',
   };
   const message = messages[base.topology];
   if (message)
@@ -205,6 +194,16 @@ export function assessCompiledCircuitReadiness(
           activeSourceIds.has(source.id) &&
           terminals.some((t) => domainByTerminal.get(t)?.sourceIds.includes(source.id)),
       );
+      const coupledSourceIds = new Set(
+        graph.branches
+          .filter(
+            (branch) =>
+              branch.componentId === component.id &&
+              terminals.includes(branch.from) &&
+              terminals.includes(branch.to),
+          )
+          .flatMap((branch) => sourcesByBranch.get(branch.id) ?? []),
+      );
       const directlyWired =
         terminals.length === 2
           ? availableSources.filter((source) => {
@@ -214,7 +213,11 @@ export function assessCompiledCircuitReadiness(
               return (a === p && b === n) || (a === n && b === p);
             })
           : [];
-      const sources = directlyWired.length ? directlyWired : availableSources;
+      const sources = directlyWired.length
+        ? directlyWired
+        : availableSources.length
+          ? availableSources
+          : graph.sources.filter((source) => coupledSourceIds.has(source.id));
       const result =
         sources.length > 1 && group.role !== 'source' && group.role !== 'reference'
           ? {
@@ -247,5 +250,7 @@ export function assessCompiledCircuitReadiness(
     : base.groups.some((g) => g.result.status === 'unassessed')
       ? 'unassessed'
       : 'compatible';
+  base.earthing = assessEarthingTopology(graph);
+  base.diagnostics.push(...base.earthing.diagnostics);
   return base;
 }

@@ -43,6 +43,7 @@ export interface TerminalCapability {
   frequencyHz: ElectricalRating<readonly number[]> | { status: 'independent'; basis: string };
   loadLaw:
     | { kind: 'fixed-resistance'; resistanceOhms: number; approximation: string }
+    | { kind: 'ideal-transformer'; turnsRatio: number; approximation: string }
     | { kind: 'none' }
     | { kind: 'not-assessed'; reason: string };
 }
@@ -322,7 +323,11 @@ export function resolveDeviceCapabilities(
           'Separate isolated winding rating; secondary remains AC without a rectifier.',
         );
         g.supplyKinds = known(['ac-single-phase'], 'catalogue', 'Isolated AC winding.');
-        g.loadLaw = { kind: 'not-assessed', reason: electrical.approximation };
+        g.loadLaw = {
+          kind: 'ideal-transformer',
+          turnsRatio: electrical.primaryVoltage / electrical.secondaryVoltage,
+          approximation: electrical.approximation,
+        };
       }
       break;
     case 'outlet':

@@ -9,6 +9,11 @@ export * from './capabilities';
 export * from './compatibility';
 export * from './readiness';
 export type {
+  EarthingTopology,
+  ProtectiveCurrentMeasurement,
+  FaultCurrentMeasurement,
+} from './earthing';
+export type {
   CircuitOperatingState,
   LoadOperatingPoint,
   WireOperatingPoint,

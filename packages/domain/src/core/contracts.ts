@@ -7,6 +7,7 @@ import type {
   InstallationMethod,
   PortRef,
 } from '../types';
+import type { FaultCurrentMeasurement, ProtectiveCurrentMeasurement } from './earthing';
 import type {
   CircuitOperatingState,
   DeviceCurrentMeasurement,
@@ -16,7 +17,7 @@ import type {
 import type { CircuitReadiness } from './readiness';
 
 export const ELECTRICAL_CONTRACT_VERSION = 1 as const;
-export const ELECTRICAL_MODEL_VERSION = '1.5c.2.1' as const;
+export const ELECTRICAL_MODEL_VERSION = '1.5c.3.1' as const;
 export type CoverageStatus = 'supported' | 'estimated' | 'not-assessed';
 
 export interface ElectricalDiagnostic {
@@ -172,6 +173,16 @@ export interface CompiledFault {
   effect: string;
 }
 
+export interface CompiledTransformer {
+  componentId: string;
+  primary: readonly [string, string];
+  secondary: readonly [string, string];
+  primaryBranchId: string;
+  secondaryBranchId: string;
+  /** Nprimary / Nsecondary; first terminal of each pair has the same polarity. */
+  turnsRatio: number;
+}
+
 export interface TerminalGraph {
   terminals: ElectricalTerminal[];
   branches: ElectricalBranch[];
@@ -181,12 +192,7 @@ export interface TerminalGraph {
   domains: { id: string; terminals: string[]; sourceIds: string[] }[];
   devices: { componentId: string; model: ElectricalDeviceModel }[];
   sources: CompiledSource[];
-  transformers: {
-    componentId: string;
-    primary: readonly [string, string];
-    secondary: readonly [string, string];
-    turnsRatio: number;
-  }[];
+  transformers: CompiledTransformer[];
   references: {
     terminal: string;
     kind: 'neutral' | 'protective-bus' | 'electrode' | 'dc-negative';
@@ -243,6 +249,9 @@ export interface ElectricalSimulationResult {
   sourceBranches: Record<string, string>;
   unavailableBranchVoltages: Record<string, 'independent-references'>;
   references: ElectricalReference[];
+  transformers: TransformerMeasurement[];
+  protectiveCurrents: ProtectiveCurrentMeasurement[];
+  faultCurrents: FaultCurrentMeasurement[];
   checks: ElectricalConservationChecks | null;
   /** Preflight stays distinct from solved operating points and standards assessment. */
   readiness: CircuitReadiness;
@@ -258,9 +267,32 @@ export interface ElectricalReference {
   netId: string;
   terminalId: string;
   kind: 'mathematical-gauge';
+  /** Shared equations do not make these galvanic domains share a voltage gauge. */
+  couplingGroupId: string;
   sourceIds: string[];
   voltageConvention: 'dc' | 'signed-rms' | 'passive-relative';
   frequencyHz?: number;
+}
+
+export interface TransformerMeasurement {
+  componentId: string;
+  turnsRatio: number;
+  primaryBranchId: string;
+  secondaryBranchId: string;
+  primaryDomainId: string;
+  secondaryDomainId: string;
+  connection: 'galvanically-isolated' | 'externally-connected';
+  /** Signed into the first terminal of each winding; passive power convention. */
+  primaryVoltageVolts: number;
+  secondaryVoltageVolts: number;
+  primaryCurrentAmps: number;
+  secondaryCurrentAmps: number;
+  primaryPowerWatts: number;
+  secondaryPowerWatts: number;
+  sourceIds: string[];
+  frequencyHz: number | null;
+  model: 'ideal-isolated-ac';
+  lossesAndSaturation: 'not-assessed';
 }
 
 export interface ElectricalConservationChecks {
@@ -268,10 +300,22 @@ export interface ElectricalConservationChecks {
   absoluteTolerance: number;
   maximumKclResidualAmps: number;
   maximumSourceResidualVolts: number;
+  maximumTransformerVoltageResidualVolts: number;
+  maximumTransformerCurrentResidualAmps: number;
+  maximumTransformerPowerResidualWatts: number;
   maximumPowerResidualWatts: number;
   maximumResidualRatio: number;
+  couplingGroups: {
+    groupId: string;
+    domainIds: string[];
+    transformerIds: string[];
+    unknowns: number;
+    minimumScaledPivot: number;
+    maximumEquationResidualRatio: number;
+  }[];
   domains: {
     domainId: string;
+    /** Local voltage/source unknowns; shared winding unknowns are counted by group. */
     unknowns: number;
     minimumScaledPivot: number;
     maximumEquationResidualRatio: number;

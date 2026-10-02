@@ -103,6 +103,8 @@ function circuitOperation(result: ElectricalSimulationResult): CircuitOperatingS
   const active = result.loads.filter((load) => load.response !== 'idle');
   if (!active.length) return 'idle';
   if (active.some((load) => load.compatibility.status === 'incompatible')) return 'incompatible';
+  if (result.readiness.earthing.diagnostics.some((diagnostic) => diagnostic.severity === 'error'))
+    return 'not-assessed';
   if (active.some((load) => load.compatibility.status !== 'compatible')) return 'not-assessed';
   if (active.length !== result.loads.length) return 'partial';
   return active.some((load) => load.response === 'below-nominal') ? 'underpowered' : 'operating';
