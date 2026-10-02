@@ -55,6 +55,7 @@ export function BackupTab() {
             components: useCircuitStore.getState().components,
             wires: useCircuitStore.getState().wires,
             globalVoltage: useCircuitStore.getState().globalVoltage,
+            supply: useCircuitStore.getState().supply,
           }
         : null;
       const json = exportBackupJSON({

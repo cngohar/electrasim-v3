@@ -14,6 +14,7 @@ export function sameDocument(a: CircuitState, b: CircuitState) {
     a.wires === b.wires &&
     a.faults === b.faults &&
     a.globalVoltage === b.globalVoltage &&
+    a.supply === b.supply &&
     a.componentGroups === b.componentGroups
   );
 }
@@ -53,6 +54,7 @@ export function guardedCircuitSet(get: () => CircuitState, commit: (state: Circu
           wires: next.wires,
           faults: next.faults,
           globalVoltage: next.globalVoltage,
+          supply: next.supply,
           componentGroups: next.componentGroups,
           selectedComponentId:
             next.selectedComponentId === before.selectedComponentId

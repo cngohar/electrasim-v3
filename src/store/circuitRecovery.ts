@@ -26,7 +26,13 @@ export function basicCopy(
         ? wireIds.has(f.target.id)
         : !removed.has(f.target.type === 'component' ? f.target.id : f.target.componentId)),
   );
-  const result = { components, wires, globalVoltage: source.globalVoltage, faults };
+  const result = {
+    components,
+    wires,
+    globalVoltage: source.globalVoltage,
+    supply: source.supply,
+    faults,
+  };
   if (circuitRequirements(result).length)
     throw new Error(
       'Choose all Pro components and advanced faults for removal, leaving at most one active basic fault.',

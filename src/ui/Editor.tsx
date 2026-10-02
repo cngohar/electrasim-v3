@@ -210,11 +210,12 @@ export function Editor() {
   const components = useCircuitStore((s) => s.components);
   const wires = useCircuitStore((s) => s.wires);
   const globalVoltage = useCircuitStore((s) => s.globalVoltage);
+  const supply = useCircuitStore((s) => s.supply);
   const faults = useCircuitStore((s) => s.faults);
   const selectedId = useCircuitStore((s) => s.selectedComponentId);
   const circuit = useMemo(
-    () => ({ components, wires, globalVoltage, faults }),
-    [components, wires, globalVoltage, faults],
+    () => ({ components, wires, globalVoltage, supply, faults }),
+    [components, wires, globalVoltage, supply, faults],
   );
 
   const simRunning = useUiStore((s) => s.simRunning);

@@ -375,10 +375,10 @@ export const useDiagnosisStore = create<DiagnosisState>((set, get) => ({
     }
     if (state.selectedFaultType === null || state.selectedLocationKey === null) return null;
 
-    const { components, wires, globalVoltage, faults } = useCircuitStore.getState();
+    const { components, wires, globalVoltage, supply, faults } = useCircuitStore.getState();
     const evaluation = evaluateDiagnosis(
       scenario,
-      { components, wires, globalVoltage, faults },
+      { components, wires, globalVoltage, supply, faults },
       { faultType: state.selectedFaultType, locationKey: state.selectedLocationKey },
       // Carrying prior correct answers forward is what makes a multi-fault run
       // solvable: without it the learner would have to name both faults in a
@@ -781,8 +781,8 @@ useDiagnosisStore.subscribe((state, previous) => {
 /** Non-hook accessor mirroring the other stores' convention. */
 let serverBusy = false;
 function snapshotCircuit(): Circuit {
-  const { components, wires, faults, globalVoltage } = useCircuitStore.getState();
-  return { components, wires, faults, globalVoltage };
+  const { components, wires, faults, globalVoltage, supply } = useCircuitStore.getState();
+  return { components, wires, faults, globalVoltage, supply };
 }
 async function serverAction(
   action: 'submit' | 'hint' | 'checkpoint' | 'abandon' | 'expire',
@@ -900,7 +900,8 @@ useCircuitStore.subscribe((state, previous) => {
     (state.components !== previous.components ||
       state.wires !== previous.wires ||
       state.faults !== previous.faults ||
-      state.globalVoltage !== previous.globalVoltage)
+      state.globalVoltage !== previous.globalVoltage ||
+      state.supply !== previous.supply)
   )
     void persistProgress(diagnosis.scenario, diagnosis);
 });

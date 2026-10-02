@@ -20,6 +20,7 @@ export function SimulatorAccessBanner() {
       wires: s.wires,
       faults: s.faults,
       globalVoltage: s.globalVoltage,
+      supply: s.supply,
     })),
   );
   const [copying, setCopying] = useState(false);

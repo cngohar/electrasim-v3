@@ -23,7 +23,7 @@ import { type UserSettings, sanitizeSettingsPayload } from '../../store/settings
 import { normalizeCircuit, validateCircuitJSON } from '../export/circuitFormat';
 
 export const BACKUP_FORMAT = 'electrasim-backup' as const;
-export const BACKUP_SCHEMA_VERSION = 1 as const;
+export const BACKUP_SCHEMA_VERSION = 2 as const;
 export const MAX_BACKUP_BYTES = 10 * 1024 * 1024;
 
 /** Keys that JSON can carry as own properties and that must never reach
@@ -118,7 +118,7 @@ export function parseBackupFile(text: string): BackupParseResult {
       error: `Unrecognised file format (expected "${BACKUP_FORMAT}"). This does not look like an ElectraSim backup.`,
     };
   }
-  if (payload.version !== BACKUP_SCHEMA_VERSION) {
+  if (payload.version !== 1 && payload.version !== BACKUP_SCHEMA_VERSION) {
     return {
       ok: false,
       error: `Unsupported backup version (${String(payload.version)}). Update ElectraSim and try again.`,
@@ -143,7 +143,7 @@ export function parseBackupFile(text: string): BackupParseResult {
   let circuit: Circuit | null = null;
   if (payload.circuit !== undefined) {
     const circuitError = validateCircuitJSON({
-      version: 1,
+      version: payload.version,
       exportedAt: 0,
       circuit: payload.circuit,
     });

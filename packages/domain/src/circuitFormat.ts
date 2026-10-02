@@ -3,25 +3,27 @@ import { normalizeCircuitDocument } from './core/normalize';
 import type { Circuit } from './types';
 
 const MAX_IMPORT_BYTES = 10 * 1024 * 1024;
-const SCHEMA_VERSION = 1 as const;
+export const CIRCUIT_SCHEMA_VERSION = 2 as const;
 export interface ElectraSimFile {
-  version: typeof SCHEMA_VERSION;
+  version: typeof CIRCUIT_SCHEMA_VERSION;
   exportedAt: number;
   circuit: Circuit;
 }
 
-/** Schema 1 adapters share the direct-domain input contract. */
+/** Read schema 1 without losing IDs/overrides; write versioned source profiles in schema 2. */
 export function validateCircuitJSON(raw: unknown): string | null {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return 'Not a valid JSON object.';
   const payload = raw as Record<string, unknown>;
-  if (payload.version !== SCHEMA_VERSION) {
+  if (payload.version !== 1 && payload.version !== CIRCUIT_SCHEMA_VERSION) {
     const version =
       typeof payload.version === 'number' || typeof payload.version === 'string'
         ? payload.version
         : 'invalid';
-    return `Unsupported schema version: ${version} (expected ${SCHEMA_VERSION}).`;
+    return `Unsupported schema version: ${version} (expected 1 or ${CIRCUIT_SCHEMA_VERSION}).`;
   }
   const result = validateCircuitInput(payload.circuit);
+  if (result.valid && payload.version === CIRCUIT_SCHEMA_VERSION && !result.circuit.supply)
+    return 'Schema 2 requires a versioned document supply profile.';
   return result.valid ? null : (result.diagnostics[0]?.message ?? 'Invalid circuit.');
 }
 
@@ -29,7 +31,7 @@ export const normalizeCircuit = normalizeCircuitDocument;
 
 export function exportJSON(circuit: Circuit): string {
   const payload: ElectraSimFile = {
-    version: SCHEMA_VERSION,
+    version: CIRCUIT_SCHEMA_VERSION,
     exportedAt: Date.now(),
     circuit: normalizeCircuit(circuit),
   };

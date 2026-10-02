@@ -14,7 +14,8 @@
  *
  * Storage format:
  *   key   = `electrasim:circuit:v1`
- *   value = { version: 1, savedAt: number, circuit: { components, wires } }
+ *   value = { version: 2, savedAt: number, circuit: { components, wires, supply, ... } }
+ *   Schema-1 records migrate when read; the existing key stays in use.
  *
  * `idb-keyval` is ~1 KB gzip and gives us an async key-value API on top of
  * IndexedDB without writing the boilerplate ourselves.
@@ -22,14 +23,15 @@
 
 import type { Circuit } from '@electrasim/domain';
 import { get, set } from 'idb-keyval';
-import { normalizeCircuit, validateCircuitJSON } from '../lib/exportImport';
+import { CIRCUIT_SCHEMA_VERSION, normalizeCircuit, validateCircuitJSON } from '../lib/exportImport';
 import { useCircuitStore } from './circuitStore';
 import { saveChallengeCircuit } from './declarativeChallengePersistence';
 import { useUiStore } from './uiStore';
 
 // Bump when the persisted shape changes incompatibly.
-const SCHEMA_VERSION = 1 as const;
-const STORAGE_KEY = `electrasim:circuit:v${SCHEMA_VERSION}`;
+const SCHEMA_VERSION = CIRCUIT_SCHEMA_VERSION;
+// Upgrade records in place; changing the key would orphan existing autosaves.
+const STORAGE_KEY = 'electrasim:circuit:v1';
 const DEBOUNCE_MS = 250;
 let lastSaveError = '';
 
@@ -97,7 +99,7 @@ export async function persistCircuit(circuit: Circuit): Promise<boolean> {
  * Implementation notes:
  *   - We subscribe outside React via `zustand.subscribe` so saves happen
  *     even when the editor isn't mounted (e.g. during a stress test).
- *   - The subscription only fires when `components` or `wires` change —
+ *   - Document edits, including supply-only and fault changes, trigger saves;
  *     selection clicks don't trigger writes.
  *   - Errors are logged once per session, never thrown. A failed write
  *     should not break the app.
@@ -134,6 +136,7 @@ export function startAutosave(): () => void {
       state.components === prev.components &&
       state.wires === prev.wires &&
       state.globalVoltage === prev.globalVoltage &&
+      state.supply === prev.supply &&
       state.faults === prev.faults
     ) {
       return;
@@ -143,6 +146,7 @@ export function startAutosave(): () => void {
       components: state.components,
       wires: state.wires,
       globalVoltage: state.globalVoltage,
+      supply: state.supply,
       faults: state.faults,
     };
     timer = setTimeout(flushPending, DEBOUNCE_MS);

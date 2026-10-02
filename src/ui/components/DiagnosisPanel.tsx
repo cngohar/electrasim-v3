@@ -165,6 +165,7 @@ export function DiagnosisPanel({ isPhone }: Props) {
   const liveComponents = useCircuitStore((s) => s.components);
   const liveWires = useCircuitStore((s) => s.wires);
   const liveVoltage = useCircuitStore((s) => s.globalVoltage);
+  const liveSupply = useCircuitStore((s) => s.supply);
 
   /**
    * What the installation is doing **now** (§14, §26).
@@ -187,9 +188,19 @@ export function DiagnosisPanel({ isPhone }: Props) {
       components: liveComponents,
       wires: liveWires,
       globalVoltage: liveVoltage,
+      supply: liveSupply,
       faults: liveFaults,
     });
-  }, [scenario, status, accessBlocked, liveComponents, liveWires, liveVoltage, liveFaults]);
+  }, [
+    scenario,
+    status,
+    accessBlocked,
+    liveComponents,
+    liveWires,
+    liveVoltage,
+    liveSupply,
+    liveFaults,
+  ]);
 
   /**
    * Has the picture changed since the exercise began?

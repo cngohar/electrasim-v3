@@ -20,6 +20,7 @@ vi.mock('idb-keyval', () => ({
 }));
 
 import type { Circuit } from '@electrasim/domain';
+import { explicitSupplyProfile } from '@electrasim/domain/core/supplies';
 import { useCircuitStore } from './circuitStore';
 import {
   __STORAGE_KEY,
@@ -159,7 +160,7 @@ describe('persistence — Phase 6 IndexedDB autosave', () => {
 
     const saved = mem.get(__STORAGE_KEY) as { version: number; circuit: Circuit } | undefined;
     expect(saved).toBeDefined();
-    expect(saved?.version).toBe(1);
+    expect(saved?.version).toBe(2);
     const moved = saved?.circuit.components.find((c) => c.id === 'B1');
     expect(moved?.x).toBe(250);
     expect(moved?.y).toBe(150);
@@ -171,7 +172,12 @@ describe('persistence — Phase 6 IndexedDB autosave', () => {
     await expect(persistCircuit(tinyCircuit)).resolves.toBe(true);
 
     const saved = mem.get(__STORAGE_KEY) as { circuit: Circuit } | undefined;
-    expect(saved?.circuit).toEqual(tinyCircuit);
+    expect(saved?.circuit).toEqual({
+      ...tinyCircuit,
+      supply: expect.objectContaining({
+        model: { kind: 'ac-single-phase', voltage: 230, frequencyHz: 50 },
+      }),
+    });
   });
 
   it('autosaves and hydrates the global supply voltage', async () => {
@@ -189,6 +195,36 @@ describe('persistence — Phase 6 IndexedDB autosave', () => {
     await expect(hydrateCircuit()).resolves.toBe(true);
     expect(useCircuitStore.getState().globalVoltage).toBe(110);
     stop();
+  });
+
+  it('autosaves supply-only revisions in the existing key and restores frequency and independent sources', async () => {
+    const supply = explicitSupplyProfile({
+      kind: 'ac-single-phase',
+      voltage: 230,
+      frequencyHz: 60,
+    });
+    const battery = {
+      id: 'dc',
+      type: 'dc-battery-12v',
+      x: 0,
+      y: 0,
+      state: { sourceProfile: explicitSupplyProfile({ kind: 'dc', voltage: 48 }) },
+    };
+    useCircuitStore
+      .getState()
+      .setCircuit({ ...tinyCircuit, components: [...tinyCircuit.components, battery] });
+    const stop = startAutosave();
+    useCircuitStore.setState({ supply });
+    await wait(350);
+    const saved = mem.get(__STORAGE_KEY) as { version: number; circuit: Circuit };
+    expect(__STORAGE_KEY).toBe('electrasim:circuit:v1');
+    expect(saved.version).toBe(2);
+    expect(saved.circuit.supply).toEqual(supply);
+    stop();
+    useCircuitStore.getState().setCircuit({ components: [], wires: [] });
+    await expect(hydrateCircuit()).resolves.toBe(true);
+    expect(useCircuitStore.getState().supply).toEqual(supply);
+    expect(useCircuitStore.getState().components.find((c) => c.id === 'dc')).toEqual(battery);
   });
 
   it('reports an immediate persistence failure without rejecting', async () => {

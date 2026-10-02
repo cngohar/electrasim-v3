@@ -160,6 +160,8 @@ export function ChallengePanel({ isPhone }: Props) {
   const components = useCircuitStore((s) => s.components);
   const wires = useCircuitStore((s) => s.wires);
   const globalVoltage = useCircuitStore((s) => s.globalVoltage);
+  const supply = useCircuitStore((s) => s.supply);
+  const faults = useCircuitStore((s) => s.faults);
   const [progressReady, setProgressReady] = useState(false);
   const [tutorialOfferOpen, setTutorialOfferOpen] = useState(false);
 
@@ -206,8 +208,8 @@ export function ChallengePanel({ isPhone }: Props) {
   ]);
 
   const liveCircuit = useMemo(
-    () => ({ components, wires, globalVoltage }),
-    [components, globalVoltage, wires],
+    () => ({ components, wires, globalVoltage, supply, faults }),
+    [components, globalVoltage, supply, wires, faults],
   );
   const liveTutorialVerdict = useMemo<ChallengeVerdict | null>(() => {
     if (!definition || definition.kind !== 'tutorial' || status !== 'active') return null;

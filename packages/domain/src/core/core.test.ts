@@ -241,9 +241,19 @@ describe('1.5B input and saved document contracts', () => {
         },
       ],
     };
-    expect(importJSON(exportJSON(circuit))).toEqual(circuit);
+    expect(importJSON(exportJSON(circuit))).toEqual({
+      ...circuit,
+      supply: expect.objectContaining({
+        model: { kind: 'ac-single-phase', voltage: 230, frequencyHz: 50 },
+      }),
+    });
     circuit.wires[0].fault = 'live-to-earth';
-    expect(importJSON(exportJSON(circuit))).toEqual(circuit);
+    expect(importJSON(exportJSON(circuit))).toEqual({
+      ...circuit,
+      supply: expect.objectContaining({
+        model: { kind: 'ac-single-phase', voltage: 230, frequencyHz: 50 },
+      }),
+    });
   });
 
   it('preserves cross-role and same-device bridges as physical wiring, without silently fixing them', () => {
@@ -251,7 +261,12 @@ describe('1.5B input and saved document contracts', () => {
     circuit.wires.push(W('physical-short', 'device', 2, 'device', 3));
     circuit.wires[1].toPortIndex = 1;
     const restored = importJSON(exportJSON(circuit));
-    expect(restored).toEqual(circuit);
+    expect(restored).toEqual({
+      ...circuit,
+      supply: expect.objectContaining({
+        model: { kind: 'ac-single-phase', voltage: 230, frequencyHz: 50 },
+      }),
+    });
     expect(
       compiled(circuit).graph.branches.find((b) => b.wireId === 'physical-short'),
     ).toMatchObject({ from: terminalId('device', 2), to: terminalId('device', 3) });

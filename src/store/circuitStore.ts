@@ -14,6 +14,15 @@
 
 import { COMPONENT_DEFS, type ComponentInstance, type WireInstance } from '@electrasim/domain';
 import { normalizeCircuitDocument } from '@electrasim/domain/core/normalize';
+import {
+  isSupplyProfile,
+  resolveDocumentSupply,
+  resolveSourceProfile,
+  sourceInterface,
+  sourceProfileFitsInterface,
+  withDocumentSupply,
+  withSupplyVoltage,
+} from '@electrasim/domain/core/supplies';
 import { temporal } from 'zundo';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
@@ -25,6 +34,18 @@ import { buildProSeedCircuit, buildSeedCircuit, buildStudentSeedCircuit } from '
 import { useUiStore } from './uiStore';
 
 const seed = buildSeedCircuit();
+
+function supplyEditingLocked(): boolean {
+  const ui = useUiStore.getState();
+  if (ui.simRunning) return true;
+  if (ui.challengeAttemptId || ui.diagnosisActive) {
+    ui.showNoticeToast(
+      'Supply settings are locked during this exercise. End the attempt to edit the supply in the sandbox.',
+    );
+    return true;
+  }
+  return false;
+}
 
 /** Regional socket component types that the demo seed may use. */
 const REGIONAL_SOCKET_TYPES = new Set([
@@ -86,6 +107,7 @@ export const useCircuitStore = create<CircuitState>()(
         components: seed.components,
         wires: seed.wires,
         globalVoltage: 230,
+        supply: resolveDocumentSupply({ globalVoltage: 230 }),
         faults: [],
         selectedComponentId: null,
         selectedWireIds: [],
@@ -101,7 +123,8 @@ export const useCircuitStore = create<CircuitState>()(
             s.components = normalized.components;
             s.wires = normalized.wires;
             s.faults = normalized.faults ? [...normalized.faults] : [];
-            const nextVoltage = circuit.globalVoltage ?? 230;
+            s.supply = normalized.supply;
+            const nextVoltage = normalized.supply?.model.voltage ?? circuit.globalVoltage ?? 230;
             s.globalVoltage = Number.isFinite(nextVoltage) && nextVoltage > 0 ? nextVoltage : 230;
             s.selectedComponentId = null;
             s.selectedComponentIds = [];
@@ -155,26 +178,21 @@ export const useCircuitStore = create<CircuitState>()(
 
         setGlobalSupplyVoltage: (voltage) =>
           set((s) => {
-            if (!Number.isFinite(voltage) || voltage <= 0) return;
+            if (
+              !Number.isFinite(voltage) ||
+              voltage < 0.001 ||
+              voltage > 100_000 ||
+              supplyEditingLocked()
+            )
+              return;
+            const next = withDocumentSupply(
+              s,
+              withSupplyVoltage(resolveDocumentSupply(s), voltage),
+            );
+            if (next === s) return;
+            s.supply = next.supply;
             s.globalVoltage = voltage;
-            let updatedAny = false;
-            for (const comp of s.components) {
-              const def = COMPONENT_DEFS[comp.type];
-              if (
-                def?.isSource ||
-                comp.type.includes('terminal') ||
-                comp.type.includes('supply') ||
-                comp.type.includes('battery') ||
-                comp.type.includes('generator') ||
-                comp.type.includes('solar')
-              ) {
-                comp.state.customVoltage = voltage;
-                updatedAny = true;
-              }
-            }
-            if (!updatedAny && s.components.length > 0) {
-              s.components[0].state.customVoltage = voltage;
-            }
+            s.components = next.components;
           }),
 
         addComponent: (comp) =>
@@ -574,7 +592,41 @@ export const useCircuitStore = create<CircuitState>()(
           set((s) => {
             const c = s.components.find((comp) => comp.id === id);
             if (c) {
+              const source = sourceInterface(c.type);
+              const changingSource =
+                updates.sourceProfile !== undefined ||
+                (source && updates.customVoltage !== undefined);
+              if (changingSource && supplyEditingLocked()) return;
+              if (
+                updates.sourceProfile !== undefined &&
+                (!source ||
+                  !isSupplyProfile(updates.sourceProfile) ||
+                  !sourceProfileFitsInterface(c.type, updates.sourceProfile))
+              )
+                return;
+              if (
+                updates.sourceProfile &&
+                updates.customVoltage !== undefined &&
+                updates.sourceProfile.model.voltage !== updates.customVoltage
+              )
+                return;
+              if (
+                source &&
+                updates.customVoltage !== undefined &&
+                (!Number.isFinite(updates.customVoltage) ||
+                  updates.customVoltage < 0.001 ||
+                  updates.customVoltage > 100_000)
+              )
+                return;
+              const profile =
+                source && updates.customVoltage !== undefined
+                  ? resolveSourceProfile(c.type, c.state, s)
+                  : undefined;
               c.state = { ...c.state, ...updates };
+              if (profile && updates.customVoltage !== undefined && !updates.sourceProfile)
+                c.state.sourceProfile = withSupplyVoltage(profile, updates.customVoltage);
+              if (updates.sourceProfile)
+                c.state.customVoltage = updates.sourceProfile.model.voltage;
             }
           }),
 
@@ -582,6 +634,13 @@ export const useCircuitStore = create<CircuitState>()(
           set((s) => {
             const c = s.components.find((comp) => comp.id === id);
             if (c && COMPONENT_DEFS[newType]) {
+              const oldSource = sourceInterface(c.type);
+              const newSource = sourceInterface(newType);
+              if ((oldSource || newSource) && supplyEditingLocked()) return;
+              if (oldSource !== newSource) {
+                c.state.sourceProfile = undefined;
+                c.state.customVoltage = undefined;
+              }
               c.type = newType;
               const newDef = COMPONENT_DEFS[newType];
               // Synchronize/reset state according to the new variant's specifications
@@ -826,6 +885,7 @@ export const useCircuitStore = create<CircuitState>()(
         components: componentsForHistory(state.components),
         wires: state.wires,
         globalVoltage: state.globalVoltage,
+        supply: state.supply,
         faults: state.faults,
       }),
       // Immer preserves array identity when no element changed, so a simple
@@ -835,6 +895,7 @@ export const useCircuitStore = create<CircuitState>()(
         a.components === b.components &&
         a.wires === b.wires &&
         a.globalVoltage === b.globalVoltage &&
+        a.supply === b.supply &&
         a.faults === b.faults,
       limit: 100,
     },

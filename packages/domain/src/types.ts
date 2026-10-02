@@ -10,6 +10,7 @@
  */
 
 import type { ElectricalDeviceModel, ElectricalDiagnostic, ModelCoverage } from './core/contracts';
+import type { SupplyProfile } from './core/supplies';
 
 // ─── Geometry ──────────────────────────────────────────────────────────────
 
@@ -226,6 +227,8 @@ export interface FaultDiagnostic {
 }
 
 export interface ComponentState {
+  /** Versioned source configuration. Valid only on declared supply interfaces. */
+  sourceProfile?: SupplyProfile;
   /** Manual open/closed state for switch-like and protection components. */
   on?: boolean;
   /** Dimmer / fan speed level (0..N). */
@@ -366,6 +369,9 @@ export interface PortRef {
 export interface Circuit {
   components: ComponentInstance[];
   wires: WireInstance[];
+  /** Named document supply/default; independent source blocks retain their own profiles. */
+  supply?: SupplyProfile;
+  /** Legacy voltage mirror. New documents use supply; retained for old consumers. */
   globalVoltage?: number;
   /** Active user-injected faults (Fault Simulation System). */
   faults?: InjectedFault[];
@@ -391,6 +397,7 @@ export interface SimulationLimitation {
     | 'transformer-model'
     | 'dc-source-model'
     | 'three-phase-model'
+    | 'independent-source-model'
     | 'timing-model'
     | 'dimming-model';
   componentId: string;

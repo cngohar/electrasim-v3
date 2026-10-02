@@ -1,8 +1,8 @@
 # ElectraSim V3 — Full Rewrite Plan and Staged Simulator Core Rebuild
 
-**Version:** 3.0.0-DRAFT — revised 2026-10-01 (supersedes `REWRITE_PLAN_V4_FULL.md`)
+**Version:** 3.0.0-DRAFT — revised 2026-10-02 (supersedes `REWRITE_PLAN_V4_FULL.md`)
 
-**Status:** `IMPLEMENTING LOCALLY` — Phase 1.0–1.5 milestones recorded; 1.5A and 1.5B complete locally; next is 1.5C; numerical/device rebuild and integration remain in 1.5C–1.5F
+**Status:** `IMPLEMENTING LOCALLY` — Phase 1.0–1.5 milestones recorded; 1.5A, 1.5B and 1.5C.0 complete locally; next is 1.5C.1 MNA solving; complete editing/readiness UI and later integration remain in 1.5C–1.5F
 **Runtime:** **Bun** everywhere · **Platform:** **100% Cloudflare Workers** (no external DB/compute)  
 **Current state:** V3 is developed locally. The existing live `electrasim.com` site/account is separate and must not be used for this work.
 **Target:** React 19 + Hono on Workers + Better Auth + **D1 (SQLite)** + R2 + KV + Durable Objects + Matter.js + Tailwind v4
@@ -16,45 +16,47 @@
 
 > **Simulator revision (2026-09-30):** [audit reconciliation and core rebuild](./plans/SIMULATOR_CORE_REBUILD_PLAN.md) inserts **1.5A–1.5F before Matter effects**. Replace the electrical engine in tested stages while retaining the useful application foundations. The previous “from line 1” title and BFS-only requirement did not describe the implementation: Phase 1.2 extracted the existing solver. Source/domain, time/protection and branch-current correctness are now explicit delivery gates.
 
+> **Behavior revision (2026-10-01):** [current audit](./audits/phase-1-behavior-review.md), [behavior plan](./plans/SIMULATOR_BEHAVIOR_PLAN.md) and [ADR 0009](./decisions/0009-mna-solver.md) select **MNA** and put shared compatibility, confirmed supply changes, circuit readiness and cable/current correctness in **1.5C**. Timed device/protection behavior follows in **1.5D**, supported three-phase models in **1.5E**, and full Fault Lab/Diagnosis Lab/Ohmageddon migration in **1.5F**. These requirements are planned, not implemented by this audit update.
+
 ---
 
 ## Table of Contents
 
 1. [What Changed Since Last Draft](#1-what-changed)
 2. [Goals & Non-Goals](#2-goals)
-3. [Architecture — 100% Cloudflare](#3-arch)
-4. [Stack — Bun + Cloudflare-Native](#4-stack)
-5. [Monorepo (Bun Workspaces)](#5-mono)
-6. [D1 Data Model (SQLite) & Performance](#6-d1)
-7. [Auth — Better Auth on D1 (Bun + Workers)](#7-auth)
-8. [RBAC & Admin-Configurable Permissions](#8-rbac)
+3. [Architecture — 100% Cloudflare](#3-architecture--100-cloudflare)
+4. [Stack — Bun + Cloudflare-Native](#4-stack--bun--cloudflare-native)
+5. [Monorepo (Bun Workspaces)](#5-monorepo-bun-workspaces)
+6. [D1 Data Model (SQLite) & Performance](#6-d1-data-model-sqlite--performance)
+7. [Auth — Better Auth on D1 (Bun + Workers)](#7-auth--better-auth-on-d1-bun--workers)
+8. [RBAC & Admin-Configurable Permissions](#8-rbac--admin-configurable-permissions)
 9. [Paid Membership — Super-Admin Managed](#9-paid-membership--super-admin-managed)
-10. [Gamification — Demo + Fully Editable](#10-gami)
-11. [LMS (Tenancy, Exams, Gradebook)](#11-lms)
-12. [Dashboards — Personal vs LMS](#12-dash)
-13. [Community — Why Not GitHub×Instagram, What Instead](#13-comm)
-14. [Public Profiles](#14-profiles)
-15. [Payments — NOWPayments + Binance Pay, Card Stub](#15-pay)
-16. [Email — Provider-Agnostic (SMTP/Resend/SES)](#16-email)
-17. [Content Studio — Mini CMS (Blog + Static Pages)](#17-cms)
-18. [Simulator V3 — Enhanced UI, New Mechanics, Matter.js (Visual Only)](#18-sim)
-19. [Wiring Games (≠ Simulator)](#19-games)
-20. [Procedural Engine — Homepage / Games / Exams](#20-proc)
-21. [Admin Panel — No Hardcoding](#21-admin)
-22. [Design System — Electrical, Not Generic SaaS](#22-design)
-23. [How We Actually Do UI/UX (Process, Not Slogans)](#23-uxprocess)
-24. [Live-Site URL & SEO Preservation](#24-urls)
-25. [Realtime, Jobs, Storage](#25-realtime)
-26. [Certificates — Procedurally Generated](#26-certs)
-27. [Moderation — On By Default](#27-mod)
-28. [Phased Roadmap (Bun + Workers)](#28-roadmap)
-29. [Resolved Decisions (Your Answers Applied)](#29-resolved)
-30. [Astro Site in V3 — Redesign & Dynamic Behaviour](#30-astro)
-31. [Localization (i18n) — International Site](#31-i18n)
-32. [Electrical Standards — Global Immutable](#32-standards)
-33. [D1 Performance — Parallel Reads/Writes, No Failures](#33-perf)
-34. [Exhaust Inventory — Coupling Seams](#34-exhaust)
-35. [Open Questions — Remaining](#35-open)
+10. [Gamification — Demo + Fully Editable](#10-gamification--demo--fully-editable)
+11. [LMS (Tenancy, Exams, Gradebook)](#11-lms-tenancy-exams-gradebook)
+12. [Dashboards — Personal vs LMS](#12-dashboards)
+13. [Community — Why Not GitHub×Instagram, What Instead](#13-community--why-not-githubinstagram-what-instead)
+14. [Public Profiles](#14-public-profiles)
+15. [Payments — NOWPayments + Binance Pay, Card Stub](#15-payments)
+16. [Email — Provider-Agnostic (SMTP/Resend/SES)](#16-email--provider-agnostic)
+17. [Content Studio — Mini CMS (Blog + Static Pages)](#17-content-studio--mini-cms)
+18. [Simulator V3 — Enhanced UI, New Mechanics, Matter.js (Visual Only)](#18-simulator-v3--enhanced-ui-new-mechanics-matterjs-visual-only)
+19. [Wiring Games (≠ Simulator)](#19-wiring-games)
+20. [Procedural Engine — Homepage / Games / Exams](#20-procedural-engine)
+21. [Admin Panel — No Hardcoding](#21-admin-panel)
+22. [Design System — Electrical, Not Generic SaaS](#22-design-system--electrical-not-generic-saas)
+23. [How We Actually Do UI/UX (Process, Not Slogans)](#23-how-we-actually-do-uiux-process-not-slogans)
+24. [Live-Site URL & SEO Preservation](#24-live-site-url--seo-preservation)
+25. [Realtime, Jobs, Storage](#25-realtime-jobs-storage-all-cloudflare)
+26. [Certificates — Procedurally Generated](#26-certificates--procedurally-generated)
+27. [Moderation — On By Default](#27-moderation--on-by-default)
+28. [Phased Roadmap (Bun + Workers)](#28-phased-roadmap-bun--workers--original-22-week-estimate)
+29. [Resolved Decisions (Your Answers Applied)](#29-resolved-decisions-your-answers-applied)
+30. [Astro Site in V3 — Redesign & Dynamic Behaviour](#30-astro-site-in-v3--redesign--dynamic-behaviour)
+31. [Localization (i18n) — International Site](#31-localization-i18n--international-site)
+32. [Electrical Standards — Global Immutable](#32-electrical-standards--global-immutable)
+33. [D1 Performance — Parallel Reads/Writes, No Failures](#33-d1-performance--parallel-readswrites-no-failures-at-scale)
+34. [Exhaust Inventory — Coupling Seams](#34-exhaust-inventory--astro--simulator-coupling-seams-verified)
+35. [Open Questions — Remaining](#35-open-questions--remaining)
 
 ---
 
@@ -497,7 +499,7 @@ See §22.
 
 ### Matter.js — visual only, never electrical
 
-Electrical computation stays deterministic in `packages/domain`, with explicit simulation state/time inputs and no renderer dependency. **BFS per rail is no longer the required solver:** 1.5B–1.5E introduce a terminal graph, declared electrical models, branch-current/voltage equations and timed device events. See the [core rebuild plan](./plans/SIMULATOR_CORE_REBUILD_PLAN.md). Matter starts after 1.5F integration and never changes electrical results. It runs in `rAF`, throttled >150 bodies (sleep offscreen):
+Electrical computation stays deterministic in `packages/domain`, with explicit simulation state/time inputs and no renderer dependency. **MNA is the selected numerical formulation:** extend the accepted 1.5B terminal compiler with declared source/load constraints, actual branch currents, voltage/wire losses and later timed device events and phasors. See [ADR 0009](./decisions/0009-mna-solver.md) and the [core rebuild plan](./plans/SIMULATOR_CORE_REBUILD_PLAN.md). Matter starts after 1.5F integration and never changes electrical results. It runs in `rAF`, throttled >150 bodies (sleep offscreen):
 
 | Visual | How |
 |--------|-----|
@@ -508,7 +510,7 @@ Electrical computation stays deterministic in `packages/domain`, with explicit s
 
 ### New Mechanics
 
-Phase 1.5B–1.5F first deliver correct branch measurements, declared voltage domains, isolated transformers, timed controls/protection and supported three-phase teaching cases. Phase 1.7 presents supply/model coverage, accessible connection/diagnostic views and time controls. The time API must take explicit state/events, not infer history from `t` alone. Enhanced phasor/thermal overlays, draggable multi-meter probes and export bundles follow supported models and their acceptance gates. Fault injection/diagnosis remains basic for everyone and advanced for paid members per §9 (currently 14 `FaultType`s). Additional mechanics are not automatically promised membership benefits.
+Phase 1.5C first delivers MNA branch measurements, declared source/device ratings, isolated transformers and finite wire losses alongside shared compatibility, staged supply-change confirmation/Undo and circuit readiness. Phase 1.5D adds explicit timed controls/protection and damage coverage; 1.5E adds supported three-phase teaching cases. Phase 1.5F completes existing Fault Lab, Diagnosis Lab, Ohmageddon, template and export integration with authored edit constraints and versioned repair/score evidence. Phase 1.7 refines layout, accessible connection/diagnostic views and time controls while preserving those essential interactions. The time API takes explicit state/events, not history inferred from `t` alone. Enhanced phasor/thermal overlays, draggable multi-meter probes and export bundles follow supported models and acceptance gates. Basic fault injection/diagnosis remains free; advanced features retain membership boundaries per §9 (currently 14 `FaultType`s). Additional mechanics are not automatically promised membership benefits.
 
 ### Pro gating
 
@@ -663,7 +665,7 @@ The added Phase 1 membership/admin and electrical-rebuild scope requires re-esti
 | Phase | Weeks | Scope | Exit |
 |-------|-------|-------|------|
 | **0 — Foundation** | 1–2 | Bun workspaces + Hono Worker + Vite+Assets, D1 + Drizzle + Better Auth (sqlite) + Google/GitHub/Microsoft OAuth, KV+DO+Queues+R2 bindings, `packages/domain` extraction, `app_config`/`feature_flags` + admin shell, `nodejs_compat` | `bun run dev` serves营销+app, auth works, RBAC gates `/admin`, domain tests via `bun test` |
-| **1 — Simulator Core + Manual Memberships** | Re-estimate after 1.5A/1.5C | Standards/domain/membership/persistence foundations; **1.5A–1.5F electrical core rebuild before Matter**; SVG, accessible simulator UI, super-admin member CRUD; basic diagnostics free | Independent electrical fixtures, versioned results, template and cross-runtime parity; full local simulator/performance/Worker/D1/access gates |
+| **1 — Simulator Core + Manual Memberships** | Re-estimate after 1.5A/1.5C | Standards/domain/membership/persistence foundations; **1.5A–1.5F MNA/behavior rebuild before Matter**; shared compatibility, confirmed supply edits, readiness and existing lab migration; SVG, accessible UI and super-admin member CRUD; basic diagnostics free | Independent electrical fixtures, truthful measurements, confirmation/readiness browser cases, versioned repair/results and cross-runtime parity; full local simulator/performance/Worker/D1/access gates |
 | **2 — Community (Published Circuit deferred until here)** | 6–8 | Published Circuit sharing, feed/explore/forks, follows/reactions/comments/collections, FTS5, SSR+OG and notifications; preserve circuit/model versions and applicability | Local publish/fork/comment/follow flow; stale results cannot masquerade as a fresh assessment |
 | **3 — Gamification** | 9–10 | Levels/badges/quests/XP/streaks, leaderboards and admin CRUD; pin accepted exercise/model versions | Server-validated XP and comparable versioned results, tested locally |
 | **4 — Procedural Engine** | 11–12 | Seeded templates, homepage variants, games and HMAC exam variants; version generator and engine contracts | Local variant audit, deterministic replay and electrically verified solvability/repairs |
@@ -702,7 +704,7 @@ Post-V3.1: SCORM/xAPI, collaborative cursors, vector search (Vectorize), Workers
 
 ### Next Step
 
-**Phase 1.5B contracts and graph are complete locally; the full acceptance gate passed.** [Contracts and evidence](./audits/phase-1-electrical-contracts.md) document the source/device models, validation/defaults, wire properties, terminal isolation and compatibility boundary. The next implementation milestone is **1.5C voltage and branch solving**, followed by devices, three-phase models and integration before effects. Use [Phase 1](./phases/phase-1-simulator-core.md) for current status and [the rebuild plan](./plans/SIMULATOR_CORE_REBUILD_PLAN.md) for audit IDs and exit gates. No Cloudflare account/resource operation is authorized by these local results.
+**Phase 1.5C.0 supplies and shared preflight are complete locally; the full acceptance gate passed.** [Scope and evidence](./audits/phase-1-supply-preflight.md) document schema-2 supply persistence, explicit capability/rating inventory, terminal-group compatibility/readiness and local runtime/browser acceptance. The next implementation step is **1.5C.1 MNA solving**, followed by the remaining [solver/behavior steps](./plans/SIMULATOR_BEHAVIOR_PLAN.md), devices, three-phase models and full existing-lab integration before effects. The [behavior audit](./audits/phase-1-behavior-review.md) retains the pre-implementation reproductions. Use [Phase 1](./phases/phase-1-simulator-core.md) for status and [the rebuild plan](./plans/SIMULATOR_CORE_REBUILD_PLAN.md) for audit IDs and exit gates. No Cloudflare account/resource operation is authorized by these local results.
 
 ---
 

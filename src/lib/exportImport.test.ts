@@ -42,10 +42,15 @@ const SEED: Circuit = {
 describe('circuit import and export', () => {
   // ── exportJSON ──────────────────────────────────────────────────────────
 
-  it('produces valid JSON with schema version 1', () => {
+  it('produces valid JSON with schema version 2 and a migrated supply profile', () => {
     const json = exportJSON(SEED);
     const parsed = JSON.parse(json);
-    expect(parsed.version).toBe(1);
+    expect(parsed.version).toBe(2);
+    expect(parsed.circuit.supply.model).toEqual({
+      kind: 'ac-single-phase',
+      voltage: 230,
+      frequencyHz: 50,
+    });
     expect(parsed.circuit.components).toHaveLength(4);
     expect(parsed.circuit.wires).toHaveLength(3);
     expect(typeof parsed.exportedAt).toBe('number');

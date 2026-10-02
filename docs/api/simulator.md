@@ -31,7 +31,7 @@ Completed and timed-out attempts return the same server-derived score on subsequ
 
 ## Persistence and recovery
 
-The shared version-1 circuit format retains component configuration, voltage, structured faults and legacy fault fields. Import, share, autosave, account loads and saved premium documents may open read-only. Editing, undo/redo, pasting and simulation check the original document and any newly required capabilities. A denied or stale asynchronous edit does not consume undo history.
+Circuit-file and portable-backup writers emit schema 2 and accept schemas 1 and 2 on import. The raw `Circuit` in API bodies retains component configuration, typed document/independent source profiles, structured faults and legacy fields. Schema-1 documents migrate with their IDs and explicit ratings intact; omitted frequency remains the documented 50 Hz assumption. Autosaves upgrade under the existing IndexedDB key. Import, share, autosave, account loads and saved premium documents may open read-only. Editing, undo/redo, pasting and simulation check the original document and any newly required capabilities, including supply-only changes. A denied or stale asynchronous edit does not consume undo history.
 
 “Create basic copy” lists removal choices explicitly, validates that the result requires no premium capabilities, writes the original to IndexedDB recovery storage, and only then opens a separate copy. Saved originals can be downloaded under Saved circuits. Raw JSON export remains available. Failed backup storage cancels replacement.
 
@@ -40,6 +40,8 @@ Diagnosis version 2 chooses basic-eligible recipes/faults before generation. Ver
 ## Local verification
 
 Phase 1.5B adds a pure `compileCircuit` domain entry point and additive `electricalContract` metadata on simulation results. Compilation validates the document and reports graph/model coverage; it is not a numerical solve or a new HTTP endpoint. The existing API still runs the guarded legacy solver. See [electrical contracts, defaults and topology](../audits/phase-1-electrical-contracts.md) for versions and compatibility boundaries.
+
+Phase 1.5C.0 adds pure capability, terminal-compatibility and readiness services. Electrical contract version is 1 and model version is `1.5c.0.1`; persisted DC, reserved three-phase and mixed/conflicting supplies remain guarded from unsupported legacy measurements. `bun run verify:phase-1.5c0` passed 494 Bun/local Hono-workerd parity cases, 9 Worker/D1/cookie groups and 59 browser cases. See [supply profiles and preflight acceptance](../audits/phase-1-supply-preflight.md); the MNA solver and full consumer migration remain later steps.
 
 `bun run test:membership` includes the isolated simulator API and Chromium integration groups using real D1 and cookie sessions. `bun run test:simulator` reruns the simulator subset with its own isolated database. Browser checks use Vite plus that Worker, with no mocked authorization responses.
 

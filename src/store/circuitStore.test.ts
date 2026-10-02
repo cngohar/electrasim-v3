@@ -12,6 +12,7 @@ const reset = () => {
     components: seed.components,
     wires: seed.wires,
     globalVoltage: 230,
+    supply: undefined,
     selectedComponentId: null,
     selectedWireIds: [],
     selectedComponentIds: [],

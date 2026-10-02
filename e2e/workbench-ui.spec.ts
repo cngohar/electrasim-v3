@@ -200,11 +200,11 @@ test.describe('workbench shell', () => {
     // Regression: the voltage dropdown must not be covered by the left palette.
     await page.getByTitle('Click to change Global Supply Voltage').click();
     await page.waitForTimeout(300);
-    const preset = page.getByRole('button', { name: /^24V DC$/ });
+    const preset = page.getByRole('button', { name: /^24 V$/ });
     await expect(preset).toBeVisible();
     await preset.click();
     await page.waitForTimeout(300);
     // The supply value in the context bar reflects the new voltage.
-    await expect(page.getByText(/24 V DC/).first()).toBeVisible();
+    await expect(page.getByText(/24 V AC/).first()).toBeVisible();
   });
 });

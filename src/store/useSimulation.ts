@@ -40,6 +40,7 @@ export function useSimulation() {
   const components = useCircuitStore((s) => s.components);
   const wires = useCircuitStore((s) => s.wires);
   const globalVoltage = useCircuitStore((s) => s.globalVoltage);
+  const supply = useCircuitStore((s) => s.supply);
   const faults = useCircuitStore((s) => s.faults);
   const simRunning = useUiStore((s) => s.simRunning);
   const accessRevision = useSimulatorAccess((s) => s.revision);
@@ -78,7 +79,7 @@ export function useSimulation() {
       timerRef.current = null;
       // Snapshot the inputs at scheduling time so a later mutation
       // doesn't slip into the worker call we're about to make.
-      const circuit = { components, wires, globalVoltage, faults };
+      const circuit = { components, wires, globalVoltage, supply, faults };
 
       void authorizeCircuit(circuit)
         .then(() => {
@@ -430,5 +431,14 @@ export function useSimulation() {
       // change the replacement effect immediately allocates a newer revision.
       if (seqRef.current === mySeq) seqRef.current++;
     };
-  }, [components, wires, globalVoltage, faults, simRunning, accessRevision, regulationStandard]);
+  }, [
+    components,
+    wires,
+    globalVoltage,
+    supply,
+    faults,
+    simRunning,
+    accessRevision,
+    regulationStandard,
+  ]);
 }

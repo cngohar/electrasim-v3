@@ -1,4 +1,5 @@
 import type { Circuit, SimulationResult } from '@electrasim/domain';
+import { explicitSupplyProfile } from '@electrasim/domain/core/supplies';
 import { simulate } from '@electrasim/domain/simulation';
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -50,7 +51,7 @@ describe('useSimulation request sequencing', () => {
     vi.useRealTimers();
   });
 
-  it('clears a published result as soon as simulation inputs change', async () => {
+  it('clears a published result for a supply-only revision received at the worker boundary', async () => {
     const pending = deferred<SimulationResult>();
     simulateAsync.mockResolvedValueOnce(resultFor('previous')).mockReturnValueOnce(pending.promise);
 
@@ -60,12 +61,19 @@ describe('useSimulation request sequencing', () => {
     await act(async () => Promise.resolve());
     expect(useUiStore.getState().simResult?.energizedComponents).toEqual(new Set(['previous']));
 
-    act(() => useCircuitStore.getState().setGlobalSupplyVoltage(120));
+    // Public supply edits are locked while running. Exercise a revision arriving
+    // at the transport boundary without changing component/wire array identities.
+    const supply = explicitSupplyProfile({
+      kind: 'ac-single-phase',
+      voltage: 230,
+      frequencyHz: 60,
+    });
+    act(() => useCircuitStore.setState({ supply }));
 
     expect(useUiStore.getState().simResult).toBeNull();
     await act(async () => vi.advanceTimersByTime(50));
     expect(simulateAsync).toHaveBeenLastCalledWith(
-      expect.objectContaining({ globalVoltage: 120 }),
+      expect.objectContaining({ globalVoltage: 230, supply }),
       { appMode: 'pro', standard: 'int' },
     );
   });

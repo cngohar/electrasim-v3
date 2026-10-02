@@ -173,5 +173,6 @@ export const selectCircuit = (s: CircuitState): Circuit => ({
   components: s.components,
   wires: s.wires,
   globalVoltage: s.globalVoltage,
+  supply: s.supply,
   faults: s.faults,
 });

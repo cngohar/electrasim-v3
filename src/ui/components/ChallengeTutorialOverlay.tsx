@@ -21,14 +21,16 @@ export function ChallengeTutorialOverlay() {
   const components = useCircuitStore((s) => s.components);
   const wires = useCircuitStore((s) => s.wires);
   const globalVoltage = useCircuitStore((s) => s.globalVoltage);
+  const supply = useCircuitStore((s) => s.supply);
+  const faults = useCircuitStore((s) => s.faults);
   const pan = useViewportStore((s) => s.pan);
   const zoom = useViewportStore((s) => s.zoom);
   const requestExit = useDeclarativeChallengeStore((s) => s.requestExit);
 
   const isTutorial = status === 'active' && !paused && definition?.kind === 'tutorial';
   const circuit = useMemo(
-    () => ({ components, wires, globalVoltage }),
-    [components, globalVoltage, wires],
+    () => ({ components, wires, globalVoltage, supply, faults }),
+    [components, globalVoltage, supply, wires, faults],
   );
   const liveVerdict = useMemo(
     () => (isTutorial && definition ? validateChallenge(definition, circuit) : null),

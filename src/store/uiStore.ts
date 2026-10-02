@@ -177,6 +177,8 @@ function canStartSimulation(state: UiState): boolean {
         components: circuit.components,
         wires: circuit.wires,
         globalVoltage: circuit.globalVoltage,
+        supply: circuit.supply,
+        faults: circuit.faults,
       },
       state.simResult,
       useSettingsStore.getState().regulationStandard,
@@ -307,7 +309,13 @@ export const useUiStore = create<UiState>()(
 
         const standard = useSettingsStore.getState().regulationStandard;
         const report = validateCircuit(
-          { components: cs.components, wires: cs.wires, globalVoltage: cs.globalVoltage },
+          {
+            components: cs.components,
+            wires: cs.wires,
+            globalVoltage: cs.globalVoltage,
+            supply: cs.supply,
+            faults: cs.faults,
+          },
           s.simResult,
           standard,
         );
@@ -444,7 +452,13 @@ export const useUiStore = create<UiState>()(
         // immediately re-validates against the new rule set.
         const standard = useSettingsStore.getState().regulationStandard;
         const report = validateCircuit(
-          { components: cs.components, wires: cs.wires, globalVoltage: cs.globalVoltage },
+          {
+            components: cs.components,
+            wires: cs.wires,
+            globalVoltage: cs.globalVoltage,
+            supply: cs.supply,
+            faults: cs.faults,
+          },
           currentUi.simResult,
           standard,
         );
@@ -825,6 +839,8 @@ export const useUiStore = create<UiState>()(
               ...(circuit.globalVoltage !== undefined
                 ? { globalVoltage: circuit.globalVoltage }
                 : {}),
+              supply: circuit.supply,
+              faults: circuit.faults,
             }
           : null;
 
@@ -1156,7 +1172,14 @@ export const useUiStore = create<UiState>()(
 const registerValidationStaleWatcher = () => {
   try {
     useCircuitStore.subscribe((state, prev) => {
-      if (state.components === prev.components && state.wires === prev.wires) return;
+      if (
+        state.components === prev.components &&
+        state.wires === prev.wires &&
+        state.supply === prev.supply &&
+        state.globalVoltage === prev.globalVoltage &&
+        state.faults === prev.faults
+      )
+        return;
       const ui = useUiStore.getState();
       if (!ui.validationReport) return;
       if (state.components.length === 0) {

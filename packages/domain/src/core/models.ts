@@ -1,22 +1,7 @@
 import type { Circuit, ComponentDef, ComponentInstance } from '../types';
-import type { ElectricalDeviceModel, PortPair, SupplyModel } from './contracts';
-import { LEGACY_SUPPLY_DEFAULTS } from './normalize';
-
-const RESISTIVE_LOADS = new Set([
-  'space-heater',
-  'water-heater',
-  'electric-shower',
-  'immersion-heater',
-  'underfloor-heating',
-  'storage-heater',
-  'heating-element',
-  'bulb-incandescent',
-  'bulb-halogen',
-]);
-
-function acSupply(voltage: number): SupplyModel {
-  return { kind: 'ac-single-phase', voltage, frequencyHz: LEGACY_SUPPLY_DEFAULTS.frequencyHz };
-}
+import { DEVICE_CAPABILITY_FAMILIES, RESISTIVE_NOMINAL_VOLTS } from './capabilityCatalogue';
+import type { ElectricalDeviceModel, PortPair } from './contracts';
+import { DOCUMENT_SUPPLY_ID, resolveSourceProfile } from './supplies';
 
 /** No inference of a resistor from an arbitrary LED/driver/motor's power label. */
 export function resolveDeviceModel(
@@ -26,20 +11,25 @@ export function resolveDeviceModel(
 ): ElectricalDeviceModel {
   if (def.electricalModel) return def.electricalModel;
   const { type, state } = component;
-  const sourceVoltage =
-    state.customVoltage ?? circuit.globalVoltage ?? LEGACY_SUPPLY_DEFAULTS.voltage;
+  const source = resolveSourceProfile(type, state, circuit);
+  const voltageOrigin =
+    source?.provenance.voltage === 'explicit' || source?.provenance.voltage === 'legacy-instance'
+      ? 'instance'
+      : source?.provenance.voltage === 'legacy-document'
+        ? 'document'
+        : 'catalogue';
   const maximumVoltage = state.customMaxVolts ?? def.maxVolts;
-  if (type === 'live-terminal' || type === 'neutral-terminal') {
+  if ((type === 'live-terminal' || type === 'neutral-terminal') && source) {
     return {
       kind: 'source-alias',
-      group: 'legacy-mains',
+      group: DOCUMENT_SUPPLY_ID,
       role: type === 'live-terminal' ? 'line' : 'neutral',
       port: 0,
-      supply: acSupply(sourceVoltage),
+      supply: source.model,
       voltageOrigin:
-        state.customVoltage !== undefined
+        state.sourceProfile || state.customVoltage !== undefined
           ? 'instance'
-          : circuit.globalVoltage !== undefined
+          : circuit.supply || circuit.globalVoltage !== undefined
             ? 'document'
             : 'catalogue',
     };
@@ -50,21 +40,18 @@ export function resolveDeviceModel(
       port: 0,
       reference: type === 'earth-rod' ? 'electrode' : 'protective-bus',
     };
-  if (type === 'ac-mains-supply' || type === 'diesel-generator' || type === 'dc-battery-12v') {
+  if (
+    (type === 'ac-mains-supply' || type === 'diesel-generator' || type === 'dc-battery-12v') &&
+    source
+  ) {
     return {
       kind: 'source',
       ports: [0, 1],
-      supply:
-        type === 'dc-battery-12v'
-          ? { kind: 'dc', voltage: state.customVoltage ?? 12 }
-          : acSupply(sourceVoltage),
-      voltageOrigin:
-        state.customVoltage !== undefined
-          ? 'instance'
-          : type !== 'dc-battery-12v' && circuit.globalVoltage !== undefined
-            ? 'document'
-            : 'catalogue',
-      ...(type === 'dc-battery-12v' ? {} : { frequencyAssumed: true }),
+      supply: source.model,
+      voltageOrigin,
+      ...(source.model.kind === 'dc'
+        ? {}
+        : { frequencyAssumed: source.provenance.frequency === 'legacy-assumption' }),
     };
   }
   if (def.isSource)
@@ -99,14 +86,14 @@ export function resolveDeviceModel(
     const [first, second] = ports;
     const nominalPowerWatts = state.customPowerWatts ?? def.powerWatts;
     if (
-      RESISTIVE_LOADS.has(type) &&
+      DEVICE_CAPABILITY_FAMILIES[type] === 'resistive-load' &&
       first !== undefined &&
       second !== undefined &&
       ports.length === 2 &&
       nominalPowerWatts !== undefined &&
       nominalPowerWatts > 0
     ) {
-      const nominalVoltage = state.customVoltage ?? 230;
+      const nominalVoltage = state.customVoltage ?? RESISTIVE_NOMINAL_VOLTS;
       return {
         kind: 'resistive-load',
         ports: [first, second],

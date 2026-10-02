@@ -8,6 +8,7 @@ import type {
   WireInstance,
 } from '../types';
 import type { ElectricalDiagnostic } from './contracts';
+import { isSupplyProfile, sourceInterface, sourceProfileFitsInterface } from './supplies';
 import { WIRE_AWG_MM2 } from './wireProperties';
 
 const MAX_COMPONENTS = 5_000;
@@ -36,7 +37,9 @@ function isComponentState(value: unknown): boolean {
     if (field === undefined) continue;
     // These keys are discarded during normalization before hydration.
     if (key === '__proto__' || key === 'constructor' || key === 'prototype') continue;
-    if (key === 'on' || key === 'energized' || key === 'isBlown' || key === 'isTripped') {
+    if (key === 'sourceProfile') {
+      if (!isSupplyProfile(field)) return false;
+    } else if (key === 'on' || key === 'energized' || key === 'isBlown' || key === 'isTripped') {
       if (typeof field !== 'boolean') return false;
     } else if (key === 'speed') {
       if (!isFiniteInRange(field) || field < 0) return false;
@@ -200,6 +203,22 @@ export function validateCircuitInput(
     return invalid('invalid-wires', 'Missing "circuit.wires" array.', 'wires');
   if (circuit.globalVoltage !== undefined && !isPositiveFinite(circuit.globalVoltage))
     return invalid('invalid-voltage', 'Invalid "circuit.globalVoltage" value.', 'globalVoltage');
+  if (circuit.supply !== undefined && !isSupplyProfile(circuit.supply))
+    return invalid(
+      'invalid-supply-profile',
+      'Invalid versioned document supply profile.',
+      'supply',
+    );
+  if (
+    isSupplyProfile(circuit.supply) &&
+    circuit.globalVoltage !== undefined &&
+    circuit.globalVoltage !== circuit.supply.model.voltage
+  )
+    return invalid(
+      'conflicting-supply-voltage',
+      'The legacy voltage and document supply profile disagree.',
+      'globalVoltage',
+    );
   if (circuit.components.length > MAX_COMPONENTS)
     return invalid(
       'component-limit',
@@ -233,6 +252,34 @@ export function validateCircuitInput(
         'duplicate-component',
         `Duplicate component id "${value.id}" at index ${index}.`,
         `components[${index}].id`,
+        { componentId: value.id },
+      );
+    if (value.state.sourceProfile && !sourceInterface(value.type))
+      return invalid(
+        'invalid-source-target',
+        'Source settings require a declared supply interface; loads and PE are not sources.',
+        `components[${index}].state.sourceProfile`,
+        { componentId: value.id },
+      );
+    if (
+      value.state.sourceProfile &&
+      !sourceProfileFitsInterface(value.type, value.state.sourceProfile)
+    )
+      return invalid(
+        'source-interface-mismatch',
+        'The configured AC/DC kind does not match this source interface; replace the source explicitly.',
+        `components[${index}].state.sourceProfile`,
+        { componentId: value.id },
+      );
+    if (
+      value.state.sourceProfile &&
+      value.state.customVoltage !== undefined &&
+      value.state.customVoltage !== value.state.sourceProfile.model.voltage
+    )
+      return invalid(
+        'conflicting-source-voltage',
+        'The legacy voltage and source profile disagree.',
+        `components[${index}].state.customVoltage`,
         { componentId: value.id },
       );
     componentsById.set(value.id, value);

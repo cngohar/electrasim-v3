@@ -141,9 +141,24 @@ describe('Phase 1.5A independent audit regressions', () => {
     circuit.components.push(C('unsupported', type));
     const snapshot = JSON.stringify(circuit);
     const result = simulate(circuit);
-    expect(result.modelLimitations).toEqual([
-      expect.objectContaining({ componentId: 'unsupported', blocking: true }),
-    ]);
+    expect(result.modelLimitations).toEqual(
+      type === 'dc-battery-12v'
+        ? [
+            ...['l', 'unsupported'].map((componentId) =>
+              expect.objectContaining({
+                componentId,
+                code: 'independent-source-model',
+                blocking: true,
+              }),
+            ),
+            expect.objectContaining({
+              componentId: 'unsupported',
+              code: 'dc-source-model',
+              blocking: true,
+            }),
+          ]
+        : [expect.objectContaining({ componentId: 'unsupported', blocking: true })],
+    );
     expect(result.energizedComponents.size).toBe(0);
     expect(result.componentCalculations).toBeUndefined();
     expect(result.wireCalculations).toBeUndefined();

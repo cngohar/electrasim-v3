@@ -7,6 +7,7 @@ import type {
   DiagnosisScenario,
   DiagnosisScore,
 } from '@electrasim/domain/challenges';
+import { explicitSupplyProfile } from '@electrasim/domain/core/supplies';
 import { runSimulatorBrowser } from './test-simulator-browser';
 
 type Account = { id: string; cookie: string; email: string };
@@ -50,6 +51,7 @@ export async function runSimulatorTests(context: Context) {
     components: [{ id: 'light', type: 'bulb', x: 100, y: 100, state: {} }],
     wires: [],
     globalVoltage: 120,
+    supply: explicitSupplyProfile({ kind: 'ac-single-phase', voltage: 120, frequencyHz: 60 }),
   };
   const proType = Object.values(COMPONENT_DEFS).find((def) => def.tier === 'pro')!;
   const proKey = Object.entries(COMPONENT_DEFS).find(([, def]) => def === proType)![0];
@@ -72,6 +74,19 @@ export async function runSimulatorTests(context: Context) {
         method: 'POST',
         data: { circuit: basic },
         expected: 200,
+      });
+      await request('/simulator/simulate', {
+        method: 'POST',
+        data: {
+          circuit: {
+            ...basic,
+            supply: {
+              ...basic.supply,
+              model: { kind: 'ac-single-phase', voltage: 120, frequencyHz: 0 },
+            },
+          },
+        },
+        expected: 400,
       });
       await request('/simulator/authorize', {
         method: 'POST',
@@ -125,6 +140,7 @@ export async function runSimulatorTests(context: Context) {
       });
       const loaded = await request(`/circuits/${saved.id}`, { user, expected: 200 });
       assert.equal(loaded.circuit.globalVoltage, 120);
+      assert.deepEqual(loaded.circuit.supply, basic.supply);
       assert.equal(loaded.circuit.faults?.[0].type, 'arc-fault');
       await request(`/circuits/${saved.id}`, { user: other, expected: 404 });
       await request(`/circuits/${saved.id}`, {

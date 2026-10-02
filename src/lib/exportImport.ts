@@ -7,6 +7,7 @@
  */
 
 export {
+  CIRCUIT_SCHEMA_VERSION,
   exportJSON,
   importJSON,
   normalizeCircuit,

@@ -11,6 +11,7 @@ import { COMPONENT_DEFS } from '../components';
 import { ELECTRICAL_MODEL_VERSION } from '../core/contracts';
 import { validateCircuitInput } from '../core/input';
 import { normalizeCircuitDocument } from '../core/normalize';
+import { configuredSupplySources, resolveDocumentSupply } from '../core/supplies';
 import { resolveWireProperties } from '../core/wireProperties';
 import { calculateElectricalValues, getStandardCableAmpacity } from '../electricalCalculations';
 import { FAULT_REGISTRY } from '../faults';
@@ -330,16 +331,17 @@ function simulateLegacy(circuit: Circuit, options: SimulateOptions): SimulationR
   // Every source terminal is a root.
   const liveSources: ComponentInstance[] = [];
   const neutralSources: ComponentInstance[] = [];
-  let supplyVoltage = circuit.globalVoltage ?? 230;
+  // Mixed profiles are already blocked above. Identical sources/explicit alias
+  // settings no longer select a voltage according to component array order.
+  const supplyVoltage =
+    configuredSupplySources(circuit)[0]?.profile.model.voltage ??
+    resolveDocumentSupply(circuit).model.voltage;
 
   for (const c of circuit.components) {
     const def = defs[c.type];
     if (!def?.isSource) continue;
     if (def.ports.some((port) => port.type === 'live')) {
       liveSources.push(c);
-      if (c.state.customVoltage !== undefined && c.state.customVoltage > 0) {
-        supplyVoltage = c.state.customVoltage;
-      }
     }
     if (def.ports.some((port) => port.type === 'neutral')) {
       neutralSources.push(c);

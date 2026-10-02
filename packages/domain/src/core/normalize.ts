@@ -1,13 +1,27 @@
 import { COMPONENT_DEFS } from '../components';
 import { type StandardId, getStandard } from '../standards';
 import type { Circuit, ComponentDef, ComponentState, InjectedFault } from '../types';
-
-/** Schema 1 omitted supply settings mean the historical 230 V / 50 Hz assumption.
- * Standards selection is a view, not permission to change a saved supply. */
-export const LEGACY_SUPPLY_DEFAULTS = { voltage: 230, frequencyHz: 50 } as const;
+import {
+  copySupplyProfile,
+  explicitSupplyProfile,
+  resolveDocumentSupply,
+  resolveSourceProfile,
+  sourceInterface,
+} from './supplies';
+export { LEGACY_SUPPLY_DEFAULTS } from './supplies';
 
 export function createEmptyCircuit(standard: StandardId = 'uk'): Circuit {
-  return { components: [], wires: [], globalVoltage: getStandard(standard).nominalVoltage };
+  const preset = getStandard(standard);
+  return {
+    components: [],
+    wires: [],
+    globalVoltage: preset.nominalVoltage,
+    supply: explicitSupplyProfile({
+      kind: 'ac-single-phase',
+      voltage: preset.nominalVoltage,
+      frequencyHz: preset.frequencyHz,
+    }),
+  };
 }
 
 /** Copy plain validated metadata without retaining prototype-mutating keys. */
@@ -25,6 +39,7 @@ export function resolveComponentState(
   releaseMomentary = false,
 ): ComponentState {
   const result = copySafeRecord(state);
+  if (result.sourceProfile) result.sourceProfile = copySupplyProfile(result.sourceProfile);
   if (definition?.isSwitch && result.on === undefined) result.on = definition.defaultOn ?? false;
   if (definition?.isMomentary && releaseMomentary) result.on = false;
   return result;
@@ -37,10 +52,22 @@ export function normalizeCircuitDocument(
   defs: Record<string, ComponentDef> = COMPONENT_DEFS,
 ): Circuit {
   return {
-    components: circuit.components.map((component) => ({
-      ...component,
-      state: resolveComponentState(component.state, defs[component.type], releaseMomentary),
-    })),
+    components: circuit.components.map((component) => {
+      const state = resolveComponentState(component.state, defs[component.type], releaseMomentary);
+      const kind = sourceInterface(component.type);
+      // Aliases without an override continue to use the document profile. Independent
+      // blocks capture it once, so a later global edit cannot rewrite another source.
+      if (
+        kind &&
+        (kind === 'ac-source' ||
+          kind === 'dc-source' ||
+          state.customVoltage !== undefined ||
+          state.sourceProfile)
+      ) {
+        state.sourceProfile = resolveSourceProfile(component.type, state, circuit);
+      }
+      return { ...component, state };
+    }),
     wires: circuit.wires.map((wire) => ({
       ...wire,
       controlPoints: (wire.controlPoints ?? []).map((point) => ({ ...point })),
@@ -57,5 +84,6 @@ export function normalizeCircuitDocument(
         }
       : {}),
     ...(circuit.globalVoltage !== undefined ? { globalVoltage: circuit.globalVoltage } : {}),
+    supply: resolveDocumentSupply(circuit),
   };
 }

@@ -307,8 +307,8 @@ export function useKeyboardShortcuts() {
       }
       if (meta && (e.key === 's' || e.key === 'S') && !e.shiftKey) {
         e.preventDefault();
-        const { components, wires, globalVoltage } = useCircuitStore.getState();
-        const json = exportJSON({ components, wires, globalVoltage });
+        const { components, wires, globalVoltage, supply, faults } = useCircuitStore.getState();
+        const json = exportJSON({ components, wires, globalVoltage, supply, faults });
         downloadText(json, 'circuit.electrasim.json', 'application/json');
         useUiStore.getState().addLog('Circuit exported as JSON.', 'success');
         return;

@@ -1,0 +1,122 @@
+# Phase 1.5C preparation — simulator behavior audit
+
+Reviewed: **2026-10-01**, against V3 **`6e2736c`** and the existing behavior-plan/ADR/probe drafts, using **Bun 1.4.2**. Status: **audit and delivery requirements recorded; numerical and UI corrections remain pending**.
+
+This is a current V3 supplement to the [core rebuild register](../plans/SIMULATOR_CORE_REBUILD_PLAN.md), not a replacement for the historical [V2 audit](../../v3-audit.md). [Phase 1.5B](phase-1-electrical-contracts.md) remains complete within its contracts/graph scope. Its compiler already describes independent sources, resistive models and individual conductor resistance; the running numerical solver still uses the legacy rail/current calculations.
+
+The resulting requirements are in the [behavior plan](../plans/SIMULATOR_BEHAVIOR_PLAN.md), [MNA decision](../decisions/0009-mna-solver.md) and [Phase 1 sequence](../phases/phase-1-simulator-core.md). Essential compatibility, supply-change confirmation, readiness and honest measurements belong to **1.5C**, with device timing in **1.5D**, three-phase support in **1.5E** and complete exercise/consumer migration in **1.5F**. Layout refinement follows in 1.7.
+
+## 1. Evidence and interpretation
+
+- Ran `bun scripts/probes/phase15c-behavior.ts`: **42 diagnostic observations** through the current `simulate`, `compileCircuit` and `validateCircuit` entry points. The [probe source](../../scripts/probes/phase15c-behavior.ts) contains explicit fixtures and independent reference equations. Its zero exit code means the observations were collected, not that the electrical expectations passed.
+- Raw observations are retained locally in ignored `.wrangler/phase15c-behavior-review-2026-10-01/observations.jsonl`. The findings and important values below are durable evidence even when local artifacts are removed.
+- Ran the existing core, audit-regression, diagnosis-evaluator and fault-verification suites: **4 files, 145 passed and 5 expected failures**. These preserve existing safeguards and known-defect ownership; they do not close 1.5C. Command recorded in section 7.
+- UI, store, generator and API findings below are **source-inspected**, not newly executed browser scenarios. No fresh build, full phase gate, full `verify`, browser acceptance, Worker/D1 suite or generator stress matrix was run for this documentation revision.
+- No runtime implementation, dependencies, credentials, Cloudflare resources or deployment settings changed. All execution was local. Root `AGENTS.md` continues to govern development and future remote authorization.
+
+“Reproduced” below means this probe run. “Preserve” identifies behavior that already works in the stated fixture. Reference calculations describe a declared teaching approximation; they are not manufacturer data or full installation-compliance findings.
+
+## 2. Readiness, supply and load findings
+
+| ID | Current result and interpretation | Required disposition / owner |
+|---|---|---|
+| R01 | Empty input returns `faultsCleared: true` and contract status `estimated`; validation separately returns `empty`, score 0. Empty input is therefore not falsely passed by the validator, but the simulation flag is not a readiness verdict. | Shared empty/no-circuit result and explained Run state, **1.5C.0/4**. |
+| R02 | Unwired Live + Neutral return no simulation errors/warnings and `faultsCleared: true`; validation correctly says `incomplete`, score 0. | Explain no complete load path before ordinary Run; retain an explicitly labeled no-load diagnostic workflow, **1.5C.4**. |
+| R03 | A load without a source produces missing Live/Neutral warnings and an incomplete validation result. | Preserve source detection; derive it from typed supply domains and expose it consistently, **1.5C.0/4**. |
+| R04 | Open lamp return produces no simulation errors/warnings and no operating load; the feed reports 0 A. Validation warns about the unwired neutral component, but there is no shared open-branch readiness/measurement result. | Distinguish open current path, live terminal potential and intentional switch-off; allow supported diagnostic runs, **1.5C.1/4**. |
+| V01 | A nominal 2 kW heater remains 2 kW at every tested supply voltage; lowering voltage increases calculated current as `P/V`. The compiler already declares a 26.45 Ω fixed-resistance model, but the runtime does not use it. | MNA and the declared load law, fixed device design rating, voltage-dependent operation and cable loss, **1.5C.1/2**. |
+| V02 | The 9 W LED at 12 V is reported operating at 0.75 A / 9 W, without a supported driver range. V01/V02 also produce the inaccurate “110V rated equipment” overvoltage message on 12/24/48/120 V supplies. | Explicit driver operating range or not-assessed coverage; numeric/domain-aware mismatch reasons, **1.5C.0/2**. Do not treat an unspecified LED as a resistor. |
+| V03 | A bulb on a scalar 400 V supply is marked destroyed using the fallback 250 V maximum while still appearing energized with 9 W telemetry. | Separate known rating, operating range and modeled damage. Remove invented limits in **1.5C.2/4**; consistent damage/event/post-event state in **1.5D**. A 400 V scalar is not a three-phase model. |
+| V04 | LED, incandescent and halogen variants at 230 V already differ: 9/60/42 W and 0.039130/0.260870/0.182609 A. | **Preserve the distinction.** The defect is not “all variants are identical”; verify declared laws across voltages and safe terminal/state mapping, **1.5C.2/4**. |
+| V05 | A 12 V battery circuit returns `not-assessed`, no load/wire telemetry and a blocking model explanation. | **Preserve the 1.5A guard** until supported DC source/load results reach the actual runtime, **1.5C.5**. Do not report the older 230 V battery bug as currently exposed. |
+| V06 | Separate 12 V AC and 230 V AC supplies are compiled separately, but runtime gives both loads 230 V. Reversing component order gives both 12 V. Validation also reports a whole-canvas 12/230 V mismatch despite the separate circuits. | Independent source identity, island-aware compatibility and order-invariant MNA, **1.5C.0–2**. Different isolated supply voltages are legitimate. |
+| T01 | Physically reversed lamp L/N receives no polarity finding and validation score 100, with only the generic limited-coverage note. | Free topology-based polarity diagnostics, **1.5C.3**; migrate all validation/grading consumers in **1.5F**. |
+| T02 | Returning the lamp through PE leaves it unpowered. The reported validation warning concerns the unused neutral, not the unintended PE return. | Identify the actual miswire and explicit bonding/reference assumptions, **1.5C.3/4**. PE is not an ordinary return or power source. |
+| T03 | A direct L–N wire correctly produces a short-circuit error, but its wire calculation still displays 0 A without fault-current coverage semantics. | **Preserve short detection.** Separate unknown/prospective fault current from measured or post-clearing zero, **1.5C.3/1.5D**. Readiness must not hide a short as “no load.” |
+| I01 | Negative length, zero/NaN conductor area, zero derating and an invalid port all return `invalid`, no electrical telemetry and validation score 0. | **Preserve 1.5B validation** at every new model/editor/adapter entry point. Invalid input is not a normal zero measurement. |
+
+### Independent heater reference
+
+The probe holds the same nominal **230 V / 2 kW element** throughout: `Rload = 230² / 2000 = 26.45 Ω`. Each of its two 10 m, 2.5 mm² copper conductors has `Rwire = 0.0175 × 10 / 2.5 = 0.07 Ω` at the stated 20 °C assumption. Thus `I = Vsupply / (26.45 + 0.14)`, `Vload = I × 26.45`, and `Pload = I² × 26.45`.
+
+| Source voltage | Current runtime current / power | Reference current | Reference load voltage | Reference load power |
+|---|---|---|---|---|
+| 230 V | 8.695652 A / 2000 W | 8.649868 A | 228.789018 V | 1978.994894 W |
+| 120 V | 16.666667 A / 2000 W | 4.512975 A | 119.368184 V | 538.705604 W |
+| 48 V | 41.666667 A / 2000 W | 1.805190 A | 47.747273 V | 86.192897 W |
+| 24 V | 83.333333 A / 2000 W | 0.902595 A | 23.873637 V | 21.548224 W |
+| 12 V | 166.666667 A / 2000 W | 0.451297 A | 11.936818 V | 5.387056 W |
+
+These references include finite wires. The behavior plan's separate ideal-terminal table assumes the quoted voltage is already **across the load**. Neither approximation silently covers heater electronics, cold-filament inrush, LED drivers or thermal destruction.
+
+## 3. Cable, current and protection findings
+
+| ID | Reproduced observation | Required disposition / owner |
+|---|---|---|
+| C01 | Parallel heater/lamp load telemetry is 8.695652 A and 0.039130 A, but all four branch wires report their sum, **8.734783 A**. | Solve branch currents; sum only on actual shared feeders, **1.5C.1/2**. References for supported models must include finite wire resistance. |
+| C02 | Disconnecting the lamp return leaves its feed at **8.695652 A**, copied from the working heater. Validation still returns score 100. | Open branch must carry zero current while retaining any live potential; report partial operation, **1.5C.1/4**, then consumer acceptance in **1.5F**. |
+| C03 | Increasing each heater wire from 10 to 100 to 1000 m leaves load output at 230 V / 8.695652 A / 2000 W. Reported drop per wire grows to 156.521739 V at 1000 m without reducing terminal voltage. | Stamp conductor resistance into MNA, **1.5C.2**. Under the stated reference, 1000 m per conductor gives **5.686032 A, 150.395550 V and 855.153931 W** at the load. |
+| C03 resistance | For a 10 m, 2.5 mm² copper wire the compiled model uses **0.07 Ω** for one conductor at 20 °C; runtime telemetry uses **0.18 Ω**, derived from the two-conductor 70 °C design-drop table. | Keep the existing design table's stated meaning; use individual conductor resistance for the solver and label temperature/loop assumptions, **1.5C.2**. Do not apply a loop value independently to both wires. |
+| C04 capacity | The current cable helper distinguishes 2.5 mm² copper method C (**27 A**), aluminum method C (**21 A**), and copper B1 with 0.5 derating (**24 A base / 12 A effective**). | **Preserve applicable material/method/derating behavior.** These are the current declared teaching references, not universal ampacity certification. Capacity does not set operating current. |
+| C04 precedence | Runtime wire size correctly resolves explicit 6 mm², saved 16 AWG → 1.31 mm², and otherwise the explicit 1 mm² endpoint. However, an endpoint's 1 mm² setting still produces “Undersized Cable Gauge” even when both wires explicitly use 6 mm². | **Preserve the 1.5B resolver** and complete consumer adoption. Separate modeled wire runs, component-tail recommendations and any explicitly modeled flex, **1.5C.2/4**, final validation integration **1.5F**. |
+| P01 | A **1 A lamp-branch MCB trips at 8.734783 A** due to the separate 2 kW heater, despite the lamp's own 0.039130 A telemetry. | Deliver actual pole/branch currents in **1.5C**; branch-aware protective operation and re-solve in **1.5D**. Guard unimplemented protection aspects during the transition. |
+| P02 | The unprotected 6.9 kW branch immediately “melts” its 27 A wires at 30 A. Adding a separate, lightly loaded B32 branch suppresses the melting errors on the heater branch; overload warnings remain. | Replace canvas-wide `hasProtection` with actual protective paths and declared time/energy models, **1.5D**. Correct behavior is not unconditional immediate melting in either fixture. |
+| P03/P04 | The 100 A isolator and 63 A plain RCCB do **not** auto-trip on the 32.173913 A balanced load. The separate instantaneous cable-damage problem remains. | **Preserve the 1.5A role fixes.** An isolator is not an MCB and balanced current alone is not residual current. Extend time/state/coordination in **1.5D**. |
+| P05 | A B16 does **not** instantly trip on the 17.391304 A fixture. | **Preserve the distinction between rating and instantaneous operation.** Add explicit elapsed-time/curve behavior, not an `I > In` trip rule, **1.5D**. |
+
+Source anchors: [runtime calculations](../../packages/domain/src/simulation/simulate.ts), [wire resolver](../../packages/domain/src/core/wireProperties.ts), [design cable helpers](../../packages/domain/src/electricalCalculations.ts), [validation](../../packages/domain/src/circuitValidation.ts), and [protection roles](../../packages/domain/src/protectionRoles.ts). Keep `Ib`, `In`, `Iz`, residual mA, actual branch A and conductor mm²/AWG distinct across these consumers.
+
+## 4. Compatibility, editing and UI findings — source inspection
+
+| ID | Source evidence and present limitation | Required change / owner |
+|---|---|---|
+| U01 — supply editing | [SubHeaderBar](../../src/ui/components/SubHeaderBar.tsx) applies presets/custom values directly, with no impact confirmation or resulting review/Undo notice. [setGlobalSupplyVoltage](../../src/store/circuitStore.ts) rewrites all source-like components, including independent supplies, and uses the first arbitrary component as a voltage holder when none match. | Stage one named supply change, preview affected devices/domains, require Cancel/Apply on a populated drawing, then notify with Review/Undo. Preserve ratings, faults, IDs and unrelated sources, **1.5C.0/4**. |
+| U02 — palette | [Palette](../../src/ui/components/Palette.tsx) filters by presentation tier, challenge allowlist, regional sockets and text. It has no shared supply-kind/frequency/range compatibility filter. | Shared domain compatibility for palette/search/recent/commands/import/Run, with explicit show-all/fault use and discoverable independent supplies/converters, **1.5C.0/4**. |
+| U03 — property controls | [ComponentPropertiesView](../../src/ui/components/inspector/ComponentPropertiesView.tsx) uses `isSource` and substring tests for Battery Chemistry and Supply Voltage. `includes('cell')` matches photocells; `includes('ac')` matches `space-heater`. The extra Operating Voltage input does not share the running lock used by the primary supply input. | Capability/terminal-group-based controls and one staged source mutation flow; separate nameplate from measured voltage; no battery/PE/source misclassification, **1.5C.0/4**. Battery discharge and chemistry laws are not implemented by the visible selector. |
+| U04 — variants | The [variant list](../../src/ui/components/inspector/variantFamilies.ts) groups MCB, RCCB, fuse, SPD and isolator together. [updateComponentType](../../src/store/circuitStore.ts) changes the type and some defaults without mapping connected terminal roles, retaining other old voltage/trip settings. The gallery already locks while running. | Preserve that lock; compare capabilities and explicitly map or reject terminal changes, define override/reset policy, and apply one undoable transaction, **1.5C.4**. Distinguish replacement from appearance changes. |
+| U05 — wire display | [WireInspectorView](../../src/ui/components/inspector/WireInspectorView.tsx) displays `wire.customCableMm2 ?? 2.5`, missing saved AWG and endpoint fallback. [InspectorSimulationContent](../../src/ui/components/inspector/InspectorSimulationContent.tsx) substitutes **0.05 Ω** resistance and **20 A** capacity when telemetry is absent. | Show the shared resolved value/provenance and explicit unavailable measurements, **1.5C.2/4**. A default is not a measured value or a safety pass. |
+| U06 — readiness/status | [uiStore](../../src/store/uiStore.ts) already shares damaged/tripped checks and a Pro validation gate across ordinary Run actions, but has no mode-independent empty/no-load/partial readiness contract. [StatusPill](../../src/ui/components/StatusPill.tsx) infers AC from `voltage > 48`, labels every warning “Open Circuit,” and can say “Healthy” when any component is active. | Keep existing physical/access guards; add shared typed readiness and correct source/status meanings across buttons/shortcuts/adapters, **1.5C.0/4/5**. |
+| U07 — result consumers | [InspectorAnalyticsView](../../src/ui/components/inspector/InspectorAnalyticsView.tsx) reconstructs totals from nameplate power and global voltage, infers AC from type/voltage, and adds random display noise. [useSimulation](../../src/store/useSimulation.ts) already has request-sequence/running guards and clears obsolete results, but its fault narration still includes hardcoded 110 V destruction language. | Preserve existing stale-response protection; carry revision/model/source identity through measurements, analytics and dialogs. Remove fallback calculations and false narration for integrated models in **1.5C.4/5**; time/event semantics in **1.5D**, full consumer migration **1.5F**. |
+
+These are requirements backed by inspected code, not a claim that every listed browser interaction was reproduced. Browser acceptance must cover Cancel/Apply/Undo, edits during a pending dialog, run locks, independent sources, stale worker results, unauthorized changes, variant port-count changes and restored/imported documents.
+
+## 5. Fault Lab, Diagnosis Lab and Ohmageddon
+
+Each mode must consume the same physical model and diagnostics. Answer concealment, entitlement policy and difficulty are separate from the electrical result.
+
+| Mode / current foundations | Changes and phase ownership | Local acceptance |
+|---|---|---|
+| **Fault Lab:** [inspector](../../src/ui/components/inspector/InspectorFaultLabView.tsx), [fault registry](../../packages/domain/src/faults.ts), [store fault actions](../../src/store/circuitStore.faultActions.ts), [fault dialog](../../src/ui/components/FaultAlertModal.tsx). Target registry checks and paid-action gates already exist; the grid still uses coarse switch/protection categories and live values default to zero. Repair dialogs infer voltage from component/global settings and a 250 V fallback. | **1.5C:** capabilities, fault applicability, affected domain and honest available/unavailable readings. **1.5D:** injected fault → timed trip/fuse/damage → repair/reset → re-solve, with supported fault parameters. **1.5F:** finish all dialog/context-menu/inspector paths and model coverage for every current fault type. | Unsupported targets/parameters explained; branch faults stay local; Repair does not remove a supply mismatch or change ratings; a normal breaker trip never destroys it; physical hazards remain visible to guests. |
+| **Diagnosis Lab, basic and advanced:** [evaluator](../../packages/domain/src/challenges/diagnosis/evaluator.ts), [recovery verification](../../packages/domain/src/challenges/faults/verification.ts), [store](../../src/store/diagnosisStore.ts), [local API](../../src/api/diagnosis.ts). The evaluator already separates fault identification from repair, checks structural deficits and rejects remaining faults. The server already evaluates submissions after authorization. Recovery comparison still relies on error/energization counts and lacks operating-point/profile/version equivalence. | **1.5C.4/5:** preserve authored supply/edit constraints during solver rollout; an unsupported exercise stays explicitly unavailable. **1.5F:** extend recovery to intended loads/terminal measurements/coverage/readiness, pin supply/device/model/generator/profile context, and apply permitted-edit policy in the shared evaluator and server. | Correct answer with incomplete repair remains incomplete. Deleting loads/CPC, changing supply or substituting unsupported devices cannot earn success. Legitimate equivalent repairs follow explicit mappings/tolerances. Browser/local Worker verdicts agree; guest basic and authorized advanced flows retain their boundaries. |
+| **Ohmageddon:** [rage runner](../../packages/domain/src/challenges/rage/runner.ts), [modifiers](../../packages/domain/src/challenges/rage/modifiers.ts), [scenario generation](../../packages/domain/src/challenges/diagnosis/scenario.ts), [generator validation](../../packages/domain/src/challenges/generator/validator.ts). It already revalidates modifiers and checks observed faults/recoveries; those checks use the legacy result meanings and supported candidate list. | **1.5D/E prerequisites** for any timed or three-phase scenario. **1.5F:** re-prove baseline, each compound/masked fault, partial repair and full recovery with supported models and honest instrument values. Persist replay/scoring versions; keep decoys electrically valid. **Phases 3–5:** version-aware score comparison, broader generation and new authored content. | Every generated scored scenario is observable and repairable under its recorded model. Partial repair reveals the remaining real fault; hidden answers do not alter physics or palette availability. Unknown/unsupported results cannot become success. Deterministic hashes alone are insufficient. |
+
+Lock the authored supply during a graded attempt with an explanation. A confirmed exit-to-sandbox/restart may allow edits without treating them as a repair of the old attempt. Enforce this through the shared evaluation/API path, not only a disabled toolbar. Existing exercises must not fall back to a second numerical truth while the supported browser slice uses MNA.
+
+## 6. Delivery and later-phase handoff
+
+| Owner | Required handoff |
+|---|---|
+| **1.5C.0–5** | Extend accepted 1.5B contracts and migrate persisted supply settings; choose MNA via ADR 0009; deliver the supported numerical slice, compatibility, confirmation, readiness, cable/property agreement and real browser/Comlink/local Hono use. Promote corrected audit fixtures to ordinary assertions. |
+| **1.5D** | Add explicit time/state, coil/dimmer/timer behavior, branch-aware protection, damage coverage and coherent event/post-event telemetry. |
+| **1.5E** | Add supported balanced three-phase source/phasor semantics, L–N/L–L conventions and phase-loss/sequence tests. 400 V UI presets alone do not satisfy this gate. |
+| **1.5F** | Complete all validators, instruments, exports, templates, Fault Lab, Diagnosis Lab and Ohmageddon migrations; reject false repair/assessment success; retire legacy runtime after independent and local integration acceptance. |
+| **1.6 / 1.7** | Effects consume accepted state/events; UI refinement improves density, accessibility and discoverability while retaining the essential 1.5C interactions. Current-flow animation follows current, not voltage alone. |
+| **1.8 / 1.9** | Admin never edits physics/standards; final local Phase 1 gate reconciles every finding and rechecks memberships, persistence, correctness, integration and performance. |
+| **2 / 3** | Sharing preserves model/profile/version and assessment freshness; scores use comparable, authorized, versioned outcomes. |
+| **4 / 5 / 6** | Expanded generators/content prove supported outcomes and repairability; LMS pins attempt/exercise/model/standard evidence. These phases add scope, not the first truthful implementation of existing labs. |
+| **7 / 8** | Checkout reuses correct feature/physics boundaries; hardening repeats local correctness/access/recovery/performance/dependency checks. Any future remote work still needs the user's new account and explicit authorization. |
+
+## 7. Verification commands and next gate
+
+Executed locally for this review:
+
+```bash
+bun scripts/probes/phase15c-behavior.ts
+bun x vitest run packages/domain/src/core/core.test.ts packages/domain/src/simulation/audit-regressions.test.ts packages/domain/src/challenges/diagnosis/evaluator.test.ts packages/domain/src/challenges/faults/verification.test.ts
+```
+
+Results: **42 observations; 145 passing tests and 5 owned expected failures across 4 test files**. The expected failures remain defects, not waived electrical requirements. The runner also emitted existing Vite plugin esbuild/oxc deprecation warnings; this review made no dependency changes.
+
+Documentation verification passed: **192 local Markdown links/anchors across 12 documents**, `git diff --check`, and `bun x biome check scripts/probes/phase15c-behavior.ts`. The link review also corrected existing table-of-contents anchors in the touched master roadmap.
+
+Before closing **1.5C**, implement the [six ordered steps](../plans/SIMULATOR_BEHAVIOR_PLAN.md#7-delivery-order-and-exit-gates), assert analytical values/KCL/KVL/power balance and model limits, exercise the essential UI locally and verify direct-domain/Comlink/local Hono agreement. Record a reproducible local phase command and its actual results. A diagnostic probe, compiler success, legacy parity or source inspection alone cannot close that gate.

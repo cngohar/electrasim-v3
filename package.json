@@ -49,6 +49,7 @@
     "test:simulator": "SIMULATOR_ONLY=1 bun scripts/test-membership.ts",
     "verify:phase-1.5a": "bun scripts/verify-phase15a.mjs",
     "verify:phase-1.5b": "bun scripts/verify-phase15b.mjs",
+    "verify:phase-1.5c0": "bun scripts/verify-phase15c0.mjs",
     "test:domain-local": "bun scripts/test-domain-local.ts"
   },
   "dependencies": {

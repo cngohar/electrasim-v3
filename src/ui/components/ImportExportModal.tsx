@@ -88,8 +88,8 @@ export function ImportExportModal({ open, onClose, svgRef }: Props) {
   const handleExportJSON = useCallback(() => {
     clearMessages();
     promptFilename('circuit', '.electrasim.json', (filename) => {
-      const { components, wires, globalVoltage, faults } = useCircuitStore.getState();
-      const json = exportJSON({ components, wires, globalVoltage, faults });
+      const { components, wires, globalVoltage, supply, faults } = useCircuitStore.getState();
+      const json = exportJSON({ components, wires, globalVoltage, supply, faults });
       downloadText(json, filename, 'application/json');
       setSuccess(`JSON exported as "${filename}".`);
       useUiStore.getState().addLog(`Circuit exported as JSON: ${filename}`, 'success');
@@ -134,10 +134,13 @@ export function ImportExportModal({ open, onClose, svgRef }: Props) {
   const handleExportEic = useCallback(() => {
     clearMessages();
     promptFilename('mini-eic', '.eic.html', (filename) => {
-      const { components, wires, globalVoltage } = useCircuitStore.getState();
+      const { components, wires, globalVoltage, supply, faults } = useCircuitStore.getState();
       const standard = useSettingsStore.getState().regulationStandard;
       const html = renderEicHtml(
-        buildEicReportData({ components, wires, globalVoltage }, { standard, earthing: 'TN-C-S' }),
+        buildEicReportData(
+          { components, wires, globalVoltage, supply, faults },
+          { standard, earthing: 'TN-C-S' },
+        ),
       );
       downloadText(html, filename, 'text/html');
       setSuccess(`Mini EIC exported as "${filename}" — open it, then Print / Save as PDF.`);
@@ -160,8 +163,8 @@ export function ImportExportModal({ open, onClose, svgRef }: Props) {
     clearMessages();
     setBusy(true);
     try {
-      const { components, wires, globalVoltage, faults } = useCircuitStore.getState();
-      const url = await encodeShareURL({ components, wires, globalVoltage, faults });
+      const { components, wires, globalVoltage, supply, faults } = useCircuitStore.getState();
+      const url = await encodeShareURL({ components, wires, globalVoltage, supply, faults });
       await navigator.clipboard.writeText(url);
       setSuccess('Share link copied to clipboard!');
       useUiStore.getState().addLog('Share link copied.', 'success');

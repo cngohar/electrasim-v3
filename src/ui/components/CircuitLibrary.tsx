@@ -65,8 +65,8 @@ export function CircuitLibrary() {
     await refreshAccess();
   };
   const save = async (update: boolean) => {
-    const { components, wires, globalVoltage, faults } = useCircuitStore.getState();
-    const circuit = { components, wires, globalVoltage, faults };
+    const { components, wires, globalVoltage, supply, faults } = useCircuitStore.getState();
+    const circuit = { components, wires, globalVoltage, supply, faults };
     const saved = await apiJSON<CircuitLibraryDocument>(
       update && current ? `/circuits/${current.id}` : '/circuits',
       update ? 'PATCH' : 'POST',

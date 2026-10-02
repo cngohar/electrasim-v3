@@ -1,3 +1,4 @@
+import { explicitSupplyProfile } from '@electrasim/domain/core/supplies';
 import { describe, expect, it } from 'vitest';
 import { buildSeedCircuit } from '../../store/seed';
 import { __SETTINGS_DEFAULTS } from '../../store/settingsStore';
@@ -16,7 +17,7 @@ describe('exportBackupJSON', () => {
     const json = exportBackupJSON({ settings, circuit: null, appVersion: '1.6.1' });
     const parsed = JSON.parse(json);
     expect(parsed.format).toBe(BACKUP_FORMAT);
-    expect(parsed.version).toBe(1);
+    expect(parsed.version).toBe(2);
     expect(parsed.settings.colorScheme).toBe('dark');
     expect(parsed.circuit).toBeUndefined();
     expect(parsed.appVersion).toBe('1.6.1');
@@ -32,6 +33,26 @@ describe('exportBackupJSON', () => {
 });
 
 describe('parseBackupFile — round trip', () => {
+  it('preserves typed supplies in version 2 and upgrades legacy version 1 circuits', () => {
+    const supply = explicitSupplyProfile({
+      kind: 'ac-single-phase',
+      voltage: 120,
+      frequencyHz: 60,
+    });
+    const modern = parseBackupFile(
+      exportBackupJSON({
+        settings,
+        circuit: { ...buildSeedCircuit(), globalVoltage: 120, supply },
+      }),
+    );
+    expect(modern.ok && modern.backup.circuit?.supply).toEqual(supply);
+    const legacy = parseBackupFile(
+      JSON.stringify({ format: BACKUP_FORMAT, version: 1, circuit: buildSeedCircuit() }),
+    );
+    expect(legacy.ok && legacy.backup.circuit?.supply?.provenance.frequency).toBe(
+      'legacy-assumption',
+    );
+  });
   it('restores settings and circuit from a valid file', () => {
     const circuit = buildSeedCircuit();
     const json = exportBackupJSON({ settings, circuit, appVersion: '1.6.1' });

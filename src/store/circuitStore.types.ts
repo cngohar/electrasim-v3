@@ -39,6 +39,7 @@ export interface CircuitState {
   components: ComponentInstance[];
   wires: WireInstance[];
   globalVoltage: number;
+  supply?: Circuit['supply'];
   /** Active user-injected faults */
   faults: InjectedFault[];
 

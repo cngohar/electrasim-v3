@@ -1,4 +1,5 @@
 import { COMPONENT_DEFS } from './components';
+import { configuredSupplySources, sameSupplyModel } from './core/supplies';
 import type { Circuit, ComponentDef, SimulationLimitation } from './types';
 
 /** Temporary explicit coverage boundary until the replacement device models ship.
@@ -10,6 +11,18 @@ export function getSimulationLimitations(
   defs: Record<string, ComponentDef> = COMPONENT_DEFS,
 ): SimulationLimitation[] {
   const limitations: SimulationLimitation[] = [];
+  const sources = configuredSupplySources(circuit);
+  const first = sources[0]?.profile.model;
+  if (first && sources.some((source) => !sameSupplyModel(source.profile.model, first))) {
+    for (const source of sources)
+      limitations.push({
+        code: 'independent-source-model',
+        componentId: source.componentId,
+        blocking: true,
+        message:
+          'Different or conflicting source profiles require the new independent-source solver. Legacy rail measurements are unavailable.',
+      });
+  }
   for (const component of circuit.components) {
     const def = defs[component.type];
     if (!def) continue;
@@ -21,7 +34,18 @@ export function getSimulationLimitations(
         blocking,
       });
     };
-    if (def.category === 'transformer') {
+    const configured = sources.find((s) => s.componentId === component.id)?.profile.model;
+    if (configured?.kind === 'dc' && component.type !== 'dc-battery-12v') {
+      add(
+        'dc-source-model',
+        'This source is configured for DC. DC voltage and load response await the new solver; electrical measurements are unavailable.',
+      );
+    } else if (configured?.kind === 'ac-three-phase') {
+      add(
+        'three-phase-model',
+        'The saved three-phase profile requires explicit phase terminals and the three-phase solver; electrical measurements are unavailable.',
+      );
+    } else if (def.category === 'transformer') {
       add(
         'transformer-model',
         'transformer voltage conversion and winding isolation are not assessed. Electrical simulation is unavailable for this circuit.',

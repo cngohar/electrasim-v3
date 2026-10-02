@@ -4,3 +4,7 @@ export { terminalId } from './faultTopology';
 export { validateCircuitInput } from './input';
 export { createEmptyCircuit, normalizeCircuitDocument, resolveComponentState } from './normalize';
 export { resolveWireProperties } from './wireProperties';
+export * from './supplies';
+export * from './capabilities';
+export * from './compatibility';
+export * from './readiness';

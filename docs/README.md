@@ -4,7 +4,9 @@ This directory contains technical documentation, Architecture Decision Records (
 
 Current work: [Phase 1 simulator core](phases/phase-1-simulator-core.md). The [deep-scan reconciliation and electrical-core rebuild plan](plans/SIMULATOR_CORE_REBUILD_PLAN.md) inserts 1.5A–1.5F before visual effects and maps the root audit to current V3 findings and later-phase gates. Development and testing remain local-only under root `AGENTS.md`.
 
-[Phase 1.5B contracts and evidence](audits/phase-1-electrical-contracts.md) records input/default/wire policy, deterministic source/pole/winding topology, fault coverage and saved-document compatibility. **1.5B is complete locally; its full acceptance gate passed. Next is 1.5C voltage and branch solving.** [Phase 1.5A acceptance evidence](audits/phase-1-audit-baseline.md) retains the earlier fixes and passing gates. The [dependency review](audits/phase-1-dependencies.md) covers the Vitest 4.1.11 migration and one remaining, currently unexposed tooling advisory. [ADR 0008](decisions/0008-staged-electrical-core.md) defines the replacement core and migration boundary.
+[Phase 1.5C.0 supplies and preflight](audits/phase-1-supply-preflight.md) records schema-2 persistence, the 115-variant capability inventory, shared compatibility/readiness and the passing local gate. **1.5C.0 is complete locally; next is 1.5C.1 MNA voltage and branch solving.** [Phase 1.5B contracts and evidence](audits/phase-1-electrical-contracts.md) retains input/default/wire policy, deterministic topology and fault coverage. [Phase 1.5A acceptance evidence](audits/phase-1-audit-baseline.md) retains the earlier fixes and passing gates. The [dependency review](audits/phase-1-dependencies.md) covers the Vitest 4.1.11 migration and one remaining, currently unexposed tooling advisory. [ADR 0008](decisions/0008-staged-electrical-core.md) defines the replacement core and migration boundary.
+
+[Current behavior audit](audits/phase-1-behavior-review.md) completes the 2026-10-01 review with 42 local observations and source-inspected editing/exercise findings. [ADR 0009](decisions/0009-mna-solver.md) selects **MNA**, and the [behavior plan](plans/SIMULATOR_BEHAVIOR_PLAN.md) assigns shared compatibility, confirmed supply changes, readiness and cable/current correctness to **1.5C.0–5**, timed behavior to **1.5D**, three-phase models to **1.5E**, and full Fault Lab/Diagnosis Lab/Ohmageddon integration to **1.5F**. These are implementation requirements; the audit update does not implement the solver or UI corrections.
 
 ## Directory Structure
 
@@ -18,7 +20,10 @@ docs/
 │   ├── 0003-challenge-mode-comparison.md
 │   ├── 0004-diagnosis-lab.md
 │   ├── 0005-ohmageddon-foundation.md
-│   └── 0006-seed-share-format.md
+│   ├── 0006-seed-share-format.md
+│   ├── 0007-renderer-svg-matter-only.md
+│   ├── 0008-staged-electrical-core.md
+│   └── 0009-mna-solver.md
 ├── plans/                  # Feature implementation plans & design briefs
 │   ├── ElectraSim-Cable-Sizing-Visual-Plan.md
 │   ├── ElectraSim-Challenge-Mode-Plan.md
@@ -26,10 +31,15 @@ docs/
 │   ├── ElectraSim_Electrical_Toolbox_Master_Plan.md
 │   ├── ElectraSim_Interactive_Guide_Implementation_Plan_v3.md
 │   ├── LIGHT-EXPLORER-PLAN-v3.md
-│   └── UI_V2_REDESIGN_PLAN.md
+│   ├── UI_V2_REDESIGN_PLAN.md
+│   ├── SIMULATOR_CORE_REBUILD_PLAN.md
+│   └── SIMULATOR_BEHAVIOR_PLAN.md
 ├── audits/                 # Component audits & capability gap analyses
 │   ├── COMPONENT_AUDIT_REPORT.md
-│   └── FEATURE_ANALYSIS.md
+│   ├── FEATURE_ANALYSIS.md
+│   ├── phase-1-electrical-contracts.md
+│   ├── phase-1-behavior-review.md
+│   └── phase-1-supply-preflight.md
 ├── notes/                  # Implementation notes & technical records
 │   └── IMPLEMENTATION_NOTES.md
 ├── branding/               # Design identity, logo concept & aesthetic notes

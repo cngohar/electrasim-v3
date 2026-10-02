@@ -7,6 +7,7 @@ import { WIRE_DEFAULTS, resolveWireProperties } from './core/wireProperties';
 
 import { instanceLabel } from './componentLabel';
 import { COMPONENT_DEFS } from './components';
+import { resolveDocumentSupply } from './core/supplies';
 import { isResidualDevice } from './protectionRoles';
 import { connectedNetworkComponents } from './simulation/faultPropagation';
 import type { StandardId } from './standards';
@@ -156,7 +157,12 @@ export function checkDeviceDisconnection(
     );
   if (context.circuitKind === 'distribution')
     return unassessed('Distribution-circuit disconnection is not assessed.');
-  const supplyVoltage = circuit.globalVoltage ?? 230;
+  const supply = resolveDocumentSupply(circuit).model;
+  if (supply.kind !== 'ac-single-phase' || supply.frequencyHz !== 50)
+    return unassessed(
+      'This UK TN teaching estimate requires a supported 50 Hz single-phase AC supply; the saved source profile is outside its scope.',
+    );
+  const supplyVoltage = supply.voltage;
   const u0 = context.lineToEarthVoltage ?? (supplyVoltage === 230 ? 230 : undefined);
   if (u0 !== 230 || (supplyVoltage !== 230 && supplyVoltage !== 400))
     return unassessed(
@@ -202,6 +208,10 @@ export function checkDeviceDisconnection(
     connected.some(
       (c) =>
         c.state.fault ||
+        (c.state.sourceProfile &&
+          (c.state.sourceProfile.model.kind !== 'ac-single-phase' ||
+            c.state.sourceProfile.model.frequencyHz !== 50 ||
+            c.state.sourceProfile.model.voltage !== u0)) ||
         (COMPONENT_DEFS[c.type]?.isSource &&
           (!['live-terminal', 'neutral-terminal', 'earth-terminal', 'ac-mains-supply'].includes(
             c.type,

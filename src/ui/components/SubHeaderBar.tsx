@@ -1,27 +1,24 @@
 import { COMPONENT_DEFS } from '@electrasim/domain/components';
-import { getStandard } from '@electrasim/domain/standards';
+import { resolveDocumentSupply } from '@electrasim/domain/core/supplies';
 import { ChevronDown, ChevronRight, Edit2, Layers, Route, Sliders, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useCircuitStore, useSettingsStore, useUiStore } from '../../store';
+import { useCircuitStore, useUiStore } from '../../store';
 const VOLTAGE_PRESETS = [
-  { label: '12V DC', val: 12 },
-  { label: '24V DC', val: 24 },
-  { label: '110V AC', val: 110 },
-  { label: '230V AC', val: 230 },
-  { label: '240V AC', val: 240 },
-  { label: '400V 3Ph', val: 400 },
+  { label: '12 V', val: 12 },
+  { label: '24 V', val: 24 },
+  { label: '110 V', val: 110 },
+  { label: '230 V', val: 230 },
+  { label: '240 V', val: 240 },
+  { label: '400 V', val: 400 },
 ];
 
 export function SubHeaderBar() {
   const simRunning = useUiStore((s) => s.simRunning);
   const globalVoltage = useCircuitStore((s) => s.globalVoltage);
+  const supply = useCircuitStore((s) => s.supply);
   const setGlobalSupplyVoltage = useCircuitStore((s) => s.setGlobalSupplyVoltage);
   const simResult = useUiStore((s) => s.simResult);
-
-  // The regulatory standard selector lives in the top app bar (all modes).
-  const regulationStandard = useSettingsStore((s) => s.regulationStandard);
-  const standard = getStandard(regulationStandard);
 
   const selectedComponentIds = useCircuitStore((s) => s.selectedComponentIds);
   const selectedWireIds = useCircuitStore((s) => s.selectedWireIds);
@@ -107,8 +104,8 @@ export function SubHeaderBar() {
     }
   };
 
-  const effectiveVoltage = simResult?.supplyVoltage ?? globalVoltage;
-  const isAc = effectiveVoltage > 48;
+  const sourceModel = resolveDocumentSupply({ supply, globalVoltage }).model;
+  const effectiveVoltage = sourceModel.voltage;
 
   // Selected item calculations
   const totalSelectedCount =
@@ -157,7 +154,10 @@ export function SubHeaderBar() {
           <span className="size-2 rounded-full bg-emerald-500 shadow-[0_0_6px] shadow-emerald-400" />
           <span className="text-slate-500 dark:text-slate-400">Supply:</span>
           <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">
-            {effectiveVoltage} V {isAc ? `${standard.frequencyHz} Hz` : 'DC'}
+            {effectiveVoltage} V{' '}
+            {sourceModel.kind === 'dc'
+              ? 'DC'
+              : `AC ${sourceModel.frequencyHz} Hz${sourceModel.kind === 'ac-three-phase' ? ' · 3-phase L-N' : ''}`}
           </span>
           <ChevronDown
             className={`size-3 text-slate-400 transition-transform ${showVoltagePicker ? 'rotate-180' : ''}`}
@@ -185,8 +185,8 @@ export function SubHeaderBar() {
               </div>
 
               <div className="mb-2 text-[10px] text-slate-500 dark:text-slate-400">
-                Select global supply voltage level. Synchronizes with real-time checks and load
-                calculations.
+                Changes the document supply voltage. Supply kind and frequency are retained;
+                independent sources keep their settings.
               </div>
 
               {/* Voltage presets */}

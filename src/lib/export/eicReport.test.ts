@@ -4,6 +4,7 @@
  * vocabulary matches the panel.
  */
 
+import { explicitSupplyProfile } from '@electrasim/domain/core/supplies';
 import type { Circuit, ComponentInstance, WireInstance } from '@electrasim/domain/types';
 import { describe, expect, it } from 'vitest';
 import { buildEicReportData as buildReport, escapeHtml, renderEicHtml } from './eicReport';
@@ -128,6 +129,21 @@ it('exports unsupported supply/profile/TT as unassessed without a green verdict'
     const html = renderEicHtml(data);
     expect(html).toContain('Selected supply: 120 V');
     expect(html).not.toContain('class="verdict yes"');
+  }
+});
+
+it('uses saved source frequency/kind and never applies the AC loop check to a DC profile', () => {
+  for (const model of [
+    { kind: 'dc' as const, voltage: 230 },
+    { kind: 'ac-single-phase' as const, voltage: 230, frequencyHz: 60 },
+  ]) {
+    const data = buildReport(
+      { ...rcboCircuit(), supply: explicitSupplyProfile(model) },
+      { standard: 'uk', earthing: 'TN-C-S' },
+    );
+    expect(data.frequencyHz).toBe(model.kind === 'dc' ? 0 : 60);
+    expect(data.rows.every((row) => row.verdict === 'NOT ASSESSED')).toBe(true);
+    expect(renderEicHtml(data)).not.toContain('class="verdict yes"');
   }
 });
 

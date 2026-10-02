@@ -9,6 +9,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 
 ### Added
 
+- Phase 1.5C.0 persisted supply profiles, explicit capability/rating inventory for all 115 variants, shared terminal-group compatibility/readiness and ADR 0009's MNA implementation contract. **Completed locally on 2026-10-02:** the full phase gate passed with 1,701 unit passes plus five expected later-phase failures, 494 Bun/workerd parity cases, 9 Worker/D1 groups and 59 browser cases. MNA solving starts in 1.5C.1.
 - Phase 1.5B versioned electrical contracts, deterministic terminal compiler, source/pole/winding isolation, shared wire properties and bounded input validation. **Completed locally on 2026-10-01:** the full gate passed with 1,645 unit passes plus five expected later-phase failures, 486 Bun/workerd parity cases, 9 real Worker/D1 groups and 56 browser cases. Numerical solving remains in 1.5C–1.5F.
 - Phase 1.5A executable audit corpus, explicit unsupported-model results, local acceptance runner and ADR 0008 for the staged electrical-core replacement. **Closed locally on 2026-09-30:** full phase command, 53 built-output plus 3 simulator browser cases, and 25 real Worker/D1 membership groups passed.
 - Phase 1.5 circuit CRUD and server-owned diagnosis attempts (local migration 0005), shared circuit validation, fresh membership enforcement for protected editor/simulation actions, and IndexedDB recovery with explicit basic-copy/export flows.
@@ -24,6 +25,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 
 ### Changed
 
+- Circuit and portable-backup writers emit schema 2 while reading schemas 1 and 2; autosaves upgrade under the existing IndexedDB key. Supply profiles survive save/import/export/share, undo/redo, recovery and worker/server boundaries. Document voltage edits preserve unrelated sources, device ratings and faults, retain AC/DC/frequency settings, and lock during running or active exercises. Full confirmation/impact/Review/Undo UI remains in 1.5C.4.
+- Source/status labels use saved waveform and frequency. Mixed/conflicting, DC and reserved three-phase configurations cannot obtain unsupported legacy measurements; limited Zs/EIC checks reject unsupported saved supply profiles.
 - Missing switch states now use canonical catalogue defaults at domain/file/store boundaries while explicit off/trip/damage values remain intact. Authored in-memory momentary states survive exercise loading; persistence still releases held controls.
 - Graph fault compilation distinguishes L–PE shorts, broken earth conductors and unassessed leakage impedance. Polarity swaps and terminal disconnections compose deterministically, and ambiguous fault paths remain unassessed.
 - Protection operation now uses device capabilities and nameplate ratings: plain RCCBs and isolators do not trip as overcurrent breakers; ordinary breaker clearing no longer destroys the device; fuse links remain replaceable and damage entries are unique. Bypass suppresses protective operation; open-switch bypass traversal remains tracked for the new core.
@@ -47,6 +50,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 - Development is local-only pending a new Cloudflare account. Removed the old shared local Wrangler login; disabled deployment and remote seeding, pinned bindings/test targets to local use and preserved the live account unchanged.
 
 ### Planning
+
+- **2026-10-01 simulator behavior audit and phase revision:** recorded 42 local observations and current compatibility/editing/readiness/cable findings; selected MNA in ADR 0009. Expanded 1.5C.0–5 with shared compatibility, confirmed supply changes/Undo, readiness, truthful branch/wire results and actual runtime/UI integration. Mapped timed Fault Lab behavior to 1.5D, three-phase models to 1.5E, and full Diagnosis Lab/Ohmageddon grading/replay migration to 1.5F; 1.7 retains UI refinement. These are requirements, not implemented corrections. Four existing suites passed 145 tests with five expected failures; no full acceptance or deployment claim. See [audit](docs/audits/phase-1-behavior-review.md), [behavior plan](docs/plans/SIMULATOR_BEHAVIOR_PLAN.md) and [Phase 1](docs/phases/phase-1-simulator-core.md).
 
 - **V3 full rewrite plan locked.** See `docs/REWRITE_PLAN_V3_FULL.md` — the real V3 (paper v3 never shipped).
   - Stack: **Bun** everywhere (`bun install/run/test/build`), **Hono on Workers**, **Better Auth + D1 (SQLite)**, **R2 + KV + Durable Objects (SQLite) + Queues**.

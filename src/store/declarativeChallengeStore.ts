@@ -137,6 +137,7 @@ export const useDeclarativeChallengeStore = create<DeclarativeChallengeState>((s
       components: current.components.map((c) => ({ ...c, state: { ...c.state } })),
       wires: current.wires.map((w) => ({ ...w, controlPoints: [...(w.controlPoints ?? [])] })),
       globalVoltage: current.globalVoltage,
+      supply: current.supply,
       faults: current.faults ? [...current.faults] : [],
     };
     await saveReturnWorkspace(snapshot);
@@ -191,8 +192,14 @@ export const useDeclarativeChallengeStore = create<DeclarativeChallengeState>((s
         get().status !== 'active'
       )
         return null;
-      const { components, wires, globalVoltage, faults } = before;
-      const verdict = validateChallenge(definition, { components, wires, globalVoltage, faults });
+      const { components, wires, globalVoltage, supply, faults } = before;
+      const verdict = validateChallenge(definition, {
+        components,
+        wires,
+        globalVoltage,
+        supply,
+        faults,
+      });
       const attempts = get().attempts + 1;
       set({ verdict, attempts });
       void saveActiveDeclarativeChallenge({
@@ -345,6 +352,7 @@ export const useDeclarativeChallengeStore = create<DeclarativeChallengeState>((s
       components: current.components,
       wires: current.wires,
       globalVoltage: current.globalVoltage,
+      supply: current.supply,
       faults: current.faults,
     });
 
@@ -412,9 +420,9 @@ export const useDeclarativeChallengeStore = create<DeclarativeChallengeState>((s
 
   /** §13 "Keep a Copy": export the challenge circuit as normal JSON. */
   keepCopy: () => {
-    const { components, wires, globalVoltage, faults } = useCircuitStore.getState();
+    const { components, wires, globalVoltage, supply, faults } = useCircuitStore.getState();
     downloadText(
-      exportJSON({ components, wires, globalVoltage, faults }),
+      exportJSON({ components, wires, globalVoltage, supply, faults }),
       'challenge-circuit.electrasim.json',
       'application/json',
     );

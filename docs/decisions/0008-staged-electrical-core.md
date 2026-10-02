@@ -4,6 +4,10 @@ Date: 2026-09-30. Status: accepted for the Phase 1 rebuild; implementation begin
 
 Implementation update (2026-10-01): [1.5B contracts and graph](../audits/phase-1-electrical-contracts.md) implement the validation/defaults/compiler boundary with contract version 1 and model `1.5b.1`. Circuit schema 1 and the guarded legacy numerical runtime remain; new voltage/current solving starts in 1.5C. The linked record distinguishes compilation coverage from solved measurements and records the local acceptance gate.
 
+Follow-up decision (2026-10-01): [ADR 0009](0009-mna-solver.md) resolves the “nodal/modified-nodal” choice below to **Modified Nodal Analysis (MNA)**. The [behavior plan](../plans/SIMULATOR_BEHAVIOR_PLAN.md) adds shared compatibility/readiness, confirmed supply edits and essential UI integration to 1.5C. Neither this follow-up nor the completed audit claims the replacement solver has shipped.
+
+Implementation update (2026-10-02): [1.5C.0 supplies and preflight](../audits/phase-1-supply-preflight.md) passed local acceptance. Circuit/backup writers now use schema 2, reading schemas 1 and 2; contract version stays 1 and model version advances to `1.5c.0.1`. Persisted source profiles and shared capability/readiness services prepare the next MNA slice without replacing the guarded legacy numerical engine.
+
 ## Context
 
 [The reconciled audit](../plans/SIMULATOR_CORE_REBUILD_PLAN.md) reproduced defects caused by the existing rail-continuity solver: loads terminate traversal, branch wires receive one total-current scalar, independent supplies share one voltage, transformer windings are not isolated and device state has no time history. Moving that solver to `packages/domain` did not remove those limitations.

@@ -10,13 +10,13 @@ import {
   type ElectricalDeviceModel,
   type ElectricalDiagnostic,
   type ModelCoverage,
-  type SupplyModel,
   type TerminalGraph,
 } from './contracts';
 import { applyGraphFaults, compareIds, terminalId } from './faultTopology';
 import { validateCircuitInput } from './input';
 import { modelPairs, modelPortIndices, resolveDeviceModel } from './models';
 import { normalizeCircuitDocument } from './normalize';
+import { isSupplyModel, sameSupplyModel } from './supplies';
 import { resolveWireProperties } from './wireProperties';
 
 class TerminalGroups {
@@ -63,28 +63,6 @@ class TerminalGroups {
   }
 }
 
-function validSupply(model: SupplyModel): boolean {
-  return (
-    Number.isFinite(model.voltage) &&
-    model.voltage > 0 &&
-    model.voltage <= 100_000 &&
-    (model.kind === 'dc' ||
-      (Number.isFinite(model.frequencyHz) &&
-        model.frequencyHz > 0 &&
-        model.frequencyHz <= 100_000)) &&
-    (model.kind !== 'ac-three-phase' || model.sequence === 'abc' || model.sequence === 'acb')
-  );
-}
-
-function sameSupply(a: SupplyModel, b: SupplyModel): boolean {
-  if (a.kind !== b.kind || a.voltage !== b.voltage) return false;
-  if (a.kind === 'dc' || b.kind === 'dc') return true;
-  return (
-    a.frequencyHz === b.frequencyHz &&
-    (a.kind !== 'ac-three-phase' || b.kind !== 'ac-three-phase' || a.sequence === b.sequence)
-  );
-}
-
 /** Compile topology only. The original drawing is never modified or silently repaired. */
 export function compileCircuit(raw: unknown, options: CompileOptions = {}): CompileResult {
   const version = {
@@ -124,7 +102,8 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
     const indices = modelPortIndices(model);
     const invalidModel =
       indices.some((i) => !Number.isInteger(i) || !def.ports[i]) ||
-      ((model.kind === 'source' || model.kind === 'source-alias') && !validSupply(model.supply)) ||
+      ((model.kind === 'source' || model.kind === 'source-alias') &&
+        !isSupplyModel(model.supply)) ||
       (model.kind === 'source' && model.ports[0] === model.ports[1]) ||
       (model.kind === 'resistive-load' &&
         (!Number.isFinite(model.resistanceOhms) ||
@@ -161,6 +140,8 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
         port.type === 'earth' ? 'pe' : port.type === 'live' ? 'line' : 'neutral';
       if (model.kind === 'source' && model.supply.kind === 'dc')
         role = index === model.ports[0] ? 'positive' : index === model.ports[1] ? 'negative' : role;
+      if (model.kind === 'source-alias' && model.supply.kind === 'dc')
+        role = model.role === 'line' ? 'positive' : 'negative';
       if (component.type === 'distribution-board-3phase')
         role =
           index === 0 || index === 4
@@ -393,7 +374,7 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
     );
     const candidates = explicit.length ? explicit : liveEntries;
     const selected = candidates[0]?.model.supply;
-    if (selected && candidates.some((entry) => !sameSupply(entry.model.supply, selected))) {
+    if (selected && candidates.some((entry) => !sameSupplyModel(entry.model.supply, selected))) {
       diagnostics.push({
         code: 'conflicting-source-alias',
         severity: 'error',
@@ -404,8 +385,16 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
     const positive = JSON.stringify(['alias', group, 'line']);
     const negative = JSON.stringify(['alias', group, 'neutral']);
     graph.terminals.push(
-      { id: positive, role: 'line', label: `${group} L` },
-      { id: negative, role: 'neutral', label: `${group} N` },
+      {
+        id: positive,
+        role: selected?.kind === 'dc' ? 'positive' : 'line',
+        label: `${group} ${selected?.kind === 'dc' ? '+' : 'L'}`,
+      },
+      {
+        id: negative,
+        role: selected?.kind === 'dc' ? 'negative' : 'neutral',
+        label: `${group} ${selected?.kind === 'dc' ? '-' : 'N'}`,
+      },
     );
     for (const { componentId, model } of entries)
       branch({
@@ -425,7 +414,7 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
         positive,
         negative,
         model: selected,
-        reference: 'neutral',
+        reference: selected.kind === 'dc' ? 'floating' : 'neutral',
       });
       branch({
         id,
@@ -435,14 +424,17 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
         closed: true,
         idealConductor: false,
       });
-      graph.references.push({ terminal: negative, kind: 'neutral' });
+      graph.references.push({
+        terminal: negative,
+        kind: selected.kind === 'dc' ? 'dc-negative' : 'neutral',
+      });
     }
     coverage.push({
       subjectId: group,
       aspect: 'source',
       status: 'estimated',
       reason:
-        'Schema 1 single-rail terminals alias one legacy supply. Combined source blocks are independent; no neutral-to-PE bond is assumed.',
+        'Named rail terminals alias one document supply. Independent source blocks retain their own profiles; no neutral-to-PE bond is assumed.',
     });
   }
   if (diagnostics.some((d) => d.severity === 'error'))
@@ -493,7 +485,7 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
     aspect: 'measurements',
     status: 'not-assessed',
     reason:
-      'Phase 1.5B compiles contracts and topology. Voltage/branch-current equations start in 1.5C.',
+      'Compilation and readiness checks do not solve voltage or branch current. Numerical equations start in 1.5C.1.',
   });
   return { status: 'compiled', ...version, circuit, graph, diagnostics, coverage };
 }

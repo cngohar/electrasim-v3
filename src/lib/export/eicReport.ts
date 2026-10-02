@@ -1,5 +1,6 @@
 /** Printable educational schedule; never a certificate or field measurement. */
 
+import { resolveDocumentSupply } from '@electrasim/domain/core/supplies';
 import { getStandard } from '@electrasim/domain/standards';
 import type { Circuit } from '@electrasim/domain/types';
 import {
@@ -96,13 +97,14 @@ export function buildEicReportData(
   now: Date = new Date(),
 ): EicReportData {
   const checks = runZsChecks(circuit, context);
+  const supply = resolveDocumentSupply(circuit).model;
   return {
     generatedIso: now.toISOString(),
     earthing: context.earthing,
     zeOhms:
       context.earthing === 'TT' ? null : (context.zeOhms ?? ZE_DEFAULT_OHMS[context.earthing]),
-    supplyVoltage: circuit.globalVoltage ?? getStandard(context.standard).nominalVoltage,
-    frequencyHz: getStandard(context.standard).frequencyHz,
+    supplyVoltage: supply.voltage,
+    frequencyHz: supply.kind === 'dc' ? 0 : supply.frequencyHz,
     reference: getStandard(context.standard).citation,
     rows: checks.map(rowFromZs),
     wireCount: circuit.wires.length,
@@ -201,7 +203,7 @@ export function renderEicHtml(data: EicReportData): string {
   <div class="grid">
     <div class="field"><label>Client / occupier</label></div>
     <div class="field"><label>Installation address</label></div>
-    <div class="field"><label>Selected supply: ${e(fmt(data.supplyVoltage, 0))} V; profile ${data.frequencyHz} Hz (simulated)</label></div>
+    <div class="field"><label>Selected supply: ${e(fmt(data.supplyVoltage, 0))} V; ${data.frequencyHz === 0 ? 'DC' : `AC ${data.frequencyHz} Hz`} (document setting)</label></div>
     <div class="field"><label>Earthing arrangement: ${e(data.earthing)} — assumed Ze ${e(fmt(data.zeOhms))} Ω</label></div>
   </div>
 

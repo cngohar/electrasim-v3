@@ -1,3 +1,4 @@
+import { resolveDocumentSupply } from '@electrasim/domain/core/supplies';
 import {
   Activity,
   AlertCircle,
@@ -32,14 +33,14 @@ export function StatusPill({
   const snapToGrid = useSettingsStore((s) => s.snapToGrid);
   const setSetting = useSettingsStore((s) => s.setSetting);
   const globalVoltage = useCircuitStore((s) => s.globalVoltage);
+  const supply = useCircuitStore((s) => s.supply);
   const simResult = useUiStore((s) => s.simResult);
   const paletteOpen = useUiStore((s) => s.paletteOpen);
   const inspectorCollapsed = useUiStore((s) => s.inspectorCollapsed);
   const mode = useUiStore((s) => s.mode);
   const zoom = useViewportStore((s) => s.zoom);
 
-  const effectiveVoltage = simResult?.supplyVoltage ?? globalVoltage;
-  const isAc = effectiveVoltage > 48;
+  const sourceModel = resolveDocumentSupply({ supply, globalVoltage }).model;
   const hasErrors = (simResult?.errors.length ?? 0) > 0;
   const hasWarnings = (simResult?.warnings.length ?? 0) > 0;
 
@@ -60,11 +61,16 @@ export function StatusPill({
       <div className="flex items-center gap-3">
         <div
           className="flex items-center gap-1.5 rounded-md border border-amber-200/80 bg-amber-50/70 px-2 py-0.5 font-mono text-[11px] font-bold text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-300"
-          title="Live circuit supply voltage — change from the context bar"
+          title="Document supply setting — change from the context bar"
         >
           <Zap className="size-3 fill-amber-500 text-amber-500" />
           <span>
-            Supply: {effectiveVoltage} V {isAc ? 'AC' : 'DC'}
+            Supply: {sourceModel.voltage} V{' '}
+            {sourceModel.kind === 'dc'
+              ? 'DC'
+              : sourceModel.kind === 'ac-three-phase'
+                ? 'AC · 3-phase L-N'
+                : 'AC'}
           </span>
         </div>
 

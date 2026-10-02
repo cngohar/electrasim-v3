@@ -77,11 +77,13 @@ export function ZsCheckPanel() {
   const wires = useCircuitStore((s) => s.wires);
   const standard = useSettingsStore((s) => s.regulationStandard);
   const globalVoltage = useCircuitStore((s) => s.globalVoltage);
+  const supply = useCircuitStore((s) => s.supply);
+  const faults = useCircuitStore((s) => s.faults);
   const [earthing, setEarthing] = useState<ZsEarthArrangement>('TN-C-S');
 
   const circuit = useMemo(
-    () => ({ components, wires, globalVoltage }),
-    [components, wires, globalVoltage],
+    () => ({ components, wires, globalVoltage, supply, faults }),
+    [components, wires, globalVoltage, supply, faults],
   );
   const rows = useMemo(
     () => runZsChecks(circuit, { standard, earthing }),

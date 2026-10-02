@@ -36,6 +36,11 @@ describe('shared circuit format', () => {
   it('round trips modern faults, legacy mirrors, settings and rotation', () => {
     expect(importJSON(exportJSON(circuit))).toEqual({
       ...circuit,
+      supply: {
+        version: 1,
+        model: { kind: 'ac-single-phase', voltage: 120, frequencyHz: 50 },
+        provenance: { voltage: 'legacy-document', frequency: 'legacy-assumption' },
+      },
       components: [
         { ...circuit.components[0], state: { ...circuit.components[0].state, on: true } },
       ],

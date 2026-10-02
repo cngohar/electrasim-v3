@@ -9,7 +9,7 @@ import type {
 } from '../types';
 
 export const ELECTRICAL_CONTRACT_VERSION = 1 as const;
-export const ELECTRICAL_MODEL_VERSION = '1.5b.1' as const;
+export const ELECTRICAL_MODEL_VERSION = '1.5c.0.1' as const;
 export type CoverageStatus = 'supported' | 'estimated' | 'not-assessed';
 
 export interface ElectricalDiagnostic {

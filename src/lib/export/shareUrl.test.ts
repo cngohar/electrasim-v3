@@ -14,6 +14,14 @@ const CIRCUIT: Circuit = {
   components: [{ id: 'live', type: 'live-terminal', x: 10, y: 20, state: {} }],
   wires: [],
 };
+const MIGRATED_CIRCUIT: Circuit = {
+  ...CIRCUIT,
+  supply: {
+    version: 1,
+    model: { kind: 'ac-single-phase', voltage: 230, frequencyHz: 50 },
+    provenance: { voltage: 'legacy-assumption', frequency: 'legacy-assumption' },
+  },
+};
 
 describe('share URL', () => {
   beforeEach(() => {
@@ -26,7 +34,7 @@ describe('share URL', () => {
 
     expect(parsed.searchParams.has('c')).toBe(false);
     expect(new URLSearchParams(parsed.hash.slice(1)).get('c')).toBeTruthy();
-    await expect(decodeShareURL(url)).resolves.toEqual(CIRCUIT);
+    await expect(decodeShareURL(url)).resolves.toEqual(MIGRATED_CIRCUIT);
   });
 
   it('removes a legacy query payload when generating a new share URL', async () => {
@@ -46,7 +54,7 @@ describe('share URL', () => {
     const legacyUrl = `https://electrasim.com/app/?template=lighting&c=${encodeURIComponent(encoded ?? '')}#panel=docs`;
 
     expect(hasLegacyShareQuery(legacyUrl)).toBe(true);
-    await expect(decodeShareURL(legacyUrl)).resolves.toEqual(CIRCUIT);
+    await expect(decodeShareURL(legacyUrl)).resolves.toEqual(MIGRATED_CIRCUIT);
     const migrated = migrateLegacyShareQueryToFragment(legacyUrl);
     const migratedUrl = new URL(migrated);
     expect(migratedUrl.searchParams.has('c')).toBe(false);
@@ -54,7 +62,7 @@ describe('share URL', () => {
     expect(new URLSearchParams(migratedUrl.hash.slice(1)).get('panel')).toBe('docs');
     expect(new URLSearchParams(migratedUrl.hash.slice(1)).get('c')).toBe(encoded);
     // If persistence fails, a reload can still recover from the migrated fragment.
-    await expect(decodeShareURL(migrated)).resolves.toEqual(CIRCUIT);
+    await expect(decodeShareURL(migrated)).resolves.toEqual(MIGRATED_CIRCUIT);
   });
 
   it('strips fragment payloads without removing unrelated fragment parameters', () => {
