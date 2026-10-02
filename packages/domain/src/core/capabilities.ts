@@ -70,8 +70,8 @@ function optionalRating(
   instance: boolean,
   name: string,
 ): ElectricalRating<number> {
-  return value === undefined
-    ? unknown(`No ${name} is declared.`)
+  return value === undefined || !Number.isFinite(value) || value <= 0
+    ? unknown(`No valid ${name} is declared.`)
     : known(
         value,
         instance ? 'instance' : 'catalogue',
@@ -168,21 +168,23 @@ export function resolveDeviceCapabilities(
       const g = make('load', 'load', electrical.ports);
       g.supplyKinds = known(
         electrical.supplyKinds,
-        'teaching-assumption',
+        def.electricalModel ? 'catalogue' : 'teaching-assumption',
         electrical.approximation,
       );
       g.nominalVoltage = known(
         electrical.nominalVoltage,
-        component.state.customVoltage !== undefined
-          ? 'instance'
-          : def.electricalModel
-            ? 'catalogue'
+        def.electricalModel
+          ? 'catalogue'
+          : component.state.customVoltage !== undefined
+            ? 'instance'
             : 'teaching-assumption',
         'Fixed element/hot-filament design voltage, independent of the source.',
       );
       g.nominalPowerWatts = known(
         electrical.nominalPowerWatts,
-        component.state.customPowerWatts !== undefined ? 'instance' : 'catalogue',
+        !def.electricalModel && component.state.customPowerWatts !== undefined
+          ? 'instance'
+          : 'catalogue',
         'Power at the nominal design voltage, not constant power at arbitrary voltage.',
       );
       g.maximumVoltage = optionalRating(
@@ -194,6 +196,14 @@ export function resolveDeviceCapabilities(
         status: 'independent',
         basis: 'Ideal fixed-resistance teaching model; no reactance or temperature variation.',
       };
+      if (electrical.frequencyHz)
+        g.frequencyHz = known(electrical.frequencyHz, 'catalogue', 'Declared model frequencies.');
+      if (electrical.operatingVoltageRange)
+        g.operatingVoltageRange = known(
+          electrical.operatingVoltageRange,
+          'catalogue',
+          'Declared model operating range; not a damage threshold.',
+        );
       g.loadLaw = {
         kind: 'fixed-resistance',
         resistanceOhms: electrical.resistanceOhms,
@@ -203,6 +213,11 @@ export function resolveDeviceCapabilities(
     }
     case 'unassessed-load': {
       const g = make('load', 'load', electrical.ports);
+      g.maximumVoltage = optionalRating(
+        electrical.maximumVoltage,
+        component.state.customMaxVolts !== undefined,
+        'maximum voltage',
+      );
       g.nominalPowerWatts = optionalRating(
         electrical.nominalPowerWatts,
         component.state.customPowerWatts !== undefined,
@@ -235,6 +250,22 @@ export function resolveDeviceCapabilities(
         );
         g.voltageConvention = 'line-to-line';
       }
+      if (electrical.nominalVoltage !== undefined)
+        g.nominalVoltage = known(
+          electrical.nominalVoltage,
+          'catalogue',
+          'Declared design voltage.',
+        );
+      if (electrical.supplyKinds)
+        g.supplyKinds = known(electrical.supplyKinds, 'catalogue', 'Declared supply suitability.');
+      if (electrical.operatingVoltageRange)
+        g.operatingVoltageRange = known(
+          electrical.operatingVoltageRange,
+          'catalogue',
+          'Declared operating range; no driver load law is implied.',
+        );
+      if (electrical.frequencyHz)
+        g.frequencyHz = known(electrical.frequencyHz, 'catalogue', 'Declared model frequencies.');
       break;
     }
     case 'contacts':

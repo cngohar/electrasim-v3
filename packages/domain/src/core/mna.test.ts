@@ -29,7 +29,7 @@ function solved(circuit: Circuit): ElectricalSimulationResult {
   const result = solveCircuit(circuit);
   expect(result.status, JSON.stringify(result.diagnostics)).toBe('converged');
   expect(result.checks?.maximumResidualRatio).toBeLessThanOrEqual(1);
-  expect(result.operation).toBe('not-assessed');
+  expect(result.readiness.operation).toBe('not-assessed');
   expect(result.assessment).toBe('not-assessed');
   return result;
 }

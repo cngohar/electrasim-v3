@@ -16,6 +16,8 @@ import {
   voltageBetween,
 } from './linearMeasurements';
 import { LINEAR_SYSTEM_LIMITS, solveLinearSystem } from './linearSystem';
+import { deriveOperatingPoints } from './operatingPoint';
+import { type CircuitReadiness, assessCompiledCircuitReadiness } from './readiness';
 import { inspectVoltageConstraints } from './voltageConstraints';
 
 export const MNA_ENGINE_VERSION = 'mna-linear-1' as const;
@@ -32,6 +34,7 @@ function emptyResult(
   status: ElectricalSimulationResult['status'],
   diagnostics: ElectricalDiagnostic[],
   coverage: ModelCoverage[],
+  readiness: CircuitReadiness,
 ): ElectricalSimulationResult {
   return {
     contractVersion: ELECTRICAL_CONTRACT_VERSION,
@@ -58,6 +61,10 @@ function emptyResult(
     unavailableBranchVoltages: {},
     references: [],
     checks: null,
+    readiness,
+    loads: [],
+    wires: [],
+    deviceCurrents: [],
     operation: 'not-assessed',
     assessment: 'not-assessed',
   };
@@ -86,13 +93,20 @@ export function solveCircuit(
   options: CompileOptions = {},
 ): ElectricalSimulationResult {
   const compiled = compileCircuit(raw, options);
-  if (compiled.status === 'invalid') return emptyResult('invalid', compiled.diagnostics, []);
+  const readiness = assessCompiledCircuitReadiness(compiled, options);
+  if (compiled.status === 'invalid')
+    return emptyResult('invalid', compiled.diagnostics, [], readiness);
   const { graph } = compiled;
   const coverage = compiled.coverage.filter((item) => item.aspect !== 'measurements');
   const unavailable = (
     status: ElectricalSimulationResult['status'],
     diagnostics: ElectricalDiagnostic[],
-  ) => emptyResult(status, [...compiled.diagnostics, ...diagnostics], coverage);
+  ) =>
+    deriveOperatingPoints(
+      compiled,
+      emptyResult(status, [...compiled.diagnostics, ...diagnostics], coverage, readiness),
+      options,
+    );
   const unsupported = coverage.filter(
     (item) => item.status === 'not-assessed' && item.aspect !== 'protection',
   );
@@ -305,7 +319,7 @@ export function solveCircuit(
         },
       ]);
   }
-  const result = emptyResult('converged', [...compiled.diagnostics], coverage);
+  const result = emptyResult('converged', [...compiled.diagnostics], coverage, readiness);
   result.sourceBranches = sourceBranches;
   result.checks = {
     relativeTolerance: LINEAR_SYSTEM_LIMITS.relativeTolerance,
@@ -456,10 +470,10 @@ export function solveCircuit(
       aspect: 'measurements',
       status: 'estimated',
       reason:
-        'Accepted linear DC / single-source RMS resistive solution with finite wire resistance at 20 C. Mathematical references add no PE bond. Operation, trip/damage and standards assessment require separate models.',
+        'Accepted linear DC / single-source RMS resistive solution with finite wire resistance at 20 C and declared load response. Mathematical references add no PE bond. Unknown operating ranges, trip/damage and standards assessment remain unassessed.',
     },
   ];
-  return result;
+  return deriveOperatingPoints(compiled, result, options);
 }
 
 export { voltageBetween } from './linearMeasurements';

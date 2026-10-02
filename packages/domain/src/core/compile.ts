@@ -108,7 +108,33 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
       (model.kind === 'resistive-load' &&
         (!Number.isFinite(model.resistanceOhms) ||
           model.resistanceOhms <= 0 ||
+          !Number.isFinite(model.nominalVoltage) ||
+          model.nominalVoltage <= 0 ||
+          !Number.isFinite(model.nominalPowerWatts) ||
+          model.nominalPowerWatts <= 0 ||
           model.ports[0] === model.ports[1])) ||
+      ((model.kind === 'resistive-load' || model.kind === 'unassessed-load') &&
+        ((model.maximumVoltage !== undefined &&
+          (!Number.isFinite(model.maximumVoltage) || model.maximumVoltage <= 0)) ||
+          (model.nominalVoltage !== undefined &&
+            (!Number.isFinite(model.nominalVoltage) || model.nominalVoltage <= 0)) ||
+          (model.nominalPowerWatts !== undefined &&
+            (!Number.isFinite(model.nominalPowerWatts) || model.nominalPowerWatts <= 0)) ||
+          (model.supplyKinds !== undefined &&
+            (!model.supplyKinds.length ||
+              model.supplyKinds.some(
+                (kind) => !['dc', 'ac-single-phase', 'ac-three-phase'].includes(kind),
+              ))) ||
+          (model.operatingVoltageRange !== undefined &&
+            (!Number.isFinite(model.operatingVoltageRange.min) ||
+              !Number.isFinite(model.operatingVoltageRange.max) ||
+              model.operatingVoltageRange.min < 0 ||
+              model.operatingVoltageRange.max < model.operatingVoltageRange.min)) ||
+          (model.frequencyHz !== undefined &&
+            (!model.frequencyHz.length ||
+              model.frequencyHz.some(
+                (frequency) => !Number.isFinite(frequency) || frequency <= 0,
+              ))))) ||
       (model.kind === 'contacts' &&
         (model.poles.some(
           (pole) => pole.common === pole.no || pole.nc === pole.common || pole.nc === pole.no,

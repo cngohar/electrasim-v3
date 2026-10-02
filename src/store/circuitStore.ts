@@ -23,6 +23,7 @@ import {
   withDocumentSupply,
   withSupplyVoltage,
 } from '@electrasim/domain/core/supplies';
+import { WIRE_AWG_MM2 } from '@electrasim/domain/core/wireProperties';
 import { temporal } from 'zundo';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
@@ -732,6 +733,9 @@ export const useCircuitStore = create<CircuitState>()(
                 (Number.isFinite(updates.customCableMm2) && updates.customCableMm2 > 0))
             ) {
               w.customCableMm2 = updates.customCableMm2;
+              // A metric edit replaces the physical area; never retain a stale AWG label.
+              if (w.gauge !== undefined && WIRE_AWG_MM2[w.gauge] !== updates.customCableMm2)
+                w.gauge = undefined;
             }
             if (
               'installationMethod' in updates &&
@@ -747,9 +751,20 @@ export const useCircuitStore = create<CircuitState>()(
             }
             if (
               'gauge' in updates &&
-              (updates.gauge === undefined || (Number.isFinite(updates.gauge) && updates.gauge > 0))
+              (updates.gauge === undefined || Object.hasOwn(WIRE_AWG_MM2, updates.gauge))
             ) {
-              w.gauge = updates.gauge;
+              if (updates.gauge === undefined) {
+                w.gauge = undefined;
+              } else {
+                const area = WIRE_AWG_MM2[updates.gauge]!;
+                // Explicit metric size has the same priority as the domain resolver.
+                if (updates.customCableMm2 !== undefined && w.customCableMm2 !== area) {
+                  w.gauge = undefined;
+                } else {
+                  w.gauge = updates.gauge;
+                  w.customCableMm2 = area;
+                }
+              }
             }
           }),
 

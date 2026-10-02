@@ -4,7 +4,8 @@
  */
 
 import type { InstallationMethod, SimulationResult, WireInstance } from '@electrasim/domain';
-import { awgToMm2, getStandardCableAmpacity } from '@electrasim/domain/electricalCalculations';
+import { assessWireCapacity } from '@electrasim/domain/core/wireCapacity';
+import { WIRE_AWG_MM2, resolveWireProperties } from '@electrasim/domain/core/wireProperties';
 import { AlertTriangle, Flame, RefreshCw, Trash2 } from 'lucide-react';
 import { useCircuitStore, useUiStore } from '../../../store';
 import { requestDeleteWire } from '../../canvas-actions';
@@ -17,11 +18,15 @@ export function WireInspectorView({
   simResult: SimulationResult | null;
 }) {
   const isEnergized = simResult?.energizedWires.has(wire.id) ?? false;
-  const currentLength = wire.lengthMeters ?? 10;
-  const currentGauge = wire.customCableMm2 ?? 2.5;
+  const components = useCircuitStore((s) => s.components);
+  const properties = resolveWireProperties(wire, new Map(components.map((c) => [c.id, c])));
+  const currentLength = properties.lengthMeters;
+  const currentGauge = properties.cableMm2;
+  const currentAwg =
+    wire.gauge !== undefined && WIRE_AWG_MM2[wire.gauge] === currentGauge ? wire.gauge : undefined;
   const currentPathKind = wire.pathKind ?? 'orthogonal';
-  const currentDerating = wire.deratingFactor ?? 1.0;
-  const currentMethod: InstallationMethod = wire.installationMethod ?? 'C';
+  const currentDerating = properties.deratingFactor;
+  const currentMethod: InstallationMethod = properties.installationMethod;
   const hasWireFault = Boolean(wire.fault || wire.isBusted);
 
   const handleClearFault = () => {
@@ -59,11 +64,8 @@ export function WireInspectorView({
   const handleDeleteWire = () => requestDeleteWire(wire.id);
 
   /** Base (pre-Cg) ampacity for the current size, method and material — BS 7671. */
-  const baseAmpacity = getStandardCableAmpacity(
-    currentGauge,
-    wire.material ?? 'copper',
-    currentMethod,
-  );
+  const capacity = assessWireCapacity(properties);
+  const baseAmpacity = capacity.baseAmps;
 
   return (
     <div className="p-3.5 space-y-4 text-xs">
@@ -196,6 +198,18 @@ export function WireInspectorView({
             </button>
           ))}
         </div>
+        <p className="text-[10px] text-slate-500 dark:text-slate-400">
+          Size source:{' '}
+          {
+            {
+              wire: 'wire setting',
+              'wire-awg': 'saved AWG',
+              endpoint: 'endpoint setting',
+              default: 'default assumption',
+            }[properties.provenance.cableMm2]
+          }
+          . Component recommendations do not override this wire.
+        </p>
       </div>
 
       {/* Installation Method (BS 7671) */}
@@ -205,7 +219,7 @@ export function WireInspectorView({
             Installation Method (BS 7671)
           </span>
           <span className="font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400">
-            {baseAmpacity} A base
+            {baseAmpacity === null ? 'Capacity unassessed' : `${baseAmpacity} A base estimate`}
           </span>
         </div>
 
@@ -241,9 +255,9 @@ export function WireInspectorView({
           ))}
         </div>
         <p className="text-[10px] text-slate-500 dark:text-slate-400">
-          Reference installation method sets the base ampacity for {currentGauge} mm²; the Cg
-          derating factor below then applies on top ({baseAmpacity} A × {currentDerating.toFixed(2)}{' '}
-          = {(baseAmpacity * currentDerating).toFixed(1)} A effective).
+          {baseAmpacity === null
+            ? capacity.basis
+            : `At 70 °C PVC insulation and 30 °C ambient: ${baseAmpacity} A × ${currentDerating.toFixed(2)} = ${capacity.deratedAmps!.toFixed(1)} A estimated capacity. Installation suitability remains unassessed.`}
         </p>
       </div>
 
@@ -335,7 +349,7 @@ export function WireInspectorView({
               useCircuitStore.getState().updateWireProperties(wire.id, { material: 'copper' })
             }
             className={`rounded-lg border py-1.5 text-xs font-semibold transition ${
-              wire.material === 'copper'
+              properties.material === 'copper'
                 ? 'border-amber-500 bg-amber-600 text-white shadow-xs'
                 : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300'
             }`}
@@ -349,7 +363,7 @@ export function WireInspectorView({
               useCircuitStore.getState().updateWireProperties(wire.id, { material: 'aluminum' })
             }
             className={`rounded-lg border py-1.5 text-xs font-semibold transition ${
-              wire.material === 'aluminum'
+              properties.material === 'aluminum'
                 ? 'border-gray-500 bg-gray-600 text-white shadow-xs'
                 : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300'
             }`}
@@ -358,7 +372,7 @@ export function WireInspectorView({
           </button>
         </div>
         <p className="text-[10px] text-slate-500 dark:text-slate-400">
-          {wire.material === 'aluminum'
+          {properties.material === 'aluminum'
             ? 'Aluminum: Lower conductivity, lighter weight, lower cost'
             : 'Copper: Higher conductivity, better durability'}
         </p>
@@ -370,7 +384,7 @@ export function WireInspectorView({
         <div className="flex items-center justify-between">
           <span className="font-bold text-slate-800 dark:text-slate-200">Wire Gauge (AWG)</span>
           <span className="font-mono text-xs font-bold text-cyan-600 dark:text-cyan-400">
-            {wire.gauge ? `${wire.gauge} AWG` : '—'}
+            {currentAwg ? `${currentAwg} AWG` : '—'}
           </span>
         </div>
         <div className="flex flex-wrap gap-1">
@@ -381,11 +395,10 @@ export function WireInspectorView({
               onClick={() =>
                 useCircuitStore.getState().updateWireProperties(wire.id, {
                   gauge: awg,
-                  customCableMm2: awgToMm2(awg),
                 })
               }
               className={`rounded border px-2 py-1 text-[10px] font-semibold font-mono transition ${
-                wire.gauge === awg
+                currentAwg === awg
                   ? 'border-cyan-500 bg-cyan-600 text-white'
                   : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300'
               }`}

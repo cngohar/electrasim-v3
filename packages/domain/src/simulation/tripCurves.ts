@@ -56,9 +56,9 @@ const AMPACITY_BY_METHOD: Record<InstallationMethod, readonly number[]> = {
 export function getCableAmpacity(mm2: number, method: InstallationMethod = 'C'): number {
   const table = AMPACITY_BY_METHOD[method] ?? AMPACITY_BY_METHOD.C;
   for (let i = 0; i < AMPACITY_SIZES.length; i++) {
-    if (mm2 <= AMPACITY_SIZES[i]) return table[i];
+    if (mm2 <= AMPACITY_SIZES[i]!) return table[i]!;
   }
-  return table[table.length - 1];
+  return table[table.length - 1]!;
 }
 
 /**

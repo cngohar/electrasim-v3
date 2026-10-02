@@ -1,5 +1,6 @@
 import { COMPONENT_DEFS } from '@electrasim/domain/components';
 import { resolveDocumentSupply } from '@electrasim/domain/core/supplies';
+import { resolveWireProperties } from '@electrasim/domain/core/wireProperties';
 import { ChevronDown, ChevronRight, Edit2, Layers, Route, Sliders, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -294,8 +295,12 @@ export function SubHeaderBar() {
       ) : selectedWire ? (
         (() => {
           const isEnergized = simResult?.energizedWires.has(selectedWire.id) ?? false;
-          const length = selectedWire.lengthMeters ?? 10;
-          const gauge = selectedWire.customCableMm2 ?? 2.5;
+          const properties = resolveWireProperties(
+            selectedWire,
+            new Map(components.map((c) => [c.id, c])),
+          );
+          const length = properties.lengthMeters;
+          const gauge = properties.cableMm2;
           return (
             <div className="flex items-center gap-1.5 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-400/30 text-blue-700 dark:text-blue-300">
               <Route className="size-3 text-blue-600 dark:text-blue-400" />

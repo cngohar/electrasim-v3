@@ -7,9 +7,16 @@ import type {
   InstallationMethod,
   PortRef,
 } from '../types';
+import type {
+  CircuitOperatingState,
+  DeviceCurrentMeasurement,
+  LoadOperatingPoint,
+  WireOperatingPoint,
+} from './operatingPoint';
+import type { CircuitReadiness } from './readiness';
 
 export const ELECTRICAL_CONTRACT_VERSION = 1 as const;
-export const ELECTRICAL_MODEL_VERSION = '1.5c.1.1' as const;
+export const ELECTRICAL_MODEL_VERSION = '1.5c.2.1' as const;
 export type CoverageStatus = 'supported' | 'estimated' | 'not-assessed';
 
 export interface ElectricalDiagnostic {
@@ -72,12 +79,18 @@ export type ElectricalDeviceModel =
       supplyKinds: readonly SupplyModel['kind'][];
       approximation: string;
       maximumVoltage?: number;
+      operatingVoltageRange?: { min: number; max: number };
+      frequencyHz?: readonly number[];
     }
   | {
       kind: 'unassessed-load';
       ports: readonly number[];
       nominalPowerWatts?: number;
+      nominalVoltage?: number;
       maximumVoltage?: number;
+      supplyKinds?: readonly SupplyModel['kind'][];
+      operatingVoltageRange?: { min: number; max: number };
+      frequencyHz?: readonly number[];
       reason: string;
     }
   | { kind: 'outlet'; capacityWatts?: number; maximumVoltage?: number }
@@ -231,7 +244,12 @@ export interface ElectricalSimulationResult {
   unavailableBranchVoltages: Record<string, 'independent-references'>;
   references: ElectricalReference[];
   checks: ElectricalConservationChecks | null;
-  operation: 'not-assessed';
+  /** Preflight stays distinct from solved operating points and standards assessment. */
+  readiness: CircuitReadiness;
+  loads: LoadOperatingPoint[];
+  wires: WireOperatingPoint[];
+  deviceCurrents: DeviceCurrentMeasurement[];
+  operation: CircuitOperatingState;
   assessment: 'not-assessed';
 }
 

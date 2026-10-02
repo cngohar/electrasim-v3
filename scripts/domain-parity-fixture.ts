@@ -11,6 +11,7 @@ import {
 import { simulate } from '@electrasim/domain/simulation';
 import { GUIDED_CIRCUIT_TEMPLATES } from '@electrasim/domain/templates';
 import { mnaAcceptanceCircuits } from '../packages/domain/src/core/mnaFixtures';
+import { operatingPointAcceptanceCircuits } from '../packages/domain/src/core/operatingPointFixtures';
 import { component as C, wire as W } from '../packages/domain/src/simulation/auditFixtures';
 
 export function domainParityFixture(): string {
@@ -132,6 +133,8 @@ export function domainParityFixture(): string {
   });
   for (const [name, circuit] of Object.entries(mnaAcceptanceCircuits()))
     results.push({ mnaCase: name, result: solveCircuit(circuit) });
+  for (const [name, circuit] of Object.entries(operatingPointAcceptanceCircuits()))
+    results.push({ operatingPointCase: name, result: solveCircuit(circuit) });
   return JSON.stringify(results, (_key, value) =>
     value instanceof Set ? [...value].sort() : value,
   );

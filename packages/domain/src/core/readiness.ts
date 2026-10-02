@@ -4,6 +4,7 @@ import { type CompatibilityResult, assessTerminalCompatibility } from './compati
 import { compileCircuit } from './compile';
 import {
   type CompileOptions,
+  type CompileResult,
   ELECTRICAL_MODEL_VERSION,
   type ElectricalBranch,
   type ElectricalDiagnostic,
@@ -61,7 +62,14 @@ export function assessCircuitReadiness(
   raw: unknown,
   options: CompileOptions = {},
 ): CircuitReadiness {
-  const compiled = compileCircuit(raw, options);
+  return assessCompiledCircuitReadiness(compileCircuit(raw, options), options);
+}
+
+/** Reuse the same validated graph in MNA without compiling the document twice. */
+export function assessCompiledCircuitReadiness(
+  compiled: CompileResult,
+  options: CompileOptions = {},
+): CircuitReadiness {
   const base: CircuitReadiness = {
     modelVersion: ELECTRICAL_MODEL_VERSION,
     topology: 'invalid',
@@ -73,7 +81,7 @@ export function assessCircuitReadiness(
     groups: [],
     loadPaths: [],
     shortedSourceIds: [],
-    diagnostics: compiled.diagnostics,
+    diagnostics: [...compiled.diagnostics],
     coverage: [],
     capabilities: [],
   };

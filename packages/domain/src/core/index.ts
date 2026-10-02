@@ -8,4 +8,12 @@ export * from './supplies';
 export * from './capabilities';
 export * from './compatibility';
 export * from './readiness';
+export type {
+  CircuitOperatingState,
+  LoadOperatingPoint,
+  WireOperatingPoint,
+  DeviceCurrentMeasurement,
+} from './operatingPoint';
+export { assessWireCapacity } from './wireCapacity';
+export type { WireCapacity, CapacityComparison } from './wireCapacity';
 export { MNA_ENGINE_VERSION, MNA_LIMITS, solveCircuit, voltageBetween } from './mna';

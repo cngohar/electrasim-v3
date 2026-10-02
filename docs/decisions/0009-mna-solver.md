@@ -1,6 +1,6 @@
 # ADR 0009 — Use Modified Nodal Analysis for the replacement solver
 
-Date: 2026-10-01. Status: selected for implementation in **1.5C–1.5F**; the bounded linear series/parallel/independent-source slice shipped locally in 1.5C.1 ([acceptance](../audits/phase-1-mna-solver.md)). This is a design decision, not a claim that the full numerical solver has shipped.
+Date: 2026-10-01. Status: selected for implementation in **1.5C–1.5F**; the bounded linear slice shipped locally in [1.5C.1](../audits/phase-1-mna-solver.md), and operating points/wire-property corrections in [1.5C.2](../audits/phase-1-load-response.md). Transformer/PE equations are next in 1.5C.3. This does not claim the full solver or app runtime integration has shipped.
 
 ## Context
 

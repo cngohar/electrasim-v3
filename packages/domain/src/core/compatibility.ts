@@ -1,5 +1,6 @@
 import type { TerminalCapability } from './capabilities';
 import type { SupplyModel } from './contracts';
+import { LINEAR_SYSTEM_LIMITS } from './linearSystem';
 
 export type CompatibilityReasonCode =
   | 'supply-kind-mismatch'
@@ -146,9 +147,19 @@ export function assessTerminalCompatibility(
           : 1);
   const basis = measured ? 'solved-terminal' : 'nominal-supply';
   if (consumes && voltage !== undefined) {
+    // An accepted solution at a range boundary must not fail on floating-point
+    // roundoff. This is the solver's numerical tolerance, not an operating band.
+    const tolerance = (boundary: number) =>
+      measured
+        ? LINEAR_SYSTEM_LIMITS.absoluteTolerance +
+          Math.max(voltage, boundary) * LINEAR_SYSTEM_LIMITS.relativeTolerance
+        : 0;
     if (group.operatingVoltageRange.status === 'known') {
       const range = group.operatingVoltageRange.value;
-      if (voltage < range.min || voltage > range.max) {
+      if (
+        voltage < range.min - tolerance(range.min) ||
+        voltage > range.max + tolerance(range.max)
+      ) {
         if (measured) incompatible = true;
         else unassessed = true;
         add(
@@ -159,7 +170,10 @@ export function assessTerminalCompatibility(
         );
       }
     }
-    if (group.maximumVoltage.status === 'known' && voltage > group.maximumVoltage.value) {
+    if (
+      group.maximumVoltage.status === 'known' &&
+      voltage > group.maximumVoltage.value + tolerance(group.maximumVoltage.value)
+    ) {
       if (measured) incompatible = true;
       else unassessed = true;
       add(
@@ -172,7 +186,7 @@ export function assessTerminalCompatibility(
     if (
       group.loadLaw.kind === 'fixed-resistance' &&
       group.nominalVoltage.status === 'known' &&
-      voltage < group.nominalVoltage.value
+      voltage < group.nominalVoltage.value - tolerance(group.nominalVoltage.value)
     ) {
       add(
         'underpowered',

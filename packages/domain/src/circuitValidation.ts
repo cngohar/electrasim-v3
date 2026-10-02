@@ -2,8 +2,8 @@ import { runComplianceChecks } from './compliance';
 import { COMPONENT_DEFS } from './components';
 import { validateCircuitInput } from './core/input';
 import { normalizeCircuitDocument } from './core/normalize';
+import { assessWireCapacity } from './core/wireCapacity';
 import { resolveWireProperties } from './core/wireProperties';
-import { getStandardCableAmpacity } from './electricalCalculations';
 import { isOvercurrentDevice, isResidualDevice } from './protectionRoles';
 import { getSimulationLimitations } from './simulationCoverage';
 import { getStandard } from './standards';
@@ -33,18 +33,6 @@ function resolveConductorMm2(
 ): { mm2: number; declared: boolean } {
   const resolved = resolveWireProperties(wire, byId);
   return { mm2: resolved.cableMm2, declared: resolved.provenance.cableMm2 !== 'default' };
-}
-
-/** Candidate sizes for the upgrade advice, smallest first. */
-const CABLE_SIZE_LADDER = [1.0, 1.5, 2.5, 4, 6, 10, 16, 25, 35, 50];
-
-/** Smallest standard size whose tabulated ampacity covers a device rating. */
-function smallestSizeForAmps(amps: number): number {
-  return (
-    CABLE_SIZE_LADDER.find((mm2) => getStandardCableAmpacity(mm2) >= amps) ??
-    CABLE_SIZE_LADDER[CABLE_SIZE_LADDER.length - 1] ??
-    50
-  );
 }
 
 export function validateCircuit(
@@ -557,15 +545,20 @@ export function validateCircuit(
     /** True when the circuit named no conductor and the default was assumed. */
     assumed: boolean;
   }[] = [];
+  let cableCapacityUnassessed = false;
+  let checkedCableRatings = 0;
+  let assumedCableSizes = false;
 
   for (const c of protectionComps) {
     const def = COMPONENT_DEFS[c.type];
     if (!def) continue;
 
-    const ratingAmps =
-      c.state.customMaxAmps ??
-      def.maxAmps ??
-      (c.type.includes('32') ? 32 : c.type.includes('6') ? 6 : 16);
+    const ratingAmps = c.state.customMaxAmps ?? def.maxAmps;
+    if (ratingAmps === undefined || !Number.isFinite(ratingAmps) || ratingAmps <= 0) {
+      cableCapacityUnassessed = true;
+      continue;
+    }
+    if (!compWiresMap.get(c.id)?.size) cableCapacityUnassessed = true;
 
     // Worst (smallest) conductor this device sits on: In ≤ Iz has to hold for
     // every conductor it protects, so the verdict must not depend on which wire
@@ -588,9 +581,13 @@ export function validateCircuit(
     for (const w of compWiresMap.get(c.id) || []) {
       const { mm2, declared } = resolveConductorMm2(w, componentsById);
       const properties = resolveWireProperties(w, componentsById);
-      const ampacity =
-        getStandardCableAmpacity(mm2, properties.material, properties.installationMethod) *
-        properties.deratingFactor;
+      const ampacity = assessWireCapacity(properties).deratedAmps;
+      if (ampacity === null) {
+        cableCapacityUnassessed = true;
+        continue;
+      }
+      checkedCableRatings++;
+      if (!declared) assumedCableSizes = true;
       if (declared) {
         if (!worstDeclared || ampacity < worstDeclared.ampacity) {
           worstDeclared = { cableMm2: mm2, ampacity };
@@ -616,14 +613,13 @@ export function validateCircuit(
   if (overratedBreakers.length > 0) {
     const b = overratedBreakers[0];
     const defLabel = COMPONENT_DEFS[b.comp.type]?.label || 'Breaker';
-    const requiredMm2 = smallestSizeForAmps(b.ratingAmps);
     // A named conductor that is too small is a definite violation. An assumed
     // one is a heads-up: the circuit never said what it was wired in, so the
     // check states its assumption instead of asserting a fault that the user
     // cannot find anywhere in the Inspector.
     const sizing = b.assumed
       ? `No cable size is declared on this run, so ${b.cableMm2}mm² (${b.ampacity}A) was assumed.`
-      : `The declared ${b.cableMm2}mm² conductor carries ${b.ampacity}A.`;
+      : `The declared ${b.cableMm2}mm² conductor has an estimated capacity of ${b.ampacity}A under the configured installation assumptions.`;
     issues.push({
       id: 'mcb_overrated_group',
       severity: b.assumed ? 'warning' : 'error',
@@ -631,19 +627,14 @@ export function validateCircuit(
         ? `Protection May Be Over-rated (${b.ratingAmps}A device, cable size not declared)`
         : `Over-rated Breaker (${b.ratingAmps}A MCB vs ${b.cableMm2}mm² Cable)`,
       description: `Protection device ${defLabel} rating (${b.ratingAmps}A) exceeds the connected conductor ampacity (${b.ampacity}A). ${sizing} BS 7671 requires In ≤ Iz to prevent fire before tripping.`,
-      recommendation: `Upgrade the conductor to at least ${requiredMm2}mm² or lower the device rating.`,
+      recommendation:
+        'Review the modeled wire size, installation, material and derating alongside load current Ib and device rating In. No automatic size or device substitution is assessed.',
       category: 'protection',
       componentId: b.comp.id,
-      quickFix: {
-        label: `Upgrade Cable to ${requiredMm2}mm²`,
-        type: 'increase_cable_gauge',
-        componentId: b.comp.id,
-        targetCableMm2: requiredMm2,
-      },
       detailedBreakdown: {
         bs7671Regulation: 'BS 7671 Regulation 433.1 (Overcurrent Coordination In ≤ Iz)',
         physicsExplanation:
-          'An overcurrent protection device must trip before thermal dissipation in copper conductors exceeds insulation breakdown temperatures (70°C for standard PVC). If breaker rating In > cable ampacity Iz, heavy electrical loads will melt insulation and cause electrical fires without tripping the breaker.',
+          'In above estimated Iz indicates a possible conductor overload risk. Cable operating temperature, protective clearing and damage depend on separate thermal and time-current models; this comparison does not predict melting or a trip.',
         steps: [
           {
             stepNumber: 1,
@@ -653,7 +644,7 @@ export function validateCircuit(
           {
             stepNumber: 2,
             title: 'Cable Capacity Calculation',
-            description: `Calculated downstream cable ampacity: Iz = ${b.ampacity}A (${b.cableMm2}mm² copper).`,
+            description: `Estimated connected-conductor capacity: Iz = ${b.ampacity}A (${b.cableMm2}mm² with its resolved material, installation method and derating).`,
           },
           {
             stepNumber: 3,
@@ -662,90 +653,84 @@ export function validateCircuit(
           },
         ],
         practicalTip:
-          'Standard domestic sizing: 1.5mm² for 6A/10A lighting, 2.5mm² for 16A/20A/32A ring circuits, 4.0mm²–6.0mm² for 32A–40A cookers and shower radials.',
+          'Compare actual load current Ib, device rating In and derated cable capacity Iz separately; installation and protection coverage remain essential.',
       },
     });
-  } else if (protectionComps.length > 0) {
+  } else if (checkedCableRatings > 0 && !cableCapacityUnassessed && !assumedCableSizes) {
     passedChecks.push({
       id: 'pass_protection',
-      title: 'Overcurrent Protection Coordinated',
-      description: 'Breaker ratings safely coordinate with cable current capacities (In ≤ Iz).',
+      title: 'Connected Cable Rating Estimate',
+      description:
+        'Declared In does not exceed estimated Iz on the checked adjacent conductors. Installation assumptions, downstream coverage and protective clearing still require assessment.',
+    });
+  }
+  if (cableCapacityUnassessed) {
+    issues.push({
+      id: 'cable_capacity_unassessed',
+      severity: 'warning',
+      title: 'Cable Capacity Comparison Unassessed',
+      description:
+        'A connected conductor has no supported capacity table, a device current rating is unknown, or a protective device has no connected conductors. No capacity or coordination pass is available for that path.',
+      recommendation:
+        'Declare supported conductor and device data; AWG/nonstandard areas are not rounded up to a larger table size.',
+      category: 'cable_sizing',
     });
   }
 
-  // 6. CABLE SIZING FOR HIGH POWER LOADS
-  //
-  // Only *declared* sizes count. The old fallback compared an assumed 1.5 mm²
-  // against the load's own recommendation, so a socket or lamp that had never
-  // been given a cable size was reported as "wired with undersized cable
-  // gauges" — a finding the user could not find anywhere in the Inspector and
-  // could only clear by picking a size the circuit never needed to name.
-  const undersizedComps: ComponentInstance[] = [];
+  // 6. CATALOGUE WIRE-SIZE ADVICE
+  // Compare the actual modeled runs, not an independently unmodeled appliance
+  // flex. Explicit wire/AWG sizes outrank endpoint settings in every consumer.
+  const undersizedRuns = new Map<
+    string,
+    { componentId: string; mm2: number; recommendedMm2: number }
+  >();
+  let declaredRuns = 0;
+  let assumedRuns = 0;
   for (const c of components) {
     const def = COMPONENT_DEFS[c.type];
-    if (!def) continue;
-
-    const declaredMm2 = c.state.customCableMm2;
-    if (declaredMm2 === undefined) continue;
-
-    const recommendedMm2 = def.recommendedCableMm2;
-    if (recommendedMm2 && declaredMm2 < recommendedMm2) {
-      undersizedComps.push(c);
+    const recommendedMm2 = def?.recommendedCableMm2;
+    if (!recommendedMm2) continue;
+    for (const wire of compWiresMap.get(c.id) ?? []) {
+      const port = wire.fromComponentId === c.id ? wire.fromPortIndex : wire.toPortIndex;
+      if (def.ports[port]?.type === 'earth') continue;
+      const properties = resolveWireProperties(wire, componentsById);
+      if (properties.provenance.cableMm2 === 'default') {
+        assumedRuns++;
+        continue;
+      }
+      declaredRuns++;
+      if (
+        properties.cableMm2 < recommendedMm2 &&
+        recommendedMm2 > (undersizedRuns.get(wire.id)?.recommendedMm2 ?? 0)
+      ) {
+        undersizedRuns.set(wire.id, {
+          componentId: c.id,
+          mm2: properties.cableMm2,
+          recommendedMm2,
+        });
+      }
     }
   }
 
-  if (undersizedComps.length > 0) {
-    const names = Array.from(
-      new Set(undersizedComps.map((c) => COMPONENT_DEFS[c.type]?.label || c.type)),
-    ).join(', ');
-
-    const targetVal = COMPONENT_DEFS[undersizedComps[0].type]?.recommendedCableMm2 || 2.5;
-
+  if (undersizedRuns.size > 0) {
+    const [wireId, first] = undersizedRuns.entries().next().value!;
     issues.push({
       id: 'undersized_cable_group',
       severity: 'warning',
-      title: `Undersized Cable Gauge (${undersizedComps.length} Load${undersizedComps.length > 1 ? 's' : ''})`,
-      description: `High power load equipment (${names}) is wired with undersized cable gauges.`,
+      title: `Wire Size Below Catalogue Recommendation (${undersizedRuns.size} Runs)`,
+      description: `Wire ${wireId} resolves to ${first.mm2} mm², below the connected equipment's ${first.recommendedMm2} mm² recommendation. This comparison does not establish cable capacity or safety.`,
       recommendation:
-        'Increase cable cross-section in component settings to meet BS 7671 ampacity.',
+        'Review the wire cross-section, actual branch current and installation conditions. Component-tail advice is not a separately modeled appliance flex.',
       category: 'cable_sizing',
-      componentId: undersizedComps[0].id,
-      quickFix: {
-        label: `Set Cable to ${targetVal}mm²`,
-        type: 'increase_cable_gauge',
-        componentId: undersizedComps[0].id,
-        targetCableMm2: targetVal,
-      },
-      detailedBreakdown: {
-        bs7671Regulation: 'BS 7671 Regulation 523.1 (Current-Carrying Capacities)',
-        physicsExplanation:
-          'Conductive resistance R is inversely proportional to cable cross-sectional area A (R = ρL/A). Undersized conductors exhibit high I²R Joule heating losses and excessive voltage drop under load.',
-        steps: [
-          {
-            stepNumber: 1,
-            title: 'Load Power Assessment',
-            description: `Evaluated continuous power requirement for ${names}.`,
-          },
-          {
-            stepNumber: 2,
-            title: 'Section Comparison',
-            description: `Configured cable size is less than recommended minimum (${targetVal}mm²).`,
-          },
-          {
-            stepNumber: 3,
-            title: 'Remediation',
-            description: `Increase cable gauge to ${targetVal}mm² or higher.`,
-          },
-        ],
-        practicalTip:
-          'Always check full load current (Ib) against cable rating (Iz) adjusted for installation method.',
-      },
+      componentId: first.componentId,
+      wireId,
     });
-  } else {
+  } else if (declaredRuns > 0 && assumedRuns === 0) {
     passedChecks.push({
       id: 'pass_cable_sizing',
-      title: 'Cable Sizing Suitable',
-      description: 'All loads and equipment are wired with suitable cable cross-sections.',
+      title: 'Declared Wire Sizes Meet Catalogue Recommendations',
+      description:
+        'The resolved wire sizes meet component recommendations. Actual capacity, installation suitability and protection coordination require separate assessment.',
     });
   }
 

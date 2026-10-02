@@ -9,6 +9,8 @@ import {
   type SimulationResult,
   type WireInstance,
 } from '@electrasim/domain';
+import { assessWireCapacity } from '@electrasim/domain/core/wireCapacity';
+import { resolveWireProperties } from '@electrasim/domain/core/wireProperties';
 import { AlertTriangle, Lock, OctagonAlert, Zap } from 'lucide-react';
 import { useCircuitStore, useSettingsStore, useUiStore } from '../../../store';
 import { EmojiGlyph } from '../EmojiGlyph';
@@ -24,6 +26,7 @@ export function InspectorSimulationContent({
   const simRunning = useUiStore((s) => s.simRunning);
   const appMode = useSettingsStore((s) => s.appMode);
   const manualFaultInjection = useSettingsStore((s) => s.manualFaultInjection);
+  const components = useCircuitStore((s) => s.components);
   const isPro = appMode === 'pro';
   // Manual fault injection is Pro-only and gated behind the SubHeaderBar
   // master toggle. Student Mode never exposes the fault buttons.
@@ -34,10 +37,18 @@ export function InspectorSimulationContent({
     const calc = simResult?.wireCalculations?.[wire.id];
     const isEnergized = simResult?.energizedWires.has(wire.id) ?? false;
 
-    const current = calc?.currentAmps ?? 0;
-    const voltageDrop = calc?.voltageDropVolts ?? 0;
-    const vDropPercent = calc?.voltageDropPercent ?? 0;
-    const resistance = calc?.resistanceOhms ?? 0.05;
+    const current = calc?.currentAmps;
+    const voltageDrop = calc?.voltageDropVolts;
+    const vDropPercent = calc?.voltageDropPercent;
+    const resistance = calc?.resistanceOhms;
+    const available = simRunning && calc !== undefined;
+    const capacity = assessWireCapacity(
+      resolveWireProperties(
+        wire,
+        new Map(components.map((component) => [component.id, component])),
+      ),
+      current,
+    );
 
     return (
       <div className="p-3.5 space-y-3.5 text-xs">
@@ -48,9 +59,7 @@ export function InspectorSimulationContent({
         <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-2xs dark:border-slate-800 dark:bg-slate-900 flex items-center justify-between">
           <div>
             <div className="font-bold text-slate-800 dark:text-slate-200">Conductor</div>
-            <div className="text-[10px] text-slate-500 dark:text-slate-400">
-              Cable Operating Telemetry
-            </div>
+            <div className="text-[10px] text-slate-500 dark:text-slate-400">Cable Calculation</div>
           </div>
           <span
             className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase font-mono ${
@@ -59,7 +68,13 @@ export function InspectorSimulationContent({
                 : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
             }`}
           >
-            {isEnergized ? 'ENERGIZED' : 'DEAD / OPEN'}
+            {!simRunning
+              ? 'NOT RUNNING'
+              : !calc
+                ? 'UNASSESSED'
+                : isEnergized
+                  ? 'ENERGIZED'
+                  : 'NO LIVE RESULT'}
           </span>
         </div>
 
@@ -67,37 +82,41 @@ export function InspectorSimulationContent({
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-2.5 dark:border-slate-800 dark:bg-slate-950/60">
             <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-              Live Current Draw
+              Current Estimate
             </div>
             <div className="font-mono text-base font-bold text-emerald-600 dark:text-emerald-400">
-              {simRunning ? `${current.toFixed(2)} A` : '0.00 A'}
+              {available && current !== undefined ? `${current.toFixed(2)} A` : 'Unavailable'}
             </div>
           </div>
 
           <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-2.5 dark:border-slate-800 dark:bg-slate-950/60">
             <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-              Voltage Drop
+              Design Loop Drop (70 °C)
             </div>
             <div className="font-mono text-base font-bold text-indigo-600 dark:text-indigo-400">
-              {simRunning ? `${voltageDrop.toFixed(2)} V (${vDropPercent.toFixed(1)}%)` : '0.0 V'}
+              {available && voltageDrop !== undefined && vDropPercent !== undefined
+                ? `${voltageDrop.toFixed(2)} V (${vDropPercent.toFixed(1)}%)`
+                : 'Unavailable'}
             </div>
           </div>
 
           <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-2.5 dark:border-slate-800 dark:bg-slate-950/60">
             <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-              Cable Resistance
+              Design Loop Resistance (70 °C)
             </div>
             <div className="font-mono text-base font-bold text-amber-600 dark:text-amber-400">
-              {resistance.toFixed(3)} Ω
+              {available && resistance !== undefined ? `${resistance.toFixed(3)} Ω` : 'Unavailable'}
             </div>
           </div>
 
           <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-2.5 dark:border-slate-800 dark:bg-slate-950/60">
             <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-              Derated Ampacity
+              Derated Capacity Estimate
             </div>
             <div className="font-mono text-base font-bold text-purple-600 dark:text-purple-400">
-              {calc?.deratedAmpacityAmps ?? 20} A
+              {available && capacity.deratedAmps !== null
+                ? `${capacity.deratedAmps} A`
+                : 'Unavailable'}
             </div>
           </div>
         </div>
