@@ -96,6 +96,15 @@ export function useSimulation() {
           )
             return;
           if (!useUiStore.getState().simRunning) return;
+          const latest = useCircuitStore.getState();
+          if (
+            latest.components !== components ||
+            latest.wires !== wires ||
+            latest.supply !== supply ||
+            latest.globalVoltage !== globalVoltage ||
+            latest.faults !== faults
+          )
+            return;
 
           // Derived solver effects are one internal projection, not new user edits.
           // Authorization was checked for this exact request; membership never changes physics.

@@ -1,3 +1,5 @@
+import { ordinaryRunBlocked, readinessLabel } from '@electrasim/domain/core/readinessPresentation';
+import { useCircuitReadiness } from '../../store/electricalReadiness';
 /**
  * Toolbar — Workbench experiment top application bar.
  *
@@ -49,6 +51,8 @@ interface Props {
 }
 
 export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard }: Props) {
+  const readiness = useCircuitReadiness();
+  const runDisabled = !simRunning && ordinaryRunBlocked(readiness);
   const appMode = useSettingsStore((s) => s.appMode);
   const setSetting = useSettingsStore((s) => s.setSetting);
   const resolvedTheme = useResolvedTheme();
@@ -213,49 +217,58 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
 
   // RUN SIMULATION — primary action
   const runBtn = (
-    <button
-      type="button"
-      onClick={() => {
-        if (isBlocked) {
-          useUiStore.getState().setWhatHappenedOpen(true);
-        } else {
-          useUiStore.getState().toggleSim();
+    <>
+      <span id="run-readiness-explanation" className="sr-only">
+        {readinessLabel(readiness)}. {readiness.diagnostics.map((d) => d.message).join(' ')}
+      </span>
+      <button
+        type="button"
+        onClick={() => {
+          if (isBlocked) {
+            useUiStore.getState().setWhatHappenedOpen(true);
+          } else {
+            useUiStore.getState().toggleSim();
+          }
+        }}
+        data-tour="run"
+        aria-describedby="run-readiness-explanation"
+        disabled={runDisabled && !isBlocked}
+        className={[
+          'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm transition cursor-pointer',
+          isBlocked
+            ? 'bg-red-600 hover:bg-red-700 text-white animate-pulse'
+            : simRunning
+              ? 'bg-emerald-600 text-white shadow-emerald-600/20 hover:bg-emerald-700'
+              : 'bg-blue-600 text-white shadow-blue-600/20 hover:bg-blue-700',
+        ].join(' ')}
+        title={
+          isBlocked
+            ? 'Circuit tripped or damaged — click to view fault details and repair'
+            : simRunning
+              ? 'Stop simulation'
+              : runDisabled
+                ? readiness.diagnostics.map((d) => d.message).join(' ')
+                : 'Run simulation'
         }
-      }}
-      data-tour="run"
-      className={[
-        'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm transition cursor-pointer',
-        isBlocked
-          ? 'bg-red-600 hover:bg-red-700 text-white animate-pulse'
-          : simRunning
-            ? 'bg-emerald-600 text-white shadow-emerald-600/20 hover:bg-emerald-700'
-            : 'bg-blue-600 text-white shadow-blue-600/20 hover:bg-blue-700',
-      ].join(' ')}
-      title={
-        isBlocked
-          ? 'Circuit tripped or damaged — click to view fault details and repair'
-          : simRunning
-            ? 'Stop simulation'
-            : 'Run simulation'
-      }
-    >
-      {isBlocked ? (
-        <>
-          <OctagonAlert className="size-3" />
-          Circuit Tripped
-        </>
-      ) : simRunning ? (
-        <>
-          <Square className="size-3" fill="currentColor" />
-          Stop
-        </>
-      ) : (
-        <>
-          <Play className="size-3" fill="currentColor" />
-          Run Simulation
-        </>
-      )}
-    </button>
+      >
+        {isBlocked ? (
+          <>
+            <OctagonAlert className="size-3" />
+            Circuit Tripped
+          </>
+        ) : simRunning ? (
+          <>
+            <Square className="size-3" fill="currentColor" />
+            Stop
+          </>
+        ) : (
+          <>
+            <Play className="size-3" fill="currentColor" />
+            Run Simulation
+          </>
+        )}
+      </button>
+    </>
   );
 
   // Pro-mode: Analyze Circuit dashboard (existing behaviour preserved)

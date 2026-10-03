@@ -36,6 +36,7 @@
  * Pure: no store access, no persistence, no timers.
  */
 
+import { exerciseSupplyIssue } from '../../core/exerciseSupply';
 import { isFaultResolved } from '../../faults';
 import { simulate } from '../../simulation';
 import type { Circuit, FaultType, SimulationResult } from '../../types';
@@ -194,6 +195,7 @@ export function evaluateDiagnosis(
   // carry no current in normal service, so cutting them out is invisible to a
   // behavioural diff yet is emphatically not a repair.
   const recoveryGap =
+    exerciseSupplyIssue(scenario.healthyCircuit, userCircuit) ??
     describeRecoveryGap(baseline, simulation) ??
     describeStructuralGap(scenario.healthyCircuit, userCircuit);
   const recovered = faultCleared && recoveryGap === null;

@@ -1,3 +1,8 @@
+import {
+  requestSupplyEdit,
+  useConfigurationLockReason,
+  useElectricalEditing,
+} from '../../store/electricalEditing';
 import { fitCanvasView } from '../canvas/fitView';
 /**
  * PhoneDock — bottom-mounted button strip for the phone layout.
@@ -7,6 +12,8 @@ import { fitCanvasView } from '../canvas/fitView';
  */
 
 import {
+  ClipboardList,
+  Info,
   type LucideIcon,
   Maximize2,
   MousePointer2,
@@ -14,6 +21,7 @@ import {
   Plus,
   Settings,
   Trash2,
+  Zap,
 } from 'lucide-react';
 import { useCircuitStore, useUiStore } from '../../store';
 import { requestDeleteComponent, requestDeleteWire } from '../canvas-actions';
@@ -24,6 +32,7 @@ export function PhoneDock() {
   const mode = useUiStore((s) => s.mode);
   const pendingCustomPath = useUiStore((s) => s.pendingCustomPath);
   const simRunning = useUiStore((s) => s.simRunning);
+  const configurationLocked = useConfigurationLockReason();
   const hasSelection = Boolean(selectedComponentId || selectedWireId);
 
   const deleteSelection = () => {
@@ -72,6 +81,23 @@ export function PhoneDock() {
         label="Delete"
         disabled={!hasSelection || simRunning}
         onClick={deleteSelection}
+      />
+      <PhoneBtn
+        icon={Zap}
+        label="Supply"
+        disabled={!!configurationLocked}
+        onClick={() => requestSupplyEdit(useElectricalEditing.getState().activeSupply)}
+      />
+      <PhoneBtn
+        icon={ClipboardList}
+        label="Review"
+        onClick={() => useElectricalEditing.setState({ reviewOpen: true })}
+      />
+      <PhoneBtn
+        icon={Info}
+        label="Inspect"
+        disabled={!selectedComponentId}
+        onClick={() => useElectricalEditing.setState({ inspectComponentId: selectedComponentId })}
       />
       <PhoneBtn icon={Maximize2} label="Fit" onClick={fitCanvasView} />
       <PhoneBtn

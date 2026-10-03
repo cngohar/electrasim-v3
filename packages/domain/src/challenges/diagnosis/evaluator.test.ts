@@ -11,6 +11,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
+import { explicitSupplyProfile } from '../../core/supplies';
 import { validateFaultCoexistence } from '../../faults';
 import { simulate } from '../../simulation';
 import type { Circuit } from '../../types';
@@ -101,6 +102,21 @@ describe('evaluateDiagnosis — §41 truth table', () => {
 });
 
 describe('evaluateDiagnosis — what counts as a repair', () => {
+  it('rejects changed source magnitude or frequency even when the original fault is cleared', () => {
+    const { scenario, correct, repaired } = scenarioFor(5, 'beginner');
+    for (const model of [
+      { kind: 'ac-single-phase', voltage: 120, frequencyHz: 50 },
+      { kind: 'ac-single-phase', voltage: 230, frequencyHz: 60 },
+    ] as const) {
+      const result = evaluateDiagnosis(
+        scenario,
+        { ...repaired, supply: explicitSupplyProfile(model), globalVoltage: model.voltage },
+        correct,
+      );
+      expect(result.success).toBe(false);
+      expect(result.recoveryGap).toContain('authored supply');
+    }
+  });
   it('accepts a cable replaced by a new one between the same terminals', () => {
     let checked = 0;
     for (let seed = 0; seed < 30 && checked < 6; seed++) {

@@ -107,6 +107,8 @@ describe('simulation safety guards', () => {
     });
 
     useUiStore.getState().setSimRunning(true);
+    expect(useUiStore.getState().simRunning).toBe(false); // Outlet-only drawing needs an explicit diagnostic.
+    useUiStore.getState().startDiagnosticRun();
     expect(useUiStore.getState().simRunning).toBe(true);
     expect(useUiStore.getState().complianceGateBlocked).toBe(false);
     expect(useUiStore.getState().faultAlert).toBeNull();

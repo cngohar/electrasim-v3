@@ -16,7 +16,7 @@ import { useDiagnosisStore } from './diagnosisStore';
 import { useUiStore } from './uiStore';
 import { useSimulation } from './useSimulation';
 
-const EMPTY_CIRCUIT: Circuit = { components: [], wires: [] };
+const RUNNABLE_CIRCUIT: Circuit = protectedLoad('mcb', 60, 16);
 
 function resultFor(id: string): SimulationResult {
   return {
@@ -41,7 +41,7 @@ describe('useSimulation request sequencing', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     simulateAsync.mockReset();
-    useCircuitStore.getState().setCircuit(EMPTY_CIRCUIT);
+    useCircuitStore.getState().setCircuit(RUNNABLE_CIRCUIT);
     useUiStore.setState({ simRunning: false, simResult: null, logs: [] });
     useDiagnosisStore.setState({ status: 'idle' });
   });
@@ -115,6 +115,10 @@ describe('useSimulation request sequencing', () => {
     useCircuitStore.getState().setCircuit({
       components: [{ id: 'bulb-1', type: 'bulb', x: 0, y: 0, state: {} }],
       wires: [],
+    });
+    useCircuitStore.getState().setCircuit({
+      ...RUNNABLE_CIRCUIT,
+      components: [...RUNNABLE_CIRCUIT.components, component('bulb-1', 'bulb')],
     });
 
     renderHook(() => useSimulation());

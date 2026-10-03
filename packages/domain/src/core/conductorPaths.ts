@@ -55,6 +55,9 @@ export function conductorPaths(
         visited.add(next.terminal);
         parents.set(next.terminal, { terminal: current, branch: next.branch });
         queue.push(next.terminal);
+        // The first discovery fixes this shortest path. A high-degree bus
+        // must not enqueue all its other branches after reaching the target.
+        if (next.terminal === to) break;
       }
     }
     const edges: ElectricalBranch[] = [];

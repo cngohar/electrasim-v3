@@ -4,7 +4,7 @@ This directory contains technical documentation, Architecture Decision Records (
 
 Current work: [Phase 1 simulator core](phases/phase-1-simulator-core.md). The [deep-scan reconciliation and electrical-core rebuild plan](plans/SIMULATOR_CORE_REBUILD_PLAN.md) inserts 1.5A–1.5F before visual effects and maps the root audit to current V3 findings and later-phase gates. Development and testing remain local-only under root `AGENTS.md`.
 
-[Phase 1.5C.3 transformers and PE](audits/phase-1-transformers-pe.md) records coupled AC equations, explicit reference relationships, limited fault-current estimates and the passing local gate. **1.5C.0–3 are complete locally; next is 1.5C.4 essential editing/readiness UI.** [Load response and wires](audits/phase-1-load-response.md) retains operating-point and wire-property evidence. [Linear MNA acceptance](audits/phase-1-mna-solver.md) and [supplies/preflight](audits/phase-1-supply-preflight.md) retain the earlier numerical and persisted-contract evidence. [Phase 1.5B contracts](audits/phase-1-electrical-contracts.md) retains input/default/wire policy, topology and fault coverage. [Phase 1.5A acceptance](audits/phase-1-audit-baseline.md), the [dependency review](audits/phase-1-dependencies.md) and [ADR 0008](decisions/0008-staged-electrical-core.md) retain the earlier corrections and migration boundaries. Full editing/readiness UI and actual MNA runtime integration remain in 1.5C.4–5.
+[Phase 1.5C.4 editing and readiness](audits/phase-1-editing-readiness.md) records confirmed supply changes, safe terminal mappings, shared placement/Run findings, exercise locks and the passing local gate. **1.5C.0–4 are complete locally; next is 1.5C.5 application/Comlink/local-Hono MNA integration.** [Transformers and PE](audits/phase-1-transformers-pe.md) retains coupled-equation and reference evidence; [load response and wires](audits/phase-1-load-response.md) retains operating-point and wire-property evidence. [Linear MNA acceptance](audits/phase-1-mna-solver.md) and [supplies/preflight](audits/phase-1-supply-preflight.md) retain the earlier numerical and persisted-contract evidence. [Phase 1.5B contracts](audits/phase-1-electrical-contracts.md) retains input/default/wire policy, topology and fault coverage. [Phase 1.5A acceptance](audits/phase-1-audit-baseline.md), the [dependency review](audits/phase-1-dependencies.md) and [ADR 0008](decisions/0008-staged-electrical-core.md) retain the earlier corrections and migration boundaries. The application still uses guarded legacy numerical results until 1.5C.5.
 
 [Current behavior audit](audits/phase-1-behavior-review.md) completes the 2026-10-01 review with 42 local observations and source-inspected editing/exercise findings. [ADR 0009](decisions/0009-mna-solver.md) selects **MNA**, and the [behavior plan](plans/SIMULATOR_BEHAVIOR_PLAN.md) assigns shared compatibility, confirmed supply changes, readiness and cable/current correctness to **1.5C.0–5**, timed behavior to **1.5D**, three-phase models to **1.5E**, and full Fault Lab/Diagnosis Lab/Ohmageddon integration to **1.5F**. These are implementation requirements; the audit update does not implement the solver or UI corrections.
 
@@ -42,7 +42,8 @@ docs/
 │   ├── phase-1-supply-preflight.md
 │   ├── phase-1-mna-solver.md
 │   ├── phase-1-load-response.md
-│   └── phase-1-transformers-pe.md
+│   ├── phase-1-transformers-pe.md
+│   └── phase-1-editing-readiness.md
 ├── notes/                  # Implementation notes & technical records
 │   └── IMPLEMENTATION_NOTES.md
 ├── branding/               # Design identity, logo concept & aesthetic notes

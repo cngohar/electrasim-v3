@@ -50,6 +50,7 @@ export interface ComponentNodeProps {
   theme: CanvasTheme;
   selected: boolean;
   flagged?: boolean;
+  compatibilityReview?: 'incompatible' | 'unassessed';
   energized: boolean;
   error: boolean;
   wireMode: boolean;
@@ -74,6 +75,7 @@ export function ComponentNode({
   theme,
   selected,
   flagged,
+  compatibilityReview,
   energized,
   error,
   wireMode,
@@ -175,12 +177,35 @@ export function ComponentNode({
     <g
       data-component-id={component.id}
       data-render-detail={reducedDetails ? 'reduced' : 'full'}
+      data-compatibility={compatibilityReview}
       transform={`translate(${x} ${y}) rotate(${rotation} ${COMP_W / 2} ${COMP_H / 2})`}
       opacity={isDimmedByTrace ? 0.2 : 1}
       onPointerEnter={() => onHoverChange(component.id)}
       onPointerLeave={() => onHoverChange(null)}
       onContextMenu={(event) => onContextMenu(component.id, event)}
     >
+      {compatibilityReview && (
+        <g
+          pointerEvents="none"
+          aria-label={`Electrical compatibility ${compatibilityReview}; inspect this component`}
+        >
+          <title>
+            Electrical compatibility {compatibilityReview}. Inspect the component for ratings and
+            supply findings.
+          </title>
+          <rect
+            x={0}
+            y={-16}
+            width={COMP_W}
+            height={13}
+            rx={3}
+            fill={compatibilityReview === 'incompatible' ? '#b91c1c' : '#92400e'}
+          />
+          <text x={COMP_W / 2} y={-6} textAnchor="middle" fontSize={8} fill="white">
+            {compatibilityReview === 'incompatible' ? '! Incompatible' : '? Unassessed'}
+          </text>
+        </g>
+      )}
       {showHeatOnlyCard && (
         <g pointerEvents="none">
           <rect

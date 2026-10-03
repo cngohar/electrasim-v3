@@ -1,24 +1,24 @@
 import { COMPONENT_DEFS } from '@electrasim/domain/components';
+import { readinessLabel } from '@electrasim/domain/core/readinessPresentation';
 import { resolveDocumentSupply } from '@electrasim/domain/core/supplies';
 import { resolveWireProperties } from '@electrasim/domain/core/wireProperties';
 import { ChevronDown, ChevronRight, Edit2, Layers, Route, Sliders, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useState } from 'react';
 import { useCircuitStore, useUiStore } from '../../store';
-const VOLTAGE_PRESETS = [
-  { label: '12 V', val: 12 },
-  { label: '24 V', val: 24 },
-  { label: '110 V', val: 110 },
-  { label: '230 V', val: 230 },
-  { label: '240 V', val: 240 },
-  { label: '400 V', val: 400 },
-];
+import {
+  requestSupplyEdit,
+  useConfigurationLockReason,
+  useElectricalEditing,
+} from '../../store/electricalEditing';
+import { useCircuitReadiness } from '../../store/electricalReadiness';
 
 export function SubHeaderBar() {
   const simRunning = useUiStore((s) => s.simRunning);
   const globalVoltage = useCircuitStore((s) => s.globalVoltage);
   const supply = useCircuitStore((s) => s.supply);
-  const setGlobalSupplyVoltage = useCircuitStore((s) => s.setGlobalSupplyVoltage);
+  const supplyLocked = useConfigurationLockReason();
+  const readiness = useCircuitReadiness();
+  const supplyRequest = useElectricalEditing((s) => s.request);
   const simResult = useUiStore((s) => s.simResult);
 
   const selectedComponentIds = useCircuitStore((s) => s.selectedComponentIds);
@@ -35,8 +35,6 @@ export function SubHeaderBar() {
     }
   });
   const [isEditing, setIsEditing] = useState(false);
-  const [showVoltagePicker, setShowVoltagePicker] = useState(false);
-  const [customVoltInput, setCustomVoltInput] = useState(globalVoltage.toString());
 
   const handleProjectNameChange = (val: string) => {
     setProjectName(val);
@@ -44,64 +42,6 @@ export function SubHeaderBar() {
       localStorage.setItem('electrasim:project-name', val);
     } catch {
       // Storage unavailable
-    }
-  };
-
-  // The voltage picker renders in a portal at a fixed position so it can
-  // never be clipped by the sub-header's horizontal scroll container.
-  const triggerRef = useRef<HTMLButtonElement | null>(null);
-  const menuRef = useRef<HTMLDivElement | null>(null);
-  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
-
-  useEffect(() => {
-    setCustomVoltInput(globalVoltage.toString());
-  }, [globalVoltage]);
-
-  // Close the portal dropdown on outside click, Escape, or viewport resize.
-  useEffect(() => {
-    if (!showVoltagePicker) return;
-    const handleDown = (e: MouseEvent) => {
-      const target = e.target as Node;
-      if (menuRef.current?.contains(target) || triggerRef.current?.contains(target)) {
-        return;
-      }
-      setShowVoltagePicker(false);
-    };
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setShowVoltagePicker(false);
-    };
-    const handleResize = () => setShowVoltagePicker(false);
-    document.addEventListener('mousedown', handleDown);
-    document.addEventListener('keydown', handleKey);
-    window.addEventListener('resize', handleResize);
-    return () => {
-      document.removeEventListener('mousedown', handleDown);
-      document.removeEventListener('keydown', handleKey);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [showVoltagePicker]);
-
-  // Simulation is a live model — the supply can only change while it is
-  // stopped (matches the Inspector's locked Supply Voltage control).
-  useEffect(() => {
-    if (simRunning) setShowVoltagePicker(false);
-  }, [simRunning]);
-
-  const openVoltagePicker = () => {
-    if (simRunning) return;
-    const rect = triggerRef.current?.getBoundingClientRect();
-    if (rect) {
-      setMenuPos({ top: rect.bottom + 6, left: Math.min(rect.left, window.innerWidth - 280) });
-      setShowVoltagePicker(true);
-    }
-  };
-
-  const handleApplyCustomVoltage = (e: React.FormEvent) => {
-    e.preventDefault();
-    const num = Number.parseFloat(customVoltInput);
-    if (!Number.isNaN(num) && num > 0) {
-      setGlobalSupplyVoltage(num);
-      setShowVoltagePicker(false);
     }
   };
 
@@ -131,109 +71,33 @@ export function SubHeaderBar() {
 
   const voltagePicker = (
     <>
-      {/* Global Voltage Dropdown Picker */}
-      <div className="relative">
-        <button
-          type="button"
-          ref={triggerRef}
-          onClick={() => (showVoltagePicker ? setShowVoltagePicker(false) : openVoltagePicker())}
-          disabled={simRunning}
-          className={[
-            'flex items-center gap-1.5 rounded-full px-2 py-0.5 font-medium transition',
-            simRunning
-              ? 'cursor-not-allowed opacity-60'
-              : 'hover:bg-slate-100 dark:hover:bg-slate-800',
-          ].join(' ')}
-          title={
-            simRunning
-              ? 'Stop the simulation to change the Global Supply Voltage'
-              : 'Click to change Global Supply Voltage'
-          }
-          aria-expanded={showVoltagePicker}
-          aria-haspopup="dialog"
-        >
-          <span className="size-2 rounded-full bg-emerald-500 shadow-[0_0_6px] shadow-emerald-400" />
-          <span className="text-slate-500 dark:text-slate-400">Supply:</span>
-          <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">
-            {effectiveVoltage} V{' '}
-            {sourceModel.kind === 'dc'
-              ? 'DC'
-              : `AC ${sourceModel.frequencyHz} Hz${sourceModel.kind === 'ac-three-phase' ? ' · 3-phase L-N' : ''}`}
-          </span>
-          <ChevronDown
-            className={`size-3 text-slate-400 transition-transform ${showVoltagePicker ? 'rotate-180' : ''}`}
-          />
-        </button>
-
-        {showVoltagePicker &&
-          menuPos &&
-          createPortal(
-            <div
-              // biome-ignore lint/a11y/useSemanticElements: non-modal popover pattern; a native <dialog> would change dismissal semantics
-              ref={menuRef}
-              role="dialog"
-              aria-label="Global Supply Voltage"
-              className="fixed z-[60] w-64 rounded-xl border border-slate-200 bg-white p-3 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
-              style={{ top: menuPos.top, left: menuPos.left }}
-            >
-              <div className="mb-2 flex items-center justify-between border-b border-slate-200 pb-1.5 font-bold text-slate-800 dark:border-slate-800 dark:text-slate-100">
-                <span className="flex items-center gap-1.5 text-xs">
-                  <Sliders className="size-3.5 text-amber-500" /> Global Supply Voltage
-                </span>
-                <span className="font-mono text-[10px] text-amber-600 dark:text-amber-400">
-                  {effectiveVoltage} V
-                </span>
-              </div>
-
-              <div className="mb-2 text-[10px] text-slate-500 dark:text-slate-400">
-                Changes the document supply voltage. Supply kind and frequency are retained;
-                independent sources keep their settings.
-              </div>
-
-              {/* Voltage presets */}
-              <div className="mb-3 grid grid-cols-3 gap-1">
-                {VOLTAGE_PRESETS.map((preset) => (
-                  <button
-                    key={preset.val}
-                    type="button"
-                    onClick={() => {
-                      setGlobalSupplyVoltage(preset.val);
-                      setShowVoltagePicker(false);
-                    }}
-                    className={`rounded border px-2 py-1 font-mono text-[10px] font-bold transition ${
-                      globalVoltage === preset.val
-                        ? 'border-amber-500 bg-amber-500 text-white shadow-xs'
-                        : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-amber-300 hover:bg-amber-50 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-amber-600'
-                    }`}
-                  >
-                    {preset.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Custom input */}
-              <form onSubmit={handleApplyCustomVoltage} className="flex items-center gap-1.5">
-                <input
-                  type="number"
-                  min="1"
-                  max="1000"
-                  value={customVoltInput}
-                  onChange={(e) => setCustomVoltInput(e.target.value)}
-                  placeholder="Custom Volts..."
-                  className="w-full rounded border border-slate-200 bg-slate-50 px-2 py-1 font-mono text-xs text-slate-900 focus:border-amber-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                />
-                <button
-                  type="submit"
-                  className="rounded bg-amber-600 px-2.5 py-1 text-xs font-bold text-white hover:bg-amber-500"
-                >
-                  Apply
-                </button>
-              </form>
-            </div>,
-            document.body,
-          )}
-      </div>
-
+      <button
+        type="button"
+        onClick={() => requestSupplyEdit()}
+        disabled={!!supplyLocked}
+        className="flex items-center gap-1.5 rounded-full px-2 py-0.5 font-medium hover:bg-slate-100 disabled:opacity-60 dark:hover:bg-slate-800"
+        title={supplyLocked ?? 'Click to change Global Supply Voltage'}
+        aria-expanded={supplyRequest?.kind === 'supply'}
+        aria-haspopup="dialog"
+      >
+        <span className="text-slate-500 dark:text-slate-400">Supply:</span>
+        <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">
+          {effectiveVoltage} V{' '}
+          {sourceModel.kind === 'dc'
+            ? 'DC'
+            : `AC ${sourceModel.frequencyHz} Hz${sourceModel.kind === 'ac-three-phase' ? ' · 3-phase L-N' : ''}`}
+        </span>
+        <ChevronDown className="size-3 text-slate-400" />
+      </button>
+      <button
+        type="button"
+        data-readiness-status={readiness.topology}
+        className="rounded-full px-2 py-0.5 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800"
+        onClick={() => useElectricalEditing.setState({ reviewOpen: true })}
+        title="Review circuit readiness and compatibility"
+      >
+        {readinessLabel(readiness)} · Review
+      </button>
       <div className="h-3 w-px bg-slate-200 dark:bg-slate-700" />
 
       {/* COMBINED SELECTED ITEM SECTION */}

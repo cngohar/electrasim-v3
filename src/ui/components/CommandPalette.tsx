@@ -1,4 +1,6 @@
 import { fitCanvasView } from '../canvas/fitView';
+import { usePlacementGuidance } from '../hooks/usePlacementGuidance';
+import { PlacementSupplyFilter } from './PlacementSupplyFilter';
 /**
  * CommandPalette — Workbench experiment (Ctrl+K).
  *
@@ -40,6 +42,8 @@ interface Command {
 }
 
 export function CommandPalette() {
+  const guidance = usePlacementGuidance();
+  const allowedComponents = useUiStore((s) => s.challengeAllowedComponents);
   const open = useUiStore((s) => s.commandPaletteOpen);
   const setOpen = useUiStore((s) => s.setCommandPaletteOpen);
   const [query, setQuery] = useState('');
@@ -206,18 +210,21 @@ export function CommandPalette() {
     // Every component in the registry is addable — this gives full coverage
     // (not just a hardcoded subset) and makes the palette a real search tool.
     const addCommands: Command[] = Object.entries(COMPONENT_DEFS)
-      .filter(([, def]) => !def.isSource)
+      .filter(
+        ([type]) =>
+          guidance.visible(type) && (!allowedComponents || allowedComponents.includes(type)),
+      )
       .map(([type, def]) => ({
         id: `add-${type}`,
         label: `Add ${def.label}`,
-        hint: `Place ${def.category}`,
+        hint: `${guidance.hint(type)}${def.tier === 'pro' ? ' · Membership required' : ''}`,
         icon: Layers,
         keywords: `add place ${def.label} ${type} ${def.category}`,
         run: () => setPlace(type),
       }));
 
     return { actions: actionCommands, components: addCommands };
-  }, [setOpen]);
+  }, [setOpen, guidance, allowedComponents]);
 
   if (!open) return null;
 
@@ -286,6 +293,7 @@ export function CommandPalette() {
             Esc
           </kbd>
         </div>
+        <PlacementSupplyFilter />
         {/* Scope tabs — filter the command list to Actions vs Components */}
         <div className="flex items-center gap-1 border-b border-slate-100 px-3 py-1.5 dark:border-slate-800">
           {(

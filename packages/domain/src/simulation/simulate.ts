@@ -8,9 +8,9 @@
 
 import { instanceLabel } from '../componentLabel';
 import { COMPONENT_DEFS } from '../components';
+import { compileCircuit } from '../core/compile';
 import { ELECTRICAL_MODEL_VERSION } from '../core/contracts';
-import { validateCircuitInput } from '../core/input';
-import { normalizeCircuitDocument } from '../core/normalize';
+import { assessCompiledCircuitReadiness } from '../core/readiness';
 import { configuredSupplySources, resolveDocumentSupply } from '../core/supplies';
 import { resolveWireProperties } from '../core/wireProperties';
 import { calculateElectricalValues, getStandardCableAmpacity } from '../electricalCalculations';
@@ -53,16 +53,18 @@ export interface SimulateOptions {
  */
 export function simulate(circuit: Circuit, options: SimulateOptions = {}): SimulationResult {
   const defs = options.defs ?? COMPONENT_DEFS;
-  const input = validateCircuitInput(circuit, defs);
-  if (!input.valid)
+  const input = compileCircuit(circuit, { defs });
+  const readiness = assessCompiledCircuitReadiness(input, { defs });
+  if (input.status === 'invalid' || readiness.topology === 'invalid')
     return {
+      readiness,
       energizedComponents: new Set(),
       energizedWires: new Set(),
       errorComponents: new Set(
-        input.diagnostics.flatMap((d) => (d.componentId ? [d.componentId] : [])),
+        readiness.diagnostics.flatMap((d) => (d.componentId ? [d.componentId] : [])),
       ),
-      errorWires: new Set(input.diagnostics.flatMap((d) => (d.wireId ? [d.wireId] : []))),
-      errors: input.diagnostics.map((d) => d.message),
+      errorWires: new Set(readiness.diagnostics.flatMap((d) => (d.wireId ? [d.wireId] : []))),
+      errors: readiness.diagnostics.map((d) => d.message),
       warnings: [],
       faultsCleared: false,
       electricalContract: {
@@ -71,10 +73,13 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
         modelVersion: ELECTRICAL_MODEL_VERSION,
         status: 'invalid',
         coverage: [],
-        diagnostics: input.diagnostics,
+        diagnostics: readiness.diagnostics,
       },
     };
-  const result = simulateLegacy(normalizeCircuitDocument(input.circuit, false, defs), options);
+  const result = simulateLegacy(input.circuit, options);
+  result.readiness = readiness;
+  if (readiness.topology === 'empty' || readiness.topology === 'no-source')
+    result.faultsCleared = false;
   const unavailable = result.modelLimitations?.some((limitation) => limitation.blocking) === true;
   result.electricalContract = {
     version: 1,

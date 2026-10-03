@@ -35,6 +35,7 @@ import {
   useSettingsStore,
   useUiStore,
 } from '../../store';
+import { useElectricalEditing } from '../../store/electricalEditing';
 import { requestDeleteSelection, requestRotateSelection } from '../canvas-actions';
 
 function runChallengeShortcut(key: string): void {
@@ -66,6 +67,11 @@ export function useKeyboardShortcuts() {
       // Escape is a universal cancel — allow it even inside text inputs
       // so pressing Esc while the palette search is focused still cancels
       // placement or closes modals.
+      if (
+        e.key === 'Escape' &&
+        (useElectricalEditing.getState().request || useElectricalEditing.getState().reviewOpen)
+      )
+        return;
       if (e.key === 'Escape') {
         const ui = useUiStore.getState();
         if (ui.commandPaletteOpen) {
@@ -213,6 +219,9 @@ export function useKeyboardShortcuts() {
       // A paused challenge locks every editor shortcut except the Challenge
       // Mode header/indicator controls and the P resume binding above.
       if (ui.challengePaused) return;
+
+      if (useElectricalEditing.getState().request || useElectricalEditing.getState().reviewOpen)
+        return;
 
       // Blocking overlays own the keyboard while open. This prevents edits,
       // undo/redo, or a second dialog from being triggered behind them.

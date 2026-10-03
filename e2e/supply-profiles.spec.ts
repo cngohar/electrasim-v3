@@ -64,9 +64,11 @@ test('supply profiles survive real import, voltage edit, undo/redo, download and
   await expect(supply).toContainText('230 V AC 60 Hz');
   await supply.click();
   await page
-    .getByRole('dialog', { name: 'Global Supply Voltage' })
+    .getByRole('dialog', { name: 'Change supply' })
     .getByRole('button', { name: '24 V', exact: true })
     .click();
+  await expect(supply).toContainText('230 V AC 60 Hz');
+  await page.getByRole('button', { name: 'Apply supply change' }).click();
   await expect(supply).toContainText('24 V AC 60 Hz');
   await page.keyboard.press('Control+z');
   await expect(supply).toContainText('230 V AC 60 Hz');

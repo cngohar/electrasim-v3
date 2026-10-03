@@ -1,10 +1,7 @@
 /**
  * Inspector — right-hand floating panel showing selected component/wire
- * properties, topology connections, simulation telemetry, waveforms, safety
- * validation, and logs.
- *
- * Split out of the former 3,166-line monolith into `inspector/` modules.
- * Every view body is byte-identical to the original — pure code move.
+ * properties, topology connections, simulation estimates, safety validation
+ * and logs. Unavailable waveform/energy measurements are labeled explicitly.
  */
 
 import {
@@ -29,17 +26,20 @@ import {
 } from 'lucide-react';
 import { Suspense, lazy } from 'react';
 import { useCircuitStore, useSettingsStore, useUiStore } from '../../../store';
-import { InspectorConnectionsContent } from './InspectorConnectionsContent';
-import { InspectorPropertiesContent } from './InspectorPropertiesContent';
-import { InspectorSimulationContent } from './InspectorSimulationContent';
 import { useInspectorSelectionState } from './useInspectorSelectionState';
 
 // Heavy Inspector tabs code-split with dynamic import (perf & initial bundle optimization)
+const InspectorPropertiesContent = lazy(() =>
+  import('./InspectorPropertiesContent').then((m) => ({ default: m.InspectorPropertiesContent })),
+);
+const InspectorConnectionsContent = lazy(() =>
+  import('./InspectorConnectionsContent').then((m) => ({ default: m.InspectorConnectionsContent })),
+);
+const InspectorSimulationContent = lazy(() =>
+  import('./InspectorSimulationContent').then((m) => ({ default: m.InspectorSimulationContent })),
+);
 const ValidationReportView = lazy(() =>
   import('../ValidationReportView').then((m) => ({ default: m.ValidationReportView })),
-);
-const InspectorAnalyticsView = lazy(() =>
-  import('./InspectorAnalyticsView').then((m) => ({ default: m.InspectorAnalyticsView })),
 );
 const InspectorFaultLabView = lazy(() =>
   import('./InspectorFaultLabView').then((m) => ({ default: m.InspectorFaultLabView })),
@@ -372,25 +372,31 @@ export function Inspector({
         {/* Dynamic Tab Body View */}
         <div className="flex-1 overflow-y-auto">
           {activeInspectorTab === 'properties' && (
-            <InspectorPropertiesContent
-              selectionState={selectionState}
-              simResult={simResult}
-              runCircuitValidation={runCircuitValidation}
-            />
+            <Suspense fallback={<TabLoadingFallback />}>
+              <InspectorPropertiesContent
+                selectionState={selectionState}
+                simResult={simResult}
+                runCircuitValidation={runCircuitValidation}
+              />
+            </Suspense>
           )}
 
           {activeInspectorTab === 'connections' && (
-            <InspectorConnectionsContent selectionState={selectionState} />
+            <Suspense fallback={<TabLoadingFallback />}>
+              <InspectorConnectionsContent selectionState={selectionState} />
+            </Suspense>
           )}
 
-          {modelBlocked && ['simulation', 'analytics'].includes(activeInspectorTab) && (
+          {modelBlocked && activeInspectorTab === 'simulation' && (
             <output className="block p-4 text-sm text-amber-800 dark:text-amber-200">
               Electrical measurements are not assessed because this drawing contains an unsupported
               model. You can edit and export the drawing.
             </output>
           )}
           {activeInspectorTab === 'simulation' && !modelBlocked && (
-            <InspectorSimulationContent selectionState={selectionState} simResult={simResult} />
+            <Suspense fallback={<TabLoadingFallback />}>
+              <InspectorSimulationContent selectionState={selectionState} simResult={simResult} />
+            </Suspense>
           )}
 
           {/* Fault Lab tab — Pro fault mode. Falls back to Properties when
@@ -401,20 +407,30 @@ export function Inspector({
                 <InspectorFaultLabView />
               </Suspense>
             ) : (
-              <InspectorPropertiesContent
-                selectionState={selectionState}
-                simResult={simResult}
-                runCircuitValidation={runCircuitValidation}
-              />
+              <Suspense fallback={<TabLoadingFallback />}>
+                <InspectorPropertiesContent
+                  selectionState={selectionState}
+                  simResult={simResult}
+                  runCircuitValidation={runCircuitValidation}
+                />
+              </Suspense>
             ))}
 
-          {activeInspectorTab === 'analytics' && !modelBlocked && (
-            <Suspense fallback={<TabLoadingFallback />}>
-              <InspectorAnalyticsView
-                simResult={simResult}
-                selectedComp={selectionState.kind === 'component' ? selectionState.component : null}
-              />
-            </Suspense>
+          {activeInspectorTab === 'analytics' && (
+            <div className="space-y-3 p-4 text-xs text-slate-700 dark:text-slate-200">
+              <p className="font-semibold">Waveform and energy measurements unavailable</p>
+              <p>
+                The current calculation does not provide terminal-pair waveforms, power factor,
+                temperature or accumulated energy measurements.
+              </p>
+              <button
+                type="button"
+                className="underline"
+                onClick={() => setActiveInspectorTab('properties')}
+              >
+                Review available estimates in component properties
+              </button>
+            </div>
           )}
 
           {activeInspectorTab === 'validation' && (

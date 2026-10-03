@@ -23,7 +23,8 @@ export function sameDocument(a: CircuitState, b: CircuitState) {
  * setCircuit is a separate view/import operation and may open premium content read-only.
  */
 export function guardedCircuitSet(get: () => CircuitState, commit: (state: CircuitState) => void) {
-  return (recipe: Recipe) => {
+  return (recipe: Recipe, canCommit: () => boolean = () => true) => {
+    if (!canCommit()) return false;
     const before = get();
     const next = produce(before, recipe);
     if (sameDocument(before, next)) {
@@ -43,7 +44,7 @@ export function guardedCircuitSet(get: () => CircuitState, commit: (state: Circu
         if (requiredBefore.length) await authorizeCircuit(before);
         if (requiredAfter.some((key) => !requiredBefore.includes(key)))
           await authorizeCircuit(next);
-        if (generation !== accessGeneration() || !sameDocument(before, get())) {
+        if (generation !== accessGeneration() || !sameDocument(before, get()) || !canCommit()) {
           accessMessage('The circuit changed while checking membership. Please retry the edit.');
           return false;
         }

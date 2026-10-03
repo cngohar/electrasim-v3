@@ -8,6 +8,11 @@ export * from './supplies';
 export * from './capabilities';
 export * from './compatibility';
 export * from './readiness';
+export * from './readinessPresentation';
+export * from './supplyEditing';
+export * from './exerciseSupply';
+export * from './variantEditing';
+export * from './placement';
 export type {
   EarthingTopology,
   ProtectiveCurrentMeasurement,

@@ -68,6 +68,16 @@ function challenge(id: 'protected-lamp' | 'push-button-doorbell' | 'rcbo-socket'
 // ── Correct topology ───────────────────────────────────────────────────────
 
 describe('validateChallenge — correct topology', () => {
+  it('rejects a changed authored supply even when the construction rules otherwise pass', () => {
+    const circuit = correctProtectedLamp();
+    const verdict = validateChallenge(challenge('protected-lamp'), {
+      ...circuit,
+      globalVoltage: 120,
+    });
+    expect(verdict.state).toBe('has-errors');
+    expect(verdict.nextRule?.id).toBe('authored-supply');
+    expect(verdict.electricallySound).toBe(false);
+  });
   it('completes the Protected Lamp answer', () => {
     const verdict = validateChallenge(challenge('protected-lamp'), correctProtectedLamp());
     expect(verdict.state).toBe('complete');

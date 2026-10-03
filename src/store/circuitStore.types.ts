@@ -58,6 +58,12 @@ export interface CircuitState {
    *  the given regional socket type so the demo reflects the selected plug. */
   swapDemoSocketForPlug: (socketType: string) => void;
   setGlobalSupplyVoltage: (voltage: number) => void;
+  /** Confirmed configuration transaction, checked again against the preview revision. */
+  applyElectricalEdit: (
+    edit: import('./electricalEditing').ElectricalEdit,
+    expected: Circuit,
+    requestId?: number,
+  ) => boolean | Promise<boolean>;
   addComponent: (comp: ComponentInstance) => void;
   removeComponent: (id: string) => void;
   moveComponent: (id: string, x: number, y: number) => void;

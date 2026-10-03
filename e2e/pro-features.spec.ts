@@ -9,7 +9,7 @@ import { test } from './helpers/paid-test';
  *   - Read-only Student standard display and independent Pro standard/plug controls
  *   - Compliance banner, audited teacher override, and persisted Simulation History
  *   - Unified routed-path Heat / Heat + V-drop diagnostic overlay
- *   - Recommended Protection badge on component properties
+ *   - Capability/nameplate findings and explicit measurement limits
  */
 
 /** A complete UK socket circuit with no upstream RCD/RCBO. It is electrically
@@ -172,7 +172,7 @@ test.describe('Dual standard & pro features', () => {
     await expect(page.getByRole('button', { name: /Standard: .* Plug: / })).toHaveCount(0);
   });
 
-  test('standard switches voltage without overwriting the independent plug choice', async ({
+  test('standard selection preserves the saved supply and independent plug choice', async ({
     page,
   }) => {
     await ensureProMode(page);
@@ -185,13 +185,22 @@ test.describe('Dual standard & pro features', () => {
     await page.getByRole('button', { name: /Schuko/ }).click();
     await expect(trigger).toHaveAttribute('aria-label', /Plug: Schuko/);
 
-    // Changing only the rule set updates voltage/frequency while retaining
-    // the explicitly chosen Schuko hardware.
+    // Standard metadata describes its nominal supply; selecting it does not
+    // rewrite the drawing's supply or the explicitly chosen Schuko hardware.
     await trigger.click({ force: true });
     await page.getByRole('button', { name: /united states/i }).click();
     await expect(trigger).toHaveAttribute('aria-label', /Standard: US · Plug: Schuko/);
-    await expect(page.getByText(/120\s*V\s*60\s*Hz/)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTitle('Click to change Global Supply Voltage')).toContainText(
+      '230 V AC 50 Hz',
+    );
+    await trigger.click();
+    const selectedStandard = page.getByRole('button', { name: /united states/i });
+    await expect(selectedStandard).toHaveAttribute('aria-pressed', 'true');
+    await expect(selectedStandard).toContainText('120V');
+    await expect(selectedStandard).toContainText('60Hz');
+    await trigger.click();
 
+    await page.getByLabel('Show all / fault exercise').check();
     const essentials = page.locator('[data-standard-recommendations="us"]');
     await expect(essentials).toBeVisible();
     // US essentials are NEC-flavoured: plain breaker (no IEC curve types),
@@ -210,6 +219,9 @@ test.describe('Dual standard & pro features', () => {
     await page.locator('[data-circuit-canvas]').waitFor({ state: 'attached' });
     await ensureProMode(page);
     await page.getByRole('button', { name: /run simulation/i }).click({ force: true });
+    const review = page.getByRole('dialog', { name: 'Circuit readiness' });
+    await expect(review).toContainText('No load');
+    await review.getByRole('button', { name: 'Run diagnostic' }).click();
     await expect(page.getByRole('button', { name: /^stop$/i })).toBeVisible();
     await expect(page.locator('[data-compliance-gate-banner]')).toHaveCount(0);
     await page.getByRole('button', { name: 'Validate', exact: true }).click();
@@ -254,32 +266,22 @@ test.describe('Dual standard & pro features', () => {
     await expect(page.locator('[data-stress-zone-overlay]')).toHaveCount(0);
   });
 
-  test('recommended protection badge appears for a load in pro mode', async ({ page }) => {
+  test('load inspector separates nameplate settings from unassessed operation and measurements', async ({
+    page,
+  }) => {
     await ensureProMode(page);
-    /*
-     * Target loads by id rather than by screen coordinates — the demo bench is
-     * mode-specific now, and the old hardcoded points (derived from a bench
-     * with a `motor-16`) landed on empty canvas. The Pro bench's motor-starter
-     * and socket branches both sit clear of the palette and the Inspector.
-     */
-    let found = false;
-    for (const id of ['motor-12', 'socket-9']) {
-      await page
-        .locator(`[data-component-id="${id}"]`)
-        .locator(':scope > g[role="button"]')
-        .click({ force: true });
-      await page.waitForTimeout(250);
-      if (
-        await page
-          .locator('[data-recommended-protection]')
-          .isVisible()
-          .catch(() => false)
-      ) {
-        found = true;
-        break;
-      }
-    }
-    expect(found).toBeTruthy();
-    await expect(page.getByText(/MCB Rating/).first()).toBeVisible();
+    await page.getByTitle('Zoom to fit all (F)').click();
+    await page.locator('[data-component-id="motor-12"] [data-component-hitbox]').click();
+    await page.getByTitle(/^Properties & (Settings|Specs)$/).click();
+    const inspector = page.locator('[data-tour="inspector"]');
+    await expect(inspector.getByRole('heading', { name: 'Load design / nameplate' })).toBeVisible();
+    await expect(inspector.getByLabel('Power rating in watts')).toBeVisible();
+    await expect(inspector.getByLabel('Operating voltage in volts')).toBeVisible();
+    await expect(inspector.locator('[data-component-compatibility="unassessed"]')).toBeVisible();
+    await expect(inspector).toContainText('Operating load law is unassessed.');
+    await expect(inspector).toContainText('Terminal-pair voltage: unavailable');
+    await expect(inspector.locator('[data-recommended-protection]')).toHaveCount(0);
+    await page.getByTitle('Waveform Oscilloscope').click();
+    await expect(inspector).toContainText('Waveform and energy measurements unavailable');
   });
 });

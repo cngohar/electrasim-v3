@@ -178,6 +178,7 @@ export function ImportExportModal({ open, onClose, svgRef }: Props) {
   // ── Import handlers ─────────────────────────────────────────────────────
 
   const loadCircuit = useCallback((circuit: Circuit) => {
+    useUiStore.getState().setSimRunning(false);
     useCircuitStore.getState().setCircuit(circuit);
     useCircuitStore.getState().clearSelection();
     useUiStore

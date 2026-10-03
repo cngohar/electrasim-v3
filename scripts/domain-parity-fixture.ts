@@ -4,6 +4,8 @@ import {
   assessCircuitReadiness,
   compileCircuit,
   explicitSupplyProfile,
+  previewSupplyChange,
+  previewVariantChange,
   resolveDeviceCapabilities,
   solveCircuit,
 } from '@electrasim/domain/core';
@@ -11,6 +13,7 @@ import {
 import { simulate } from '@electrasim/domain/simulation';
 import { GUIDED_CIRCUIT_TEMPLATES } from '@electrasim/domain/templates';
 import { earthingAcceptanceCircuits } from '../packages/domain/src/core/earthingFixtures';
+import { editingCircuit, variantCircuit } from '../packages/domain/src/core/editingFixtures';
 import { mnaAcceptanceCircuits } from '../packages/domain/src/core/mnaFixtures';
 import { operatingPointAcceptanceCircuits } from '../packages/domain/src/core/operatingPointFixtures';
 import { transformerAcceptanceCircuits } from '../packages/domain/src/core/transformerFixtures';
@@ -141,6 +144,35 @@ export function domainParityFixture(): string {
     results.push({ transformerCase: name, result: solveCircuit(circuit) });
   for (const [name, circuit] of Object.entries(earthingAcceptanceCircuits()))
     results.push({ earthingCase: name, result: solveCircuit(circuit) });
+  for (const voltage of [12, 24, 48, 110, 120, 230, 240]) {
+    for (const kind of ['dc', 'ac-single-phase'] as const) {
+      const profile = explicitSupplyProfile(
+        kind === 'dc' ? { kind, voltage } : { kind, voltage, frequencyHz: 50 },
+      );
+      const preview = previewSupplyChange(editingCircuit(), { kind: 'document' }, profile);
+      results.push({
+        editingCase: `${kind}-${voltage}`,
+        preview,
+        runtime: simulate(preview.circuit),
+      });
+    }
+  }
+  for (const kind of ['dc', 'ac-single-phase'] as const)
+    results.push({
+      editingCase: `independent-${kind}`,
+      preview: previewSupplyChange(
+        editingCircuit(),
+        { kind: 'component', componentId: 'independent' },
+        explicitSupplyProfile(
+          kind === 'dc' ? { kind, voltage: 24 } : { kind, voltage: 24, frequencyHz: 60 },
+        ),
+      ),
+    });
+  for (const toType of ['rcd', 'space-heater'])
+    results.push({
+      editingCase: `variant-${toType}`,
+      preview: previewVariantChange(variantCircuit(), 'breaker', toType),
+    });
   return JSON.stringify(results, (_key, value) =>
     value instanceof Set ? [...value].sort() : value,
   );

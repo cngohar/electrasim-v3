@@ -1,6 +1,6 @@
 import type { ComponentInstance } from '@electrasim/domain';
-import { fireEvent, render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { clearHistory, useCircuitStore, useUiStore } from '../../store';
 import { ContextMenu } from './ContextMenu';
 import { Inspector } from './Inspector';
@@ -36,9 +36,10 @@ describe('momentary switch controls', () => {
     clearHistory();
   });
 
-  it('uses press/release semantics in the Inspector', () => {
+  it('uses press/release semantics in the Inspector', async () => {
     render(<InspectorHarness />);
-    const control = screen.getByRole('button', { name: 'Press and hold' });
+    await act(async () => vi.dynamicImportSettled());
+    const control = await screen.findByRole('button', { name: 'Press and hold' });
 
     fireEvent.pointerDown(control, { button: 0, pointerId: 21 });
     expect(screen.getByText('PRESSED')).toBeInTheDocument();

@@ -1,3 +1,5 @@
+import { resolveDeviceCapabilities } from '@electrasim/domain/core/capabilities';
+import { confirmElectricalEdit } from './electricalEditing.testHelpers';
 /**
  * persistence.test.ts — Phase 6 IndexedDB autosave round-trip.
  *
@@ -185,6 +187,7 @@ describe('persistence — Phase 6 IndexedDB autosave', () => {
     const stop = startAutosave();
 
     useCircuitStore.getState().setGlobalSupplyVoltage(110);
+    await confirmElectricalEdit();
     await wait(350);
 
     const saved = mem.get(__STORAGE_KEY) as { circuit: Circuit } | undefined;
@@ -284,6 +287,7 @@ describe('persistence — Phase 6 IndexedDB autosave', () => {
 
     // Change variant B1 from default 'bulb' to 'bulb-incandescent' (60W)
     useCircuitStore.getState().updateComponentType('B1', 'bulb-incandescent');
+    await confirmElectricalEdit();
 
     await wait(350);
 
@@ -292,7 +296,10 @@ describe('persistence — Phase 6 IndexedDB autosave', () => {
     expect(saved).toBeDefined();
     const updatedComp = saved?.circuit.components.find((c) => c.id === 'B1');
     expect(updatedComp?.type).toBe('bulb-incandescent');
-    expect(updatedComp?.state.customPowerWatts).toBe(60);
+    expect(updatedComp?.state.customPowerWatts).toBeUndefined();
+    expect(
+      resolveDeviceCapabilities(updatedComp!, saved!.circuit).groups[0]?.nominalPowerWatts,
+    ).toMatchObject({ status: 'known', value: 60 });
 
     // Test hydration (simulate page reload)
     useCircuitStore.getState().setCircuit({ components: [], wires: [] });
@@ -301,7 +308,11 @@ describe('persistence — Phase 6 IndexedDB autosave', () => {
     expect(ok).toBe(true);
     const restoredComp = useCircuitStore.getState().components.find((c) => c.id === 'B1');
     expect(restoredComp?.type).toBe('bulb-incandescent');
-    expect(restoredComp?.state.customPowerWatts).toBe(60);
+    expect(restoredComp?.state.customPowerWatts).toBeUndefined();
+    expect(
+      resolveDeviceCapabilities(restoredComp!, useCircuitStore.getState()).groups[0]
+        ?.nominalPowerWatts,
+    ).toMatchObject({ status: 'known', value: 60 });
 
     stop();
   });

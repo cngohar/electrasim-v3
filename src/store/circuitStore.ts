@@ -13,16 +13,21 @@
  */
 
 import { COMPONENT_DEFS, type ComponentInstance, type WireInstance } from '@electrasim/domain';
-import { normalizeCircuitDocument } from '@electrasim/domain/core/normalize';
+import { normalizeCircuitDocument, resolveComponentState } from '@electrasim/domain/core/normalize';
 import {
   isSupplyProfile,
   resolveDocumentSupply,
   resolveSourceProfile,
+  sameSupplyModel,
   sourceInterface,
   sourceProfileFitsInterface,
-  withDocumentSupply,
   withSupplyVoltage,
 } from '@electrasim/domain/core/supplies';
+import {
+  previewSupplyChange,
+  supplyTargetForComponent,
+} from '@electrasim/domain/core/supplyEditing';
+import { previewVariantChange } from '@electrasim/domain/core/variantEditing';
 import { WIRE_AWG_MM2 } from '@electrasim/domain/core/wireProperties';
 import { temporal } from 'zundo';
 import { create } from 'zustand';
@@ -31,22 +36,18 @@ import { guardedCircuitSet } from './circuitAccess';
 import { createFaultActions } from './circuitStore.faultActions';
 import { componentsForHistory } from './circuitStore.history';
 import type { CircuitState } from './circuitStore.types';
+import {
+  configurationLockReason,
+  editingAllowed,
+  requestSupplyEdit,
+  requestVariantEdit,
+  sameCircuitRevision,
+  useElectricalEditing,
+} from './electricalEditing';
 import { buildProSeedCircuit, buildSeedCircuit, buildStudentSeedCircuit } from './seed';
 import { useUiStore } from './uiStore';
 
 const seed = buildSeedCircuit();
-
-function supplyEditingLocked(): boolean {
-  const ui = useUiStore.getState();
-  if (ui.simRunning) return true;
-  if (ui.challengeAttemptId || ui.diagnosisActive) {
-    ui.showNoticeToast(
-      'Supply settings are locked during this exercise. End the attempt to edit the supply in the sandbox.',
-    );
-    return true;
-  }
-  return false;
-}
 
 /** Regional socket component types that the demo seed may use. */
 const REGIONAL_SOCKET_TYPES = new Set([
@@ -58,8 +59,8 @@ const REGIONAL_SOCKET_TYPES = new Set([
   'socket-bs546',
 ]);
 
-/** True if two circuits have the same components (id, type, position, on-state)
- *  and wires (id + endpoints) — used to detect the untouched demo seed. */
+/** Compare the full drawing, including ratings, faults and wire properties,
+ * before allowing display preferences to replace an untouched demo. */
 function sameCircuitShape(
   a: { components: readonly ComponentInstance[]; wires: readonly WireInstance[] },
   b: { components: readonly ComponentInstance[]; wires: readonly WireInstance[] },
@@ -67,14 +68,20 @@ function sameCircuitShape(
   if (a.components.length !== b.components.length || a.wires.length !== b.wires.length) {
     return false;
   }
-  const key = (c: ComponentInstance) => `${c.id}|${c.type}|${c.x}|${c.y}|${c.state?.on === true}`;
+  const stableKey = (value: unknown) =>
+    JSON.stringify(value, (_key, item) =>
+      item && typeof item === 'object' && !Array.isArray(item)
+        ? Object.fromEntries(Object.entries(item).sort(([a], [b]) => a.localeCompare(b)))
+        : item,
+    );
+  const key = (c: ComponentInstance) =>
+    stableKey({ ...c, state: resolveComponentState(c.state, COMPONENT_DEFS[c.type]) });
   const aComps = a.components.map(key).sort();
   const bComps = b.components.map(key).sort();
   for (let i = 0; i < aComps.length; i++) {
     if (aComps[i] !== bComps[i]) return false;
   }
-  const wireKey = (w: WireInstance) =>
-    `${w.id}|${w.fromComponentId}|${w.fromPortIndex}|${w.toComponentId}|${w.toPortIndex}`;
+  const wireKey = (w: WireInstance) => stableKey(w);
   const aWires = a.wires.map(wireKey).sort();
   const bWires = b.wires.map(wireKey).sort();
   for (let i = 0; i < aWires.length; i++) {
@@ -133,68 +140,99 @@ export const useCircuitStore = create<CircuitState>()(
           }),
 
         swapDemoSocketForPlug: (socketType) =>
-          set((s) => {
-            // Only swap when the circuit is still an untouched demo seed
-            // (either the Student or the Pro variant), so a user who has
-            // built their own circuit is never silently rewritten. The
-            // reference is built with the circuit's current socket so that
-            // repeated plug changes keep working.
-            const currentSocket =
-              s.components.find((c) => REGIONAL_SOCKET_TYPES.has(c.type))?.type ?? 'socket-3pin';
-            const current = { components: s.components, wires: s.wires };
-            const builder = sameCircuitShape(current, buildStudentSeedCircuit(currentSocket))
-              ? buildStudentSeedCircuit
-              : sameCircuitShape(current, buildProSeedCircuit(currentSocket))
-                ? buildProSeedCircuit
-                : null;
-            if (!builder) return;
-            const next = builder(socketType);
-            s.components = next.components;
-            s.wires = next.wires;
-          }),
+          set(
+            (s) => {
+              if (
+                s.faults.length ||
+                !sameSupplyModel(resolveDocumentSupply(s).model, resolveDocumentSupply({}).model)
+              )
+                return;
+              // Only swap when the circuit is still an untouched demo seed
+              // (either the Student or the Pro variant), so a user who has
+              // built their own circuit is never silently rewritten. The
+              // reference is built with the circuit's current socket so that
+              // repeated plug changes keep working.
+              const currentSocket =
+                s.components.find((c) => REGIONAL_SOCKET_TYPES.has(c.type))?.type ?? 'socket-3pin';
+              const current = { components: s.components, wires: s.wires };
+              const builder = sameCircuitShape(current, buildStudentSeedCircuit(currentSocket))
+                ? buildStudentSeedCircuit
+                : sameCircuitShape(current, buildProSeedCircuit(currentSocket))
+                  ? buildProSeedCircuit
+                  : null;
+              if (!builder) return;
+              const next = builder(socketType);
+              s.components = next.components;
+              s.wires = next.wires;
+            },
+            () => !configurationLockReason(),
+          ),
 
         swapDemoForMode: (mode) =>
-          set((s) => {
-            // Mode switch keeps each audience on its own demo bench — but only
-            // while the canvas is still an untouched demo seed. A user's own
-            // circuit is never rewritten.
-            const currentSocket =
-              s.components.find((c) => REGIONAL_SOCKET_TYPES.has(c.type))?.type ?? 'socket-3pin';
-            const current = { components: s.components, wires: s.wires };
-            const isStudentDemo = sameCircuitShape(current, buildStudentSeedCircuit(currentSocket));
-            const isProDemo =
-              !isStudentDemo && sameCircuitShape(current, buildProSeedCircuit(currentSocket));
-            if (!isStudentDemo && !isProDemo) return;
-            const next =
-              mode === 'pro'
-                ? buildProSeedCircuit(currentSocket)
-                : buildStudentSeedCircuit(currentSocket);
-            s.components = next.components;
-            s.wires = next.wires;
-            s.faults = [];
-            s.selectedComponentId = null;
-            s.selectedComponentIds = [];
-            s.selectedWireIds = [];
-          }),
+          set(
+            (s) => {
+              if (
+                s.faults.length ||
+                !sameSupplyModel(resolveDocumentSupply(s).model, resolveDocumentSupply({}).model)
+              )
+                return;
+              // Mode switch keeps each audience on its own demo bench — but only
+              // while the canvas is still an untouched demo seed. A user's own
+              // circuit is never rewritten.
+              const currentSocket =
+                s.components.find((c) => REGIONAL_SOCKET_TYPES.has(c.type))?.type ?? 'socket-3pin';
+              const current = { components: s.components, wires: s.wires };
+              const isStudentDemo = sameCircuitShape(
+                current,
+                buildStudentSeedCircuit(currentSocket),
+              );
+              const isProDemo =
+                !isStudentDemo && sameCircuitShape(current, buildProSeedCircuit(currentSocket));
+              if (!isStudentDemo && !isProDemo) return;
+              const next =
+                mode === 'pro'
+                  ? buildProSeedCircuit(currentSocket)
+                  : buildStudentSeedCircuit(currentSocket);
+              s.components = next.components;
+              s.wires = next.wires;
+              s.faults = [];
+              s.selectedComponentId = null;
+              s.selectedComponentIds = [];
+              s.selectedWireIds = [];
+            },
+            () => !configurationLockReason(),
+          ),
 
-        setGlobalSupplyVoltage: (voltage) =>
-          set((s) => {
-            if (
-              !Number.isFinite(voltage) ||
-              voltage < 0.001 ||
-              voltage > 100_000 ||
-              supplyEditingLocked()
-            )
-              return;
-            const next = withDocumentSupply(
-              s,
-              withSupplyVoltage(resolveDocumentSupply(s), voltage),
-            );
-            if (next === s) return;
-            s.supply = next.supply;
-            s.globalVoltage = voltage;
-            s.components = next.components;
-          }),
+        setGlobalSupplyVoltage: (voltage) => {
+          if (!Number.isFinite(voltage) || voltage < 0.001 || voltage > 100_000) return;
+          const profile = withSupplyVoltage(resolveDocumentSupply(get()), voltage);
+          if (previewSupplyChange(get(), { kind: 'document' }, profile).status === 'unchanged')
+            return;
+          requestSupplyEdit({ kind: 'document' }, profile);
+        },
+
+        applyElectricalEdit: (edit, expected, requestId) => {
+          if (!sameCircuitRevision(expected, get()) || !editingAllowed()) return false;
+          const preview =
+            edit.kind === 'supply'
+              ? previewSupplyChange(get(), edit.target, edit.profile)
+              : previewVariantChange(get(), edit.componentId, edit.toType);
+          if (preview.status !== 'ready') return false;
+          return set(
+            (s) => {
+              s.components = preview.circuit.components;
+              s.wires = preview.circuit.wires;
+              s.faults = preview.circuit.faults ?? [];
+              s.supply = preview.circuit.supply;
+              s.globalVoltage = preview.circuit.globalVoltage ?? s.globalVoltage;
+            },
+            () =>
+              sameCircuitRevision(expected, get()) &&
+              editingAllowed() &&
+              (requestId === undefined ||
+                useElectricalEditing.getState().request?.id === requestId),
+          );
+        },
 
         addComponent: (comp) =>
           set((s) => {
@@ -589,72 +627,70 @@ export const useCircuitStore = create<CircuitState>()(
 
         ...createFaultActions(set),
 
-        updateComponentState: (id, updates) =>
-          set((s) => {
-            const c = s.components.find((comp) => comp.id === id);
-            if (c) {
-              const source = sourceInterface(c.type);
-              const changingSource =
-                updates.sourceProfile !== undefined ||
-                (source && updates.customVoltage !== undefined);
-              if (changingSource && supplyEditingLocked()) return;
-              if (
-                updates.sourceProfile !== undefined &&
-                (!source ||
-                  !isSupplyProfile(updates.sourceProfile) ||
-                  !sourceProfileFitsInterface(c.type, updates.sourceProfile))
-              )
-                return;
-              if (
-                updates.sourceProfile &&
+        updateComponentState: (id, updates) => {
+          const component = get().components.find((c) => c.id === id);
+          if (!component) return;
+          const source = sourceInterface(component.type);
+          if (
+            Object.hasOwn(updates, 'sourceProfile') ||
+            (source && Object.hasOwn(updates, 'customVoltage'))
+          ) {
+            if (!editingAllowed()) return;
+            const previous = resolveSourceProfile(component.type, component.state, get());
+            const profile =
+              updates.sourceProfile ??
+              (previous && updates.customVoltage !== undefined
+                ? withSupplyVoltage(previous, updates.customVoltage)
+                : previous);
+            const target = supplyTargetForComponent(get(), id);
+            if (
+              !profile ||
+              !target ||
+              !isSupplyProfile(profile) ||
+              !sourceProfileFitsInterface(component.type, profile) ||
+              (updates.sourceProfile &&
                 updates.customVoltage !== undefined &&
-                updates.sourceProfile.model.voltage !== updates.customVoltage
-              )
-                return;
-              if (
-                source &&
-                updates.customVoltage !== undefined &&
-                (!Number.isFinite(updates.customVoltage) ||
-                  updates.customVoltage < 0.001 ||
-                  updates.customVoltage > 100_000)
-              )
-                return;
-              const profile =
-                source && updates.customVoltage !== undefined
-                  ? resolveSourceProfile(c.type, c.state, s)
-                  : undefined;
-              c.state = { ...c.state, ...updates };
-              if (profile && updates.customVoltage !== undefined && !updates.sourceProfile)
-                c.state.sourceProfile = withSupplyVoltage(profile, updates.customVoltage);
-              if (updates.sourceProfile)
-                c.state.customVoltage = updates.sourceProfile.model.voltage;
-            }
-          }),
+                updates.customVoltage !== profile.model.voltage)
+            )
+              return;
+            if (previous && sameSupplyModel(previous.model, profile.model)) return;
+            requestSupplyEdit(target, profile);
+            return;
+          }
+          const runtimeOnly = Object.keys(updates).every(
+            (key) =>
+              (key === 'on' && COMPONENT_DEFS[component.type]?.isSwitch) ||
+              (key === 'speed' && COMPONENT_DEFS[component.type]?.isDimmer),
+          );
+          if (!runtimeOnly && !editingAllowed()) return;
+          for (const key of [
+            'customVoltage',
+            'customPowerWatts',
+            'customMaxAmps',
+            'customMaxVolts',
+            'customCableMm2',
+          ] as const) {
+            const value = updates[key];
+            if (value !== undefined && (!Number.isFinite(value) || value <= 0 || value > 100_000))
+              return;
+          }
+          return set(
+            (s) => {
+              const c = s.components.find((comp) => comp.id === id);
+              if (c) c.state = { ...c.state, ...updates };
+            },
+            () => runtimeOnly || editingAllowed(),
+          );
+        },
 
-        updateComponentType: (id, newType) =>
-          set((s) => {
-            const c = s.components.find((comp) => comp.id === id);
-            if (c && COMPONENT_DEFS[newType]) {
-              const oldSource = sourceInterface(c.type);
-              const newSource = sourceInterface(newType);
-              if ((oldSource || newSource) && supplyEditingLocked()) return;
-              if (oldSource !== newSource) {
-                c.state.sourceProfile = undefined;
-                c.state.customVoltage = undefined;
-              }
-              c.type = newType;
-              const newDef = COMPONENT_DEFS[newType];
-              // Synchronize/reset state according to the new variant's specifications
-              c.state = {
-                ...c.state,
-                customPowerWatts: newDef.powerWatts,
-                customMaxAmps: newDef.maxAmps,
-                customCableMm2: newDef.recommendedCableMm2,
-                isBlown: false,
-                blownReason: undefined,
-              };
-            }
-          }),
+        updateComponentType: (id, newType) => {
+          if (
+            get().components.find((c) => c.id === id)?.type === newType ||
+            !COMPONENT_DEFS[newType]
+          )
+            return;
+          requestVariantEdit(id, newType);
+        },
 
         repairBlownComponent: (id) =>
           set((s) => {

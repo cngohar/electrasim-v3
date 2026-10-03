@@ -16,6 +16,7 @@
  */
 
 import { COMPONENT_DEFS } from '../../components';
+import { exerciseSupplyIssue } from '../../core/exerciseSupply';
 import { validateCircuitRules } from '../../electrical/validation';
 import { simulate } from '../../simulation';
 import type { Circuit } from '../../types';
@@ -137,6 +138,29 @@ export function validateChallenge(
   const rules = definition.rules.map((rule) =>
     rule.evaluate({ graph, circuit, starter: definition.starter }),
   );
+
+  const supplyIssue = exerciseSupplyIssue(definition.starter, circuit, true);
+  if (supplyIssue) {
+    return {
+      state: 'has-errors',
+      completion: 0,
+      completedRules: 0,
+      totalRules: rules.length,
+      rules,
+      requirements: evaluateRequirements(definition, rules),
+      nextRule: {
+        id: 'authored-supply',
+        label: 'Keep the authored supply',
+        verdict: 'fail',
+        reason: supplyIssue,
+        targets: [],
+      },
+      electricallySound: false,
+      extraComponents,
+      simulationErrors: [],
+      summary: supplyIssue,
+    };
+  }
 
   const structural = structuralIssues(graph);
   if (structural.length > 0) {

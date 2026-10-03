@@ -136,6 +136,8 @@ export interface EventHistoryEntry {
 
 export interface UiState {
   simRunning: boolean;
+  diagnosticRun: boolean;
+  startDiagnosticRun: () => void;
   simResult: SimulationResult | null;
   faultAlert: ElectricalFaultAlert | null;
   lastFaultAlert: ElectricalFaultAlert | null;

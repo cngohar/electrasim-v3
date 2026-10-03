@@ -1,3 +1,5 @@
+import { usePlacementGuidance } from '../hooks/usePlacementGuidance';
+import { PlacementSupplyFilter } from './PlacementSupplyFilter';
 /**
  * Palette — component catalogue.
  *
@@ -122,6 +124,8 @@ const PRIMARY_PALETTE_TYPES = new Set([
   'socket-bs546-double',
   // Lighting
   'bulb',
+  'bulb-incandescent',
+  'bulb-halogen',
   'led-downlight',
   'tube-light',
   // Transformer
@@ -329,9 +333,9 @@ function SectionHeader({
 }
 
 export function Palette({ open, isPhone }: Props) {
+  const guidance = usePlacementGuidance();
   const groups = useMemo(buildGroups, []);
   const placingType = useUiStore((s) => s.placingType);
-  const appMode = useSettingsStore((s) => s.appMode);
   const regulationStandard = useSettingsStore((s) => s.regulationStandard);
   const plugSystem = useSettingsStore((s) => s.plugSystem);
   const recentComponents = useSettingsStore((s) => s.recentComponents);
@@ -362,10 +366,10 @@ export function Palette({ open, isPhone }: Props) {
   const regionalSockets = useMemo(() => new Set(PLUG_SYSTEMS[plugSystem].sockets), [plugSystem]);
   const isAvailable = useCallback(
     (entry: PaletteEntry) => {
-      if (appMode === 'basic' && entry.tier === 'pro') return false;
+      if (!guidance.visible(entry.type)) return false;
       return !REGIONAL_SOCKET_TYPES.has(entry.type) || regionalSockets.has(entry.type);
     },
-    [appMode, regionalSockets],
+    [guidance, regionalSockets],
   );
   const allEntries = useMemo(() => groups.flatMap((group) => group.items), [groups]);
   const recommendedTypeOrder = useMemo(
@@ -404,7 +408,7 @@ export function Palette({ open, isPhone }: Props) {
         ...g,
         items: g.items
           .filter((it) => {
-            if (appMode === 'basic' && it.tier === 'pro') return false;
+            if (!guidance.visible(it.type)) return false;
             if (challengeAllows && !challengeAllows(it.type)) return false;
             // Region-filter regional sockets only. Universal socket types
             // (switched-socket, USB, GFCI, industrial) stay visible everywhere.
@@ -419,7 +423,7 @@ export function Palette({ open, isPhone }: Props) {
           ),
       }))
       .filter((g) => g.items.length > 0);
-  }, [groups, query, appMode, regionalSockets, recommendedTypeOrder, challengeAllows]);
+  }, [groups, query, regionalSockets, recommendedTypeOrder, challengeAllows, guidance]);
 
   // The phone branch returns before the desktop `if (!open)` guard below, so
   // it must honour `open` itself — otherwise the bottom sheet is permanently
@@ -478,6 +482,7 @@ export function Palette({ open, isPhone }: Props) {
               )}
             </div>
           </div>
+          <PlacementSupplyFilter />
           <div className="flex-1 overflow-y-auto p-3">
             {filtered.length === 0 && (
               <div className="py-6 text-center text-sm text-slate-400">
@@ -504,6 +509,7 @@ export function Palette({ open, isPhone }: Props) {
                           type="button"
                           key={`recommended-${item.type}`}
                           data-palette-type={item.type}
+                          data-compatibility={guidance.results[item.type]?.status}
                           data-challenge-focused={
                             isChallengeFocusTarget(item.type) ? 'true' : undefined
                           }
@@ -525,6 +531,10 @@ export function Palette({ open, isPhone }: Props) {
                           />
                           <span className="block w-full min-w-0 truncate text-center leading-tight px-1">
                             {item.label}
+                          </span>
+                          <span className="text-[9px]">
+                            {guidance.hint(item.type)}
+                            {item.tier === 'pro' ? ' · Membership' : ''}
                           </span>
                         </button>
                       );
@@ -561,6 +571,7 @@ export function Palette({ open, isPhone }: Props) {
                             type="button"
                             key={it.type}
                             data-palette-type={it.type}
+                            data-compatibility={guidance.results[it.type]?.status}
                             data-challenge-focused={
                               isChallengeFocusTarget(it.type) ? 'true' : undefined
                             }
@@ -579,11 +590,15 @@ export function Palette({ open, isPhone }: Props) {
                           >
                             <TileIcon
                               type={it.type}
-                              label={it.label}
+                              label={`${it.label}: ${guidance.hint(it.type)}`}
                               icon={it.icon}
                               isLighting={isLighting}
                             />
                             <span className="truncate text-center w-full">{it.label}</span>
+                            <span className="text-[9px]">
+                              {guidance.hint(it.type)}
+                              {it.tier === 'pro' ? ' · Membership' : ''}
+                            </span>
                           </button>
                         );
                       })}
@@ -676,6 +691,8 @@ export function Palette({ open, isPhone }: Props) {
         </div>
       </div>
 
+      <PlacementSupplyFilter />
+
       {/* Recent components (toggleable in Settings → Editing) */}
       {!query && showRecentComponents && visibleRecentComponents.length > 0 && (
         <div className="border-b border-slate-100 px-2.5 pb-2 pt-2 dark:border-slate-700/60">
@@ -701,8 +718,9 @@ export function Palette({ open, isPhone }: Props) {
                     key={type}
                     type="button"
                     data-palette-type={type}
+                    data-compatibility={guidance.results[type]?.status}
                     data-challenge-focused={isChallengeFocusTarget(type) ? 'true' : undefined}
-                    title={`Click to place ${def.label} on canvas`}
+                    title={`${def.label}: ${guidance.hint(type)}`}
                     onClick={() => useUiStore.getState().setPlacingType(active ? null : type)}
                     className={[
                       'flex flex-col items-center gap-1 rounded-xl border px-2 py-2.5 text-[10px] font-medium shadow-sm transition hover:scale-[1.02]',
@@ -723,6 +741,7 @@ export function Palette({ open, isPhone }: Props) {
                     <span className="block w-full min-w-0 truncate text-center text-[10px] leading-tight px-1">
                       {def.label}
                     </span>
+                    <span className="text-[9px]">{guidance.hint(type)}</span>
                   </button>
                 );
               })}
@@ -756,6 +775,7 @@ export function Palette({ open, isPhone }: Props) {
                       type="button"
                       key={`recommended-${item.type}`}
                       data-palette-type={item.type}
+                      data-compatibility={guidance.results[item.type]?.status}
                       data-challenge-focused={
                         isChallengeFocusTarget(item.type) ? 'true' : undefined
                       }
@@ -780,6 +800,7 @@ export function Palette({ open, isPhone }: Props) {
                         isLighting={isLighting}
                       />
                       <span className="w-full truncate text-center">{item.label}</span>
+                      <span className="text-[9px]">{guidance.hint(item.type)}</span>
                     </button>
                   );
                 })}
@@ -821,6 +842,7 @@ export function Palette({ open, isPhone }: Props) {
                         <button
                           type="button"
                           data-palette-type={it.type}
+                          data-compatibility={guidance.results[it.type]?.status}
                           data-challenge-focused={
                             isChallengeFocusTarget(it.type) ? 'true' : undefined
                           }
@@ -845,13 +867,14 @@ export function Palette({ open, isPhone }: Props) {
                           )}
                           <TileIcon
                             type={it.type}
-                            label={it.label}
+                            label={`${it.label}: ${guidance.hint(it.type)}`}
                             icon={it.icon}
                             isLighting={isLighting}
                           />
                           <span className="block w-full min-w-0 truncate text-center text-[10px] leading-tight px-1">
                             {it.label}
                           </span>
+                          <span className="text-[9px]">{guidance.hint(it.type)}</span>
                         </button>
                         <button
                           type="button"

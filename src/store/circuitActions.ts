@@ -11,6 +11,7 @@ import { COMPONENT_DEFS, type Circuit } from '@electrasim/domain';
 import { sameDocument } from './circuitAccess';
 import { useCircuitStore } from './circuitStore';
 import type { CircuitState } from './circuitStore.types';
+import { editingAllowed } from './electricalEditing';
 import {
   accessGeneration,
   accessMessage,
@@ -88,6 +89,7 @@ function notifySpatialChange(
 }
 
 function changeHistory(kind: 'undo' | 'redo') {
+  if (!editingAllowed()) return;
   const state = useCircuitStore.getState();
   const generation = accessGeneration();
   const history = useCircuitStore.temporal.getState();
@@ -95,7 +97,11 @@ function changeHistory(kind: 'undo' | 'redo') {
   if (!target) return;
   const candidate = { ...state, ...target };
   const apply = () => {
-    if (generation !== accessGeneration() || !sameDocument(state, useCircuitStore.getState())) {
+    if (
+      generation !== accessGeneration() ||
+      !sameDocument(state, useCircuitStore.getState()) ||
+      !editingAllowed()
+    ) {
       accessMessage('Circuit changed; retry undo or redo.');
       return;
     }

@@ -1,6 +1,7 @@
 import type { ComponentInstance, SimulationResult } from '@electrasim/domain';
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import type { MouseEvent, PointerEvent } from 'react';
+import { useCircuitReadiness } from '../../store/electricalReadiness';
 import { ComponentNode } from './ComponentNode';
 import type { CanvasTheme, PortLoc } from './types';
 
@@ -47,6 +48,16 @@ export const ComponentLayer = memo(function ComponentLayer({
   onHoverChange,
   onContextMenu,
 }: ComponentLayerProps) {
+  const readiness = useCircuitReadiness();
+  const reviews = useMemo(() => {
+    const entries = new Map<string, 'incompatible' | 'unassessed'>();
+    for (const group of readiness.groups) {
+      if (group.result.status === 'incompatible') entries.set(group.componentId, 'incompatible');
+      else if (group.result.status === 'unassessed' && !entries.has(group.componentId))
+        entries.set(group.componentId, 'unassessed');
+    }
+    return entries;
+  }, [readiness]);
   // Render selected component last so it stays on top of other components on canvas
   const orderedComponents = selectedId
     ? [...components].sort((a, b) => (a.id === selectedId ? 1 : b.id === selectedId ? -1 : 0))
@@ -63,6 +74,7 @@ export const ComponentLayer = memo(function ComponentLayer({
           theme={theme}
           selected={selectedId === component.id}
           flagged={flaggedIds?.has(component.id)}
+          compatibilityReview={reviews.get(component.id)}
           energized={simulation?.energizedComponents.has(component.id) ?? false}
           error={simulation?.errorComponents.has(component.id) ?? false}
           wireMode={wireMode}

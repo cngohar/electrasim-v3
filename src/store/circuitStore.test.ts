@@ -1,3 +1,4 @@
+import { confirmElectricalEdit } from './electricalEditing.testHelpers';
 /**
  * circuitStore.test.ts — covers the mutators, selection invariants, and the
  * zundo undo/redo wiring (PLAN.md §5: bounded partial-state history).
@@ -271,6 +272,8 @@ describe('circuitStore — undo/redo (zundo)', () => {
       .components.find((component) => component.type.includes('terminal'))!;
 
     useCircuitStore.getState().setGlobalSupplyVoltage(120);
+    expect(useCircuitStore.getState().globalVoltage).toBe(230);
+    confirmElectricalEdit();
     expect(useCircuitStore.getState().globalVoltage).toBe(120);
     expect(
       useCircuitStore.getState().components.find((component) => component.id === source.id)?.state

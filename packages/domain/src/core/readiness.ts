@@ -13,6 +13,7 @@ import {
 import { type EarthingTopology, assessEarthingTopology, emptyEarthingTopology } from './earthing';
 import { circuitExcitation } from './excitation';
 import { compareIds, terminalId } from './faultTopology';
+import { inspectVoltageConstraints } from './voltageConstraints';
 
 export type CircuitTopologyReadiness =
   | 'invalid'
@@ -103,7 +104,8 @@ export function assessCompiledCircuitReadiness(
     });
     return base;
   }
-  const { sourceBranches, pathSources, sourcesByBranch } = circuitExcitation(graph);
+  const excitation = circuitExcitation(graph);
+  const { sourceBranches, pathSources, sourcesByBranch } = excitation;
   const activeSourceIds = new Set(sourceBranches.values());
   base.loadPaths = graph.branches
     .filter((b) => b.kind === 'load' || b.kind === 'coil')
@@ -115,7 +117,8 @@ export function assessCompiledCircuitReadiness(
     }));
   // Connectivity of conductors only. This is a topology test, not a zero-resistance
   // approximation: finite wire resistance is retained by the compiler for MNA.
-  const conductorGroup = conductorPaths(graph).groupByTerminal;
+  const conductors = conductorPaths(graph);
+  const conductorGroup = conductors.groupByTerminal;
   base.shortedSourceIds = graph.sources
     .filter(
       (s) =>
@@ -171,6 +174,13 @@ export function assessCompiledCircuitReadiness(
     graph.domains.flatMap((d) => d.terminals.map((t) => [t, d] as const)),
   );
   const models = new Map(graph.devices.map((d) => [d.componentId, d.model]));
+  const branchesByComponent = new Map<string, typeof graph.branches>();
+  for (const branch of graph.branches) {
+    if (!branch.componentId) continue;
+    const branches = branchesByComponent.get(branch.componentId) ?? [];
+    branches.push(branch);
+    branchesByComponent.set(branch.componentId, branches);
+  }
   const defs = options.defs ?? COMPONENT_DEFS;
   for (const component of [...circuit.components].sort((a, b) => compareIds(a.id, b.id))) {
     const capability = resolveDeviceCapabilities(
@@ -195,13 +205,8 @@ export function assessCompiledCircuitReadiness(
           terminals.some((t) => domainByTerminal.get(t)?.sourceIds.includes(source.id)),
       );
       const coupledSourceIds = new Set(
-        graph.branches
-          .filter(
-            (branch) =>
-              branch.componentId === component.id &&
-              terminals.includes(branch.from) &&
-              terminals.includes(branch.to),
-          )
+        (branchesByComponent.get(component.id) ?? [])
+          .filter((branch) => terminals.includes(branch.from) && terminals.includes(branch.to))
           .flatMap((branch) => sourcesByBranch.get(branch.id) ?? []),
       );
       const directlyWired =
@@ -250,7 +255,38 @@ export function assessCompiledCircuitReadiness(
     : base.groups.some((g) => g.result.status === 'unassessed')
       ? 'unassessed'
       : 'compatible';
-  base.earthing = assessEarthingTopology(graph);
+  base.earthing = assessEarthingTopology(
+    graph,
+    excitation,
+    graph.branches.some((branch) => branch.kind === 'fault') ? undefined : conductors,
+  );
   base.diagnostics.push(...base.earthing.diagnostics);
+  const netByTerminal = new Map(
+    graph.nets.flatMap((net) => net.terminals.map((t) => [t, net.id] as const)),
+  );
+  const constraints = inspectVoltageConstraints(
+    graph.sources
+      .filter((s) => activeSourceIds.has(s.id))
+      .map((s) => ({
+        id: s.id,
+        positive: netByTerminal.get(s.positive)!,
+        negative: netByTerminal.get(s.negative)!,
+        voltage: s.model.voltage,
+      })),
+  );
+  if (constraints.conflicting.length) {
+    base.topology = 'invalid';
+    base.diagnosticRunAvailable = false;
+    for (const id of constraints.conflicting) {
+      const source = graph.sources.find((s) => s.id === id);
+      base.diagnostics.push({
+        code: 'source-constraint-conflict',
+        severity: 'error',
+        componentId: source?.componentIds[0],
+        message:
+          'Contradictory ideal source constraints. Separate the sources or add declared impedance before calculating.',
+      });
+    }
+  }
   return base;
 }

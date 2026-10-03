@@ -4,6 +4,8 @@ import { explicitSupplyProfile } from '@electrasim/domain/core/supplies';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { component as C, wire as W } from '../../packages/domain/src/simulation/auditFixtures';
 import { clearHistory, redo, selectCircuit, undo, useCircuitStore } from './circuitStore';
+import { useElectricalEditing } from './electricalEditing';
+import { confirmElectricalEdit } from './electricalEditing.testHelpers';
 import { invalidateAccess, useSimulatorAccess } from './simulatorAccess';
 import { useUiStore } from './uiStore';
 
@@ -32,6 +34,7 @@ const fixture = (): Circuit => ({
 });
 
 beforeEach(() => {
+  useElectricalEditing.setState({ request: null, reviewOpen: false, notice: null });
   invalidateAccess();
   useSimulatorAccess.setState({ exercise: null, userId: null, capabilities: [], message: null });
   useUiStore.setState({
@@ -49,6 +52,7 @@ describe('supply profiles across editor boundaries', () => {
   it('changes only document aliases and restores the full transaction through undo/redo/export', () => {
     const before = selectCircuit(useCircuitStore.getState());
     useCircuitStore.getState().setGlobalSupplyVoltage(12);
+    void confirmElectricalEdit();
     const after = selectCircuit(useCircuitStore.getState());
     expect(after.supply?.model).toEqual({ kind: 'ac-single-phase', voltage: 12, frequencyHz: 60 });
     for (const id of ['heater', 'pe', 'independent'])
@@ -69,12 +73,14 @@ describe('supply profiles across editor boundaries', () => {
     useCircuitStore.getState().setCircuit({ components: [C('load', 'space-heater')], wires: [] });
     const load = useCircuitStore.getState().components[0];
     useCircuitStore.getState().setGlobalSupplyVoltage(48);
+    void confirmElectricalEdit();
     expect(useCircuitStore.getState().components[0]).toEqual(load);
     expect(useCircuitStore.getState().components[0].state.customVoltage).toBeUndefined();
   });
 
   it('does not create history for identical or invalid supply edits', () => {
     useCircuitStore.getState().setGlobalSupplyVoltage(230);
+    void confirmElectricalEdit();
     for (const value of [0, -12, Number.NaN, Number.POSITIVE_INFINITY, 100_001])
       useCircuitStore.getState().setGlobalSupplyVoltage(value);
     expect(useCircuitStore.temporal.getState().pastStates).toHaveLength(0);
@@ -85,7 +91,9 @@ describe('supply profiles across editor boundaries', () => {
     const before = selectCircuit(useCircuitStore.getState());
     useUiStore.setState({ simRunning: true });
     useCircuitStore.getState().setGlobalSupplyVoltage(12);
+    void confirmElectricalEdit();
     useCircuitStore.getState().updateComponentState('independent', { customVoltage: 48 });
+    void confirmElectricalEdit();
     expect(selectCircuit(useCircuitStore.getState())).toEqual(before);
     useCircuitStore.getState().toggleSwitch('switch');
     expect(useCircuitStore.getState().components.find((c) => c.id === 'switch')?.state.on).toBe(
@@ -107,6 +115,7 @@ describe('supply profiles across editor boundaries', () => {
 
   it('updates an independent source magnitude without losing its frequency or changing the document', () => {
     useCircuitStore.getState().updateComponentState('independent', { customVoltage: 48 });
+    void confirmElectricalEdit();
     const source = useCircuitStore.getState().components.find((c) => c.id === 'independent')!;
     expect(source.state.sourceProfile?.model).toEqual({
       kind: 'ac-single-phase',
@@ -129,6 +138,7 @@ describe('supply profiles across editor boundaries', () => {
     useCircuitStore.getState().setCircuit(circuit);
     const before = selectCircuit(useCircuitStore.getState());
     useCircuitStore.getState().setGlobalSupplyVoltage(12);
+    void confirmElectricalEdit();
     await vi.waitFor(() => expect(useSimulatorAccess.getState().pending).toBe(0));
     expect(denied).toHaveBeenCalledTimes(1);
     expect(selectCircuit(useCircuitStore.getState())).toEqual(before);
@@ -149,6 +159,7 @@ describe('supply profiles across editor boundaries', () => {
     circuit.components.push(C('battery', 'dc-battery-12v'));
     useCircuitStore.getState().setCircuit(circuit);
     useCircuitStore.getState().setGlobalSupplyVoltage(12);
+    void confirmElectricalEdit();
     const revised = explicitSupplyProfile({
       kind: 'ac-single-phase',
       voltage: 230,

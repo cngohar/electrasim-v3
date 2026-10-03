@@ -110,8 +110,11 @@ async function placeComponent(page: Page, type: string) {
       const expand = page.getByRole('button', { name: 'Expand Component Library' }).first();
       if (await expand.isVisible().catch(() => false)) await expand.click();
     }
-    await expect(tile).toBeVisible();
   }
+  // Authored exercises include parts whose numerical models/ratings are not
+  // assessed by the new catalogue yet. Choose the explicit exercise view.
+  await page.getByLabel('Show all / fault exercise').check();
+  await expect(tile).toBeVisible();
   await tile.click();
   // On phones the sheet stays open over the canvas; close it so the canvas
   // can receive the placement click.

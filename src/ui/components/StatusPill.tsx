@@ -1,17 +1,9 @@
+import { readinessLabel } from '@electrasim/domain/core/readinessPresentation';
 import { resolveDocumentSupply } from '@electrasim/domain/core/supplies';
-import {
-  Activity,
-  AlertCircle,
-  Boxes,
-  Cable,
-  CheckCircle2,
-  Grid,
-  Magnet,
-  MousePointer2,
-  ScanSearch,
-  Zap,
-} from 'lucide-react';
+import { Activity, Boxes, Cable, Grid, Magnet, MousePointer2, ScanSearch, Zap } from 'lucide-react';
 import { useCircuitStore, useSettingsStore, useUiStore, useViewportStore } from '../../store';
+import { useElectricalEditing } from '../../store/electricalEditing';
+import { useCircuitReadiness } from '../../store/electricalReadiness';
 import { fitCanvasView } from '../canvas/fitView';
 
 interface Props {
@@ -41,6 +33,7 @@ export function StatusPill({
   const zoom = useViewportStore((s) => s.zoom);
 
   const sourceModel = resolveDocumentSupply({ supply, globalVoltage }).model;
+  const readiness = useCircuitReadiness();
   const hasErrors = (simResult?.errors.length ?? 0) > 0;
   const hasWarnings = (simResult?.warnings.length ?? 0) > 0;
 
@@ -92,21 +85,15 @@ export function StatusPill({
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
             Live Check:
           </span>
-          {hasErrors ? (
-            <span className="flex items-center gap-1 font-bold text-rose-600 dark:text-rose-400">
-              <AlertCircle className="size-3" /> Faults
-            </span>
-          ) : hasWarnings ? (
-            <span className="font-medium text-amber-600 dark:text-amber-400">Open Circuit</span>
-          ) : simRunning && active > 0 ? (
-            <span className="flex items-center gap-1 font-medium text-emerald-600 dark:text-emerald-400">
-              <CheckCircle2 className="size-3" /> Healthy
-            </span>
-          ) : (
-            <span className="text-slate-400 dark:text-slate-500">
-              {components === 0 ? 'Ready' : 'Standby'}
-            </span>
-          )}
+          <button type="button" onClick={() => useElectricalEditing.setState({ reviewOpen: true })}>
+            {simResult?.electricalContract?.status === 'not-assessed'
+              ? 'Calculation unassessed'
+              : hasErrors
+                ? 'Fault findings'
+                : hasWarnings
+                  ? `${readinessLabel(readiness)} · warnings`
+                  : readinessLabel(readiness)}
+          </button>
         </div>
       </div>
 

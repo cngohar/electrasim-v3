@@ -76,6 +76,7 @@ test.describe('workbench shell', () => {
   });
 
   test('palette search filters components', async ({ page }) => {
+    await page.getByLabel('Show all / fault exercise').check();
     const search = page.getByPlaceholder('Search…');
     await search.fill('mcb');
     await expect(page.getByRole('button', { name: /MCB/ }).first()).toBeVisible();
@@ -98,15 +99,12 @@ test.describe('workbench shell', () => {
   });
 
   test('command palette opens via Ctrl+K and runs a command', async ({ page }) => {
-    // Prefer the reliable keyboard path; on WebKit/iPad the Ctrl+K keystroke is
-    // reported differently by the browser, so fall back to the header button.
+    // Await the lazy dialog before interacting; an immediate visibility probe
+    // followed by another toggle can close it while its code is still loading.
     await page.keyboard.press('Control+k');
-    let palette = page.getByRole('dialog', { name: 'Command palette' });
-    if (!(await palette.isVisible().catch(() => false))) {
-      await page.locator('header').getByTitle('Command palette (Ctrl+K)').click();
-      palette = page.getByRole('dialog', { name: 'Command palette' });
-    }
+    const palette = page.getByRole('dialog', { name: 'Command palette' });
     await expect(palette).toBeVisible();
+    await palette.getByLabel('Show all / fault exercise').check();
     // Search for a component command and run it — it should place a placing type.
     await palette.getByPlaceholder('What do you want to do?').fill('Add MCB');
     await palette
@@ -114,11 +112,8 @@ test.describe('workbench shell', () => {
       .first()
       .click();
     await expect(palette).not.toBeVisible();
-    // Esc toggles it closed too.
-    await page.keyboard.press('Control+k');
-    if (!(await palette.isVisible().catch(() => false))) {
-      await page.locator('header').getByTitle('Command palette (Ctrl+K)').click();
-    }
+    // The header control opens the same dialog; Escape closes it.
+    await page.locator('header').getByTitle('Command palette (Ctrl+K)').click();
     await expect(palette).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(palette).not.toBeVisible();
@@ -174,14 +169,15 @@ test.describe('workbench shell', () => {
     if (await studentToggle.isVisible().catch(() => false)) {
       await studentToggle.click({ force: true });
     }
+    const access = page.getByLabel('Membership and recovery');
+    await expect(access).toContainText('Authentication required');
+    await access.getByRole('button', { name: 'Dismiss', exact: true }).click();
     await faultLabToggle(page).click();
-    // Select a non-source load away from both panels. The Fault Lab now lives
-    // in the right-hand Inspector, so the Pro bench's bulb (far right of the
-    // staircase branch) sits *under* it — the motor-starter branch is clear of
-    // the left palette and the Inspector alike.
-    const loadBody = page.locator('[data-component-id^="motor-"] > g[role="button"]').first();
-    await loadBody.click({ force: true });
-    await page.waitForTimeout(300);
+    // Basic injection remains available to guests. The LED exists in both
+    // demo benches, even when membership prevents loading the Pro bench.
+    await page.getByTitle('Zoom to fit all (F)').click();
+    const loadBody = page.locator('[data-component-id^="bulb-"] [data-component-hitbox]').first();
+    await loadBody.click();
     const shortBtn = page.getByRole('button', { name: /Short Circuit/ });
     await expect(shortBtn).toBeEnabled();
     await shortBtn.click();
@@ -196,15 +192,17 @@ test.describe('workbench shell', () => {
     await expect(page.getByText('short-circuit', { exact: true })).toHaveCount(0);
   });
 
-  test('global supply voltage preset is changeable from the context bar', async ({ page }) => {
+  test('global supply voltage preset applies after confirmation from the context bar', async ({
+    page,
+  }) => {
     // Regression: the voltage dropdown must not be covered by the left palette.
-    await page.getByTitle('Click to change Global Supply Voltage').click();
-    await page.waitForTimeout(300);
-    const preset = page.getByRole('button', { name: /^24 V$/ });
-    await expect(preset).toBeVisible();
-    await preset.click();
-    await page.waitForTimeout(300);
-    // The supply value in the context bar reflects the new voltage.
-    await expect(page.getByText(/24 V AC/).first()).toBeVisible();
+    const trigger = page.getByTitle('Click to change Global Supply Voltage');
+    await trigger.click();
+    const dialog = page.getByRole('dialog', { name: 'Change supply' });
+    await dialog.getByRole('button', { name: '24 V', exact: true }).click();
+    await expect(trigger).toContainText('230 V AC 50 Hz');
+    await dialog.getByRole('button', { name: 'Apply supply change' }).click();
+    await expect(dialog).not.toBeVisible();
+    await expect(trigger).toContainText('24 V AC 50 Hz');
   });
 });

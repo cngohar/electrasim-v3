@@ -10,6 +10,7 @@ import {
   refreshAccess,
   useSimulatorAccess,
 } from '../../store/simulatorAccess';
+import { useUiStore } from '../../store/uiStore';
 const inputClass =
   'w-full rounded border border-slate-300 bg-transparent p-2 text-sm dark:border-slate-600';
 export function CircuitLibrary() {
@@ -168,6 +169,7 @@ export function CircuitLibrary() {
                   onClick={() =>
                     void run(async () => {
                       const doc = await apiJSON<CircuitLibraryDocument>(`/circuits/${item.id}`);
+                      useUiStore.getState().setSimRunning(false);
                       useCircuitStore.getState().setCircuit(doc.circuit);
                       clearHistory();
                       setCurrent(doc);

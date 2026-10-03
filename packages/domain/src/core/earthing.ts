@@ -57,14 +57,29 @@ export function emptyEarthingTopology(): EarthingTopology {
  * terminal/earth rod is a reference attachment, not a source or an implicit soil
  * impedance. Paths establish continuity only, not earthing-system compliance.
  */
-export function assessEarthingTopology(graph: TerminalGraph): EarthingTopology {
+export function assessEarthingTopology(
+  graph: TerminalGraph,
+  excitation = circuitExcitation(graph),
+  normal = conductorPaths(graph, { omitFaults: true }),
+): EarthingTopology {
   const result = emptyEarthingTopology();
-  const normal = conductorPaths(graph, { omitFaults: true });
-  const pe = conductorPaths(graph, { omitFaults: true, peOnly: true });
-  const nonPe = conductorPaths(graph, { omitFaults: true, excludePe: true });
-  const switchable = conductorPaths(graph, { omitFaults: true, includeOpenContacts: true });
-  const terminals = new Map(graph.terminals.map((terminal) => [terminal.id, terminal]));
   const protective = graph.terminals.filter((terminal) => terminal.role === 'pe');
+  const hasContacts = graph.branches.some((branch) => branch.kind === 'contact');
+  const pe = protective.length ? conductorPaths(graph, { omitFaults: true, peOnly: true }) : normal;
+  const nonPe = protective.length
+    ? conductorPaths(graph, { omitFaults: true, excludePe: true })
+    : normal;
+  const switchable = graph.branches.some((branch) => branch.kind === 'contact' && !branch.closed)
+    ? conductorPaths(graph, { omitFaults: true, includeOpenContacts: true })
+    : normal;
+  const terminals = new Map(graph.terminals.map((terminal) => [terminal.id, terminal]));
+  const terminalsByComponent = new Map<string, typeof graph.terminals>();
+  for (const terminal of graph.terminals) {
+    if (!terminal.port) continue;
+    const list = terminalsByComponent.get(terminal.port.componentId) ?? [];
+    list.push(terminal);
+    terminalsByComponent.set(terminal.port.componentId, list);
+  }
   const returns: EarthingTopology['bonds'][number]['returns'] = graph.references.flatMap((ref) =>
     ref.kind === 'neutral' || ref.kind === 'dc-negative'
       ? [{ terminalId: ref.terminal, kind: ref.kind }]
@@ -138,7 +153,7 @@ export function assessEarthingTopology(graph: TerminalGraph): EarthingTopology {
           'This protective terminal has no intact PE conductor path to a named protective bus, source PE terminal or electrode. Fault-loop impedance and clearing are not assessed.',
       });
   }
-  const { sourceBranches, sourcesByBranch } = circuitExcitation(graph);
+  const { sourceBranches, sourcesByBranch } = excitation;
   const activeSourceIds = new Set(sourceBranches.values());
   const drives = graph.sources
     .filter((source) => activeSourceIds.has(source.id))
@@ -181,9 +196,7 @@ export function assessEarthingTopology(graph: TerminalGraph): EarthingTopology {
       );
     for (const device of graph.devices) {
       if (!['resistive-load', 'unassessed-load', 'outlet'].includes(device.model.kind)) continue;
-      const deviceTerminals = graph.terminals.filter(
-        (terminal) => terminal.port?.componentId === device.componentId,
-      );
+      const deviceTerminals = terminalsByComponent.get(device.componentId) ?? [];
       const lines = deviceTerminals.filter((terminal) => terminal.role === 'line');
       const neutrals = deviceTerminals.filter((terminal) => terminal.role === 'neutral');
       if (lines.length !== 1 || neutrals.length !== 1) continue;
@@ -192,8 +205,8 @@ export function assessEarthingTopology(graph: TerminalGraph): EarthingTopology {
       if (
         drive.namedPolarity &&
         feedGroup !== normal.groupByTerminal.get(drive.negative) &&
-        normal.path(a, drive.negative) &&
-        normal.path(b, drive.positive)
+        normal.groupByTerminal.get(a) === normal.groupByTerminal.get(drive.negative) &&
+        normal.groupByTerminal.get(b) === feedGroup
       )
         finding(
           'polarity-reversed',
@@ -201,19 +214,20 @@ export function assessEarthingTopology(graph: TerminalGraph): EarthingTopology {
           drive.id,
           'The device line and return terminals are connected to the opposite named source terminals. The element response does not establish correct polarity.',
         );
-      const feed = normal.path(a, drive.positive);
-      if (!feed) continue;
-      const returnPath = normal.path(b, drive.negative);
+      if (normal.groupByTerminal.get(a) !== feedGroup) continue;
       const peOnReturn = protective.some(
         (terminal) => normal.groupByTerminal.get(terminal.id) === normal.groupByTerminal.get(b),
       );
-      if (peOnReturn && !nonPe.path(b, drive.negative))
+      if (peOnReturn && nonPe.groupByTerminal.get(b) !== nonPe.groupByTerminal.get(drive.negative))
         finding(
           'pe-used-as-normal-return',
           device.componentId,
           drive.id,
           'The device return is routed through protective earth instead of an independent normal return conductor. A floating PE bus cannot complete a powered circuit; an explicit bond can make this miswire carry load current.',
         );
+      // Connectivity already establishes whether a path exists. Materialize
+      // its edges only when a PE/contact finding needs the contents of it.
+      const feed = protective.length || hasContacts ? (normal.path(a, drive.positive) ?? []) : [];
       if (
         feed.some(
           (branch) =>
@@ -226,8 +240,8 @@ export function assessEarthingTopology(graph: TerminalGraph): EarthingTopology {
           drive.id,
           'The device feed is routed through protective earth. Its calculated power is not evidence of a correct supply connection.',
         );
-      if (drive.namedPolarity && !feed.some((branch) => branch.kind === 'contact')) {
-        const possibleReturn = returnPath ?? switchable.path(b, drive.negative);
+      if (drive.namedPolarity && hasContacts && !feed.some((branch) => branch.kind === 'contact')) {
+        const possibleReturn = normal.path(b, drive.negative) ?? switchable.path(b, drive.negative);
         for (const contact of possibleReturn?.filter((branch) => branch.kind === 'contact') ?? [])
           finding(
             'neutral-only-switching',

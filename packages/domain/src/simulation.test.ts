@@ -411,7 +411,7 @@ describe('simulate — fault detection', () => {
 });
 
 describe('simulate — faultsCleared flag', () => {
-  it('is true for a healthy energised circuit and for an empty circuit', () => {
+  it('clears findings for an energised circuit but never treats an empty circuit as cleared', () => {
     const l = C('live-terminal');
     const n = C('neutral-terminal');
     const b = C('bulb');
@@ -421,7 +421,9 @@ describe('simulate — faultsCleared flag', () => {
     expect(healthy.energizedComponents.has(b.id)).toBe(true);
     expect(healthy.faultsCleared).toBe(true);
 
-    expect(simulate(circuit([], [])).faultsCleared).toBe(true);
+    const empty = simulate(circuit([], []));
+    expect(empty.faultsCleared).toBe(false);
+    expect(empty.readiness?.topology).toBe('empty');
   });
 
   it('is false while a short circuit or open wire is present', () => {
@@ -436,9 +438,11 @@ describe('simulate — faultsCleared flag', () => {
     expect(simulate(circuit([b], [broken])).faultsCleared).toBe(false);
   });
 
-  it('still clears when only warnings are present (e.g. missing live source)', () => {
+  it('does not claim fault clearing when the active supply is missing', () => {
     const n = C('neutral-terminal');
-    expect(simulate(circuit([n], [])).faultsCleared).toBe(true);
+    const result = simulate(circuit([n], []));
+    expect(result.faultsCleared).toBe(false);
+    expect(result.readiness?.topology).toBe('no-source');
   });
 });
 

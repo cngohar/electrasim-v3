@@ -224,6 +224,30 @@ export async function runSimulatorTests(context: Context) {
         expected: 201,
       });
       const scenario = completed.scenario;
+      const firstFault = scenario.faults[0];
+      const changedSupply = await request<Attempt>(`/diagnosis/attempts/${completed.id}`, {
+        user,
+        method: 'POST',
+        data: {
+          action: 'submit',
+          version: completed.version,
+          circuit: {
+            ...scenario.healthyCircuit,
+            globalVoltage: 120,
+            supply: explicitSupplyProfile({
+              kind: 'ac-single-phase',
+              voltage: 120,
+              frequencyHz: 50,
+            }),
+          },
+          answer: { faultType: firstFault.fault.type, locationKey: firstFault.locationKey },
+        },
+        expected: 200,
+      });
+      assert.equal(changedSupply.evaluation.verdict, 'incomplete');
+      assert.equal(changedSupply.progress.status, 'active');
+      assert.equal(changedSupply.score, null);
+      completed = changedSupply;
       for (const fault of scenario.faults) {
         completed = await request<Attempt>(`/diagnosis/attempts/${completed.id}`, {
           user,

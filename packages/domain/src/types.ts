@@ -10,6 +10,7 @@
  */
 
 import type { ElectricalDeviceModel, ElectricalDiagnostic, ModelCoverage } from './core/contracts';
+import type { CircuitReadiness } from './core/readiness';
 import type { SupplyProfile } from './core/supplies';
 
 // ─── Geometry ──────────────────────────────────────────────────────────────
@@ -407,6 +408,8 @@ export interface SimulationLimitation {
 }
 
 export interface SimulationResult {
+  /** Shared current-document preflight; separate from telemetry and fault clearing. */
+  readiness?: CircuitReadiness;
   /** Additive migration metadata. Legacy rail results remain estimates until 1.5F. */
   electricalContract?: {
     version: 1;

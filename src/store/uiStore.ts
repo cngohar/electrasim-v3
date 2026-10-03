@@ -20,10 +20,17 @@ import {
   isWireFaultType,
 } from '@electrasim/domain';
 import { validateCircuit } from '@electrasim/domain/circuitValidation';
+import {
+  needsDiagnosticRun,
+  ordinaryRunBlocked,
+} from '@electrasim/domain/core/readinessPresentation';
+import { castDraft } from 'immer';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { prefersReducedMotionNow } from '../lib/reducedMotion';
 import { isDemoSeedCircuit, useCircuitStore } from './circuitStore';
+import { useElectricalEditing } from './electricalEditing';
+import { circuitReadiness } from './electricalReadiness';
 import { useSettingsStore } from './settingsStore';
 import {
   createComponent,
@@ -147,7 +154,7 @@ export function focusFaultTarget(target: { componentId: string } | { wireId: str
  * Apply the non-bypassable physical-safety check and the Pro compliance gate
  * shared by every ordinary simulation-start path.
  */
-function canStartSimulation(state: UiState): boolean {
+function canStartSimulation(state: UiState, diagnostic = false, override = false): boolean {
   const circuit = useCircuitStore.getState();
   const hasDamagedOrTripped = circuit.components.some(
     (component) => component.state?.isBlown || component.state?.isTripped,
@@ -169,9 +176,18 @@ function canStartSimulation(state: UiState): boolean {
     return false;
   }
 
+  const readiness = circuitReadiness(circuit);
+  if (ordinaryRunBlocked(readiness) || (!diagnostic && needsDiagnosticRun(readiness))) {
+    state.simRunning = false;
+    state.simResult = null;
+    useElectricalEditing.setState({ reviewOpen: true });
+    return false;
+  }
+  state.diagnosticRun = diagnostic;
+
   // Student mode treats compliance as guidance. Pro mode blocks Run and
   // sends the user directly to the report without presenting a fake trip.
-  if (useSettingsStore.getState().appMode === 'pro') {
+  if (!override && useSettingsStore.getState().appMode === 'pro') {
     const report = validateCircuit(
       {
         components: circuit.components,
@@ -203,6 +219,7 @@ function canStartSimulation(state: UiState): boolean {
 export const useUiStore = create<UiState>()(
   immer<UiState>((set, get) => ({
     simRunning: false,
+    diagnosticRun: false,
     simResult: null,
     faultAlert: null,
     lastFaultAlert: null,
@@ -272,6 +289,12 @@ export const useUiStore = create<UiState>()(
         if (running && !canStartSimulation(state)) return;
         state.simRunning = running;
       }),
+    startDiagnosticRun: () =>
+      set((state) => {
+        if (!canStartSimulation(state, true)) return;
+        state.simRunning = true;
+        useElectricalEditing.setState({ reviewOpen: false });
+      }),
     toggleSim: () =>
       set((state) => {
         const nextState = !state.simRunning;
@@ -283,6 +306,7 @@ export const useUiStore = create<UiState>()(
         // This action is intentionally inert outside Pro, even if called
         // directly rather than through the Pro-only Validation control.
         if (useSettingsStore.getState().appMode !== 'pro') return;
+        if (!canStartSimulation(s, s.diagnosticRun, true)) return;
 
         const cs = useCircuitStore.getState();
         const hasDamagedOrTripped = cs.components.some(
@@ -358,7 +382,7 @@ export const useUiStore = create<UiState>()(
       }),
     setSimResult: (r) =>
       set((s) => {
-        s.simResult = r;
+        s.simResult = castDraft(r);
       }),
     setFaultAlert: (alert) =>
       set((s) => {
@@ -1181,6 +1205,7 @@ const registerValidationStaleWatcher = () => {
       )
         return;
       const ui = useUiStore.getState();
+      if (ui.simResult) useUiStore.setState({ simResult: null });
       if (!ui.validationReport) return;
       if (state.components.length === 0) {
         useUiStore.setState((s) => {

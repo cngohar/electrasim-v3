@@ -1,3 +1,4 @@
+import { useElectricalEditing } from '../store/electricalEditing';
 /** Composition root for the interactive editor and its optional surfaces. */
 
 import { isGuidedCircuitId } from '@electrasim/domain/guidedCircuitIds';
@@ -16,6 +17,12 @@ import {
 import { CircuitCanvas } from './CircuitCanvas';
 
 // Optional dialogs stay out of the main editing bundle.
+const ElectricalEditDialog = lazy(() =>
+  import('./components/ElectricalEditDialog').then((m) => ({ default: m.ElectricalEditDialog })),
+);
+const CommandPalette = lazy(() =>
+  import('./components/CommandPalette').then((m) => ({ default: m.CommandPalette })),
+);
 const ContactModal = lazy(() =>
   import('./components/ContactModal').then((m) => ({ default: m.ContactModal })),
 );
@@ -72,7 +79,6 @@ import type { PendingDeletion } from '../store/uiStore';
 import { cancelPendingDeletion, confirmPendingDeletion } from './canvas-actions';
 import { AlignmentBar } from './components/AlignmentBar';
 import { CanvasToolbar } from './components/CanvasToolbar';
-import { CommandPalette } from './components/CommandPalette';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import { ContextMenu } from './components/ContextMenu';
 import { EventHistoryPanel } from './components/EventHistoryPanel';
@@ -144,6 +150,10 @@ export function Editor() {
   const isPhone = device === 'phone';
   const isTablet = device === 'tablet';
 
+  const electricalFeedbackOpen = useElectricalEditing(
+    (s) => !!s.request || s.reviewOpen || !!s.notice || !!s.inspectComponentId,
+  );
+  const commandPaletteOpen = useUiStore((s) => s.commandPaletteOpen);
   useSimulation();
   useKeyboardShortcuts();
   const resolvedTheme = useResolvedTheme();
@@ -423,9 +433,18 @@ export function Editor() {
       )}
       <TourOfferChip isPhone={isPhone} />
       <FaultAlertModal />
-      <CommandPalette />
+      {commandPaletteOpen && (
+        <Suspense fallback={null}>
+          <CommandPalette />
+        </Suspense>
+      )}
       <ShortcutsOverlay />
       <UndoToast />
+      {electricalFeedbackOpen && (
+        <Suspense fallback={null}>
+          <ElectricalEditDialog />
+        </Suspense>
+      )}
       {whatHappenedOpen && (
         <Suspense fallback={null}>
           <WhatHappenedModal />

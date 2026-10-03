@@ -27,7 +27,6 @@ export function StandardSelector({ compact = false }: Props) {
   const plugSystem = useSettingsStore((s) => s.plugSystem);
   const appMode = useSettingsStore((s) => s.appMode);
   const setSetting = useSettingsStore((s) => s.setSetting);
-  const setGlobalSupplyVoltage = useCircuitStore((s) => s.setGlobalSupplyVoltage);
   const runCircuitValidation = useUiStore((s) => s.runCircuitValidation);
   const addLog = useUiStore((s) => s.addLog);
 
@@ -53,14 +52,13 @@ export function StandardSelector({ compact = false }: Props) {
   const applyStandard = (id: StandardId) => {
     const preset = getStandard(id);
     setSetting('regulationStandard', id);
-    setGlobalSupplyVoltage(preset.nominalVoltage);
 
     // Regulation and physical plug/socket selection are intentionally
     // independent. Changing standards must not overwrite a user's regional
     // hardware choice; the plug controls below remain the sole owner of it.
     setOpen(false);
     addLog(
-      `Standard set to ${preset.label} (${preset.citation}) — ${preset.nominalVoltage} V / ${preset.frequencyHz} Hz.`,
+      `Standard set to ${preset.label} (${preset.citation}) — supply settings are unchanged.`,
       'info',
     );
     // Re-validate so newly applicable rules (drop %, RCD, MCB curve) flag up.
