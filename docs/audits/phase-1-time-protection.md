@@ -1,7 +1,7 @@
-# Phase 1.5D.1 — Explicit time and protection foundation
+# Phase 1.5D — Explicit time and protection
 
 **Date:** 2026-10-04  
-**Status:** Implemented locally; the broader 1.5D acceptance gate remains open.
+**Status:** 1.5D.1 implemented locally; the 1.5D.2 domain slice is implemented locally and the broader 1.5D acceptance gate remains open.
 
 ## Scope
 
@@ -25,20 +25,25 @@ The public domain entry points are:
 - Severe cable exposure accumulates a bounded, declared I²t-like teaching value. A cable-damage event opens the wire in the next solve and emits `cable-damaged`; a capacity warning alone does not melt a cable.
 - Every protection or cable event triggers a second solve. The returned electrical values therefore represent the post-event circuit, while `trippedComponents`, `wireMeltEvents` and the deterministic event stream retain the pre-event cause and timing.
 - `CompileOptions` now accepts transient contacts, protection states, dimmer levels and opened wires. These values are never persisted and all timed state is included in replay snapshots.
+- Fault Lab repair commands require an explicit serialisable `surface: 'fault-lab'` operation scope. Resetting a tripped breaker, replacing a blown fuse link and repairing a damaged cable are separate operations; active faults in the target network block all three. The engine validates the scope and physics, while the application/server adapter remains responsible for authenticating the caller and issuing the scope.
+- Coil pickup/dropout delays are applied only when explicitly declared per coil. The state records signed continuous energized/de-energized time, so coarse steps cannot silently claim instantaneous relay operation. Protection coordination compares declared clearing curves, operates the earliest candidate, re-solves, and reports manufacturer selectivity as unassessed rather than inventing coordination data.
+- The canonical timed suite now covers authorization/replacement semantics, delayed coil pickup/dropout, fastest-curve coordination and post-event upstream re-solving in addition to the 1.5D.1 fixtures.
 
 ## Version and boundaries
 
-- Timed state model: `1.5d.1.0`.
+- Timed state model: `1.5d.2.0`.
 - Numerical electrical contract and MNA engine remain unchanged at contract `1`, engine `mna-linear-2`, model `1.5c.5.1`.
 - The timed slice does not claim full waveform/phase-angle dimming, thermal product certification, selectivity/coordination, prospective fault current, three-phase behavior or effects.
 - Fault Lab/Diagnosis Lab/Ohmageddon consumers, Comlink/browser wiring and legacy retirement remain 1.5F work. The app still uses the static `simulate()` entry point until those consumers are migrated.
 
 ## Local evidence
 
-- `npx --yes -p typescript@5.8.2 tsc --noEmit -p packages/domain/tsconfig.json` passed in this sandbox.
-- Biome check passed for all changed domain files after formatting.
-- Direct local TypeScript probes exercised timed MCB clearing, RCCB residual clearing, fuse opening, scheduled contacts, relay coil pickup, dimmer response, replay determinism and cable opening. The repository's canonical Bun/Vitest phase gate remains to be run in the normal Bun development environment.
+- `bun run typecheck` passed, including the domain boundary and all configured TypeScript projects.
+- `bun run lint` passed; Biome check passed for all changed domain files after formatting.
+- The focused domain/core run passed 15 files / 521 tests, including the timed, MNA and protection regressions.
+- `bun run test` passed 125 files / 2,013 tests.
+- The canonical timed suite exercises MCB clearing, RCCB residual clearing, fuse replacement authorization, scheduled contacts, delayed relay pickup/dropout, dimmer response, replay determinism, cable opening and fastest-curve coordination. No browser, remote Worker, deployment or three-phase acceptance is claimed.
 
-## Next
+## Remaining 1.5D work
 
-Complete 1.5D.2 with explicit Fault Lab repair/reset authorization, stronger coil pickup/dropout timing and protection coordination/damage fixtures, then route the state/event contract through Comlink/local Hono before 1.5F legacy retirement.
+The domain slice of 1.5D.2 is implemented locally. Remaining work is to issue the authorization scope only from authenticated Fault Lab adapters, add equivalent Comlink/local-Hono transport fixtures, and complete the cross-runtime acceptance gate. Three-phase models, effects, full Diagnosis Lab/Ohmageddon migration and legacy retirement remain later phases; this record does not claim them supported.

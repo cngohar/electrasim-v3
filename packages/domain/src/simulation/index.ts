@@ -22,6 +22,9 @@ export {
   stepSimulation,
 } from './timed';
 export type {
+  FaultLabRepairAuthorization,
+  FaultLabRepairOperation,
+  TimedCoilTiming,
   TimedControl,
   TimedInputEvent,
   TimedReplay,

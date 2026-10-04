@@ -29,7 +29,7 @@ import { indexCircuit } from './indexing';
 import { type SimulateOptions, simulate } from './simulate';
 import { calculateFuseTrip, calculateMCBTrip, calculateRCDTrip } from './tripCurves';
 
-export const TIMED_MODEL_VERSION = '1.5d.1.0' as const;
+export const TIMED_MODEL_VERSION = '1.5d.2.0' as const;
 
 export interface TimedTransition {
   timeSeconds: number;
@@ -64,18 +64,46 @@ export type TimedControl =
       transitions?: readonly { timeSeconds: number; level: number }[];
     };
 
+export type FaultLabRepairOperation = 'reset-protection' | 'replace-fuse-link' | 'repair-cable';
+
+/**
+ * A serialisable scope emitted by the Fault Lab adapter after its caller has
+ * checked the learner/session permission. The timed engine validates the
+ * operation and surface, but does not treat a client-side boolean as
+ * membership authorization.
+ */
+export interface FaultLabRepairAuthorization {
+  surface: 'fault-lab';
+  operation: FaultLabRepairOperation;
+}
+
+export interface TimedCoilTiming {
+  /** Declared pickup delay; no delay is inferred when this is omitted. */
+  pickupSeconds: number;
+  /** Declared dropout delay; no delay is inferred when this is omitted. */
+  dropoutSeconds: number;
+}
+
 export type TimedInputEvent =
   | { type: 'trigger'; componentId: string; timeSeconds?: number }
   | { type: 'set-contact'; componentId: string; closed: boolean; timeSeconds?: number }
   | { type: 'set-dimmer'; componentId: string; level: number; timeSeconds?: number }
   | { type: 'reset-control'; componentId: string; timeSeconds?: number }
-  | { type: 'repair'; componentId?: string; wireId?: string; timeSeconds?: number };
+  | {
+      type: 'repair';
+      componentId?: string;
+      wireId?: string;
+      timeSeconds?: number;
+      authorization?: FaultLabRepairAuthorization;
+    };
 
 export interface TimedSimulationOptions extends SimulateOptions {
   state?: ElectricalSimulationState;
   /** Seconds to advance. Zero performs a deterministic solve without advancing. */
   deltaSeconds?: number;
   controls?: Readonly<Record<string, TimedControl>>;
+  /** Explicit pickup/dropout timing for supported coil models. */
+  coilTimings?: Readonly<Record<string, TimedCoilTiming>>;
   /** External button presses, contact commands and repair actions. */
   inputEvents?: readonly TimedInputEvent[];
   /** Alias accepted by callers that already use `events` for input commands. */
@@ -145,6 +173,7 @@ export function createSimulationState(
     controlTriggers: {},
     dimmerLevels,
     coilStates: {},
+    coilElapsedSeconds: {},
   };
 }
 
@@ -160,6 +189,7 @@ function copyState(state: ElectricalSimulationState): ElectricalSimulationState 
     controlTriggers: { ...state.controlTriggers },
     dimmerLevels: { ...state.dimmerLevels },
     coilStates: { ...state.coilStates },
+    coilElapsedSeconds: { ...(state.coilElapsedSeconds ?? {}) },
   };
 }
 
@@ -377,7 +407,9 @@ function resolveTimedCoils(
   circuit: Circuit,
   state: ElectricalSimulationState,
   defs: Record<string, ComponentDef>,
-): { states: Record<string, boolean>; unstable: boolean } {
+  deltaSeconds: number,
+  timings: Readonly<Record<string, TimedCoilTiming>> = {},
+): { states: Record<string, boolean>; elapsed: Record<string, number>; unstable: boolean } {
   const transientCircuit: Circuit = {
     ...circuit,
     components: circuit.components.map((component) => ({
@@ -404,7 +436,32 @@ function resolveTimedCoils(
     return def?.isSource === true && def.ports.some((port) => port.type === 'neutral');
   });
   const resolved = resolveCoils(transientCircuit, index, defs, liveSources, neutralSources);
-  return { states: Object.fromEntries(resolved.coilStates), unstable: resolved.unstable };
+  const idealStates = Object.fromEntries(resolved.coilStates);
+  const states: Record<string, boolean> = {};
+  const elapsed: Record<string, number> = {};
+
+  for (const [componentId, ideal] of Object.entries(idealStates)) {
+    const timing = timings[componentId];
+    if (!timing) {
+      states[componentId] = ideal;
+      elapsed[componentId] = 0;
+      continue;
+    }
+    const pickup = finiteNonNegative(timing.pickupSeconds, `${componentId} pickupSeconds`);
+    const dropout = finiteNonNegative(timing.dropoutSeconds, `${componentId} dropoutSeconds`);
+    const previousState = state.coilStates[componentId] ?? false;
+    const previousElapsed = state.coilElapsedSeconds?.[componentId] ?? 0;
+    if (ideal) {
+      const nextElapsed = Math.max(0, previousElapsed) + deltaSeconds;
+      elapsed[componentId] = nextElapsed;
+      states[componentId] = previousState || nextElapsed >= pickup;
+    } else {
+      const nextElapsed = Math.min(0, previousElapsed) - deltaSeconds;
+      elapsed[componentId] = nextElapsed;
+      states[componentId] = previousState && Math.abs(nextElapsed) < dropout;
+    }
+  }
+  return { states, elapsed, unstable: resolved.unstable };
 }
 
 function protectionNetwork(
@@ -501,14 +558,19 @@ function event(
 }
 
 function repairBlocked(circuit: Circuit, componentId: string, wireId?: string): boolean {
-  if (
-    wireId &&
-    (circuit.faults ?? []).some(
-      (fault) => !fault.resolved && fault.target.type === 'wire' && fault.target.id === wireId,
-    )
-  )
-    return true;
   const anchors = faultAnchors(circuit);
+  if (wireId) {
+    const wire = circuit.wires.find((item) => item.id === wireId);
+    if (!wire) return true;
+    // A cable cannot be returned to service while a component, port or other
+    // wire fault remains in the same physical network. Checking only a direct
+    // wire-target fault would let Fault Lab repair hide an active load fault.
+    return anchors.some((anchor) =>
+      [wire.fromComponentId, wire.toComponentId].some((endpoint) =>
+        connectedNetworkComponents(anchor, circuit).has(endpoint),
+      ),
+    );
+  }
   return anchors.some((anchor) => connectedNetworkComponents(anchor, circuit).has(componentId));
 }
 
@@ -527,10 +589,34 @@ function applyRepairs(
     (item): item is Extract<TimedInputEvent, { type: 'repair' }> => item.type === 'repair',
   )) {
     const time = request.timeSeconds ?? end;
+    const targetCount =
+      Number(request.componentId !== undefined) + Number(request.wireId !== undefined);
+    if (targetCount !== 1) {
+      result.warnings.push('Repair blocked: choose exactly one protection device or cable.');
+      continue;
+    }
+
+    const rejectAuthorization = (operation: FaultLabRepairOperation) => {
+      result.warnings.push(
+        `Repair blocked: Fault Lab authorization for ${operation} is required; simulation state was unchanged.`,
+      );
+    };
+
     if (request.wireId) {
+      const authorization = request.authorization;
+      if (
+        !authorization ||
+        authorization.surface !== 'fault-lab' ||
+        authorization.operation !== 'repair-cable'
+      ) {
+        rejectAuthorization('repair-cable');
+        continue;
+      }
       if (!next.openWires.includes(request.wireId)) continue;
       if (repairBlocked(circuit, '', request.wireId)) {
-        result.warnings.push(`Repair blocked: active fault still targets cable ${request.wireId}.`);
+        result.warnings.push(
+          `Repair blocked: the faulted network containing cable ${request.wireId} is still active.`,
+        );
         continue;
       }
       next.openWires = next.openWires.filter((id) => id !== request.wireId);
@@ -545,29 +631,43 @@ function applyRepairs(
         { wireId: request.wireId, cause: 'manual' },
         `Cable ${request.wireId} was repaired and returned to service.`,
       );
+      continue;
     }
-    if (request.componentId) {
-      const status = next.protectionStates[request.componentId];
-      if (status !== 'tripped' && status !== 'blown') continue;
-      if (repairBlocked(circuit, request.componentId)) {
-        result.warnings.push(
-          `Repair blocked: the faulted network containing ${request.componentId} is still active.`,
-        );
-        continue;
-      }
-      next.protectionStates[request.componentId] = 'closed';
-      delete next.protectionElapsedSeconds[request.componentId];
-      needsResolve = true;
-      event(
-        events,
-        sequence,
-        time,
-        'control-reset',
-        request.componentId,
-        { componentId: request.componentId, cause: 'manual' },
-        `${request.componentId} was reset after the active fault was cleared.`,
+
+    const componentId = request.componentId as string;
+    const status = next.protectionStates[componentId];
+    if (status !== 'tripped' && status !== 'blown') continue;
+    const requiredOperation: FaultLabRepairOperation =
+      status === 'blown' ? 'replace-fuse-link' : 'reset-protection';
+    const authorization = request.authorization;
+    if (
+      !authorization ||
+      authorization.surface !== 'fault-lab' ||
+      authorization.operation !== requiredOperation
+    ) {
+      rejectAuthorization(requiredOperation);
+      continue;
+    }
+    if (repairBlocked(circuit, componentId)) {
+      result.warnings.push(
+        `Repair blocked: the faulted network containing ${componentId} is still active.`,
       );
+      continue;
     }
+    next.protectionStates[componentId] = 'closed';
+    delete next.protectionElapsedSeconds[componentId];
+    needsResolve = true;
+    event(
+      events,
+      sequence,
+      time,
+      'control-reset',
+      componentId,
+      { componentId, cause: 'manual' },
+      status === 'blown'
+        ? `${componentId} fuse link was replaced after the active fault was cleared.`
+        : `${componentId} was reset after the active fault was cleared.`,
+    );
   }
   return { state: next, needsResolve };
 }
@@ -592,7 +692,16 @@ function applyProtection(
   const short =
     activeFault(circuit, ['short-circuit']) || result.electrical?.readiness.topology === 'short';
   const arc = activeFault(circuit, ['arc-fault']);
-  let needsResolve = false;
+  const candidates: {
+    component: ComponentInstance;
+    current: number;
+    rating: number;
+    trip: {
+      cause: 'overload' | 'short-circuit' | 'ground-fault' | 'arc-fault';
+      mechanism: 'thermal' | 'magnetic' | 'residual' | 'arc';
+      time?: number;
+    };
+  }[] = [];
 
   for (const component of circuit.components) {
     const role = {
@@ -670,21 +779,43 @@ function applyProtection(
           };
       }
     }
-    if (!trip) continue;
+    if (trip) candidates.push({ component, current, rating, trip });
+  }
+
+  // A faulted branch may be behind several protective devices. Operate only
+  // the earliest declared curve in this step; re-solving then removes the
+  // downstream current before a slower upstream device is allowed to operate.
+  // This is a bounded teaching comparison, not manufacturer selectivity data.
+  const firstTripTime = Math.min(
+    ...candidates.map((candidate) => candidate.trip.time ?? Number.POSITIVE_INFINITY),
+  );
+  const operated = candidates.filter(
+    (candidate) => (candidate.trip.time ?? Number.POSITIVE_INFINITY) <= firstTripTime + EPSILON,
+  );
+  if (candidates.length > operated.length) {
+    result.warnings.push(
+      'Protection selectivity is a modeled timing comparison; manufacturer coordination is not assessed.',
+    );
+  }
+
+  let needsResolve = false;
+  for (const candidate of operated) {
+    const { component, current, rating, trip } = candidate;
     const blown = isFuseDevice(component.type, defs);
     next.protectionStates[component.id] = blown ? 'blown' : 'tripped';
     needsResolve = true;
     if (blown) {
       const blownComponents = result.blownComponents ?? [];
       result.blownComponents = blownComponents;
-      blownComponents.push({
-        id: component.id,
-        reason: trip.cause === 'overload' ? 'overload' : 'overcurrent',
-      });
+      if (!blownComponents.some((item) => item.id === component.id))
+        blownComponents.push({
+          id: component.id,
+          reason: trip.cause === 'overload' ? 'overload' : 'overcurrent',
+        });
     }
     const eventCurrent =
       trip.cause === 'ground-fault'
-        ? (leakage ?? (defs[component.type]?.ratedLeakage_mA ?? 30) / 1000)
+        ? (leakage ?? defs[component.type]?.ratedLeakage_mA ?? 30) / 1000
         : current;
     recordTrip(
       result,
@@ -712,7 +843,6 @@ function applyProtection(
   }
   return { state: next, needsResolve };
 }
-
 function applyCableDamage(
   state: ElectricalSimulationState,
   result: SimulationResult,
@@ -801,8 +931,9 @@ function runStep(
   const controlled = updateControls(circuit, previous, start, end, controls, inputs, defs);
   let state = controlled.input;
   state.elapsedSeconds = end;
-  const coilResolution = resolveTimedCoils(circuit, state, defs);
+  const coilResolution = resolveTimedCoils(circuit, state, defs, delta, options.coilTimings);
   state.coilStates = coilResolution.states;
+  state.coilElapsedSeconds = coilResolution.elapsed;
   for (const [componentId, closed] of Object.entries(coilResolution.states)) {
     if (controls[componentId]) continue;
     const before = state.contactStates[componentId] ?? false;
@@ -858,6 +989,7 @@ function runStep(
   state = cable.state;
   const needsResolve = protection.needsResolve || cable.needsResolve;
   if (needsResolve) {
+    const eventWarnings = result.warnings.slice();
     const wireMeltEvents = result.wireMeltEvents?.slice();
     const bustedWires = result.bustedWires ? new Set(result.bustedWires) : undefined;
     const blownComponents = result.blownComponents?.slice();
@@ -867,6 +999,9 @@ function runStep(
       openWires: new Set(state.openWires),
     });
     stripHandledLimitations(result, timedIds, new Set(Object.keys(state.protectionStates)));
+    for (const warning of eventWarnings) {
+      if (!result.warnings.includes(warning)) result.warnings.push(warning);
+    }
     // Preserve the event report and the operated-device records from the first
     // solve while replacing all electrical readings with post-event readings.
     if (events.some((item) => item.kind === 'protection-trip' || item.kind === 'device-blown')) {

@@ -256,6 +256,8 @@ export interface ElectricalSimulationState {
   dimmerLevels: Record<string, number>;
   /** Derived coil operation; manual Circuit state remains untouched. */
   coilStates: Record<string, boolean>;
+  /** Signed continuous coil candidate time: positive while energised, negative while de-energised. */
+  coilElapsedSeconds: Record<string, number>;
 }
 
 export type ElectricalEventKind =

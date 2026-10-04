@@ -1,12 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Circuit } from '../types';
-import { protectedLoad, wire } from './auditFixtures';
-import {
-  createSimulationState,
-  replaySimulation,
-  resetSimulationState,
-  stepSimulation,
-} from './timed';
+import { component, protectedLoad, wire } from './auditFixtures';
+import { replaySimulation, resetSimulationState, stepSimulation } from './timed';
 
 function timedLoad(
   protection: 'mcb' | 'rcd' | 'rcbo' | 'fuse' = 'mcb',
@@ -119,7 +114,13 @@ describe('Phase 1.5D explicit time state', () => {
     const circuit = timedLoad('mcb', 6000, 16);
     const tripped = stepSimulation(circuit, resetSimulationState(circuit), 1600);
     const repaired = stepSimulation(circuit, tripped.simulationState!, 0, {
-      inputEvents: [{ type: 'repair', componentId: 'device' }],
+      inputEvents: [
+        {
+          type: 'repair',
+          componentId: 'device',
+          authorization: { surface: 'fault-lab', operation: 'reset-protection' },
+        },
+      ],
     });
     expect(repaired.simulationState?.protectionStates.device).toBe('closed');
     expect(repaired.events?.some((event) => event.kind === 'control-reset')).toBe(true);
@@ -134,7 +135,13 @@ describe('Phase 1.5D explicit time state', () => {
       },
     ];
     const blocked = stepSimulation(circuit, tripped.simulationState!, 0, {
-      inputEvents: [{ type: 'repair', componentId: 'device' }],
+      inputEvents: [
+        {
+          type: 'repair',
+          componentId: 'device',
+          authorization: { surface: 'fault-lab', operation: 'reset-protection' },
+        },
+      ],
     });
     expect(blocked.simulationState?.protectionStates.device).toBe('tripped');
     expect(blocked.warnings.some((message) => message.startsWith('Repair blocked:'))).toBe(true);
@@ -168,7 +175,7 @@ describe('Phase 1.5D explicit time state', () => {
     expect(result.simulationState?.protectionStates.device).toBe('blown');
     expect(result.events?.some((event) => event.kind === 'device-blown')).toBe(true);
     expect(result.blownComponents).toEqual([{ id: 'device', reason: 'overload' }]);
-    expect(result.electrical?.loads[0]?.currentAmps).toBeNull();
+    expect(result.electrical?.loads[0]?.currentAmps).toBeCloseTo(0);
   });
 
   it('changes fixed-resistance response with an explicit dimmer command', () => {
@@ -201,5 +208,85 @@ describe('Phase 1.5D explicit time state', () => {
     expect(result.simulationState?.openWires).toContain('branch');
     expect(result.events?.some((event) => event.kind === 'cable-damaged')).toBe(true);
     expect(result.electrical?.loads[0]?.currentAmps).toBe(0);
+  });
+
+  it('requires Fault Lab authorization and distinguishes a fuse replacement from a breaker reset', () => {
+    const circuit = timedLoad('fuse', 6000, 13);
+    const blown = stepSimulation(circuit, resetSimulationState(circuit), 20);
+    const unauthorized = stepSimulation(circuit, blown.simulationState!, 0, {
+      inputEvents: [{ type: 'repair', componentId: 'device' }],
+    });
+    expect(unauthorized.simulationState?.protectionStates.device).toBe('blown');
+    expect(unauthorized.warnings.some((message) => message.includes('authorization'))).toBe(true);
+
+    circuit.components.find((item) => item.id === 'load')!.state.customPowerWatts = 60;
+    const replaced = stepSimulation(circuit, blown.simulationState!, 0, {
+      inputEvents: [
+        {
+          type: 'repair',
+          componentId: 'device',
+          authorization: { surface: 'fault-lab', operation: 'replace-fuse-link' },
+        },
+      ],
+    });
+    expect(replaced.simulationState?.protectionStates.device).toBe('closed');
+    expect(replaced.events?.some((event) => event.message.includes('fuse link was replaced'))).toBe(
+      true,
+    );
+  });
+
+  it('applies declared coil pickup and dropout delays without mutating the saved relay', () => {
+    const circuit: Circuit = {
+      components: [
+        component('l', 'live-terminal'),
+        component('n', 'neutral-terminal'),
+        component('relay', 'relay-spdt'),
+        component('lamp', 'bulb'),
+      ],
+      wires: [
+        wire('coil-live', 'l', 0, 'relay', 0),
+        wire('coil-neutral', 'n', 0, 'relay', 1),
+        wire('contact-feed', 'l', 0, 'relay', 2),
+        wire('contact-out', 'relay', 3, 'lamp', 0),
+        wire('lamp-return', 'lamp', 1, 'n', 0),
+      ],
+    };
+    const saved = JSON.stringify(circuit);
+    const timing = { relay: { pickupSeconds: 2, dropoutSeconds: 1 } };
+    const first = stepSimulation(circuit, resetSimulationState(circuit), 1, {
+      coilTimings: timing,
+    });
+    expect(first.simulationState?.coilStates.relay).toBe(false);
+    expect(first.simulationState?.coilElapsedSeconds.relay).toBe(1);
+
+    const pickedUp = stepSimulation(circuit, first.simulationState!, 1, {
+      coilTimings: timing,
+    });
+    expect(pickedUp.simulationState?.coilStates.relay).toBe(true);
+    expect(pickedUp.energizedComponents.has('lamp')).toBe(true);
+    expect(JSON.stringify(circuit)).toBe(saved);
+
+    circuit.wires = circuit.wires.filter((item) => item.id !== 'coil-live');
+    const held = stepSimulation(circuit, pickedUp.simulationState!, 0, { coilTimings: timing });
+    expect(held.simulationState?.coilStates.relay).toBe(true);
+    const dropped = stepSimulation(circuit, held.simulationState!, 1, { coilTimings: timing });
+    expect(dropped.simulationState?.coilStates.relay).toBe(false);
+    expect(circuit.components.find((item) => item.id === 'relay')?.state.on).toBeUndefined();
+  });
+
+  it('operates the fastest protective curve first and re-solves the upstream current', () => {
+    const circuit = timedLoad('mcb', 6000, 16);
+    circuit.components.push(component('main', 'mcb', { on: true, customMaxAmps: 17 }));
+    circuit.wires[0] = wire('feed', 'l', 0, 'main', 0);
+    circuit.wires.push(wire('main-to-device', 'main', 1, 'device', 0));
+    for (const item of circuit.wires) item.customCableMm2 = 10;
+
+    const result = stepSimulation(circuit, resetSimulationState(circuit), 4000);
+    expect(result.simulationState?.protectionStates.device).toBe('tripped');
+    expect(result.simulationState?.protectionStates.main).toBe('closed');
+    expect(result.warnings).toContain(
+      'Protection selectivity is a modeled timing comparison; manufacturer coordination is not assessed.',
+    );
+    expect(result.electrical?.loads[0]?.currentAmps).toBeCloseTo(0);
   });
 });
