@@ -4,6 +4,7 @@ import {
   ordinaryRunBlocked,
   readinessLabel,
 } from '@electrasim/domain/core/readinessPresentation';
+import { calculationLabel, operationLabel } from '@electrasim/domain/simulation/presentation';
 import { getSimulationLimitations } from '@electrasim/domain/simulationCoverage';
 import { useCircuitStore } from '../../store/circuitStore';
 import { useElectricalEditing } from '../../store/electricalEditing';
@@ -82,10 +83,25 @@ export function CircuitReadinessDetails() {
         <p key={`${l.code}-${l.componentId}-${i}`}>{l.message}</p>
       ))}
       {result && (
-        <p>
-          Calculation: {result.electricalContract?.status ?? 'Unavailable'}. Coverage:{' '}
-          {result.electricalContract?.coverage.map((c) => c.reason).join(' ')}
-        </p>
+        <div
+          data-calculation-status={result.electrical?.status ?? 'unavailable'}
+          className="space-y-2"
+        >
+          <p>
+            {calculationLabel(result)}. {operationLabel(result)}. Standards assessment: unassessed.
+          </p>
+          {result.legacyObservation && <p>{result.legacyObservation.reason}</p>}
+          {result.electrical?.diagnostics.map((diagnostic, index) => (
+            <p key={`${diagnostic.code}-${index}`}>{diagnostic.message}</p>
+          ))}
+          {result.electrical?.coverage
+            .filter((item) => item.aspect !== 'topology')
+            .map((item, index) => (
+              <p key={`${item.subjectId}-${item.aspect}-${index}`}>
+                {item.aspect}: {item.status}. {item.reason}
+              </p>
+            ))}
+        </div>
       )}
       {!running && !ordinaryRunBlocked(readiness) && (
         <button

@@ -394,6 +394,14 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
         reason:
           'Contact topology only. Operation, coordination, prospective current and time are separate device/solver models.',
       });
+    if (component.type === 'distribution-board-3phase')
+      coverage.push({
+        subjectId: component.id,
+        aspect: 'source',
+        status: 'not-assessed',
+        reason:
+          'Three-phase identity and source equations are not assessed until the three-phase model is available.',
+      });
   }
   if (diagnostics.some((d) => d.severity === 'error'))
     return { status: 'invalid', ...version, diagnostics };

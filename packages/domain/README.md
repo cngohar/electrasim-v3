@@ -14,12 +14,13 @@ Use subpath imports for challenges, diagnosis and Ohmageddon to preserve lazy lo
 
 The existing geometry router has a clock-bounded search; validation report timestamps and manual fault creation also use a clock. Those conveniences are separate from the deterministic electrical `simulate()` path. No browser or Node-specific APIs are needed by package runtime code.
 
-Local cross-runtime parity:
+Supported `simulate()` calls use the shared MNA solver and expose its versioned `electrical` result alongside derived application readings. `solveCircuit()` remains the direct numerical API. Unsupported measurements stay unavailable; eligible unmigrated models are explicitly tagged with `legacyObservation`. See [runtime scope and acceptance](../../docs/audits/phase-1-mna-runtime.md) for the temporary legacy boundary and the remaining timed-device, three-phase and lab work.
+
+Local cross-runtime parity from the repository root:
 
 ```sh
-bun x wrangler dev --config wrangler.domain-test.jsonc --local --ip 127.0.0.1 --port 8792
-# In another terminal:
-bun scripts/check-domain-worker.ts
+bun run test:domain-local
+bun run verify:phase-1.5c5
 ```
 
-The isolated Hono fixture tests 20 guided circuits × four profiles × two modes × three fault states (480 cases). It is not imported or exposed by the application Worker. Do not deploy this test Worker.
+The self-contained parity command starts an isolated localhost Hono Worker with local persistence and shuts it down afterward. Its 626 cases include the original 480 template/profile/mode/fault combinations and the added compiler, editing, numerical and 57 application-runtime fixtures. The full phase gate also exercises actual Comlink and authenticated application API paths. Test Worker entry points are not imported or exposed by the application Worker and must not be deployed.

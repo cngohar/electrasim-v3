@@ -18,9 +18,12 @@ import { mnaAcceptanceCircuits } from '../packages/domain/src/core/mnaFixtures';
 import { operatingPointAcceptanceCircuits } from '../packages/domain/src/core/operatingPointFixtures';
 import { transformerAcceptanceCircuits } from '../packages/domain/src/core/transformerFixtures';
 import { component as C, wire as W } from '../packages/domain/src/simulation/auditFixtures';
+import { runtimeAcceptanceCircuits } from '../packages/domain/src/simulation/runtimeFixtures';
 
 export function domainParityFixture(): string {
   const results: unknown[] = [];
+  for (const [name, circuit] of Object.entries(runtimeAcceptanceCircuits()))
+    results.push({ runtimeCase: name, result: simulate(circuit) });
   for (const template of GUIDED_CIRCUIT_TEMPLATES) {
     for (const standard of ['uk', 'us', 'eu', 'int'] as const) {
       for (const appMode of ['basic', 'pro'] as const) {

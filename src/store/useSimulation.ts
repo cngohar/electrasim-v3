@@ -242,10 +242,11 @@ export function useSimulation() {
               },
             });
           } else if (
-            (result.faultDiagnostics && result.faultDiagnostics.length > 0) ||
-            (result.errors.length > 0 &&
-              (useCircuitStore.getState().components.some((c) => c.state?.fault) ||
-                useCircuitStore.getState().wires.some((w) => w.fault)))
+            (!result.electrical || result.legacyObservation) &&
+            ((result.faultDiagnostics && result.faultDiagnostics.length > 0) ||
+              (result.errors.length > 0 &&
+                (useCircuitStore.getState().components.some((c) => c.state?.fault) ||
+                  useCircuitStore.getState().wires.some((w) => w.fault))))
           ) {
             const cs = useCircuitStore.getState();
             const faultedComp = cs.components.find((c) => c.state?.fault);
@@ -361,7 +362,7 @@ export function useSimulation() {
               deviceId: blown.id,
               deviceName: comp?.state.autoLabel ?? comp?.type ?? 'Component',
               reason: isVoltageMismatch
-                ? `Voltage mismatch detected: A 110V rated load was connected to a ${result.supplyVoltage ?? globalVoltage}V circuit! The excessive potential destroyed the component.`
+                ? `The legacy model reported an overvoltage event for ${comp?.state.autoLabel ?? comp?.type ?? 'this component'}. Compare its declared voltage limit with the actual terminal voltage; the timed damage model is not assessed.`
                 : `Component was blown due to ${blown.reason}.`,
               currentAmps: 0,
               limitAmps: 0,

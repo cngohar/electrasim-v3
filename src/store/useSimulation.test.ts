@@ -182,7 +182,7 @@ describe('useSimulation request sequencing', () => {
     expect(messages.some((m) => m.includes('BREAKER JAMMED OPEN'))).toBe(true);
   });
 
-  it('projects a real B16 overload as resettable without persisting destroyed state', async () => {
+  it('reports a solved B16 overload without persisting an unassessed trip or damage', async () => {
     // Only the transport is stubbed; use the real electrical engine and store projection.
     simulateAsync.mockImplementation(async (circuit) => simulate(circuit));
     useCircuitStore.getState().setCircuit(protectedLoad());
@@ -191,7 +191,10 @@ describe('useSimulation request sequencing', () => {
     await act(async () => vi.advanceTimersByTime(50));
     await act(async () => Promise.resolve());
     const breaker = useCircuitStore.getState().components.find((c) => c.id === 'device');
-    expect(breaker?.state.isTripped).toBe(true);
+    expect(breaker?.state.isTripped).not.toBe(true);
+    expect(useUiStore.getState().simResult?.electrical?.deviceCurrents[0]?.trip).toBe(
+      'not-assessed',
+    );
     expect(breaker?.state.isBlown).not.toBe(true);
   });
 
@@ -207,7 +210,8 @@ describe('useSimulation request sequencing', () => {
     await act(async () => vi.advanceTimersByTime(50));
     await act(async () => Promise.resolve());
     expect(JSON.stringify(useCircuitStore.getState().components)).toBe(original);
-    expect(useUiStore.getState().simResult?.modelLimitations?.[0].code).toBe('transformer-model');
+    expect(useUiStore.getState().simResult?.electrical?.status).toBe('nonconverged');
+    expect(useUiStore.getState().simResult?.legacyObservation).toBeUndefined();
     expect(useUiStore.getState().simResult?.componentCalculations).toBeUndefined();
     expect(useUiStore.getState().logs.some((l) => l.message.includes('not assessed'))).toBe(true);
   });

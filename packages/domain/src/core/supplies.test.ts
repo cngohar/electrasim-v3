@@ -263,7 +263,7 @@ describe('1.5C.0 persisted supply migration', () => {
     expect(a.diagnostics[0].code).toBe('conflicting-source-alias');
   });
 
-  it('keeps unsupported persisted profiles guarded by the actual runtime in both modes', () => {
+  it('solves supported persisted DC and independent profiles in both modes', () => {
     const circuit = withDocumentSupply(
       {
         components: [
@@ -277,14 +277,14 @@ describe('1.5C.0 persisted supply migration', () => {
     );
     const basic = simulate(circuit, { appMode: 'basic' });
     expect(simulate(circuit, { appMode: 'pro' })).toEqual(basic);
-    expect(basic.electricalContract?.status).toBe('not-assessed');
-    expect(basic.componentCalculations).toBeUndefined();
+    expect(basic.electricalContract?.status).toBe('converged');
+    expect(basic.componentCalculations?.heater.currentAmps).toBeCloseTo(12 / (26.45 + 0.14), 9);
     expect(basic.blownComponents).toBeUndefined();
     const mixedResult = simulate(normalizeCircuit(mixed));
     expect(mixedResult.modelLimitations?.some((l) => l.code === 'independent-source-model')).toBe(
-      true,
+      false,
     );
-    expect(mixedResult.electricalContract?.status).toBe('not-assessed');
+    expect(mixedResult.electricalContract?.status).toBe('converged');
     expect(
       configuredSupplySources(mixed).every(
         (s) => s.componentId !== 'earth' && s.componentId !== 'neutral',

@@ -37,6 +37,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { focusFaultTarget, useCircuitStore, useUiStore } from '../../../store';
+import { useConfigurationLockReason } from '../../../store/electricalEditing';
 import { faultFxConfig } from '../../canvas/faultFx';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 
@@ -192,6 +193,7 @@ export function InspectorFaultLabView() {
   const faults = useCircuitStore((s) => s.faults);
   const simResult = useUiStore((s) => s.simResult);
   const simRunning = useUiStore((s) => s.simRunning);
+  const configurationLock = useConfigurationLockReason();
   const pendingFaultFx = useUiStore((s) => s.pendingFaultFx);
   const reducedMotion = useReducedMotion();
 
@@ -307,19 +309,13 @@ export function InspectorFaultLabView() {
 
   // Threshold-override telemetry (component targets only).
   const compCalc = selectedComp ? simResult?.componentCalculations?.[selectedComp.id] : undefined;
-  const liveVoltage = compCalc?.voltage ?? 0;
-  const liveCurrent = compCalc?.currentAmps ?? 0;
-  const livePower = compCalc?.powerWatts ?? 0;
-  const isOvervoltage = selectedComp
-    ? liveVoltage > (selectedComp.state.customMaxVolts ?? def?.maxVolts ?? 250)
-    : false;
-  const isOvercurrent = selectedComp
-    ? liveCurrent > (selectedComp.state.customMaxAmps ?? def?.maxAmps ?? 16)
-    : false;
-  const isOverload =
-    selectedComp && def?.powerWatts !== undefined
-      ? livePower > (selectedComp.state.customPowerWatts ?? def.powerWatts)
-      : false;
+  const voltageLimit = selectedComp?.state.customMaxVolts ?? def?.maxVolts;
+  const currentLimit = selectedComp?.state.customMaxAmps ?? def?.maxAmps;
+  const powerRating = selectedComp?.state.customPowerWatts ?? def?.powerWatts;
+  const read = (value: number | undefined, unit: string) =>
+    simRunning && value !== undefined && Number.isFinite(value)
+      ? `${Number(value.toFixed(4))} ${unit}`
+      : 'Unavailable';
 
   return (
     <div aria-label="Fault Lab panel" className="flex flex-col gap-3 p-3">
@@ -547,172 +543,51 @@ export function InspectorFaultLabView() {
         </div>
       )}
 
-      {/* Threshold Overrides (component targets; moved from Properties). */}
       {selectedComp && def && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-3 dark:border-amber-800 dark:bg-amber-950/30 space-y-2.5">
-          <div className="text-[10px] font-semibold text-amber-800 dark:text-amber-300">
+        <fieldset
+          disabled={!!configurationLock}
+          className="rounded-xl border border-amber-200 bg-amber-50/60 p-3 dark:border-amber-800 dark:bg-amber-950/30 space-y-2.5"
+        >
+          <legend className="text-[10px] font-semibold text-amber-800 dark:text-amber-300">
             Threshold Overrides
-          </div>
-
-          {/* Voltage Threshold */}
-          <div className="space-y-1">
-            <div className="flex items-center justify-between">
-              <span
-                className={`text-[10px] ${isOvervoltage ? 'text-red-600 font-semibold' : 'text-amber-700 dark:text-amber-400'}`}
-              >
-                Max Voltage: {selectedComp.state.customMaxVolts ?? def.maxVolts ?? 250}V
-              </span>
-              <span
-                className={`text-[9px] font-mono ${isOvervoltage ? 'text-red-600' : 'text-slate-500 dark:text-slate-400'}`}
-              >
-                Live: {simRunning ? liveVoltage.toFixed(1) : '0.0'}V
-              </span>
-            </div>
-            <input
-              type="range"
-              min="50"
-              max="500"
-              step="5"
-              aria-label="Max voltage threshold"
-              value={selectedComp.state.customMaxVolts ?? def.maxVolts ?? 250}
-              onChange={(e) =>
-                useCircuitStore.getState().updateComponentState(selectedComp.id, {
-                  customMaxVolts: Number(e.target.value),
-                })
-              }
-              className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700 accent-amber-500"
-            />
-            <div className="flex justify-between text-[9px] text-slate-400">
-              <span>50V</span>
-              <span>500V</span>
-            </div>
-          </div>
-
-          {/* Current Threshold */}
-          <div className="space-y-1">
-            <div className="flex items-center justify-between">
-              <span
-                className={`text-[10px] ${isOvercurrent ? 'text-red-600 font-semibold' : 'text-amber-700 dark:text-amber-400'}`}
-              >
-                Max Current: {selectedComp.state.customMaxAmps ?? def.maxAmps ?? 16}A
-              </span>
-              <span
-                className={`text-[9px] font-mono ${isOvercurrent ? 'text-red-600' : 'text-slate-500 dark:text-slate-400'}`}
-              >
-                Live: {simRunning ? liveCurrent.toFixed(2) : '0.00'}A
-              </span>
-            </div>
-            <input
-              type="range"
-              min="0.1"
-              max="100"
-              step="0.1"
-              aria-label="Max current threshold"
-              value={selectedComp.state.customMaxAmps ?? def.maxAmps ?? 16}
-              onChange={(e) =>
-                useCircuitStore.getState().updateComponentState(selectedComp.id, {
-                  customMaxAmps: Number(e.target.value),
-                })
-              }
-              className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700 accent-amber-500"
-            />
-            <div className="flex justify-between text-[9px] text-slate-400">
-              <span>0.1A</span>
-              <span>100A</span>
-            </div>
-          </div>
-
-          {/* Power Threshold */}
-          {def.powerWatts !== undefined && (
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <span
-                  className={`text-[10px] ${isOverload ? 'text-red-600 font-semibold' : 'text-amber-700 dark:text-amber-400'}`}
-                >
-                  Max Power: {selectedComp.state.customPowerWatts ?? def.powerWatts}W
-                </span>
-                <span
-                  className={`text-[9px] font-mono ${isOverload ? 'text-red-600' : 'text-slate-500 dark:text-slate-400'}`}
-                >
-                  Live: {simRunning ? livePower.toFixed(0) : '0'}W
-                </span>
-              </div>
-              <input
-                type="range"
-                min="1"
-                max="5000"
-                step="1"
-                aria-label="Max power threshold"
-                value={selectedComp.state.customPowerWatts ?? def.powerWatts}
-                onChange={(e) =>
-                  useCircuitStore.getState().updateComponentState(selectedComp.id, {
-                    customPowerWatts: Number(e.target.value),
-                  })
-                }
-                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700 accent-amber-500"
-              />
-              <div className="flex justify-between text-[9px] text-slate-400">
-                <span>1W</span>
-                <span>5000W</span>
-              </div>
-            </div>
-          )}
-
-          {/* Numerical Input Fields */}
-          <div className="grid grid-cols-2 gap-2 pt-1">
-            <div>
-              <label
-                htmlFor="faultlab-max-volts"
-                className={`block text-[9px] mb-0.5 ${isOvervoltage ? 'text-red-600' : 'text-slate-500 dark:text-slate-400'}`}
-              >
-                Max Voltage (V)
+          </legend>
+          <p className="text-[10px]">
+            Declared ratings are separate from measured values. Timed trips and damage remain
+            unassessed for calculated circuits.
+          </p>
+          {configurationLock && <p className="text-[10px]">{configurationLock}</p>}
+          <p className="text-[10px]">
+            Terminal voltage: {read(compCalc?.voltage, 'V')}. Branch current:{' '}
+            {read(compCalc?.currentAmps, 'A')}. Power: {read(compCalc?.powerWatts, 'W')}.
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {(
+              [
+                ['customMaxVolts', 'Max Voltage (V)', voltageLimit],
+                ['customMaxAmps', 'Max Current (A)', currentLimit],
+                ['customPowerWatts', 'Design power (W)', powerRating],
+              ] as const
+            ).map(([field, label, value]) => (
+              <label key={field} className="text-[10px] text-slate-600 dark:text-slate-300">
+                {label}
+                <input
+                  type="number"
+                  min="0.001"
+                  step="any"
+                  aria-label={label}
+                  placeholder="Not declared"
+                  value={value ?? ''}
+                  onChange={(event) =>
+                    useCircuitStore.getState().updateComponentState(selectedComp.id, {
+                      [field]: event.target.value === '' ? undefined : Number(event.target.value),
+                    })
+                  }
+                  className="w-full rounded border border-slate-200 px-2 py-1 font-mono text-xs disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900"
+                />
               </label>
-              <input
-                id="faultlab-max-volts"
-                type="number"
-                min="0"
-                max="1000"
-                value={selectedComp.state.customMaxVolts ?? def.maxVolts ?? 250}
-                onChange={(e) =>
-                  useCircuitStore.getState().updateComponentState(selectedComp.id, {
-                    customMaxVolts: Number(e.target.value),
-                  })
-                }
-                className={`w-full rounded border px-2 py-1 font-mono text-xs dark:bg-slate-900 dark:text-slate-100 ${
-                  isOvervoltage
-                    ? 'border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300'
-                    : 'border-slate-200 dark:border-slate-700'
-                }`}
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="faultlab-max-amps"
-                className={`block text-[9px] mb-0.5 ${isOvercurrent ? 'text-red-600' : 'text-slate-500 dark:text-slate-400'}`}
-              >
-                Max Current (A)
-              </label>
-              <input
-                id="faultlab-max-amps"
-                type="number"
-                min="0.1"
-                max="200"
-                step="0.1"
-                value={selectedComp.state.customMaxAmps ?? def.maxAmps ?? 16}
-                onChange={(e) =>
-                  useCircuitStore.getState().updateComponentState(selectedComp.id, {
-                    customMaxAmps: Number(e.target.value),
-                  })
-                }
-                className={`w-full rounded border px-2 py-1 font-mono text-xs dark:bg-slate-900 dark:text-slate-100 ${
-                  isOvercurrent
-                    ? 'border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300'
-                    : 'border-slate-200 dark:border-slate-700'
-                }`}
-              />
-            </div>
+            ))}
           </div>
-        </div>
+        </fieldset>
       )}
     </div>
   );

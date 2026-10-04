@@ -279,7 +279,7 @@ test.describe('Dual standard & pro features', () => {
     await expect(inspector.getByLabel('Operating voltage in volts')).toBeVisible();
     await expect(inspector.locator('[data-component-compatibility="unassessed"]')).toBeVisible();
     await expect(inspector).toContainText('Operating load law is unassessed.');
-    await expect(inspector).toContainText('Terminal-pair voltage: unavailable');
+    await expect(inspector.locator('[data-reading="voltage"]')).toHaveText('Unavailable');
     await expect(inspector.locator('[data-recommended-protection]')).toHaveCount(0);
     await page.getByTitle('Waveform Oscilloscope').click();
     await expect(inspector).toContainText('Waveform and energy measurements unavailable');

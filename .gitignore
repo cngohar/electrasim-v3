@@ -79,3 +79,6 @@ docs/research/
 
 # SEO data exports
 seo/
+
+# Tooling state
+.geaix/

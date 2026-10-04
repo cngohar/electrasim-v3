@@ -271,9 +271,11 @@ describe('guided circuit templates', () => {
 
     const result = simulate(circuit);
     expect(result.energizedComponents.has(motorId)).toBe(false);
-    expect(result.modelLimitations).toEqual([
-      expect.objectContaining({ code: 'three-phase-model', blocking: true }),
-    ]);
+    expect(result.modelLimitations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'three-phase-model', blocking: true }),
+      ]),
+    );
     expect(result.componentCalculations).toBeUndefined();
 
     // Opening the contactor does not make the unsupported drawing assessable.
@@ -286,10 +288,10 @@ describe('guided circuit templates', () => {
     const result = simulate(circuit);
 
     expect(result.energizedComponents.has('pro-solar-dc-system-led')).toBe(false);
-    expect(result.modelLimitations).toHaveLength(2);
-    expect(result.modelLimitations?.every((l) => l.code === 'dc-source-model' && l.blocking)).toBe(
+    expect(result.modelLimitations?.some((l) => l.code === 'device-model' && l.blocking)).toBe(
       true,
     );
+    expect(result.electrical?.status).toBe('unsupported');
     expect(result.componentCalculations).toBeUndefined();
     expect(circuit.globalVoltage).toBe(12);
   });

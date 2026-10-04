@@ -358,17 +358,27 @@ test('a delayed real Comlink response cannot replace results after a confirmed s
   await page.evaluate(() =>
     (window as unknown as { electricalReplies: (() => void)[] }).electricalReplies.pop()!(),
   );
-  const status = () =>
+  const reading = () =>
     page.evaluate(async () => {
       const path = '/src/store/uiStore.ts';
-      return (await import(path)).useUiStore.getState().simResult?.electricalContract?.status;
+      const result = (await import(path)).useUiStore.getState().simResult;
+      return {
+        status: result?.electricalContract?.status,
+        load: result?.componentCalculations?.heater,
+      };
     });
-  await expect.poll(status).toBe('not-assessed');
+  const dcCurrent = 12 / (26.45 + 0.14);
+  await expect.poll(async () => (await reading()).load?.currentAmps).toBeCloseTo(dcCurrent, 9);
+  const accepted = await reading();
+  expect(accepted.status).toBe('converged');
+  expect(accepted.load?.powerWatts).toBeCloseTo(dcCurrent ** 2 * 26.45, 9);
   await page.evaluate(async () => {
     (window as unknown as { electricalReplies: (() => void)[] }).electricalReplies.shift()!();
     await new Promise(requestAnimationFrame);
   });
-  expect(await status()).toBe('not-assessed');
+  // Both responses now converge; retain the newer 12 V measurements rather
+  // than merely comparing a status that is shared with the obsolete 230 V run.
+  expect(await reading()).toEqual(accepted);
   expect((await documentAt(page)).supply?.model).toEqual({ kind: 'dc', voltage: 12 });
   await page.getByTitle('Waveform Scope', { exact: true }).click();
   await expect(page.locator('[data-tour="inspector"]')).toContainText(

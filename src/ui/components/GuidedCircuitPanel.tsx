@@ -172,6 +172,12 @@ export function GuidedCircuitPanel({ isPhone }: Props) {
         </div>
       </div>
       <div className="max-h-[inherit] space-y-3 overflow-y-auto px-4 py-3">
+        {simResult && progress.currentObjectiveId === 'safe-result' && (
+          <p className="text-xs text-amber-700 dark:text-amber-300">
+            Review the findings in the inspector. This circuit has warnings or unassessed electrical
+            behavior.
+          </p>
+        )}
         <div className="flex items-center justify-between text-[11px] font-semibold text-slate-600 dark:text-slate-300">
           <span>{progress.completed ? 'Guide complete' : 'Checklist'}</span>
           <span>

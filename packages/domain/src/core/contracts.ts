@@ -17,7 +17,7 @@ import type {
 import type { CircuitReadiness } from './readiness';
 
 export const ELECTRICAL_CONTRACT_VERSION = 1 as const;
-export const ELECTRICAL_MODEL_VERSION = '1.5c.4.1' as const;
+export const ELECTRICAL_MODEL_VERSION = '1.5c.5.1' as const;
 export type CoverageStatus = 'supported' | 'estimated' | 'not-assessed';
 
 export interface ElectricalDiagnostic {

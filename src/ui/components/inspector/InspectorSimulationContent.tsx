@@ -35,11 +35,12 @@ export function InspectorSimulationContent({
   if (selectionState.kind === 'wire') {
     const wire: WireInstance = selectionState.wire;
     const calc = simResult?.wireCalculations?.[wire.id];
+    const point = simResult?.electrical?.wires.find((item) => item.wireId === wire.id);
+    const state = simResult?.wireStates?.[wire.id];
     const isEnergized = simResult?.energizedWires.has(wire.id) ?? false;
 
     const current = calc?.currentAmps;
     const voltageDrop = calc?.voltageDropVolts;
-    const vDropPercent = calc?.voltageDropPercent;
     const resistance = calc?.resistanceOhms;
     const available = simRunning && calc !== undefined;
     const capacity = assessWireCapacity(
@@ -72,9 +73,11 @@ export function InspectorSimulationContent({
               ? 'NOT RUNNING'
               : !calc
                 ? 'UNASSESSED'
-                : isEnergized
-                  ? 'ENERGIZED'
-                  : 'NO LIVE RESULT'}
+                : state && isEnergized && !state.carryingCurrent
+                  ? 'LIVE · ZERO CURRENT'
+                  : state?.carryingCurrent
+                    ? 'CARRYING CURRENT'
+                    : 'ZERO CURRENT'}
           </span>
         </div>
 
@@ -82,30 +85,28 @@ export function InspectorSimulationContent({
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-2.5 dark:border-slate-800 dark:bg-slate-950/60">
             <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-              Current Estimate
+              Branch current
             </div>
             <div className="font-mono text-base font-bold text-emerald-600 dark:text-emerald-400">
-              {available && current !== undefined ? `${current.toFixed(2)} A` : 'Unavailable'}
+              {available && current !== undefined ? `${current.toFixed(4)} A` : 'Unavailable'}
             </div>
           </div>
 
           <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-2.5 dark:border-slate-800 dark:bg-slate-950/60">
             <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-              Design Loop Drop (70 °C)
+              Conductor drop (20 °C)
             </div>
             <div className="font-mono text-base font-bold text-indigo-600 dark:text-indigo-400">
-              {available && voltageDrop !== undefined && vDropPercent !== undefined
-                ? `${voltageDrop.toFixed(2)} V (${vDropPercent.toFixed(1)}%)`
-                : 'Unavailable'}
+              {available && voltageDrop != null ? `${voltageDrop.toFixed(4)} V` : 'Unavailable'}
             </div>
           </div>
 
           <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-2.5 dark:border-slate-800 dark:bg-slate-950/60">
             <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-              Design Loop Resistance (70 °C)
+              One-conductor resistance (20 °C)
             </div>
             <div className="font-mono text-base font-bold text-amber-600 dark:text-amber-400">
-              {available && resistance !== undefined ? `${resistance.toFixed(3)} Ω` : 'Unavailable'}
+              {available && resistance !== undefined ? `${resistance.toFixed(5)} Ω` : 'Unavailable'}
             </div>
           </div>
 
@@ -119,6 +120,42 @@ export function InspectorSimulationContent({
                 : 'Unavailable'}
             </div>
           </div>
+        </div>
+
+        <div
+          className="rounded-xl border border-slate-200 p-3 space-y-1 dark:border-slate-800"
+          data-wire-readings={wire.id}
+        >
+          <p>
+            Conductor loss:{' '}
+            {available && point?.lossWatts != null
+              ? `${point.lossWatts.toFixed(4)} W`
+              : 'Unavailable'}
+          </p>
+          <p>
+            Voltage across endpoints:{' '}
+            {available && point?.terminalVoltageVolts != null
+              ? `${point.terminalVoltageVolts.toFixed(4)} V`
+              : 'Unavailable'}
+          </p>
+          <p>
+            From potential:{' '}
+            {available && state?.fromPotentialVolts != null
+              ? `${state.fromPotentialVolts.toFixed(4)} V`
+              : 'Unavailable'}
+          </p>
+          <p>
+            To potential:{' '}
+            {available && state?.toPotentialVolts != null
+              ? `${state.toPotentialVolts.toFixed(4)} V`
+              : 'Unavailable'}
+          </p>
+          <p>
+            Potentials use each circuit domain’s mathematical reference, not protective earth.
+            Voltage between independent domains is unavailable.
+          </p>
+          <p>{capacity.basis}</p>
+          <p>Capacity: {capacity.comparison}. Damage and clearing: unassessed.</p>
         </div>
 
         {/* Fault Injection Section — Pro Mode + master toggle only. */}

@@ -1,5 +1,6 @@
 import { readinessLabel } from '@electrasim/domain/core/readinessPresentation';
 import { resolveDocumentSupply } from '@electrasim/domain/core/supplies';
+import { calculationLabel, operationLabel } from '@electrasim/domain/simulation/presentation';
 import { Activity, Boxes, Cable, Grid, Magnet, MousePointer2, ScanSearch, Zap } from 'lucide-react';
 import { useCircuitStore, useSettingsStore, useUiStore, useViewportStore } from '../../store';
 import { useElectricalEditing } from '../../store/electricalEditing';
@@ -86,13 +87,15 @@ export function StatusPill({
             Live Check:
           </span>
           <button type="button" onClick={() => useElectricalEditing.setState({ reviewOpen: true })}>
-            {simResult?.electricalContract?.status === 'not-assessed'
-              ? 'Calculation unassessed'
+            {simResult && simResult.electrical?.status !== 'converged'
+              ? calculationLabel(simResult)
               : hasErrors
                 ? 'Fault findings'
-                : hasWarnings
-                  ? `${readinessLabel(readiness)} · warnings`
-                  : readinessLabel(readiness)}
+                : simResult?.electrical?.status === 'converged'
+                  ? `${operationLabel(simResult)}${hasWarnings ? ' · warnings' : ''}`
+                  : hasWarnings
+                    ? `${readinessLabel(readiness)} · warnings`
+                    : readinessLabel(readiness)}
           </button>
         </div>
       </div>

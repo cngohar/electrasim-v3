@@ -11,7 +11,9 @@
  */
 
 import { describe, expect, it } from 'vitest';
+import { normalizeCircuitDocument } from './core/normalize';
 import { simulate } from './simulation';
+import { simulateLegacy } from './simulation/legacy';
 import type { Circuit, ComponentInstance, WireInstance } from './types';
 
 // ─── Tiny circuit-builder DSL ──────────────────────────────────────────────
@@ -60,14 +62,16 @@ describe('simulate — degenerate inputs', () => {
   it('warns when the live source is missing', () => {
     const n = C('neutral-terminal');
     const r = simulate(circuit([n], []));
-    expect(r.warnings).toContain('No Live source found.');
+    expect(r.readiness?.topology).toBe('no-source');
+    expect(r.electrical?.status).toBe('not-solved');
     expect(r.warnings).not.toContain('No Neutral source found.');
   });
 
   it('warns when the neutral source is missing', () => {
     const l = C('live-terminal');
     const r = simulate(circuit([l], []));
-    expect(r.warnings).toContain('No Neutral source found.');
+    expect(r.readiness?.topology).toBe('no-load');
+    expect(r.electrical?.operation).toBe('no-load');
     expect(r.warnings).not.toContain('No Live source found.');
   });
 });
@@ -88,7 +92,8 @@ describe('simulate — minimal lit bulb', () => {
     expect(r.energizedWires.has(w1.id)).toBe(true);
     expect(r.energizedWires.has(w2.id)).toBe(true);
     expect(r.errors).toEqual([]);
-    expect(r.warnings).toEqual([]);
+    expect(r.legacyObservation).toBeDefined();
+    expect(r.componentCalculations).toBeUndefined();
   });
 
   it('does NOT energise the bulb if the neutral wire is missing', () => {
@@ -316,7 +321,7 @@ describe('simulate — fault detection', () => {
 
     const result = simulate(circuit([l, n], [short]));
 
-    expect(result.errors).toContain('Short circuit — Live and Neutral are directly connected.');
+    expect(result.errors.some((error) => error.startsWith('Short circuit'))).toBe(true);
     expect(result.errorWires).toEqual(new Set([short.id]));
     expect(result.errorComponents).toEqual(new Set([l.id, n.id]));
   });
@@ -330,7 +335,7 @@ describe('simulate — fault detection', () => {
 
     const result = simulate(circuit([l, n, b], [liveWire, neutralWire]));
 
-    expect(result.errors).toContain('Short circuit — Live and Neutral are directly connected.');
+    expect(result.errors.some((error) => error.startsWith('Short circuit'))).toBe(true);
     expect(result.errorComponents.has(b.id)).toBe(true);
     expect(result.errorWires).toEqual(new Set([liveWire.id, neutralWire.id]));
   });
@@ -344,7 +349,7 @@ describe('simulate — fault detection', () => {
 
     const result = simulate(circuit([l, n, rcd], [crossTypedWire, neutralWire]));
 
-    expect(result.errors).toContain('Short circuit — Live and Neutral are directly connected.');
+    expect(result.errors.some((error) => error.startsWith('Short circuit'))).toBe(true);
     expect(result.errorWires).toEqual(new Set([crossTypedWire.id, neutralWire.id]));
   });
 
@@ -358,7 +363,7 @@ describe('simulate — fault detection', () => {
 
     const result = simulate(circuit([l, n, b], [liveWire, neutralWire, shunt]));
 
-    expect(result.errors).toContain('Short circuit — Live and Neutral are directly connected.');
+    expect(result.errors.some((error) => error.startsWith('Short circuit'))).toBe(true);
     expect(result.errorWires).toEqual(new Set([liveWire.id, neutralWire.id, shunt.id]));
   });
 
@@ -495,7 +500,7 @@ describe('simulate — invariants', () => {
 // ─── Fault → protection device operation ─────────────────────────────────────
 
 describe('simulate — faults operate upstream protection', () => {
-  it('trips the inline MCB on a topology-level bolted Live–Neutral short', () => {
+  it('solves a bolted short through an MCB with protective clearing explicitly unassessed', () => {
     const l = C('live-terminal');
     const n = C('neutral-terminal');
     const mcb = C('mcb', { on: true });
@@ -506,9 +511,12 @@ describe('simulate — faults operate upstream protection', () => {
     const result = simulate(circuit([l, n, mcb], [w1, w2]));
 
     const trips = result.trippedComponents ?? [];
-    expect(trips.map((t) => t.id)).toContain(mcb.id);
-    expect(trips.find((t) => t.id === mcb.id)?.reason).toBe('short-circuit');
-    expect(result.errors.some((e) => e.includes('TRIPPED'))).toBe(true);
+    expect(trips).toEqual([]);
+    expect(result.electrical?.status).toBe('converged');
+    expect(
+      result.electrical?.deviceCurrents.find((item) => item.componentId === mcb.id)?.trip,
+    ).toBe('not-assessed');
+    expect(result.readiness?.topology).toBe('short');
   });
 
   it('trips the MCB guarding a component with an injected short-circuit fault', () => {
@@ -841,7 +849,7 @@ describe('simulate — arc fault detection (BS EN 62606 / Reg 421.1.7)', () => {
 
 // ─── IEC 60898-1 / 61008-1 trip curves in the engine ───────────────────────
 
-describe('simulate — protection operates to its published curve', () => {
+describe('retained legacy protection approximations — timed replacement belongs to 1.5D', () => {
   /** Live → MCB → load → Neutral, with the MCB's rating overridden. */
   function overloadCircuit(loadWatts: number, breakerAmps: number, type = 'mcb') {
     const l = C('live-terminal');
@@ -862,7 +870,9 @@ describe('simulate — protection operates to its published curve', () => {
     ];
     return {
       cb,
-      result: simulate(circuit([l, n, cb, load], wires), { appMode: 'pro' }),
+      result: simulateLegacy(normalizeCircuitDocument(circuit([l, n, cb, load], wires), false), {
+        appMode: 'pro',
+      }),
     };
   }
 

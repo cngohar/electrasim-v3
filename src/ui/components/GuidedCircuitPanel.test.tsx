@@ -48,7 +48,7 @@ describe('GuidedCircuitPanel', () => {
     expect(screen.queryByText(/challenge/i)).not.toBeInTheDocument();
   });
 
-  it('celebrates guide completion without challenge language', () => {
+  it('keeps unassessed operating checks open without challenge language', () => {
     act(() => {
       const template = getGuidedCircuitTemplate('simple-lamp')!;
       useCircuitStore.getState().setCircuit(cloneTemplateCircuit(template));
@@ -57,7 +57,8 @@ describe('GuidedCircuitPanel', () => {
     });
     render(<GuidedCircuitPanel isPhone={false} />);
 
-    expect(screen.getByText('Guide complete')).toBeVisible();
+    expect(screen.queryByText('Guide complete')).not.toBeInTheDocument();
+    expect(screen.getByText(/Review the findings in the inspector/)).toBeVisible();
     expect(screen.queryByText(/challenge/i)).not.toBeInTheDocument();
   });
 

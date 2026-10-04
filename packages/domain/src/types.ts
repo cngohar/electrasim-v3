@@ -9,7 +9,12 @@
  * without dragging the rest of the app with it (PLAN.md §4 / §5).
  */
 
-import type { ElectricalDeviceModel, ElectricalDiagnostic, ModelCoverage } from './core/contracts';
+import type {
+  ElectricalDeviceModel,
+  ElectricalDiagnostic,
+  ElectricalSimulationResult,
+  ModelCoverage,
+} from './core/contracts';
 import type { CircuitReadiness } from './core/readiness';
 import type { SupplyProfile } from './core/supplies';
 
@@ -384,11 +389,12 @@ export interface ElectricalWireCalculation {
   currentAmps: number;
   cableMm2: number;
   lengthMeters: number;
-  ampacityAmps: number;
-  deratedAmpacityAmps: number;
+  ampacityAmps: number | null;
+  deratedAmpacityAmps: number | null;
   resistanceOhms: number;
-  voltageDropVolts: number;
-  voltageDropPercent: number;
+  voltageDropVolts: number | null;
+  /** Unavailable when there is no unique applicable supply/drop reference. */
+  voltageDropPercent: number | null;
   status: 'pass' | 'warning' | 'fail';
   message: string;
 }
@@ -400,7 +406,12 @@ export interface SimulationLimitation {
     | 'three-phase-model'
     | 'independent-source-model'
     | 'timing-model'
-    | 'dimming-model';
+    | 'dimming-model'
+    | 'load-model'
+    | 'control-model'
+    | 'device-model'
+    | 'protection-model'
+    | 'solver-model';
   componentId: string;
   message: string;
   /** No trustworthy electrical result can be produced for this circuit. */
@@ -410,12 +421,27 @@ export interface SimulationLimitation {
 export interface SimulationResult {
   /** Shared current-document preflight; separate from telemetry and fault clearing. */
   readiness?: CircuitReadiness;
-  /** Additive migration metadata. Legacy rail results remain estimates until 1.5F. */
+  /** Full versioned MNA calculation, including explicit unavailable measurements. */
+  electrical?: ElectricalSimulationResult;
+  /** Present only for the temporary qualitative legacy path awaiting 1.5D/F. */
+  legacyObservation?: { engineVersion: 'legacy-rail-1.5b'; reason: string };
+  /** Source-relative conductor potentials are not voltage across a load or to PE. */
+  wireStates?: Record<
+    string,
+    {
+      fromPotentialVolts: number | null;
+      toPotentialVolts: number | null;
+      fromDomainId: string | null;
+      toDomainId: string | null;
+      carryingCurrent: boolean;
+    }
+  >;
+  /** Calculation coverage remains separate from operation and standards assessment. */
   electricalContract?: {
     version: 1;
     engineVersion: string;
     modelVersion: string;
-    status: 'invalid' | 'estimated' | 'not-assessed';
+    status: ElectricalSimulationResult['status'] | 'estimated' | 'not-assessed';
     coverage: ModelCoverage[];
     diagnostics: ElectricalDiagnostic[];
   };
@@ -423,9 +449,9 @@ export interface SimulationResult {
   modelLimitations?: SimulationLimitation[];
   /** Derived coil operation; never persisted into the manual switch state. */
   coilStates?: Record<string, boolean>;
-  /** Components reached by both Live and Neutral traversals, including loads and pass-throughs. */
+  /** Loads with nonzero solved power; legacy continuity is explicitly tagged separately. */
   energizedComponents: Set<string>;
-  /** Wires that carry current in either the Live or Neutral subgraphs. */
+  /** Wires with current or nonzero source-relative potential. This is not a current measurement. */
   energizedWires: Set<string>;
   /** Components flagged as faulty (e.g. short-circuited). */
   errorComponents: Set<string>;

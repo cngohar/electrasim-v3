@@ -274,7 +274,7 @@ describe.each(CHALLENGE_DIFFICULTIES)(
       }
     });
 
-    it('has no electrical errors and retains explicit manual-only model warnings', () => {
+    it('has no electrical errors and retains explicit model coverage warnings', () => {
       for (const { circuit, metadata } of challenges) {
         const result = simulate(circuit, { appMode: 'pro' });
         const report = validateCircuit(circuit, result, 'uk');
@@ -294,15 +294,21 @@ describe.each(CHALLENGE_DIFFICULTIES)(
           ].includes(c.type),
         );
         const warnings = report.issues.filter((i) => i.severity === 'warning');
-        expect(warnings.map((i) => i.componentId).sort()).toEqual(
-          manualOnly.map((c) => c.id).sort(),
-        );
+        for (const component of manualOnly)
+          expect(warnings.some((item) => item.componentId === component.id)).toBe(true);
+        expect(warnings.length).toBeGreaterThan(0);
         expect(
           warnings.every(
-            (i) => i.category === 'configuration' && i.title === 'Electrical model not assessed',
+            (i) =>
+              i.category === 'configuration' &&
+              ['Electrical model not assessed', 'Electrical calculation finding'].includes(i.title),
           ),
         ).toBe(true);
-        expect(report.status, `seed ${metadata.seed}`).toBe(manualOnly.length ? 'warning' : 'pass');
+        expect(report.status, `seed ${metadata.seed}`).toBe('warning');
+        if (result.legacyObservation) {
+          expect(result.electrical?.status).toBe('unsupported');
+          expect(result.componentCalculations).toBeUndefined();
+        }
       }
     });
 

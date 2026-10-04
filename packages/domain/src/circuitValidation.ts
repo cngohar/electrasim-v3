@@ -2,6 +2,7 @@ import { runComplianceChecks } from './compliance';
 import { COMPONENT_DEFS } from './components';
 import { validateCircuitInput } from './core/input';
 import { normalizeCircuitDocument } from './core/normalize';
+import { assessCircuitReadiness } from './core/readiness';
 import { assessWireCapacity } from './core/wireCapacity';
 import { resolveWireProperties } from './core/wireProperties';
 import { isOvercurrentDevice, isResidualDevice } from './protectionRoles';
@@ -221,7 +222,7 @@ export function validateCircuit(
     };
   }
 
-  const modelLimitations = getSimulationLimitations(circuit);
+  const modelLimitations = simResult?.modelLimitations ?? getSimulationLimitations(circuit);
   for (const limitation of modelLimitations) {
     issues.push({
       id: `model_${limitation.componentId}_${limitation.code}`,
@@ -233,6 +234,45 @@ export function validateCircuit(
         'Keep this drawing for editing or export; use supported device models for electrical assessment.',
       category: 'configuration',
       blocking: limitation.blocking,
+    });
+  }
+
+  // Shared topology/solved findings keep source conflicts, polarity and solver
+  // failures out of the old generic "short circuit" bucket. Full design-check
+  // and exercise migration remains a separate gate.
+  const readiness = simResult?.readiness ?? assessCircuitReadiness(circuit);
+  const seenElectrical = new Set<string>();
+  for (const diagnostic of [
+    ...readiness.diagnostics,
+    ...(simResult?.electrical?.diagnostics ?? []),
+  ]) {
+    if (diagnostic.severity === 'info') continue;
+    const key = JSON.stringify([
+      diagnostic.code,
+      diagnostic.componentId,
+      diagnostic.wireId,
+      diagnostic.faultId,
+    ]);
+    if (seenElectrical.has(key)) continue;
+    seenElectrical.add(key);
+    issues.push({
+      id: `electrical_${diagnostic.code}_${seenElectrical.size}`,
+      severity: diagnostic.severity,
+      title: 'Electrical calculation finding',
+      description: diagnostic.message,
+      recommendation: 'Review the referenced connection or model and run the calculation again.',
+      category: diagnostic.code.includes('polarity')
+        ? 'polarity'
+        : diagnostic.code.startsWith('pe-') || diagnostic.code.includes('-pe')
+          ? 'grounding'
+          : diagnostic.code === 'readiness-short'
+            ? 'short_circuit'
+            : diagnostic.code === 'wire-capacity-exceeded'
+              ? 'cable_sizing'
+              : 'configuration',
+      blocking: diagnostic.severity === 'error',
+      componentId: diagnostic.componentId,
+      wireId: diagnostic.wireId,
     });
   }
 
@@ -897,6 +937,7 @@ export function validateCircuit(
 
   // 9. SIMULATION ACTIVE FAULT
   if (
+    !simResult?.electrical &&
     simResult?.errors &&
     simResult.errors.length > 0 &&
     !simResult.modelLimitations?.some((l) => l.blocking)

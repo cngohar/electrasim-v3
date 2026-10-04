@@ -181,8 +181,8 @@ function WirePath({
   const isHighlightedInTrace = Boolean(traceWireIds?.has(wire.id));
 
   const calc = simulation?.wireCalculations?.[wire.id];
-  const liveVoltage = energized ? (simulation?.supplyVoltage ?? 230) : 0;
-  const liveCurrent = calc?.currentAmps ?? (energized ? 10.0 : 0);
+  const liveCurrent = calc?.currentAmps;
+  const conductorDrop = calc?.voltageDropVolts;
 
   let color = theme.wire[fromPort.type];
   if (isBusted) {
@@ -195,7 +195,13 @@ function WirePath({
 
   const dashed = !energized && theme.wireDashIdle && !error && !broken && !isBusted && !severed;
   const animateFlow =
-    energized && currentFlowOn && !error && !isOverloaded && !isBusted && !severed;
+    liveCurrent !== undefined &&
+    Math.abs(liveCurrent) > 1e-9 &&
+    currentFlowOn &&
+    !error &&
+    !isOverloaded &&
+    !isBusted &&
+    !severed;
   const midpoint = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
 
   let wireClassName: string | undefined;
@@ -467,7 +473,9 @@ function WirePath({
               fill="#ffffff"
               fontFamily="monospace"
             >
-              {liveVoltage}V • {liveCurrent.toFixed(2)}A
+              {liveCurrent === undefined ? 'Current unavailable' : `${liveCurrent.toFixed(3)} A`}
+              {' · '}
+              {conductorDrop == null ? 'Drop unavailable' : `${conductorDrop.toFixed(3)} V drop`}
             </text>
           </g>
         )}

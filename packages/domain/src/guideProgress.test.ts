@@ -37,14 +37,15 @@ describe('guide progress (guided circuits, not challenges)', () => {
     expect(progress.currentObjectiveId).toBe('simulation');
   });
 
-  it('completes once the circuit has been simulated with a clean result', () => {
+  it('withholds completion when the legacy LED model remains unassessed', () => {
     const template = requireTemplate('simple-lamp');
     const circuit = cloneTemplateCircuit(template);
     const result = simulate(circuit);
 
     const progress = getGuideProgress(template, circuit, false, result);
-    expect(progress.completed).toBe(true);
-    expect(progress.percent).toBe(100);
-    expect(progress.currentObjectiveId).toBeNull();
+    expect(progress.completed).toBe(false);
+    expect(progress.percent).toBe(75);
+    expect(progress.currentObjectiveId).toBe('safe-result');
+    expect(result.electrical?.status).toBe('unsupported');
   });
 });

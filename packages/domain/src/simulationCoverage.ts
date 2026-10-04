@@ -1,4 +1,6 @@
 import { COMPONENT_DEFS } from './components';
+import { resolveDeviceModel } from './core/models';
+import { resolveComponentState } from './core/normalize';
 import { configuredSupplySources, sameSupplyModel } from './core/supplies';
 import type { Circuit, ComponentDef, SimulationLimitation } from './types';
 
@@ -6,7 +8,7 @@ import type { Circuit, ComponentDef, SimulationLimitation } from './types';
  * A drawing stays editable/exportable; unsupported physics must not yield invented
  * voltages, trips or a successful validation score. This is not an access policy.
  */
-export function getSimulationLimitations(
+export function getLegacySimulationLimitations(
   circuit: Circuit,
   defs: Record<string, ComponentDef> = COMPONENT_DEFS,
 ): SimulationLimitation[] {
@@ -78,6 +80,65 @@ export function getSimulationLimitations(
         false,
       );
     }
+  }
+  return limitations;
+}
+
+/** Current runtime coverage. Known DC/isolated-transformer models no longer carry
+ * the retired rail solver's blanket block. Static contacts do not imply trips. */
+export function getSimulationLimitations(
+  circuit: Circuit,
+  defs: Record<string, ComponentDef> = COMPONENT_DEFS,
+): SimulationLimitation[] {
+  const limitations: SimulationLimitation[] = [];
+  for (const component of circuit.components) {
+    const def = defs[component.type];
+    if (!def) continue;
+    const model = resolveDeviceModel(
+      { ...component, state: resolveComponentState(component.state, def) },
+      def,
+      circuit,
+    );
+    const add = (code: SimulationLimitation['code'], message: string, blocking = false) =>
+      limitations.push({
+        code,
+        componentId: component.id,
+        message: `${def.label}: ${message}`,
+        blocking,
+      });
+    if (
+      ((model.kind === 'source' || model.kind === 'source-alias') &&
+        model.supply.kind === 'ac-three-phase') ||
+      component.type === 'motor-3phase' ||
+      component.type === 'distribution-board-3phase'
+    ) {
+      add(
+        'three-phase-model',
+        'Three-phase equations and device operation are not assessed.',
+        true,
+      );
+    } else if (model.kind === 'unassessed') {
+      add('device-model', model.reason, true);
+    } else if (model.kind === 'unassessed-load') {
+      add(
+        'load-model',
+        `${model.reason} Only legacy continuity observations are available; numerical measurements and operation are not assessed.`,
+      );
+    } else if (model.kind === 'contacts' && model.limitation) {
+      add(
+        def.isDimmer
+          ? 'dimming-model'
+          : def.category === 'timer'
+            ? 'timing-model'
+            : 'control-model',
+        model.limitation,
+      );
+    }
+    if (def.isProtection)
+      add(
+        'protection-model',
+        'Static contact current can be calculated. Timed tripping, residual operation and damage are not assessed by the MNA model.',
+      );
   }
   return limitations;
 }

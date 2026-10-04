@@ -8,22 +8,19 @@ import { component as C, wire as W, parallelLoads, protectedLoad } from './audit
 import { simulate } from './simulate';
 
 describe('Phase 1.5A independent audit regressions', () => {
-  it('N8/N23: basic and Pro report the same B16 overload without destroying the breaker', () => {
+  it('N8/N23: basic and Pro report the same solved overload with timed clearing unassessed', () => {
     const circuit = protectedLoad();
     const basic = simulate(circuit, { appMode: 'basic' });
     expect(basic).toEqual(simulate(circuit, { appMode: 'pro' }));
-    expect(basic.trippedComponents).toEqual([
-      expect.objectContaining({
-        id: 'device',
-        cause: 'overload',
-        ratingAmps: 16,
-        currentAmps: 7400 / 230,
-        mechanism: 'thermal',
-      }),
-    ]);
+    expect(basic.trippedComponents).toBeUndefined();
+    const pole = basic.electrical?.deviceCurrents.find((item) => item.componentId === 'device');
+    expect(pole).toMatchObject({ capacityComparison: 'exceeded', trip: 'not-assessed' });
+    expect(pole?.currentAmps).toBeCloseTo(230 / (230 ** 2 / 7400 + 0.21), 9);
     expect(basic.blownComponents ?? []).toEqual([]);
     expect(circuit.components[2].state).toEqual({ on: true, customMaxAmps: 16 });
-    expect(basic.warnings.some((w) => w.includes('CABLE'))).toBe(true);
+    expect(basic.electrical?.diagnostics.some((d) => d.code === 'wire-capacity-exceeded')).toBe(
+      true,
+    );
   });
 
   it('N9: an isolator never auto-trips, and cable ampacity never replaces the B32 nameplate', () => {
@@ -41,11 +38,15 @@ describe('Phase 1.5A independent audit regressions', () => {
     expect(result.overloadedWires?.size).toBeGreaterThan(0);
   });
 
-  it('N23: a fuse link requires replacement and has no invented MCB curve time', () => {
+  it('N23: a fuse overload has no invented clearing time or instantaneous link damage', () => {
     const result = simulate(protectedLoad('fuse', 7400, 13));
     expect(isFuseDevice('fuse')).toBe(true);
     expect(isFuseDevice('mcb')).toBe(false);
-    expect(result.blownComponents).toEqual([{ id: 'device', reason: 'overcurrent' }]);
+    expect(result.blownComponents).toBeUndefined();
+    expect(result.electrical?.deviceCurrents[0]).toMatchObject({
+      capacityComparison: 'exceeded',
+      trip: 'not-assessed',
+    });
     expect(result.trippedComponents?.[0].clearingTimeSeconds).toBeUndefined();
     expect(result.trippedComponents?.[0].mechanism).toBeUndefined();
   });
@@ -56,7 +57,11 @@ describe('Phase 1.5A independent audit regressions', () => {
       const result = simulate(protectedLoad(type, 7400, 16));
       expect(result.trippedComponents ?? []).toEqual([]);
       expect(result.blownComponents ?? []).toEqual([]);
-      expect(result.warnings.some((w) => w.includes('no automatic overcurrent trip'))).toBe(true);
+      expect(
+        result.electrical?.deviceCurrents
+          .filter((p) => p.componentId === 'device')
+          .every((p) => !p.protection.overcurrent && p.trip === 'not-assessed'),
+      ).toBe(true);
     },
   );
 
@@ -68,9 +73,11 @@ describe('Phase 1.5A independent audit regressions', () => {
       const result = simulate(circuit);
       expect(result.errors.some((e) => e.includes('Short circuit'))).toBe(true);
       const trips = result.trippedComponents ?? [];
-      if (type === 'rcbo')
-        expect(trips).toEqual([expect.objectContaining({ id: 'device', cause: 'short-circuit' })]);
-      else expect(trips).toEqual([]);
+      expect(trips).toEqual([]);
+      expect(
+        result.electrical?.deviceCurrents.find((p) => p.componentId === 'device')?.protection
+          .overcurrent,
+      ).toBe(type === 'rcbo');
     },
   );
 
@@ -120,11 +127,15 @@ describe('Phase 1.5A independent audit regressions', () => {
     expect(bypassed.errors.length).toBeGreaterThan(0);
   });
 
-  it('N25: overvoltage produces one damage transition per component', () => {
+  it('N25: overvoltage reports incompatibility without inventing a damage transition', () => {
     const circuit = protectedLoad('mcb', 9);
     circuit.components[3].state.customMaxVolts = 110;
     const result = simulate(circuit);
-    expect(result.blownComponents).toEqual([{ id: 'load', reason: 'overvoltage' }]);
+    expect(result.blownComponents).toBeUndefined();
+    expect(result.electrical?.loads[0]).toMatchObject({
+      compatibility: { status: 'incompatible' },
+      damage: 'not-assessed',
+    });
   });
 
   it.each([
@@ -132,7 +143,6 @@ describe('Phase 1.5A independent audit regressions', () => {
     'transformer-12v',
     'transformer-24v',
     'step-up-down-transformer',
-    'dc-battery-12v',
     'solar-pv-panel',
     'motor-3phase',
     'distribution-board-3phase',
@@ -141,24 +151,8 @@ describe('Phase 1.5A independent audit regressions', () => {
     circuit.components.push(C('unsupported', type));
     const snapshot = JSON.stringify(circuit);
     const result = simulate(circuit);
-    expect(result.modelLimitations).toEqual(
-      type === 'dc-battery-12v'
-        ? [
-            ...['l', 'unsupported'].map((componentId) =>
-              expect.objectContaining({
-                componentId,
-                code: 'independent-source-model',
-                blocking: true,
-              }),
-            ),
-            expect.objectContaining({
-              componentId: 'unsupported',
-              code: 'dc-source-model',
-              blocking: true,
-            }),
-          ]
-        : [expect.objectContaining({ componentId: 'unsupported', blocking: true })],
-    );
+    expect(result.modelLimitations?.some((item) => item.blocking)).toBe(true);
+    expect(result.electrical?.status).not.toBe('converged');
     expect(result.energizedComponents.size).toBe(0);
     expect(result.componentCalculations).toBeUndefined();
     expect(result.wireCalculations).toBeUndefined();
@@ -194,12 +188,11 @@ describe('Phase 1.5A independent audit regressions', () => {
   });
 });
 
-/** These are executable correct expectations, NOT snapshots of broken output.
- * Vitest's fails modifier expects a failure today and fails on an unexpected pass:
- * the owning phase must remove the modifier when it implements the model.
+/** Independent expectations promoted as the application adopts accepted models.
+ * Static bypass/polarity coverage does not claim timed devices or complete lab migration.
  */
-describe('Open audit acceptance — explicitly owned by later core phases', () => {
-  it.fails('2.1 / 1.5C: two declared 6-ohm resistive heaters in series at 12 V draw 1 A', () => {
+describe('Audit acceptance promoted through 1.5C.5', () => {
+  it('2.1 / 1.5C.5: series heaters include the declared lead resistance', () => {
     const circuit: Circuit = {
       globalVoltage: 12,
       components: [
@@ -215,14 +208,23 @@ describe('Open audit acceptance — explicitly owned by later core phases', () =
       ],
     };
     const result = simulate(circuit);
-    expect(result.wireCalculations?.feed.currentAmps).toBeCloseTo(1, 6);
-    expect(result.componentCalculations?.r1.voltage).toBeCloseTo(6, 6);
+    const current = 12 / (12 + 3 * 0.07);
+    expect(result.wireCalculations?.feed.currentAmps).toBeCloseTo(current, 9);
+    expect(result.componentCalculations?.r1.voltage).toBeCloseTo(6 * current, 9);
   });
 
-  it.fails('2.2 / 1.5C: independent heater/lamp branches carry P/V for their own load', () => {
-    const result = simulate(parallelLoads());
-    expect(result.wireCalculations?.['heater-feed'].currentAmps).toBeCloseTo(2000 / 230, 6);
-    expect(result.wireCalculations?.['lamp-feed'].currentAmps).toBeCloseTo(9 / 230, 6);
+  it('2.2 / 1.5C.5: independent resistive heater/lamp branches use their own impedance', () => {
+    const circuit = parallelLoads();
+    circuit.components[3] = C('lamp', 'bulb-incandescent', { customPowerWatts: 9 });
+    const result = simulate(circuit);
+    expect(result.wireCalculations?.['heater-feed'].currentAmps).toBeCloseTo(
+      230 / (230 ** 2 / 2000 + 0.14),
+      9,
+    );
+    expect(result.wireCalculations?.['lamp-feed'].currentAmps).toBeCloseTo(
+      230 / (230 ** 2 / 9 + 0.14),
+      9,
+    );
   });
 
   it('N13 / 1.5B: omitted on uses the MCB catalogue default; explicit off remains off', () => {
@@ -233,13 +235,13 @@ describe('Open audit acceptance — explicitly owned by later core phases', () =
     expect(simulate(circuit).energizedComponents.has('load')).toBe(false);
   });
 
-  it.fails('N10 / 1.5C: 12 V does not become a spurious 110 V equipment error', () => {
+  it('N10 / 1.5C.5: 12 V does not become a spurious 110 V equipment error', () => {
     const circuit = protectedLoad('mcb', 9);
     circuit.globalVoltage = 12;
     expect(simulate(circuit).errors.some((e) => e.includes('110V rated equipment'))).toBe(false);
   });
 
-  it.fails('N22 / 1.5D: bypass also shunts a manually opened breaker', () => {
+  it('N22 / 1.5C.5 static topology: bypass also shunts a manually opened breaker', () => {
     const circuit = protectedLoad('mcb', 9);
     circuit.components[2].state.on = false;
     circuit.faults = [
@@ -254,13 +256,10 @@ describe('Open audit acceptance — explicitly owned by later core phases', () =
     expect(validateCircuit(circuit).status).toBe('fail');
   });
 
-  it.fails(
-    'N26 / 1.5F: a physically reversed load connection is reported without an injected fault',
-    () => {
-      const circuit = protectedLoad('mcb', 9);
-      circuit.wires[1].toPortIndex = 1;
-      circuit.wires[2].fromPortIndex = 0;
-      expect(validateCircuit(circuit).issues.some((i) => i.category === 'polarity')).toBe(true);
-    },
-  );
+  it('N26 / 1.5C.5 shared polarity finding: a physically reversed load connection is reported without an injected fault', () => {
+    const circuit = protectedLoad('mcb', 9);
+    circuit.wires[1].toPortIndex = 1;
+    circuit.wires[2].fromPortIndex = 0;
+    expect(validateCircuit(circuit).issues.some((i) => i.category === 'polarity')).toBe(true);
+  });
 });

@@ -8,6 +8,11 @@ import type {
   DiagnosisScore,
 } from '@electrasim/domain/challenges';
 import { explicitSupplyProfile } from '@electrasim/domain/core/supplies';
+import { simulate } from '@electrasim/domain/simulation';
+import {
+  portableResult,
+  runtimeAcceptanceCircuits,
+} from '../packages/domain/src/simulation/runtimeFixtures';
 import { runSimulatorBrowser } from './test-simulator-browser';
 
 type Account = { id: string; cookie: string; email: string };
@@ -47,6 +52,24 @@ export async function runSimulatorTests(context: Context) {
     'advanced_diagnostics',
   ]);
   const grant = await assign(plan.id, user);
+  await check(
+    'actual local Hono MNA results match the domain across sources, loads, faults and model gaps',
+    async () => {
+      for (const [name, circuit] of Object.entries(runtimeAcceptanceCircuits())) {
+        const response = await request('/simulator/simulate', {
+          user,
+          method: 'POST',
+          data: { circuit },
+          expected: 200,
+        });
+        assert.deepEqual(
+          response,
+          portableResult(simulate(circuit, { standard: 'int', appMode: 'pro' })),
+          name,
+        );
+      }
+    },
+  );
   const basic: Circuit = {
     components: [{ id: 'light', type: 'bulb', x: 100, y: 100, state: {} }],
     wires: [],

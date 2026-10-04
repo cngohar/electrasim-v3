@@ -67,6 +67,12 @@ const TourOverlay = lazy(() =>
 const ComponentInfoModal = lazy(() =>
   import('./components/ComponentInfoModal').then((m) => ({ default: m.ComponentInfoModal })),
 );
+const EventHistoryPanel = lazy(() =>
+  import('./components/EventHistoryPanel').then((m) => ({ default: m.EventHistoryPanel })),
+);
+const FaultAlertModal = lazy(() =>
+  import('./components/FaultAlertModal').then((m) => ({ default: m.FaultAlertModal })),
+);
 const WhatHappenedModal = lazy(() =>
   import('./components/WhatHappenedModal').then((m) => ({ default: m.WhatHappenedModal })),
 );
@@ -81,8 +87,6 @@ import { AlignmentBar } from './components/AlignmentBar';
 import { CanvasToolbar } from './components/CanvasToolbar';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import { ContextMenu } from './components/ContextMenu';
-import { EventHistoryPanel } from './components/EventHistoryPanel';
-import { FaultAlertModal } from './components/FaultAlertModal';
 import { Inspector } from './components/Inspector';
 import { LazySurface } from './components/LazySurface';
 import { LogPanel } from './components/LogPanel';
@@ -258,6 +262,7 @@ export function Editor() {
   const [skipDeleteConfirmation, setSkipDeleteConfirmation] = useState(false);
   const [dashboardOpen, setDashboardOpen] = useState(false);
   const eventHistoryOpen = useUiStore((s) => s.eventHistoryOpen);
+  const hasFaultAlert = useUiStore((s) => s.faultAlert !== null);
 
   useEffect(() => {
     if (pendingDeletion) setSkipDeleteConfirmation(false);
@@ -340,10 +345,14 @@ export function Editor() {
         isPhone={isPhone}
         dashboardOpen={dashboardOpen}
       />
-      <EventHistoryPanel
-        isOpen={eventHistoryOpen}
-        onClose={() => useUiStore.getState().setEventHistoryOpen(false)}
-      />
+      {eventHistoryOpen && (
+        <Suspense fallback={null}>
+          <EventHistoryPanel
+            isOpen
+            onClose={() => useUiStore.getState().setEventHistoryOpen(false)}
+          />
+        </Suspense>
+      )}
       <LogPanel isPhone={isPhone} open={logOpen} simRunning={simRunning} logs={logs} />
       <AlignmentBar />
       {activeGuideId && (
@@ -432,7 +441,11 @@ export function Editor() {
         </Suspense>
       )}
       <TourOfferChip isPhone={isPhone} />
-      <FaultAlertModal />
+      {hasFaultAlert && (
+        <Suspense fallback={null}>
+          <FaultAlertModal />
+        </Suspense>
+      )}
       {commandPaletteOpen && (
         <Suspense fallback={null}>
           <CommandPalette />

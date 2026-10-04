@@ -14,7 +14,6 @@ import {
   supplyTargetForComponent,
 } from '@electrasim/domain/core/supplyEditing';
 import { previewVariantChange } from '@electrasim/domain/core/variantEditing';
-import { getSimulationLimitations } from '@electrasim/domain/simulationCoverage';
 import { HelpCircle, Lock, RotateCcw, RotateCw, Trash2 } from 'lucide-react';
 import { setMomentarySwitchState, useCircuitStore } from '../../../store/circuitStore';
 import { requestSupplyEdit, useConfigurationLockReason } from '../../../store/electricalEditing';
@@ -22,6 +21,7 @@ import { useCircuitDocument, useCircuitReadiness } from '../../../store/electric
 import { useUiStore } from '../../../store/uiStore';
 import { requestDeleteComponent } from '../../canvas-actions';
 import { getComponentImage } from '../componentImages';
+import { ElectricalReadings } from './ElectricalReadings';
 import { VALID_VARIANT_FAMILIES } from './variantFamilies';
 
 const box =
@@ -61,14 +61,6 @@ export function ComponentPropertiesView({
   const family = VALID_VARIANT_FAMILIES[selectedComp.type] ?? [];
   const variants = family.filter((type) => !!COMPONENT_DEFS[type]);
   const update = useCircuitStore.getState().updateComponentState;
-  const blocked =
-    getSimulationLimitations(circuit).some((l) => l.blocking) ||
-    simResult?.electricalContract?.status === 'invalid';
-  const calculation = !blocked && simResult?.componentCalculations?.[selectedComp.id];
-  const reading = (value: number | undefined, unit: string) =>
-    value !== undefined && Number.isFinite(value)
-      ? `${Number(value.toFixed(3))} ${unit}`
-      : 'Unavailable';
   const nominalVolts =
     load?.nominalVoltage.status === 'known' ? load.nominalVoltage.value : undefined;
   const nominalWatts =
@@ -374,17 +366,7 @@ export function ComponentPropertiesView({
         </section>
       )}
 
-      <section className={box}>
-        <h3 className="font-semibold">Simulation readings</h3>
-        <p>Terminal-pair voltage: unavailable in the current runtime.</p>
-        <p>Rail voltage estimate: {reading(calculation ? calculation.voltage : undefined, 'V')}.</p>
-        <p>Current estimate: {reading(calculation ? calculation.currentAmps : undefined, 'A')}.</p>
-        <p>Power estimate: {reading(calculation ? calculation.powerWatts : undefined, 'W')}.</p>
-        <p className="text-[10px]">
-          Rail estimates do not establish voltage across this device or a successful operating
-          point. Live potential and branch current are separate.
-        </p>
-      </section>
+      <ElectricalReadings componentId={selectedComp.id} result={simResult} />
 
       {def.isSwitch && (
         <section className={box}>

@@ -124,7 +124,7 @@ test('supply profiles survive real import, voltage edit, undo/redo, download and
   );
 });
 
-test('a saved DC supply is preserved and guarded identically through actual Comlink and local Hono', async ({
+test('a saved DC supply is preserved and solved identically through actual Comlink and local Hono', async ({
   page,
 }) => {
   const circuit: Circuit = {
@@ -148,7 +148,7 @@ test('a saved DC supply is preserved and guarded identically through actual Coml
         };
       }),
     )
-    .toEqual({ status: 'not-assessed', worker: true });
+    .toEqual({ status: 'converged', worker: true });
   const results = await page.evaluate(async () => {
     const uiPath = '/src/store/uiStore.ts';
     const storePath = '/src/store/circuitStore.ts';
@@ -173,8 +173,15 @@ test('a saved DC supply is preserved and guarded identically through actual Coml
   });
   expect(results.status).toBe(200);
   expect(results.server).toEqual(results.browser);
-  expect(results.browser.componentCalculations).toBeUndefined();
-  expect(results.browser.faultsCleared).toBe(false);
+  const current = 48 / (26.45 + 0.14);
+  expect(results.browser.componentCalculations.heater.currentAmps).toBeCloseTo(current, 9);
+  expect(results.browser.componentCalculations.heater.voltage).toBeCloseTo(current * 26.45, 9);
+  expect(results.browser.componentCalculations.heater.powerWatts).toBeCloseTo(
+    current ** 2 * 26.45,
+    9,
+  );
+  expect(results.browser.faultsCleared).toBe(true);
+  expect(results.browser.electrical.operation).not.toBe('operating');
   expect(results.circuit.supply).toEqual(circuit.supply);
   expect(results.circuit.components).toEqual(circuit.components);
 });

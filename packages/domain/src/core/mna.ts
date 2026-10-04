@@ -1,6 +1,7 @@
 import { compileCircuit } from './compile';
 import {
   type CompileOptions,
+  type CompileResult,
   type CompiledSource,
   type CompiledTransformer,
   ELECTRICAL_CONTRACT_VERSION,
@@ -102,13 +103,21 @@ interface CouplingPlan {
 /** Fixed resistors, finite wires, static ideal contacts, independent DC supplies
  * and one single-phase RMS source per transformer-coupled equation group.
  * Does not advance controls, trip protection, damage parts or assess standards.
- * The app's legacy adapter is intentionally replaced in the later integration gate.
+ * Used by the application adapter as well as the direct numerical API.
  */
 export function solveCircuit(
   raw: unknown,
   options: CompileOptions = {},
 ): ElectricalSimulationResult {
   const compiled = compileCircuit(raw, options);
+  return solveCompiledCircuit(compiled, options);
+}
+
+/** Shared application entry after validation/compilation; no second normalization. */
+export function solveCompiledCircuit(
+  compiled: CompileResult,
+  options: CompileOptions = {},
+): ElectricalSimulationResult {
   const readiness = assessCompiledCircuitReadiness(compiled, options);
   if (compiled.status === 'invalid')
     return emptyResult('invalid', compiled.diagnostics, [], readiness);

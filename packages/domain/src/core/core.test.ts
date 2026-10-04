@@ -276,8 +276,12 @@ describe('1.5B input and saved document contracts', () => {
     expect(createEmptyCircuit('us').globalVoltage).toBe(120);
     expect(createEmptyCircuit('uk').globalVoltage).toBe(230);
     const circuit = { ...protectedLoad('mcb', 9), globalVoltage: 120 };
-    expect(simulate(circuit, { standard: 'uk' }).supplyVoltage).toBe(120);
-    expect(simulate(circuit, { standard: 'us' }).supplyVoltage).toBe(120);
+    const uk = simulate(circuit, { standard: 'uk' });
+    const us = simulate(circuit, { standard: 'us' });
+    expect(uk.electrical).toEqual(us.electrical);
+    expect(uk.electrical?.branchVoltages[JSON.stringify(['alias-source', 'legacy-mains'])]).toBe(
+      120,
+    );
   });
 });
 
@@ -322,7 +326,7 @@ describe('1.5B shared wire properties', () => {
     const result = simulate(circuit);
     expect(result.wireCalculations?.branch.cableMm2).toBe(10);
     expect(result.overloadedWires?.size ?? 0).toBe(0);
-    expect(result.wireHeatRatios?.branch).toBeCloseTo(7400 / 230 / 64, 8);
+    expect(result.wireHeatRatios?.branch).toBeCloseTo(230 / (230 ** 2 / 7400 + 3 * 0.035) / 64, 8);
     const graph = compiled(circuit).graph;
     expect(graph.branches.find((b) => b.wireId === 'branch')?.wire?.resistanceOhms).toBeCloseTo(
       (0.0175 * 20) / 10,
