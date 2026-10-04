@@ -200,10 +200,20 @@ export interface TerminalGraph {
   faults: CompiledFault[];
 }
 
+export type TransientProtectionState = 'closed' | 'tripped' | 'blown';
+
 export interface CompileOptions {
   defs?: Record<string, ComponentDef>;
-  /** Transient contact state supplied by a future device step, never saved into Circuit. */
+  /** Transient contact state supplied by a device step, never saved into Circuit. */
   contactStates?: ReadonlyMap<string, boolean>;
+  /** Transient protection state supplied by a device step, never saved into Circuit. */
+  protectionStates?: ReadonlyMap<string, TransientProtectionState>;
+  /** 0..1 dimmer command supplied by a device step, never saved into Circuit. */
+  dimmerLevels?: ReadonlyMap<string, number>;
+  /** Cables damaged during a previous step are open in the next solve. */
+  openWires?: ReadonlySet<string>;
+  /** Component ids whose explicit timed model has replaced the manual-only guard. */
+  timedControls?: ReadonlySet<string>;
 }
 
 export type CompileResult =
@@ -223,11 +233,54 @@ export type CompileResult =
       coverage: ModelCoverage[];
     };
 
-/** Reserved time-step state; the linear solver does not advance devices or time. */
+/**
+ * State owned by the time/protection layer. The linear solver consumes these
+ * values but never advances or persists them. Keeping this separate from
+ * `Circuit` makes reset/replay deterministic and prevents a simulation tick
+ * from silently rewriting a learner's drawing.
+ */
 export interface ElectricalSimulationState {
   modelVersion: string;
   elapsedSeconds: number;
   contactStates: Record<string, boolean>;
+  protectionStates: Record<string, TransientProtectionState>;
+  /** Elapsed exposure used by inverse-time protective models. */
+  protectionElapsedSeconds: Record<string, number>;
+  /** Normalised I²t-like cable exposure. The scale is a declared teaching model. */
+  cableDamageProgress: Record<string, number>;
+  /** Wires opened by a modeled cable-damage event. */
+  openWires: string[];
+  /** Active control triggers, keyed by component id. */
+  controlTriggers: Record<string, number>;
+  /** Last commanded dimmer level, 0..1. */
+  dimmerLevels: Record<string, number>;
+  /** Derived coil operation; manual Circuit state remains untouched. */
+  coilStates: Record<string, boolean>;
+}
+
+export type ElectricalEventKind =
+  | 'contact-changed'
+  | 'dimmer-changed'
+  | 'protection-trip'
+  | 'device-blown'
+  | 'cable-damaged'
+  | 'control-triggered'
+  | 'control-reset'
+  | 'simulation-reset';
+
+export interface ElectricalSimulationEvent {
+  id: string;
+  timeSeconds: number;
+  kind: ElectricalEventKind;
+  componentId?: string;
+  wireId?: string;
+  from?: boolean;
+  to?: boolean;
+  value?: number;
+  cause?: 'schedule' | 'manual' | 'overload' | 'short-circuit' | 'ground-fault' | 'arc-fault';
+  currentAmps?: number;
+  clearingTimeSeconds?: number;
+  message: string;
 }
 
 export interface ElectricalSimulationResult {

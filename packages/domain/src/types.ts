@@ -12,7 +12,9 @@
 import type {
   ElectricalDeviceModel,
   ElectricalDiagnostic,
+  ElectricalSimulationEvent,
   ElectricalSimulationResult,
+  ElectricalSimulationState,
   ModelCoverage,
 } from './core/contracts';
 import type { CircuitReadiness } from './core/readiness';
@@ -423,6 +425,10 @@ export interface SimulationResult {
   readiness?: CircuitReadiness;
   /** Full versioned MNA calculation, including explicit unavailable measurements. */
   electrical?: ElectricalSimulationResult;
+  /** Time-layer snapshot. Absent on the static `simulate()` entry point. */
+  simulationState?: ElectricalSimulationState;
+  /** Events emitted by one deterministic time step. */
+  events?: ElectricalSimulationEvent[];
   /** Present only for the temporary qualitative legacy path awaiting 1.5D/F. */
   legacyObservation?: { engineVersion: 'legacy-rail-1.5b'; reason: string };
   /** Source-relative conductor potentials are not voltage across a load or to PE. */

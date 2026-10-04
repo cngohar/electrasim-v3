@@ -225,7 +225,12 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
             );
       });
     const on = options.contactStates?.get(component.id) ?? component.state.on === true;
-    const operable = !component.state.isBlown && !component.state.isTripped;
+    const transientProtection = options.protectionStates?.get(component.id);
+    const operable =
+      !component.state.isBlown &&
+      !component.state.isTripped &&
+      transientProtection !== 'tripped' &&
+      transientProtection !== 'blown';
     const needsPhaseTerminals =
       (model.kind === 'source' || model.kind === 'source-alias') &&
       model.supply.kind === 'ac-three-phase';
@@ -318,15 +323,37 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
         )
           internal('load', model.ports[0], model.ports[1], operable, 'unassessed-load', false);
         break;
-      case 'contacts':
+      case 'contacts': {
+        const dimmerLevel = options.dimmerLevels?.get(component.id);
+        const dimmerClosed =
+          dimmerLevel === undefined ? on : dimmerLevel > 0 && Number.isFinite(dimmerLevel);
+        // A dimmer is represented as a bounded teaching-model series
+        // resistance. This is deliberately not a waveform/triac model: the
+        // command is explicit, deterministic and keeps unsupported harmonics
+        // out of the accepted result. Full phase-angle behavior remains a
+        // separate coverage item.
+        const dimmerResistance =
+          def.isDimmer && dimmerLevel !== undefined
+            ? dimmerLevel >= 1
+              ? undefined
+              : 0.05 + (1 - Math.max(0, dimmerLevel)) * 40
+            : undefined;
         for (const [index, pole] of model.poles.entries()) {
-          internal('contact', pole.common, pole.no, on && operable, `contact:${index}:no`);
+          internal(
+            'contact',
+            pole.common,
+            pole.no,
+            dimmerClosed && operable,
+            `contact:${index}:no`,
+            dimmerResistance === undefined,
+            dimmerResistance,
+          );
           if (pole.nc !== undefined)
             internal('contact', pole.common, pole.nc, !on && operable, `contact:${index}:nc`);
         }
         groups(model.fixedGroups ?? []);
         if (model.coil) internal('coil', model.coil[0], model.coil[1], operable, 'coil', false);
-        if (model.limitation)
+        if (model.limitation && !options.timedControls?.has(component.id))
           coverage.push({
             subjectId: component.id,
             aspect: 'controls',
@@ -334,6 +361,7 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
             reason: model.limitation,
           });
         break;
+      }
       case 'selector':
         for (const [index, pair] of modelPairs(model, on).entries())
           internal('contact', pair[0], pair[1], operable, `selector:${index}`);
@@ -485,7 +513,7 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
       kind: 'wire',
       from: terminalId(wire.fromComponentId, wire.fromPortIndex),
       to: terminalId(wire.toComponentId, wire.toPortIndex),
-      closed: !wire.isBusted,
+      closed: !wire.isBusted && !options.openWires?.has(wire.id),
       idealConductor: false,
       wireId: wire.id,
       wire: resolveWireProperties(wire, byId),

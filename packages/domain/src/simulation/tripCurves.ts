@@ -190,6 +190,30 @@ export function calculateMCBTrip(
  * @param elapsedSeconds - Time leakage has been present
  * @returns Whether the RCD should trip
  */
+export interface FuseTripResult {
+  shouldTrip: boolean;
+  currentMultiple: number;
+  timeToTrip?: number;
+}
+
+/**
+ * Bounded educational cartridge-fuse model. Unlike an MCB, operation is
+ * destructive and leaves an open link. The curve is intentionally exposed as
+ * a separate model so a fuse can never be mistaken for a resettable breaker.
+ * It is not a product certification curve.
+ */
+export function calculateFuseTrip(
+  currentAmps: number,
+  ratedAmps: number,
+  elapsedSeconds = 0,
+): FuseTripResult {
+  if (ratedAmps <= 0 || currentAmps <= ratedAmps * 1.25)
+    return { shouldTrip: false, currentMultiple: ratedAmps > 0 ? currentAmps / ratedAmps : 0 };
+  const currentMultiple = currentAmps / ratedAmps;
+  const timeToTrip = Math.max(0.02, Math.min(3600, 12 / (currentMultiple * currentMultiple - 1)));
+  return { shouldTrip: elapsedSeconds >= timeToTrip, currentMultiple, timeToTrip };
+}
+
 export interface RCDTripResult {
   shouldTrip: boolean;
   leakageMultiple: number;

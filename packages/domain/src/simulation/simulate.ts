@@ -13,7 +13,14 @@ export type { SimulateOptions } from './legacy';
 
 export function simulate(circuit: Circuit, options: SimulateOptions = {}): SimulationResult {
   const defs = options.defs ?? COMPONENT_DEFS;
-  const compiled = compileCircuit(circuit, { defs });
+  const compiled = compileCircuit(circuit, {
+    defs,
+    contactStates: options.contactStates,
+    protectionStates: options.protectionStates,
+    dimmerLevels: options.dimmerLevels,
+    openWires: options.openWires,
+    timedControls: options.timedControls,
+  });
   const electrical = solveCompiledCircuit(compiled, { defs });
   const legacyDeviceGap =
     compiled.status === 'compiled' &&

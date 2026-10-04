@@ -8,6 +8,7 @@
 
 import { instanceLabel } from '../componentLabel';
 import { COMPONENT_DEFS } from '../components';
+import type { TransientProtectionState } from '../core/contracts';
 import { configuredSupplySources, resolveDocumentSupply } from '../core/supplies';
 import { resolveWireProperties } from '../core/wireProperties';
 import { calculateElectricalValues, getStandardCableAmpacity } from '../electricalCalculations';
@@ -42,6 +43,16 @@ export interface SimulateOptions {
   /** Teaching profile. US device timing is not assessed; choosing a profile
    * never changes a component's physical residual-current rating. */
   standard?: StandardId;
+  /** Transient contact state from the explicit time layer; never saved to Circuit. */
+  contactStates?: ReadonlyMap<string, boolean>;
+  /** Transient protection state from the explicit time layer; never saved to Circuit. */
+  protectionStates?: ReadonlyMap<string, TransientProtectionState>;
+  /** Transient dimmer command, 0..1; never saved to Circuit. */
+  dimmerLevels?: ReadonlyMap<string, number>;
+  /** Wires opened by an earlier cable-damage event; never saved to Circuit. */
+  openWires?: ReadonlySet<string>;
+  /** Component ids with an explicit Phase 1.5D time/control model. */
+  timedControls?: ReadonlySet<string>;
 }
 
 /**
