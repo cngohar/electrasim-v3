@@ -10,6 +10,7 @@ import type {
 import { coilPortsFor, isCoilModel } from './coilModel';
 import type { ElectricalDiagnostic } from './contracts';
 import { dimmerMaximumLevel } from './dimmerModel';
+import { isProtectionModel, protectionModelFitsType } from './protectionModel';
 import { isSupplyProfile, sourceInterface, sourceProfileFitsInterface } from './supplies';
 import { isTimerModel, timerModelFitsType } from './timerModel';
 import { WIRE_AWG_MM2 } from './wireProperties';
@@ -44,6 +45,8 @@ function isComponentState(value: unknown): boolean {
       if (!isCoilModel(field)) return false;
     } else if (key === 'timerModel') {
       if (!isTimerModel(field)) return false;
+    } else if (key === 'protectionModel') {
+      if (!isProtectionModel(field)) return false;
     } else if (key === 'sourceProfile') {
       if (!isSupplyProfile(field)) return false;
     } else if (key === 'on' || key === 'energized' || key === 'isBlown' || key === 'isTripped') {
@@ -273,6 +276,16 @@ export function validateCircuitInput(
         'invalid-timer-model-target',
         'The timer program or control supply does not match this timer family.',
         `components[${index}].state.timerModel`,
+        { componentId: value.id },
+      );
+    if (
+      value.state.protectionModel &&
+      !protectionModelFitsType(value.type, value.state.protectionModel)
+    )
+      return invalid(
+        'invalid-protection-model-target',
+        'The protection ratings do not match this device family.',
+        `components[${index}].state.protectionModel`,
         { componentId: value.id },
       );
     if (

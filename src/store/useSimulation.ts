@@ -208,7 +208,9 @@ export function useSimulation() {
                     ? `timer closed (${event.reason})`
                     : event.type === 'timer-off'
                       ? `timer opened (${event.reason})`
-                      : 'timer interval restarted';
+                      : event.type === 'protection-trip'
+                        ? `protection tripped (${event.reason})`
+                        : 'timer interval restarted';
             useUiStore
               .getState()
               .addLog(`${label}: ${action} at ${event.atSeconds} s simulated time.`, 'info');

@@ -110,6 +110,7 @@ export function ComponentNode({
   const isOn =
     coilState ??
     simulation?.timerContactStates?.[component.id] ??
+    simulation?.protectionContactStates?.[component.id] ??
     (component.state.on === true && (!definition.isDimmer || (component.state.speed ?? 3) > 0));
   const isTripped = component.state.isTripped === true;
   const active = energized || (definition.isSwitch && (Boolean(definition.changeover) || isOn));

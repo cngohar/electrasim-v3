@@ -129,6 +129,11 @@ export function getSimulationLimitations(
       );
     } else if (model.kind === 'contacts' && model.dimmer) {
       add('dimming-model', DIMMER_APPROXIMATION);
+    } else if (model.kind === 'contacts' && model.protectionModel) {
+      add(
+        'protection-model',
+        'Declared protection ratings use the deterministic simulation step; static `solveCircuit()` never moves a trip. Damage and coordination are not assessed.',
+      );
     } else if (model.kind === 'contacts' && model.timerModel) {
       add('timing-model', TIMER_APPROXIMATION);
     } else if (model.kind === 'contacts' && model.limitation) {
@@ -141,7 +146,7 @@ export function getSimulationLimitations(
         model.limitation,
       );
     }
-    if (def.isProtection)
+    if (def.isProtection && !(model.kind === 'contacts' && model.protectionModel))
       add(
         'protection-model',
         'Static contact current can be calculated. Timed tripping, residual operation and damage are not assessed by the MNA model.',

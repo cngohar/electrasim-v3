@@ -12,6 +12,12 @@ import { simulate } from '@electrasim/domain/simulation';
 import type { SimulationResult } from '@electrasim/domain/types';
 import { controlCircuit, setControlSwitch } from '../packages/domain/src/core/controlFixtures';
 import {
+  protectionCircuit,
+  rcboCircuit,
+  rcdBalancedCircuit,
+  rcdLeakingCircuit,
+} from '../packages/domain/src/core/protectionFixtures';
+import {
   timerCircuit,
   timerDimmingAcceptanceCircuits,
 } from '../packages/domain/src/core/timerDimmingFixtures';
@@ -106,6 +112,50 @@ export async function runSimulatorTests(context: Context) {
       await request('/simulator/simulate', {
         method: 'POST',
         data: { circuit: bad },
+        expected: 400,
+      });
+    },
+  );
+  await check(
+    'local Hono protection replay matches the domain with normal guest/paid authorization',
+    async () => {
+      const cases: [string, Circuit, number[]][] = [
+        ['mcb-overload', protectionCircuit('mcb', 2), [0.5, 3600]],
+        ['mcb-instant', protectionCircuit('mcb', 0.5), [0.5]],
+        ['fuse-melt', protectionCircuit('fuse', 1), [0.5, 10]],
+        ['rcd-leak', rcdLeakingCircuit(), [0.05, 1]],
+        ['rcd-balanced', rcdBalancedCircuit(), [1]],
+        ['rcbo-balanced', rcboCircuit(32, 30), [1]],
+      ];
+      for (const [name, circuit, deltas] of cases) {
+        let previous: SimulationResult | undefined;
+        for (const deltaSeconds of deltas) {
+          const simulationState = previous?.simulationState;
+          const response = await request<SimulationResult>('/simulator/simulate', {
+            method: 'POST',
+            expected: 200,
+            data: { circuit, simulationState, deltaSeconds },
+          });
+          assert.deepEqual(
+            response,
+            portableResult(
+              simulate(circuit, { simulationState, deltaSeconds, standard: 'int', appMode: 'pro' }),
+            ),
+            name,
+          );
+          previous = response;
+        }
+      }
+      const badProtected = rcdLeakingCircuit();
+      badProtected.components[1]!.state.protectionModel = {
+        version: 1,
+        kind: 'rcd',
+        ratedResidualMilliamps: -30,
+        residualType: 'A',
+      } as never;
+      await request('/simulator/simulate', {
+        method: 'POST',
+        data: { circuit: badProtected },
         expected: 400,
       });
     },

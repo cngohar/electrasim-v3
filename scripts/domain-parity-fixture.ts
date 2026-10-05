@@ -17,6 +17,12 @@ import { earthingAcceptanceCircuits } from '../packages/domain/src/core/earthing
 import { editingCircuit, variantCircuit } from '../packages/domain/src/core/editingFixtures';
 import { mnaAcceptanceCircuits } from '../packages/domain/src/core/mnaFixtures';
 import { operatingPointAcceptanceCircuits } from '../packages/domain/src/core/operatingPointFixtures';
+import {
+  protectionCircuit,
+  rcboCircuit,
+  rcdBalancedCircuit,
+  rcdLeakingCircuit,
+} from '../packages/domain/src/core/protectionFixtures';
 import { timerDimmingAcceptanceCircuits } from '../packages/domain/src/core/timerDimmingFixtures';
 import { transformerAcceptanceCircuits } from '../packages/domain/src/core/transformerFixtures';
 import { component as C, wire as W } from '../packages/domain/src/simulation/auditFixtures';
@@ -30,6 +36,22 @@ export function domainParityFixture(): string {
     for (const deltaSeconds of [0.999999, 0.000001, 1, 1]) {
       previous = simulate(circuit, { simulationState: previous.simulationState, deltaSeconds });
       results.push({ timerDimmingCase: name, step: deltaSeconds, result: previous });
+    }
+  }
+  const protectionCases: [string, Circuit, number[]][] = [
+    ['mcb-overload', protectionCircuit('mcb', 2), [0.5, 3600]],
+    ['mcb-instant', protectionCircuit('mcb', 0.5), [0.5]],
+    ['fuse-melt', protectionCircuit('fuse', 1), [0.5, 10]],
+    ['rcd-leak', rcdLeakingCircuit(), [0.05, 1]],
+    ['rcd-balanced', rcdBalancedCircuit(), [1]],
+    ['rcbo-balanced', rcboCircuit(32, 30), [1]],
+  ];
+  for (const [name, circuit, deltas] of protectionCases) {
+    let previous = simulate(circuit, { deltaSeconds: deltas[0] });
+    results.push({ protectionCase: name, step: deltas[0], result: previous });
+    for (const deltaSeconds of deltas.slice(1)) {
+      previous = simulate(circuit, { simulationState: previous.simulationState, deltaSeconds });
+      results.push({ protectionCase: name, step: deltaSeconds, result: previous });
     }
   }
   const controls = controlCircuit();

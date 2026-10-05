@@ -1,7 +1,7 @@
 /** Reviewed, explicit catalogue inventory. New variants must be classified here.
  * Neither a type substring nor a power label defines a source or load law.
  */
-export const CAPABILITY_CATALOGUE_VERSION = '1.5d.1.1' as const;
+export const CAPABILITY_CATALOGUE_VERSION = '1.5d.2.1' as const;
 
 const FAMILIES = {
   'resistive-load': [

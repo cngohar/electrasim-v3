@@ -2,7 +2,7 @@
 
 **Version:** 3.0.0-DRAFT — revised 2026-10-05 (supersedes `REWRITE_PLAN_V4_FULL.md`)
 
-**Status:** `IMPLEMENTING LOCALLY` — Phase 1.0–1.5 milestones recorded; 1.5A, 1.5B and 1.5C.0–5 complete locally. [1.5D.0 deterministic coil controls](audits/phase-1-timed-controls.md) and [1.5D.1 timer programs/dimming](audits/phase-1-timers-dimming.md) are complete locally; remaining protection/damage work, three-phase models and full lab migration remain in 1.5D.2–3/1.5E/1.5F.
+**Status:** `IMPLEMENTING LOCALLY` — Phase 1.0–1.5 milestones recorded; 1.5A, 1.5B and 1.5C.0–5 complete locally. [1.5D.0 deterministic coil controls](audits/phase-1-timed-controls.md), [1.5D.1 timer programs/dimming](audits/phase-1-timers-dimming.md) and [1.5D.2 timed protection models](audits/phase-1-protection.md) are complete locally; remaining damage/repair work, three-phase models and full lab migration remain in 1.5D.3/1.5E/1.5F.
 **Runtime:** **Bun** everywhere · **Platform:** **100% Cloudflare Workers** (no external DB/compute)  
 **Current state:** V3 is developed locally. The existing live `electrasim.com` site/account is separate and must not be used for this work.
 **Target:** React 19 + Hono on Workers + Better Auth + **D1 (SQLite)** + R2 + KV + Durable Objects + Matter.js + Tailwind v4

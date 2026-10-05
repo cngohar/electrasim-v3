@@ -21,7 +21,9 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
     (options.simulationState !== undefined ||
       options.deltaSeconds !== undefined ||
       compiled.graph.devices.some(
-        (d) => d.model.kind === 'contacts' && (d.model.coilModel || d.model.timerModel),
+        (d) =>
+          d.model.kind === 'contacts' &&
+          !!(d.model.coilModel || d.model.timerModel || d.model.protectionModel),
       ))
   ) {
     const step = advanceControlStep(compiled, {

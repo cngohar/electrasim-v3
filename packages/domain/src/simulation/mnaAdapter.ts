@@ -175,6 +175,10 @@ export function adaptMnaResult(
     result.timerContactStates = Object.fromEntries(
       electrical.timers.map((timer) => [timer.componentId, timer.closed]),
     );
+  if (electrical.protection)
+    result.protectionContactStates = Object.fromEntries(
+      electrical.protection.map((protection) => [protection.componentId, protection.closed]),
+    );
   if (electrical.status !== 'converged') return result;
 
   const threshold = LINEAR_SYSTEM_LIMITS.absoluteTolerance;

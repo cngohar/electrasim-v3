@@ -13,9 +13,10 @@ import { solveControlledOperatingPoint } from './dimming';
 import { circuitExcitation } from './excitation';
 import { compareIds } from './faultTopology';
 import { solveCompiledCircuit } from './mna';
+import { evaluateProtection } from './protectionStep';
 import { evaluateTimers } from './timerStep';
 
-export const CONTROL_ENGINE_VERSION = 'mna-controls-2' as const;
+export const CONTROL_ENGINE_VERSION = 'mna-controls-3' as const;
 export const CONTROL_STEP_LIMITS = {
   timeResolutionSeconds: 0.000001,
   maxDeltaSeconds: 3600,
@@ -66,6 +67,7 @@ function validState(
   key: string,
   ids: string[],
   timerIds: string[],
+  protectionIds: string[],
 ): raw is ElectricalSimulationState {
   if (
     !record(raw) ||
@@ -80,6 +82,7 @@ function validState(
           'pending',
           'eventSequence',
           'timers',
+          'protection',
         ].includes(key),
     ) ||
     raw.version !== 1 ||
@@ -90,7 +93,44 @@ function validState(
     !finite(raw.eventSequence, 0, 10_000_000) ||
     !record(raw.contactStates) ||
     !record(raw.pending) ||
-    !record(raw.timers)
+    !record(raw.timers) ||
+    !record(raw.protection)
+  )
+    return false;
+  const protection = raw.protection;
+  if (
+    Object.keys(protection).length !== protectionIds.length ||
+    protectionIds.some((id) => {
+      const runtime = protection[id];
+      return (
+        !Object.hasOwn(protection, id) ||
+        !record(runtime) ||
+        Object.keys(runtime).some(
+          (key) =>
+            ![
+              'heat',
+              'tripped',
+              'reason',
+              'trippedAtSeconds',
+              'residualSinceSeconds',
+              'lastEvaluatedSeconds',
+            ].includes(key),
+        ) ||
+        !finite(runtime.heat, 0, 10_000_000) ||
+        typeof runtime.tripped !== 'boolean' ||
+        (runtime.reason !== null &&
+          !['overload', 'short-circuit', 'residual'].includes(runtime.reason as string)) ||
+        (runtime.trippedAtSeconds !== null &&
+          !finite(runtime.trippedAtSeconds, 0, CONTROL_STEP_LIMITS.maxElapsedSeconds)) ||
+        (runtime.residualSinceSeconds !== null &&
+          !finite(
+            runtime.residualSinceSeconds,
+            Math.max(0, (raw.elapsedSeconds as number) - 86_400),
+            raw.elapsedSeconds as number,
+          )) ||
+        !finite(runtime.lastEvaluatedSeconds, 0, raw.elapsedSeconds as number)
+      );
+    })
   )
     return false;
   const timers = raw.timers;
@@ -167,9 +207,12 @@ export function advanceControlStep(
   const timerIds = controlled
     .filter((d) => d.model.kind === 'contacts' && d.model.timerModel?.kind === 'interval')
     .map((d) => d.componentId);
+  const protectedIds = initial.graph.devices
+    .filter((d) => d.model.kind === 'contacts' && d.model.protectionModel)
+    .map((d) => d.componentId);
   const key = configurationKey(initial);
   const previous = options.simulationState;
-  if (previous !== undefined && !validState(previous, key, ids, timerIds))
+  if (previous !== undefined && !validState(previous, key, ids, timerIds, protectedIds))
     return fail(
       'invalid-simulation-state',
       'Simulation state is invalid, obsolete or belongs to another circuit configuration. Reset before continuing.',
@@ -185,6 +228,9 @@ export function advanceControlStep(
           }),
         ),
         timers: Object.fromEntries(timerIds.map((id) => [id, { ...previous.timers[id]! }])),
+        protection: Object.fromEntries(
+          protectedIds.map((id) => [id, { ...previous.protection[id]! }]),
+        ),
       }
     : {
         version: 1,
@@ -196,6 +242,19 @@ export function advanceControlStep(
         pending: {},
         timers: Object.fromEntries(
           timerIds.map((id) => [id, { inputHigh: false, deadlineSeconds: null }]),
+        ),
+        protection: Object.fromEntries(
+          protectedIds.map((id) => [
+            id,
+            {
+              heat: 0,
+              tripped: false,
+              reason: null,
+              trippedAtSeconds: null,
+              residualSinceSeconds: null,
+              lastEvaluatedSeconds: 0,
+            },
+          ]),
         ),
       };
   const end = time(state.elapsedSeconds + delta);
@@ -210,6 +269,7 @@ export function advanceControlStep(
     const compileOptions = {
       defs: options.defs,
       contactStates: new Map(Object.entries(state.contactStates)),
+      trippedComponents: new Set(protectedIds.filter((id) => state.protection[id]?.tripped)),
     };
     const point = solveControlledOperatingPoint(
       compileCircuit(initial.circuit, compileOptions),
@@ -223,7 +283,12 @@ export function advanceControlStep(
       electrical.diagnostics.some((d) => d.code === 'mna-no-source');
     if (electrical.status !== 'converged' && !unpowered)
       return { compiled, electrical, simulationEvents: [] };
-    const signature = JSON.stringify([state.elapsedSeconds, state.contactStates, state.timers]);
+    const signature = JSON.stringify([
+      state.elapsedSeconds,
+      state.contactStates,
+      state.timers,
+      state.protection,
+    ]);
     if (seen.has(signature))
       return fail(
         'control-feedback-unstable',
@@ -296,23 +361,28 @@ export function advanceControlStep(
     }
     const timers = evaluateTimers(compiled, electrical, state);
     if (timers.error) return fail(timers.error.code, timers.error.message, 'unsupported');
+    const protection = evaluateProtection(compiled, electrical, state);
+    if (protection.error)
+      return fail(protection.error.code, protection.error.message, 'unsupported');
     const due = Object.entries(state.pending)
       .filter(([, p]) => p.atSeconds <= state.elapsedSeconds)
       .sort(([a], [b]) => compareIds(a, b));
-    if (due.length || timers.retriggers.length) {
+    if (due.length || timers.retriggers.length || protection.dueEvents.size) {
       if (
-        events.length + due.length + timers.retriggers.length > CONTROL_STEP_LIMITS.maxEvents ||
-        state.eventSequence + due.length + timers.retriggers.length > 10_000_000
+        events.length + due.length + timers.retriggers.length + protection.dueEvents.size >
+          CONTROL_STEP_LIMITS.maxEvents ||
+        state.eventSequence + due.length + timers.retriggers.length + protection.dueEvents.size >
+          10_000_000
       )
         return fail(
           'control-event-limit',
           'Control event limit reached. Shorten the step or repair cycling feedback.',
           'nonconverged',
         );
-      const instantaneous: ElectricalControlEvent[] = timers.retriggers.map((event) => ({
-        ...event,
-        sequence: 0,
-      }));
+      const instantaneous: ElectricalControlEvent[] = [
+        ...timers.retriggers.map((event) => ({ ...event, sequence: 0 })),
+        ...[...protection.dueEvents.values()].map((event) => ({ ...event, sequence: 0 })),
+      ];
       for (const [id, pending] of due) {
         const timerEvent = timers.dueEvents.get(id);
         const measured = controls.find((c) => c.componentId === id);
@@ -332,9 +402,14 @@ export function advanceControlStep(
       }
       for (const event of instantaneous.sort((a, b) => compareIds(a.componentId, b.componentId)))
         events.push({ ...event, sequence: ++state.eventSequence });
-      if (due.length) continue; // Solve the changed contact topology at the same instant.
+      if (due.length || protection.dueEvents.size) continue; // Solve the changed topology at the same instant.
     }
-    const next = Math.min(...Object.values(state.pending).map((p) => p.atSeconds));
+    const protectionNext = Math.min(
+      ...protection.readings.flatMap((reading: (typeof protection.readings)[number]) =>
+        reading.pending ? [reading.pending.atSeconds] : [],
+      ),
+    );
+    const next = Math.min(...Object.values(state.pending).map((p) => p.atSeconds), protectionNext);
     if (next <= end) {
       state.elapsedSeconds = next;
       continue;
@@ -342,6 +417,7 @@ export function advanceControlStep(
     state.elapsedSeconds = end;
     electrical.controls = controls;
     electrical.timers = timers.readings;
+    electrical.protection = protection.readings;
     return { compiled, electrical, simulationState: state, simulationEvents: events };
   }
   return fail(

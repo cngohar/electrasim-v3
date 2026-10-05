@@ -15,11 +15,12 @@ import type {
   LoadOperatingPoint,
   WireOperatingPoint,
 } from './operatingPoint';
+import type { ProtectionModel } from './protectionModel';
 import type { CircuitReadiness } from './readiness';
 import type { TimerModel } from './timerModel';
 
 export const ELECTRICAL_CONTRACT_VERSION = 1 as const;
-export const ELECTRICAL_MODEL_VERSION = '1.5d.1.1' as const;
+export const ELECTRICAL_MODEL_VERSION = '1.5d.2.1' as const;
 export type CoverageStatus = 'supported' | 'estimated' | 'not-assessed';
 
 export interface ElectricalDiagnostic {
@@ -106,6 +107,7 @@ export type ElectricalDeviceModel =
       coilModel?: CoilModel;
       timerModel?: TimerModel;
       timerSupplyPorts?: PortPair;
+      protectionModel?: ProtectionModel;
       dimmer?: 'synchronous-resistive';
       limitation?: string;
     }
@@ -221,6 +223,8 @@ export interface CompileOptions {
   contactStates?: ReadonlyMap<string, boolean>;
   /** Internal RMS samples; a static contact override does not model a dimmer. */
   dimmerSampling?: boolean;
+  /** Transient protection trips supplied by a device step, never saved into Circuit. */
+  trippedComponents?: ReadonlySet<string>;
 }
 
 export type CompileResult =
@@ -245,6 +249,8 @@ export interface PendingControlTransition {
   atSeconds: number;
 }
 
+export type ProtectionTripReason = 'overload' | 'short-circuit' | 'residual';
+
 /** Validated transient state. Circuit configuration changes require a reset. */
 export interface ElectricalSimulationState {
   version: 1;
@@ -254,6 +260,17 @@ export interface ElectricalSimulationState {
   contactStates: Record<string, boolean>;
   pending: Record<string, PendingControlTransition>;
   timers: Record<string, { inputHigh: boolean; deadlineSeconds: number | null }>;
+  protection: Record<
+    string,
+    {
+      heat: number;
+      tripped: boolean;
+      reason: ProtectionTripReason | null;
+      trippedAtSeconds: number | null;
+      residualSinceSeconds: number | null;
+      lastEvaluatedSeconds: number;
+    }
+  >;
   eventSequence: number;
 }
 
@@ -276,7 +293,16 @@ export interface TimerControlEvent extends ControlEventBase {
   /** Actual pole current before the event, distinct from the post-event result. */
   contactCurrentAmps: number | null;
 }
-export type ElectricalControlEvent = CoilControlEvent | TimerControlEvent;
+
+export interface ProtectionControlEvent extends ControlEventBase {
+  type: 'protection-trip';
+  reason: ProtectionTripReason;
+  /** Actual worst-pole current immediately before the trip; result readings are post-event. */
+  maxPoleCurrentAmps: number | null;
+  currentMultiple: number | null;
+  residualMilliamps: number | null;
+}
+export type ElectricalControlEvent = CoilControlEvent | TimerControlEvent | ProtectionControlEvent;
 
 export interface TimerOperatingPoint {
   componentId: string;
@@ -288,6 +314,21 @@ export interface TimerOperatingPoint {
   controlCurrentAmps: number | null;
   controlPowerWatts: number | null;
   pending: PendingControlTransition | null;
+}
+
+export interface ProtectionOperatingPoint {
+  componentId: string;
+  kind: ProtectionModel['kind'];
+  closed: boolean;
+  tripped: boolean;
+  reason: ProtectionTripReason | null;
+  poleCurrentsAmps: (number | null)[];
+  maxPoleCurrentAmps: number | null;
+  currentMultiple: number | null;
+  residualMilliamps: number | null;
+  /** Normalized thermal/I²t energy; a trip at the declared limit stays latched open. */
+  heat: number;
+  pending: { reason: ProtectionTripReason; atSeconds: number } | null;
 }
 
 export interface RmsSample {
@@ -308,6 +349,7 @@ export interface ControlOperatingPoint {
 export interface ElectricalSimulationResult {
   controls?: ControlOperatingPoint[];
   timers?: TimerOperatingPoint[];
+  protection?: ProtectionOperatingPoint[];
   dimming?: {
     model: 'synchronous-resistive-rms';
     controls: { componentId: string; powerFraction: number }[];

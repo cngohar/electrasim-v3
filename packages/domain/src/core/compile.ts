@@ -18,6 +18,7 @@ import { applyGraphFaults, compareIds, terminalId } from './faultTopology';
 import { validateCircuitInput } from './input';
 import { modelPairs, modelPortIndices, resolveDeviceModel } from './models';
 import { normalizeCircuitDocument } from './normalize';
+import { PROTECTION_APPROXIMATION, isProtectionModel } from './protectionModel';
 import { isSupplyModel, sameSupplyModel } from './supplies';
 import { TIMER_APPROXIMATION, isTimerModel } from './timerModel';
 import { resolveWireProperties } from './wireProperties';
@@ -146,6 +147,11 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
               !!model.dimmer ||
               (model.timerModel.kind === 'interval' &&
                 !!model.timerModel.controlSupply !== !!model.timerSupplyPorts))) ||
+          (model.protectionModel !== undefined &&
+            (!isProtectionModel(model.protectionModel) ||
+              !!model.coilModel ||
+              !!model.timerModel ||
+              !!model.dimmer)) ||
           (model.timerSupplyPorts !== undefined &&
             model.timerSupplyPorts[0] === model.timerSupplyPorts[1]) ||
           model.poles.some(
@@ -237,7 +243,10 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
             );
       });
     const on = options.contactStates?.get(component.id) ?? component.state.on === true;
-    const operable = !component.state.isBlown && !component.state.isTripped;
+    const operable =
+      !component.state.isBlown &&
+      !component.state.isTripped &&
+      !options.trippedComponents?.has(component.id);
     const needsPhaseTerminals =
       (model.kind === 'source' || model.kind === 'source-alias') &&
       model.supply.kind === 'ac-three-phase';
@@ -457,6 +466,22 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
         reason:
           'Contact topology only. Operation, coordination, prospective current and time are separate device/solver models.',
       });
+    if (def.isProtection && model.kind === 'contacts' && model.protectionModel)
+      coverage[coverage.length - 1] =
+        options.trippedComponents !== undefined
+          ? {
+              subjectId: component.id,
+              aspect: 'protection',
+              status: 'estimated',
+              reason: PROTECTION_APPROXIMATION,
+            }
+          : {
+              subjectId: component.id,
+              aspect: 'protection',
+              status: 'not-assessed',
+              reason:
+                'Declared protection ratings require the deterministic simulation step; a static contact snapshot cannot operate them.',
+            };
     if (component.type === 'distribution-board-3phase')
       coverage.push({
         subjectId: component.id,

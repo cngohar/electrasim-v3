@@ -2,6 +2,7 @@ import type { Circuit, ComponentDef, ComponentInstance } from '../types';
 import { DEVICE_CAPABILITY_FAMILIES, RESISTIVE_NOMINAL_VOLTS } from './capabilityCatalogue';
 import { copyCoilModel } from './coilModel';
 import type { ElectricalDeviceModel, PortPair } from './contracts';
+import { copyProtectionModel, protectionModelFitsType } from './protectionModel';
 import { DOCUMENT_SUPPLY_ID, resolveSourceProfile } from './supplies';
 import { copyTimerModel } from './timerModel';
 
@@ -159,6 +160,7 @@ export function resolveDeviceModel(
     };
   if (def.isDimmer)
     return { kind: 'contacts', poles: [{ common: 0, no: 1 }], dimmer: 'synchronous-resistive' };
+
   if (type === 'intermediate-switch')
     return {
       kind: 'selector',
@@ -208,6 +210,11 @@ export function resolveDeviceModel(
       kind: 'contacts',
       poles,
       fixedGroups: groups.filter((group) => def.ports[group[0] ?? -1]?.type === 'earth'),
+      ...(def.isProtection &&
+      state.protectionModel &&
+      protectionModelFitsType(type, state.protectionModel)
+        ? { protectionModel: copyProtectionModel(state.protectionModel) }
+        : {}),
       ...(def.isDimmer || def.category === 'timer' || type === 'double-gang-switch'
         ? {
             limitation:

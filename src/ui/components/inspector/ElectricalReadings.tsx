@@ -15,6 +15,7 @@ export function ElectricalReadings({
   const control = electrical?.controls?.find((item) => item.componentId === componentId);
   const timer = electrical?.timers?.find((item) => item.componentId === componentId);
   const dimmer = electrical?.dimming?.controls.find((item) => item.componentId === componentId);
+  const protection = electrical?.protection?.find((item) => item.componentId === componentId);
   const poles = electrical?.deviceCurrents.filter((item) => item.componentId === componentId) ?? [];
   const values = calculated ? result?.componentCalculations?.[componentId] : undefined;
   return (
@@ -90,6 +91,47 @@ export function ElectricalReadings({
           )}
           <p>
             The voltage, current and power below describe the coil. Contact currents are separate.
+          </p>
+        </>
+      )}
+      {protection && (
+        <>
+          <p>
+            Simulated time:{' '}
+            <output data-reading="simulation-time">
+              {reading(result?.simulationState?.elapsedSeconds, 's')}
+            </output>
+          </p>
+          <p>
+            Contact:{' '}
+            <output data-reading="protection-contact">
+              {protection.closed ? 'CLOSED' : 'OPEN'}
+            </output>
+            {protection.tripped ? (
+              <> · Tripped{protection.reason ? ` (${protection.reason})` : ''}</>
+            ) : (
+              ''
+            )}
+          </p>
+          <p>
+            Worst pole current: {reading(protection.maxPoleCurrentAmps, 'A')} · Multiple of In:{' '}
+            {reading(protection.currentMultiple, '×')}
+          </p>
+          {protection.residualMilliamps !== null && (
+            <p>Residual current: {reading(protection.residualMilliamps, 'mA')}</p>
+          )}
+          <p>Thermal/I²t energy: {reading(protection.heat, 's')}</p>
+          {protection.pending && (
+            <p>
+              Projected trip ({protection.pending.reason}) at{' '}
+              <output data-reading="protection-deadline">
+                {reading(protection.pending.atSeconds, 's')}
+              </output>
+              .
+            </p>
+          )}
+          <p>
+            Pole bypasses carry current around the device; no damage or coordination is assessed.
           </p>
         </>
       )}

@@ -237,6 +237,8 @@ export interface ComponentState {
   coilModel?: import('./core/coilModel').CoilModel;
   /** Explicit timer program; elapsed time, latches and deadlines are never saved here. */
   timerModel?: import('./core/timerModel').TimerModel;
+  /** Explicit protection ratings/curve; transient trip energy/state is never saved here. */
+  protectionModel?: import('./core/protectionModel').ProtectionModel;
   /** Versioned source configuration. Valid only on declared supply interfaces. */
   sourceProfile?: SupplyProfile;
   /** Manual open/closed state for switch-like and protection components. */
@@ -457,6 +459,8 @@ export interface SimulationResult {
   /** Derived coil operation; never persisted into the manual switch state. */
   coilStates?: Record<string, boolean>;
   timerContactStates?: Record<string, boolean>;
+  /** Derived protection contact operation; never persisted into the manual switch state. */
+  protectionContactStates?: Record<string, boolean>;
   /** Loads with nonzero solved power; legacy continuity is explicitly tagged separately. */
   energizedComponents: Set<string>;
   /** Wires with current or nonzero source-relative potential. This is not a current measurement. */

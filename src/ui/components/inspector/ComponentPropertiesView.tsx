@@ -9,6 +9,7 @@ import {
 import { resolveDeviceCapabilities } from '@electrasim/domain/core/capabilities';
 import { dimmerMaximumLevel } from '@electrasim/domain/core/dimmerModel';
 import { resolveComponentState } from '@electrasim/domain/core/normalize';
+import { hasProtectionSettings } from '@electrasim/domain/core/protectionModel';
 import {
   supplyAtTarget,
   supplyDescription,
@@ -35,6 +36,7 @@ const input =
   'w-full rounded border border-slate-200 bg-white px-2 py-1 font-mono text-xs disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900';
 const CoilModelEditor = lazy(() => import('./CoilModelEditor'));
 const TimerModelEditor = lazy(() => import('./TimerModelEditor'));
+const ProtectionModelEditor = lazy(() => import('./ProtectionModelEditor'));
 
 export function ComponentPropertiesView({
   selectedComp,
@@ -63,7 +65,8 @@ export function ComponentPropertiesView({
       : 'compatible';
   const coilState = simResult?.coilStates?.[selectedComp.id];
   const timerState = simResult?.timerContactStates?.[selectedComp.id];
-  const isOn = coilState ?? timerState ?? selectedComp.state.on === true;
+  const protectionState = simResult?.protectionContactStates?.[selectedComp.id];
+  const isOn = coilState ?? timerState ?? protectionState ?? selectedComp.state.on === true;
   const family = VALID_VARIANT_FAMILIES[selectedComp.type] ?? [];
   const variants = family.filter((type) => !!COMPONENT_DEFS[type]);
   const update = useCircuitStore.getState().updateComponentState;
@@ -256,6 +259,18 @@ export function ComponentPropertiesView({
             The ON switch enables output; 0% opens it. Dimming does not establish voltage
             suitability for a lower-rated load.
           </p>
+        </section>
+      )}
+      {hasProtectionSettings(selectedComp.type) && (
+        <section className={box}>
+          <h3 className="font-semibold">Protection model</h3>
+          <Suspense fallback={<p>Loading protection settings…</p>}>
+            <ProtectionModelEditor
+              key={`${selectedComp.id}:${JSON.stringify(selectedComp.state.protectionModel)}`}
+              component={selectedComp}
+              locked={locked}
+            />
+          </Suspense>
         </section>
       )}
       {hasTimerSettings(selectedComp.type) && (

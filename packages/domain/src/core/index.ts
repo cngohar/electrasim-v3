@@ -1,6 +1,7 @@
 export * from './contracts';
 export * from './coilModel';
 export * from './timerModel';
+export * from './protectionModel';
 export * from './dimmerModel';
 export { compileCircuit } from './compile';
 export { terminalId } from './faultTopology';
