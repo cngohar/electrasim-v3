@@ -13,6 +13,7 @@
  */
 
 import { COMPONENT_DEFS, type ComponentInstance, type WireInstance } from '@electrasim/domain';
+import { coilPortsFor, isCoilModel } from '@electrasim/domain/core/coilModel';
 import { normalizeCircuitDocument, resolveComponentState } from '@electrasim/domain/core/normalize';
 import {
   isSupplyProfile,
@@ -663,6 +664,12 @@ export const useCircuitStore = create<CircuitState>()(
               (key === 'speed' && COMPONENT_DEFS[component.type]?.isDimmer),
           );
           if (!runtimeOnly && !editingAllowed()) return;
+          if (
+            updates.coilModel !== undefined &&
+            (!isCoilModel(updates.coilModel) ||
+              !coilPortsFor(component.type, COMPONENT_DEFS[component.type]))
+          )
+            return;
           for (const key of [
             'customVoltage',
             'customPowerWatts',

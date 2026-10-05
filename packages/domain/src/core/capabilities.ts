@@ -5,6 +5,7 @@ import {
   type CapabilityFamily,
   DEVICE_CAPABILITY_FAMILIES,
 } from './capabilityCatalogue';
+import { COIL_APPROXIMATION } from './coilModel';
 import type { ElectricalDeviceModel, SupplyModel } from './contracts';
 import { resolveDeviceModel } from './models';
 import { sourceInterface } from './supplies';
@@ -279,11 +280,34 @@ export function resolveDeviceCapabilities(
       );
       if (electrical.coil) {
         const g = make('coil', 'coil', electrical.coil);
-        g.loadLaw = {
-          kind: 'not-assessed',
-          reason:
-            'Coil consumption, pickup/dropout, waveform and nominal voltage are not declared.',
-        };
+        const coil = electrical.coilModel;
+        if (coil) {
+          g.nominalVoltage = known(
+            coil.supply.voltage,
+            'instance',
+            'Explicit coil nominal voltage, independent of contact ratings.',
+          );
+          g.nominalPowerWatts = known(
+            coil.nominalPowerWatts,
+            'instance',
+            'Explicit real power at nominal coil voltage.',
+          );
+          g.supplyKinds = known([coil.supply.kind], 'instance', 'Declared coil waveform.');
+          g.frequencyHz =
+            coil.supply.kind === 'dc'
+              ? { status: 'independent', basis: 'Declared DC resistive coil.' }
+              : known([coil.supply.frequencyHz], 'instance', 'Declared AC coil frequency.');
+          g.loadLaw = {
+            kind: 'fixed-resistance',
+            resistanceOhms: coil.supply.voltage ** 2 / coil.nominalPowerWatts,
+            approximation: COIL_APPROXIMATION,
+          };
+        } else
+          g.loadLaw = {
+            kind: 'not-assessed',
+            reason:
+              'Coil consumption, pickup/dropout, waveform and nominal voltage are not declared.',
+          };
       }
       if (family === 'controlled-contact') {
         const g = make(

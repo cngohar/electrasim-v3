@@ -1,6 +1,7 @@
 import { COMPONENT_DEFS } from '../components';
 import { normalizeCircuitFaults } from '../faults';
 import type { ComponentDef } from '../types';
+import { COIL_APPROXIMATION, isCoilModel } from './coilModel';
 import {
   type CompileOptions,
   type CompileResult,
@@ -136,9 +137,10 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
                 (frequency) => !Number.isFinite(frequency) || frequency <= 0,
               ))))) ||
       (model.kind === 'contacts' &&
-        (model.poles.some(
-          (pole) => pole.common === pole.no || pole.nc === pole.common || pole.nc === pole.no,
-        ) ||
+        ((model.coilModel !== undefined && (!model.coil || !isCoilModel(model.coilModel))) ||
+          model.poles.some(
+            (pole) => pole.common === pole.no || pole.nc === pole.common || pole.nc === pole.no,
+          ) ||
           (model.coil !== undefined &&
             (model.coil[0] === model.coil[1] ||
               [
@@ -325,7 +327,27 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
             internal('contact', pole.common, pole.nc, !on && operable, `contact:${index}:nc`);
         }
         groups(model.fixedGroups ?? []);
-        if (model.coil) internal('coil', model.coil[0], model.coil[1], operable, 'coil', false);
+        if (model.coil)
+          internal(
+            'coil',
+            model.coil[0],
+            model.coil[1],
+            operable,
+            'coil',
+            false,
+            model.coilModel
+              ? model.coilModel.supply.voltage ** 2 / model.coilModel.nominalPowerWatts
+              : undefined,
+          );
+        if (model.coilModel)
+          coverage.push({
+            subjectId: component.id,
+            aspect: 'controls',
+            status: options.contactStates?.has(component.id) ? 'estimated' : 'not-assessed',
+            reason: options.contactStates?.has(component.id)
+              ? COIL_APPROXIMATION
+              : 'Declared coil controls require the deterministic simulation step; a static contact snapshot cannot operate them.',
+          });
         if (model.limitation)
           coverage.push({
             subjectId: component.id,

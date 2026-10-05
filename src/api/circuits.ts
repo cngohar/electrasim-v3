@@ -38,7 +38,7 @@ circuitsApi.post('/simulator/authorize', async (c) => {
 });
 circuitsApi.post('/simulator/simulate', async (c) => {
   const input = object(await c.req.json());
-  keys(input, ['circuit', 'standard']);
+  keys(input, ['circuit', 'standard', 'simulationState', 'deltaSeconds']);
   const circuit = readCircuit(input.circuit, true);
   if (circuit.components.length > 500 || circuit.wires.length > 1000)
     throw new HTTPException(413, {
@@ -49,7 +49,22 @@ circuitsApi.post('/simulator/simulate', async (c) => {
     throw new HTTPException(400, { message: 'Unknown standard' });
   await authorize(c, circuitRequirements(circuit));
   const { simulate } = await import('@electrasim/domain/simulation/simulate');
-  const result = simulate(circuit, { standard: standard as 'int', appMode: 'pro' });
+  // Domain validates the complete state, model/configuration identity and step bounds.
+  // This calculation endpoint does not accept or grade exercise results.
+  const result = simulate(circuit, {
+    standard: standard as 'int',
+    appMode: 'pro',
+    simulationState: input.simulationState as
+      | import('@electrasim/domain/core/contracts').ElectricalSimulationState
+      | undefined,
+    deltaSeconds: input.deltaSeconds as number | undefined,
+  });
+  if (
+    result.electrical?.diagnostics.some(
+      (d) => d.code === 'invalid-simulation-state' || d.code === 'invalid-simulation-step',
+    )
+  )
+    return c.json({ error: result.electrical.diagnostics[0]?.message }, 400);
   return c.json(
     JSON.parse(
       JSON.stringify(result, (_key, value) => (value instanceof Set ? [...value] : value)),

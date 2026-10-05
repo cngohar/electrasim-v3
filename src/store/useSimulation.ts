@@ -22,7 +22,8 @@
  */
 
 import { COMPONENT_DEFS } from '@electrasim/domain';
-import { useEffect, useRef } from 'react';
+import type { ElectricalSimulationState } from '@electrasim/domain/core/contracts';
+import { useEffect, useRef, useState } from 'react';
 import { simulateAsync } from '../sim-worker/client';
 import { useCircuitStore } from './circuitStore';
 import { useSettingsStore } from './settingsStore';
@@ -52,6 +53,11 @@ export function useSimulation() {
   const seqRef = useRef(0);
   // Debounce timer.
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const runtimeRef = useRef<ElectricalSimulationState | undefined>(undefined);
+  const acceptedInputsRef = useRef<unknown[]>([]);
+  const acceptedTickRef = useRef(0);
+  const [clockTick, setClockTick] = useState(0);
 
   useEffect(() => {
     // Allocate a revision as soon as the inputs change. Waiting until the
@@ -59,6 +65,20 @@ export function useSimulation() {
     // publish a result for a circuit that is no longer current.
     const mySeq = ++seqRef.current;
     const membershipRevision = accessRevision;
+    const inputs = [
+      components,
+      wires,
+      globalVoltage,
+      supply,
+      faults,
+      accessRevision,
+      regulationStandard,
+    ];
+    const clockStep =
+      runtimeRef.current !== undefined &&
+      clockTick !== acceptedTickRef.current &&
+      inputs.every((value, i) => value === acceptedInputsRef.current[i]);
+    if (clockTimerRef.current) clearTimeout(clockTimerRef.current);
 
     if (!simRunning) {
       if (timerRef.current) {
@@ -66,25 +86,37 @@ export function useSimulation() {
         timerRef.current = null;
       }
       useUiStore.getState().setSimResult(null);
+      runtimeRef.current = undefined;
+      acceptedInputsRef.current = [];
+      acceptedTickRef.current = clockTick;
       lastSignatureRef.current = '';
       return;
     }
 
     // Never display a result computed for the previous graph while the
     // replacement request is debouncing or running.
-    useUiStore.getState().setSimResult(null);
+    if (!clockStep) useUiStore.getState().setSimResult(null);
 
     if (timerRef.current) clearTimeout(timerRef.current);
+    const requestDelay = clockStep ? 0 : DEBOUNCE_MS;
     timerRef.current = setTimeout(() => {
       timerRef.current = null;
       // Snapshot the inputs at scheduling time so a later mutation
       // doesn't slip into the worker call we're about to make.
       const circuit = { components, wires, globalVoltage, supply, faults };
 
-      void authorizeCircuit(circuit)
+      // Clock-only continuation reuses this run's authorization. Every input,
+      // membership revision and new Run goes through the fresh action check.
+      void (clockStep ? Promise.resolve() : authorizeCircuit(circuit))
         .then(() => {
           if (mySeq !== seqRef.current || !useUiStore.getState().simRunning) return null;
-          return simulateAsync(circuit, { appMode: 'pro', standard: regulationStandard });
+          return simulateAsync(circuit, {
+            appMode: 'pro',
+            standard: regulationStandard,
+            ...(runtimeRef.current
+              ? { simulationState: runtimeRef.current, deltaSeconds: clockStep ? 0.1 : 0 }
+              : {}),
+          });
         })
         .then((result) => {
           // Drop result if a newer request was kicked off in the meantime
@@ -156,6 +188,24 @@ export function useSimulation() {
           }
 
           useUiStore.getState().setSimResult(result);
+          runtimeRef.current = result.simulationState;
+          acceptedTickRef.current = clockTick;
+          acceptedInputsRef.current = inputs;
+          if (result.simulationState)
+            clockTimerRef.current = setTimeout(() => setClockTick((tick) => tick + 1), 100);
+          for (const event of result.simulationEvents ?? []) {
+            const component = components.find((item) => item.id === event.componentId);
+            const label =
+              component?.state.autoLabel ??
+              (component ? COMPONENT_DEFS[component.type]?.label : undefined) ??
+              event.componentId;
+            useUiStore
+              .getState()
+              .addLog(
+                `${label}: coil ${event.type === 'coil-pickup' ? 'picked up' : 'dropped out'} at ${event.atSeconds} s simulated time.`,
+                'info',
+              );
+          }
 
           // Check if protection tripped or wire melted during simulation
           if (result.trippedComponents && result.trippedComponents.length > 0) {
@@ -430,9 +480,10 @@ export function useSimulation() {
           ui.setSimResult(null);
           ui.addLog(`Simulation failed: ${msg}`, 'error');
         });
-    }, DEBOUNCE_MS);
+    }, requestDelay);
 
     return () => {
+      if (clockTimerRef.current) clearTimeout(clockTimerRef.current);
       if (timerRef.current) {
         clearTimeout(timerRef.current);
         timerRef.current = null;
@@ -450,5 +501,6 @@ export function useSimulation() {
     simRunning,
     accessRevision,
     regulationStandard,
+    clockTick,
   ]);
 }

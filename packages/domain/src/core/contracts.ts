@@ -7,6 +7,7 @@ import type {
   InstallationMethod,
   PortRef,
 } from '../types';
+import type { CoilModel } from './coilModel';
 import type { FaultCurrentMeasurement, ProtectiveCurrentMeasurement } from './earthing';
 import type {
   CircuitOperatingState,
@@ -17,7 +18,7 @@ import type {
 import type { CircuitReadiness } from './readiness';
 
 export const ELECTRICAL_CONTRACT_VERSION = 1 as const;
-export const ELECTRICAL_MODEL_VERSION = '1.5c.5.1' as const;
+export const ELECTRICAL_MODEL_VERSION = '1.5d.0.1' as const;
 export type CoverageStatus = 'supported' | 'estimated' | 'not-assessed';
 
 export interface ElectricalDiagnostic {
@@ -101,6 +102,7 @@ export type ElectricalDeviceModel =
       poles: readonly ContactPole[];
       fixedGroups?: readonly (readonly number[])[];
       coil?: PortPair;
+      coilModel?: CoilModel;
       limitation?: string;
     }
   | { kind: 'selector'; on: readonly PortPair[]; off: readonly PortPair[] }
@@ -202,7 +204,7 @@ export interface TerminalGraph {
 
 export interface CompileOptions {
   defs?: Record<string, ComponentDef>;
-  /** Transient contact state supplied by a future device step, never saved into Circuit. */
+  /** Transient contact state supplied by a device step, never saved into Circuit. */
   contactStates?: ReadonlyMap<string, boolean>;
 }
 
@@ -223,14 +225,44 @@ export type CompileResult =
       coverage: ModelCoverage[];
     };
 
-/** Reserved time-step state; the linear solver does not advance devices or time. */
+export interface PendingControlTransition {
+  closed: boolean;
+  atSeconds: number;
+}
+
+/** Validated transient state. Circuit configuration changes require a reset. */
 export interface ElectricalSimulationState {
+  version: 1;
   modelVersion: string;
+  configurationKey: string;
   elapsedSeconds: number;
   contactStates: Record<string, boolean>;
+  pending: Record<string, PendingControlTransition>;
+  eventSequence: number;
+}
+
+export interface ElectricalControlEvent {
+  sequence: number;
+  atSeconds: number;
+  componentId: string;
+  type: 'coil-pickup' | 'coil-dropout';
+  /** Coil readings immediately before this event; result readings are post-event. */
+  coilVoltageVolts: number | null;
+  coilCurrentAmps: number | null;
+  coilPowerWatts: number | null;
+}
+
+export interface ControlOperatingPoint {
+  componentId: string;
+  closed: boolean;
+  coilVoltageVolts: number | null;
+  coilCurrentAmps: number | null;
+  coilPowerWatts: number | null;
+  pending: PendingControlTransition | null;
 }
 
 export interface ElectricalSimulationResult {
+  controls?: ControlOperatingPoint[];
   contractVersion: typeof ELECTRICAL_CONTRACT_VERSION;
   engineVersion: string;
   modelVersion: string;

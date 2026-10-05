@@ -7,6 +7,7 @@ import type {
   InjectedFault,
   WireInstance,
 } from '../types';
+import { coilPortsFor, isCoilModel } from './coilModel';
 import type { ElectricalDiagnostic } from './contracts';
 import { isSupplyProfile, sourceInterface, sourceProfileFitsInterface } from './supplies';
 import { WIRE_AWG_MM2 } from './wireProperties';
@@ -37,7 +38,9 @@ function isComponentState(value: unknown): boolean {
     if (field === undefined) continue;
     // These keys are discarded during normalization before hydration.
     if (key === '__proto__' || key === 'constructor' || key === 'prototype') continue;
-    if (key === 'sourceProfile') {
+    if (key === 'coilModel') {
+      if (!isCoilModel(field)) return false;
+    } else if (key === 'sourceProfile') {
       if (!isSupplyProfile(field)) return false;
     } else if (key === 'on' || key === 'energized' || key === 'isBlown' || key === 'isTripped') {
       if (typeof field !== 'boolean') return false;
@@ -252,6 +255,13 @@ export function validateCircuitInput(
         'duplicate-component',
         `Duplicate component id "${value.id}" at index ${index}.`,
         `components[${index}].id`,
+        { componentId: value.id },
+      );
+    if (value.state.coilModel && !coilPortsFor(value.type, defs[value.type]!))
+      return invalid(
+        'invalid-coil-model-target',
+        'A coil model requires declared isolated coil terminals.',
+        `components[${index}].state.coilModel`,
         { componentId: value.id },
       );
     if (value.state.sourceProfile && !sourceInterface(value.type))

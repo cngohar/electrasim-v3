@@ -233,6 +233,8 @@ export interface FaultDiagnostic {
 }
 
 export interface ComponentState {
+  /** Explicit versioned coil teaching model; contact ratings remain independent. */
+  coilModel?: import('./core/coilModel').CoilModel;
   /** Versioned source configuration. Valid only on declared supply interfaces. */
   sourceProfile?: SupplyProfile;
   /** Manual open/closed state for switch-like and protection components. */
@@ -419,6 +421,9 @@ export interface SimulationLimitation {
 }
 
 export interface SimulationResult {
+  /** Transient deterministic control state; never stored in a circuit document. */
+  simulationState?: import('./core/contracts').ElectricalSimulationState;
+  simulationEvents?: import('./core/contracts').ElectricalControlEvent[];
   /** Shared current-document preflight; separate from telemetry and fault clearing. */
   readiness?: CircuitReadiness;
   /** Full versioned MNA calculation, including explicit unavailable measurements. */

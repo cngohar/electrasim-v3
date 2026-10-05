@@ -23,6 +23,9 @@ const ElectricalEditDialog = lazy(() =>
 const CommandPalette = lazy(() =>
   import('./components/CommandPalette').then((m) => ({ default: m.CommandPalette })),
 );
+const ShortcutsOverlay = lazy(() =>
+  import('./components/ShortcutsOverlay').then((m) => ({ default: m.ShortcutsOverlay })),
+);
 const ContactModal = lazy(() =>
   import('./components/ContactModal').then((m) => ({ default: m.ContactModal })),
 );
@@ -94,7 +97,6 @@ import { MenuOverlay } from './components/MenuOverlay';
 import { MiniMap } from './components/MiniMap';
 import { Palette } from './components/Palette';
 import { PhoneDock } from './components/PhoneDock';
-import { ShortcutsOverlay } from './components/ShortcutsOverlay';
 import { StatusPill } from './components/StatusPill';
 import { SubHeaderBar } from './components/SubHeaderBar';
 import { Toolbar } from './components/Toolbar';
@@ -158,6 +160,7 @@ export function Editor() {
     (s) => !!s.request || s.reviewOpen || !!s.notice || !!s.inspectComponentId,
   );
   const commandPaletteOpen = useUiStore((s) => s.commandPaletteOpen);
+  const shortcutsOpen = useUiStore((s) => s.shortcutsOpen);
   useSimulation();
   useKeyboardShortcuts();
   const resolvedTheme = useResolvedTheme();
@@ -451,7 +454,14 @@ export function Editor() {
           <CommandPalette />
         </Suspense>
       )}
-      <ShortcutsOverlay />
+      {shortcutsOpen && (
+        <LazySurface
+          label="Keyboard shortcuts"
+          onClose={() => useUiStore.getState().setShortcutsOpen(false)}
+        >
+          <ShortcutsOverlay />
+        </LazySurface>
+      )}
       <UndoToast />
       {electricalFeedbackOpen && (
         <Suspense fallback={null}>

@@ -12,6 +12,7 @@ export function ElectricalReadings({
   const calculated = electrical?.status === 'converged' && !result?.legacyObservation;
   const load = electrical?.loads.find((item) => item.componentId === componentId);
   const transformer = electrical?.transformers.find((item) => item.componentId === componentId);
+  const control = electrical?.controls?.find((item) => item.componentId === componentId);
   const poles = electrical?.deviceCurrents.filter((item) => item.componentId === componentId) ?? [];
   const values = calculated ? result?.componentCalculations?.[componentId] : undefined;
   return (
@@ -22,6 +23,26 @@ export function ElectricalReadings({
       <h3 className="font-semibold">Simulation readings</h3>
       <p>{result ? calculationLabel(result) : 'Run to calculate measurements.'}</p>
       {result?.legacyObservation && <p>{result.legacyObservation.reason}</p>}
+      {control && (
+        <>
+          <p>
+            Simulated time:{' '}
+            <output data-reading="simulation-time">
+              {reading(result?.simulationState?.elapsedSeconds, 's')}
+            </output>
+          </p>
+          <p>Coil contact drive: {control.closed ? 'operated' : 'released'}.</p>
+          {control.pending && (
+            <p>
+              Pending {control.pending.closed ? 'pickup' : 'dropout'} at{' '}
+              {reading(control.pending.atSeconds, 's')}.
+            </p>
+          )}
+          <p>
+            The voltage, current and power below describe the coil. Contact currents are separate.
+          </p>
+        </>
+      )}
       {transformer ? (
         <>
           <p>Primary terminal voltage: {reading(transformer.primaryVoltageVolts, 'V')}</p>

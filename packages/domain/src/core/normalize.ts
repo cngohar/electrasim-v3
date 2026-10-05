@@ -1,6 +1,7 @@
 import { COMPONENT_DEFS } from '../components';
 import { type StandardId, getStandard } from '../standards';
 import type { Circuit, ComponentDef, ComponentState, InjectedFault } from '../types';
+import { copyCoilModel } from './coilModel';
 import {
   copySupplyProfile,
   explicitSupplyProfile,
@@ -39,6 +40,7 @@ export function resolveComponentState(
   releaseMomentary = false,
 ): ComponentState {
   const result = copySafeRecord(state);
+  if (result.coilModel) result.coilModel = copyCoilModel(result.coilModel);
   if (result.sourceProfile) result.sourceProfile = copySupplyProfile(result.sourceProfile);
   if (definition?.isSwitch && result.on === undefined) result.on = definition.defaultOn ?? false;
   if (definition?.isMomentary && releaseMomentary) result.on = false;

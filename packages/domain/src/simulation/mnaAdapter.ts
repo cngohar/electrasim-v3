@@ -167,12 +167,24 @@ export function adaptMnaResult(
       'Short circuit — a conductor bypasses a source or winding load. Current is a declared-network estimate; protective clearing is not assessed.',
     );
   }
+  if (electrical.controls)
+    result.coilStates = Object.fromEntries(
+      electrical.controls.map((control) => [control.componentId, control.closed]),
+    );
   if (electrical.status !== 'converged') return result;
 
   const threshold = LINEAR_SYSTEM_LIMITS.absoluteTolerance;
   const present = (value: number | null | undefined): value is number =>
     value != null && Number.isFinite(value);
   result.componentCalculations = {};
+  if (electrical.controls) {
+    for (const control of electrical.controls)
+      result.componentCalculations[control.componentId] = {
+        ...(present(control.coilVoltageVolts) ? { voltage: control.coilVoltageVolts } : {}),
+        ...(present(control.coilCurrentAmps) ? { currentAmps: control.coilCurrentAmps } : {}),
+        ...(present(control.coilPowerWatts) ? { powerWatts: control.coilPowerWatts } : {}),
+      };
+  }
   result.wireCalculations = {};
   result.wireStates = {};
   result.overloadedWires = new Set();

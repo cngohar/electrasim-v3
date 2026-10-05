@@ -1,4 +1,5 @@
 export * from './contracts';
+export * from './coilModel';
 export { compileCircuit } from './compile';
 export { terminalId } from './faultTopology';
 export { validateCircuitInput } from './input';

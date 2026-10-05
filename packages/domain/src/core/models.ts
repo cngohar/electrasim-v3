@@ -1,5 +1,6 @@
 import type { Circuit, ComponentDef, ComponentInstance } from '../types';
 import { DEVICE_CAPABILITY_FAMILIES, RESISTIVE_NOMINAL_VOLTS } from './capabilityCatalogue';
+import { copyCoilModel } from './coilModel';
 import type { ElectricalDeviceModel, PortPair } from './contracts';
 import { DOCUMENT_SUPPLY_ID, resolveSourceProfile } from './supplies';
 
@@ -120,7 +121,8 @@ export function resolveDeviceModel(
       kind: 'contacts',
       poles: def.switchContacts.map((pole) => ({ ...pole })),
       coil: def.coilPorts,
-      ...(def.coilPorts
+      ...(def.coilPorts && state.coilModel ? { coilModel: copyCoilModel(state.coilModel) } : {}),
+      ...(def.coilPorts && !state.coilModel
         ? {
             limitation:
               'Coil voltage, consumption and timing await the device model; only supplied contact state is compiled.',
@@ -143,7 +145,9 @@ export function resolveDeviceModel(
       kind: 'contacts',
       poles: [{ common: 2, no: 3 }],
       coil: [0, 1],
-      limitation: 'Delay timing and coil consumption are not assessed.',
+      ...(state.coilModel
+        ? { coilModel: copyCoilModel(state.coilModel) }
+        : { limitation: 'Delay timing and coil consumption are not assessed.' }),
     };
   if (type === 'intermediate-switch')
     return {

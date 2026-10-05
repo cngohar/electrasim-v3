@@ -3,6 +3,7 @@
  * which have not migrated yet, with explicitly unavailable numerical telemetry. */
 import { COMPONENT_DEFS } from '../components';
 import { compileCircuit } from '../core/compile';
+import { advanceControlStep } from '../core/controlStep';
 import { solveCompiledCircuit } from '../core/mna';
 import { getLegacySimulationLimitations, getSimulationLimitations } from '../simulationCoverage';
 import type { Circuit, SimulationResult } from '../types';
@@ -14,6 +15,23 @@ export type { SimulateOptions } from './legacy';
 export function simulate(circuit: Circuit, options: SimulateOptions = {}): SimulationResult {
   const defs = options.defs ?? COMPONENT_DEFS;
   const compiled = compileCircuit(circuit, { defs });
+  if (
+    compiled.status === 'compiled' &&
+    (options.simulationState !== undefined ||
+      options.deltaSeconds !== undefined ||
+      compiled.graph.devices.some((d) => d.model.kind === 'contacts' && d.model.coilModel))
+  ) {
+    const step = advanceControlStep(compiled, {
+      defs,
+      simulationState: options.simulationState,
+      deltaSeconds: options.deltaSeconds,
+    });
+    return {
+      ...adaptMnaResult(step.compiled, step.electrical, defs),
+      ...(step.simulationState ? { simulationState: step.simulationState } : {}),
+      simulationEvents: step.simulationEvents,
+    };
+  }
   const electrical = solveCompiledCircuit(compiled, { defs });
   const legacyDeviceGap =
     compiled.status === 'compiled' &&

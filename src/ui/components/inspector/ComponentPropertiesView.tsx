@@ -15,6 +15,7 @@ import {
 } from '@electrasim/domain/core/supplyEditing';
 import { previewVariantChange } from '@electrasim/domain/core/variantEditing';
 import { HelpCircle, Lock, RotateCcw, RotateCw, Trash2 } from 'lucide-react';
+import { Suspense, lazy } from 'react';
 import { setMomentarySwitchState, useCircuitStore } from '../../../store/circuitStore';
 import { requestSupplyEdit, useConfigurationLockReason } from '../../../store/electricalEditing';
 import { useCircuitDocument, useCircuitReadiness } from '../../../store/electricalReadiness';
@@ -30,6 +31,7 @@ const button =
   'rounded-lg border border-slate-200 px-2 py-1.5 text-xs font-semibold hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800';
 const input =
   'w-full rounded border border-slate-200 bg-white px-2 py-1 font-mono text-xs disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900';
+const CoilModelEditor = lazy(() => import('./CoilModelEditor'));
 
 export function ComponentPropertiesView({
   selectedComp,
@@ -234,11 +236,13 @@ export function ComponentPropertiesView({
               : 'Not declared'}
             .
           </p>
-          <p>
-            {coil.loadLaw.kind === 'not-assessed'
-              ? coil.loadLaw.reason
-              : 'See the declared coil model.'}
-          </p>
+          <Suspense fallback={<p>Loading coil settings…</p>}>
+            <CoilModelEditor
+              key={`${selectedComp.id}:${JSON.stringify(selectedComp.state.coilModel)}`}
+              component={selectedComp}
+              locked={locked}
+            />
+          </Suspense>
         </section>
       )}
       {capability.groups
@@ -417,7 +421,13 @@ export function ComponentPropertiesView({
                   : 'OPEN (OFF)'}
             </button>
           )}
-          {coilState !== undefined && <p>Automatic coil control · ideal rail estimate</p>}
+          {coilState !== undefined && (
+            <p>
+              {simResult?.simulationState
+                ? 'Automatic coil control · declared timed model'
+                : 'Automatic coil control · ideal rail estimate'}
+            </p>
+          )}
         </section>
       )}
       <div className="grid grid-cols-2 gap-2">
@@ -446,6 +456,7 @@ export function ComponentPropertiesView({
           onClick={() =>
             update(selectedComp.id, {
               ...resolveComponentState({}, def),
+              coilModel: undefined,
               customPowerWatts: undefined,
               customMaxAmps: undefined,
               customMaxVolts: undefined,

@@ -35,6 +35,10 @@ import { calculateMCBTrip, calculateRCDTrip, formatClearingTime } from './tripCu
 // ─── Public entry point ────────────────────────────────────────────────────
 
 export interface SimulateOptions {
+  /** Explicit transient state; omit to reset. Never used for legacy observations. */
+  simulationState?: import('../core/contracts').ElectricalSimulationState;
+  /** Simulated time, not wall time. Omit for a zero-time solve. */
+  deltaSeconds?: number;
   /** Override the registry (used in tests). Defaults to COMPONENT_DEFS. */
   defs?: Record<string, ComponentDef>;
   /** Presentation compatibility only. Electrical behavior is identical in both modes. */

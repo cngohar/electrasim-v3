@@ -9,6 +9,8 @@ import type {
 } from '@electrasim/domain/challenges';
 import { explicitSupplyProfile } from '@electrasim/domain/core/supplies';
 import { simulate } from '@electrasim/domain/simulation';
+import type { SimulationResult } from '@electrasim/domain/types';
+import { controlCircuit, setControlSwitch } from '../packages/domain/src/core/controlFixtures';
 import {
   portableResult,
   runtimeAcceptanceCircuits,
@@ -52,6 +54,53 @@ export async function runSimulatorTests(context: Context) {
     'advanced_diagnostics',
   ]);
   const grant = await assign(plan.id, user);
+  await check(
+    'guest local Hono timed controls match domain steps, reset and invalid-state rejection',
+    async () => {
+      const circuit = controlCircuit();
+      let previous: SimulationResult | undefined;
+      for (const [input, deltaSeconds] of [
+        [circuit, 0],
+        [circuit, 0.999],
+        [circuit, 0.001],
+        [setControlSwitch(circuit, false), 0.25],
+      ] as const) {
+        const simulationState = previous?.simulationState;
+        const expected = simulate(input, {
+          simulationState,
+          deltaSeconds,
+          standard: 'int',
+          appMode: 'pro',
+        });
+        const response = await request<SimulationResult>('/simulator/simulate', {
+          method: 'POST',
+          data: { circuit: input, simulationState, deltaSeconds },
+          expected: 200,
+        });
+        assert.deepEqual(response, portableResult(expected));
+        previous = response;
+      }
+      assert.equal(previous?.coilStates?.relay, false);
+      const reset = await request<SimulationResult>('/simulator/simulate', {
+        method: 'POST',
+        data: { circuit },
+        expected: 200,
+      });
+      assert.equal(reset.simulationState?.elapsedSeconds, 0);
+      assert.equal(reset.coilStates?.relay, false);
+      for (const data of [
+        { deltaSeconds: -1 },
+        { deltaSeconds: '1' },
+        { simulationState: {} },
+        { simulationState: null },
+      ])
+        await request('/simulator/simulate', {
+          method: 'POST',
+          data: { circuit, ...data },
+          expected: 400,
+        });
+    },
+  );
   await check(
     'actual local Hono MNA results match the domain across sources, loads, faults and model gaps',
     async () => {

@@ -3,6 +3,7 @@ import { explicitSupplyProfile } from '@electrasim/domain/core/supplies';
 import { simulate } from '@electrasim/domain/simulation';
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { controlCircuit } from '../../packages/domain/src/core/controlFixtures';
 import { component, protectedLoad } from '../../packages/domain/src/simulation/auditFixtures';
 
 const { simulateAsync } = vi.hoisted(() => ({
@@ -49,6 +50,57 @@ describe('useSimulation request sequencing', () => {
   afterEach(() => {
     act(() => useUiStore.getState().setSimRunning(false));
     vi.useRealTimers();
+  });
+
+  it('advances explicit control steps and resets all transient time on Stop/Run', async () => {
+    simulateAsync.mockImplementation(async (circuit, options) => simulate(circuit, options));
+    useCircuitStore.getState().setCircuit(controlCircuit({ onDelaySeconds: 0.2 }));
+    renderHook(() => useSimulation());
+    act(() => useUiStore.getState().setSimRunning(true));
+    await act(async () => vi.advanceTimersByTime(50));
+    expect(useUiStore.getState().simResult?.simulationState?.elapsedSeconds).toBe(0);
+    expect(useUiStore.getState().simResult?.coilStates?.relay).toBe(false);
+    for (let i = 0; i < 2; i++) {
+      await act(async () => vi.advanceTimersByTime(100));
+      await act(async () => vi.advanceTimersByTime(1));
+    }
+    expect(useUiStore.getState().simResult?.simulationState?.elapsedSeconds).toBe(0.2);
+    expect(useUiStore.getState().simResult?.coilStates?.relay).toBe(true);
+    expect(useCircuitStore.getState().components.find((c) => c.id === 'relay')?.state.on).toBe(
+      false,
+    );
+    act(() => useUiStore.getState().setSimRunning(false));
+    await act(async () => vi.advanceTimersByTime(1000));
+    act(() => useUiStore.getState().setSimRunning(true));
+    await act(async () => vi.advanceTimersByTime(50));
+    expect(useUiStore.getState().simResult?.simulationState?.elapsedSeconds).toBe(0);
+    expect(useUiStore.getState().simResult?.coilStates?.relay).toBe(false);
+  });
+
+  it('does not advance accepted time from a stale in-flight clock reply', async () => {
+    const stale = deferred<SimulationResult>();
+    simulateAsync.mockImplementation(async (circuit, options) => simulate(circuit, options));
+    const circuit = controlCircuit({ onDelaySeconds: 0.1 });
+    useCircuitStore.getState().setCircuit(circuit);
+    renderHook(() => useSimulation());
+    act(() => useUiStore.getState().setSimRunning(true));
+    await act(async () => vi.advanceTimersByTime(50));
+    const initial = useUiStore.getState().simResult!;
+    simulateAsync.mockReturnValueOnce(stale.promise);
+    await act(async () => vi.advanceTimersByTime(100));
+    await act(async () => vi.advanceTimersByTime(1));
+    act(() => useCircuitStore.getState().toggleSwitch('switch'));
+    await act(async () => {
+      stale.resolve(
+        simulate(circuit, { simulationState: initial.simulationState, deltaSeconds: 0.1 }),
+      );
+      await stale.promise;
+    });
+    expect(useUiStore.getState().simResult).toBeNull();
+    await act(async () => vi.advanceTimersByTime(50));
+    expect(useUiStore.getState().simResult?.simulationState?.elapsedSeconds).toBe(0);
+    expect(useUiStore.getState().simResult?.simulationState?.pending).toEqual({});
+    expect(useUiStore.getState().simResult?.coilStates?.relay).toBe(false);
   });
 
   it('clears a published result for a supply-only revision received at the worker boundary', async () => {

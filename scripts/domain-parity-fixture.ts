@@ -12,6 +12,7 @@ import {
 /** Shared test workload for local Bun / workerd parity; never served by the app. */
 import { simulate } from '@electrasim/domain/simulation';
 import { GUIDED_CIRCUIT_TEMPLATES } from '@electrasim/domain/templates';
+import { controlCircuit, setControlSwitch } from '../packages/domain/src/core/controlFixtures';
 import { earthingAcceptanceCircuits } from '../packages/domain/src/core/earthingFixtures';
 import { editingCircuit, variantCircuit } from '../packages/domain/src/core/editingFixtures';
 import { mnaAcceptanceCircuits } from '../packages/domain/src/core/mnaFixtures';
@@ -22,6 +23,18 @@ import { runtimeAcceptanceCircuits } from '../packages/domain/src/simulation/run
 
 export function domainParityFixture(): string {
   const results: unknown[] = [];
+  const controls = controlCircuit();
+  let step = simulate(controls);
+  results.push({ controlStep: 'initial', result: step });
+  for (const [name, circuit, deltaSeconds] of [
+    ['before-pickup', controls, 0.999],
+    ['pickup', controls, 0.001],
+    ['before-dropout', setControlSwitch(controls, false), 0.249],
+    ['dropout', setControlSwitch(controls, false), 0.001],
+  ] as const) {
+    step = simulate(circuit, { simulationState: step.simulationState, deltaSeconds });
+    results.push({ controlStep: name, result: step });
+  }
   for (const [name, circuit] of Object.entries(runtimeAcceptanceCircuits()))
     results.push({ runtimeCase: name, result: simulate(circuit) });
   for (const template of GUIDED_CIRCUIT_TEMPLATES) {
