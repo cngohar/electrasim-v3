@@ -7,8 +7,10 @@ import {
 } from './capabilityCatalogue';
 import { COIL_APPROXIMATION } from './coilModel';
 import type { ElectricalDeviceModel, SupplyModel } from './contracts';
+import { DIMMER_APPROXIMATION } from './dimmerModel';
 import { resolveDeviceModel } from './models';
 import { sourceInterface } from './supplies';
+import { TIMER_APPROXIMATION } from './timerModel';
 
 export type ElectricalRating<T> =
   | {
@@ -26,6 +28,7 @@ export interface TerminalCapability {
     | 'reference'
     | 'load'
     | 'coil'
+    | 'control-supply'
     | 'contact'
     | 'connection'
     | 'outlet'
@@ -309,7 +312,45 @@ export function resolveDeviceCapabilities(
               'Coil consumption, pickup/dropout, waveform and nominal voltage are not declared.',
           };
       }
-      if (family === 'controlled-contact') {
+      if (
+        electrical.timerModel?.kind === 'interval' &&
+        electrical.timerModel.controlSupply &&
+        electrical.timerSupplyPorts
+      ) {
+        const timer = electrical.timerModel.controlSupply;
+        const g = make('control-supply', 'control-supply', electrical.timerSupplyPorts);
+        g.nominalVoltage = known(
+          timer.supply.voltage,
+          'instance',
+          'Declared timer electronics supply.',
+        );
+        g.nominalPowerWatts = known(
+          timer.nominalPowerWatts,
+          'instance',
+          'Timer electronics consumption at nominal voltage.',
+        );
+        g.supplyKinds = known([timer.supply.kind], 'instance', 'Declared timer waveform.');
+        g.frequencyHz =
+          timer.supply.kind === 'dc'
+            ? { status: 'independent', basis: 'Resistive DC control supply.' }
+            : known([timer.supply.frequencyHz], 'instance', 'Declared AC timer frequency.');
+        g.loadLaw = {
+          kind: 'fixed-resistance',
+          resistanceOhms: timer.supply.voltage ** 2 / timer.nominalPowerWatts,
+          approximation: TIMER_APPROXIMATION,
+        };
+      }
+      if (electrical.dimmer) {
+        for (const g of groups) {
+          g.supplyKinds = known(['ac-single-phase'], 'teaching-assumption', DIMMER_APPROXIMATION);
+          g.frequencyHz = {
+            status: 'independent',
+            basis:
+              'Ideal synchronous switching; frequency-dependent switching behavior is unassessed.',
+          };
+        }
+      }
+      if (family === 'controlled-contact' && !electrical.timerModel && !electrical.dimmer) {
         const g = make(
           'control',
           'unassessed',

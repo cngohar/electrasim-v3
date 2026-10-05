@@ -199,12 +199,19 @@ export function useSimulation() {
               component?.state.autoLabel ??
               (component ? COMPONENT_DEFS[component.type]?.label : undefined) ??
               event.componentId;
+            const action =
+              event.type === 'coil-pickup'
+                ? 'coil picked up'
+                : event.type === 'coil-dropout'
+                  ? 'coil dropped out'
+                  : event.type === 'timer-on'
+                    ? `timer closed (${event.reason})`
+                    : event.type === 'timer-off'
+                      ? `timer opened (${event.reason})`
+                      : 'timer interval restarted';
             useUiStore
               .getState()
-              .addLog(
-                `${label}: coil ${event.type === 'coil-pickup' ? 'picked up' : 'dropped out'} at ${event.atSeconds} s simulated time.`,
-                'info',
-              );
+              .addLog(`${label}: ${action} at ${event.atSeconds} s simulated time.`, 'info');
           }
 
           // Check if protection tripped or wire melted during simulation

@@ -7,12 +7,14 @@ import {
   isResidualDevice,
 } from '@electrasim/domain';
 import { resolveDeviceCapabilities } from '@electrasim/domain/core/capabilities';
+import { dimmerMaximumLevel } from '@electrasim/domain/core/dimmerModel';
 import { resolveComponentState } from '@electrasim/domain/core/normalize';
 import {
   supplyAtTarget,
   supplyDescription,
   supplyTargetForComponent,
 } from '@electrasim/domain/core/supplyEditing';
+import { hasTimerSettings } from '@electrasim/domain/core/timerModel';
 import { previewVariantChange } from '@electrasim/domain/core/variantEditing';
 import { HelpCircle, Lock, RotateCcw, RotateCw, Trash2 } from 'lucide-react';
 import { Suspense, lazy } from 'react';
@@ -32,6 +34,7 @@ const button =
 const input =
   'w-full rounded border border-slate-200 bg-white px-2 py-1 font-mono text-xs disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900';
 const CoilModelEditor = lazy(() => import('./CoilModelEditor'));
+const TimerModelEditor = lazy(() => import('./TimerModelEditor'));
 
 export function ComponentPropertiesView({
   selectedComp,
@@ -59,10 +62,12 @@ export function ComponentPropertiesView({
       ? 'unassessed'
       : 'compatible';
   const coilState = simResult?.coilStates?.[selectedComp.id];
-  const isOn = coilState ?? selectedComp.state.on === true;
+  const timerState = simResult?.timerContactStates?.[selectedComp.id];
+  const isOn = coilState ?? timerState ?? selectedComp.state.on === true;
   const family = VALID_VARIANT_FAMILIES[selectedComp.type] ?? [];
   const variants = family.filter((type) => !!COMPONENT_DEFS[type]);
   const update = useCircuitStore.getState().updateComponentState;
+  const dimmerMaximum = dimmerMaximumLevel(selectedComp.type);
   const nominalVolts =
     load?.nominalVoltage.status === 'known' ? load.nominalVoltage.value : undefined;
   const nominalWatts =
@@ -226,6 +231,45 @@ export function ComponentPropertiesView({
           </p>
         </section>
       )}
+      {def.isDimmer && (
+        <section className={box}>
+          <h3 className="font-semibold">Dimming</h3>
+          <label className="block">
+            Power setting:{' '}
+            {Math.round(((selectedComp.state.speed ?? dimmerMaximum) / dimmerMaximum) * 100)}%
+            <input
+              aria-label="Dimmer power setting"
+              className="w-full"
+              type="range"
+              min="0"
+              max={dimmerMaximum}
+              step={dimmerMaximum / 100}
+              value={selectedComp.state.speed ?? dimmerMaximum}
+              onChange={(e) => update(selectedComp.id, { speed: Number(e.target.value) })}
+            />
+          </label>
+          <p>
+            Ideal AC dimming for resistive lamps and elements. RMS voltage/current and real power
+            depend on the wiring. LED drivers and motor speed are unassessed.
+          </p>
+          <p>
+            The ON switch enables output; 0% opens it. Dimming does not establish voltage
+            suitability for a lower-rated load.
+          </p>
+        </section>
+      )}
+      {hasTimerSettings(selectedComp.type) && (
+        <section className={box}>
+          <h3 className="font-semibold">Timer program</h3>
+          <Suspense fallback={<p>Loading timer settings…</p>}>
+            <TimerModelEditor
+              key={`${selectedComp.id}:${JSON.stringify(selectedComp.state.timerModel)}`}
+              component={selectedComp}
+              locked={locked}
+            />
+          </Suspense>
+        </section>
+      )}
       {coil && (
         <section className={box}>
           <h3 className="font-semibold">Coil ratings</h3>
@@ -375,7 +419,32 @@ export function ComponentPropertiesView({
       {def.isSwitch && (
         <section className={box}>
           <h3 className="font-semibold">Switch Contact State</h3>
-          {def.isMomentary ? (
+          {selectedComp.state.timerModel ? (
+            <>
+              <button
+                type="button"
+                className={button}
+                onClick={() => useCircuitStore.getState().toggleSwitch(selectedComp.id)}
+              >
+                {selectedComp.state.timerModel.kind === 'schedule'
+                  ? selectedComp.state.on
+                    ? 'Disable timer program'
+                    : 'Enable timer program'
+                  : selectedComp.state.on
+                    ? 'Release trigger'
+                    : 'Trigger timer'}
+              </button>
+              <p>
+                Timed contact:{' '}
+                {timerState === undefined
+                  ? 'Run to calculate'
+                  : timerState
+                    ? 'CLOSED (ON)'
+                    : 'OPEN (OFF)'}
+                .
+              </p>
+            </>
+          ) : def.isMomentary ? (
             <button
               type="button"
               className={button}
@@ -457,6 +526,7 @@ export function ComponentPropertiesView({
             update(selectedComp.id, {
               ...resolveComponentState({}, def),
               coilModel: undefined,
+              timerModel: undefined,
               customPowerWatts: undefined,
               customMaxAmps: undefined,
               customMaxVolts: undefined,

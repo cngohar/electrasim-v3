@@ -1,6 +1,7 @@
 import { explicitSupplyProfile } from '@electrasim/domain/core/supplies';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { editingCircuit, variantCircuit } from '../../packages/domain/src/core/editingFixtures';
+import { dimmingCircuit, timerCircuit } from '../../packages/domain/src/core/timerDimmingFixtures';
 import { component as C } from '../../packages/domain/src/simulation/auditFixtures';
 import { clearHistory, redo, selectCircuit, undo, useCircuitStore } from './circuitStore';
 import { closeElectricalEdit, requestSupplyEdit, useElectricalEditing } from './electricalEditing';
@@ -41,6 +42,42 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('staged configuration and transaction history', () => {
+  it('preserves timer programs through undo/redo, validates inputs and locks edits during runs/exercises', () => {
+    const circuit = timerCircuit();
+    const program = circuit.components[1]!.state.timerModel!;
+    circuit.components[1]!.state.timerModel = undefined;
+    useCircuitStore.getState().setCircuit(circuit);
+    clearHistory();
+    const settings = () => snapshot().components[1]!.state.timerModel;
+    useCircuitStore.getState().updateComponentState('control', { timerModel: program });
+    expect(settings()).toEqual(program);
+    undo();
+    expect(settings()).toBeUndefined();
+    redo();
+    expect(settings()).toEqual(program);
+    useCircuitStore.getState().updateComponentState('control', {
+      timerModel: { version: 1, kind: 'interval', durationSeconds: 1, retrigger: 'restart' },
+    });
+    expect(settings()).toEqual(program);
+    for (const lock of [
+      { simRunning: true },
+      { simRunning: false, challengeAttemptId: 'graded' },
+    ]) {
+      useUiStore.setState(lock);
+      useCircuitStore.getState().updateComponentState('control', { timerModel: undefined });
+      expect(settings()).toEqual(program);
+    }
+  });
+
+  it('allows valid running dimmer inputs but rejects invalid levels', () => {
+    useCircuitStore.getState().setCircuit(dimmingCircuit());
+    useUiStore.setState({ simRunning: true });
+    useCircuitStore.getState().updateComponentState('control', { speed: 1.5 });
+    expect(snapshot().components[1]!.state.speed).toBe(1.5);
+    for (const speed of [-1, 4, Number.NaN])
+      useCircuitStore.getState().updateComponentState('control', { speed });
+    expect(snapshot().components[1]!.state.speed).toBe(1.5);
+  });
   it('does not mutate while staging, canceling or choosing an identical supply', () => {
     const before = snapshot();
     useCircuitStore.getState().setGlobalSupplyVoltage(12);

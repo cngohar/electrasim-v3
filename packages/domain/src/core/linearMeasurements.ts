@@ -1,12 +1,33 @@
 import type { ElectricalBranch, ElectricalSimulationResult, TerminalGraph } from './contracts';
 import { compensatedSum, residualRatio } from './linearSystem';
 
+/** Polarity follows the first nonzero sample; callers reject reversing currents. */
+export function signedRms(samples: { value: number; weight: number }[]): number {
+  const polarity = Math.sign(samples.find((sample) => Math.abs(sample.value) > 1e-12)?.value ?? 0);
+  return (
+    polarity * Math.sqrt(compensatedSum(samples.map(({ value, weight }) => weight * value * value)))
+  );
+}
+
 /** Potentials from independent mathematical references cannot be subtracted. */
 export function voltageBetween(
   result: ElectricalSimulationResult,
   from: string,
   to: string,
 ): number | undefined {
+  if (result.status === 'converged' && result.dimming) {
+    const samples = result.dimming.samples.map((sample) => {
+      const a = sample.terminalVoltages[from];
+      const b = sample.terminalVoltages[to];
+      return a !== undefined &&
+        b !== undefined &&
+        sample.terminalDomains[from] !== undefined &&
+        sample.terminalDomains[from] === sample.terminalDomains[to]
+        ? { value: a - b, weight: sample.weight }
+        : null;
+    });
+    return samples.every((sample) => sample !== null) ? signedRms(samples) : undefined;
+  }
   if (
     result.status !== 'converged' ||
     !Object.hasOwn(result.terminalVoltages, from) ||

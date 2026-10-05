@@ -17,12 +17,21 @@ import { earthingAcceptanceCircuits } from '../packages/domain/src/core/earthing
 import { editingCircuit, variantCircuit } from '../packages/domain/src/core/editingFixtures';
 import { mnaAcceptanceCircuits } from '../packages/domain/src/core/mnaFixtures';
 import { operatingPointAcceptanceCircuits } from '../packages/domain/src/core/operatingPointFixtures';
+import { timerDimmingAcceptanceCircuits } from '../packages/domain/src/core/timerDimmingFixtures';
 import { transformerAcceptanceCircuits } from '../packages/domain/src/core/transformerFixtures';
 import { component as C, wire as W } from '../packages/domain/src/simulation/auditFixtures';
 import { runtimeAcceptanceCircuits } from '../packages/domain/src/simulation/runtimeFixtures';
 
 export function domainParityFixture(): string {
   const results: unknown[] = [];
+  for (const [name, circuit] of Object.entries(timerDimmingAcceptanceCircuits())) {
+    let previous = simulate(circuit);
+    results.push({ timerDimmingCase: name, step: 'reset', result: previous });
+    for (const deltaSeconds of [0.999999, 0.000001, 1, 1]) {
+      previous = simulate(circuit, { simulationState: previous.simulationState, deltaSeconds });
+      results.push({ timerDimmingCase: name, step: deltaSeconds, result: previous });
+    }
+  }
   const controls = controlCircuit();
   let step = simulate(controls);
   results.push({ controlStep: 'initial', result: step });

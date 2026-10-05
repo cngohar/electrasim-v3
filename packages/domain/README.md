@@ -14,13 +14,13 @@ Use subpath imports for challenges, diagnosis and Ohmageddon to preserve lazy lo
 
 The existing geometry router has a clock-bounded search; validation report timestamps and manual fault creation also use a clock. Those conveniences are separate from the deterministic electrical `simulate()` path. No browser or Node-specific APIs are needed by package runtime code.
 
-Supported `simulate()` calls use the shared MNA solver and expose its versioned `electrical` result alongside derived application readings. `solveCircuit()` remains the direct numerical API. Unsupported measurements stay unavailable; eligible unmigrated models are explicitly tagged with `legacyObservation`. See [runtime scope and acceptance](../../docs/audits/phase-1-mna-runtime.md) for the temporary legacy boundary and the remaining timed-device, three-phase and lab work.
+Supported `simulate()` calls use the shared MNA solver and expose its versioned `electrical` result alongside derived application readings. `solveCircuit()` remains the direct numerical API. Configured coil/timer controls use deterministic `simulationState` / `deltaSeconds` steps; resistive AC dimming combines independently solved switching states into RMS readings and real power. The model/capability version is `1.5d.1.1`, with static engine `mna-linear-2`, timed engine `mna-controls-2` and dimming engine `mna-dimming-1`. Unsupported measurements stay unavailable; eligible unmigrated models are explicitly tagged with `legacyObservation`. See [runtime scope](../../docs/audits/phase-1-mna-runtime.md) and [timer/dimming acceptance](../../docs/audits/phase-1-timers-dimming.md) for the temporary legacy boundary and remaining protection, damage, three-phase and lab work.
 
 Local cross-runtime parity from the repository root:
 
 ```sh
 bun run test:domain-local
-bun run verify:phase-1.5c5
+bun run verify:phase-1.5d1
 ```
 
-The self-contained parity command starts an isolated localhost Hono Worker with local persistence and shuts it down afterward. Its 626 cases include the original 480 template/profile/mode/fault combinations and the added compiler, editing, numerical and 57 application-runtime fixtures. The full phase gate also exercises actual Comlink and authenticated application API paths. Test Worker entry points are not imported or exposed by the application Worker and must not be deployed.
+The self-contained parity command starts an isolated localhost Hono Worker with local persistence and shuts it down afterward. Its 666 cases include the original 480 template/profile/mode/fault combinations, compiler/editing/numerical fixtures, 57 application-runtime fixtures and 40 coil/timer/dimming steps. The full phase gate also exercises actual Comlink and authenticated application API paths. Test Worker entry points are not imported or exposed by the application Worker and must not be deployed.

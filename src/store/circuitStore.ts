@@ -14,6 +14,7 @@
 
 import { COMPONENT_DEFS, type ComponentInstance, type WireInstance } from '@electrasim/domain';
 import { coilPortsFor, isCoilModel } from '@electrasim/domain/core/coilModel';
+import { dimmerMaximumLevel } from '@electrasim/domain/core/dimmerModel';
 import { normalizeCircuitDocument, resolveComponentState } from '@electrasim/domain/core/normalize';
 import {
   isSupplyProfile,
@@ -28,6 +29,7 @@ import {
   previewSupplyChange,
   supplyTargetForComponent,
 } from '@electrasim/domain/core/supplyEditing';
+import { isTimerModel, timerModelFitsType } from '@electrasim/domain/core/timerModel';
 import { previewVariantChange } from '@electrasim/domain/core/variantEditing';
 import { WIRE_AWG_MM2 } from '@electrasim/domain/core/wireProperties';
 import { temporal } from 'zundo';
@@ -664,6 +666,20 @@ export const useCircuitStore = create<CircuitState>()(
               (key === 'speed' && COMPONENT_DEFS[component.type]?.isDimmer),
           );
           if (!runtimeOnly && !editingAllowed()) return;
+          if (
+            updates.timerModel !== undefined &&
+            (!isTimerModel(updates.timerModel) ||
+              !timerModelFitsType(component.type, updates.timerModel))
+          )
+            return;
+          if (
+            updates.speed !== undefined &&
+            COMPONENT_DEFS[component.type]?.isDimmer &&
+            (!Number.isFinite(updates.speed) ||
+              updates.speed < 0 ||
+              updates.speed > dimmerMaximumLevel(component.type))
+          )
+            return;
           if (
             updates.coilModel !== undefined &&
             (!isCoilModel(updates.coilModel) ||

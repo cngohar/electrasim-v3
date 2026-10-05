@@ -95,6 +95,7 @@ export function assessTerminalCompatibility(
   const consumes =
     group.role === 'load' ||
     group.role === 'coil' ||
+    group.role === 'control-supply' ||
     group.role === 'primary' ||
     group.role === 'secondary';
   if (consumes) {

@@ -9,7 +9,9 @@ import type {
 } from '../types';
 import { coilPortsFor, isCoilModel } from './coilModel';
 import type { ElectricalDiagnostic } from './contracts';
+import { dimmerMaximumLevel } from './dimmerModel';
 import { isSupplyProfile, sourceInterface, sourceProfileFitsInterface } from './supplies';
+import { isTimerModel, timerModelFitsType } from './timerModel';
 import { WIRE_AWG_MM2 } from './wireProperties';
 
 const MAX_COMPONENTS = 5_000;
@@ -40,6 +42,8 @@ function isComponentState(value: unknown): boolean {
     if (key === '__proto__' || key === 'constructor' || key === 'prototype') continue;
     if (key === 'coilModel') {
       if (!isCoilModel(field)) return false;
+    } else if (key === 'timerModel') {
+      if (!isTimerModel(field)) return false;
     } else if (key === 'sourceProfile') {
       if (!isSupplyProfile(field)) return false;
     } else if (key === 'on' || key === 'energized' || key === 'isBlown' || key === 'isTripped') {
@@ -262,6 +266,24 @@ export function validateCircuitInput(
         'invalid-coil-model-target',
         'A coil model requires declared isolated coil terminals.',
         `components[${index}].state.coilModel`,
+        { componentId: value.id },
+      );
+    if (value.state.timerModel && !timerModelFitsType(value.type, value.state.timerModel))
+      return invalid(
+        'invalid-timer-model-target',
+        'The timer program or control supply does not match this timer family.',
+        `components[${index}].state.timerModel`,
+        { componentId: value.id },
+      );
+    if (
+      defs[value.type]!.isDimmer &&
+      value.state.speed !== undefined &&
+      value.state.speed > dimmerMaximumLevel(value.type)
+    )
+      return invalid(
+        'invalid-dimmer-level',
+        `Dimmer power setting must be between 0 and ${dimmerMaximumLevel(value.type)}.`,
+        `components[${index}].state.speed`,
         { componentId: value.id },
       );
     if (value.state.sourceProfile && !sourceInterface(value.type))

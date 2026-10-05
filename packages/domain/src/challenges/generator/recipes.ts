@@ -713,7 +713,8 @@ const intermediateFanRegulator: ChallengeRecipe = {
   difficulty: 'intermediate',
   topic: 'Load-specific controllers',
   teaches: 'A fan regulator may only control inductive fan loads — never lamps or sockets.',
-  expectedBehaviour: 'The fan runs whenever the regulator passes live through to it.',
+  expectedBehaviour:
+    'Legacy continuity observation: the fan has a closed live path through the regulator. Motor speed, power and dimming response are unassessed until the motor model is implemented.',
   weight: 0.9,
   build({ rng, profile, prefix }) {
     const wiring = new Wiring({ rng, profile, prefix });

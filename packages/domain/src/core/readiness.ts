@@ -108,7 +108,7 @@ export function assessCompiledCircuitReadiness(
   const { sourceBranches, pathSources, sourcesByBranch } = excitation;
   const activeSourceIds = new Set(sourceBranches.values());
   base.loadPaths = graph.branches
-    .filter((b) => b.kind === 'load' || b.kind === 'coil')
+    .filter((b) => b.kind === 'load' || b.kind === 'coil' || b.kind === 'control-supply')
     .map((b) => ({
       branchId: b.id,
       componentId: b.componentId ?? '',

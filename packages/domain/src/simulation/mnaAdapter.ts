@@ -171,12 +171,33 @@ export function adaptMnaResult(
     result.coilStates = Object.fromEntries(
       electrical.controls.map((control) => [control.componentId, control.closed]),
     );
+  if (electrical.timers)
+    result.timerContactStates = Object.fromEntries(
+      electrical.timers.map((timer) => [timer.componentId, timer.closed]),
+    );
   if (electrical.status !== 'converged') return result;
 
   const threshold = LINEAR_SYSTEM_LIMITS.absoluteTolerance;
   const present = (value: number | null | undefined): value is number =>
     value != null && Number.isFinite(value);
   result.componentCalculations = {};
+  for (const dimmer of electrical.dimming?.controls ?? []) {
+    const id = JSON.stringify(['device', dimmer.componentId, 'contact:0:no']);
+    result.componentCalculations[dimmer.componentId] = {
+      ...(present(electrical.branchVoltages[id]) ? { voltage: electrical.branchVoltages[id] } : {}),
+      ...(present(electrical.branchCurrents[id])
+        ? { currentAmps: electrical.branchCurrents[id] }
+        : {}),
+      ...(present(electrical.branchPowers[id]) ? { powerWatts: electrical.branchPowers[id] } : {}),
+    };
+  }
+  for (const timer of electrical.timers ?? [])
+    if (timer.clock === 'declared-supply')
+      result.componentCalculations[timer.componentId] = {
+        ...(present(timer.controlVoltageVolts) ? { voltage: timer.controlVoltageVolts } : {}),
+        ...(present(timer.controlCurrentAmps) ? { currentAmps: timer.controlCurrentAmps } : {}),
+        ...(present(timer.controlPowerWatts) ? { powerWatts: timer.controlPowerWatts } : {}),
+      };
   if (electrical.controls) {
     for (const control of electrical.controls)
       result.componentCalculations[control.componentId] = {

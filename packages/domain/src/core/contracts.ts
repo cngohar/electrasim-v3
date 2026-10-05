@@ -16,9 +16,10 @@ import type {
   WireOperatingPoint,
 } from './operatingPoint';
 import type { CircuitReadiness } from './readiness';
+import type { TimerModel } from './timerModel';
 
 export const ELECTRICAL_CONTRACT_VERSION = 1 as const;
-export const ELECTRICAL_MODEL_VERSION = '1.5d.0.1' as const;
+export const ELECTRICAL_MODEL_VERSION = '1.5d.1.1' as const;
 export type CoverageStatus = 'supported' | 'estimated' | 'not-assessed';
 
 export interface ElectricalDiagnostic {
@@ -103,6 +104,9 @@ export type ElectricalDeviceModel =
       fixedGroups?: readonly (readonly number[])[];
       coil?: PortPair;
       coilModel?: CoilModel;
+      timerModel?: TimerModel;
+      timerSupplyPorts?: PortPair;
+      dimmer?: 'synchronous-resistive';
       limitation?: string;
     }
   | { kind: 'selector'; on: readonly PortPair[]; off: readonly PortPair[] }
@@ -144,7 +148,16 @@ export interface ElectricalTerminal {
 
 export interface ElectricalBranch {
   id: string;
-  kind: 'wire' | 'link' | 'contact' | 'source' | 'load' | 'coil' | 'winding' | 'fault';
+  kind:
+    | 'wire'
+    | 'link'
+    | 'contact'
+    | 'source'
+    | 'load'
+    | 'coil'
+    | 'control-supply'
+    | 'winding'
+    | 'fault';
   from: string;
   to: string;
   closed: boolean;
@@ -206,6 +219,8 @@ export interface CompileOptions {
   defs?: Record<string, ComponentDef>;
   /** Transient contact state supplied by a device step, never saved into Circuit. */
   contactStates?: ReadonlyMap<string, boolean>;
+  /** Internal RMS samples; a static contact override does not model a dimmer. */
+  dimmerSampling?: boolean;
 }
 
 export type CompileResult =
@@ -238,18 +253,47 @@ export interface ElectricalSimulationState {
   elapsedSeconds: number;
   contactStates: Record<string, boolean>;
   pending: Record<string, PendingControlTransition>;
+  timers: Record<string, { inputHigh: boolean; deadlineSeconds: number | null }>;
   eventSequence: number;
 }
 
-export interface ElectricalControlEvent {
+interface ControlEventBase {
   sequence: number;
   atSeconds: number;
   componentId: string;
+}
+export interface CoilControlEvent extends ControlEventBase {
   type: 'coil-pickup' | 'coil-dropout';
   /** Coil readings immediately before this event; result readings are post-event. */
   coilVoltageVolts: number | null;
   coilCurrentAmps: number | null;
   coilPowerWatts: number | null;
+}
+
+export interface TimerControlEvent extends ControlEventBase {
+  type: 'timer-on' | 'timer-off' | 'timer-retrigger';
+  reason: 'schedule' | 'trigger' | 'expiry' | 'disabled' | 'power-loss';
+  /** Actual pole current before the event, distinct from the post-event result. */
+  contactCurrentAmps: number | null;
+}
+export type ElectricalControlEvent = CoilControlEvent | TimerControlEvent;
+
+export interface TimerOperatingPoint {
+  componentId: string;
+  kind: TimerModel['kind'];
+  closed: boolean;
+  clock: 'external' | 'declared-supply';
+  powered: boolean;
+  controlVoltageVolts: number | null;
+  controlCurrentAmps: number | null;
+  controlPowerWatts: number | null;
+  pending: PendingControlTransition | null;
+}
+
+export interface RmsSample {
+  weight: number;
+  terminalVoltages: Record<string, number>;
+  terminalDomains: Record<string, string>;
 }
 
 export interface ControlOperatingPoint {
@@ -263,6 +307,13 @@ export interface ControlOperatingPoint {
 
 export interface ElectricalSimulationResult {
   controls?: ControlOperatingPoint[];
+  timers?: TimerOperatingPoint[];
+  dimming?: {
+    model: 'synchronous-resistive-rms';
+    controls: { componentId: string; powerFraction: number }[];
+    /** KCL/KVL are verified per sample; scalar RMS magnitudes cannot be summed. */
+    samples: RmsSample[];
+  };
   contractVersion: typeof ELECTRICAL_CONTRACT_VERSION;
   engineVersion: string;
   modelVersion: string;
@@ -328,6 +379,8 @@ export interface TransformerMeasurement {
 }
 
 export interface ElectricalConservationChecks {
+  /** When present, residual maxima describe separately checked switching states. */
+  checkedSwitchingSamples?: number;
   relativeTolerance: number;
   absoluteTolerance: number;
   maximumKclResidualAmps: number;

@@ -13,11 +13,13 @@ import {
   type ModelCoverage,
   type TerminalGraph,
 } from './contracts';
+import { DIMMER_APPROXIMATION } from './dimmerModel';
 import { applyGraphFaults, compareIds, terminalId } from './faultTopology';
 import { validateCircuitInput } from './input';
 import { modelPairs, modelPortIndices, resolveDeviceModel } from './models';
 import { normalizeCircuitDocument } from './normalize';
 import { isSupplyModel, sameSupplyModel } from './supplies';
+import { TIMER_APPROXIMATION, isTimerModel } from './timerModel';
 import { resolveWireProperties } from './wireProperties';
 
 class TerminalGroups {
@@ -138,6 +140,14 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
               ))))) ||
       (model.kind === 'contacts' &&
         ((model.coilModel !== undefined && (!model.coil || !isCoilModel(model.coilModel))) ||
+          (model.timerModel !== undefined &&
+            (!isTimerModel(model.timerModel) ||
+              !!model.coilModel ||
+              !!model.dimmer ||
+              (model.timerModel.kind === 'interval' &&
+                !!model.timerModel.controlSupply !== !!model.timerSupplyPorts))) ||
+          (model.timerSupplyPorts !== undefined &&
+            model.timerSupplyPorts[0] === model.timerSupplyPorts[1]) ||
           model.poles.some(
             (pole) => pole.common === pole.no || pole.nc === pole.common || pole.nc === pole.no,
           ) ||
@@ -347,6 +357,37 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
             reason: options.contactStates?.has(component.id)
               ? COIL_APPROXIMATION
               : 'Declared coil controls require the deterministic simulation step; a static contact snapshot cannot operate them.',
+          });
+        if (model.timerModel) {
+          const supply =
+            model.timerModel.kind === 'interval' ? model.timerModel.controlSupply : undefined;
+          if (supply && model.timerSupplyPorts)
+            internal(
+              'control-supply',
+              model.timerSupplyPorts[0],
+              model.timerSupplyPorts[1],
+              operable,
+              'control-supply',
+              false,
+              supply.supply.voltage ** 2 / supply.nominalPowerWatts,
+            );
+          coverage.push({
+            subjectId: component.id,
+            aspect: 'controls',
+            status: options.contactStates?.has(component.id) ? 'estimated' : 'not-assessed',
+            reason: options.contactStates?.has(component.id)
+              ? TIMER_APPROXIMATION
+              : 'Declared timer programs require a deterministic simulation step.',
+          });
+        }
+        if (model.dimmer)
+          coverage.push({
+            subjectId: component.id,
+            aspect: 'controls',
+            status: options.dimmerSampling ? 'estimated' : 'not-assessed',
+            reason: options.dimmerSampling
+              ? DIMMER_APPROXIMATION
+              : 'Dimming requires the RMS simulation model; a static closed contact is not a dimmer result.',
           });
         if (model.limitation)
           coverage.push({

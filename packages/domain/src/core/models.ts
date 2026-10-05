@@ -3,6 +3,7 @@ import { DEVICE_CAPABILITY_FAMILIES, RESISTIVE_NOMINAL_VOLTS } from './capabilit
 import { copyCoilModel } from './coilModel';
 import type { ElectricalDeviceModel, PortPair } from './contracts';
 import { DOCUMENT_SUPPLY_ID, resolveSourceProfile } from './supplies';
+import { copyTimerModel } from './timerModel';
 
 /** No inference of a resistor from an arbitrary LED/driver/motor's power label. */
 export function resolveDeviceModel(
@@ -149,6 +150,15 @@ export function resolveDeviceModel(
         ? { coilModel: copyCoilModel(state.coilModel) }
         : { limitation: 'Delay timing and coil consumption are not assessed.' }),
     };
+  if (state.timerModel)
+    return {
+      kind: 'contacts',
+      poles: [{ common: 0, no: type === 'countdown-timer' ? 2 : 1 }],
+      timerModel: copyTimerModel(state.timerModel),
+      ...(type === 'countdown-timer' ? { timerSupplyPorts: [0, 1] as const } : {}),
+    };
+  if (def.isDimmer)
+    return { kind: 'contacts', poles: [{ common: 0, no: 1 }], dimmer: 'synchronous-resistive' };
   if (type === 'intermediate-switch')
     return {
       kind: 'selector',
@@ -228,6 +238,7 @@ export function modelPortIndices(model: ElectricalDeviceModel): readonly number[
           p.nc === undefined ? [p.common, p.no] : [p.common, p.no, p.nc],
         ),
         ...(model.coil ?? []),
+        ...(model.timerSupplyPorts ?? []),
         ...(model.fixedGroups ?? []).flat(),
       ];
     case 'connections':

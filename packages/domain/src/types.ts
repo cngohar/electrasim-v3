@@ -235,11 +235,13 @@ export interface FaultDiagnostic {
 export interface ComponentState {
   /** Explicit versioned coil teaching model; contact ratings remain independent. */
   coilModel?: import('./core/coilModel').CoilModel;
+  /** Explicit timer program; elapsed time, latches and deadlines are never saved here. */
+  timerModel?: import('./core/timerModel').TimerModel;
   /** Versioned source configuration. Valid only on declared supply interfaces. */
   sourceProfile?: SupplyProfile;
   /** Manual open/closed state for switch-like and protection components. */
   on?: boolean;
-  /** Dimmer / fan speed level (0..N). */
+  /** Dimmer power setting: light 0..3, legacy fan regulator 0..5; omitted means full. */
   speed?: number;
   /** Computed by the simulation engine each tick — UI mirrors this. */
   energized?: boolean;
@@ -454,6 +456,7 @@ export interface SimulationResult {
   modelLimitations?: SimulationLimitation[];
   /** Derived coil operation; never persisted into the manual switch state. */
   coilStates?: Record<string, boolean>;
+  timerContactStates?: Record<string, boolean>;
   /** Loads with nonzero solved power; legacy continuity is explicitly tagged separately. */
   energizedComponents: Set<string>;
   /** Wires with current or nonzero source-relative potential. This is not a current measurement. */

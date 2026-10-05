@@ -219,12 +219,27 @@ describe('guided circuit templates', () => {
     ]);
   });
 
-  it('energises the dimmed lamp only while the dimmer is closed', () => {
+  it('uses a supported incandescent model for full, quarter and zero dimmer output', () => {
     const circuit = cloneTemplateCircuit(requireTemplate('dimmable-lighting'));
     const dimmer = requireComponent(circuit, 'dimmable-lighting-dimmer');
     const lampId = 'dimmable-lighting-bulb';
 
-    expect(simulate(circuit).energizedComponents.has(lampId)).toBe(true);
+    const full = simulate(circuit);
+    expect(requireComponent(circuit, lampId).type).toBe('bulb-incandescent');
+    expect(full.electrical?.status).toBe('converged');
+    expect(full.energizedComponents.has(lampId)).toBe(true);
+    dimmer.state.speed = 0.75;
+    const quarter = simulate(circuit);
+    expect(quarter.componentCalculations?.[lampId]?.currentAmps).toBeCloseTo(
+      full.componentCalculations![lampId]!.currentAmps! / 2,
+      8,
+    );
+    expect(quarter.componentCalculations?.[lampId]?.powerWatts).toBeCloseTo(
+      full.componentCalculations![lampId]!.powerWatts! / 4,
+      8,
+    );
+    dimmer.state.speed = 0;
+    expect(simulate(circuit).energizedComponents.has(lampId)).toBe(false);
 
     dimmer.state.on = false;
     const open = simulate(circuit);

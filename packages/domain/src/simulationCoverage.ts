@@ -1,7 +1,10 @@
 import { COMPONENT_DEFS } from './components';
+import { DIMMER_APPROXIMATION } from './core/dimmerModel';
+import { compareIds } from './core/faultTopology';
 import { resolveDeviceModel } from './core/models';
 import { resolveComponentState } from './core/normalize';
 import { configuredSupplySources, sameSupplyModel } from './core/supplies';
+import { TIMER_APPROXIMATION } from './core/timerModel';
 import type { Circuit, ComponentDef, SimulationLimitation } from './types';
 
 /** Temporary explicit coverage boundary until the replacement device models ship.
@@ -124,6 +127,10 @@ export function getSimulationLimitations(
         'load-model',
         `${model.reason} Only legacy continuity observations are available; numerical measurements and operation are not assessed.`,
       );
+    } else if (model.kind === 'contacts' && model.dimmer) {
+      add('dimming-model', DIMMER_APPROXIMATION);
+    } else if (model.kind === 'contacts' && model.timerModel) {
+      add('timing-model', TIMER_APPROXIMATION);
     } else if (model.kind === 'contacts' && model.limitation) {
       add(
         def.isDimmer
@@ -140,5 +147,7 @@ export function getSimulationLimitations(
         'Static contact current can be calculated. Timed tripping, residual operation and damage are not assessed by the MNA model.',
       );
   }
-  return limitations;
+  return limitations.sort(
+    (a, b) => compareIds(a.componentId, b.componentId) || compareIds(a.code, b.code),
+  );
 }

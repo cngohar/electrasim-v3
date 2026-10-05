@@ -13,6 +13,8 @@ export function ElectricalReadings({
   const load = electrical?.loads.find((item) => item.componentId === componentId);
   const transformer = electrical?.transformers.find((item) => item.componentId === componentId);
   const control = electrical?.controls?.find((item) => item.componentId === componentId);
+  const timer = electrical?.timers?.find((item) => item.componentId === componentId);
+  const dimmer = electrical?.dimming?.controls.find((item) => item.componentId === componentId);
   const poles = electrical?.deviceCurrents.filter((item) => item.componentId === componentId) ?? [];
   const values = calculated ? result?.componentCalculations?.[componentId] : undefined;
   return (
@@ -23,6 +25,54 @@ export function ElectricalReadings({
       <h3 className="font-semibold">Simulation readings</h3>
       <p>{result ? calculationLabel(result) : 'Run to calculate measurements.'}</p>
       {result?.legacyObservation && <p>{result.legacyObservation.reason}</p>}
+      {timer && (
+        <>
+          <p>
+            Simulated time:{' '}
+            <output data-reading="simulation-time">
+              {reading(result?.simulationState?.elapsedSeconds, 's')}
+            </output>
+          </p>
+          <p>
+            Timed contact:{' '}
+            <output data-reading="timer-contact">{timer.closed ? 'CLOSED' : 'OPEN'}</output>.
+          </p>
+          <p>
+            Clock:{' '}
+            {timer.clock === 'external'
+              ? 'independent external clock'
+              : timer.powered
+                ? 'declared supply available'
+                : 'control supply unavailable'}
+            .
+          </p>
+          {timer.pending && (
+            <p>
+              Next {timer.pending.closed ? 'close' : 'open'} at{' '}
+              <output data-reading="timer-deadline">{reading(timer.pending.atSeconds, 's')}</output>
+              .
+            </p>
+          )}
+          <p>
+            {timer.clock === 'declared-supply'
+              ? 'The readings below describe the timer electronics; contact currents are separate.'
+              : 'Clock supply consumption is unassessed; actual contact currents appear below.'}
+          </p>
+        </>
+      )}
+      {dimmer && (
+        <p>
+          Conducted energy setting: {reading(dimmer.powerFraction * 100, '%')}. Readings are across
+          L-in / L-out; inspect the lamp for its delivered voltage. The ideal switch dissipates no
+          real power.
+        </p>
+      )}
+      {electrical?.dimming && (
+        <p>
+          RMS switching model: current and voltage use each switching state; power is the cycle
+          mean. RMS magnitudes cannot be added for a shared feeder.
+        </p>
+      )}
       {control && (
         <>
           <p>

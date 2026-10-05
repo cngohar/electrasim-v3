@@ -12,6 +12,10 @@ import { simulate } from '@electrasim/domain/simulation';
 import type { SimulationResult } from '@electrasim/domain/types';
 import { controlCircuit, setControlSwitch } from '../packages/domain/src/core/controlFixtures';
 import {
+  timerCircuit,
+  timerDimmingAcceptanceCircuits,
+} from '../packages/domain/src/core/timerDimmingFixtures';
+import {
   portableResult,
   runtimeAcceptanceCircuits,
 } from '../packages/domain/src/simulation/runtimeFixtures';
@@ -54,6 +58,58 @@ export async function runSimulatorTests(context: Context) {
     'advanced_diagnostics',
   ]);
   const grant = await assign(plan.id, user);
+  await check(
+    'local Hono dimming and timer replay match the domain with normal guest/paid authorization',
+    async () => {
+      for (const [name, circuit] of Object.entries(timerDimmingAcceptanceCircuits())) {
+        const paid = circuit.components.some(
+          (component) => COMPONENT_DEFS[component.type]?.tier === 'pro',
+        );
+        let previous: SimulationResult | undefined;
+        for (const deltaSeconds of [0, 0.999999, 0.000001, 1, 1]) {
+          const simulationState = previous?.simulationState;
+          const response = await request<SimulationResult>('/simulator/simulate', {
+            ...(paid ? { user } : {}),
+            method: 'POST',
+            expected: 200,
+            data: { circuit, simulationState, deltaSeconds },
+          });
+          assert.deepEqual(
+            response,
+            portableResult(
+              simulate(circuit, { simulationState, deltaSeconds, standard: 'int', appMode: 'pro' }),
+            ),
+            name,
+          );
+          previous = response;
+        }
+      }
+      await request('/simulator/simulate', {
+        method: 'POST',
+        data: { circuit: timerCircuit('digital-weekly-timer') },
+        expected: 401,
+      });
+      await request('/simulator/simulate', {
+        user: other,
+        method: 'POST',
+        data: { circuit: timerCircuit('digital-weekly-timer') },
+        expected: 403,
+      });
+      const bad = timerCircuit();
+      bad.components[1]!.state.timerModel = {
+        version: 1,
+        kind: 'schedule',
+        periodSeconds: 86_400,
+        offsetSeconds: 0,
+        windows: [{ startSeconds: 2, endSeconds: 1 }],
+      };
+      await request('/simulator/simulate', {
+        method: 'POST',
+        data: { circuit: bad },
+        expected: 400,
+      });
+    },
+  );
   await check(
     'guest local Hono timed controls match domain steps, reset and invalid-state rejection',
     async () => {

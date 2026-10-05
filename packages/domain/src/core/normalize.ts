@@ -9,6 +9,7 @@ import {
   resolveSourceProfile,
   sourceInterface,
 } from './supplies';
+import { copyTimerModel } from './timerModel';
 export { LEGACY_SUPPLY_DEFAULTS } from './supplies';
 
 export function createEmptyCircuit(standard: StandardId = 'uk'): Circuit {
@@ -41,6 +42,7 @@ export function resolveComponentState(
 ): ComponentState {
   const result = copySafeRecord(state);
   if (result.coilModel) result.coilModel = copyCoilModel(result.coilModel);
+  if (result.timerModel) result.timerModel = copyTimerModel(result.timerModel);
   if (result.sourceProfile) result.sourceProfile = copySupplyProfile(result.sourceProfile);
   if (definition?.isSwitch && result.on === undefined) result.on = definition.defaultOn ?? false;
   if (definition?.isMomentary && releaseMomentary) result.on = false;

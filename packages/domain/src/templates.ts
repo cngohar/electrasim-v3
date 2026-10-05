@@ -213,7 +213,7 @@ function dimmableLightingTemplate(): GuidedCircuitTemplate {
   const neutral = component(id, 'neutral', 'neutral-terminal', 110, 410);
   const mcb = component(id, 'mcb', 'mcb', 300, 240, { on: true });
   const dimmer = component(id, 'dimmer', 'dimmer-switch', 520, 240, { on: true });
-  const bulb = component(id, 'bulb', 'bulb', 760, 240);
+  const bulb = component(id, 'bulb', 'bulb-incandescent', 760, 240);
 
   return {
     id,
@@ -223,13 +223,13 @@ function dimmableLightingTemplate(): GuidedCircuitTemplate {
     topic: 'Dimmed lighting control',
     summary: 'A lighting circuit whose live feed runs through a dimmer instead of a plain switch.',
     teaches:
-      'A dimmer sits where the switch would be and chops the waveform rather than simply opening it, so it only belongs on dimmable lamps — never on a socket outlet or a motor. The simulator models it as a switch in the live conductor; brightness itself is a hardware behaviour, not a computed output.',
+      'Use a light dimmer with a suitable lamp, never on a socket outlet or a motor. This incandescent lamp uses a fixed-resistance teaching model. The power setting changes RMS voltage, current and real power; perceived brightness, LED drivers and switch losses are unassessed.',
     expected:
-      'Run the simulation: the lamp energises while the dimmer is closed. Toggle the dimmer to break the live feed, then select the lamp and read its voltage and current in the Inspector.',
+      'Run the simulation and change the dimmer power setting in the Inspector. At 25%, a lightly loaded circuit gives about half the full-setting RMS current and voltage and a quarter of the power. Zero or OFF opens the output. Inspect the lamp for delivered measurements.',
     steps: [
       'Trace Live through the MCB into the dimmer L-in terminal.',
       'Follow the dimmer L-out to the lamp, with neutral returning straight to the supply.',
-      'Run the simulation, then toggle the dimmer to compare closed and open states.',
+      'Run, select the dimmer and compare 100%, 25% and 0% power settings; inspect the lamp readings.',
     ],
     faultPrompt:
       'Fault check: inject an open circuit on the dimmed live in the Fault Lab. The lamp stays dark because the dimmer is in series with the feed.',
