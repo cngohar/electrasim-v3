@@ -21,7 +21,7 @@ import type { CircuitReadiness } from './readiness';
 import type { TimerModel } from './timerModel';
 
 export const ELECTRICAL_CONTRACT_VERSION = 1 as const;
-export const ELECTRICAL_MODEL_VERSION = '1.5e.0.1' as const;
+export const ELECTRICAL_MODEL_VERSION = '1.5e.1.1' as const;
 export type CoverageStatus = 'supported' | 'estimated' | 'not-assessed';
 
 export interface ElectricalDiagnostic {

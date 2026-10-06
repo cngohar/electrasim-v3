@@ -223,6 +223,18 @@ export function validateCircuit(
   }
 
   const modelLimitations = simResult?.modelLimitations ?? getSimulationLimitations(circuit);
+  if (simResult?.phasor || components.some((c) => c.type === 'ac-three-phase-supply'))
+    issues.push({
+      id: 'phasor_assessment_unassessed',
+      severity: 'warning',
+      category: 'configuration',
+      blocking: false,
+      title: 'Three-phase operation and repair assessment are unassessed',
+      description:
+        'Complex RMS measurements do not establish motor operation, automatic protective clearing, successful repair or installation compliance.',
+      recommendation:
+        'Use the phasor readings for the declared resistive network. Full device and exercise assessment follows the remaining three-phase and integration gates.',
+    });
   for (const limitation of modelLimitations) {
     issues.push({
       id: `model_${limitation.componentId}_${limitation.code}`,
@@ -938,6 +950,7 @@ export function validateCircuit(
   // 9. SIMULATION ACTIVE FAULT
   if (
     !simResult?.electrical &&
+    !simResult?.phasor &&
     simResult?.errors &&
     simResult.errors.length > 0 &&
     !simResult.modelLimitations?.some((l) => l.blocking)

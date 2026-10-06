@@ -15,11 +15,11 @@ function resistive(): Circuit {
 }
 
 describe('1.5C.0 explicit capability inventory', () => {
-  it('classifies all 115 catalogue variants, with valid group ports and explicit unknowns', () => {
+  it('classifies all 116 catalogue variants, with valid group ports and explicit unknowns', () => {
     expect(Object.keys(DEVICE_CAPABILITY_FAMILIES).sort()).toEqual(
       Object.keys(COMPONENT_DEFS).sort(),
     );
-    expect(Object.keys(COMPONENT_DEFS)).toHaveLength(115);
+    expect(Object.keys(COMPONENT_DEFS)).toHaveLength(116);
     for (const type of Object.keys(COMPONENT_DEFS)) {
       const c = C('device', type);
       const capability = resolveDeviceCapabilities(c, { components: [c], wires: [] });

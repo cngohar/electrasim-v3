@@ -102,7 +102,13 @@ const groups: Record<DeviceFamily, readonly string[]> = {
     'delay-timer',
   ],
   meter: ['kwh-meter'],
-  source: ['ac-mains-supply', 'dc-battery-12v', 'solar-pv-panel', 'diesel-generator'],
+  source: [
+    'ac-mains-supply',
+    'ac-three-phase-supply',
+    'dc-battery-12v',
+    'solar-pv-panel',
+    'diesel-generator',
+  ],
   sounder: [
     'bell',
     'electric-buzzer',
@@ -304,6 +310,18 @@ function body(type: string, family: DeviceFamily): string | undefined {
         rect(37, 42, 8, 5, '#94a3b8')
       );
     case 'source':
+      if (type === 'ac-three-phase-supply')
+        return `${
+          plate() +
+          rect(12, 10, 40, 42, '#475569', 3) +
+          rect(16, 14, 22, 32, '#e2e8f0', 2) +
+          ['#92400e', '#1e293b', '#64748b', '#2563eb', '#16a34a']
+            .map(
+              (color, index) =>
+                `${rect(42, 12 + index * 8, 8, 6, color, 1)}<circle cx="46" cy="${15 + index * 8}" r="1.5" fill="#cbd5e1"/><path d="M45 ${15 + index * 8}h2" stroke="#334155" stroke-width=".7"/>`,
+            )
+            .join('')
+        }<path d="M20 22q3-8 6 0t6 0M20 30q3-8 6 0t6 0M20 38q3-8 6 0t6 0" fill="none" stroke="#475569" stroke-width="1.5"/>`;
       if (type === 'solar-pv-panel')
         return `${
           rect(6, 10, 52, 40, '#334155', 2) +
@@ -427,6 +445,11 @@ export function deviceImage(type: string): string | undefined {
 export function deviceMarking(component: ComponentInstance): string {
   const definition = COMPONENT_DEFS[component.type];
   if (!definition) return '';
+  if (component.type === 'ac-three-phase-supply') {
+    const model = component.state.sourceProfile?.model;
+    const voltage = model?.voltage ?? component.state.customVoltage ?? 230;
+    return `${Number(voltage.toFixed(2))} V L-N · ${model?.kind === 'ac-three-phase' ? model.sequence.toUpperCase() : 'ABC'}`;
+  }
   const amps = component.state.customMaxAmps ?? definition.maxAmps;
   if (amps !== undefined && Number.isFinite(amps) && definition.isProtection) {
     return `${definition.mcbType ?? ''}${amps} A${definition.ratedLeakage_mA ? ` · ${definition.ratedLeakage_mA} mA` : ''}`;

@@ -7,6 +7,7 @@ import type {
   DiagnosisScenario,
   DiagnosisScore,
 } from '@electrasim/domain/challenges';
+import { normalizeCircuitDocument } from '@electrasim/domain/core';
 import { explicitSupplyProfile } from '@electrasim/domain/core/supplies';
 import { simulate } from '@electrasim/domain/simulation';
 import type { SimulationResult } from '@electrasim/domain/types';
@@ -22,6 +23,7 @@ import {
   rcdBalancedCircuit,
   rcdLeakingCircuit,
 } from '../packages/domain/src/core/protectionFixtures';
+import { threePhaseAcceptanceCircuits } from '../packages/domain/src/core/threePhaseFixtures';
 import {
   timerCircuit,
   timerDimmingAcceptanceCircuits,
@@ -69,6 +71,43 @@ export async function runSimulatorTests(context: Context) {
     'advanced_diagnostics',
   ]);
   const grant = await assign(plan.id, user);
+  await check(
+    'guest phasor API uses portable sources and D1 retains phase settings, terminals and faults',
+    async () => {
+      for (const [name, circuit] of Object.entries(threePhaseAcceptanceCircuits()).filter(
+        ([name]) => !['single-live-motor'].includes(name),
+      )) {
+        const response = await request<SimulationResult>('/simulator/simulate', {
+          method: 'POST',
+          data: { circuit },
+          expected: 200,
+        });
+        assert.deepEqual(
+          response,
+          portableResult(simulate(circuit, { standard: 'int', appMode: 'pro' })),
+          name,
+        );
+        assert.equal(response.faultsCleared, false);
+      }
+      const circuit = threePhaseAcceptanceCircuits()['reverse-400v']!;
+      circuit.wires[0]!.fault = 'open-circuit';
+      const saved = await request<Pick<Saved, 'id'>>('/circuits', {
+        user,
+        method: 'POST',
+        data: { name: 'Local phase source', circuit },
+        expected: 201,
+      });
+      const restored = await request(`/circuits/${saved.id}`, { user, expected: 200 });
+      assert.deepEqual(restored.circuit, normalizeCircuitDocument(circuit));
+      assert.equal(restored.circuit.components[0]!.type, 'ac-three-phase-supply');
+      assert.deepEqual(
+        restored.circuit.components[0]!.state.sourceProfile,
+        circuit.components[0]!.state.sourceProfile,
+      );
+      assert.equal(restored.circuit.wires[0]!.fault, 'open-circuit');
+      assert.equal(restored.circuit.wires.at(-1)!.toPortIndex, 3);
+    },
+  );
   await check(
     'local Hono damage and fuse replay match domain steps; malformed state and paid bypass remain guarded',
     async () => {

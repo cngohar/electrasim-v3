@@ -9,6 +9,31 @@
 import type { ComponentHelpData } from './types';
 
 export const LOAD_AND_SUPPLY_HELP: Record<string, ComponentHelpData> = {
+  'ac-three-phase-supply': {
+    title: 'Three-phase AC Supply',
+    category: 'supply',
+    voltage: 'Configured RMS L-N; L-L = √3 × L-N',
+    amperage: 'Ideal source; source current limit is unassessed',
+    frequency: 'Explicit source frequency',
+    ipRating: 'Not modeled',
+    cableSize: 'Use each conductor’s declared properties',
+    poles: 'L1, L2, L3, N, PE',
+    standards: 'Resistive phasor teaching model; installation compliance is unassessed',
+    overview:
+      'An independent source with three live terminals separated by 120°. The saved ABC or ACB sequence defines their order.',
+    circuitBehavior:
+      'Solves complex RMS voltages, branch currents, active power and conductor losses for resistive star, delta and static contact networks. Neutral current is a vector sum.',
+    keySpecs: [
+      'Default 230 V L-N / 398.37 V L-L, 50 Hz, ABC',
+      'PE stays separate from neutral until explicitly wired',
+      'Motor operation, automatic trips, damage and reactive/transient behavior are unassessed',
+    ],
+    quickTips: [
+      'Use Edit supply to preview voltage, frequency or sequence changes.',
+      'Enter 400 V in the L-L input for a 400 V line-to-line source.',
+      'Independent sources have no implied synchronization; connecting their systems is unsupported.',
+    ],
+  },
   'electric-shower': {
     learnMoreSlug: 'how-to-wire-an-electric-shower-cable-size-mcb-guide',
     title: 'Instantaneous Electric Shower (8.5kW)',

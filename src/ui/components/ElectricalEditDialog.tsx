@@ -40,6 +40,16 @@ function EditForm({ request }: { request: Request }) {
   const [frequency, setFrequency] = useState(
     String(initial.model.kind === 'dc' ? 50 : initial.model.frequencyHz),
   );
+  const [sequence, setSequence] = useState<'abc' | 'acb'>(
+    initial.model.kind === 'ac-three-phase' ? initial.model.sequence : 'abc',
+  );
+  const sourceId =
+    request.kind === 'supply' && request.target.kind === 'component'
+      ? request.target.componentId
+      : undefined;
+  const threePhaseSource = circuit.components.some(
+    (c) => c.id === sourceId && c.type === 'ac-three-phase-supply',
+  );
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState('');
   const previousRevision = useRef(circuit);
@@ -53,7 +63,7 @@ function EditForm({ request }: { request: Request }) {
     kind === 'dc'
       ? { kind, voltage: Number(voltage) }
       : kind === 'ac-three-phase'
-        ? { kind, voltage: Number(voltage), frequencyHz: Number(frequency), sequence: 'abc' }
+        ? { kind, voltage: Number(voltage), frequencyHz: Number(frequency), sequence }
         : { kind, voltage: Number(voltage), frequencyHz: Number(frequency) },
   );
   const supplyPreview =
@@ -144,15 +154,20 @@ function EditForm({ request }: { request: Request }) {
                   disabled={pending}
                   onChange={(e) => setKind(e.target.value as typeof kind)}
                 >
-                  <option value="ac-single-phase">AC single-phase</option>
-                  <option value="dc">DC</option>
-                  <option value="ac-three-phase" disabled>
-                    Three-phase · unavailable
+                  <option value="ac-single-phase" disabled={threePhaseSource}>
+                    AC single-phase
+                  </option>
+                  <option value="dc" disabled={threePhaseSource}>
+                    DC
+                  </option>
+                  <option value="ac-three-phase" disabled={!threePhaseSource}>
+                    {threePhaseSource ? 'AC three-phase' : 'Three-phase · add a phase source'}
                   </option>
                 </select>
               </label>
               <label>
                 Voltage (V){kind !== 'dc' && ' RMS'}
+                {kind === 'ac-three-phase' && ' L-N'}
                 <input
                   aria-label="Supply voltage in volts"
                   className={inputClass}
@@ -181,7 +196,43 @@ function EditForm({ request }: { request: Request }) {
                   />
                 </label>
               )}
+              {kind === 'ac-three-phase' && (
+                <label>
+                  Phase sequence
+                  <select
+                    aria-label="Phase sequence"
+                    className={inputClass}
+                    value={sequence}
+                    disabled={pending}
+                    onChange={(e) => setSequence(e.target.value as 'abc' | 'acb')}
+                  >
+                    <option value="abc">ABC · L1 → L2 → L3</option>
+                    <option value="acb">ACB · L1 → L3 → L2</option>
+                  </select>
+                </label>
+              )}
             </div>
+            {kind === 'ac-three-phase' && (
+              <label className="block">
+                Line-to-line voltage (V RMS)
+                <input
+                  aria-label="Line-to-line voltage in volts"
+                  className={inputClass}
+                  type="number"
+                  min="0.002"
+                  max="173205"
+                  step="any"
+                  value={
+                    Number.isFinite(Number(voltage))
+                      ? Number((Number(voltage) * Math.sqrt(3)).toFixed(6))
+                      : ''
+                  }
+                  disabled={pending}
+                  onChange={(e) => setVoltage(String(Number(e.target.value) / Math.sqrt(3)))}
+                />
+                L-N is saved; L-L = √3 × L-N. Both inputs edit the same source.
+              </label>
+            )}
             <div className="flex flex-wrap gap-1">
               {[12, 24, 48, 110, 120, 230, 240].map((v) => (
                 <button
@@ -234,7 +285,11 @@ function EditForm({ request }: { request: Request }) {
                 })}
               </ul>
             </details>
-            <p>Three-phase sources require explicit L1/L2/L3 terminals and are unavailable here.</p>
+            <p>
+              {threePhaseSource
+                ? 'L1/L2/L3/N/PE terminal identities stay fixed. PE requires an explicit bond. Motor operation and automatic clearing remain unassessed.'
+                : 'Three-phase requires a separate L1/L2/L3/N/PE source; existing L/N terminals keep their identities.'}
+            </p>
           </>
         )}
         {variantPreview && (

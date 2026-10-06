@@ -246,7 +246,17 @@ export const useCircuitStore = create<CircuitState>()(
 
         addComponent: (comp) =>
           set((s) => {
-            s.components.push(comp);
+            s.components.push(
+              comp.type === 'ac-three-phase-supply'
+                ? {
+                    ...comp,
+                    state: {
+                      ...comp.state,
+                      sourceProfile: resolveSourceProfile(comp.type, comp.state, s),
+                    },
+                  }
+                : comp,
+            );
           }),
 
         removeComponent: (id) =>

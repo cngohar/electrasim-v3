@@ -84,17 +84,17 @@ export function CircuitReadinessDetails() {
       ))}
       {result && (
         <div
-          data-calculation-status={result.electrical?.status ?? 'unavailable'}
+          data-calculation-status={result.electricalContract?.status ?? 'unavailable'}
           className="space-y-2"
         >
           <p>
             {calculationLabel(result)}. {operationLabel(result)}. Standards assessment: unassessed.
           </p>
           {result.legacyObservation && <p>{result.legacyObservation.reason}</p>}
-          {result.electrical?.diagnostics.map((diagnostic, index) => (
+          {result.electricalContract?.diagnostics.map((diagnostic, index) => (
             <p key={`${diagnostic.code}-${index}`}>{diagnostic.message}</p>
           ))}
-          {result.electrical?.coverage
+          {result.electricalContract?.coverage
             .filter((item) => item.aspect !== 'topology')
             .map((item, index) => (
               <p key={`${item.subjectId}-${item.aspect}-${index}`}>

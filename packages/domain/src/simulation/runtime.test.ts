@@ -4,6 +4,7 @@ import { ELECTRICAL_MODEL_VERSION } from '../core/contracts';
 import { solveCircuit } from '../core/mna';
 import { mnaAcceptanceCircuits, parallelFixture, seriesFixture } from '../core/mnaFixtures';
 import { heaterFixture, protectedBranchesFixture } from '../core/operatingPointFixtures';
+import { solvePhasorCircuit } from '../core/phasor';
 import { transformerFixture } from '../core/transformerFixtures';
 import { component as C, wire as W } from './auditFixtures';
 import { portableResult, runtimeAcceptanceCircuits } from './runtimeFixtures';
@@ -147,7 +148,10 @@ describe('1.5C.5 application MNA adapter', () => {
     'keeps %s electrical output equal to the numerical API and clone-safe',
     (_name, circuit) => {
       const result = simulate(circuit);
-      expect(result.electrical).toEqual(solveCircuit(circuit));
+      if (result.phasor) {
+        expect(result.phasor).toEqual(solvePhasorCircuit(circuit));
+        expect(result.electrical).toBeUndefined();
+      } else expect(result.electrical).toEqual(solveCircuit(circuit));
       expect(simulate(circuit, { appMode: 'basic' })).toEqual(
         simulate(circuit, { appMode: 'pro' }),
       );

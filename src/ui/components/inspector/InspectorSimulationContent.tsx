@@ -14,6 +14,7 @@ import { resolveWireProperties } from '@electrasim/domain/core/wireProperties';
 import { AlertTriangle, Lock, OctagonAlert, Zap } from 'lucide-react';
 import { useCircuitStore, useSettingsStore, useUiStore } from '../../../store';
 import { EmojiGlyph } from '../EmojiGlyph';
+import { PhasorReadings, PhasorWireReadings } from './PhasorReadings';
 import type { InspectorSelectionState } from './useInspectorSelectionState';
 
 export function InspectorSimulationContent({
@@ -31,6 +32,19 @@ export function InspectorSimulationContent({
   // Manual fault injection is Pro-only and gated behind the SubHeaderBar
   // master toggle. Student Mode never exposes the fault buttons.
   const faultsArmed = isPro && manualFaultInjection;
+
+  if (simResult?.phasor && selectionState.kind === 'wire')
+    return (
+      <div className="p-3.5">
+        <PhasorWireReadings wire={selectionState.wire} components={components} result={simResult} />
+      </div>
+    );
+  if (simResult?.phasor && selectionState.kind === 'component')
+    return (
+      <div className="p-3.5">
+        <PhasorReadings componentId={selectionState.component.id} result={simResult} />
+      </div>
+    );
 
   if (selectionState.kind === 'wire') {
     const wire: WireInstance = selectionState.wire;

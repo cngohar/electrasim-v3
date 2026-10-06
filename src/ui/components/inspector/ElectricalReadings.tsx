@@ -1,5 +1,6 @@
 import { calculationLabel, operationLabel } from '@electrasim/domain/simulation/presentation';
 import type { SimulationResult } from '@electrasim/domain/types';
+import { PhasorReadings } from './PhasorReadings';
 
 const reading = (value: number | null | undefined, unit: string) =>
   value != null && Number.isFinite(value) ? `${Number(value.toFixed(4))} ${unit}` : 'Unavailable';
@@ -8,6 +9,7 @@ export function ElectricalReadings({
   componentId,
   result,
 }: { componentId: string; result: SimulationResult | null }) {
+  if (result?.phasor) return <PhasorReadings componentId={componentId} result={result} />;
   const electrical = result?.electrical;
   const calculated = electrical?.status === 'converged' && !result?.legacyObservation;
   const load = electrical?.loads.find((item) => item.componentId === componentId);

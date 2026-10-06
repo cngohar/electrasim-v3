@@ -111,14 +111,19 @@ export function getSimulationLimitations(
       });
     if (
       ((model.kind === 'source' || model.kind === 'source-alias') &&
-        model.supply.kind === 'ac-three-phase') ||
-      component.type === 'motor-3phase' ||
-      component.type === 'distribution-board-3phase'
+        model.supply.kind === 'ac-three-phase' &&
+        !(model.kind === 'source' && model.phasePorts)) ||
+      component.type === 'motor-3phase'
     ) {
       add(
         'three-phase-model',
         'Three-phase equations and device operation are not assessed.',
         true,
+      );
+    } else if (model.kind === 'source' && model.phasePorts) {
+      add(
+        'three-phase-model',
+        'Static resistive phasor readings are supported. Motor operation, timed protection, damage and repair assessment remain unassessed.',
       );
     } else if (model.kind === 'unassessed') {
       add('device-model', model.reason, true);

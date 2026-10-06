@@ -54,6 +54,23 @@ export const SUPPLY_AND_JUNCTION_DEFS: Record<string, ComponentDef> = {
     icon: 'bolt',
   },
 
+  'ac-three-phase-supply': {
+    label: 'Three-phase AC Supply (L1/L2/L3/N/PE)',
+    description:
+      'Independent three-phase RMS source with explicit L1, L2, L3 and neutral. Voltage is configured L-N; L-L is √3 times L-N. PE is separate until explicitly bonded. Resistive phasor readings are supported; motor operation and automatic protective clearing remain unassessed.',
+    category: 'supply',
+    isSource: true,
+    sourceType: 'live',
+    ports: [
+      { type: 'live', relX: 1, relY: 0.1, label: 'L1' },
+      { type: 'live', relX: 1, relY: 0.3, label: 'L2' },
+      { type: 'live', relX: 1, relY: 0.5, label: 'L3' },
+      { type: 'neutral', relX: 1, relY: 0.7, label: 'N' },
+      { type: 'earth', relX: 1, relY: 0.9, label: 'PE' },
+    ],
+    icon: 'bolt',
+  },
+
   'dc-battery-12v': {
     label: '12V DC Deep Cycle Battery',
     description: '12 Volt Direct Current battery storage unit for solar or marine DC circuits.',

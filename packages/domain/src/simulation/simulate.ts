@@ -6,16 +6,20 @@ import { compileCircuit } from '../core/compile';
 import { advanceControlStep } from '../core/controlStep';
 import { dimmerPowerFraction } from '../core/dimmerModel';
 import { solveControlledOperatingPoint } from '../core/dimming';
+import { solvePhasorCircuit } from '../core/phasor';
 import { getLegacySimulationLimitations, getSimulationLimitations } from '../simulationCoverage';
 import type { Circuit, SimulationResult } from '../types';
 import { type SimulateOptions, simulateLegacy } from './legacy';
 import { adaptMnaResult } from './mnaAdapter';
+import { adaptPhasorResult } from './phasorAdapter';
 
 export type { SimulateOptions } from './legacy';
 
 export function simulate(circuit: Circuit, options: SimulateOptions = {}): SimulationResult {
   const defs = options.defs ?? COMPONENT_DEFS;
   const compiled = compileCircuit(circuit, { defs });
+  if (compiled.status === 'compiled' && compiled.graph.sources.some((s) => s.phaseSystemId))
+    return adaptPhasorResult(compiled, solvePhasorCircuit(circuit, { defs }));
   if (
     compiled.status === 'compiled' &&
     (options.simulationState !== undefined ||

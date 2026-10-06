@@ -26,6 +26,7 @@ export const SOURCE_INTERFACES = {
   'live-terminal': 'line-alias',
   'neutral-terminal': 'neutral-alias',
   'ac-mains-supply': 'ac-source',
+  'ac-three-phase-supply': 'ac-source',
   'diesel-generator': 'ac-source',
   'dc-battery-12v': 'dc-source',
 } as const;
@@ -42,6 +43,7 @@ export function sourceProfileFitsInterface(type: string, profile: SupplyProfile)
   const kind = sourceInterface(type);
   return (
     kind !== undefined &&
+    (type !== 'ac-three-phase-supply' || profile.model.kind === 'ac-three-phase') &&
     !(kind === 'dc-source' && profile.model.kind !== 'dc') &&
     !(kind === 'ac-source' && profile.model.kind === 'dc')
   );
@@ -104,6 +106,20 @@ export function resolveSourceProfile(
 ): SupplyProfile | undefined {
   if (!sourceInterface(type)) return undefined;
   if (state.sourceProfile) return copySupplyProfile(state.sourceProfile);
+  if (type === 'ac-three-phase-supply')
+    return {
+      version: SUPPLY_PROFILE_VERSION,
+      model: {
+        kind: 'ac-three-phase',
+        voltage: state.customVoltage ?? 230,
+        frequencyHz: 50,
+        sequence: 'abc',
+      },
+      provenance: {
+        voltage: state.customVoltage === undefined ? 'catalogue' : 'legacy-instance',
+        frequency: 'catalogue',
+      },
+    };
   if (type === 'dc-battery-12v')
     return {
       version: SUPPLY_PROFILE_VERSION,

@@ -429,6 +429,9 @@ export interface SimulationLimitation {
 }
 
 export interface SimulationResult {
+  /** Complex RMS results and display readings never enter scalar protection/scoring. */
+  phasor?: import('./core/phasor').PhasorSimulationResult;
+  phasorComponents?: Record<string, import('./simulation/phasorAdapter').PhasorComponentReading>;
   /** Transient deterministic control state; never stored in a circuit document. */
   simulationState?: import('./core/contracts').ElectricalSimulationState;
   simulationEvents?: import('./core/contracts').ElectricalControlEvent[];

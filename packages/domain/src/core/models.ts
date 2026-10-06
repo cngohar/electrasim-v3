@@ -44,12 +44,16 @@ export function resolveDeviceModel(
       reference: type === 'earth-rod' ? 'electrode' : 'protective-bus',
     };
   if (
-    (type === 'ac-mains-supply' || type === 'diesel-generator' || type === 'dc-battery-12v') &&
+    (type === 'ac-mains-supply' ||
+      type === 'ac-three-phase-supply' ||
+      type === 'diesel-generator' ||
+      type === 'dc-battery-12v') &&
     source
   ) {
     return {
       kind: 'source',
-      ports: [0, 1],
+      ports: type === 'ac-three-phase-supply' ? [0, 3] : [0, 1],
+      ...(type === 'ac-three-phase-supply' ? { phasePorts: [0, 1, 2] as const } : {}),
       supply: source.model,
       voltageOrigin,
       ...(source.model.kind === 'dc'
@@ -103,7 +107,7 @@ export function resolveDeviceModel(
         nominalVoltage,
         nominalPowerWatts,
         resistanceOhms: nominalVoltage ** 2 / nominalPowerWatts,
-        supplyKinds: ['dc', 'ac-single-phase'],
+        supplyKinds: ['dc', 'ac-single-phase', 'ac-three-phase'],
         maximumVoltage,
         approximation:
           'Fixed resistance at nominal operating temperature; thermostat cycling, cold inrush and temperature dependence are not modeled.',

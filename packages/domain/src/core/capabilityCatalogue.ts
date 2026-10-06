@@ -1,7 +1,7 @@
 /** Reviewed, explicit catalogue inventory. New variants must be classified here.
  * Neither a type substring nor a power label defines a source or load law.
  */
-export const CAPABILITY_CATALOGUE_VERSION = '1.5e.0.1' as const;
+export const CAPABILITY_CATALOGUE_VERSION = '1.5e.1.1' as const;
 
 const FAMILIES = {
   'resistive-load': [
@@ -110,7 +110,13 @@ const FAMILIES = {
     'socket-bs546-double',
     'switched-socket',
   ],
-  source: ['ac-mains-supply', 'diesel-generator', 'dc-battery-12v', 'solar-pv-panel'],
+  source: [
+    'ac-mains-supply',
+    'ac-three-phase-supply',
+    'diesel-generator',
+    'dc-battery-12v',
+    'solar-pv-panel',
+  ],
   'source-alias': ['live-terminal', 'neutral-terminal'],
   'pe-reference': ['earth-terminal', 'earth-rod'],
   connection: [

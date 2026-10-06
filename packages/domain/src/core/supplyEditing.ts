@@ -36,7 +36,7 @@ export function supplyAtTarget(circuit: Circuit, target: SupplyTarget): SupplyPr
 
 export function supplyDescription(profile: SupplyProfile): string {
   const m = profile.model;
-  return `${m.voltage} V ${m.kind === 'dc' ? 'DC' : `AC ${m.frequencyHz} Hz${m.kind === 'ac-three-phase' ? ' · 3-phase L-N' : ''}`}`;
+  return `${m.voltage} V ${m.kind === 'dc' ? 'DC' : `AC ${m.frequencyHz} Hz${m.kind === 'ac-three-phase' ? ` · 3-phase L-N / ${Number((m.voltage * Math.sqrt(3)).toFixed(2))} V L-L · ${m.sequence.toUpperCase()}` : ''}`}`;
 }
 
 export interface SupplyChangePreview {
@@ -82,11 +82,14 @@ export function previewSupplyChange(
     .map((c) => c.id);
   let reason: string | undefined;
   if (!previous || !isSupplyProfile(profile)) reason = 'Choose a valid modeled supply.';
-  else if (profile.model.kind === 'ac-three-phase')
+  else if (
+    profile.model.kind === 'ac-three-phase' &&
+    (target.kind === 'document' || component?.type !== 'ac-three-phase-supply')
+  )
     reason = 'Three-phase editing requires explicit phase terminals and a supported phase model.';
   else if (component && !sourceProfileFitsInterface(component.type, profile))
     reason =
-      'This source has a different physical AC/DC interface. Add a suitable independent source and wire it explicitly.';
+      'This source has a different physical AC/DC interface or phase terminal count. Add a suitable independent source and wire it explicitly.';
 
   const next = reason
     ? circuit

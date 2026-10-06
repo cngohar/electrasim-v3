@@ -32,6 +32,7 @@ import imgVariantSocketUsb from '../../assets/images/variant_socket_usb_17867805
 import imgVariantSpd from '../../assets/images/variant_spd_surge_1786780572651.jpg';
 import imgVariantTableFan from '../../assets/images/variant_table_fan.png';
 import { emojiDataUri, emojiGlyphsLoaded, emojiTextSymbol } from '../../lib/emoji/emojiSvg';
+import { deviceImage } from '../canvas/deviceVectors';
 
 /** Photorealistic component images registry with real photography assets */
 export const COMPONENT_IMAGES: Record<string, string> = {
@@ -141,6 +142,7 @@ export const COMPONENT_IMAGES: Record<string, string> = {
 
 /** Resolve an actual photographic image asset for every single component and variant */
 export function getComponentImage(type: string, category?: string): string {
+  if (type === 'ac-three-phase-supply') return deviceImage(type)!;
   const registered = COMPONENT_IMAGES[type];
   if (registered) return registered;
 

@@ -232,7 +232,13 @@ export function assessCompiledCircuitReadiness(
           ? availableSources
           : graph.sources.filter((source) => coupledSourceIds.has(source.id));
       const result =
-        sources.length > 1 && group.role !== 'source' && group.role !== 'reference'
+        sources.length > 1 &&
+        !(
+          sources[0]?.phaseSystemId &&
+          sources.every((s) => s.phaseSystemId === sources[0]?.phaseSystemId)
+        ) &&
+        group.role !== 'source' &&
+        group.role !== 'reference'
           ? {
               status: 'unassessed' as const,
               reasons: [

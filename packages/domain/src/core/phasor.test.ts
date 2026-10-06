@@ -94,9 +94,10 @@ describe('1.5E.0 explicit three-phase source compilation', () => {
     expect(result.diagnostics).toContainEqual(
       expect.objectContaining({ code: 'mna-phasor-entry-required' }),
     );
-    expect(simulate(circuit, { defs: phasorFixtureDefs() }).electricalContract?.status).toBe(
-      'unsupported',
-    );
+    const application = simulate(circuit, { defs: phasorFixtureDefs() });
+    expect(application.phasor?.status).toBe('converged');
+    expect(application.electrical).toBeUndefined();
+    expect(application.faultsCleared).toBe(false);
   });
 
   it('recognizes an inter-phase ideal-source contradiction on the imaginary axis', () => {

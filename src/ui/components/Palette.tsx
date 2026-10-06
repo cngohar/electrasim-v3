@@ -76,6 +76,7 @@ const CATEGORY_ORDER = [
 const PRIMARY_PALETTE_TYPES = new Set([
   // Supply
   'ac-mains-supply',
+  'ac-three-phase-supply',
   'dc-battery-12v',
   'solar-pv-panel',
   'kwh-meter',

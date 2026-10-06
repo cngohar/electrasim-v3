@@ -1,6 +1,7 @@
 import { explicitSupplyProfile } from '@electrasim/domain/core/supplies';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { editingCircuit, variantCircuit } from '../../packages/domain/src/core/editingFixtures';
+import { threePhaseStarFixture } from '../../packages/domain/src/core/threePhaseFixtures';
 import { dimmingCircuit, timerCircuit } from '../../packages/domain/src/core/timerDimmingFixtures';
 import { component as C } from '../../packages/domain/src/simulation/auditFixtures';
 import { clearHistory, redo, selectCircuit, undo, useCircuitStore } from './circuitStore';
@@ -42,6 +43,39 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('staged configuration and transaction history', () => {
+  it('freezes a placed phase source and stages sequence changes as one locked, reversible edit', async () => {
+    useCircuitStore.getState().setCircuit(threePhaseStarFixture());
+    useCircuitStore.getState().addComponent(C('phase2', 'ac-three-phase-supply'));
+    expect(snapshot().components.at(-1)?.state.sourceProfile?.model).toEqual({
+      kind: 'ac-three-phase',
+      voltage: 230,
+      frequencyHz: 50,
+      sequence: 'abc',
+    });
+    clearHistory();
+    const before = snapshot();
+    const profile = explicitSupplyProfile({
+      kind: 'ac-three-phase',
+      voltage: 400 / Math.sqrt(3),
+      frequencyHz: 60,
+      sequence: 'acb',
+    });
+    useCircuitStore.getState().updateComponentState('s', { sourceProfile: profile });
+    expect(snapshot()).toEqual(before);
+    expect(await confirmElectricalEdit()).toBe(true);
+    const after = snapshot();
+    expect(after.components[0]!.state.sourceProfile).toEqual(profile);
+    expect(after.components.slice(1)).toEqual(before.components.slice(1));
+    expect(after.wires).toEqual(before.wires);
+    undo();
+    expect(snapshot()).toEqual(before);
+    redo();
+    expect(snapshot()).toEqual(after);
+    useUiStore.setState({ simRunning: true });
+    useCircuitStore.getState().updateComponentState('s', { customVoltage: 120 });
+    expect(useElectricalEditing.getState().request).toBeNull();
+    expect(snapshot()).toEqual(after);
+  });
   it('preserves timer programs through undo/redo, validates inputs and locks edits during runs/exercises', () => {
     const circuit = timerCircuit();
     const program = circuit.components[1]!.state.timerModel!;

@@ -14,7 +14,7 @@ phase commands.
 | Check domain core types/lint/tests | `bun run check:core` |
 | Work in the app with hot reload | `bun run dev` |
 | Build assets for inspection | `bun run build` |
-| Accept the current E.0 milestone | `bun run verify:phase-1.5e0` |
+| Accept the E.1 source/editing/measurement milestone | `bun run verify:phase-1.5e1` |
 
 `test:related` and `test:changed` use Vitest's dependency graph. A shared compiler, catalogue or
 configuration change can affect many tests and should run them. File-specific tests are fastest
