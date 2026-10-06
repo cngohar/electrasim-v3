@@ -1,4 +1,4 @@
-import { spawnSync } from 'node:child_process';
+import { runPhaseGate } from './phase-gate.mjs';
 
 // Every service binds to localhost and uses isolated local persistence.
 const steps = [
@@ -27,12 +27,9 @@ const steps = [
     '--workers=2',
   ],
 ];
-for (const args of steps) {
-  console.log(`Phase 1.5C.5 local gate: bun ${args.join(' ')}`);
-  const result = spawnSync(process.execPath, args, { stdio: 'inherit', env: process.env });
-  if (result.error) throw result.error;
-  if (result.status !== 0) process.exit(result.status ?? 1);
-}
-console.log(
-  'Phase 1.5C.5 application MNA gate passed locally. Timed devices, three-phase and full lab migration remain 1.5D–F. No deployment was performed.',
-);
+process.exitCode = runPhaseGate({
+  label: 'Phase 1.5C.5',
+  steps,
+  successMessage:
+    'Phase 1.5C.5 application MNA gate passed locally. Timed devices, three-phase and full lab migration remain 1.5D–F. No deployment was performed.',
+});

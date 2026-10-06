@@ -37,6 +37,8 @@
     "test:watch": "bun x vitest",
     "test:changed": "bun x vitest run --changed",
     "test:related": "bun x vitest related --run",
+    "check:changed": "bun run lint && bun run test:changed --passWithNoTests",
+    "test:gates": "node --test scripts/phase-gate.test.mjs",
     "check:core": "bun scripts/check-domain-boundaries.ts && bun x tsc --noEmit -p packages/domain/tsconfig.core.json && bun x biome lint packages/domain/src/core && bun x vitest run packages/domain/src/core",
     "test:coverage": "bun x vitest run --coverage",
     "test:ui": "bun x vitest --ui",

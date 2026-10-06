@@ -1,4 +1,4 @@
-import { spawnSync } from 'node:child_process';
+import { runPhaseGate } from './phase-gate.mjs';
 
 // All Worker state, browser targets and persistence remain on this machine.
 const steps = [
@@ -22,12 +22,9 @@ const steps = [
     '--workers=1',
   ],
 ];
-for (const args of steps) {
-  console.log(`Phase 1.5B local gate: bun ${args.join(' ')}`);
-  const result = spawnSync(process.execPath, args, { stdio: 'inherit', env: process.env });
-  if (result.error) throw result.error;
-  if (result.status !== 0) process.exit(result.status ?? 1);
-}
-console.log(
-  'Phase 1.5B contracts/graph gate passed locally. Numerical solving and legacy retirement remain 1.5C–1.5F; no deployment is authorized.',
-);
+process.exitCode = runPhaseGate({
+  label: 'Phase 1.5B',
+  steps,
+  successMessage:
+    'Phase 1.5B contracts/graph gate passed locally. Numerical solving and legacy retirement remain 1.5C–1.5F; no deployment is authorized.',
+});

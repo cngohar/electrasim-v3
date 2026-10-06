@@ -1,4 +1,4 @@
-import { spawnSync } from 'node:child_process';
+import { runPhaseGate } from './phase-gate.mjs';
 
 // Source/editing/measurement acceptance; every runtime service binds localhost.
 const steps = [
@@ -25,12 +25,9 @@ const steps = [
     '--workers=2',
   ],
 ];
-for (const args of steps) {
-  console.log(`Phase 1.5E.1 local gate: bun ${args.join(' ')}`);
-  const result = spawnSync(process.execPath, args, { stdio: 'inherit', env: process.env });
-  if (result.error) throw result.error;
-  if (result.status !== 0) process.exit(result.status ?? 1);
-}
-console.log(
-  'Phase 1.5E.1 source/editing/phasor measurements passed locally. E.2 motor/control models and E.3 DOL acceptance remain open. No deployment was performed.',
-);
+process.exitCode = runPhaseGate({
+  label: 'Phase 1.5E.1',
+  steps,
+  successMessage:
+    'Phase 1.5E.1 source/editing/phasor measurements passed locally. E.2 motor/control models and E.3 DOL acceptance remain open. No deployment was performed.',
+});

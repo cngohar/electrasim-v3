@@ -1,4 +1,4 @@
-import { spawnSync } from 'node:child_process';
+import { runPhaseGate } from './phase-gate.mjs';
 
 // Contract/persistence foundation only. Every service and browser target is local.
 const steps = [
@@ -32,12 +32,9 @@ const steps = [
     '--grep=global supply voltage preset',
   ],
 ];
-for (const args of steps) {
-  console.log(`Phase 1.5C.0 local gate: bun ${args.join(' ')}`);
-  const result = spawnSync(process.execPath, args, { stdio: 'inherit', env: process.env });
-  if (result.error) throw result.error;
-  if (result.status !== 0) process.exit(result.status ?? 1);
-}
-console.log(
-  'Phase 1.5C.0 supply/capability/readiness foundation passed locally. MNA, confirmed supply editing and full consumer integration remain pending; no deployment is authorized.',
-);
+process.exitCode = runPhaseGate({
+  label: 'Phase 1.5C.0',
+  steps,
+  successMessage:
+    'Phase 1.5C.0 supply/capability/readiness foundation passed locally. MNA, confirmed supply editing and full consumer integration remain pending; no deployment is authorized.',
+});

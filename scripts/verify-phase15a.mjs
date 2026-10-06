@@ -1,4 +1,4 @@
-import { spawnSync } from 'node:child_process';
+import { runPhaseGate } from './phase-gate.mjs';
 
 // Local-only acceptance. No install, account command, hosted CI or deployment.
 // Audit advisory freshness is recorded separately; an unreachable registry is
@@ -22,12 +22,9 @@ const steps = [
     '--workers=1',
   ],
 ];
-for (const args of steps) {
-  console.log(`Phase 1.5A local gate: bun ${args.join(' ')}`);
-  const result = spawnSync(process.execPath, args, { stdio: 'inherit', env: process.env });
-  if (result.error) throw result.error;
-  if (result.status !== 0) process.exit(result.status ?? 1);
-}
-console.log(
-  'Phase 1.5A local gates passed. Expected-failure core fixtures and dependency advisory verification remain separately tracked; this is not a full Phase 1 or deployment gate.',
-);
+process.exitCode = runPhaseGate({
+  label: 'Phase 1.5A',
+  steps,
+  successMessage:
+    'Phase 1.5A local gates passed. Expected-failure core fixtures and dependency advisory verification remain separately tracked; this is not a full Phase 1 or deployment gate.',
+});

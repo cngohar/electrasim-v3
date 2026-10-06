@@ -1,4 +1,4 @@
-import { spawnSync } from 'node:child_process';
+import { runPhaseGate } from './phase-gate.mjs';
 
 // Every service binds to localhost and uses local persistence. No deployment.
 const steps = [
@@ -19,12 +19,9 @@ const steps = [
     '--project=chromium',
   ],
 ];
-for (const args of steps) {
-  console.log(`Phase 1.5C.3 local gate: bun ${args.join(' ')}`);
-  const result = spawnSync(process.execPath, args, { stdio: 'inherit', env: process.env });
-  if (result.error) throw result.error;
-  if (result.status !== 0) process.exit(result.status ?? 1);
-}
-console.log(
-  'Phase 1.5C.3 isolated-transformer and PE/reference gate passed locally. Full readiness/editing UI and MNA app runtime integration remain in 1.5C.4–5. No deployment was performed.',
-);
+process.exitCode = runPhaseGate({
+  label: 'Phase 1.5C.3',
+  steps,
+  successMessage:
+    'Phase 1.5C.3 isolated-transformer and PE/reference gate passed locally. Full readiness/editing UI and MNA app runtime integration remain in 1.5C.4–5. No deployment was performed.',
+});
