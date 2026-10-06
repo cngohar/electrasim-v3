@@ -17,6 +17,7 @@ import {
   damageCircuit,
   protectedDamageCircuit,
 } from '../packages/domain/src/core/damageFixtures';
+import { motorAcceptanceCircuits, motorCircuit } from '../packages/domain/src/core/motorFixtures';
 import {
   protectionCircuit,
   rcboCircuit,
@@ -71,6 +72,62 @@ export async function runSimulatorTests(context: Context) {
     'advanced_diagnostics',
   ]);
   const grant = await assign(plan.id, user);
+  await check(
+    'paid phasor motor/coil replay matches domain, persists declarations and guards malformed state',
+    async () => {
+      for (const [name, circuit] of Object.entries(motorAcceptanceCircuits())) {
+        let previous: SimulationResult | undefined;
+        for (const deltaSeconds of [0, 0.999999, 0.000001, 0.25]) {
+          const simulationState = previous?.simulationState;
+          const response = await request<SimulationResult>('/simulator/simulate', {
+            user,
+            method: 'POST',
+            expected: 200,
+            data: { circuit, simulationState, deltaSeconds },
+          });
+          assert.deepEqual(
+            response,
+            portableResult(
+              simulate(circuit, { simulationState, deltaSeconds, standard: 'int', appMode: 'pro' }),
+            ),
+            name,
+          );
+          assert.equal(response.faultsCleared, false);
+          previous = response;
+        }
+      }
+      const circuit = motorCircuit(true);
+      await request('/simulator/simulate', { method: 'POST', expected: 401, data: { circuit } });
+      await request('/simulator/simulate', {
+        user: other,
+        method: 'POST',
+        expected: 403,
+        data: { circuit },
+      });
+      const initial = simulate(circuit);
+      await request('/simulator/simulate', {
+        user,
+        method: 'POST',
+        expected: 400,
+        data: { circuit, simulationState: { ...initial.simulationState, contactStates: {} } },
+      });
+      await request('/simulator/simulate', {
+        user,
+        method: 'POST',
+        expected: 400,
+        data: { circuit, deltaSeconds: -1 },
+      });
+      const saved = await request<Pick<Saved, 'id'>>('/circuits', {
+        user,
+        method: 'POST',
+        expected: 201,
+        data: { name: 'Local motor and contactor', circuit },
+      });
+      const restored = await request(`/circuits/${saved.id}`, { user, expected: 200 });
+      assert.deepEqual(restored.circuit, normalizeCircuitDocument(circuit));
+      assert.equal('simulationState' in restored.circuit, false);
+    },
+  );
   await check(
     'guest phasor API uses portable sources and D1 retains phase settings, terminals and faults',
     async () => {

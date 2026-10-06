@@ -146,6 +146,14 @@ export function solveCompiledCircuit(
           'Explicit three-phase sources require solvePhasorCircuit(). The scalar application runtime cannot consume complex measurements yet.',
       },
     ]);
+  if (graph.devices.some((d) => d.model.kind === 'three-phase-motor'))
+    return unavailable('unsupported', [
+      {
+        code: 'mna-motor-phasor-required',
+        severity: 'warning',
+        message: 'Declared three-phase motors require the complex RMS runtime.',
+      },
+    ]);
   const unsupported = coverage.filter(
     (item) => item.status === 'not-assessed' && !['protection', 'damage'].includes(item.aspect),
   );

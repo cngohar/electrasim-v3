@@ -251,6 +251,7 @@ export const INDUSTRIAL_CONTROL_DEFS: Record<string, ComponentDef> = {
       { common: 1, no: 4 },
       { common: 2, no: 5 },
     ],
+    coilPorts: [6, 7],
     label: 'Three-Pole Contactor (3P 40A)',
     description:
       'Heavy-duty 3-pole contactor for 3-phase motor starters and heavy inductive loads.',
@@ -266,6 +267,8 @@ export const INDUSTRIAL_CONTROL_DEFS: Record<string, ComponentDef> = {
       { type: 'live', relX: 1, relY: 0.25, label: 'T1' },
       { type: 'live', relX: 1, relY: 0.5, label: 'T2' },
       { type: 'live', relX: 1, relY: 0.75, label: 'T3' },
+      { type: 'live', relX: 0.5, relY: 0, label: 'A1' },
+      { type: 'neutral', relX: 0.5, relY: 1, label: 'A2' },
     ],
     icon: 'nut-bolt',
   },

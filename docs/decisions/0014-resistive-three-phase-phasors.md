@@ -31,3 +31,16 @@ Next slices must add a real source catalogue entry and its artwork/placement/per
 ## E.1 application boundary — 2026-10-06
 
 The real `ac-three-phase-supply` catalogue component now declares canonical L1/L2/L3/N/PE ports and a separately persisted source profile. Existing L/N source geometry is unchanged. Named source edits confirm L-N/L-L voltage, frequency and ABC/ACB sequence through the shared editor transaction. The application, Comlink and existing local Hono simulation endpoint dispatch explicit phase systems to the complex result and return named display readings in `phasorComponents`. Scalar `electrical` and `componentCalculations` fields, timed state/protection and thermal measurements are absent; RMS magnitudes never become signed scalar currents. `faultsCleared` stays false. Independent AC domains retain separate references; joined systems and unknown motor/timed/reactive/transformer/DC cases remain guarded. Shared model/capability version becomes **1.5e.1.1**; engine/contract/file versions are unchanged. [E.1 scope and local acceptance](../audits/phase-1-three-phase-source.md) supersedes the E.0 application/source deferral above. Motor/contactors and DOL/full acceptance remain E.2–3, followed by complete lab/instrument/export/scoring migration in 1.5F.
+
+## E.2 motor/control boundary — 2026-10-06
+
+[ADR 0015](0015-three-phase-motor-controls.md) extends the existing real-conductance
+solver with an explicit unity-PF motor equivalent, three-conductive-phase operating
+guards, appended isolated contactor coil terminals, deterministic phasor coil
+controls and signed complex sensed-pole/residual readings. It supersedes the
+motor/coil deferral for those declared models; reactive/transient motor behavior,
+automatic phasor protection/damage, DOL migration and complete lab/scoring
+integration remain outside this slice. [E.2 acceptance](../audits/phase-1-three-phase-motor.md)
+records the local evidence. Shared model/capability version is **1.5e.2.1**;
+static engine/contract/file versions are unchanged, with separate timed engine
+**mna-phasor-controls-1**.

@@ -35,6 +35,7 @@ const button =
 const input =
   'w-full rounded border border-slate-200 bg-white px-2 py-1 font-mono text-xs disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900';
 const CoilModelEditor = lazy(() => import('./CoilModelEditor'));
+const MotorModelEditor = lazy(() => import('./MotorModelEditor'));
 const TimerModelEditor = lazy(() => import('./TimerModelEditor'));
 const ProtectionModelEditor = lazy(() => import('./ProtectionModelEditor'));
 
@@ -185,7 +186,19 @@ export function ComponentPropertiesView({
         </section>
       )}
 
-      {load && (
+      {selectedComp.type === 'motor-3phase' && (
+        <section className={box}>
+          <h3 className="font-semibold">Three-phase motor teaching model</h3>
+          <Suspense fallback={<p>Loading motor settings…</p>}>
+            <MotorModelEditor
+              key={`${selectedComp.id}:${JSON.stringify(selectedComp.state.motorModel)}`}
+              component={selectedComp}
+              locked={locked}
+            />
+          </Suspense>
+        </section>
+      )}
+      {load && selectedComp.type !== 'motor-3phase' && (
         <section className={box}>
           <h3 className="font-semibold">Load design / nameplate</h3>
           <p>
@@ -541,6 +554,7 @@ export function ComponentPropertiesView({
             update(selectedComp.id, {
               ...resolveComponentState({}, def),
               coilModel: undefined,
+              motorModel: undefined,
               timerModel: undefined,
               customPowerWatts: undefined,
               customMaxAmps: undefined,

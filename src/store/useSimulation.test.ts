@@ -5,6 +5,7 @@ import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { controlCircuit } from '../../packages/domain/src/core/controlFixtures';
 import { damageCircuit } from '../../packages/domain/src/core/damageFixtures';
+import { motorCircuit } from '../../packages/domain/src/core/motorFixtures';
 import { protectionCircuit } from '../../packages/domain/src/core/protectionFixtures';
 import { component, protectedLoad } from '../../packages/domain/src/simulation/auditFixtures';
 
@@ -16,6 +17,7 @@ vi.mock('../sim-worker/client', () => ({ simulateAsync }));
 
 import { useCircuitStore } from './circuitStore';
 import { useDiagnosisStore } from './diagnosisStore';
+import { useSimulatorAccess } from './simulatorAccess';
 import { useUiStore } from './uiStore';
 import { useSimulation } from './useSimulation';
 
@@ -170,6 +172,49 @@ describe('useSimulation request sequencing', () => {
       useUiStore.getState().simResult?.componentCalculations?.lamp?.powerWatts,
     ).toBeGreaterThan(990);
     expect(useUiStore.getState().simResult?.faultsCleared).toBe(true);
+  });
+
+  it('keeps phasor phase-loss readings on the timed run without fabricating a legacy trip or repair verdict', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              userId: 'member',
+              capabilities: ['pro_components'],
+              nextChangeAt: null,
+            }),
+          ),
+      ),
+    );
+    useSimulatorAccess.setState({
+      userId: 'member',
+      capabilities: ['pro_components'],
+      nextChangeAt: null,
+    });
+    try {
+      simulateAsync.mockImplementation(async (circuit, options) => simulate(circuit, options));
+      const circuit = motorCircuit(true);
+      circuit.components.find((c) => c.id === 'k')!.state.coilModel!.onDelaySeconds = 0;
+      useCircuitStore.getState().setCircuit(circuit);
+      useUiStore.setState({ faultAlert: null });
+      renderHook(() => useSimulation());
+      act(() => useUiStore.getState().setSimRunning(true));
+      await act(async () => vi.advanceTimersByTime(50));
+      expect(useUiStore.getState().simResult?.phasor?.motors[0]?.state).toBe('running');
+      await act(async () => {
+        await useCircuitStore.getState().setWireFault('out1', 'open-circuit');
+      });
+      await act(async () => vi.advanceTimersByTime(50));
+      expect(useUiStore.getState().simRunning).toBe(true);
+      expect(useUiStore.getState().simResult?.phasor?.motors[0]?.state).toBe('blocked');
+      expect(useUiStore.getState().simResult?.energizedComponents.has('motor')).toBe(false);
+      expect(useUiStore.getState().faultAlert).toBeNull();
+      expect(useUiStore.getState().simResult?.faultsCleared).toBe(false);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it('clears a published result for a supply-only revision received at the worker boundary', async () => {

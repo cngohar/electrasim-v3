@@ -7,6 +7,7 @@ import { advanceControlStep } from '../core/controlStep';
 import { dimmerPowerFraction } from '../core/dimmerModel';
 import { solveControlledOperatingPoint } from '../core/dimming';
 import { solvePhasorCircuit } from '../core/phasor';
+import { advancePhasorControlStep } from '../core/phasorControlStep';
 import { getLegacySimulationLimitations, getSimulationLimitations } from '../simulationCoverage';
 import type { Circuit, SimulationResult } from '../types';
 import { type SimulateOptions, simulateLegacy } from './legacy';
@@ -18,8 +19,30 @@ export type { SimulateOptions } from './legacy';
 export function simulate(circuit: Circuit, options: SimulateOptions = {}): SimulationResult {
   const defs = options.defs ?? COMPONENT_DEFS;
   const compiled = compileCircuit(circuit, { defs });
-  if (compiled.status === 'compiled' && compiled.graph.sources.some((s) => s.phaseSystemId))
+  if (compiled.status === 'compiled' && compiled.graph.sources.some((s) => s.phaseSystemId)) {
+    if (
+      options.simulationState !== undefined ||
+      options.deltaSeconds !== undefined ||
+      compiled.graph.devices.some((d) => d.model.kind === 'contacts' && d.model.coilModel)
+    ) {
+      const step = advancePhasorControlStep(compiled, {
+        defs,
+        simulationState: options.simulationState,
+        deltaSeconds: options.deltaSeconds,
+      });
+      return {
+        ...adaptPhasorResult(step.compiled, step.phasor),
+        ...(step.simulationState
+          ? {
+              simulationState: step.simulationState,
+              coilStates: { ...step.simulationState.contactStates },
+            }
+          : {}),
+        simulationEvents: step.simulationEvents,
+      };
+    }
     return adaptPhasorResult(compiled, solvePhasorCircuit(circuit, { defs }));
+  }
   if (
     compiled.status === 'compiled' &&
     (options.simulationState !== undefined ||

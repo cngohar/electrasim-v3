@@ -59,12 +59,13 @@ circuitsApi.post('/simulator/simulate', async (c) => {
       | undefined,
     deltaSeconds: input.deltaSeconds as number | undefined,
   });
+  const diagnostics = result.electrical?.diagnostics ?? result.phasor?.diagnostics;
   if (
-    result.electrical?.diagnostics.some(
+    diagnostics?.some(
       (d) => d.code === 'invalid-simulation-state' || d.code === 'invalid-simulation-step',
     )
   )
-    return c.json({ error: result.electrical.diagnostics[0]?.message }, 400);
+    return c.json({ error: diagnostics[0]?.message }, 400);
   return c.json(
     JSON.parse(
       JSON.stringify(result, (_key, value) => (value instanceof Set ? [...value] : value)),

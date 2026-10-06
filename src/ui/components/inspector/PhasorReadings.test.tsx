@@ -2,12 +2,53 @@ import { simulate } from '@electrasim/domain/simulation';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import {
+  motorAcceptanceCircuits,
+  motorCircuit,
+} from '../../../../packages/domain/src/core/motorFixtures';
+import {
   threePhaseAcceptanceCircuits,
   threePhaseStarFixture,
 } from '../../../../packages/domain/src/core/threePhaseFixtures';
 import { PhasorReadings, PhasorWireReadings } from './PhasorReadings';
 
 describe('complex RMS inspector', () => {
+  it('explains unavailable residuals across independent source references', () => {
+    const { container } = render(
+      <PhasorReadings
+        componentId="p"
+        result={simulate(motorAcceptanceCircuits()['independent-poles']!)}
+      />,
+    );
+    expect(container.querySelector('[data-reading="residual"]')).toHaveTextContent('Unavailable');
+    expect(screen.getByText(/sensed currents use independent source references/)).toBeVisible();
+  });
+  it('shows running and blocked motor teaching states with actual line currents and limitations', () => {
+    const view = render(<PhasorReadings componentId="motor" result={simulate(motorCircuit())} />);
+    expect(view.container.querySelector('[data-motor-state="running"]')).toHaveTextContent(
+      'L1 / L2 / L3',
+    );
+    expect(view.container.querySelector('[data-motor-line="0"]')).toHaveTextContent('4.3245 A');
+    expect(screen.getByText(/Declared balanced unity-power-factor/)).toBeVisible();
+    view.rerender(
+      <PhasorReadings
+        componentId="motor"
+        result={simulate(motorAcceptanceCircuits()['lost-phase']!)}
+      />,
+    );
+    expect(view.container.querySelector('[data-motor-state="blocked"]')).toHaveTextContent(
+      'L1 / missing / L3',
+    );
+  });
+  it('shows coil consumption, sensed pole RMS current and residual mA without an automatic-trip claim', () => {
+    const result = simulate(motorCircuit(true), { deltaSeconds: 1 });
+    const { container } = render(<PhasorReadings componentId="k" result={result} />);
+    expect(container.querySelector('[data-phasor-control="k"]')).toHaveTextContent('closed');
+    expect(container.querySelector('[data-reading="residual"]')).toHaveTextContent('0 mA');
+    expect(container.querySelector('[data-reading="pole-current"]')).toHaveTextContent('4.3188 A');
+    expect(container.querySelector('[data-phasor-poles="k"]')).toHaveTextContent(
+      'Automatic clearing: unassessed',
+    );
+  });
   it('shows named phase pairs, signed power and balanced neutral current', () => {
     const { container } = render(
       <PhasorReadings componentId="s" result={simulate(threePhaseStarFixture())} />,

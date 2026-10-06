@@ -11,6 +11,7 @@ import { coilPortsFor, isCoilModel } from './coilModel';
 import type { ElectricalDiagnostic } from './contracts';
 import { hasDamageSettings, isDamageModel } from './damageModel';
 import { dimmerMaximumLevel } from './dimmerModel';
+import { isMotorModel } from './motorModel';
 import { isProtectionModel, protectionModelFitsType } from './protectionModel';
 import { isSupplyProfile, sourceInterface, sourceProfileFitsInterface } from './supplies';
 import { isTimerModel, timerModelFitsType } from './timerModel';
@@ -42,7 +43,9 @@ function isComponentState(value: unknown): boolean {
     if (field === undefined) continue;
     // These keys are discarded during normalization before hydration.
     if (key === '__proto__' || key === 'constructor' || key === 'prototype') continue;
-    if (key === 'coilModel') {
+    if (key === 'motorModel') {
+      if (!isMotorModel(field)) return false;
+    } else if (key === 'coilModel') {
       if (!isCoilModel(field)) return false;
     } else if (key === 'timerModel') {
       if (!isTimerModel(field)) return false;
@@ -270,6 +273,13 @@ export function validateCircuitInput(
         'duplicate-component',
         `Duplicate component id "${value.id}" at index ${index}.`,
         `components[${index}].id`,
+        { componentId: value.id },
+      );
+    if (value.state.motorModel && value.type !== 'motor-3phase')
+      return invalid(
+        'invalid-motor-model-target',
+        'This model requires canonical U/V/W motor terminals.',
+        `components[${index}].state.motorModel`,
         { componentId: value.id },
       );
     if (value.state.coilModel && !coilPortsFor(value.type, defs[value.type]!))

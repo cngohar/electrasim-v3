@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { validateCircuit } from '../circuitValidation';
+import { compileCircuit } from '../core/compile';
 import { ELECTRICAL_MODEL_VERSION } from '../core/contracts';
 import { solveCircuit } from '../core/mna';
 import { mnaAcceptanceCircuits, parallelFixture, seriesFixture } from '../core/mnaFixtures';
 import { heaterFixture, protectedBranchesFixture } from '../core/operatingPointFixtures';
 import { solvePhasorCircuit } from '../core/phasor';
+import { advancePhasorControlStep } from '../core/phasorControlStep';
 import { transformerFixture } from '../core/transformerFixtures';
 import { component as C, wire as W } from './auditFixtures';
 import { portableResult, runtimeAcceptanceCircuits } from './runtimeFixtures';
@@ -149,7 +151,10 @@ describe('1.5C.5 application MNA adapter', () => {
     (_name, circuit) => {
       const result = simulate(circuit);
       if (result.phasor) {
-        expect(result.phasor).toEqual(solvePhasorCircuit(circuit));
+        const compiled = compileCircuit(circuit);
+        if (result.simulationState && compiled.status === 'compiled')
+          expect(result.phasor).toEqual(advancePhasorControlStep(compiled).phasor);
+        else expect(result.phasor).toEqual(solvePhasorCircuit(circuit));
         expect(result.electrical).toBeUndefined();
       } else expect(result.electrical).toEqual(solveCircuit(circuit));
       expect(simulate(circuit, { appMode: 'basic' })).toEqual(

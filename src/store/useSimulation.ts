@@ -337,7 +337,7 @@ export function useSimulation() {
               },
             });
           } else if (
-            (!result.electrical || result.legacyObservation) &&
+            ((!result.electrical && !result.phasor) || result.legacyObservation) &&
             ((result.faultDiagnostics && result.faultDiagnostics.length > 0) ||
               (result.errors.length > 0 &&
                 (useCircuitStore.getState().components.some((c) => c.state?.fault) ||
@@ -444,7 +444,7 @@ export function useSimulation() {
               });
             }
           } else if (
-            (!result.electrical || result.legacyObservation) &&
+            ((!result.electrical && !result.phasor) || result.legacyObservation) &&
             result.blownComponents &&
             result.blownComponents.length > 0
           ) {

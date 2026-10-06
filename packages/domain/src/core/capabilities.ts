@@ -9,6 +9,7 @@ import { COIL_APPROXIMATION } from './coilModel';
 import type { ElectricalDeviceModel, SupplyModel } from './contracts';
 import { DIMMER_APPROXIMATION } from './dimmerModel';
 import { resolveDeviceModel } from './models';
+import { MOTOR_APPROXIMATION } from './motorModel';
 import { sourceInterface } from './supplies';
 import { TIMER_APPROXIMATION } from './timerModel';
 
@@ -47,6 +48,7 @@ export interface TerminalCapability {
   frequencyHz: ElectricalRating<readonly number[]> | { status: 'independent'; basis: string };
   loadLaw:
     | { kind: 'fixed-resistance'; resistanceOhms: number; approximation: string }
+    | { kind: 'balanced-motor-equivalent'; approximation: string }
     | { kind: 'ideal-transformer'; turnsRatio: number; approximation: string }
     | { kind: 'none' }
     | { kind: 'not-assessed'; reason: string };
@@ -220,6 +222,30 @@ export function resolveDeviceCapabilities(
       };
       break;
     }
+    case 'three-phase-motor': {
+      const g = make('load', 'load', electrical.ports);
+      const m = electrical.motor;
+      g.supplyKinds = known(['ac-three-phase'], 'instance', 'Declared three-phase teaching model.');
+      g.voltageConvention = 'line-to-line';
+      g.nominalVoltage = known(
+        m.nominalLineVoltage,
+        'instance',
+        'Declared RMS line-to-line voltage.',
+      );
+      g.nominalPowerWatts = known(
+        m.inputPowerWatts,
+        'instance',
+        'Declared electrical input power, not shaft power.',
+      );
+      g.operatingVoltageRange = known(
+        m.operatingLineVoltageRange,
+        'instance',
+        'Declared teaching operating band.',
+      );
+      g.frequencyHz = known([m.frequencyHz], 'instance', 'Declared operating frequency.');
+      g.loadLaw = { kind: 'balanced-motor-equivalent', approximation: MOTOR_APPROXIMATION };
+      break;
+    }
     case 'unassessed-load': {
       const g = make('load', 'load', electrical.ports);
       g.maximumVoltage = optionalRating(
@@ -299,7 +325,11 @@ export function resolveDeviceCapabilities(
             'instance',
             'Explicit real power at nominal coil voltage.',
           );
-          g.supplyKinds = known([coil.supply.kind], 'instance', 'Declared coil waveform.');
+          g.supplyKinds = known(
+            coil.supply.kind === 'dc' ? ['dc'] : ['ac-single-phase', 'ac-three-phase'],
+            'instance',
+            'Declared terminal-pair coil waveform; AC may use L-N or L-L.',
+          );
           g.frequencyHz =
             coil.supply.kind === 'dc'
               ? { status: 'independent', basis: 'Declared DC resistive coil.' }

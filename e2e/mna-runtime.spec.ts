@@ -1,4 +1,5 @@
 import type { Circuit } from '@electrasim/domain';
+import { ELECTRICAL_MODEL_VERSION } from '@electrasim/domain/core/contracts';
 import { type Page, expect } from '@playwright/test';
 import { seriesFixture } from '../packages/domain/src/core/mnaFixtures';
 import {
@@ -96,7 +97,7 @@ test('the running application and inspector display calculated series measuremen
   expect(actual).toMatchObject({
     engine: 'mna-linear-2',
     worker: true,
-    model: '1.5e.1.1',
+    model: ELECTRICAL_MODEL_VERSION,
     thermal: null,
   });
   expect(errors).toEqual([]);

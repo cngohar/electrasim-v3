@@ -18,6 +18,7 @@ import { damageAcceptanceCircuits } from '../packages/domain/src/core/damageFixt
 import { earthingAcceptanceCircuits } from '../packages/domain/src/core/earthingFixtures';
 import { editingCircuit, variantCircuit } from '../packages/domain/src/core/editingFixtures';
 import { mnaAcceptanceCircuits } from '../packages/domain/src/core/mnaFixtures';
+import { motorAcceptanceCircuits } from '../packages/domain/src/core/motorFixtures';
 import { operatingPointAcceptanceCircuits } from '../packages/domain/src/core/operatingPointFixtures';
 import { phasorAcceptanceCircuits } from '../packages/domain/src/core/phasorFixtures';
 import {
@@ -33,6 +34,14 @@ import { runtimeAcceptanceCircuits } from '../packages/domain/src/simulation/run
 
 export function domainParityFixture(): string {
   const results: unknown[] = [];
+  for (const [name, circuit] of Object.entries(motorAcceptanceCircuits())) {
+    let previous = simulate(circuit);
+    results.push({ motorCase: name, step: 'reset', result: previous });
+    for (const deltaSeconds of [0.999999, 0.000001, 0.25]) {
+      previous = simulate(circuit, { simulationState: previous.simulationState, deltaSeconds });
+      results.push({ motorCase: name, step: deltaSeconds, result: previous });
+    }
+  }
   for (const [name, fixture] of Object.entries(phasorAcceptanceCircuits()))
     results.push({
       phasorCase: name,

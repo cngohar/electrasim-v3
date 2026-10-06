@@ -1,5 +1,6 @@
 export * from './contracts';
 export * from './coilModel';
+export * from './motorModel';
 export * from './timerModel';
 export * from './protectionModel';
 export * from './damageModel';

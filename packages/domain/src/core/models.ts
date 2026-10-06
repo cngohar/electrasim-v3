@@ -2,6 +2,7 @@ import type { Circuit, ComponentDef, ComponentInstance } from '../types';
 import { DEVICE_CAPABILITY_FAMILIES, RESISTIVE_NOMINAL_VOLTS } from './capabilityCatalogue';
 import { copyCoilModel } from './coilModel';
 import type { ElectricalDeviceModel, PortPair } from './contracts';
+import { copyMotorModel } from './motorModel';
 import { copyProtectionModel, protectionModelFitsType } from './protectionModel';
 import { DOCUMENT_SUPPLY_ID, resolveSourceProfile } from './supplies';
 import { copyTimerModel } from './timerModel';
@@ -88,6 +89,8 @@ export function resolveDeviceModel(
         'The autotransformer has shared windings; an isolated-transformer approximation is not applicable.',
     };
   if (def.isSocket) return { kind: 'outlet', capacityWatts: def.powerWatts, maximumVoltage };
+  if (type === 'motor-3phase' && state.motorModel)
+    return { kind: 'three-phase-motor', ports: [0, 1, 2], motor: copyMotorModel(state.motorModel) };
   if (def.isLoad) {
     const ports = def.ports.flatMap((port, i) => (port.type === 'earth' ? [] : [i]));
     const [first, second] = ports;
@@ -237,6 +240,7 @@ export function modelPortIndices(model: ElectricalDeviceModel): readonly number[
     case 'source':
       return [...model.ports, ...(model.phasePorts ?? [])];
     case 'resistive-load':
+    case 'three-phase-motor':
     case 'unassessed-load':
       return model.ports;
     case 'source-alias':

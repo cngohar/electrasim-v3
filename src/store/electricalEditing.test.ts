@@ -1,6 +1,7 @@
 import { explicitSupplyProfile } from '@electrasim/domain/core/supplies';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { editingCircuit, variantCircuit } from '../../packages/domain/src/core/editingFixtures';
+import { motorCircuit, motorFixtureModel } from '../../packages/domain/src/core/motorFixtures';
 import { threePhaseStarFixture } from '../../packages/domain/src/core/threePhaseFixtures';
 import { dimmingCircuit, timerCircuit } from '../../packages/domain/src/core/timerDimmingFixtures';
 import { component as C } from '../../packages/domain/src/simulation/auditFixtures';
@@ -43,6 +44,49 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('staged configuration and transaction history', () => {
+  it('validates explicit motor settings and preserves Undo/Redo and run/exercise locks', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              userId: 'member',
+              capabilities: ['pro_components'],
+              nextChangeAt: null,
+            }),
+          ),
+      ),
+    );
+    useSimulatorAccess.setState({ userId: 'member', capabilities: ['pro_components'] });
+    const circuit = motorCircuit();
+    circuit.components[1]!.state.motorModel = undefined;
+    useCircuitStore.getState().setCircuit(circuit);
+    clearHistory();
+    const settings = () => snapshot().components[1]!.state.motorModel;
+    await useCircuitStore
+      .getState()
+      .updateComponentState('motor', { motorModel: motorFixtureModel() });
+    expect(settings()).toEqual(motorFixtureModel());
+    undo();
+    await vi.waitFor(() => expect(settings()).toBeUndefined());
+    redo();
+    await vi.waitFor(() => expect(settings()).toEqual(motorFixtureModel()));
+    useCircuitStore.getState().updateComponentState('motor', {
+      motorModel: { ...motorFixtureModel(), inputPowerWatts: -1 },
+    });
+    expect(settings()).toEqual(motorFixtureModel());
+    useCircuitStore.getState().updateComponentState('s', { motorModel: motorFixtureModel() });
+    expect(snapshot().components[0]!.state.motorModel).toBeUndefined();
+    for (const lock of [
+      { simRunning: true },
+      { simRunning: false, challengeAttemptId: 'graded' },
+    ]) {
+      useUiStore.setState(lock);
+      useCircuitStore.getState().updateComponentState('motor', { motorModel: undefined });
+      expect(settings()).toEqual(motorFixtureModel());
+    }
+  });
   it('freezes a placed phase source and stages sequence changes as one locked, reversible edit', async () => {
     useCircuitStore.getState().setCircuit(threePhaseStarFixture());
     useCircuitStore.getState().addComponent(C('phase2', 'ac-three-phase-supply'));

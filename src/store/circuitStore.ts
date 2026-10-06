@@ -16,6 +16,7 @@ import { COMPONENT_DEFS, type ComponentInstance, type WireInstance } from '@elec
 import { coilPortsFor, isCoilModel } from '@electrasim/domain/core/coilModel';
 import { hasDamageSettings, isDamageModel } from '@electrasim/domain/core/damageModel';
 import { dimmerMaximumLevel } from '@electrasim/domain/core/dimmerModel';
+import { isMotorModel } from '@electrasim/domain/core/motorModel';
 import { normalizeCircuitDocument, resolveComponentState } from '@electrasim/domain/core/normalize';
 import {
   isSupplyProfile,
@@ -683,6 +684,11 @@ export const useCircuitStore = create<CircuitState>()(
               (key === 'speed' && COMPONENT_DEFS[component.type]?.isDimmer),
           );
           if (!runtimeOnly && !editingAllowed()) return;
+          if (
+            updates.motorModel !== undefined &&
+            (!isMotorModel(updates.motorModel) || component.type !== 'motor-3phase')
+          )
+            return;
           if (
             updates.damageModel !== undefined &&
             (!isDamageModel(updates.damageModel) ||

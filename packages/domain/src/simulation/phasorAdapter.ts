@@ -50,7 +50,7 @@ export function adaptPhasorResult(
     errorWires: new Set(),
     errors: [],
     warnings: [
-      'Static complex RMS readings. Motor operation, timed controls, automatic protective clearing, damage and repair assessment are unassessed.',
+      'Complex RMS readings with declared motor-equivalent and coil models. Reactive motor behavior, automatic protective clearing, damage and repair assessment are unassessed.',
     ],
     faultsCleared: false,
     faultNarrationErrors: [],
@@ -170,16 +170,32 @@ export function adaptPhasorResult(
         );
     } else {
       for (const branch of graph.branches.filter(
-        (b) => b.componentId === device.componentId && ['load', 'source'].includes(b.kind),
+        (b) =>
+          b.componentId === device.componentId &&
+          ['load', 'source', 'coil', 'contact'].includes(b.kind),
       )) {
         measurement.branches.push({
-          label: model.kind === 'source' ? 'L-N' : 'Load terminal pair',
+          label:
+            model.kind === 'source'
+              ? 'L-N'
+              : branch.kind === 'coil'
+                ? 'A1-A2 coil'
+                : branch.kind === 'contact'
+                  ? `Pole ${graph.branches.filter((b) => b.componentId === device.componentId && b.kind === 'contact').indexOf(branch) + 1}`
+                  : model.kind === 'three-phase-motor'
+                    ? ['U-V equivalent', 'V-W equivalent', 'W-U equivalent'][
+                        graph.branches
+                          .filter((b) => b.componentId === device.componentId && b.kind === 'load')
+                          .indexOf(branch)
+                      ]!
+                    : 'Load terminal pair',
           voltage: phasorVoltageBetween(phasor, branch.from, branch.to) ?? null,
           current: phasor.branchCurrents[branch.id] ?? null,
           activePowerWatts: phasor.branchActivePowersWatts[branch.id] ?? null,
         });
         if (
           branch.kind === 'load' &&
+          model.kind !== 'three-phase-motor' &&
           Math.abs(phasor.branchActivePowersWatts[branch.id] ?? 0) > threshold
         )
           result.energizedComponents.add(device.componentId);
@@ -208,6 +224,13 @@ export function adaptPhasorResult(
       }
     }
     if (measurement.branches.length) result.phasorComponents[device.componentId] = measurement;
+  }
+  for (const motor of phasor.motors) {
+    if (motor.state === 'running') result.energizedComponents.add(motor.componentId);
+    if (motor.state === 'blocked') result.errorComponents.add(motor.componentId);
+  }
+  for (const control of phasor.controls) {
+    if (control.closed) result.energizedComponents.add(control.componentId);
   }
   for (const branch of graph.branches.filter((b) => b.wireId)) {
     const id = branch.wireId!;

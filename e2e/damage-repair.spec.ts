@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import type { Circuit } from '@electrasim/domain';
+import { ELECTRICAL_MODEL_VERSION } from '@electrasim/domain/core/contracts';
 import { type Page, expect, test } from '@playwright/test';
 import { damageCircuit } from '../packages/domain/src/core/damageFixtures';
 import { protectionCircuit } from '../packages/domain/src/core/protectionFixtures';
@@ -184,7 +185,7 @@ test('guest edits a voltage damage budget and sees one measured event through Co
   expect(history).toHaveLength(1);
   expect(history[0].details.voltage).toBeGreaterThan(229);
   expect(history[0].details.voltage).toBeLessThan(230);
-  expect(history[0].details.modelVersion).toBe('1.5e.1.1');
+  expect(history[0].details.modelVersion).toBe(ELECTRICAL_MODEL_VERSION);
   expect(state.worker).toBe(true);
   await page.getByRole('button', { name: 'Stop', exact: true }).click();
   await panel.getByRole('button', { name: 'Replace all damaged items' }).click();

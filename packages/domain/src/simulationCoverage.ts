@@ -113,7 +113,7 @@ export function getSimulationLimitations(
       ((model.kind === 'source' || model.kind === 'source-alias') &&
         model.supply.kind === 'ac-three-phase' &&
         !(model.kind === 'source' && model.phasePorts)) ||
-      component.type === 'motor-3phase'
+      (component.type === 'motor-3phase' && model.kind !== 'three-phase-motor')
     ) {
       add(
         'three-phase-model',
@@ -123,7 +123,7 @@ export function getSimulationLimitations(
     } else if (model.kind === 'source' && model.phasePorts) {
       add(
         'three-phase-model',
-        'Static resistive phasor readings are supported. Motor operation, timed protection, damage and repair assessment remain unassessed.',
+        'Declared resistive phasor, motor-equivalent and coil readings are supported. Reactive behavior, timed protection, damage and repair assessment remain unassessed.',
       );
     } else if (model.kind === 'unassessed') {
       add('device-model', model.reason, true);

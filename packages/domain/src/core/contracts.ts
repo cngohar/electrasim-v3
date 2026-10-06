@@ -21,7 +21,7 @@ import type { CircuitReadiness } from './readiness';
 import type { TimerModel } from './timerModel';
 
 export const ELECTRICAL_CONTRACT_VERSION = 1 as const;
-export const ELECTRICAL_MODEL_VERSION = '1.5e.1.1' as const;
+export const ELECTRICAL_MODEL_VERSION = '1.5e.2.1' as const;
 export type CoverageStatus = 'supported' | 'estimated' | 'not-assessed';
 
 export interface ElectricalDiagnostic {
@@ -107,6 +107,11 @@ export type ElectricalDeviceModel =
       operatingVoltageRange?: { min: number; max: number };
       frequencyHz?: readonly number[];
       reason: string;
+    }
+  | {
+      kind: 'three-phase-motor';
+      ports: readonly [number, number, number];
+      motor: import('./motorModel').MotorModel;
     }
   | { kind: 'outlet'; capacityWatts?: number; maximumVoltage?: number }
   | { kind: 'connections'; groups: readonly (readonly number[])[] }
@@ -337,6 +342,8 @@ interface ControlEventBase {
 }
 export interface CoilControlEvent extends ControlEventBase {
   type: 'coil-pickup' | 'coil-dropout';
+  /** Phasor events report RMS magnitudes; scalar engines retain signed DC/RMS. */
+  measurementConvention?: 'complex-rms-magnitudes';
   /** Coil readings immediately before this event; result readings are post-event. */
   coilVoltageVolts: number | null;
   coilCurrentAmps: number | null;

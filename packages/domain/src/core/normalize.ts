@@ -3,6 +3,7 @@ import { type StandardId, getStandard } from '../standards';
 import type { Circuit, ComponentDef, ComponentState, InjectedFault } from '../types';
 import { copyCoilModel } from './coilModel';
 import { copyDamageModel } from './damageModel';
+import { copyMotorModel } from './motorModel';
 import { copyProtectionModel } from './protectionModel';
 import {
   copySupplyProfile,
@@ -43,6 +44,7 @@ export function resolveComponentState(
   releaseMomentary = false,
 ): ComponentState {
   const result = copySafeRecord(state);
+  if (result.motorModel) result.motorModel = copyMotorModel(result.motorModel);
   if (result.coilModel) result.coilModel = copyCoilModel(result.coilModel);
   if (result.damageModel) result.damageModel = copyDamageModel(result.damageModel);
   if (result.protectionModel) result.protectionModel = copyProtectionModel(result.protectionModel);

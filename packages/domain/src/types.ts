@@ -233,6 +233,8 @@ export interface FaultDiagnostic {
 }
 
 export interface ComponentState {
+  /** Explicit electrical input equivalent; mechanical nameplate power is separate. */
+  motorModel?: import('./core/motorModel').MotorModel;
   /** Explicit versioned coil teaching model; contact ratings remain independent. */
   coilModel?: import('./core/coilModel').CoilModel;
   /** Explicit timer program; elapsed time, latches and deadlines are never saved here. */

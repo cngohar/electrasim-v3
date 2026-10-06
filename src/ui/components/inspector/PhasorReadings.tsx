@@ -15,13 +15,16 @@ const angle = (value: Phasor | null | undefined) =>
 const box =
   'rounded-xl border border-slate-200 bg-slate-50/80 p-3 space-y-2 dark:border-slate-800 dark:bg-slate-950/60';
 const basis =
-  'Complex RMS readings; angles use this source system’s reference. Motor operation, automatic trips, damage and repair assessment are unassessed.';
+  'Complex RMS readings; angles use this source system’s reference. Motor readings use the declared unity-PF equivalent. Reactive behavior, automatic trips, damage and repair assessment are unassessed.';
 
 export function PhasorReadings({
   componentId,
   result,
 }: { componentId: string; result: SimulationResult }) {
   const point = result.phasorComponents?.[componentId];
+  const motor = result.phasor?.motors.find((m) => m.componentId === componentId);
+  const currents = result.phasor?.deviceCurrents.find((m) => m.componentId === componentId);
+  const control = result.phasor?.controls.find((m) => m.componentId === componentId);
   return (
     <section
       className={box}
@@ -34,6 +37,71 @@ export function PhasorReadings({
           ? 'Calculated · complex RMS'
           : 'Measurements unavailable'}
       </p>
+      {motor && (
+        <div data-motor-state={motor.state}>
+          <p>
+            Motor teaching operation: <strong>{motor.state}</strong>
+          </p>
+          <p>
+            Connected phases U/V/W:{' '}
+            {motor.connectedPhases.map((p) => p?.toUpperCase() ?? 'missing').join(' / ')} ·
+            Sequence: {motor.sequence?.toUpperCase() ?? 'unavailable'}
+          </p>
+          <p>Equivalent electrical input: {number(motor.equivalentInputPowerWatts, 'W')}</p>
+          <p>
+            Voltage unbalance:{' '}
+            {number(
+              motor.voltageUnbalanceRatio === null ? null : motor.voltageUnbalanceRatio * 100,
+              '%',
+            )}
+          </p>
+          {motor.lineCurrents.map((current, i) => (
+            <p key={['U', 'V', 'W'][i]}>
+              {['U', 'V', 'W'][i]} line current:{' '}
+              <output data-motor-line={i}>{rms(current, 'A')}</output> RMS
+            </p>
+          ))}
+          <p>{motor.reasons.join(' · ')}</p>
+          <p>{motor.basis}</p>
+        </div>
+      )}
+      {control && (
+        <div data-phasor-control={componentId}>
+          <p>Coil-controlled contacts: {control.closed ? 'closed' : 'open'}</p>
+          <p>Coil consumption: {number(control.coilPowerWatts, 'W')}</p>
+          {control.pending && (
+            <p>
+              Pending {control.pending.closed ? 'pickup' : 'dropout'} at {control.pending.atSeconds}{' '}
+              s simulated time.
+            </p>
+          )}
+        </div>
+      )}
+      {currents && (
+        <div data-phasor-poles={componentId}>
+          <p>
+            Maximum actual pole current:{' '}
+            <output data-reading="pole-current">
+              {number(currents.maximumPoleCurrentAmps, 'A')}
+            </output>{' '}
+            RMS
+          </p>
+          <p>
+            Residual (vector sum of sensed poles):{' '}
+            <output data-reading="residual">{number(currents.residualMilliamps, 'mA')}</output>
+          </p>
+          <p>
+            Contact capacity: {number(currents.currentCapacityAmps, 'A')} ·{' '}
+            {currents.capacityComparison}. Automatic clearing: unassessed.
+          </p>
+          {currents.residualUnavailableReason === 'independent-references' && (
+            <p>
+              Residual unavailable: sensed currents use independent source references and cannot be
+              vector-summed.
+            </p>
+          )}
+        </div>
+      )}
       {point?.branches.map((branch) => (
         <div
           key={branch.label}

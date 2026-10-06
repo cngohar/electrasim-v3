@@ -1,6 +1,7 @@
 import { compileCircuit } from './compile';
 import {
   type CompileOptions,
+  type CompileResult,
   type CompiledSource,
   ELECTRICAL_CONTRACT_VERSION,
   ELECTRICAL_MODEL_VERSION,
@@ -11,6 +12,12 @@ import {
 import { terminalId } from './faultTopology';
 import { compensatedSum, residualRatio } from './linearSystem';
 import { solveCompiledCircuit } from './mna';
+import {
+  type MotorOperatingPoint,
+  type PhasorControlReading,
+  type PhasorDeviceCurrent,
+  derivePhasorMeasurements,
+} from './phasorMeasurements';
 import { type CircuitReadiness, assessCompiledCircuitReadiness } from './readiness';
 import { assessWireCapacity } from './wireCapacity';
 
@@ -23,7 +30,10 @@ export interface Phasor {
 export interface PhasorSimulationResult {
   contractVersion: typeof ELECTRICAL_CONTRACT_VERSION;
   modelVersion: typeof ELECTRICAL_MODEL_VERSION;
-  engineVersion: 'mna-phasor-resistive-1';
+  engineVersion: 'mna-phasor-resistive-1' | 'mna-phasor-controls-1';
+  motors: MotorOperatingPoint[];
+  deviceCurrents: PhasorDeviceCurrent[];
+  controls: PhasorControlReading[];
   status: ElectricalSimulationResult['status'];
   diagnostics: ElectricalDiagnostic[];
   coverage: ModelCoverage[];
@@ -107,7 +117,13 @@ export function solvePhasorCircuit(
   raw: unknown,
   options: CompileOptions = {},
 ): PhasorSimulationResult {
-  const compiled = compileCircuit(raw, options);
+  return solveCompiledPhasorCircuit(compileCircuit(raw, options), options);
+}
+
+export function solveCompiledPhasorCircuit(
+  compiled: CompileResult,
+  options: CompileOptions = {},
+): PhasorSimulationResult {
   const readiness = assessCompiledCircuitReadiness(compiled, options);
   const empty = (
     status: PhasorSimulationResult['status'],
@@ -116,6 +132,9 @@ export function solvePhasorCircuit(
     contractVersion: ELECTRICAL_CONTRACT_VERSION,
     modelVersion: ELECTRICAL_MODEL_VERSION,
     engineVersion: 'mna-phasor-resistive-1',
+    motors: [],
+    deviceCurrents: [],
+    controls: [],
     status,
     diagnostics,
     readiness,
@@ -169,13 +188,16 @@ export function solvePhasorCircuit(
     );
   if (
     graph.devices.some(
-      ({ model }) =>
-        model.kind === 'contacts' && (model.coilModel || model.timerModel || model.dimmer),
+      ({ model, componentId }) =>
+        model.kind === 'contacts' &&
+        (model.timerModel ||
+          model.dimmer ||
+          (model.coilModel && !options.contactStates?.has(componentId))),
     )
   )
     return reject(
       'phasor-controls-unassessed',
-      'Timed coils, timers and dimming require phasor-aware runtime consumers.',
+      'Declared coils require the phasor control step; timers and dimming remain unassessed.',
     );
   const activePairs = new Set(
     graph.branches
@@ -255,9 +277,11 @@ export function solvePhasorCircuit(
             model: { kind: 'dc' as const, voltage: sourcePhasor(source)[axis] },
           })),
           devices: graph.devices.map((device) =>
-            device.model.kind === 'resistive-load'
-              ? { ...device, model: { ...device.model, supplyKinds: ['dc'] as const } }
-              : device,
+            device.model.kind === 'three-phase-motor'
+              ? { ...device, model: { kind: 'connections' as const, groups: [] } }
+              : device.model.kind === 'resistive-load'
+                ? { ...device, model: { ...device.model, supplyKinds: ['dc'] as const } }
+                : device,
           ),
         },
       },
@@ -388,7 +412,7 @@ export function solvePhasorCircuit(
     aspect: 'measurements',
     status: 'estimated',
     reason:
-      'Accepted complex RMS solution of declared resistances, finite wires at 20 C and static contacts. Motors, reactive loads, transformer coupling, timed operation, damage and standards are not assessed.',
+      'Accepted complex RMS solution of declared resistances, finite wires at 20 C and static contacts. Declared motor equivalents use unity PF; reactive loads, transformer coupling, automatic clearing, damage and standards are not assessed.',
   };
-  return result;
+  return derivePhasorMeasurements(compiled, result);
 }

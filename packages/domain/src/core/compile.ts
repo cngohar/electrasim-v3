@@ -18,6 +18,7 @@ import { DIMMER_APPROXIMATION } from './dimmerModel';
 import { applyGraphFaults, compareIds, terminalId } from './faultTopology';
 import { validateCircuitInput } from './input';
 import { modelPairs, modelPortIndices, resolveDeviceModel } from './models';
+import { MOTOR_APPROXIMATION, isMotorModel } from './motorModel';
 import { normalizeCircuitDocument } from './normalize';
 import { PROTECTION_APPROXIMATION, isProtectionModel } from './protectionModel';
 import { isSupplyModel, sameSupplyModel } from './supplies';
@@ -149,6 +150,10 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
               model.frequencyHz.some(
                 (frequency) => !Number.isFinite(frequency) || frequency <= 0,
               ))))) ||
+      (model.kind === 'three-phase-motor' &&
+        (!isMotorModel(model.motor) ||
+          new Set(model.ports).size !== 3 ||
+          model.ports.some((port) => def.ports[port]?.type !== 'live'))) ||
       (model.kind === 'contacts' &&
         ((model.coilModel !== undefined && (!model.coil || !isCoilModel(model.coilModel))) ||
           (model.timerModel !== undefined &&
@@ -384,6 +389,25 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
           aspect: 'load',
           status: 'estimated',
           reason: model.approximation,
+        });
+        break;
+      case 'three-phase-motor':
+        model.ports.forEach((port, i) =>
+          internal(
+            'load',
+            port,
+            model.ports[(i + 1) % 3]!,
+            operable,
+            `motor:${i}`,
+            false,
+            (3 * model.motor.nominalLineVoltage ** 2) / model.motor.inputPowerWatts,
+          ),
+        );
+        coverage.push({
+          subjectId: component.id,
+          aspect: 'load',
+          status: 'estimated',
+          reason: MOTOR_APPROXIMATION,
         });
         break;
       case 'unassessed-load':
