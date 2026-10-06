@@ -32,3 +32,4 @@ export type {
 export { assessWireCapacity } from './wireCapacity';
 export type { WireCapacity, CapacityComparison } from './wireCapacity';
 export { MNA_ENGINE_VERSION, MNA_LIMITS, solveCircuit, voltageBetween } from './mna';
+export * from './phasor';

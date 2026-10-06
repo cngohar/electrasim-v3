@@ -231,6 +231,7 @@ export function resolveDeviceModel(
 export function modelPortIndices(model: ElectricalDeviceModel): readonly number[] {
   switch (model.kind) {
     case 'source':
+      return [...model.ports, ...(model.phasePorts ?? [])];
     case 'resistive-load':
     case 'unassessed-load':
       return model.ports;

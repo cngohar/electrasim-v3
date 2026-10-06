@@ -123,7 +123,15 @@ export function assessCompiledCircuitReadiness(
     .filter(
       (s) =>
         activeSourceIds.has(s.id) &&
-        conductorGroup.get(s.positive) === conductorGroup.get(s.negative),
+        (conductorGroup.get(s.positive) === conductorGroup.get(s.negative) ||
+          (s.phaseSystemId !== undefined &&
+            graph.sources.some(
+              (other) =>
+                activeSourceIds.has(other.id) &&
+                other.phaseSystemId === s.phaseSystemId &&
+                other.phase !== s.phase &&
+                conductorGroup.get(other.positive) === conductorGroup.get(s.positive),
+            ))),
     )
     .map((s) => s.id);
   for (const transformer of graph.transformers)
@@ -272,6 +280,7 @@ export function assessCompiledCircuitReadiness(
         positive: netByTerminal.get(s.positive)!,
         negative: netByTerminal.get(s.negative)!,
         voltage: s.model.voltage,
+        ...(s.phaseAngleDegrees === undefined ? {} : { phaseAngleDegrees: s.phaseAngleDegrees }),
       })),
   );
   if (constraints.conflicting.length) {

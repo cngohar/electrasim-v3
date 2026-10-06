@@ -35,6 +35,9 @@
     "format": "bun x biome format --write .",
     "test": "bun x vitest run",
     "test:watch": "bun x vitest",
+    "test:changed": "bun x vitest run --changed",
+    "test:related": "bun x vitest related --run",
+    "check:core": "bun scripts/check-domain-boundaries.ts && bun x tsc --noEmit -p packages/domain/tsconfig.core.json && bun x biome lint packages/domain/src/core && bun x vitest run packages/domain/src/core",
     "test:coverage": "bun x vitest run --coverage",
     "test:ui": "bun x vitest --ui",
     "e2e": "bun x playwright test",
@@ -60,6 +63,7 @@
     "verify:phase-1.5d1": "bun scripts/verify-phase15d1.mjs",
     "verify:phase-1.5d2": "bun scripts/verify-phase15d2.mjs",
     "verify:phase-1.5d3": "bun scripts/verify-phase15d3.mjs",
+    "verify:phase-1.5e0": "bun scripts/verify-phase15e0.mjs",
     "test:domain-local": "bun scripts/test-domain-local.ts"
   },
   "dependencies": {

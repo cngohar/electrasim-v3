@@ -18,6 +18,12 @@ The budget check covers the default app JavaScript and CSS, generated HTML volum
 count, and the homepage's high-priority image. Hashed build assets are served with immutable cache
 headers; HTML, the service worker, and the manifest must revalidate.
 
+On 2026-10-06 the user approved raising the default app JavaScript allowance from **250,000 to
+300,000 bytes gzip** to provide headroom for the growing simulator. This limit applies to the
+entry scripts in the built app HTML; it does not cap the whole project or its dynamically loaded
+feature chunks. Continue loading optional inspectors, labs, guides and other larger features on
+demand. The CSS, generated-page, image and interaction/solver targets retain their existing limits.
+
 Tag archives are intentionally generated only for normalized tags used by at least three published
 posts. Long-tail tag URLs are not retained as empty or one-post pages; all generated on-site tag links
 use the same threshold. This keeps the static output bounded as the article corpus grows.
@@ -81,7 +87,7 @@ Raw local logs: `.wrangler/phase-1.4-baseline.log`, `.wrangler/phase-1.4-rendere
 
 Target behavior:
 
-- Default app JavaScript: at most 250 KB gzip.
+- Default app JavaScript: at most 300 kB gzip (300,000 bytes).
 - Default app CSS: at most 30 KB gzip.
 - Dense-editor headless gate: pointer handlers average below 1 ms and stay below 2 ms p95;
   pointer-up commits stay below 16 ms; the static dense scene stays below 30 ms average, 50 ms p95,
@@ -100,7 +106,8 @@ FAIL  initial CSS is  20,470 B gzip; budget is  15,000 B
 ```
 
 This is retained as evidence for why the original budgets were unreachable, not as the current
-gate. The active limits are 250 KB gzip for JavaScript and 30 KB gzip for CSS.
+gate. The active limits are 300 kB gzip for JavaScript and 30 kB gzip for CSS; the former 250 kB
+JavaScript gate was superseded by the user's 2026-10-06 decision above.
 
 ### Why 115 KB of JS is unreachable
 

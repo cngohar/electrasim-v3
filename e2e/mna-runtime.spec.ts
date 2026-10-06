@@ -96,7 +96,7 @@ test('the running application and inspector display calculated series measuremen
   expect(actual).toMatchObject({
     engine: 'mna-linear-2',
     worker: true,
-    model: '1.5d.3.1',
+    model: '1.5e.0.1',
     thermal: null,
   });
   expect(errors).toEqual([]);

@@ -5,12 +5,39 @@ export interface VoltageConstraint {
   positive: string;
   negative: string;
   voltage: number;
+  /** Present only for an explicitly identified AC phase. */
+  phaseAngleDegrees?: number;
 }
 
 /** Detect dependent ideal-source equations before factorization. A consistent
  * loop still has indeterminate source currents; it cannot acquire an equal split.
  */
 export function inspectVoltageConstraints(constraints: readonly VoltageConstraint[]): {
+  conflicting: string[];
+  redundant: string[];
+} {
+  if (!constraints.some((constraint) => constraint.phaseAngleDegrees !== undefined))
+    return inspectRealVoltageConstraints(constraints);
+  const axis = (imaginary: boolean) =>
+    inspectRealVoltageConstraints(
+      constraints.map((c) => ({
+        ...c,
+        voltage:
+          c.voltage *
+          (imaginary
+            ? Math.sin(((c.phaseAngleDegrees ?? 0) * Math.PI) / 180)
+            : Math.cos(((c.phaseAngleDegrees ?? 0) * Math.PI) / 180)),
+      })),
+    );
+  const real = axis(false);
+  const imaginary = axis(true);
+  return {
+    conflicting: [...new Set([...real.conflicting, ...imaginary.conflicting])].sort(compareIds),
+    redundant: real.redundant.filter((id) => imaginary.redundant.includes(id)),
+  };
+}
+
+function inspectRealVoltageConstraints(constraints: readonly VoltageConstraint[]): {
   conflicting: string[];
   redundant: string[];
 } {

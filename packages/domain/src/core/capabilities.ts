@@ -157,7 +157,11 @@ export function resolveDeviceCapabilities(
       const g = make(
         'output',
         'source',
-        electrical.kind === 'source' ? electrical.ports : [electrical.port],
+        electrical.kind === 'source'
+          ? electrical.phasePorts
+            ? [...electrical.phasePorts, electrical.ports[1]]
+            : electrical.ports
+          : [electrical.port],
       );
       g.supplyKinds = known(
         [electrical.supply.kind],

@@ -2,6 +2,8 @@
 
 > **V3 workspace:** development and testing are local-only under [AGENTS.md](./AGENTS.md); the live V2 site/account below is separate. Follow [Phase 1](./docs/phases/phase-1-simulator-core.md). `bun run verify:phase-1.5b` checks the [electrical contracts and terminal graph](./docs/audits/phase-1-electrical-contracts.md), including isolated local Worker/D1 and browser acceptance. Deployment remains disabled.
 
+> **Fast local feedback:** use [targeted/watch development commands](./docs/DEVELOPMENT.md) while editing and the required phase gate when the milestone is ready. `bun run build` builds assets without running the test suites.
+
 A browser-based interactive electrical wiring simulator and structured learning laboratory. Drag, drop, and wire real-world domestic and light-industrial electrical components — switches, MCBs, RCDs, RCBOs, fuses, sockets, lamps, fans, motors, EV chargers, and solar storage — and observe real-time circuit behavior and protection trips. Built to be rigorous enough for an electrical apprentice and engaging enough for a curious hobbyist.
 
 > **Current release:** **v2.0.4** (2026-09-17), live at [electrasim.com](https://electrasim.com/) — includes Challenge Mode, Diagnosis Lab, Ohmageddon, 20 guided circuit walkthroughs, 22 component anatomy cutaways, multi-standard Electrical Toolbox (BS 7671 / IEC 60364 / NEC), and a 36-term cross-referenced glossary. Release notes: [/updates/](https://electrasim.com/updates/). The accessible SVG editor and Astro marketing/guide site build together as one Cloudflare Pages artifact; see [`PLAN.md`](./PLAN.md) for roadmap phases and [`progress.md`](./progress.md) for the development session log.

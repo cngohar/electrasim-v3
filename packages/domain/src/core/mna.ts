@@ -137,6 +137,15 @@ export function solveCompiledCircuit(
     deriveEarthingMeasurements(graph, result);
     return deriveOperatingPoints(compiled, result, options);
   };
+  if (graph.sources.some((source) => source.phaseSystemId !== undefined))
+    return unavailable('unsupported', [
+      {
+        code: 'mna-phasor-entry-required',
+        severity: 'warning',
+        message:
+          'Explicit three-phase sources require solvePhasorCircuit(). The scalar application runtime cannot consume complex measurements yet.',
+      },
+    ]);
   const unsupported = coverage.filter(
     (item) => item.status === 'not-assessed' && !['protection', 'damage'].includes(item.aspect),
   );

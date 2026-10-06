@@ -8,6 +8,7 @@ import {
   previewVariantChange,
   resolveDeviceCapabilities,
   solveCircuit,
+  solvePhasorCircuit,
 } from '@electrasim/domain/core';
 /** Shared test workload for local Bun / workerd parity; never served by the app. */
 import { simulate } from '@electrasim/domain/simulation';
@@ -18,6 +19,7 @@ import { earthingAcceptanceCircuits } from '../packages/domain/src/core/earthing
 import { editingCircuit, variantCircuit } from '../packages/domain/src/core/editingFixtures';
 import { mnaAcceptanceCircuits } from '../packages/domain/src/core/mnaFixtures';
 import { operatingPointAcceptanceCircuits } from '../packages/domain/src/core/operatingPointFixtures';
+import { phasorAcceptanceCircuits } from '../packages/domain/src/core/phasorFixtures';
 import {
   protectionCircuit,
   rcboCircuit,
@@ -31,6 +33,11 @@ import { runtimeAcceptanceCircuits } from '../packages/domain/src/simulation/run
 
 export function domainParityFixture(): string {
   const results: unknown[] = [];
+  for (const [name, fixture] of Object.entries(phasorAcceptanceCircuits()))
+    results.push({
+      phasorCase: name,
+      result: solvePhasorCircuit(fixture.circuit, { defs: fixture.defs }),
+    });
   for (const [name, circuit] of Object.entries(damageAcceptanceCircuits())) {
     let previous = simulate(circuit);
     results.push({ damageCase: name, step: 'reset', result: previous });

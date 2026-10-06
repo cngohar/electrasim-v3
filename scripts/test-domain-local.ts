@@ -1,7 +1,7 @@
 /** Self-contained Bun/workerd contract parity; starts only an isolated localhost Worker. */
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { appendFileSync, mkdirSync, mkdtempSync } from 'node:fs';
+import { appendFileSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { domainParityFixture } from './domain-parity-fixture';
 
@@ -67,7 +67,19 @@ try {
   const response = await fetch(origin, { signal: AbortSignal.timeout(30_000) });
   assert.equal(response.status, 200);
   const actual = await response.text();
-  assert.equal(actual, domainParityFixture(), 'Bun and local workerd electrical contracts differ.');
+  const expected = domainParityFixture();
+  if (actual !== expected) {
+    // Preserve strict equality and the full evidence without dumping tens of
+    // megabytes into the terminal when a single measurement differs.
+    writeFileSync(`${directory}/actual.json`, actual);
+    writeFileSync(`${directory}/expected.json`, expected);
+    let offset = 0;
+    while (offset < Math.min(actual.length, expected.length) && actual[offset] === expected[offset])
+      offset++;
+    throw new Error(
+      `Bun/workerd parity differs at character ${offset}. Compare ${directory}/{actual,expected}.json.`,
+    );
+  }
   console.log(
     `Local domain parity passed: ${JSON.parse(actual).length} simulation/compiler/preflight/MNA cases. Evidence: ${directory}`,
   );

@@ -7,7 +7,7 @@ const DIST = new URL('../dist/', import.meta.url);
 const distPath = fileURLToPath(DIST);
 // Performance limits: see docs/PERFORMANCE.md for background on React 19 / Tailwind 4 baseline floors.
 const limits = {
-  initialJsGzip: 250_000,
+  initialJsGzip: 300_000,
   initialCssGzip: 30_000,
   generatedTagPages: 80,
   totalHtmlBytes: 10 * 1024 * 1024,

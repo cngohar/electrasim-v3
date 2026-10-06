@@ -2,7 +2,7 @@
 
 **Version:** 3.0.0-DRAFT — revised 2026-10-06 (supersedes `REWRITE_PLAN_V4_FULL.md`)
 
-**Status:** `IMPLEMENTING LOCALLY` — Phase 1.0–1.5 milestones recorded; 1.5A, 1.5B and 1.5C.0–5 complete locally. [1.5D.0 deterministic coil controls](audits/phase-1-timed-controls.md), [1.5D.1 timer programs/dimming](audits/phase-1-timers-dimming.md) and [1.5D.2 timed protection models](audits/phase-1-protection.md) are complete locally; [1.5D.3 damage/repair](audits/phase-1-damage-repair.md) is also complete locally with actual Worker/D1/Comlink and desktop/phone browser acceptance. Next is three-phase 1.5E, followed by full lab migration 1.5F.
+**Status:** `IMPLEMENTING LOCALLY` — Phase 1.0–1.5 milestones recorded; 1.5A, 1.5B and 1.5C.0–5 complete locally. [1.5D.0 deterministic coil controls](audits/phase-1-timed-controls.md), [1.5D.1 timer programs/dimming](audits/phase-1-timers-dimming.md) and [1.5D.2 timed protection models](audits/phase-1-protection.md) are complete locally; [1.5D.3 damage/repair](audits/phase-1-damage-repair.md) is also complete locally with actual Worker/D1/Comlink and desktop/phone browser acceptance. Three-phase 1.5E has started with [E.0 numerical foundations](audits/phase-1-phasor-foundation.md); E.0 is complete locally. Source/UI, motors and app integration remain E.1–3, followed by full lab migration 1.5F.
 **Runtime:** **Bun** everywhere · **Platform:** **100% Cloudflare Workers** (no external DB/compute)  
 **Current state:** V3 is developed locally. The existing live `electrasim.com` site/account is separate and must not be used for this work.
 **Target:** React 19 + Hono on Workers + Better Auth + **D1 (SQLite)** + R2 + KV + Durable Objects + Matter.js + Tailwind v4
@@ -704,7 +704,7 @@ Post-V3.1: SCORM/xAPI, collaborative cursors, vector search (Vectorize), Workers
 
 ### Next Step
 
-**Phase 1.5C.0–5 and 1.5D.0–3 are complete locally within their documented scope.** [MNA runtime acceptance](./audits/phase-1-mna-runtime.md) records the supported application/Comlink/local-Hono engine, and [damage/repair acceptance](./audits/phase-1-damage-repair.md) closes the declared timed control/protection/damage sequence. **Next is 1.5E: supported three-phase teaching models**, followed by full existing-lab integration in 1.5F before effects. Guarded legacy observation remains for unmigrated models; dense solver/rendering targets remain open. Use [Phase 1](./phases/phase-1-simulator-core.md) for the current sequence and [the rebuild plan](./plans/SIMULATOR_CORE_REBUILD_PLAN.md) for audit IDs and exit gates. These local results do not authorize Cloudflare account/resource operations or deployment.
+**Phase 1.5C.0–5 and 1.5D.0–3 are complete locally within their documented scope.** [MNA runtime acceptance](./audits/phase-1-mna-runtime.md) records the supported application/Comlink/local-Hono engine, and [damage/repair acceptance](./audits/phase-1-damage-repair.md) closes the declared timed control/protection/damage sequence. **1.5E.0 phasor foundation is complete locally; E.1–3 source/UI/motor/application integration is next**, followed by full existing-lab integration in 1.5F before effects. Guarded legacy observation remains for unmigrated models; dense solver/rendering targets remain open. Use [Phase 1](./phases/phase-1-simulator-core.md) for the current sequence and [the rebuild plan](./plans/SIMULATOR_CORE_REBUILD_PLAN.md) for audit IDs and exit gates. These local results do not authorize Cloudflare account/resource operations or deployment.
 
 ---
 
@@ -865,7 +865,7 @@ D1 electrical_standards_history { id, version, tablesJson, diffJson, migration, 
 
 7. **Observability + budgets**
    - `bun x wrangler d1 insights electrasim --time-period 1h --sort-by time --limit 10` in CI.
-   - Budgets (enforce in `check:perf`): **p95 write < 50ms**, **p95 cached read < 20ms** (Worker→D1), **replica-served read p95 < 40ms**. `check:csp`/`check:seo` still green, no payload over 250 kB gzip.
+   - Budgets (enforce in `check:perf`): **p95 write < 50ms**, **p95 cached read < 20ms** (Worker→D1), **replica-served read p95 < 40ms**. `check:csp`/`check:seo` still green; initial app JavaScript stays within the user-approved 300 kB gzip budget, with larger optional features loaded on demand.
 
 8. **Indexes reviewed before any query ships**
    - Every new query must answer: *which index does it use?* `EXPLAIN QUERY PLAN` in PR review for `circuits`, `enrollments`, `submissions`, `xp_events`, `posts` hot paths. Missing index = blocked PR.

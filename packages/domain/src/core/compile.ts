@@ -111,6 +111,14 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
       ((model.kind === 'source' || model.kind === 'source-alias') &&
         !isSupplyModel(model.supply)) ||
       (model.kind === 'source' && model.ports[0] === model.ports[1]) ||
+      (model.kind === 'source' &&
+        model.phasePorts !== undefined &&
+        (model.supply.kind !== 'ac-three-phase' ||
+          model.phasePorts.length !== 3 ||
+          model.ports[0] !== model.phasePorts[0] ||
+          new Set([...model.phasePorts, model.ports[1]]).size !== 4 ||
+          model.phasePorts.some((i) => def.ports[i]?.type !== 'live') ||
+          def.ports[model.ports[1]]?.type !== 'neutral')) ||
       (model.kind === 'resistive-load' &&
         (!Number.isFinite(model.resistanceOhms) ||
           model.resistanceOhms <= 0 ||
@@ -209,6 +217,10 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
         port.type === 'earth' ? 'pe' : port.type === 'live' ? 'line' : 'neutral';
       if (model.kind === 'source' && model.supply.kind === 'dc')
         role = index === model.ports[0] ? 'positive' : index === model.ports[1] ? 'negative' : role;
+      if (model.kind === 'source' && model.phasePorts) {
+        const phaseIndex = model.phasePorts.indexOf(index);
+        if (phaseIndex >= 0) role = (['l1', 'l2', 'l3'] as const)[phaseIndex]!;
+      }
       if (model.kind === 'source-alias' && model.supply.kind === 'dc')
         role = model.role === 'line' ? 'positive' : 'negative';
       if (component.type === 'distribution-board-3phase')
@@ -271,7 +283,8 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
       !options.trippedComponents?.has(component.id);
     const needsPhaseTerminals =
       (model.kind === 'source' || model.kind === 'source-alias') &&
-      model.supply.kind === 'ac-three-phase';
+      model.supply.kind === 'ac-three-phase' &&
+      !(model.kind === 'source' && model.phasePorts);
     const topologyUnknown =
       model.kind === 'unassessed' ||
       (model.kind === 'unassessed-load' && model.ports.length !== 2) ||
@@ -293,13 +306,40 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
         aspect: 'source',
         status: 'not-assessed',
         reason:
-          'Three-phase source stamping requires explicit L1/L2/L3 terminals in 1.5E; a two-terminal or legacy alias source cannot represent it.',
+          'Three-phase source stamping requires explicit L1/L2/L3/N terminals; a two-terminal or legacy alias source cannot represent it.',
       });
       continue;
     }
     switch (model.kind) {
       case 'source': {
         const sourceId = JSON.stringify(['source', component.id]);
+        if (model.supply.kind === 'ac-three-phase' && model.phasePorts) {
+          const angles = model.supply.sequence === 'abc' ? [0, -120, 120] : [0, 120, -120];
+          model.phasePorts.forEach((port, index) => {
+            const phase = (['l1', 'l2', 'l3'] as const)[index]!;
+            graph.sources.push({
+              id: JSON.stringify(['source', component.id, phase]),
+              componentIds: [component.id],
+              positive: t(port),
+              negative: t(model.ports[1]),
+              model: model.supply,
+              reference: 'neutral',
+              phaseSystemId: sourceId,
+              phase,
+              phaseAngleDegrees: angles[index]!,
+            });
+            internal('source', port, model.ports[1], operable, `source:${phase}`, false);
+          });
+          graph.references.push({ terminal: t(model.ports[1]), kind: 'neutral' });
+          coverage.push({
+            subjectId: component.id,
+            aspect: 'source',
+            status: 'estimated',
+            reason:
+              'Explicit balanced L1/L2/L3/N ideal source, RMS L-N voltage and saved phase sequence. Source impedance and installation assessment are not declared.',
+          });
+          break;
+        }
         graph.sources.push({
           id: sourceId,
           componentIds: [component.id],
