@@ -2,6 +2,8 @@ import { COMPONENT_DEFS } from '../components';
 import { type StandardId, getStandard } from '../standards';
 import type { Circuit, ComponentDef, ComponentState, InjectedFault } from '../types';
 import { copyCoilModel } from './coilModel';
+import { copyDamageModel } from './damageModel';
+import { copyProtectionModel } from './protectionModel';
 import {
   copySupplyProfile,
   explicitSupplyProfile,
@@ -42,6 +44,8 @@ export function resolveComponentState(
 ): ComponentState {
   const result = copySafeRecord(state);
   if (result.coilModel) result.coilModel = copyCoilModel(result.coilModel);
+  if (result.damageModel) result.damageModel = copyDamageModel(result.damageModel);
+  if (result.protectionModel) result.protectionModel = copyProtectionModel(result.protectionModel);
   if (result.timerModel) result.timerModel = copyTimerModel(result.timerModel);
   if (result.sourceProfile) result.sourceProfile = copySupplyProfile(result.sourceProfile);
   if (definition?.isSwitch && result.on === undefined) result.on = definition.defaultOn ?? false;
@@ -74,6 +78,7 @@ export function normalizeCircuitDocument(
     }),
     wires: circuit.wires.map((wire) => ({
       ...wire,
+      ...(wire.damageModel ? { damageModel: { ...wire.damageModel } } : {}),
       controlPoints: (wire.controlPoints ?? []).map((point) => ({ ...point })),
     })),
     ...(circuit.faults

@@ -90,7 +90,9 @@ test('guest fuse melts on its declared I2t budget and reports the thermal trip',
   await expect
     .poll(
       async () =>
-        (await runtime(page)).logs.some((l: string) => l.includes('protection tripped (overload)')),
+        (await runtime(page)).logs.some((l: string) =>
+          l.includes('fuse operated; replacement required'),
+        ),
       { timeout: 20000 },
     )
     .toBe(true);

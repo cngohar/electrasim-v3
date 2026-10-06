@@ -27,6 +27,7 @@ export type EditableWireProperties = Pick<
   | 'installationMethod'
   | 'material'
   | 'gauge'
+  | 'damageModel'
 >;
 
 export interface GraphChanges {
@@ -123,15 +124,15 @@ export interface CircuitState {
         },
   ) => string | Promise<string>;
   /** Fault simulation: remove a specific injected fault by ID. */
-  removeFault: (faultId: string) => void;
+  removeFault: (faultId: string) => boolean | Promise<boolean>;
   /** Fault simulation: toggle a specific fault type on a target. */
   toggleFault: (type: FaultType, target: import('@electrasim/domain').FaultTarget) => void;
   /** Fault simulation: inject or clear a fault on one wire. */
-  setWireFault: (id: string, fault: WireFaultType | undefined) => void;
+  setWireFault: (id: string, fault: WireFaultType | undefined) => boolean | Promise<boolean>;
   /** Fault simulation: inject or clear a fault on one component. */
-  setComponentFault: (id: string, fault: FaultType | undefined) => void;
+  setComponentFault: (id: string, fault: FaultType | undefined) => boolean | Promise<boolean>;
   /** Fault simulation: remove all faults from every component, wire, and port. */
-  clearAllFaults: () => void;
+  clearAllFaults: () => boolean | Promise<boolean>;
 
   /** Pro Mode Customizations: update custom voltage, power, cable size or threshold parameters. */
   updateComponentState: (
@@ -141,21 +142,21 @@ export interface CircuitState {
   /** Change component variant type and reset/sync relevant component parameters. */
   updateComponentType: (id: string, newType: string) => void;
   /** Repair a blown component after overvoltage/overcurrent overload. */
-  repairBlownComponent: (id: string) => void;
+  repairBlownComponent: (id: string) => boolean | Promise<boolean>;
   /** Repair all blown components across the circuit. */
-  repairAllBlownComponents: () => void;
-  /** Repair all blown components and melted/busted wires across the circuit. */
-  repairAllFaults: () => void;
+  repairAllBlownComponents: () => boolean | Promise<boolean>;
+  /** Replace all damaged components/wires while stopped; preserves injected faults. */
+  repairAllFaults: () => boolean | Promise<boolean>;
   /** Mark a wire as melted/busted or restored. */
-  setWireBusted: (id: string, isBusted: boolean, reason?: string) => void;
+  setWireBusted: (id: string, isBusted: boolean, reason?: string) => boolean | Promise<boolean>;
   /** Update editable wire metadata without exposing identity or endpoint mutation. */
   updateWireProperties: (id: string, updates: Partial<EditableWireProperties>) => void;
   /** Swap origin and destination terminals of a wire. */
   swapWireEndpoints: (id: string) => void;
-  /** Reset a tripped breaker/fuse after fault is cleared. */
-  resetTrippedComponent: (id: string) => void;
+  /** Reset a resettable protective device to OFF. An operated fuse needs replacement. */
+  resetTrippedComponent: (id: string) => boolean | Promise<boolean>;
   /** Reset all tripped protection devices across the circuit. */
-  resetAllTrippedComponents: () => void;
+  resetAllTrippedComponents: () => boolean | Promise<boolean>;
 
   // Selection (transient — excluded from undo history) ────────────────────
   selectComponent: (id: string | null) => void;

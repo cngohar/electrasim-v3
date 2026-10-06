@@ -11,7 +11,8 @@ async function openCircuit(page: Page, circuit: Circuit) {
   });
   await page.goto('/');
   await expect(page.getByRole('button', { name: /^Run Simulation$/ })).toBeVisible();
-  await page.keyboard.press('Control+e');
+  await page.getByRole('button', { name: 'Menu', exact: true }).click();
+  await page.getByRole('button', { name: /^Import \/ Export/ }).click();
   const dialog = page.getByRole('dialog');
   await dialog.getByRole('button', { name: /^Import$/ }).click();
   await dialog.locator('textarea').fill(JSON.stringify({ version: 2, exportedAt: 0, circuit }));
@@ -23,6 +24,7 @@ async function openCircuit(page: Page, circuit: Circuit) {
     ),
   ).toBeVisible();
   await page.keyboard.press('Escape');
+  await expect(dialog).not.toBeVisible();
 }
 
 function heaterCircuit(): Circuit {

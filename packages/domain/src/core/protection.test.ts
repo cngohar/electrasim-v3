@@ -44,9 +44,9 @@ describe('declared timed protection', () => {
   it('melts a fuse on its declared I2t budget', () => {
     const circuit = protectionCircuit('fuse', 1);
     const result = simulate(circuit, { deltaSeconds: 30 });
-    const trip = result.simulationEvents?.find((event) => event.type === 'protection-trip');
-    expect(trip?.type).toBe('protection-trip');
-    if (trip?.type === 'protection-trip') {
+    const trip = result.simulationEvents?.find((event) => event.type === 'fuse-operated');
+    expect(trip?.type).toBe('fuse-operated');
+    if (trip?.type === 'fuse-operated') {
       expect(['overload', 'short-circuit']).toContain(trip.reason);
       expect(trip.atSeconds).toBeLessThan(30);
     }

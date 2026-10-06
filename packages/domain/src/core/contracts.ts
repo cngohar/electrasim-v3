@@ -8,6 +8,7 @@ import type {
   PortRef,
 } from '../types';
 import type { CoilModel } from './coilModel';
+import type { DamageModel, DamageTarget } from './damageModel';
 import type { FaultCurrentMeasurement, ProtectiveCurrentMeasurement } from './earthing';
 import type {
   CircuitOperatingState,
@@ -20,7 +21,7 @@ import type { CircuitReadiness } from './readiness';
 import type { TimerModel } from './timerModel';
 
 export const ELECTRICAL_CONTRACT_VERSION = 1 as const;
-export const ELECTRICAL_MODEL_VERSION = '1.5d.2.1' as const;
+export const ELECTRICAL_MODEL_VERSION = '1.5d.3.1' as const;
 export type CoverageStatus = 'supported' | 'estimated' | 'not-assessed';
 
 export interface ElectricalDiagnostic {
@@ -38,7 +39,15 @@ export interface ElectricalDiagnostic {
 
 export interface ModelCoverage {
   subjectId: string;
-  aspect: 'topology' | 'source' | 'load' | 'controls' | 'protection' | 'fault' | 'measurements';
+  aspect:
+    | 'topology'
+    | 'source'
+    | 'load'
+    | 'controls'
+    | 'protection'
+    | 'damage'
+    | 'fault'
+    | 'measurements';
   status: CoverageStatus;
   reason: string;
 }
@@ -207,7 +216,7 @@ export interface TerminalGraph {
   nets: { id: string; terminals: string[] }[];
   /** Galvanic connectivity, including loads/sources but never transformer coupling. */
   domains: { id: string; terminals: string[]; sourceIds: string[] }[];
-  devices: { componentId: string; model: ElectricalDeviceModel }[];
+  devices: { componentId: string; model: ElectricalDeviceModel; damageModel?: DamageModel }[];
   sources: CompiledSource[];
   transformers: CompiledTransformer[];
   references: {
@@ -225,6 +234,9 @@ export interface CompileOptions {
   dimmerSampling?: boolean;
   /** Transient protection trips supplied by a device step, never saved into Circuit. */
   trippedComponents?: ReadonlySet<string>;
+  /** Transient irreversible opens; saved damage flags remain independently effective. */
+  damagedComponents?: ReadonlySet<string>;
+  damagedWires?: ReadonlySet<string>;
 }
 
 export type CompileResult =
@@ -272,6 +284,44 @@ export interface ElectricalSimulationState {
     }
   >;
   eventSequence: number;
+  /** Keys encode target type and ID, so a component and wire may share an ID. */
+  damage: Record<string, DamageRuntime>;
+}
+
+export interface DamageRuntime {
+  exposure: number;
+  damaged: boolean;
+  damagedAtSeconds: number | null;
+  lastEvaluatedSeconds: number;
+  /** Previous accepted stress rate; integrate it before measuring changed inputs. */
+  rate: number;
+}
+
+export interface DamageOperatingPoint {
+  target: DamageTarget;
+  kind: DamageModel['kind'];
+  exposure: number;
+  budget: number;
+  unit: 'A²s' | 'V²s';
+  damaged: boolean;
+  damagedAtSeconds: number | null;
+  currentAmps: number | null;
+  voltageVolts: number | null;
+  pendingAtSeconds: number | null;
+}
+
+export interface DamageEvent {
+  sequence: number;
+  atSeconds: number;
+  type: 'damage';
+  target: DamageTarget;
+  reason: DamageModel['kind'];
+  /** Immediately before opening; final readings describe the opened topology. */
+  currentAmps: number | null;
+  voltageVolts: number | null;
+  exposure: number;
+  budget: number;
+  unit: 'A²s' | 'V²s';
 }
 
 interface ControlEventBase {
@@ -295,14 +345,18 @@ export interface TimerControlEvent extends ControlEventBase {
 }
 
 export interface ProtectionControlEvent extends ControlEventBase {
-  type: 'protection-trip';
+  type: 'protection-trip' | 'fuse-operated';
   reason: ProtectionTripReason;
   /** Actual worst-pole current immediately before the trip; result readings are post-event. */
   maxPoleCurrentAmps: number | null;
   currentMultiple: number | null;
   residualMilliamps: number | null;
 }
-export type ElectricalControlEvent = CoilControlEvent | TimerControlEvent | ProtectionControlEvent;
+export type ElectricalControlEvent =
+  | CoilControlEvent
+  | TimerControlEvent
+  | ProtectionControlEvent
+  | DamageEvent;
 
 export interface TimerOperatingPoint {
   componentId: string;
@@ -350,6 +404,7 @@ export interface ElectricalSimulationResult {
   controls?: ControlOperatingPoint[];
   timers?: TimerOperatingPoint[];
   protection?: ProtectionOperatingPoint[];
+  damage?: DamageOperatingPoint[];
   dimming?: {
     model: 'synchronous-resistive-rms';
     controls: { componentId: string; powerFraction: number }[];

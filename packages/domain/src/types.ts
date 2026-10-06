@@ -239,6 +239,8 @@ export interface ComponentState {
   timerModel?: import('./core/timerModel').TimerModel;
   /** Explicit protection ratings/curve; transient trip energy/state is never saved here. */
   protectionModel?: import('./core/protectionModel').ProtectionModel;
+  /** Explicit cumulative stress budget, separate from nameplate and protection ratings. */
+  damageModel?: import('./core/damageModel').DamageModel;
   /** Versioned source configuration. Valid only on declared supply interfaces. */
   sourceProfile?: SupplyProfile;
   /** Manual open/closed state for switch-like and protection components. */
@@ -362,7 +364,9 @@ export interface WireInstance {
    * Multiplied with {@link deratingFactor} (Cg grouping/ambient) by callers.
    */
   installationMethod?: InstallationMethod;
-  /** True if wire was melted/busted due to severe current overload without protection. */
+  /** Optional cumulative current-stress budget; ampacity alone never implies destruction. */
+  damageModel?: Extract<import('./core/damageModel').DamageModel, { kind: 'overcurrent' }>;
+  /** Saved irreversible open after modeled damage; only replacement clears it. */
   isBusted?: boolean;
   bustedReason?: string;
   /** Wire conductor material affecting resistance and ampacity. */
@@ -487,7 +491,7 @@ export interface SimulationResult {
   /** All active injected faults evaluated in this simulation run. */
   activeInjectedFaults?: InjectedFault[];
   /** Mode-independent modeled damage, including operated fuse links. Resettable trips are separate. */
-  blownComponents?: { id: string; reason: 'overvoltage' | 'overcurrent' | 'overload' }[];
+  blownComponents?: { id: string; reason?: 'overvoltage' | 'overcurrent' | 'overload' }[];
   /** Wires where load current exceeds cable gauge capacity (Pro Mode). */
   overloadedWires?: Set<string>;
   /** Calculated effective supply voltage level in Volts. */

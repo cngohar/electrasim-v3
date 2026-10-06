@@ -178,7 +178,10 @@ export function useSimulation() {
                       ? {
                           ...wire,
                           isBusted: true,
-                          bustedReason: 'Cable melted due to current overload',
+                          bustedReason:
+                            result.electrical && !result.legacyObservation
+                              ? 'Declared current-stress budget exceeded; wire opened.'
+                              : 'Cable melted due to current overload',
                         }
                       : wire,
                   )
@@ -194,11 +197,18 @@ export function useSimulation() {
           if (result.simulationState)
             clockTimerRef.current = setTimeout(() => setClockTick((tick) => tick + 1), 100);
           for (const event of result.simulationEvents ?? []) {
-            const component = components.find((item) => item.id === event.componentId);
+            const eventComponentId =
+              event.type === 'damage'
+                ? event.target.type === 'component'
+                  ? event.target.id
+                  : undefined
+                : event.componentId;
+            const component = components.find((item) => item.id === eventComponentId);
             const label =
               component?.state.autoLabel ??
               (component ? COMPONENT_DEFS[component.type]?.label : undefined) ??
-              event.componentId;
+              eventComponentId ??
+              (event.type === 'damage' ? `Wire #${event.target.id.slice(0, 8)}` : 'Device');
             const action =
               event.type === 'coil-pickup'
                 ? 'coil picked up'
@@ -208,12 +218,38 @@ export function useSimulation() {
                     ? `timer closed (${event.reason})`
                     : event.type === 'timer-off'
                       ? `timer opened (${event.reason})`
-                      : event.type === 'protection-trip'
-                        ? `protection tripped (${event.reason})`
-                        : 'timer interval restarted';
+                      : event.type === 'damage'
+                        ? 'damage budget reached; replacement required'
+                        : event.type === 'fuse-operated'
+                          ? 'fuse operated; replacement required'
+                          : event.type === 'protection-trip'
+                            ? `protection tripped (${event.reason})`
+                            : 'timer interval restarted';
             useUiStore
               .getState()
               .addLog(`${label}: ${action} at ${event.atSeconds} s simulated time.`, 'info');
+            if (event.type === 'damage' || event.type === 'fuse-operated') {
+              const wireId =
+                event.type === 'damage' && event.target.type === 'wire'
+                  ? event.target.id
+                  : undefined;
+              useUiStore.getState().addEventHistory({
+                eventType: wireId ? 'wire_melted' : 'component_blown',
+                componentId: eventComponentId,
+                componentName: component ? label : undefined,
+                wireId,
+                description: `${label}: ${action} at ${event.atSeconds} s simulated time.`,
+                severity: 'critical',
+                details: {
+                  simulatedSeconds: event.atSeconds,
+                  modelVersion: result.electrical?.modelVersion,
+                  currentAmps:
+                    (event.type === 'damage' ? event.currentAmps : event.maxPoleCurrentAmps) ??
+                    undefined,
+                  voltage: event.type === 'damage' ? (event.voltageVolts ?? undefined) : undefined,
+                },
+              });
+            }
           }
 
           // Check if protection tripped or wire melted during simulation
@@ -407,7 +443,11 @@ export function useSimulation() {
                 details: { faultType: wfType },
               });
             }
-          } else if (result.blownComponents && result.blownComponents.length > 0) {
+          } else if (
+            (!result.electrical || result.legacyObservation) &&
+            result.blownComponents &&
+            result.blownComponents.length > 0
+          ) {
             const blown = result.blownComponents[0];
             const comp = useCircuitStore.getState().components.find((c) => c.id === blown.id);
             const ui = useUiStore.getState();

@@ -13,6 +13,7 @@ import { fitCanvasView } from '../canvas/fitView';
 
 import {
   ClipboardList,
+  FlaskConical,
   Info,
   type LucideIcon,
   Maximize2,
@@ -23,8 +24,12 @@ import {
   Trash2,
   Zap,
 } from 'lucide-react';
-import { useCircuitStore, useUiStore } from '../../store';
+import { lazy } from 'react';
+import { useCircuitStore, useSettingsStore, useUiStore } from '../../store';
 import { requestDeleteComponent, requestDeleteWire } from '../canvas-actions';
+import { LazySurface } from './LazySurface';
+
+const FaultLabDialog = lazy(() => import('./FaultLabDialog'));
 
 export function PhoneDock() {
   const selectedComponentId = useCircuitStore((s) => s.selectedComponentId);
@@ -32,6 +37,8 @@ export function PhoneDock() {
   const mode = useUiStore((s) => s.mode);
   const pendingCustomPath = useUiStore((s) => s.pendingCustomPath);
   const simRunning = useUiStore((s) => s.simRunning);
+  const faultLabOpen = useUiStore((s) => s.faultLabOpen);
+  const isPro = useSettingsStore((s) => s.appMode === 'pro');
   const configurationLocked = useConfigurationLockReason();
   const hasSelection = Boolean(selectedComponentId || selectedWireId);
 
@@ -41,71 +48,86 @@ export function PhoneDock() {
   };
 
   return (
-    <div
-      data-canvas-occluder
-      className="absolute bottom-2 left-1/2 z-10 flex w-[calc(100%-1rem)] -translate-x-1/2 items-center gap-0.5 overflow-x-auto rounded-full border border-white/80 bg-white/80 p-1.5 shadow-2xl ring-1 ring-slate-900/5 backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-900/85 dark:ring-slate-700/50"
-    >
-      <PhoneBtn
-        icon={Plus}
-        label="Add"
-        accent
-        data-tour="open-palette"
-        onClick={() => {
-          const ui = useUiStore.getState();
-          if (!ui.paletteOpen) ui.togglePalette();
-        }}
-      />
-      <PhoneBtn
-        icon={MousePointer2}
-        label="Select"
-        active={mode === 'idle'}
-        onClick={() => useUiStore.getState().setMode('idle')}
-      />
-      <PhoneBtn
-        icon={PenLine}
-        label="Wire"
-        active={mode === 'wiring'}
-        onClick={() => {
-          const ui = useUiStore.getState();
-          if (pendingCustomPath) ui.cancelCustomPath();
-          else if (mode === 'wiring') {
-            ui.setPendingWireFrom(null);
-            ui.setMode('idle');
-          } else {
-            ui.setMode('wiring');
-          }
-        }}
-      />
-      <PhoneBtn
-        icon={Trash2}
-        label="Delete"
-        disabled={!hasSelection || simRunning}
-        onClick={deleteSelection}
-      />
-      <PhoneBtn
-        icon={Zap}
-        label="Supply"
-        disabled={!!configurationLocked}
-        onClick={() => requestSupplyEdit(useElectricalEditing.getState().activeSupply)}
-      />
-      <PhoneBtn
-        icon={ClipboardList}
-        label="Review"
-        onClick={() => useElectricalEditing.setState({ reviewOpen: true })}
-      />
-      <PhoneBtn
-        icon={Info}
-        label="Inspect"
-        disabled={!selectedComponentId}
-        onClick={() => useElectricalEditing.setState({ inspectComponentId: selectedComponentId })}
-      />
-      <PhoneBtn icon={Maximize2} label="Fit" onClick={fitCanvasView} />
-      <PhoneBtn
-        icon={Settings}
-        label="Cfg"
-        onClick={() => useUiStore.getState().setSettingsOpen(true)}
-      />
-    </div>
+    <>
+      <div
+        data-canvas-occluder
+        className="absolute bottom-2 left-1/2 z-10 flex w-[calc(100%-1rem)] -translate-x-1/2 items-center gap-0.5 overflow-x-auto rounded-full border border-white/80 bg-white/80 p-1.5 shadow-2xl ring-1 ring-slate-900/5 backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-900/85 dark:ring-slate-700/50"
+      >
+        <PhoneBtn
+          icon={Plus}
+          label="Add"
+          accent
+          data-tour="open-palette"
+          onClick={() => {
+            const ui = useUiStore.getState();
+            if (!ui.paletteOpen) ui.togglePalette();
+          }}
+        />
+        <PhoneBtn
+          icon={MousePointer2}
+          label="Select"
+          active={mode === 'idle'}
+          onClick={() => useUiStore.getState().setMode('idle')}
+        />
+        <PhoneBtn
+          icon={PenLine}
+          label="Wire"
+          active={mode === 'wiring'}
+          onClick={() => {
+            const ui = useUiStore.getState();
+            if (pendingCustomPath) ui.cancelCustomPath();
+            else if (mode === 'wiring') {
+              ui.setPendingWireFrom(null);
+              ui.setMode('idle');
+            } else {
+              ui.setMode('wiring');
+            }
+          }}
+        />
+        <PhoneBtn
+          icon={Trash2}
+          label="Delete"
+          disabled={!hasSelection || simRunning}
+          onClick={deleteSelection}
+        />
+        <PhoneBtn
+          icon={Zap}
+          label="Supply"
+          disabled={!!configurationLocked}
+          onClick={() => requestSupplyEdit(useElectricalEditing.getState().activeSupply)}
+        />
+        <PhoneBtn
+          icon={ClipboardList}
+          label="Review"
+          onClick={() => useElectricalEditing.setState({ reviewOpen: true })}
+        />
+        <PhoneBtn
+          icon={Info}
+          label="Inspect"
+          disabled={!selectedComponentId}
+          onClick={() => useElectricalEditing.setState({ inspectComponentId: selectedComponentId })}
+        />
+        {isPro && (
+          <PhoneBtn
+            icon={FlaskConical}
+            label="Fault Lab"
+            active={faultLabOpen}
+            onClick={() => useUiStore.getState().setFaultLabOpen(true)}
+          />
+        )}
+        <PhoneBtn icon={Maximize2} label="Fit" onClick={fitCanvasView} />
+        <PhoneBtn
+          icon={Settings}
+          label="Cfg"
+          onClick={() => useUiStore.getState().setSettingsOpen(true)}
+        />
+      </div>
+      {isPro && faultLabOpen && (
+        <LazySurface label="Fault Lab" onClose={() => useUiStore.getState().setFaultLabOpen(false)}>
+          <FaultLabDialog />
+        </LazySurface>
+      )}
+    </>
   );
 }
 

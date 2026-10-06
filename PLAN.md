@@ -6,11 +6,12 @@
 | What | Where |
 |------|-------|
 | **Active plan (locked)** | [`docs/REWRITE_PLAN_V3_FULL.md`](./docs/REWRITE_PLAN_V3_FULL.md) — Bun + 100% Workers (D1/R2/KV/DO/Queues), Better Auth, electrical-native UI |
-| **Phase 1 — current detailed sequence** | [`docs/phases/phase-1-simulator-core.md`](./docs/phases/phase-1-simulator-core.md) — 1.5C.0–5 and 1.5D.0–2 complete locally; remaining damage/Fault Lab repair 1.5D, three-phase 1.5E and lab migration 1.5F work precedes effects |
+| **Phase 1 — current detailed sequence** | [`docs/phases/phase-1-simulator-core.md`](./docs/phases/phase-1-simulator-core.md) — 1.5C.0–5 and 1.5D.0–3 complete locally; next is three-phase 1.5E, followed by lab migration 1.5F before effects |
 | **Deep-scan reconciliation and core rebuild** | [`docs/plans/SIMULATOR_CORE_REBUILD_PLAN.md`](./docs/plans/SIMULATOR_CORE_REBUILD_PLAN.md) — current findings, independent fixtures, replacement stages and later-phase requirements |
 | **Simulator behavior and lab integration** | [`docs/plans/SIMULATOR_BEHAVIOR_PLAN.md`](./docs/plans/SIMULATOR_BEHAVIOR_PLAN.md) — shared compatibility, confirmed supply edits, readiness, cable/current semantics and Fault Lab/Diagnosis Lab/Ohmageddon phase ownership |
 | **Current behavior audit** | [`docs/audits/phase-1-behavior-review.md`](./docs/audits/phase-1-behavior-review.md) — 42 local observations, source-inspected UI findings, existing safeguards and remaining requirements |
 | **MNA numerical decision** | [`docs/decisions/0009-mna-solver.md`](./docs/decisions/0009-mna-solver.md) — selected formulation; bounded linear slice, operating points, isolated transformer/PE equations and application runtime implemented |
+| **Phase 1.5D.3 damage and repair** | [`docs/audits/phase-1-damage-repair.md`](./docs/audits/phase-1-damage-repair.md) — declared damage, saved failures and separate clear/reset/replace controls; complete local acceptance |
 | **Phase 1.5C.5 MNA application runtime** | [`docs/audits/phase-1-mna-runtime.md`](./docs/audits/phase-1-mna-runtime.md) — shared supported-result runtime across domain, Comlink and local Hono; passing local acceptance |
 | **Phase 1.5C.4 editing and readiness** | [`docs/audits/phase-1-editing-readiness.md`](./docs/audits/phase-1-editing-readiness.md) — confirmed supply changes, safe terminal mapping, shared Run guidance and passing local acceptance |
 | **Phase 1.5C.3 transformers and PE** | [`docs/audits/phase-1-transformers-pe.md`](./docs/audits/phase-1-transformers-pe.md) — coupled AC equations, explicit references, limited fault currents and passing local acceptance |
@@ -57,3 +58,5 @@
 Deferred is **Published Circuit** (sharing to feed `/feed` `/explore` `/c/[id]` + fork chain), which naturally comes with Community (Phase 2+).
 
 **Local-only contract (2026-09-26):** the live site’s Cloudflare credentials have been removed locally. All development and tests stay local; no old-account login or remote operations. A new account will be configured after development, with explicit user authorization before remote work. See `AGENTS.md` and `TRACKING.md`.
+
+**Continuation (2026-10-06):** **1.5D.3 is complete locally.** Declared current/voltage damage budgets, persisted failed items and separate fault clearing, breaker reset and replacement passed `bun run verify:phase-1.5d3`, including the real Worker/D1 and Comlink/browser checks. [Scope and acceptance](docs/audits/phase-1-damage-repair.md) records the results. **Next is 1.5E: supported three-phase teaching models**, followed by full lab migration in 1.5F.

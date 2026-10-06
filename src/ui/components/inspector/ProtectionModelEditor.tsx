@@ -104,8 +104,8 @@ export default function ProtectionModelEditor({
       }}
     >
       <p>
-        Declared ratings use simulated time; a latched trip stays open until the device is switched
-        off or the run resets.
+        Declared ratings use simulated time. Resettable trips clear when switched off or the run
+        resets. An operated fuse stays open until replaced in Fault Lab.
       </p>
       <fieldset disabled={!!locked} className="space-y-2">
         {kind !== 'rcd' && (

@@ -1,7 +1,6 @@
-import { COMPONENT_DEFS } from '@electrasim/domain';
 import { AlertTriangle, Flame, HelpCircle, RefreshCw, X, Zap } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { useCircuitStore, useSettingsStore, useUiStore } from '../../store';
+import { useCircuitStore, useUiStore } from '../../store';
 import { useDialogFocus } from '../hooks/useDialogFocus';
 import { MECHANISM_LABEL, formatClearingTime } from './faultAlertFormat';
 
@@ -10,7 +9,7 @@ export function FaultAlertModal() {
   const clearFaultAlert = useUiStore((s) => s.clearFaultAlert);
   const setWhatHappenedOpen = useUiStore((s) => s.setWhatHappenedOpen);
   const repairAllFaults = useCircuitStore((s) => s.repairAllFaults);
-  const appMode = useSettingsStore((s) => s.appMode);
+  const running = useUiStore((s) => s.simRunning);
 
   const [currentAlert, setCurrentAlert] = useState(faultAlert);
   const [isClosing, setIsClosing] = useState(false);
@@ -44,28 +43,12 @@ export function FaultAlertModal() {
 
   if (!currentAlert) return null;
 
-  const handleRepair = () => {
-    // In Pro Mode, warn if voltage still exceeds component ratings
-    if (appMode === 'pro') {
-      const supplyVoltage = useCircuitStore.getState().globalVoltage;
-      const blownComponents = useCircuitStore.getState().components.filter((c) => c.state?.isBlown);
-      const hasVoltageExceeded = blownComponents.some((comp) => {
-        const def = COMPONENT_DEFS[comp.type];
-        const maxVolts = comp.state?.customMaxVolts ?? def?.maxVolts ?? 250;
-        const effectiveVoltage = comp.state?.customVoltage ?? supplyVoltage;
-        return effectiveVoltage > maxVolts;
-      });
-      if (hasVoltageExceeded) {
-        if (
-          !window.confirm(
-            'The supply voltage still exceeds some component ratings. Repairing will reset the blown state, but the components may blow again when the simulation runs. Continue?',
-          )
-        ) {
-          return;
-        }
-      }
-    }
-    repairAllFaults();
+  const handleRepair = async () => {
+    const applied =
+      currentAlert.kind === 'melt'
+        ? await repairAllFaults()
+        : await useCircuitStore.getState().resetAllTrippedComponents();
+    if (!applied) return;
     handleClose();
   };
 
@@ -179,7 +162,9 @@ export function FaultAlertModal() {
                 Current Demand
               </span>
               <span className="text-base font-extrabold font-mono text-red-600 dark:text-red-400">
-                {currentAlert.currentAmps.toFixed(1)} A
+                {currentAlert.currentAmps === null
+                  ? 'Unavailable'
+                  : `${currentAlert.currentAmps.toFixed(1)} A`}
                 {currentAlert.currentMultiple !== undefined && (
                   <span className="ml-1 text-xs font-bold text-slate-500 dark:text-slate-400">
                     {currentAlert.currentMultiple.toFixed(2)}×
@@ -192,7 +177,9 @@ export function FaultAlertModal() {
                 {isMelt ? 'Cable Capacity' : 'Protection Rating'}
               </span>
               <span className="text-base font-extrabold font-mono text-emerald-600 dark:text-emerald-400">
-                {currentAlert.limitAmps.toFixed(1)} A
+                {currentAlert.limitAmps === null
+                  ? 'Not declared'
+                  : `${currentAlert.limitAmps.toFixed(1)} A`}
               </span>
             </div>
             {/* Timing turns "over its rating" into a real disconnection-time
@@ -241,6 +228,7 @@ export function FaultAlertModal() {
             <button
               type="button"
               onClick={handleRepair}
+              disabled={running}
               className={`w-1/2 sm:w-auto flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold text-white shadow-md transition-all active:scale-95 cursor-pointer ${
                 isMelt
                   ? 'bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-500'
@@ -248,7 +236,7 @@ export function FaultAlertModal() {
               }`}
             >
               <RefreshCw className="h-4 w-4" />
-              Repair & Reset
+              {isMelt ? 'Replace damaged items' : 'Reset tripped devices'}
             </button>
           </div>
         </div>

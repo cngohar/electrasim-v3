@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { exportJSON, importJSON } from '../circuitFormat';
 import { component as C } from '../simulation/auditFixtures';
 import type { Circuit } from '../types';
+import { compileCircuit } from './compile';
 import type { ElectricalSimulationResult } from './contracts';
 import { terminalId } from './faultTopology';
-import { MNA_LIMITS, solveCircuit, voltageBetween } from './mna';
+import { MNA_LIMITS, solveCircuit, solveCompiledCircuit, voltageBetween } from './mna';
 import {
   balancedBridgeFixture,
   leadFixture,
@@ -283,18 +284,16 @@ describe('1.5C.1 unavailable results stay distinct from measurements', () => {
   );
 
   it('rejects indeterminate ideal link currents instead of dividing them equally', () => {
-    const circuit = seriesFixture();
-    circuit.components.push(C('breaker', 'mcb', { on: true }));
-    circuit.faults = [
-      {
-        id: 'bypass',
-        type: 'protection-bypass',
-        category: 'protection',
-        target: { type: 'component', id: 'breaker' },
-        createdAt: 0,
-      },
-    ];
-    const result = solveCircuit(circuit);
+    const compiled = compileCircuit(parallelFixture(true));
+    if (compiled.status === 'invalid') throw new Error(JSON.stringify(compiled.diagnostics));
+    const link = compiled.graph.branches.find(
+      (branch) => branch.componentId === 'joint' && branch.idealConductor && branch.closed,
+    )!;
+    expect(link).toBeDefined();
+    // A second zero-ohm path across the same driven terminals makes its
+    // current split indeterminate, even though the terminal voltage is known.
+    compiled.graph.branches.push({ ...link, id: 'redundant-ideal-link' });
+    const result = solveCompiledCircuit(compiled);
     expect(result.status).toBe('not-solved');
     expect(
       result.diagnostics.some((diagnostic) => diagnostic.code === 'mna-indeterminate-link-current'),

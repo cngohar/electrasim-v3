@@ -18,6 +18,7 @@ export function WireInspectorView({
   simResult: SimulationResult | null;
 }) {
   const isEnergized = simResult?.energizedWires.has(wire.id) ?? false;
+  const running = useUiStore((s) => s.simRunning);
   const components = useCircuitStore((s) => s.components);
   const properties = resolveWireProperties(wire, new Map(components.map((c) => [c.id, c])));
   const currentLength = properties.lengthMeters;
@@ -29,16 +30,9 @@ export function WireInspectorView({
   const currentMethod: InstallationMethod = properties.installationMethod;
   const hasWireFault = Boolean(wire.fault || wire.isBusted);
 
-  const handleClearFault = () => {
-    const faultEntry = useCircuitStore
-      .getState()
-      .faults.find((f) => f.target.type === 'wire' && f.target.id === wire.id);
-    if (faultEntry) {
-      useCircuitStore.getState().removeFault(faultEntry.id);
-    }
-    useCircuitStore.getState().setWireFault(wire.id, undefined);
-    useCircuitStore.getState().setWireBusted(wire.id, false, undefined);
-    useUiStore.getState().addLog('Cleared fault from wire', 'success');
+  const handleClearFault = async () => {
+    if (await useCircuitStore.getState().setWireFault(wire.id, undefined))
+      useUiStore.getState().addLog('Cleared fault from wire', 'success');
   };
 
   const handleLengthChange = (m: number) => {
@@ -109,7 +103,7 @@ export function WireInspectorView({
               <AlertTriangle className="size-4 text-amber-600 dark:text-amber-400" />
             )}
             <span>
-              {wire.isBusted ? 'Cable Melted / Thermal Overload' : `Wire Fault: ${wire.fault}`}
+              {wire.isBusted ? 'Damaged wire — replacement required' : `Wire Fault: ${wire.fault}`}
             </span>
           </div>
           {wire.bustedReason && (
@@ -117,14 +111,26 @@ export function WireInspectorView({
               {wire.bustedReason}
             </p>
           )}
-          <button
-            type="button"
-            onClick={handleClearFault}
-            className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-red-600 hover:bg-red-700 py-1.5 px-3 text-xs font-bold text-white shadow-xs transition cursor-pointer"
-          >
-            <RefreshCw className="size-3.5" />
-            <span>Clear Wire Fault & Repair</span>
-          </button>
+          {wire.fault && (
+            <button
+              type="button"
+              onClick={handleClearFault}
+              className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-red-600 hover:bg-red-700 py-1.5 px-3 text-xs font-bold text-white shadow-xs transition cursor-pointer"
+            >
+              <RefreshCw className="size-3.5" />
+              <span>Clear Wire Fault</span>
+            </button>
+          )}
+          {wire.isBusted && (
+            <button
+              type="button"
+              disabled={running}
+              onClick={() => useCircuitStore.getState().setWireBusted(wire.id, false)}
+              className="w-full rounded border px-3 py-1.5 font-semibold disabled:opacity-50"
+            >
+              Replace damaged wire
+            </button>
+          )}
         </div>
       )}
 

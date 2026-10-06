@@ -9,6 +9,8 @@ import type {
   ElectricalSimulationState,
 } from './contracts';
 import { ELECTRICAL_MODEL_VERSION } from './contracts';
+import { damageBudget, damageTargetKey } from './damageModel';
+import { type DamageSubject, damageSubjects, evaluateDamage } from './damageStep';
 import { solveControlledOperatingPoint } from './dimming';
 import { circuitExcitation } from './excitation';
 import { compareIds } from './faultTopology';
@@ -16,7 +18,7 @@ import { solveCompiledCircuit } from './mna';
 import { evaluateProtection } from './protectionStep';
 import { evaluateTimers } from './timerStep';
 
-export const CONTROL_ENGINE_VERSION = 'mna-controls-3' as const;
+export const CONTROL_ENGINE_VERSION = 'mna-controls-4' as const;
 export const CONTROL_STEP_LIMITS = {
   timeResolutionSeconds: 0.000001,
   maxDeltaSeconds: 3600,
@@ -51,6 +53,7 @@ function configurationKey(compiled: Compiled): string {
         from: [w.fromComponentId, w.fromPortIndex],
         to: [w.toComponentId, w.toPortIndex],
         properties: wireProperties.get(w.id),
+        damageModel: w.damageModel,
       })),
   });
 }
@@ -68,6 +71,7 @@ function validState(
   ids: string[],
   timerIds: string[],
   protectionIds: string[],
+  damage: DamageSubject[],
 ): raw is ElectricalSimulationState {
   if (
     !record(raw) ||
@@ -83,6 +87,7 @@ function validState(
           'eventSequence',
           'timers',
           'protection',
+          'damage',
         ].includes(key),
     ) ||
     raw.version !== 1 ||
@@ -94,7 +99,33 @@ function validState(
     !record(raw.contactStates) ||
     !record(raw.pending) ||
     !record(raw.timers) ||
-    !record(raw.protection)
+    !record(raw.protection) ||
+    !record(raw.damage)
+  )
+    return false;
+  const damageState = raw.damage;
+  if (
+    Object.keys(damageState).length !== damage.length ||
+    damage.some(({ target, model }) => {
+      const runtime = damageState[damageTargetKey(target)];
+      return (
+        !record(runtime) ||
+        Object.keys(runtime).some(
+          (key) =>
+            !['exposure', 'damaged', 'damagedAtSeconds', 'lastEvaluatedSeconds', 'rate'].includes(
+              key,
+            ),
+        ) ||
+        !finite(runtime.exposure, 0, damageBudget(model)) ||
+        typeof runtime.damaged !== 'boolean' ||
+        (runtime.damagedAtSeconds !== null &&
+          (!runtime.damaged ||
+            !finite(runtime.damagedAtSeconds, 0, raw.elapsedSeconds as number))) ||
+        !finite(runtime.lastEvaluatedSeconds, 0, raw.elapsedSeconds as number) ||
+        !finite(runtime.rate, 0, 1e30) ||
+        (runtime.damaged && runtime.rate !== 0)
+      );
+    })
   )
     return false;
   const protection = raw.protection;
@@ -211,8 +242,9 @@ export function advanceControlStep(
     .filter((d) => d.model.kind === 'contacts' && d.model.protectionModel)
     .map((d) => d.componentId);
   const key = configurationKey(initial);
+  const damage = damageSubjects(initial);
   const previous = options.simulationState;
-  if (previous !== undefined && !validState(previous, key, ids, timerIds, protectedIds))
+  if (previous !== undefined && !validState(previous, key, ids, timerIds, protectedIds, damage))
     return fail(
       'invalid-simulation-state',
       'Simulation state is invalid, obsolete or belongs to another circuit configuration. Reset before continuing.',
@@ -231,6 +263,12 @@ export function advanceControlStep(
         protection: Object.fromEntries(
           protectedIds.map((id) => [id, { ...previous.protection[id]! }]),
         ),
+        damage: Object.fromEntries(
+          damage.map(({ target }) => {
+            const key = damageTargetKey(target);
+            return [key, { ...previous.damage[key]! }];
+          }),
+        ),
       }
     : {
         version: 1,
@@ -240,6 +278,18 @@ export function advanceControlStep(
         eventSequence: 0,
         contactStates: Object.fromEntries(ids.map((id) => [id, false])),
         pending: {},
+        damage: Object.fromEntries(
+          damage.map(({ target, alreadyDamaged }) => [
+            damageTargetKey(target),
+            {
+              exposure: 0,
+              damaged: alreadyDamaged,
+              damagedAtSeconds: null,
+              lastEvaluatedSeconds: 0,
+              rate: 0,
+            },
+          ]),
+        ),
         timers: Object.fromEntries(
           timerIds.map((id) => [id, { inputHigh: false, deadlineSeconds: null }]),
         ),
@@ -270,6 +320,22 @@ export function advanceControlStep(
       defs: options.defs,
       contactStates: new Map(Object.entries(state.contactStates)),
       trippedComponents: new Set(protectedIds.filter((id) => state.protection[id]?.tripped)),
+      damagedComponents: new Set(
+        damage
+          .filter(
+            ({ target }) =>
+              target.type === 'component' && state.damage[damageTargetKey(target)]?.damaged,
+          )
+          .map(({ target }) => target.id),
+      ),
+      damagedWires: new Set(
+        damage
+          .filter(
+            ({ target }) =>
+              target.type === 'wire' && state.damage[damageTargetKey(target)]?.damaged,
+          )
+          .map(({ target }) => target.id),
+      ),
     };
     const point = solveControlledOperatingPoint(
       compileCircuit(initial.circuit, compileOptions),
@@ -288,6 +354,7 @@ export function advanceControlStep(
       state.contactStates,
       state.timers,
       state.protection,
+      state.damage,
     ]);
     if (seen.has(signature))
       return fail(
@@ -364,14 +431,30 @@ export function advanceControlStep(
     const protection = evaluateProtection(compiled, electrical, state);
     if (protection.error)
       return fail(protection.error.code, protection.error.message, 'unsupported');
+    const damageStep = evaluateDamage(compiled, electrical, state);
+    if (damageStep.error)
+      return fail(damageStep.error.code, damageStep.error.message, 'unsupported');
     const due = Object.entries(state.pending)
       .filter(([, p]) => p.atSeconds <= state.elapsedSeconds)
       .sort(([a], [b]) => compareIds(a, b));
-    if (due.length || timers.retriggers.length || protection.dueEvents.size) {
+    if (
+      due.length ||
+      timers.retriggers.length ||
+      protection.dueEvents.size ||
+      damageStep.events.length
+    ) {
       if (
-        events.length + due.length + timers.retriggers.length + protection.dueEvents.size >
+        events.length +
+          due.length +
+          timers.retriggers.length +
+          protection.dueEvents.size +
+          damageStep.events.length >
           CONTROL_STEP_LIMITS.maxEvents ||
-        state.eventSequence + due.length + timers.retriggers.length + protection.dueEvents.size >
+        state.eventSequence +
+          due.length +
+          timers.retriggers.length +
+          protection.dueEvents.size +
+          damageStep.events.length >
           10_000_000
       )
         return fail(
@@ -382,6 +465,7 @@ export function advanceControlStep(
       const instantaneous: ElectricalControlEvent[] = [
         ...timers.retriggers.map((event) => ({ ...event, sequence: 0 })),
         ...[...protection.dueEvents.values()].map((event) => ({ ...event, sequence: 0 })),
+        ...damageStep.events.map((event) => ({ ...event, sequence: 0 })),
       ];
       for (const [id, pending] of due) {
         const timerEvent = timers.dueEvents.get(id);
@@ -400,24 +484,40 @@ export function advanceControlStep(
         state.contactStates[id] = pending.closed;
         delete state.pending[id];
       }
-      for (const event of instantaneous.sort((a, b) => compareIds(a.componentId, b.componentId)))
+      const eventId = (event: ElectricalControlEvent) =>
+        event.type === 'damage' ? event.target.id : event.componentId;
+      for (const event of instantaneous.sort(
+        (a, b) => compareIds(eventId(a), eventId(b)) || compareIds(a.type, b.type),
+      ))
         events.push({ ...event, sequence: ++state.eventSequence });
-      if (due.length || protection.dueEvents.size) continue; // Solve the changed topology at the same instant.
+      if (due.length || protection.dueEvents.size || damageStep.events.length) continue; // Solve the changed topology at the same instant.
     }
     const protectionNext = Math.min(
       ...protection.readings.flatMap((reading: (typeof protection.readings)[number]) =>
         reading.pending ? [reading.pending.atSeconds] : [],
       ),
     );
-    const next = Math.min(...Object.values(state.pending).map((p) => p.atSeconds), protectionNext);
+    const next = Math.min(
+      ...Object.values(state.pending).map((p) => p.atSeconds),
+      protectionNext,
+      ...damageStep.readings.flatMap((reading) =>
+        reading.pendingAtSeconds === null ? [] : [reading.pendingAtSeconds],
+      ),
+    );
     if (next <= end) {
       state.elapsedSeconds = next;
       continue;
     }
-    state.elapsedSeconds = end;
+    // Finish integration at the requested boundary before accepting new inputs.
+    // Otherwise an input edit would apply the new current to the preceding interval.
+    if (state.elapsedSeconds < end) {
+      state.elapsedSeconds = end;
+      continue;
+    }
     electrical.controls = controls;
     electrical.timers = timers.readings;
     electrical.protection = protection.readings;
+    electrical.damage = damageStep.readings;
     return { compiled, electrical, simulationState: state, simulationEvents: events };
   }
   return fail(

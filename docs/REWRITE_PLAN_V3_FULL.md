@@ -1,8 +1,8 @@
 # ElectraSim V3 — Full Rewrite Plan and Staged Simulator Core Rebuild
 
-**Version:** 3.0.0-DRAFT — revised 2026-10-05 (supersedes `REWRITE_PLAN_V4_FULL.md`)
+**Version:** 3.0.0-DRAFT — revised 2026-10-06 (supersedes `REWRITE_PLAN_V4_FULL.md`)
 
-**Status:** `IMPLEMENTING LOCALLY` — Phase 1.0–1.5 milestones recorded; 1.5A, 1.5B and 1.5C.0–5 complete locally. [1.5D.0 deterministic coil controls](audits/phase-1-timed-controls.md), [1.5D.1 timer programs/dimming](audits/phase-1-timers-dimming.md) and [1.5D.2 timed protection models](audits/phase-1-protection.md) are complete locally; remaining damage/repair work, three-phase models and full lab migration remain in 1.5D.3/1.5E/1.5F.
+**Status:** `IMPLEMENTING LOCALLY` — Phase 1.0–1.5 milestones recorded; 1.5A, 1.5B and 1.5C.0–5 complete locally. [1.5D.0 deterministic coil controls](audits/phase-1-timed-controls.md), [1.5D.1 timer programs/dimming](audits/phase-1-timers-dimming.md) and [1.5D.2 timed protection models](audits/phase-1-protection.md) are complete locally; [1.5D.3 damage/repair](audits/phase-1-damage-repair.md) is also complete locally with actual Worker/D1/Comlink and desktop/phone browser acceptance. Next is three-phase 1.5E, followed by full lab migration 1.5F.
 **Runtime:** **Bun** everywhere · **Platform:** **100% Cloudflare Workers** (no external DB/compute)  
 **Current state:** V3 is developed locally. The existing live `electrasim.com` site/account is separate and must not be used for this work.
 **Target:** React 19 + Hono on Workers + Better Auth + **D1 (SQLite)** + R2 + KV + Durable Objects + Matter.js + Tailwind v4
@@ -704,7 +704,7 @@ Post-V3.1: SCORM/xAPI, collaborative cursors, vector search (Vectorize), Workers
 
 ### Next Step
 
-**Phase 1.5C.0–4 are complete locally; their acceptance gates passed.** [Editing/readiness evidence](./audits/phase-1-editing-readiness.md) records confirmed supply changes, safe variants and shared Run guidance. [Transformer/PE evidence](./audits/phase-1-transformers-pe.md), [load-response and wire results](./audits/phase-1-load-response.md), the [linear MNA slice](./audits/phase-1-mna-solver.md) and [supply/preflight foundation](./audits/phase-1-supply-preflight.md) retain the earlier numerical and contract evidence. The next step is **1.5C.5 application/Comlink/local-Hono MNA integration**, followed by devices, three-phase models and full existing-lab integration before effects. The app numerical runtime remains on the guarded legacy engine until 1.5C.5 passes. The [behavior audit](./audits/phase-1-behavior-review.md) retains the earlier reproductions. Use [Phase 1](./phases/phase-1-simulator-core.md) for status and [the rebuild plan](./plans/SIMULATOR_CORE_REBUILD_PLAN.md) for audit IDs and exit gates. No Cloudflare account/resource operation is authorized by these local results.
+**Phase 1.5C.0–5 and 1.5D.0–3 are complete locally within their documented scope.** [MNA runtime acceptance](./audits/phase-1-mna-runtime.md) records the supported application/Comlink/local-Hono engine, and [damage/repair acceptance](./audits/phase-1-damage-repair.md) closes the declared timed control/protection/damage sequence. **Next is 1.5E: supported three-phase teaching models**, followed by full existing-lab integration in 1.5F before effects. Guarded legacy observation remains for unmigrated models; dense solver/rendering targets remain open. Use [Phase 1](./phases/phase-1-simulator-core.md) for the current sequence and [the rebuild plan](./plans/SIMULATOR_CORE_REBUILD_PLAN.md) for audit IDs and exit gates. These local results do not authorize Cloudflare account/resource operations or deployment.
 
 ---
 

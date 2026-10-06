@@ -1,4 +1,3 @@
-import { COMPONENT_DEFS } from '@electrasim/domain';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -24,6 +23,7 @@ export function WhatHappenedModal() {
   const components = useCircuitStore((s) => s.components);
   const wires = useCircuitStore((s) => s.wires);
   const appMode = useSettingsStore((s) => s.appMode);
+  const running = useUiStore((s) => s.simRunning);
 
   const [mounted, setMounted] = useState(whatHappenedOpen);
   const [isClosing, setIsClosing] = useState(false);
@@ -61,31 +61,19 @@ export function WhatHappenedModal() {
   const hasBlownComponents = components.some((c) => c.state?.isBlown);
   const hasBustedWires = wires.some((w) => w.isBusted);
 
-  const handleRepair = () => {
-    if (appMode === 'pro') {
-      const supplyVoltage = useCircuitStore.getState().globalVoltage;
-      const blownComponents = useCircuitStore.getState().components.filter((c) => c.state?.isBlown);
-      const hasVoltageExceeded = blownComponents.some((comp) => {
-        const def = COMPONENT_DEFS[comp.type];
-        const maxVolts = comp.state?.customMaxVolts ?? def?.maxVolts ?? 250;
-        const effectiveVoltage = comp.state?.customVoltage ?? supplyVoltage;
-        return effectiveVoltage > maxVolts;
-      });
-      if (hasVoltageExceeded) {
-        if (
-          !window.confirm(
-            'The supply voltage still exceeds some component ratings. Repairing will reset the blown state, but the components may blow again when the simulation runs. Continue?',
-          )
-        ) {
-          return;
-        }
-      }
-    }
-    repairAllFaults();
+  const handleRepair = async () => {
+    const applied =
+      hasBlownComponents || hasBustedWires
+        ? await repairAllFaults()
+        : await useCircuitStore.getState().resetAllTrippedComponents();
+    if (!applied) return;
     useUiStore.getState().clearFaultAlert();
     useUiStore
       .getState()
-      .addLog('Circuit repaired — all blown components and melted cables restored.', 'success');
+      .addLog(
+        'Replacement/reset applied. Remaining injected faults are unchanged; run again to reassess.',
+        'success',
+      );
     handleClose();
   };
 
@@ -170,7 +158,7 @@ export function WhatHappenedModal() {
                 {activeAlert.reason}
               </p>
 
-              {activeAlert.currentAmps > 0 && (
+              {activeAlert.currentAmps !== null && activeAlert.currentAmps > 0 && (
                 <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-mono">
                   <span className="rounded bg-white/80 px-2 py-1 text-red-700 dark:bg-slate-900 dark:text-red-400 border border-slate-200 dark:border-slate-800">
                     Measured Current: <strong>{activeAlert.currentAmps.toFixed(1)} A</strong>
@@ -178,9 +166,9 @@ export function WhatHappenedModal() {
                       <> ({activeAlert.currentMultiple.toFixed(2)}×)</>
                     )}
                   </span>
-                  {activeAlert.limitAmps > 0 && (
+                  {activeAlert.limitAmps !== null && activeAlert.limitAmps > 0 && (
                     <span className="rounded bg-white/80 px-2 py-1 text-emerald-700 dark:bg-slate-900 dark:text-emerald-400 border border-slate-200 dark:border-slate-800">
-                      Safe Rating Limit: <strong>{activeAlert.limitAmps.toFixed(1)} A</strong>
+                      Declared Rating: <strong>{activeAlert.limitAmps.toFixed(1)} A</strong>
                     </span>
                   )}
                   {/* Timing is the other half of a trip: the same 26 A on the
@@ -312,10 +300,13 @@ export function WhatHappenedModal() {
           <button
             type="button"
             onClick={handleRepair}
+            disabled={running}
             className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-emerald-700 transition-all active:scale-95 dark:bg-emerald-600 dark:hover:bg-emerald-500 cursor-pointer"
           >
             <RefreshCw className="size-4" />
-            Repair & Reset Circuit
+            {hasBlownComponents || hasBustedWires
+              ? 'Replace damaged items'
+              : 'Reset tripped devices'}
           </button>
         </div>
       </div>

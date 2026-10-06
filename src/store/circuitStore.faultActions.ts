@@ -7,11 +7,30 @@
  * zustand+immer setter passed through from `create()`.
  */
 
-import { createInjectedFault, isWireFaultType, validateFaultCoexistence } from '@electrasim/domain';
+import {
+  createInjectedFault,
+  isWireFaultType,
+  normalizeCircuitFaults,
+  validateFaultCoexistence,
+} from '@electrasim/domain';
 import type { CircuitState } from './circuitStore.types';
 import { useUiStore } from './uiStore';
 
 type CircuitSetState = (recipe: (state: CircuitState) => void) => boolean | Promise<boolean>;
+
+/** Timed fault edits are inputs to the current run; legacy observations keep their stop behavior. */
+function stopUntimedRun(state: CircuitState) {
+  const ui = useUiStore.getState();
+  if (
+    !ui.simResult?.simulationState &&
+    !state.components.some(
+      (c) =>
+        c.state.coilModel || c.state.timerModel || c.state.protectionModel || c.state.damageModel,
+    ) &&
+    !state.wires.some((w) => w.damageModel)
+  )
+    ui.setSimRunning(false);
+}
 
 export const createFaultActions = (
   set: CircuitSetState,
@@ -55,7 +74,7 @@ export const createFaultActions = (
           w.fault = fault.type;
         }
       }
-      useUiStore.getState().setSimRunning(false);
+      stopUntimedRun(s);
     });
     return applied instanceof Promise
       ? applied.then((ok) => (ok ? faultId : ''))
@@ -66,7 +85,7 @@ export const createFaultActions = (
 
   removeFault: (faultId) =>
     set((s) => {
-      const faultToRemove = s.faults.find((f) => f.id === faultId);
+      const faultToRemove = normalizeCircuitFaults(s).find((f) => f.id === faultId);
       s.faults = s.faults.filter((f) => f.id !== faultId);
       if (faultToRemove) {
         const target = faultToRemove.target;
@@ -74,13 +93,18 @@ export const createFaultActions = (
           const targetId = target.id;
           const c = s.components.find((comp) => comp.id === targetId);
           if (c && c.state.fault === faultToRemove.type) {
-            c.state.fault = undefined;
+            c.state.fault = s.faults.find(
+              (f) => !f.resolved && f.target.type === 'component' && f.target.id === targetId,
+            )?.type;
           }
         } else if (target.type === 'wire') {
           const targetId = target.id;
           const w = s.wires.find((wire) => wire.id === targetId);
           if (w && w.fault === faultToRemove.type) {
-            w.fault = undefined;
+            const remaining = s.faults.find(
+              (f) => !f.resolved && f.target.type === 'wire' && f.target.id === targetId,
+            )?.type;
+            w.fault = remaining && isWireFaultType(remaining) ? remaining : undefined;
           }
         }
       }
@@ -131,7 +155,7 @@ export const createFaultActions = (
               w.fault = type;
             }
           }
-          useUiStore.getState().setSimRunning(false);
+          stopUntimedRun(s);
         }
       }
     }),
@@ -144,7 +168,7 @@ export const createFaultActions = (
         s.faults = s.faults.filter((f) => !(f.target.type === 'component' && f.target.id === id));
         if (fault) {
           s.faults.push(createInjectedFault(fault, { type: 'component', id }));
-          useUiStore.getState().setSimRunning(false);
+          stopUntimedRun(s);
         }
       }
     }),
@@ -157,7 +181,7 @@ export const createFaultActions = (
         s.faults = s.faults.filter((f) => !(f.target.type === 'wire' && f.target.id === id));
         if (fault) {
           s.faults.push(createInjectedFault(fault, { type: 'wire', id }));
-          useUiStore.getState().setSimRunning(false);
+          stopUntimedRun(s);
         }
       }
     }),

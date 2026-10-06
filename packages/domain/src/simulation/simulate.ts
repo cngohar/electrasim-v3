@@ -20,10 +20,12 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
     compiled.status === 'compiled' &&
     (options.simulationState !== undefined ||
       options.deltaSeconds !== undefined ||
+      compiled.circuit.wires.some((wire) => wire.damageModel) ||
       compiled.graph.devices.some(
         (d) =>
-          d.model.kind === 'contacts' &&
-          !!(d.model.coilModel || d.model.timerModel || d.model.protectionModel),
+          !!d.damageModel ||
+          (d.model.kind === 'contacts' &&
+            !!(d.model.coilModel || d.model.timerModel || d.model.protectionModel)),
       ))
   ) {
     const step = advanceControlStep(compiled, {

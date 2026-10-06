@@ -61,7 +61,7 @@ test('guest Run advances a declared coil through Comlink, displays current, drop
   await page.locator('[data-component-id="switch"] [data-component-hitbox]').press('Enter');
   await expect.poll(async () => (await runtime(page)).coil).toBe(true);
   const on = await runtime(page);
-  expect(on).toMatchObject({ no: true, nc: false, worker: true, engine: 'mna-controls-3' });
+  expect(on).toMatchObject({ no: true, nc: false, worker: true, engine: 'mna-controls-4' });
   expect(on.current).toBeCloseTo(12 / (144 + 3 * 0.0175), 8);
   await inspectRelay(page);
   await expect(page.getByRole('button', { name: 'Apply coil model' })).toBeDisabled();

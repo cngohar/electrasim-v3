@@ -53,6 +53,9 @@ const MobileSuitabilityModal = lazy(() =>
     default: m.MobileSuitabilityModal,
   })),
 );
+const PhoneDock = lazy(() =>
+  import('./components/PhoneDock').then((m) => ({ default: m.PhoneDock })),
+);
 const WelcomeModal = lazy(() =>
   import('./components/WelcomeModal').then((m) => ({ default: m.WelcomeModal })),
 );
@@ -96,7 +99,6 @@ import { LogPanel } from './components/LogPanel';
 import { MenuOverlay } from './components/MenuOverlay';
 import { MiniMap } from './components/MiniMap';
 import { Palette } from './components/Palette';
-import { PhoneDock } from './components/PhoneDock';
 import { StatusPill } from './components/StatusPill';
 import { SubHeaderBar } from './components/SubHeaderBar';
 import { Toolbar } from './components/Toolbar';
@@ -380,7 +382,11 @@ export function Editor() {
         dashboardOpen={dashboardOpen}
       />
 
-      {isPhone && <PhoneDock />}
+      {isPhone && (
+        <Suspense fallback={null}>
+          <PhoneDock />
+        </Suspense>
+      )}
 
       <MenuOverlay open={menuOpen} onClose={() => useUiStore.getState().setMenuOpen(false)} />
 

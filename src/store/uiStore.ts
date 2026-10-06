@@ -165,13 +165,12 @@ function canStartSimulation(state: UiState, diagnostic = false, override = false
     state.simRunning = false;
     state.faultAlert = {
       title: 'UNRESOLVED ELECTRICAL FAULT',
-      kind: 'trip',
-      reason:
-        'Cannot run simulation while components are tripped/blown or wires are melted. Please fix circuit parameter overload or click Repair.',
-      currentAmps: 0,
-      limitAmps: 0,
+      kind: hasBustedWire || circuit.components.some((c) => c.state.isBlown) ? 'melt' : 'trip',
+      reason: 'Reset tripped protection or replace damaged items before starting another run.',
+      currentAmps: null,
+      limitAmps: null,
       resolutionHint:
-        'Adjust power (W) or current (A) in the Inspector panel or increase cable gauge, then click "Repair & Reset Circuit" to resume.',
+        'Use Fault Lab to clear the cause, reset protection and replace damaged items.',
     };
     return false;
   }

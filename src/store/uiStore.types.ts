@@ -81,8 +81,8 @@ export interface ElectricalFaultAlert {
   deviceId?: string;
   wireId?: string;
   reason: string;
-  currentAmps: number;
-  limitAmps: number;
+  currentAmps: number | null;
+  limitAmps: number | null;
   cableMm2?: number;
   resolutionHint: string;
   /**
@@ -122,6 +122,8 @@ export interface EventHistoryEntry {
   description: string;
   severity: 'critical' | 'warning' | 'info';
   details?: {
+    simulatedSeconds?: number;
+    modelVersion?: string;
     currentAmps?: number;
     voltage?: number;
     cableMm2?: number;

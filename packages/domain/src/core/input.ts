@@ -9,6 +9,7 @@ import type {
 } from '../types';
 import { coilPortsFor, isCoilModel } from './coilModel';
 import type { ElectricalDiagnostic } from './contracts';
+import { hasDamageSettings, isDamageModel } from './damageModel';
 import { dimmerMaximumLevel } from './dimmerModel';
 import { isProtectionModel, protectionModelFitsType } from './protectionModel';
 import { isSupplyProfile, sourceInterface, sourceProfileFitsInterface } from './supplies';
@@ -47,6 +48,8 @@ function isComponentState(value: unknown): boolean {
       if (!isTimerModel(field)) return false;
     } else if (key === 'protectionModel') {
       if (!isProtectionModel(field)) return false;
+    } else if (key === 'damageModel') {
+      if (!isDamageModel(field)) return false;
     } else if (key === 'sourceProfile') {
       if (!isSupplyProfile(field)) return false;
     } else if (key === 'on' || key === 'energized' || key === 'isBlown' || key === 'isTripped') {
@@ -166,6 +169,11 @@ function isWire(value: unknown): value is WireInstance {
   )
     return false;
   if (wire.isBusted !== undefined && typeof wire.isBusted !== 'boolean') return false;
+  if (
+    wire.damageModel !== undefined &&
+    (!isDamageModel(wire.damageModel) || wire.damageModel.kind !== 'overcurrent')
+  )
+    return false;
   if (wire.bustedReason !== undefined && !isBoundedString(wire.bustedReason)) return false;
   return true;
 }
@@ -269,6 +277,13 @@ export function validateCircuitInput(
         'invalid-coil-model-target',
         'A coil model requires declared isolated coil terminals.',
         `components[${index}].state.coilModel`,
+        { componentId: value.id },
+      );
+    if (value.state.damageModel && !hasDamageSettings(value.type, defs[value.type]!))
+      return invalid(
+        'invalid-damage-model-target',
+        'Device damage requires a supported resistive load. Other device failure laws are unassessed.',
+        `components[${index}].state.damageModel`,
         { componentId: value.id },
       );
     if (value.state.timerModel && !timerModelFitsType(value.type, value.state.timerModel))

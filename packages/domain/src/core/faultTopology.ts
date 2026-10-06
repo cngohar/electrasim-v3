@@ -75,7 +75,7 @@ export function applyGraphFaults(
       effect =
         type === 'protection-forced-open'
           ? 'Force each protective contact open.'
-          : 'Shunt each protective pole independently, including an open/tripped pole.';
+          : 'Ideal teaching bypass: disconnect each sensed pole path and route current through its external shunt, including when the handle is open or tripped.';
       const device = graph.devices.find((d) => d.componentId === componentId);
       if (
         target.type !== 'component' ||
@@ -87,6 +87,11 @@ export function applyGraphFaults(
         for (const branch of graph.branches)
           if (branch.componentId === target.id && branch.kind === 'contact') branch.closed = false;
       } else {
+        // Parallel ideal zero-ohm paths have no unique current split. This
+        // declared bypass routes current outside the sensed path; it does not
+        // predict how current splits through a real parallel bridge.
+        for (const branch of graph.branches)
+          if (branch.componentId === target.id && branch.kind === 'contact') branch.closed = false;
         for (const [index, pole] of device.model.poles.entries())
           graph.branches.push({
             id: JSON.stringify(['fault', fault.id, index]),

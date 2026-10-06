@@ -68,6 +68,61 @@ export function adaptMnaResult(
     addDiagnostic(diagnostic);
   if (compiled.status === 'invalid') return result;
   const { circuit, graph } = compiled;
+  // A persistent failed element is a fault even when opening it removes the
+  // overcurrent/overvoltage that caused the failure. Do not report a repair pass.
+  const blownComponents: NonNullable<SimulationResult['blownComponents']> = circuit.components
+    .filter((c) => c.state.isBlown)
+    .map((c) => ({
+      id: c.id,
+      reason: c.state.blownReason,
+    }));
+  const bustedWires = new Set(circuit.wires.filter((w) => w.isBusted).map((w) => w.id));
+  for (const point of electrical.damage ?? []) {
+    if (!point.damaged) continue;
+    if (point.target.type === 'wire') bustedWires.add(point.target.id);
+    else if (!blownComponents.some((c) => c.id === point.target.id))
+      blownComponents.push({ id: point.target.id, reason: point.kind });
+  }
+  for (const protection of electrical.protection ?? []) {
+    if (
+      protection.kind === 'fuse' &&
+      protection.tripped &&
+      !blownComponents.some((c) => c.id === protection.componentId)
+    )
+      blownComponents.push({
+        id: protection.componentId,
+        reason: protection.reason === 'overload' ? 'overload' : 'overcurrent',
+      });
+    if (protection.tripped && protection.kind !== 'fuse')
+      addDiagnostic({
+        code: 'protection-latched-open',
+        severity: 'error',
+        componentId: protection.componentId,
+        message:
+          'The protective device is latched open. Clear the cause, then switch it off to reset before switching on.',
+      });
+  }
+  for (const component of blownComponents)
+    addDiagnostic({
+      code: 'component-replacement-required',
+      severity: 'error',
+      componentId: component.id,
+      message:
+        'A damaged component or operated fuse is open and requires replacement. Clearing an injected fault does not replace it.',
+    });
+  for (const wireId of bustedWires)
+    addDiagnostic({
+      code: 'wire-replacement-required',
+      severity: 'error',
+      wireId,
+      message:
+        'A damaged wire is open and requires replacement. Clearing an injected fault does not replace it.',
+    });
+  // Retain absent fields for unassessed/static legacy consumers. Timed
+  // snapshots and saved failures have an explicit damage status.
+  if (electrical.damage !== undefined || blownComponents.length)
+    result.blownComponents = blownComponents;
+  if (electrical.damage !== undefined || bustedWires.size) result.bustedWires = bustedWires;
   result.modelLimitations = getSimulationLimitations(circuit, defs);
   for (const limitation of result.modelLimitations)
     if (!result.warnings.includes(limitation.message)) result.warnings.push(limitation.message);
@@ -164,7 +219,7 @@ export function adaptMnaResult(
         }
       }
     result.errors.push(
-      'Short circuit — a conductor bypasses a source or winding load. Current is a declared-network estimate; protective clearing is not assessed.',
+      'Short circuit — a conductor bypasses a source or winding load. Current is a declared-network estimate; clearing requires a declared protection model.',
     );
   }
   if (electrical.controls)

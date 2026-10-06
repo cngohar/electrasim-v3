@@ -4,6 +4,8 @@ import { simulate } from '@electrasim/domain/simulation';
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { controlCircuit } from '../../packages/domain/src/core/controlFixtures';
+import { damageCircuit } from '../../packages/domain/src/core/damageFixtures';
+import { protectionCircuit } from '../../packages/domain/src/core/protectionFixtures';
 import { component, protectedLoad } from '../../packages/domain/src/simulation/auditFixtures';
 
 const { simulateAsync } = vi.hoisted(() => ({
@@ -101,6 +103,73 @@ describe('useSimulation request sequencing', () => {
     expect(useUiStore.getState().simResult?.simulationState?.elapsedSeconds).toBe(0);
     expect(useUiStore.getState().simResult?.simulationState?.pending).toEqual({});
     expect(useUiStore.getState().simResult?.coilStates?.relay).toBe(false);
+  });
+
+  it('projects cable damage once, retains it across Stop/Run, and replaces it explicitly', async () => {
+    simulateAsync.mockImplementation(async (circuit, options) => simulate(circuit, options));
+    useCircuitStore.getState().setCircuit(damageCircuit());
+    useUiStore.setState({ eventHistory: [] });
+    renderHook(() => useSimulation());
+    act(() => useUiStore.getState().setSimRunning(true));
+    for (let i = 0; i < 16; i++) await act(async () => vi.advanceTimersByTime(150));
+    expect(useCircuitStore.getState().wires.find((w) => w.id === 'load-feed')?.isBusted).toBe(true);
+    expect(useUiStore.getState().simRunning).toBe(true);
+    expect(
+      useUiStore.getState().eventHistory.filter((e) => e.eventType === 'wire_melted'),
+    ).toHaveLength(1);
+    act(() => useUiStore.getState().setSimRunning(false));
+    await act(async () => vi.advanceTimersByTime(1));
+    act(() => useUiStore.getState().setSimRunning(true));
+    await act(async () => vi.advanceTimersByTime(50));
+    expect(useUiStore.getState().simRunning).toBe(false);
+    expect(useUiStore.getState().faultAlert?.title).toContain('UNRESOLVED');
+    expect(useCircuitStore.getState().wires.find((w) => w.id === 'load-feed')?.isBusted).toBe(true);
+    act(() => useUiStore.getState().setSimRunning(false));
+    await act(async () => {
+      await useCircuitStore.getState().setWireBusted('load-feed', false);
+    });
+    act(() => useUiStore.getState().setSimRunning(true));
+    await act(async () => vi.advanceTimersByTime(50));
+    expect(
+      useUiStore.getState().simResult?.componentCalculations?.lamp?.powerWatts,
+    ).toBeGreaterThan(990);
+  });
+
+  it('keeps fault injection and clearing on one timed run and resets a trip without destruction', async () => {
+    simulateAsync.mockImplementation(async (circuit, options) => simulate(circuit, options));
+    useCircuitStore.getState().setCircuit(protectionCircuit('mcb', 16));
+    renderHook(() => useSimulation());
+    act(() => useUiStore.getState().setSimRunning(true));
+    await act(async () => vi.advanceTimersByTime(50));
+    await act(async () => vi.advanceTimersByTime(100));
+    const time = useUiStore.getState().simResult!.simulationState!.elapsedSeconds;
+    await act(async () => {
+      await useCircuitStore.getState().setComponentFault('lamp', 'short-circuit');
+    });
+    await act(async () => vi.advanceTimersByTime(50));
+    expect(useUiStore.getState().simRunning).toBe(true);
+    expect(useUiStore.getState().simResult?.simulationState?.elapsedSeconds).toBe(time);
+    expect(useUiStore.getState().simResult?.protectionContactStates?.control).toBe(false);
+    expect(
+      useCircuitStore.getState().components.some((c) => c.state.isBlown || c.state.isTripped),
+    ).toBe(false);
+    await act(async () => {
+      await useCircuitStore.getState().clearAllFaults();
+    });
+    await act(async () => vi.advanceTimersByTime(50));
+    expect(useUiStore.getState().simResult?.simulationState?.protection.control?.tripped).toBe(
+      true,
+    );
+    await act(async () => {
+      await useCircuitStore.getState().resetTrippedComponent('control');
+    });
+    await act(async () => vi.advanceTimersByTime(50));
+    act(() => useCircuitStore.getState().updateComponentState('control', { on: true }));
+    await act(async () => vi.advanceTimersByTime(50));
+    expect(
+      useUiStore.getState().simResult?.componentCalculations?.lamp?.powerWatts,
+    ).toBeGreaterThan(990);
+    expect(useUiStore.getState().simResult?.faultsCleared).toBe(true);
   });
 
   it('clears a published result for a supply-only revision received at the worker boundary', async () => {

@@ -138,7 +138,7 @@ export function solveCompiledCircuit(
     return deriveOperatingPoints(compiled, result, options);
   };
   const unsupported = coverage.filter(
-    (item) => item.status === 'not-assessed' && item.aspect !== 'protection',
+    (item) => item.status === 'not-assessed' && !['protection', 'damage'].includes(item.aspect),
   );
   if (unsupported.length)
     return unavailable(
@@ -618,7 +618,7 @@ export function solveCompiledCircuit(
       aspect: 'measurements',
       status: 'estimated',
       reason:
-        'Accepted linear DC / single-source RMS solution with finite wire resistance at 20 C, declared load response and ideal isolated AC transformers. Mathematical references add no PE bond. Unknown operating ranges, transformer losses/saturation, trip/damage and standards assessment remain unassessed.',
+        'Accepted linear DC / single-source RMS solution with finite wire resistance at 20 C, declared load response and ideal isolated AC transformers. Mathematical references add no PE bond. Trip and damage coverage require separate declared step models. Unknown operating ranges, transformer losses/saturation and standards assessment remain unassessed.',
     },
   ];
   deriveEarthingMeasurements(graph, result);

@@ -69,7 +69,13 @@ describe('declared coil steps', () => {
       { ...circuit.wires[2]!, id: 'other-return', fromComponentId: relay.id },
     );
     const result = simulate(circuit, { deltaSeconds: 1 });
-    expect(result.simulationEvents?.map((e) => [e.componentId, e.atSeconds, e.sequence])).toEqual([
+    expect(
+      result.simulationEvents?.map((e) => [
+        e.type === 'damage' ? e.target.id : e.componentId,
+        e.atSeconds,
+        e.sequence,
+      ]),
+    ).toEqual([
       ['a-relay', 1, 1],
       ['relay', 1, 2],
     ]);

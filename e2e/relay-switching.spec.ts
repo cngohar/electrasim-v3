@@ -47,14 +47,16 @@ test('guest relay coil transfers NO/NC through the simulation worker and drops o
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await expect(page.getByRole('button', { name: /^Run Simulation$/ })).toBeVisible();
-  await page.keyboard.press('Control+e');
+  await page.getByRole('button', { name: 'Menu', exact: true }).click();
+  await page.getByRole('button', { name: /^Import \/ Export/ }).click();
   const modal = page.getByRole('dialog');
   await modal.getByRole('button', { name: /^Import$/ }).click();
   await modal.locator('textarea').fill(JSON.stringify({ version: 1, exportedAt: 0, circuit }));
   await modal.getByRole('button', { name: 'Import from paste' }).click();
   await expect(modal.getByText('Loaded 6 components, 8 wires.', { exact: true })).toBeVisible();
   await page.keyboard.press('Escape');
-  await page.keyboard.press('f');
+  await expect(modal).not.toBeVisible();
+  await page.getByTitle('Zoom to fit all (F)').click();
   await page.getByRole('button', { name: /^Run Simulation$/ }).click();
   const relay = page.locator('[data-component-id="relay"] [data-component-hitbox]');
   const control = page.locator('[data-component-id="control"] [data-component-hitbox]');

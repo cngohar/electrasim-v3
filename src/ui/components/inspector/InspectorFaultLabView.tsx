@@ -19,6 +19,7 @@ import {
   type FaultType,
   type InjectedFault,
   isWireFaultType,
+  normalizeCircuitFaults,
 } from '@electrasim/domain';
 import {
   AlertTriangle,
@@ -36,10 +37,13 @@ import {
   Waves,
   Zap,
 } from 'lucide-react';
+import { Suspense, lazy } from 'react';
 import { focusFaultTarget, useCircuitStore, useUiStore } from '../../../store';
 import { useConfigurationLockReason } from '../../../store/electricalEditing';
 import { faultFxConfig } from '../../canvas/faultFx';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
+
+const FaultRepairPanel = lazy(() => import('./FaultRepairPanel'));
 
 interface FaultDef {
   type: FaultType;
@@ -190,7 +194,10 @@ export function InspectorFaultLabView() {
   const selectedWireIds = useCircuitStore((s) => s.selectedWireIds);
   const components = useCircuitStore((s) => s.components);
   const wires = useCircuitStore((s) => s.wires);
-  const faults = useCircuitStore((s) => s.faults);
+  const injectedFaults = useCircuitStore((s) => s.faults);
+  const faults = normalizeCircuitFaults({ components, wires, faults: injectedFaults }).filter(
+    (fault) => !fault.resolved,
+  );
   const simResult = useUiStore((s) => s.simResult);
   const simRunning = useUiStore((s) => s.simRunning);
   const configurationLock = useConfigurationLockReason();
@@ -250,22 +257,22 @@ export function InspectorFaultLabView() {
     logInjection(type, targetLabel);
   };
 
-  const clearSelectionFault = () => {
+  const clearSelectionFault = async () => {
     if (!selectedComp && !selectedWire) return;
     useUiStore.getState().clearPendingFaultFx();
     if (selectedComp) {
-      useCircuitStore.getState().setComponentFault(selectedComp.id, undefined);
+      if (!(await useCircuitStore.getState().setComponentFault(selectedComp.id, undefined))) return;
     } else if (selectedWire) {
-      useCircuitStore.getState().setWireFault(selectedWire.id, undefined);
+      if (!(await useCircuitStore.getState().setWireFault(selectedWire.id, undefined))) return;
     }
     useUiStore
       .getState()
       .addLog(`Fault Lab: cleared fault on ${targetLabel ?? 'selection'}`, 'success');
   };
 
-  const clearAll = () => {
+  const clearAll = async () => {
     useUiStore.getState().clearPendingFaultFx();
-    useCircuitStore.getState().clearAllFaults();
+    if (!(await useCircuitStore.getState().clearAllFaults())) return;
     useUiStore.getState().addLog('Fault Lab: cleared all injected faults.', 'success');
   };
 
@@ -276,8 +283,8 @@ export function InspectorFaultLabView() {
     logInjection(fault.type, faultTargetLabel(fault));
   };
 
-  const clearFaultEntry = (fault: InjectedFault) => {
-    useCircuitStore.getState().removeFault(fault.id);
+  const clearFaultEntry = async (fault: InjectedFault) => {
+    if (!(await useCircuitStore.getState().removeFault(fault.id))) return;
     useUiStore
       .getState()
       .addLog(`Fault Lab: cleared ${fault.type} on ${faultTargetLabel(fault)}.`, 'success');
@@ -363,6 +370,10 @@ export function InspectorFaultLabView() {
           </div>
         )}
       </div>
+
+      <Suspense fallback={<p className="text-xs">Loading repair controls…</p>}>
+        <FaultRepairPanel component={selectedComp} wire={selectedWire} />
+      </Suspense>
 
       {/* Fault grid (grouped) */}
       <div>
@@ -552,8 +563,9 @@ export function InspectorFaultLabView() {
             Threshold Overrides
           </legend>
           <p className="text-[10px]">
-            Declared ratings are separate from measured values. Timed trips and damage remain
-            unassessed for calculated circuits.
+            Declared ratings are separate from measured values. Timed trips require a protection
+            model; damage requires a declared stress budget. A rating alone does not predict
+            failure.
           </p>
           {configurationLock && <p className="text-[10px]">{configurationLock}</p>}
           <p className="text-[10px]">

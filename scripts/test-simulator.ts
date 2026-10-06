@@ -12,6 +12,11 @@ import { simulate } from '@electrasim/domain/simulation';
 import type { SimulationResult } from '@electrasim/domain/types';
 import { controlCircuit, setControlSwitch } from '../packages/domain/src/core/controlFixtures';
 import {
+  damageAcceptanceCircuits,
+  damageCircuit,
+  protectedDamageCircuit,
+} from '../packages/domain/src/core/damageFixtures';
+import {
   protectionCircuit,
   rcboCircuit,
   rcdBalancedCircuit,
@@ -64,6 +69,76 @@ export async function runSimulatorTests(context: Context) {
     'advanced_diagnostics',
   ]);
   const grant = await assign(plan.id, user);
+  await check(
+    'local Hono damage and fuse replay match domain steps; malformed state and paid bypass remain guarded',
+    async () => {
+      for (const [name, circuit] of Object.entries(damageAcceptanceCircuits())) {
+        let previous: SimulationResult | undefined;
+        for (const deltaSeconds of [0, 0.1, 0.5, 1, 2]) {
+          const simulationState = previous?.simulationState;
+          const response = await request<SimulationResult>('/simulator/simulate', {
+            ...(name === 'bypass-leaves-stress' ? { user } : {}),
+            method: 'POST',
+            expected: 200,
+            data: { circuit, simulationState, deltaSeconds },
+          });
+          assert.deepEqual(
+            response,
+            portableResult(
+              simulate(circuit, { simulationState, deltaSeconds, standard: 'int', appMode: 'pro' }),
+            ),
+            name,
+          );
+          previous = response;
+        }
+      }
+      await request('/simulator/simulate', {
+        method: 'POST',
+        data: { circuit: protectedDamageCircuit(true) },
+        expected: 401,
+      });
+      await request('/simulator/simulate', {
+        user: other,
+        method: 'POST',
+        data: { circuit: protectedDamageCircuit(true) },
+        expected: 403,
+      });
+      const circuit = damageCircuit();
+      const initial = simulate(circuit);
+      await request('/simulator/simulate', {
+        method: 'POST',
+        data: { circuit, simulationState: { ...initial.simulationState, damage: {} } },
+        expected: 400,
+      });
+      circuit.wires[1]!.damageModel!.withstandAmpSquaredSeconds = -1;
+      await request('/simulator/simulate', { method: 'POST', data: { circuit }, expected: 400 });
+    },
+  );
+  await check(
+    'local D1 saves damage declarations and failed items without repairing or persisting transient exposure',
+    async () => {
+      const circuit = damageCircuit();
+      circuit.wires[1]!.isBusted = true;
+      circuit.wires[1]!.bustedReason = 'Declared stress budget reached';
+      const savedDamage = await request<Saved>('/circuits', {
+        user,
+        method: 'POST',
+        data: { name: 'Damage lifecycle fixture', circuit },
+        expected: 201,
+      });
+      const restored = await request<Saved>(`/circuits/${savedDamage.id}`, { user, expected: 200 });
+      assert.deepEqual(restored.circuit.wires[1], circuit.wires[1]);
+      assert.equal('simulationState' in restored.circuit, false);
+      const result = await request<SimulationResult>('/simulator/simulate', {
+        method: 'POST',
+        data: { circuit: restored.circuit, deltaSeconds: 2 },
+        expected: 200,
+      });
+      assert.equal(result.faultsCleared, false);
+      assert.equal(result.componentCalculations?.lamp?.powerWatts, 0);
+      assert.deepEqual(result.simulationEvents, []);
+    },
+  );
   await check(
     'local Hono dimming and timer replay match the domain with normal guest/paid authorization',
     async () => {

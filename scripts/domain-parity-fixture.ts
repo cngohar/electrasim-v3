@@ -13,6 +13,7 @@ import {
 import { simulate } from '@electrasim/domain/simulation';
 import { GUIDED_CIRCUIT_TEMPLATES } from '@electrasim/domain/templates';
 import { controlCircuit, setControlSwitch } from '../packages/domain/src/core/controlFixtures';
+import { damageAcceptanceCircuits } from '../packages/domain/src/core/damageFixtures';
 import { earthingAcceptanceCircuits } from '../packages/domain/src/core/earthingFixtures';
 import { editingCircuit, variantCircuit } from '../packages/domain/src/core/editingFixtures';
 import { mnaAcceptanceCircuits } from '../packages/domain/src/core/mnaFixtures';
@@ -30,6 +31,14 @@ import { runtimeAcceptanceCircuits } from '../packages/domain/src/simulation/run
 
 export function domainParityFixture(): string {
   const results: unknown[] = [];
+  for (const [name, circuit] of Object.entries(damageAcceptanceCircuits())) {
+    let previous = simulate(circuit);
+    results.push({ damageCase: name, step: 'reset', result: previous });
+    for (const deltaSeconds of [0.1, 0.5, 1, 2]) {
+      previous = simulate(circuit, { simulationState: previous.simulationState, deltaSeconds });
+      results.push({ damageCase: name, step: deltaSeconds, result: previous });
+    }
+  }
   for (const [name, circuit] of Object.entries(timerDimmingAcceptanceCircuits())) {
     let previous = simulate(circuit);
     results.push({ timerDimmingCase: name, step: 'reset', result: previous });

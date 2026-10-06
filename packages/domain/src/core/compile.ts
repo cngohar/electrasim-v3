@@ -13,6 +13,7 @@ import {
   type ModelCoverage,
   type TerminalGraph,
 } from './contracts';
+import { DAMAGE_APPROXIMATION, copyDamageModel } from './damageModel';
 import { DIMMER_APPROXIMATION } from './dimmerModel';
 import { applyGraphFaults, compareIds, terminalId } from './faultTopology';
 import { validateCircuitInput } from './input';
@@ -105,6 +106,7 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
     const model = resolveDeviceModel(component, def, circuit);
     const indices = modelPortIndices(model);
     const invalidModel =
+      (component.state.damageModel !== undefined && model.kind !== 'resistive-load') ||
       indices.some((i) => !Number.isInteger(i) || !def.ports[i]) ||
       ((model.kind === 'source' || model.kind === 'source-alias') &&
         !isSupplyModel(model.supply)) ||
@@ -181,7 +183,26 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
       });
       continue;
     }
-    graph.devices.push({ componentId: component.id, model });
+    graph.devices.push({
+      componentId: component.id,
+      model,
+      ...(component.state.damageModel
+        ? { damageModel: copyDamageModel(component.state.damageModel) }
+        : {}),
+    });
+    coverage.push({
+      subjectId: component.id,
+      aspect: 'damage',
+      status:
+        component.state.damageModel && options.damagedComponents !== undefined
+          ? 'estimated'
+          : 'not-assessed',
+      reason: component.state.damageModel
+        ? options.damagedComponents !== undefined
+          ? DAMAGE_APPROXIMATION
+          : 'Declared damage requires a deterministic step; a static solve never accumulates stress.'
+        : 'No device damage law is declared. A rating exceedance or resettable protection trip does not imply destruction.',
+    });
     const t = (port: number) => terminalId(component.id, port);
     for (const [index, port] of def.ports.entries()) {
       let role: TerminalGraph['terminals'][number]['role'] =
@@ -246,6 +267,7 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
     const operable =
       !component.state.isBlown &&
       !component.state.isTripped &&
+      !options.damagedComponents?.has(component.id) &&
       !options.trippedComponents?.has(component.id);
     const needsPhaseTerminals =
       (model.kind === 'source' || model.kind === 'source-alias') &&
@@ -567,17 +589,28 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
   }
   if (diagnostics.some((d) => d.severity === 'error'))
     return { status: 'invalid', ...version, diagnostics };
-  for (const wire of circuit.wires)
+  for (const wire of [...circuit.wires].sort((a, b) => compareIds(a.id, b.id))) {
+    coverage.push({
+      subjectId: wire.id,
+      aspect: 'damage',
+      status: wire.damageModel && options.damagedWires !== undefined ? 'estimated' : 'not-assessed',
+      reason: wire.damageModel
+        ? options.damagedWires !== undefined
+          ? DAMAGE_APPROXIMATION
+          : 'Declared wire damage requires a deterministic step; a static solve never accumulates stress.'
+        : 'No cable damage budget is declared. Cable ampacity alone does not predict melting, temperature or fire.',
+    });
     branch({
       id: JSON.stringify(['wire', wire.id]),
       kind: 'wire',
       from: terminalId(wire.fromComponentId, wire.fromPortIndex),
       to: terminalId(wire.toComponentId, wire.toPortIndex),
-      closed: !wire.isBusted,
+      closed: !wire.isBusted && !options.damagedWires?.has(wire.id),
       idealConductor: false,
       wireId: wire.id,
       wire: resolveWireProperties(wire, byId),
     });
+  }
   const activeFaults = normalizeCircuitFaults(circuit)
     .filter((fault) => !fault.resolved)
     .sort((a, b) => compareIds(a.id, b.id));

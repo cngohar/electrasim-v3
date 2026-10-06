@@ -14,6 +14,7 @@
 
 import { COMPONENT_DEFS, type ComponentInstance, type WireInstance } from '@electrasim/domain';
 import { coilPortsFor, isCoilModel } from '@electrasim/domain/core/coilModel';
+import { hasDamageSettings, isDamageModel } from '@electrasim/domain/core/damageModel';
 import { dimmerMaximumLevel } from '@electrasim/domain/core/dimmerModel';
 import { normalizeCircuitDocument, resolveComponentState } from '@electrasim/domain/core/normalize';
 import {
@@ -49,6 +50,12 @@ import {
 } from './electricalEditing';
 import { buildProSeedCircuit, buildSeedCircuit, buildStudentSeedCircuit } from './seed';
 import { useUiStore } from './uiStore';
+
+function replacementAllowed(): boolean {
+  if (!useUiStore.getState().simRunning) return true;
+  useUiStore.getState().showNoticeToast('Stop the simulation before replacing damaged items.');
+  return false;
+}
 
 const seed = buildSeedCircuit();
 
@@ -667,6 +674,12 @@ export const useCircuitStore = create<CircuitState>()(
           );
           if (!runtimeOnly && !editingAllowed()) return;
           if (
+            updates.damageModel !== undefined &&
+            (!isDamageModel(updates.damageModel) ||
+              !hasDamageSettings(component.type, COMPONENT_DEFS[component.type]))
+          )
+            return;
+          if (
             updates.timerModel !== undefined &&
             (!isTimerModel(updates.timerModel) ||
               !timerModelFitsType(component.type, updates.timerModel))
@@ -722,7 +735,7 @@ export const useCircuitStore = create<CircuitState>()(
               c.state.isBlown = false;
               c.state.blownReason = undefined;
             }
-          }),
+          }, replacementAllowed),
 
         repairAllBlownComponents: () =>
           set((s) => {
@@ -730,7 +743,7 @@ export const useCircuitStore = create<CircuitState>()(
               c.state.isBlown = false;
               c.state.blownReason = undefined;
             }
-          }),
+          }, replacementAllowed),
 
         repairAllFaults: () =>
           set((s) => {
@@ -741,91 +754,103 @@ export const useCircuitStore = create<CircuitState>()(
             for (const w of s.wires) {
               w.isBusted = false;
               w.bustedReason = undefined;
-              if (w.fault === 'open-circuit') w.fault = undefined;
             }
-          }),
+          }, replacementAllowed),
 
         setWireBusted: (id, isBusted, reason) =>
-          set((s) => {
-            const w = s.wires.find((item) => item.id === id);
-            if (w) {
-              w.isBusted = isBusted;
-              w.bustedReason = reason;
-            }
-          }),
+          set(
+            (s) => {
+              const w = s.wires.find((item) => item.id === id);
+              if (w) {
+                w.isBusted = isBusted;
+                w.bustedReason = reason;
+              }
+            },
+            () => isBusted || replacementAllowed(),
+          ),
 
         updateWireProperties: (id, updates) =>
-          set((s) => {
-            const w = s.wires.find((item) => item.id === id);
-            if (!w) return;
+          set(
+            (s) => {
+              const w = s.wires.find((item) => item.id === id);
+              if (!w) return;
+              if (
+                'damageModel' in updates &&
+                (updates.damageModel === undefined ||
+                  (isDamageModel(updates.damageModel) &&
+                    updates.damageModel.kind === 'overcurrent'))
+              )
+                w.damageModel = updates.damageModel;
 
-            if ('controlPoints' in updates && Array.isArray(updates.controlPoints)) {
-              const validPoints = updates.controlPoints.filter(
-                (point) => Number.isFinite(point.x) && Number.isFinite(point.y),
-              );
-              if (validPoints.length === updates.controlPoints.length) {
-                w.controlPoints = validPoints.map((point) => ({ ...point }));
-              }
-            }
-            if (updates.pathKind === 'bezier' || updates.pathKind === 'orthogonal') {
-              w.pathKind = updates.pathKind;
-            }
-            if (
-              'lengthMeters' in updates &&
-              (updates.lengthMeters === undefined ||
-                (Number.isFinite(updates.lengthMeters) && updates.lengthMeters > 0))
-            ) {
-              w.lengthMeters = updates.lengthMeters;
-            }
-            if (
-              'deratingFactor' in updates &&
-              (updates.deratingFactor === undefined ||
-                (Number.isFinite(updates.deratingFactor) &&
-                  updates.deratingFactor >= 0.1 &&
-                  updates.deratingFactor <= 1))
-            ) {
-              w.deratingFactor = updates.deratingFactor;
-            }
-            if (
-              'customCableMm2' in updates &&
-              (updates.customCableMm2 === undefined ||
-                (Number.isFinite(updates.customCableMm2) && updates.customCableMm2 > 0))
-            ) {
-              w.customCableMm2 = updates.customCableMm2;
-              // A metric edit replaces the physical area; never retain a stale AWG label.
-              if (w.gauge !== undefined && WIRE_AWG_MM2[w.gauge] !== updates.customCableMm2)
-                w.gauge = undefined;
-            }
-            if (
-              'installationMethod' in updates &&
-              (updates.installationMethod === undefined ||
-                updates.installationMethod === 'C' ||
-                updates.installationMethod === 'B1' ||
-                updates.installationMethod === 'A')
-            ) {
-              w.installationMethod = updates.installationMethod;
-            }
-            if (updates.material === 'copper' || updates.material === 'aluminum') {
-              w.material = updates.material;
-            }
-            if (
-              'gauge' in updates &&
-              (updates.gauge === undefined || Object.hasOwn(WIRE_AWG_MM2, updates.gauge))
-            ) {
-              if (updates.gauge === undefined) {
-                w.gauge = undefined;
-              } else {
-                const area = WIRE_AWG_MM2[updates.gauge]!;
-                // Explicit metric size has the same priority as the domain resolver.
-                if (updates.customCableMm2 !== undefined && w.customCableMm2 !== area) {
-                  w.gauge = undefined;
-                } else {
-                  w.gauge = updates.gauge;
-                  w.customCableMm2 = area;
+              if ('controlPoints' in updates && Array.isArray(updates.controlPoints)) {
+                const validPoints = updates.controlPoints.filter(
+                  (point) => Number.isFinite(point.x) && Number.isFinite(point.y),
+                );
+                if (validPoints.length === updates.controlPoints.length) {
+                  w.controlPoints = validPoints.map((point) => ({ ...point }));
                 }
               }
-            }
-          }),
+              if (updates.pathKind === 'bezier' || updates.pathKind === 'orthogonal') {
+                w.pathKind = updates.pathKind;
+              }
+              if (
+                'lengthMeters' in updates &&
+                (updates.lengthMeters === undefined ||
+                  (Number.isFinite(updates.lengthMeters) && updates.lengthMeters > 0))
+              ) {
+                w.lengthMeters = updates.lengthMeters;
+              }
+              if (
+                'deratingFactor' in updates &&
+                (updates.deratingFactor === undefined ||
+                  (Number.isFinite(updates.deratingFactor) &&
+                    updates.deratingFactor >= 0.1 &&
+                    updates.deratingFactor <= 1))
+              ) {
+                w.deratingFactor = updates.deratingFactor;
+              }
+              if (
+                'customCableMm2' in updates &&
+                (updates.customCableMm2 === undefined ||
+                  (Number.isFinite(updates.customCableMm2) && updates.customCableMm2 > 0))
+              ) {
+                w.customCableMm2 = updates.customCableMm2;
+                // A metric edit replaces the physical area; never retain a stale AWG label.
+                if (w.gauge !== undefined && WIRE_AWG_MM2[w.gauge] !== updates.customCableMm2)
+                  w.gauge = undefined;
+              }
+              if (
+                'installationMethod' in updates &&
+                (updates.installationMethod === undefined ||
+                  updates.installationMethod === 'C' ||
+                  updates.installationMethod === 'B1' ||
+                  updates.installationMethod === 'A')
+              ) {
+                w.installationMethod = updates.installationMethod;
+              }
+              if (updates.material === 'copper' || updates.material === 'aluminum') {
+                w.material = updates.material;
+              }
+              if (
+                'gauge' in updates &&
+                (updates.gauge === undefined || Object.hasOwn(WIRE_AWG_MM2, updates.gauge))
+              ) {
+                if (updates.gauge === undefined) {
+                  w.gauge = undefined;
+                } else {
+                  const area = WIRE_AWG_MM2[updates.gauge]!;
+                  // Explicit metric size has the same priority as the domain resolver.
+                  if (updates.customCableMm2 !== undefined && w.customCableMm2 !== area) {
+                    w.gauge = undefined;
+                  } else {
+                    w.gauge = updates.gauge;
+                    w.customCableMm2 = area;
+                  }
+                }
+              }
+            },
+            () => !('damageModel' in updates) || editingAllowed(),
+          ),
 
         swapWireEndpoints: (id) =>
           set((s) => {
@@ -846,7 +871,8 @@ export const useCircuitStore = create<CircuitState>()(
         resetTrippedComponent: (id) =>
           set((s) => {
             const c = s.components.find((comp) => comp.id === id);
-            if (c) {
+            if (c && c.state.protectionModel?.kind !== 'fuse') {
+              c.state.on = false;
               c.state.isTripped = false;
               c.state.tripReason = undefined;
             }
@@ -855,6 +881,8 @@ export const useCircuitStore = create<CircuitState>()(
         resetAllTrippedComponents: () =>
           set((s) => {
             for (const c of s.components) {
+              if (c.state.protectionModel?.kind === 'fuse') continue;
+              if (c.state.protectionModel || c.state.isTripped) c.state.on = false;
               c.state.isTripped = false;
               c.state.tripReason = undefined;
             }

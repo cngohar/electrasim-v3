@@ -69,6 +69,8 @@ export function parsePersistedEventHistory(value: unknown): EventHistoryEntry[] 
 
     const details = isRecord(raw.details)
       ? {
+          simulatedSeconds: optionalFiniteNumber(raw.details.simulatedSeconds),
+          modelVersion: optionalString(raw.details.modelVersion),
           currentAmps: optionalFiniteNumber(raw.details.currentAmps),
           voltage: optionalFiniteNumber(raw.details.voltage),
           cableMm2: optionalFiniteNumber(raw.details.cableMm2),

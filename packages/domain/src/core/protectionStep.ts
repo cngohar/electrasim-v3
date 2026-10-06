@@ -61,7 +61,15 @@ export function evaluateProtection(
     });
     // Operator reset: switching the protected device fully off clears the latch
     // and energy. A latched trip persists while the handle stays on.
-    if (!component.state.on || forced) {
+    if (protection.kind === 'fuse' && component.state.isBlown) {
+      runtime.tripped = true;
+      runtime.reason ??=
+        component.state.blownReason === 'overload'
+          ? 'overload'
+          : component.state.blownReason === 'overcurrent'
+            ? 'short-circuit'
+            : null;
+    } else if (protection.kind !== 'fuse' && (!component.state.on || forced)) {
       runtime.heat = 0;
       runtime.tripped = false;
       runtime.reason = null;
@@ -87,7 +95,7 @@ export function evaluateProtection(
     let trip: { reason: ProtectionTripReason; atSeconds: number } | null = null;
     let pending: ProtectionOperatingPoint['pending'] = null;
 
-    if (!runtime.tripped && component.state.on === true) {
+    if (!runtime.tripped && !forced && component.state.on === true) {
       const overcurrentKind = protection.kind === 'mcb' || protection.kind === 'rcbo';
       const instantBand = overcurrentKind
         ? MCB_MAGNETIC_UPPER[protection.curve]
@@ -151,15 +159,18 @@ export function evaluateProtection(
         if (delay !== null) {
           runtime.residualSinceSeconds ??= state.elapsedSeconds;
           if (state.elapsedSeconds - runtime.residualSinceSeconds >= delay) {
-            trip = {
+            const residualTrip = {
               reason: 'residual',
               atSeconds: time(runtime.residualSinceSeconds + delay),
-            };
+            } as const;
+            if (!trip || residualTrip.atSeconds < trip.atSeconds) trip = residualTrip;
           } else {
-            pending = pending ?? {
+            const residualPending = {
               reason: 'residual',
               atSeconds: time(runtime.residualSinceSeconds + delay),
-            };
+            } as const;
+            if (!pending || residualPending.atSeconds < pending.atSeconds)
+              pending = residualPending;
           }
         } else {
           runtime.residualSinceSeconds = null;
@@ -172,7 +183,7 @@ export function evaluateProtection(
         dueEvents.set(componentId, {
           componentId,
           atSeconds: trip.atSeconds,
-          type: 'protection-trip',
+          type: protection.kind === 'fuse' ? 'fuse-operated' : 'protection-trip',
           reason: trip.reason,
           maxPoleCurrentAmps: maxAbs,
           currentMultiple,
@@ -183,7 +194,15 @@ export function evaluateProtection(
     readings.push({
       componentId,
       kind: protection.kind,
-      closed: component.state.on === true && !runtime.tripped,
+      closed:
+        component.state.on === true &&
+        !forced &&
+        !runtime.tripped &&
+        model.poles.every(
+          (_, index) =>
+            compiled.graph.branches.find((b) => b.id === contactBranchId(componentId, index))
+              ?.closed,
+        ),
       tripped: runtime.tripped,
       reason: runtime.reason,
       poleCurrentsAmps: poleCurrents,
