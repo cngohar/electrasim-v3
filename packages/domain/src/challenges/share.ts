@@ -21,6 +21,8 @@
  * obeys the "domain logic is pure TypeScript" rule (§2, §58).
  */
 
+import { ELECTRICAL_MODEL_VERSION } from '../core/contracts';
+import { DIAGNOSIS_PROFILE_VERSION, type DiagnosisAssessment } from './diagnosis/assessment';
 import { GENERATOR_VERSION, normalizeSeed } from './generator/seed';
 import { isRageTierId } from './rage/tiers';
 import type { RageTierId } from './rage/types';
@@ -29,6 +31,10 @@ import { CHALLENGE_DIFFICULTIES, CHALLENGE_MODES } from './types';
 
 /** Everything needed to replay an exercise (plan §21, §29, §30). */
 export interface ShareTicket {
+  assessment?: Pick<
+    DiagnosisAssessment,
+    'version' | 'modelVersion' | 'engineVersion' | 'profileVersion'
+  >;
   seed: number;
   difficulty: ChallengeDifficulty;
   mode: ChallengeMode;
@@ -74,7 +80,12 @@ export function formatShareCode(ticket: ShareTicket): string {
     ticket.mode,
   ];
   if (ticket.rageTier) parts.push(ticket.rageTier);
-  return parts.join(':');
+  return (
+    parts.join(':') +
+    (ticket.assessment
+      ? `@${ticket.assessment.version},${ticket.assessment.modelVersion},${ticket.assessment.engineVersion},${ticket.assessment.profileVersion}`
+      : '')
+  );
 }
 
 /**
@@ -101,13 +112,12 @@ export function formatShareText(ticket: ShareTicket): string {
 }
 
 export interface ParsedShareTicket extends ShareTicket {
+  assessmentMismatch?: boolean;
   /**
    * True when the ticket came from a different generator version (§6).
    *
-   * The caller decides what to do about it. The Diagnosis Lab replays it on
-   * the *current* generator and says so, because refusing outright would make
-   * every old bug report unreplayable — but it never pretends the circuit is
-   * guaranteed identical.
+   * The codec retains it for inspection. New Diagnosis Lab grading requires
+   * the current generator/model; saved earlier snapshots remain readable.
    */
   versionMismatch: boolean;
 }
@@ -128,16 +138,49 @@ export function parseShareText(
 
   // Preferred path: a `ES<version>:seed:difficulty:mode[:tier]` code anywhere
   // in the pasted text.
-  const codeMatch = text.match(/ES(\d+):(\d+):([a-z]+):([a-z]+)(?::([a-z0-9-]+))?/i);
+  const codeMatch = text.match(
+    /ES(\d+):(\d+):([a-z]+):([a-z]+)(?::([a-z0-9-]+))?(?:@(\d+),([a-z0-9.-]+),([a-z0-9.-]+)(?:,([a-z0-9.-]+))?)?/i,
+  );
   if (codeMatch) {
-    const [, rawVersion, rawSeed, rawDifficulty, rawMode, rawTier] = codeMatch;
+    const [
+      ,
+      rawVersion,
+      rawSeed,
+      rawDifficulty,
+      rawMode,
+      rawTier,
+      assessmentVersion,
+      rawModelVersion,
+      rawEngineVersion,
+      rawProfileVersion,
+    ] = codeMatch;
+    const modelVersion = rawModelVersion?.toLowerCase();
+    const engineVersion = rawEngineVersion?.toLowerCase();
+    const profileVersion = rawProfileVersion?.toLowerCase();
+    const suffix = text.slice((codeMatch.index ?? 0) + codeMatch[0].length);
+    if (suffix.startsWith('@') || (assessmentVersion && suffix.startsWith(','))) return null;
     const difficulty = rawDifficulty?.toLowerCase() as ChallengeDifficulty;
     const mode = rawMode?.toLowerCase() as ChallengeMode;
     if (!CHALLENGE_DIFFICULTIES.includes(difficulty)) return null;
     if (!CHALLENGE_MODES.includes(mode)) return null;
     const tier = rawTier?.toLowerCase();
+    if (tier && !isRageTierId(tier)) return null;
     const generatorVersion = Number(rawVersion);
     return {
+      ...(assessmentVersion && modelVersion && engineVersion
+        ? {
+            assessment: {
+              version: Number(assessmentVersion) as 1,
+              modelVersion,
+              engineVersion,
+              profileVersion: profileVersion ?? 'unversioned',
+            },
+            assessmentMismatch:
+              Number(assessmentVersion) !== 1 ||
+              modelVersion !== ELECTRICAL_MODEL_VERSION ||
+              profileVersion !== DIAGNOSIS_PROFILE_VERSION,
+          }
+        : {}),
       seed: normalizeSeed(Number(rawSeed)),
       difficulty,
       mode,

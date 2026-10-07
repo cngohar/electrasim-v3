@@ -23,6 +23,7 @@ export * from './faults/verification';
 export * from './diagnosis/scenario';
 export * from './diagnosis/evaluator';
 export * from './diagnosis/scoring';
+export * from './diagnosis/assessment';
 export * from './format';
 export * from './share';
 export * from './rage';

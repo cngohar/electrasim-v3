@@ -1,5 +1,5 @@
 import { type Circuit, createInjectedFault } from '@electrasim/domain';
-import { buildDiagnosisScenario } from '@electrasim/domain/challenges';
+import { GENERATOR_VERSION } from '@electrasim/domain/challenges';
 import { describe, expect, it } from 'vitest';
 import { circuitRequirements } from './circuit';
 import { buildAccessibleDiagnosis, scenarioRequirements } from './diagnosis';
@@ -50,11 +50,12 @@ describe('content access policy', () => {
       for (let seed = 0; seed < 40; seed++) {
         expect(scenarioRequirements(buildAccessibleDiagnosis({ seed, difficulty }))).toEqual([]);
       }
-    const request = { seed: 33, difficulty: 'intermediate', generatorVersion: 1 } as const;
-    expect(buildAccessibleDiagnosis(request)).toEqual(buildDiagnosisScenario(request));
-    expect(buildAccessibleDiagnosis({ ...request, generatorVersion: 2 }).challengeId).not.toEqual(
-      buildDiagnosisScenario(request).challengeId,
-    );
+    const request = { seed: 33, difficulty: 'intermediate' } as const;
+    expect(buildAccessibleDiagnosis(request).generatorVersion).toBe(GENERATOR_VERSION);
+    for (const generatorVersion of [1, 2])
+      expect(() => buildAccessibleDiagnosis({ ...request, generatorVersion })).toThrow(
+        'saved work is preserved',
+      );
     expect(() => buildAccessibleDiagnosis({ ...request, generatorVersion: 999 })).toThrow(
       'Unsupported',
     );

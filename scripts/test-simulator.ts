@@ -7,6 +7,7 @@ import type {
   DiagnosisScenario,
   DiagnosisScore,
 } from '@electrasim/domain/challenges';
+import { diagnosisAssessmentIssue, evaluateDiagnosis } from '@electrasim/domain/challenges';
 import { normalizeCircuitDocument } from '@electrasim/domain/core';
 import { explicitSupplyProfile } from '@electrasim/domain/core/supplies';
 import { simulate } from '@electrasim/domain/simulation';
@@ -76,6 +77,124 @@ export async function runSimulatorTests(context: Context) {
     'advanced_diagnostics',
   ]);
   const grant = await assign(plan.id, user);
+  await check(
+    'versioned diagnosis and compound Ohmageddon grade the authored repair through real Hono/D1',
+    async () => {
+      await request('/diagnosis/attempts', {
+        user: other,
+        method: 'POST',
+        data: { seed: 5, difficulty: 'beginner', generatorVersion: 2 },
+        expected: 400,
+      });
+      for (const requestInput of [
+        { seed: 5, difficulty: 'beginner' },
+        { seed: 5, difficulty: 'intermediate' },
+        { seed: 5, difficulty: 'advanced' },
+        { seed: 3, difficulty: 'intermediate', rageTier: 'rage-4' },
+      ]) {
+        let current = await request<Attempt>('/diagnosis/attempts', {
+          user,
+          method: 'POST',
+          data: requestInput,
+          expected: 201,
+        });
+        const scenario = current.scenario;
+        assert.equal(diagnosisAssessmentIssue(scenario), null);
+        for (const circuit of [
+          { ...scenario.healthyCircuit, wires: scenario.healthyCircuit.wires.slice(1) },
+          {
+            ...scenario.faultedCircuit,
+            faults: (scenario.faults.length > 1 ? scenario.faults.slice(1) : scenario.faults).map(
+              (f) => f.fault,
+            ),
+          },
+        ]) {
+          const fault = scenario.faults[0]!;
+          const answer = { faultType: fault.fault.type, locationKey: fault.locationKey };
+          const expected = evaluateDiagnosis(scenario, circuit, answer, {
+            identifiedFaultIds: current.progress.identifiedFaultIds,
+          });
+          current = await request<Attempt>(`/diagnosis/attempts/${current.id}`, {
+            user,
+            method: 'POST',
+            expected: 200,
+            data: { action: 'submit', version: current.version, circuit, answer },
+          });
+          assert.equal(current.evaluation.verdict, expected.verdict);
+          assert.equal(current.evaluation.recovered, expected.recovered);
+          assert.equal(current.progress.status, 'active');
+        }
+        for (const fault of scenario.faults) {
+          current = await request<Attempt>(`/diagnosis/attempts/${current.id}`, {
+            user,
+            method: 'POST',
+            expected: 200,
+            data: {
+              action: 'submit',
+              version: current.version,
+              circuit: scenario.healthyCircuit,
+              answer: { faultType: fault.fault.type, locationKey: fault.locationKey },
+            },
+          });
+          if (current.progress.status === 'completed') break;
+        }
+        assert.equal(current.progress.status, 'completed');
+        assert.deepEqual(current.evaluation.assessment, scenario.assessment);
+        assert(current.score);
+      }
+    },
+  );
+  await check(
+    'obsolete diagnosis snapshots stay readable without accepting new grades or penalties',
+    async () => {
+      const attempt = await request<Attempt>('/diagnosis/attempts', {
+        user,
+        method: 'POST',
+        expected: 201,
+        data: { seed: 3, difficulty: 'intermediate', rageTier: 'rage-4' },
+      });
+      const original = attempt.scenario;
+      const historical = {
+        ...original,
+        assessment: { ...original.assessment!, modelVersion: 'earlier' },
+      };
+      await db
+        .prepare('UPDATE diagnosis_attempts SET scenario=? WHERE id=?')
+        .bind(JSON.stringify(historical), attempt.id)
+        .run();
+      const loaded = await request<Attempt>(`/diagnosis/attempts/${attempt.id}`, {
+        user,
+        expected: 200,
+      });
+      assert.equal(loaded.readOnly, true);
+      const fault = original.faults[0]!;
+      await request(`/diagnosis/attempts/${attempt.id}`, {
+        user,
+        method: 'POST',
+        expected: 409,
+        data: {
+          action: 'submit',
+          version: attempt.version,
+          circuit: original.healthyCircuit,
+          answer: { faultType: fault.fault.type, locationKey: fault.locationKey },
+        },
+      });
+      const saved = await request<Attempt>(`/diagnosis/attempts/${attempt.id}`, {
+        user,
+        method: 'POST',
+        expected: 200,
+        data: { action: 'checkpoint', version: attempt.version, circuit: original.healthyCircuit },
+      });
+      assert.deepEqual(saved.progress, loaded.progress);
+      assert.equal(saved.score, null);
+      const after = await request<Attempt>(`/diagnosis/attempts/${attempt.id}`, {
+        user,
+        expected: 200,
+      });
+      assert.deepEqual(after.scenario, historical);
+      assert.deepEqual(after.circuit, normalizeCircuitDocument(original.healthyCircuit));
+    },
+  );
   await check(
     'local Hono consumer evidence is current, normalized and rejects a changed circuit',
     async () => {

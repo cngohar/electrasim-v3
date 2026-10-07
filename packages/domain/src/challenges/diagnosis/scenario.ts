@@ -19,8 +19,11 @@
  */
 
 import { COMPONENT_DEFS } from '../../components';
+import { ELECTRICAL_MODEL_VERSION } from '../../core/contracts';
+import { assessFaultTarget } from '../../faultApplicability';
 import { getFaultDefinition } from '../../faults';
 import { simulate } from '../../simulation/simulate';
+import { circuitRevision, hasOperationEvidence } from '../../simulationEvidence';
 import type { Circuit, FaultTarget, FaultType, InjectedFault, SimulationResult } from '../../types';
 import { getDifficultyProfile } from '../difficulty/profiles';
 import {
@@ -54,6 +57,11 @@ import {
 import { getRageTier, rageProfileKey } from '../rage/tiers';
 import type { RageApplication, RageSummary, RageTierId } from '../rage/types';
 import type { ChallengeDifficulty, ChallengeIdentity } from '../types';
+import {
+  DIAGNOSIS_PROFILE_VERSION,
+  type DiagnosisAssessment,
+  hasDiagnosisEvidence,
+} from './assessment';
 
 /** Progressive hint (plan §17: observation → direction → location). */
 export interface DiagnosisHint {
@@ -109,6 +117,8 @@ export interface FaultLocationChoice {
 }
 
 export interface DiagnosisScenario {
+  /** Absent on historical snapshots, which remain readable but ungradeable. */
+  assessment?: DiagnosisAssessment;
   /** Stable id — `ES-DIAG-######` (plan §29). */
   challengeId: string;
   identity: ChallengeIdentity;
@@ -313,12 +323,19 @@ function tryBuildScenario(request: {
   // structural diff) must be judged against the circuit the learner actually
   // sees, not the pre-modifier one.
   const baseline = rageTier ? simulate(healthyCircuit, { appMode: 'pro' }) : baseline0;
-  if (baseline.errors.length > 0) {
+  if (
+    baseline.errors.length > 0 ||
+    (generatorVersion >= 3 && !hasDiagnosisEvidence(healthyCircuit, baseline))
+  ) {
     return { ok: false, reason: 'rage-modified baseline is not clean' };
   }
 
   const allCandidates = collectFaultCandidates(healthyCircuit, scenarioInfo).filter(
-    (candidate) => !request.allowedFaultTypes || request.allowedFaultTypes.includes(candidate.type),
+    (candidate) =>
+      (!request.allowedFaultTypes || request.allowedFaultTypes.includes(candidate.type)) &&
+      (generatorVersion < 3 ||
+        assessFaultTarget(healthyCircuit, candidate.type, candidate.target).coverage ===
+          'supported'),
   );
   let candidates = allCandidates;
   // The unranked-but-decoy-filtered pool a second fault may fall back to.
@@ -407,7 +424,11 @@ function tryBuildScenario(request: {
     const solo = simulate(soloCircuit, { appMode: 'pro' });
     const soloSymptom = diffSymptom(baseline, solo, loadIds);
 
-    if (!soloSymptom.observable) {
+    if (
+      !soloSymptom.observable ||
+      (generatorVersion >= 3 &&
+        (!hasOperationEvidence(soloCircuit, solo) || soloSymptom.deEnergisedLoadIds.length === 0))
+    ) {
       if (primary) {
         return { ok: false, reason: `${chosen.type} produced no observable symptom` };
       }
@@ -502,7 +523,13 @@ function tryBuildScenario(request: {
         const soloSymptom = diffSymptom(baseline, solo, loadIds);
         // §12 still applies to the substitute: no unobservable fault ships,
         // compound or not.
-        if (!soloSymptom.observable) continue;
+        if (
+          !soloSymptom.observable ||
+          (generatorVersion >= 3 &&
+            (soloSymptom.deEnergisedLoadIds.length === 0 ||
+              !hasOperationEvidence(withScenarioFaults(healthyCircuit, [fault]), solo)))
+        )
+          continue;
 
         const entry: ScenarioFault = { fault, locationKey, symptom: soloSymptom };
         if (!masks(entry)) continue;
@@ -584,7 +611,13 @@ function tryBuildScenario(request: {
         const fault = createScenarioFault(challengeId, replacement);
         const solo = simulate(withScenarioFaults(healthyCircuit, [fault]), { appMode: 'pro' });
         const soloSymptom = diffSymptom(baseline, solo, loadIds);
-        if (!soloSymptom.observable) continue;
+        if (
+          !soloSymptom.observable ||
+          (generatorVersion >= 3 &&
+            (soloSymptom.deEnergisedLoadIds.length === 0 ||
+              !hasOperationEvidence(withScenarioFaults(healthyCircuit, [fault]), solo)))
+        )
+          continue;
         const entry: ScenarioFault = { fault, locationKey, symptom: soloSymptom };
         if (!isMisleading(entry)) continue;
 
@@ -699,6 +732,7 @@ function assembleScenario(args: {
     scenarioInfo,
     healthyCircuit,
     faultedCircuit,
+    baseline,
     scenarioFaults,
     candidates,
     symptom,
@@ -764,6 +798,18 @@ function assembleScenario(args: {
 
   return {
     challengeId: generated.metadata.identity.displayId,
+    ...(generatorVersion >= 3
+      ? {
+          assessment: {
+            version: 1 as const,
+            modelVersion: ELECTRICAL_MODEL_VERSION,
+            profileVersion: DIAGNOSIS_PROFILE_VERSION,
+            engineVersion: baseline.electricalContract!.engineVersion,
+            healthyRevision: circuitRevision(healthyCircuit),
+            faultedRevision: circuitRevision(faultedCircuit),
+          },
+        }
+      : {}),
     identity: generated.metadata.identity,
     seed,
     generatorVersion,

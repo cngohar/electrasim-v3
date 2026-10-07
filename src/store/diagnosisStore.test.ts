@@ -94,6 +94,39 @@ describe('start', () => {
     expect(raw).toContain('ES-DIAG-');
     expect(raw).toContain('components');
   });
+
+  it('preserves an obsolete saved snapshot and repairs without accepting a grade', async () => {
+    await useDiagnosisStore.getState().start('beginner', 99);
+    repairInEditor();
+    await flush();
+    const key = 'electrasim:diagnosis:active:v1';
+    const record = mem.get(key) as {
+      scenario: { assessment: { modelVersion: string } };
+      circuit: unknown;
+    };
+    record.scenario.assessment.modelVersion = 'earlier';
+    mem.set(key, record);
+    useDiagnosisStore.setState({ status: 'idle', scenario: null });
+    expect(await useDiagnosisStore.getState().resume()).toBe(true);
+    expect(useDiagnosisStore.getState().accessBlocked).toBe(true);
+    expect(useDiagnosisStore.getState().error).toContain('preserved');
+    expect(useCircuitStore.getState().faults).toHaveLength(0);
+    expect(useDiagnosisStore.getState().submit()).toBeNull();
+    expect(mem.get(key)).toBeDefined();
+  });
+
+  it('rejects an obsolete replay engine before replacing the current exercise', async () => {
+    await useDiagnosisStore.getState().start('beginner', 99);
+    const original = useDiagnosisStore.getState().scenario!;
+    await useDiagnosisStore
+      .getState()
+      .start('beginner', original.seed, undefined, original.generatorVersion, {
+        ...original.assessment!,
+        engineVersion: 'earlier',
+      });
+    expect(useDiagnosisStore.getState().error).toContain('earlier');
+    expect(useDiagnosisStore.getState().scenario).toEqual(original);
+  });
 });
 
 describe('submit', () => {

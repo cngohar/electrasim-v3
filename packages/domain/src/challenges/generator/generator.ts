@@ -32,6 +32,7 @@ import {
   createSeededRng,
   normalizeSeed,
 } from './seed';
+import { declareRecipeModels, supportedRecipeRng, supportedRecipes } from './supportedRecipes';
 import { validateCandidate } from './validator';
 
 /**
@@ -86,16 +87,41 @@ export function tryGenerateChallenge(request: GenerateChallengeRequest): Generat
 
     const recipe = request.recipeId
       ? getRecipeById(request.recipeId)
-      : selectRecipe(attemptRng, difficulty);
+      : generatorVersion >= 3
+        ? attemptRng.pickWeighted(
+            supportedRecipes(difficulty),
+            supportedRecipes(difficulty).map((r) => r.weight),
+          )
+        : selectRecipe(attemptRng, difficulty);
     if (!recipe) {
       throw new ChallengeGenerationError(`Unknown recipe id "${request.recipeId}"`, rejections);
     }
+    if (
+      generatorVersion >= 3 &&
+      !supportedRecipes(recipe.difficulty).some((r) => r.id === recipe.id)
+    )
+      return {
+        ok: false,
+        message: GENERATION_FAILURE_MESSAGE,
+        rejections: [
+          {
+            attempt,
+            recipeId: recipe.id,
+            stage: 'simulation',
+            reasons: ['This recipe has no supported assessment model for this difficulty.'],
+          },
+        ],
+      };
 
     const prefix = `gen-${identity.shortCode}-${attempt}`;
 
     let built: ReturnType<typeof recipe.build>;
     try {
-      built = recipe.build({ rng: attemptRng, profile, prefix });
+      built = recipe.build({
+        rng: generatorVersion >= 3 ? supportedRecipeRng(attemptRng) : attemptRng,
+        profile,
+        prefix,
+      });
     } catch (error) {
       // A recipe that throws is a generator bug worth surfacing in
       // development (plan §37) — record it and let the retry loop continue.
@@ -111,16 +137,18 @@ export function tryGenerateChallenge(request: GenerateChallengeRequest): Generat
     const topology = built.builder.build();
     const layout = applyLayout(topology.components, topology.placements);
 
-    const circuit: Circuit = {
+    let circuit: Circuit = {
       components: layout.components,
       wires: topology.wires,
       globalVoltage: 230,
     };
+    if (generatorVersion >= 3) circuit = declareRecipeModels(circuit);
 
     const validation = validateCandidate({
       circuit,
       expectedEnergisedLoadIds: built.expectedEnergisedLoadIds,
       componentBudget: profile.componentBudget,
+      requireAssessment: generatorVersion >= 3,
     });
 
     if (!validation.ok) {

@@ -36,11 +36,13 @@ import {
 import {
   type ChallengeDifficulty,
   type DiagnosisAnswer,
+  type DiagnosisAssessment,
   type DiagnosisEvaluation,
   type DiagnosisScenario,
   type DiagnosisScore,
   GENERATOR_VERSION,
   type RageTierId,
+  diagnosisAssessmentIssue,
   evaluateDiagnosis,
   scoreDiagnosis,
 } from '@electrasim/domain/challenges';
@@ -127,6 +129,10 @@ export interface DiagnosisState {
     seed?: number,
     rageTier?: RageTierId,
     generatorVersion?: number,
+    replayAssessment?: Pick<
+      DiagnosisAssessment,
+      'version' | 'modelVersion' | 'engineVersion' | 'profileVersion'
+    >,
   ) => Promise<void>;
   selectFaultType: (type: DiagnosisAnswer['faultType'] | null) => void;
   selectLocation: (key: string | null) => void;
@@ -251,7 +257,7 @@ export const useDiagnosisStore = create<DiagnosisState>((set, get) => ({
     }).then((stats) => set({ stats }));
   },
 
-  start: async (difficulty, seed, rageTier, generatorVersion) => {
+  start: async (difficulty, seed, rageTier, generatorVersion, replayAssessment) => {
     const previous = get();
     const previousExercise = useSimulatorAccess.getState().exercise;
     const generation = accessGeneration();
@@ -276,6 +282,19 @@ export const useDiagnosisStore = create<DiagnosisState>((set, get) => ({
         ...(generatorVersion !== undefined ? { generatorVersion } : {}),
         ...(effectiveTier ? { rageTier: effectiveTier } : {}),
       };
+      if (replayAssessment) {
+        const current = buildAccessibleDiagnosis(request).assessment;
+        if (
+          !current ||
+          current.version !== replayAssessment.version ||
+          current.modelVersion !== replayAssessment.modelVersion ||
+          current.engineVersion !== replayAssessment.engineVersion ||
+          current.profileVersion !== replayAssessment.profileVersion
+        )
+          throw new Error(
+            'This replay uses an earlier calculation model. Start a current exercise to earn a result.',
+          );
+      }
       const remote =
         difficulty === 'advanced' ||
         effectiveTier ||
@@ -365,6 +384,11 @@ export const useDiagnosisStore = create<DiagnosisState>((set, get) => ({
     const state = get();
     const scenario = state.scenario;
     if (!scenario || state.status !== 'active' || state.accessBlocked) return null;
+    const assessmentIssue = diagnosisAssessmentIssue(scenario);
+    if (assessmentIssue) {
+      set({ accessBlocked: true, startedAt: null, error: assessmentIssue });
+      return null;
+    }
     if (state.serverAttemptId) {
       void serverAction('submit');
       return null;
@@ -573,12 +597,14 @@ export const useDiagnosisStore = create<DiagnosisState>((set, get) => ({
     const record = await loadActiveDiagnosis();
     if (!record) return false;
     try {
-      const scenario = buildAccessibleDiagnosis({
-        seed: record.seed,
-        difficulty: record.difficulty,
-        generatorVersion: record.generatorVersion,
-        ...(record.rageTier ? { rageTier: record.rageTier } : {}),
-      });
+      const scenario =
+        record.scenario ??
+        buildAccessibleDiagnosis({
+          seed: record.seed,
+          difficulty: record.difficulty,
+          generatorVersion: record.generatorVersion,
+          ...(record.rageTier ? { rageTier: record.rageTier } : {}),
+        });
       if (scenario.challengeId !== record.challengeId)
         throw new Error(
           'Saved generator identity does not match. The original record is preserved.',
@@ -609,6 +635,11 @@ export const useDiagnosisStore = create<DiagnosisState>((set, get) => ({
         elapsedMs: record.elapsedMs,
         startedAt: null,
       });
+      const assessmentIssue = diagnosisAssessmentIssue(scenario);
+      if (assessmentIssue) {
+        set({ accessBlocked: true, startedAt: null, error: assessmentIssue });
+        return true;
+      }
       if (scenarioRequirements(scenario).length) {
         try {
           if (record.rageTier && !useSettingsStore.getState().ohmageddonMode)

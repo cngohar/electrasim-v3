@@ -50,7 +50,7 @@ function healthyCircuit(): Circuit {
       component('live', 'live-terminal', 120, 150),
       component('neutral', 'neutral-terminal', 120, 270),
       component('mcb', 'mcb', 300, 150, { on: true, customMaxAmps: 6 }),
-      component('lamp', 'bulb', 480, 150),
+      component('lamp', 'bulb-incandescent', 480, 150),
     ],
     wires: [
       wire('w1', 'live', 0, 'mcb', 0),

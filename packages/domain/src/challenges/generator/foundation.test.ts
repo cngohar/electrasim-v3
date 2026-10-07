@@ -41,6 +41,7 @@ import type {
 import { CHALLENGE_DIFFICULTIES, type ChallengeDifficulty } from '../types';
 import { generateChallenge } from './generator';
 import { CHALLENGE_RECIPES } from './recipes';
+import { SUPPORTED_RECIPE_IDS } from './supportedRecipes';
 
 /** Seeds per difficulty. Kept small — the deep sweep lives in the script. */
 const SAMPLE = 12;
@@ -296,7 +297,7 @@ describe.each(CHALLENGE_DIFFICULTIES)(
         const warnings = report.issues.filter((i) => i.severity === 'warning');
         for (const component of manualOnly)
           expect(warnings.some((item) => item.componentId === component.id)).toBe(true);
-        expect(warnings.length).toBeGreaterThan(0);
+        expect(result.legacyObservation).toBeUndefined();
         expect(
           warnings.every(
             (i) =>
@@ -304,7 +305,7 @@ describe.each(CHALLENGE_DIFFICULTIES)(
               ['Electrical model not assessed', 'Electrical calculation finding'].includes(i.title),
           ),
         ).toBe(true);
-        expect(report.status, `seed ${metadata.seed}`).toBe('warning');
+        expect(['pass', 'warning']).toContain(report.status);
         if (result.legacyObservation) {
           expect(result.electrical?.status).toBe('unsupported');
           expect(result.componentCalculations).toBeUndefined();
@@ -343,42 +344,39 @@ describe.each(CHALLENGE_DIFFICULTIES)(
 // Regression seeds — every recipe, pinned, exercised end to end
 // ───────────────────────────────────────────────────────────────────────────
 
-describe.each(CHALLENGE_RECIPES.map((recipe) => recipe.id))(
-  'recipe regression — %s',
-  (recipeId: string) => {
-    const recipe = CHALLENGE_RECIPES.find((r) => r.id === recipeId)!;
-    const challenges = Array.from({ length: 5 }, (_, index) =>
-      generateChallenge({ seed: index * 7919 + 13, difficulty: recipe.difficulty, recipeId }),
-    );
+describe.each(SUPPORTED_RECIPE_IDS)('recipe regression — %s', (recipeId: string) => {
+  const recipe = CHALLENGE_RECIPES.find((r) => r.id === recipeId)!;
+  const challenges = Array.from({ length: 5 }, (_, index) =>
+    generateChallenge({ seed: index * 7919 + 13, difficulty: recipe.difficulty, recipeId }),
+  );
 
-    it('builds the pinned recipe on every seed', () => {
-      for (const challenge of challenges) {
-        expect(challenge.metadata.recipeId).toBe(recipeId);
-        expect(challenge.metadata.difficulty).toBe(recipe.difficulty);
-      }
-    });
+  it('builds the pinned recipe on every seed', () => {
+    for (const challenge of challenges) {
+      expect(challenge.metadata.recipeId).toBe(recipeId);
+      expect(challenge.metadata.difficulty).toBe(recipe.difficulty);
+    }
+  });
 
-    it('baseline-simulates cleanly and energises its promised loads', () => {
-      for (const { circuit, metadata } of challenges) {
-        const result = simulate(circuit, { appMode: 'pro' });
-        expect(result.errors, `seed ${metadata.seed}`).toEqual([]);
-        for (const id of metadata.baseline.expectedEnergisedLoadIds)
-          expect(result.energizedComponents.has(id), `seed ${metadata.seed}: ${id}`).toBe(true);
-      }
-    });
+  it('baseline-simulates cleanly and energises its promised loads', () => {
+    for (const { circuit, metadata } of challenges) {
+      const result = simulate(circuit, { appMode: 'pro' });
+      expect(result.errors, `seed ${metadata.seed}`).toEqual([]);
+      for (const id of metadata.baseline.expectedEnergisedLoadIds)
+        expect(result.energizedComponents.has(id), `seed ${metadata.seed}: ${id}`).toBe(true);
+    }
+  });
 
-    it('reacts to an open circuit on every one of its wires', () => {
-      for (const { circuit, scenario, metadata } of challenges) {
-        const base = simulate(circuit, { appMode: 'pro' });
-        for (const wire of circuit.wires) {
-          const fault = createInjectedFault('open-circuit', { type: 'wire', id: wire.id });
-          const faulted = simulate(withFaults(circuit, [fault]), { appMode: 'pro' });
-          expect(
-            isObservable(base, faulted, scenario.loadComponentIds),
-            `seed ${metadata.seed}: open circuit on ${wire.id} was silent`,
-          ).toBe(true);
-        }
+  it('reacts to an open circuit on every one of its wires', () => {
+    for (const { circuit, scenario, metadata } of challenges) {
+      const base = simulate(circuit, { appMode: 'pro' });
+      for (const wire of circuit.wires) {
+        const fault = createInjectedFault('open-circuit', { type: 'wire', id: wire.id });
+        const faulted = simulate(withFaults(circuit, [fault]), { appMode: 'pro' });
+        expect(
+          isObservable(base, faulted, scenario.loadComponentIds),
+          `seed ${metadata.seed}: open circuit on ${wire.id} was silent`,
+        ).toBe(true);
       }
-    });
-  },
-);
+    }
+  });
+});

@@ -532,7 +532,7 @@ export function isFaultResolved(
 }
 
 /** Removal is bookkeeping only. It cannot establish modeled repair or safety.
- * Existing diagnosis scoring migrates its operating-point checks in 1.5F.2. */
+ * Diagnosis scoring checks authored operating points separately. */
 export function isFaultRemoved(
   fault: InjectedFault,
   circuit: Circuit,

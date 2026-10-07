@@ -21,7 +21,9 @@
  */
 
 import { simulate } from '../../simulation';
+import { hasOperationEvidence } from '../../simulationEvidence';
 import type { Circuit } from '../../types';
+import { diagnosisOperatingPointIssue } from '../diagnosis/assessment';
 import { getDifficultyProfile } from '../difficulty/profiles';
 import { type FaultCandidate, candidateKey } from '../faults/eligibility';
 import type { Rng } from '../generator/seed';
@@ -152,13 +154,24 @@ function rejectDishonestCircuit(
   before: ReturnType<typeof simulate>,
   expectedEnergisedLoadIds: readonly string[],
 ): string | null {
-  const validation = validateCandidate({ circuit, expectedEnergisedLoadIds });
+  const assessed = !before.legacyObservation && !!before.electrical;
+  const validation = validateCandidate({
+    circuit,
+    expectedEnergisedLoadIds,
+    requireAssessment: assessed,
+  });
   if (!validation.ok) {
     const first = validation.rejections[0];
     return `${first?.stage ?? 'validation'}: ${first?.reasons[0] ?? 'rejected'}`;
   }
 
   const after = validation.proResult ?? simulate(circuit, { appMode: 'pro' });
+  if (
+    assessed &&
+    (!hasOperationEvidence(circuit, after) ||
+      diagnosisOperatingPointIssue(before, after, expectedEnergisedLoadIds))
+  )
+    return 'declared load operating point changed';
   for (const id of expectedEnergisedLoadIds) {
     if (before.energizedComponents.has(id) !== after.energizedComponents.has(id)) {
       return `load ${id} changed state`;

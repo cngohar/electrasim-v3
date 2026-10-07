@@ -187,6 +187,11 @@ test.describe('Diagnosis Lab', () => {
         .getByRole('button', { name: /Run Simulation/i })
         .first()
         .click();
+      const diagnostic = page.getByRole('button', { name: 'Run diagnostic', exact: true });
+      const stop = page.getByRole('button', { name: 'Stop', exact: true });
+      await expect(stop.or(diagnostic).first()).toBeVisible();
+      if (await diagnostic.isVisible()) await diagnostic.click();
+      await expect(stop).toBeVisible();
       await page.waitForTimeout(1500);
 
       // Expand the console so its entries are in the DOM. It is not mounted on
@@ -228,6 +233,8 @@ test.describe('Diagnosis Lab', () => {
         }
         await page.keyboard.press('Escape');
       }
+      await page.getByRole('button', { name: 'Stop', exact: true }).click();
+      await expect(page.getByRole('button', { name: 'Run Simulation', exact: true })).toBeVisible();
     }
   });
 

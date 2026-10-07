@@ -412,3 +412,54 @@ Final assets: **251,292 B gzip initial JavaScript / 300,000 B**, **26,004 B CSS 
 ## 2026-10-07 — Phase 1.5F.1 GitHub publication requested
 
 The user requested committing and pushing the accepted current phase. Reviewed the 50-file F.1 change and its recorded local checks. A fresh `git fetch origin main` confirmed the local branch also contains the unpublished E.3 dependency, `34afaaa`; publication includes that commit followed by the F.1 commit. Normal commit hooks will run formatting/lint and all project typechecks. GitHub synchronization is verified after the push separately from the local acceptance evidence; this request performs no Cloudflare operation.
+
+
+## 2026-10-07 — Phase 1.5F.2 Diagnosis Lab and Ohmageddon accepted locally
+
+Continued from the clean F.1 baseline. Added `challenges/diagnosis/assessment.ts`
+and replay fixtures; new generator/access version 3 selects six modeled
+resistive/manual/declared-coil topologies before injecting supported observable
+faults. Both ordinary and compound/masked exercises require real solo load
+consequences; replacement partners and misleading-symptom substitutions follow
+that same gate. Difficulty transforms cannot change baseline operating points.
+Older bell/fan/outlet-demand/undeclared-timer recipes remain historical, outside
+new graded generation.
+
+Grading separates identification, fault removal and actual recovery. It checks
+current recalculated results, authored source/device identities, ratings/models,
+terminal connections/conductor properties, persistent failures and named load
+voltage/current/power. Equivalent cable replacement and layout/routing edits
+remain allowed. Scenario/replay evidence pins generator, model, engine,
+assessment and profile/scoring versions. Original IndexedDB snapshots and repairs
+resume without silent regeneration; obsolete grading is blocked with work
+preserved. Hono retains fresh membership, owner/version checks and server-owned
+progress, rejecting obsolete submit/hint/expiry without new penalties. Checkpoint
+and abandonment remain authorized server actions. The repair control awaits the
+mutation; diagnosis-specific readiness labels conceal answer names while keeping
+measurements and diagnostic Run guidance.
+
+**Acceptance across comprehensive and focused stages:** all project typechecks,
+158 pure-domain modules and repository lint; **136 files / 2,175 comprehensive
+unit passes** plus **22 files / 473 final affected checks**; final build/assets/
+links/SEO/CSP; unchanged numerical benchmarks; **849 exact Bun/workerd cases**,
+**20 actual Worker/D1/cookie groups** and **35 unique Chromium cases in five
+files**. The initial server test removed the only fault while expecting partial
+recovery; its fixture now retains a single fault. The initial Comlink test
+reconstructed document order from fingerprints; it now sends authored documents
+with the exact assertions retained. Stopping between diagnostic runs exposed
+readiness answer narration; the actual UI labels were fixed and the existing
+four-round concealment check passed. No electrical assertion or deadline was
+weakened. This is aggregate acceptance, not one uninterrupted green default gate.
+
+Final assets: **251,339 B gzip initial JS / 300,000 B**, **26,004 B CSS / 30,000 B**;
+193 HTML link checks and 191 SEO pages. Dense solver median/p95 remains
+45.04–66.31 / 53.14–101.86 ms; dense solver/rendering targets remain open.
+[Scope, commands and evidence](docs/audits/phase-1-diagnosis-integration.md), ignored
+`.wrangler/phase15f2-*.log`, `.wrangler/domain-tests-i6saJw/` and
+`.wrangler/membership-tests-4cM0HJ/`.
+
+Updated the active phase/master/rebuild/behavior plans, API/development docs,
+documentation index and changelog. **Next is F.3 legacy retirement, full `verify`
+and all three stress suites before effects.** The scoped local commit runs the
+normal format/type hooks. No dependency/lockfile, database migration, Cloudflare
+account/credentials/resources, live-site test, deployment or Git push changed.

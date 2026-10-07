@@ -52,6 +52,7 @@ interface Props {
 
 export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard }: Props) {
   const readiness = useCircuitReadiness();
+  const diagnosisActive = useUiStore((s) => s.diagnosisActive);
   const runDisabled = !simRunning && ordinaryRunBlocked(readiness);
   const appMode = useSettingsStore((s) => s.appMode);
   const setSetting = useSettingsStore((s) => s.setSetting);
@@ -219,7 +220,8 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
   const runBtn = (
     <>
       <span id="run-readiness-explanation" className="sr-only">
-        {readinessLabel(readiness)}. {readiness.diagnostics.map((d) => d.message).join(' ')}
+        {readinessLabel(readiness, diagnosisActive)}.{' '}
+        {readiness.diagnostics.map((d) => d.message).join(' ')}
       </span>
       <button
         type="button"

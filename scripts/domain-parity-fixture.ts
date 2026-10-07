@@ -13,6 +13,7 @@ import {
 /** Shared test workload for local Bun / workerd parity; never served by the app. */
 import { simulate } from '@electrasim/domain/simulation';
 import { GUIDED_CIRCUIT_TEMPLATES } from '@electrasim/domain/templates';
+import { diagnosisEvidenceFixture } from '../packages/domain/src/challenges/diagnosis/assessmentFixtures';
 import { controlCircuit, setControlSwitch } from '../packages/domain/src/core/controlFixtures';
 import { damageAcceptanceCircuits } from '../packages/domain/src/core/damageFixtures';
 import { earthingAcceptanceCircuits } from '../packages/domain/src/core/earthingFixtures';
@@ -35,7 +36,7 @@ import { dolAcceptanceCircuits } from '../packages/domain/src/simulation/dolFixt
 import { runtimeAcceptanceCircuits } from '../packages/domain/src/simulation/runtimeFixtures';
 
 export function domainParityFixture(): string {
-  const results: unknown[] = consumerEvidenceFixture();
+  const results: unknown[] = [...consumerEvidenceFixture(), ...diagnosisEvidenceFixture()];
   for (const [name, circuit] of Object.entries({
     ...motorAcceptanceCircuits(),
     ...dolAcceptanceCircuits(),

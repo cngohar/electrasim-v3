@@ -36,18 +36,13 @@
  * Pure: no store access, no persistence, no timers.
  */
 
-import { exerciseSupplyIssue } from '../../core/exerciseSupply';
 import { isFaultRemoved } from '../../faults';
 import { simulate } from '../../simulation';
 import type { Circuit, FaultType, SimulationResult } from '../../types';
 import { describeFaultTarget } from '../faults/injection';
 import { labelById } from '../faults/labels';
-import {
-  describeRecoveryGap,
-  describeStructuralGap,
-  describeSymptom,
-  diffSymptom,
-} from '../faults/verification';
+import { describeSymptom, diffSymptom } from '../faults/verification';
+import { type DiagnosisAssessment, diagnosisRecoveryIssue } from './assessment';
 import type { DiagnosisScenario } from './scenario';
 
 /** §41 verdict — note the third state. */
@@ -75,6 +70,7 @@ export interface DiagnosisFaultResult {
 }
 
 export interface DiagnosisEvaluation {
+  assessment?: DiagnosisAssessment;
   verdict: DiagnosisVerdict;
   /** Convenience: `verdict === 'success'`. */
   success: boolean;
@@ -194,10 +190,7 @@ export function evaluateDiagnosis(
   // Behaviour *and* structure: some conductors (a CPC, a redundant strapper)
   // carry no current in normal service, so cutting them out is invisible to a
   // behavioural diff yet is emphatically not a repair.
-  const recoveryGap =
-    exerciseSupplyIssue(scenario.healthyCircuit, userCircuit) ??
-    describeRecoveryGap(baseline, simulation) ??
-    describeStructuralGap(scenario.healthyCircuit, userCircuit);
+  const recoveryGap = diagnosisRecoveryIssue(scenario, userCircuit, baseline, simulation);
   const recovered = faultCleared && recoveryGap === null;
 
   // `failure` means "you named something that is not wrong". Naming a real
@@ -208,6 +201,7 @@ export function evaluateDiagnosis(
   const progressed = matched !== null && faults.some((result) => result.newlyIdentified);
 
   return {
+    assessment: scenario.assessment,
     verdict,
     success: verdict === 'success',
     typeCorrect,
@@ -351,7 +345,10 @@ export function observeSymptom(
   const current = simulate(userCircuit, { appMode });
   const symptom = diffSymptom(baseline, current, scenario.loadComponentIds);
 
-  if (!symptom.observable) {
+  if (
+    !symptom.observable &&
+    diagnosisRecoveryIssue(scenario, userCircuit, baseline, current) === null
+  ) {
     return {
       complaint: 'The installation is now behaving as it should.',
       healthy: true,
@@ -361,5 +358,11 @@ export function observeSymptom(
   const labels = symptom.deEnergisedLoadIds.map((id) =>
     labelById(scenario.healthyCircuit, id, 'load'),
   );
+  if (!symptom.observable)
+    return {
+      complaint:
+        'The authored operating point has not been verified. Check the installation before submitting.',
+      healthy: false,
+    };
   return { complaint: describeSymptom(symptom, labels), healthy: false };
 }

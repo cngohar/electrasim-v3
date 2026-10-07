@@ -70,3 +70,10 @@ Every Worker, D1, browser and performance target stays on localhost, with Wrangl
 isolated local persistence. These faster commands do not change the local-only rules, membership
 authorization gates or final Phase 1 acceptance requirements. See [AGENTS.md](../AGENTS.md),
 [Phase 1](phases/phase-1-simulator-core.md) and [performance guidance](PERFORMANCE.md).
+
+`bun run verify:phase-1.5f2` checks Diagnosis Lab/Ohmageddon generation, authored
+repair grading, versioned replay/resume and real local Worker/D1/browser flows.
+Its browser stage includes desktop recovery/reload and phone compound repair.
+F.3 owns legacy runtime retirement and the full `verify`/three stress commands;
+the F.2 gate cannot close those checks. Earlier exercise snapshots remain
+inspectable, with new grading withheld when their assessment is obsolete.

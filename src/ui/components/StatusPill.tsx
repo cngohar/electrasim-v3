@@ -35,6 +35,7 @@ export function StatusPill({
 
   const sourceModel = resolveDocumentSupply({ supply, globalVoltage }).model;
   const readiness = useCircuitReadiness();
+  const diagnosisActive = useUiStore((s) => s.diagnosisActive);
   const hasErrors = (simResult?.errors.length ?? 0) > 0;
   const hasWarnings = (simResult?.warnings.length ?? 0) > 0;
 
@@ -94,8 +95,8 @@ export function StatusPill({
                 : simResult?.electrical?.status === 'converged'
                   ? `${operationLabel(simResult)}${hasWarnings ? ' · warnings' : ''}`
                   : hasWarnings
-                    ? `${readinessLabel(readiness)} · warnings`
-                    : readinessLabel(readiness)}
+                    ? `${readinessLabel(readiness, diagnosisActive)} · warnings`
+                    : readinessLabel(readiness, diagnosisActive)}
           </button>
         </div>
       </div>

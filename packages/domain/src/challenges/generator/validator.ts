@@ -21,12 +21,14 @@ import { COMPONENT_DEFS } from '../../components';
 import { validateCircuitRules } from '../../electrical/validation';
 import { simulate } from '../../simulation';
 import type { Circuit, SimulationResult } from '../../types';
+import { hasDiagnosisEvidence } from '../diagnosis/assessment';
 import type { CandidateValidationResult, GenerationRejection } from '../types';
 import { hasOverlappingComponents, isGridAligned } from './layout';
 
 type Rejection = Omit<GenerationRejection, 'attempt' | 'recipeId'>;
 
 export interface ValidateCandidateOptions {
+  requireAssessment?: boolean;
   circuit: Circuit;
   /** Loads the recipe expects to be energised with the generated states. */
   expectedEnergisedLoadIds: readonly string[];
@@ -216,6 +218,8 @@ export function validateCandidate(options: ValidateCandidateOptions): CandidateV
     ['basic', basicResult],
     ['pro', proResult],
   ] as const) {
+    if (options.requireAssessment && !hasDiagnosisEvidence(circuit, result))
+      simulationReasons.push(`${label}: current supported operation evidence is required`);
     for (const error of result.errors) {
       simulationReasons.push(`${label}: ${error}`);
     }

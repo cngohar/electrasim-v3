@@ -185,9 +185,11 @@ describe('createRng — helpers', () => {
 
 describe('seedFingerprint / createSeededRng', () => {
   it('folds every identity input into the fingerprint', () => {
-    expect(seedFingerprint(BASE)).toBe('v1|s482917|dintermediate|mdiagnosis|rnone');
+    expect(seedFingerprint(BASE)).toBe(
+      `v${GENERATOR_VERSION}|s482917|dintermediate|mdiagnosis|rnone`,
+    );
     expect(seedFingerprint({ ...BASE, rageProfile: 'chaos' })).toBe(
-      'v1|s482917|dintermediate|mdiagnosis|rchaos',
+      `v${GENERATOR_VERSION}|s482917|dintermediate|mdiagnosis|rchaos`,
     );
   });
 

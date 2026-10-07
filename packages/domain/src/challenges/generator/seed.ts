@@ -23,7 +23,7 @@ import type { ChallengeDifficulty, ChallengeIdentity, ChallengeMode } from '../t
  * Bump this whenever recipe output, topology, layout or the accepted
  * electrical envelope changes. A seed is only stable *within* one version.
  */
-export const GENERATOR_VERSION = 1;
+export const GENERATOR_VERSION = 3;
 
 const FNV_OFFSET_BASIS = 0x811c9dc5;
 const FNV_PRIME = 0x01000193;

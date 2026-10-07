@@ -14,6 +14,7 @@ import { describe, expect, it } from 'vitest';
 import { explicitSupplyProfile } from '../../core/supplies';
 import { validateFaultCoexistence } from '../../faults';
 import { simulate } from '../../simulation';
+import { circuitRevision } from '../../simulationEvidence';
 import type { Circuit } from '../../types';
 import { collectFaultCandidates } from '../faults/eligibility';
 import { createScenarioFault, withScenarioFaults, withoutFault } from '../faults/injection';
@@ -295,7 +296,13 @@ function twoFaultScenario(
       symptom: solo,
     };
     return {
-      scenario: { ...base, faults: [first, second], faultedCircuit, symptom: combined },
+      scenario: {
+        ...base,
+        faults: [first, second],
+        faultedCircuit,
+        symptom: combined,
+        assessment: { ...base.assessment!, faultedRevision: circuitRevision(faultedCircuit) },
+      },
       first,
       second,
     };

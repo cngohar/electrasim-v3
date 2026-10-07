@@ -18,6 +18,7 @@ export function SubHeaderBar() {
   const supply = useCircuitStore((s) => s.supply);
   const supplyLocked = useConfigurationLockReason();
   const readiness = useCircuitReadiness();
+  const diagnosisActive = useUiStore((s) => s.diagnosisActive);
   const supplyRequest = useElectricalEditing((s) => s.request);
   const simResult = useUiStore((s) => s.simResult);
 
@@ -96,7 +97,7 @@ export function SubHeaderBar() {
         onClick={() => useElectricalEditing.setState({ reviewOpen: true })}
         title="Review circuit readiness and compatibility"
       >
-        {readinessLabel(readiness)} · Review
+        {readinessLabel(readiness, diagnosisActive)} · Review
       </button>
       <div className="h-3 w-px bg-slate-200 dark:bg-slate-700" />
 

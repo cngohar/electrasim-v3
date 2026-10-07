@@ -29,8 +29,9 @@ import {
   generateChallenge,
   tryGenerateChallenge,
 } from './generator';
-import { CHALLENGE_RECIPES, PROTECTION_RATING_CEILING_AMPS } from './recipes';
+import { PROTECTION_RATING_CEILING_AMPS } from './recipes';
 import { GENERATOR_VERSION } from './seed';
+import { supportedRecipes } from './supportedRecipes';
 
 /** Seeds per difficulty for the §39 batch. */
 const BATCH_SIZE = 100;
@@ -409,9 +410,7 @@ describe.each(CHALLENGE_DIFFICULTIES)(
 
     it('exercises every recipe registered for the tier', () => {
       const used = new Set(challenges.map((challenge) => challenge.metadata.recipeId));
-      const registered = CHALLENGE_RECIPES.filter((recipe) => recipe.difficulty === difficulty).map(
-        (recipe) => recipe.id,
-      );
+      const registered = supportedRecipes(difficulty).map((recipe) => recipe.id);
       expect([...used].sort()).toEqual([...registered].sort());
     });
 

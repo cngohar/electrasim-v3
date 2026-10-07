@@ -66,9 +66,9 @@ interface Props {
 }
 
 const DIFFICULTIES: { id: ChallengeDifficulty; label: string; blurb: string }[] = [
-  { id: 'beginner', label: 'Beginner', blurb: '3 fault types · short circuit' },
-  { id: 'intermediate', label: 'Intermediate', blurb: '5 fault types · branches' },
-  { id: 'advanced', label: 'Advanced', blurb: '7 fault types · full install' },
+  { id: 'beginner', label: 'Beginner', blurb: 'Open paths · resistive lighting' },
+  { id: 'intermediate', label: 'Intermediate', blurb: 'Switching paths · branches' },
+  { id: 'advanced', label: 'Advanced', blurb: 'Distribution · declared coil control' },
 ];
 
 function usePrefersReducedMotion(): boolean {
@@ -215,7 +215,7 @@ export function DiagnosisPanel({ isPhone }: Props) {
     liveObservation.complaint !== scenario?.complaint;
 
   /** §15: both halves of the answer are required before anything may be done. */
-  const canSubmit = selectedFaultType !== null && selectedLocationKey !== null;
+  const canSubmit = !accessBlocked && selectedFaultType !== null && selectedLocationKey !== null;
   const reducedMotion = usePrefersReducedMotion();
 
   // §30 replay: the pasted ticket, and the note we show about it.
@@ -335,12 +335,12 @@ export function DiagnosisPanel({ isPhone }: Props) {
    * right on the canvas — `evaluateDiagnosis` re-simulates whatever circuit is
    * actually on screen, so rewiring counts just the same.
    */
-  const repairSelected = () => {
-    if (!selectedFaultType || !selectedLocationKey) return;
+  const repairSelected = async () => {
+    if (accessBlocked || !selectedFaultType || !selectedLocationKey) return;
     const match = liveFaults.find(
       (f) => f.type === selectedFaultType && locationKeyForTarget(f.target) === selectedLocationKey,
     );
-    if (match) useCircuitStore.getState().removeFault(match.id);
+    if (match && !(await useCircuitStore.getState().removeFault(match.id))) return;
     const where =
       scenario?.locationChoices.find((c) => c.key === selectedLocationKey)?.label ??
       'the selected part';
@@ -354,9 +354,8 @@ export function DiagnosisPanel({ isPhone }: Props) {
    *
    * The ticket carries the identity inputs only; the circuit is rebuilt by the
    * same deterministic generator, so this is a genuine replay rather than a
-   * restored snapshot. A ticket from another generator version is still
-   * honoured — §6 asks us to *notice* the mismatch, not to refuse it — but we
-   * say so plainly instead of implying the circuit is guaranteed identical.
+   * restored snapshot. An earlier generator/model cannot earn a new grade;
+   * its original saved snapshot remains available for inspection.
    */
   const replaySharedSeed = () => {
     const parsed = parseShareText(replayText, {
@@ -367,6 +366,12 @@ export function DiagnosisPanel({ isPhone }: Props) {
       setReplayNote("That doesn't look like a seed or share code.");
       return;
     }
+    if (parsed.assessmentMismatch) {
+      setReplayNote(
+        'This replay uses an earlier calculation model. Start a current exercise to earn a result.',
+      );
+      return;
+    }
     setReplayNote(`Replaying the original generator version ${parsed.generatorVersion}.`);
     setReplayText('');
     void start(
@@ -374,6 +379,7 @@ export function DiagnosisPanel({ isPhone }: Props) {
       parsed.seed,
       parsed.rageTier ?? selectedTier ?? undefined,
       parsed.generatorVersion,
+      parsed.assessment,
     );
   };
 
@@ -786,6 +792,7 @@ export function DiagnosisPanel({ isPhone }: Props) {
                 difficulty: scenario.difficulty,
                 mode: scenario.rage ? 'rage' : 'diagnosis',
                 generatorVersion: scenario.generatorVersion,
+                assessment: scenario.assessment,
                 rageTier: scenario.rage?.tier ?? null,
               }),
             )

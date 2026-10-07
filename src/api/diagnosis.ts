@@ -1,9 +1,14 @@
 import { circuitRequirements } from '@electrasim/access/circuit';
-import { buildAccessibleDiagnosis, scenarioRequirements } from '@electrasim/access/diagnosis';
+import {
+  DIAGNOSIS_VERSION,
+  buildAccessibleDiagnosis,
+  scenarioRequirements,
+} from '@electrasim/access/diagnosis';
 import {
   type DiagnosisAnswer,
   type DiagnosisScenario,
   type RageTierId,
+  diagnosisAssessmentIssue,
   evaluateDiagnosis,
   scoreDiagnosis,
 } from '@electrasim/domain/challenges';
@@ -62,8 +67,8 @@ diagnosisApi.post('/diagnosis/attempts', async (c) => {
   const seed = integer(input.seed, 'seed', 0);
   const version =
     input.generatorVersion === undefined
-      ? 2
-      : integer(input.generatorVersion, 'generatorVersion', 1, 2);
+      ? DIAGNOSIS_VERSION
+      : integer(input.generatorVersion, 'generatorVersion', DIAGNOSIS_VERSION, DIAGNOSIS_VERSION);
   const rageTier = input.rageTier;
   if (
     rageTier !== undefined &&
@@ -139,8 +144,12 @@ diagnosisApi.get('/diagnosis/attempts/:id', async (c) => {
     circuit,
     progress,
     score: attemptScore(scenario, progress),
+    scoreEvidence: scenario.assessment ?? null,
     version: row.version,
-    readOnly: required.some((key) => !membership.capabilities.includes(key)),
+    assessmentIssue: diagnosisAssessmentIssue(scenario),
+    readOnly:
+      !!diagnosisAssessmentIssue(scenario) ||
+      required.some((key) => !membership.capabilities.includes(key)),
   });
 });
 diagnosisApi.post('/diagnosis/attempts/:id', async (c) => {
@@ -163,6 +172,9 @@ diagnosisApi.post('/diagnosis/attempts/:id', async (c) => {
   const progress = JSON.parse(row.progress) as AttemptProgress;
   if (progress.status !== 'active')
     throw new HTTPException(409, { message: 'Exercise already ended' });
+  const assessmentIssue = diagnosisAssessmentIssue(scenario);
+  if (assessmentIssue && action !== 'abandon' && action !== 'checkpoint')
+    throw new HTTPException(409, { message: assessmentIssue });
   const circuit = readCircuit(input.circuit, true);
   if (circuit.components.length > 500 || circuit.wires.length > 1000)
     throw new HTTPException(413, {
@@ -178,7 +190,7 @@ diagnosisApi.post('/diagnosis/attempts/:id', async (c) => {
   await authorize(c, required);
   // Count only the active heartbeat window. Offline/denied actions never consume stored time.
   const now = Date.now();
-  progress.elapsedMs += Math.max(0, Math.min(30_000, now - row.updated_at));
+  if (!assessmentIssue) progress.elapsedMs += Math.max(0, Math.min(30_000, now - row.updated_at));
   let evaluation = null;
   if (action === 'submit') {
     const answer = object(input.answer);
@@ -205,7 +217,7 @@ diagnosisApi.post('/diagnosis/attempts/:id', async (c) => {
     progress.hintsUsed = Math.min(scenario.hints.length, progress.hintsUsed + 1);
   if (action === 'abandon') progress.status = 'abandoned';
   const limit = scenario.rage?.timeLimitSeconds;
-  if (limit != null && progress.elapsedMs >= limit * 1000) {
+  if (!assessmentIssue && limit != null && progress.elapsedMs >= limit * 1000) {
     progress.elapsedMs = limit * 1000;
     progress.status = 'timed-out';
   }
@@ -228,5 +240,12 @@ diagnosisApi.post('/diagnosis/attempts/:id', async (c) => {
     .run();
   if (!result.meta.changes)
     throw new HTTPException(409, { message: 'Exercise or membership changed; no result accepted' });
-  return c.json({ id: row.id, version: version + 1, progress, evaluation, score });
+  return c.json({
+    id: row.id,
+    version: version + 1,
+    progress,
+    evaluation,
+    score,
+    scoreEvidence: scenario.assessment ?? null,
+  });
 });

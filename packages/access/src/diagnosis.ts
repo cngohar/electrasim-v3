@@ -1,39 +1,30 @@
 import {
   type BuildDiagnosisScenarioRequest,
   type DiagnosisScenario,
+  GENERATOR_VERSION,
   buildDiagnosisScenario,
 } from '@electrasim/domain/challenges';
 import type { FaultType } from '@electrasim/domain/types';
 import { circuitRequirements } from './circuit';
 import { FAULT_ACCESS } from './index';
 
-export const DIAGNOSIS_VERSION = 2;
+export const DIAGNOSIS_VERSION = GENERATOR_VERSION;
 const basicFaults = (Object.keys(FAULT_ACCESS) as FaultType[]).filter(
   (type) => FAULT_ACCESS[type] === 'basic',
 );
-// Select eligible templates before generating. Keep legacy v1 seed semantics intact.
+// Select modeled free recipes before generating. Earlier snapshots stay readable.
 const basicRecipes = {
-  beginner: [
-    'beginner-protected-load',
-    'beginner-switched-light',
-    'beginner-protected-socket',
-    'beginner-bell-push',
-  ],
-  intermediate: [
-    'intermediate-two-way-lighting',
-    'intermediate-branched-lighting',
-    'intermediate-socket-and-light',
-    'intermediate-fan-regulator',
-    'intermediate-timed-lighting',
-  ],
+  beginner: ['beginner-protected-load', 'beginner-switched-light'],
+  intermediate: ['intermediate-two-way-lighting', 'intermediate-branched-lighting'],
 } as const;
 export function buildAccessibleDiagnosis(
   request: BuildDiagnosisScenarioRequest,
 ): DiagnosisScenario {
   const version = request.generatorVersion ?? DIAGNOSIS_VERSION;
-  if (version === 1) return buildDiagnosisScenario(request);
   if (version !== DIAGNOSIS_VERSION)
-    throw new Error('Unsupported diagnosis version; saved work is preserved.');
+    throw new Error(
+      'Unsupported diagnosis version; saved work is preserved. Start a current exercise to earn a result.',
+    );
   const basic = request.difficulty !== 'advanced' && !request.rageTier;
   const recipes = basic ? basicRecipes[request.difficulty as keyof typeof basicRecipes] : null;
   const scenario = buildDiagnosisScenario({
