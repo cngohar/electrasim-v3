@@ -9,6 +9,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 
 ### Added
 
+- Phase 1.5F.1: current circuit/model evidence for validators, named voltage readings, inspector/analytics, all guide checklists/history and EIC exports; shared fault applicability and phone terminal injection; coherent stopped replacement/reset actions and suppression of unassessed legacy trip/damage projection. **Completed locally on 2026-10-07:** 2,185 unit tests, 821 exact Bun/workerd cases, 18 real Worker/D1/session groups and 47 unique Chromium cases passed across the comprehensive and focused stages. [Acceptance](docs/audits/phase-1-consumer-integration.md). Diagnosis/Ohmageddon grading and legacy retirement remain F.2–3.
+
 - Phase 1.5E.3: migrated the DOL guide to a real three-phase source, declared motor and maintained coil control; deep-copied nested guide settings and displayed actual model limitations. **Completed locally on 2026-10-07:** all required gate stages passed across the initial run and focused lint-onward rerun: 2,178 unit tests, 800 exact Bun/workerd cases, 17 local Worker/D1 groups and 35 browser cases. Unassessed safety/repair and guide completion stay guarded. [Acceptance](docs/audits/phase-1-dol-guide.md); full lab integration and legacy retirement are next in 1.5F.
 
 - Faster phase reruns: all 15 phase commands support `--list`, `--dry-run`, `--only STAGE[,STAGE]` and `--from STAGE`, with separate type/lint/unit stages and explicit partial-run reporting. `check:changed` runs lint plus affected unit tests; the full default acceptance scope and local-only restrictions are preserved. [Workflow](docs/DEVELOPMENT.md).

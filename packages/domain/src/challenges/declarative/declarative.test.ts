@@ -78,11 +78,11 @@ describe('validateChallenge — correct topology', () => {
     expect(verdict.nextRule?.id).toBe('authored-supply');
     expect(verdict.electricallySound).toBe(false);
   });
-  it('completes the Protected Lamp answer', () => {
+  it('withholds completion for the undeclared LED operating model', () => {
     const verdict = validateChallenge(challenge('protected-lamp'), correctProtectedLamp());
-    expect(verdict.state).toBe('complete');
-    expect(verdict.completedRules).toBe(verdict.totalRules);
-    expect(verdict.nextRule).toBeNull();
+    expect(verdict.state).toBe('in-progress');
+    expect(verdict.completedRules).toBe(verdict.totalRules - 1);
+    expect(verdict.nextRule?.reason).toMatch(/not assessed/);
   });
 
   it('accepts an electrically equivalent routing (plan §7)', () => {
@@ -96,10 +96,10 @@ describe('validateChallenge — correct topology', () => {
       components: circuit.components.map((c, i) => ({ ...c, x: i * 42 + 7, y: 9 })),
     };
     const verdict = validateChallenge(challenge('protected-lamp'), moved);
-    expect(verdict.state).toBe('complete');
+    expect(verdict.state).toBe('in-progress');
   });
 
-  it('completes the doorbell with a press (plan §24)', () => {
+  it('withholds a doorbell pass until its operating model is declared', () => {
     const definition = challenge('push-button-doorbell');
     const live = component('live-terminal');
     const neutral = component('neutral-terminal', 120, 300);
@@ -112,7 +112,7 @@ describe('validateChallenge — correct topology', () => {
     circuit = wire(circuit, button.id, 1, bell.id, 0);
     circuit = wire(circuit, neutral.id, 0, bell.id, 1);
     const verdict = validateChallenge(definition, circuit);
-    expect(verdict.state).toBe('complete');
+    expect(verdict.state).toBe('in-progress');
   });
 
   it('completes the RCBO socket answer (plan §25)', () => {
@@ -218,7 +218,7 @@ describe('validateChallenge — extra components', () => {
     const verdict = validateChallenge(challenge('protected-lamp'), withExtra);
     expect(verdict.extraComponents).toContain('fuse');
     // The extra fuse does not change the rules' answers.
-    expect(verdict.state).toBe('complete');
+    expect(verdict.state).toBe('in-progress');
   });
 });
 
@@ -237,7 +237,7 @@ describe('validateChallenge — functional and fault rules', () => {
     circuit = wire(circuit, neutral.id, 0, bell.id, 1);
     const verdict = validateChallenge(definition, circuit);
     expect(verdict.state).not.toBe('complete');
-    expect(verdict.rules.some((r) => r.verdict === 'fail')).toBe(true);
+    expect(verdict.rules.some((r) => r.reason?.includes('not assessed'))).toBe(true);
   });
 });
 
@@ -264,17 +264,17 @@ describe('fault rules', () => {
 // ── Learner-facing requirements (UX correction plan §2, §6) ────────────────
 
 describe('outcome requirements (UX correction plan)', () => {
-  it('marks every requirement met on the correct Protected Lamp answer', () => {
+  it('keeps the LED operation requirement unassessed even when topology is correct', () => {
     const verdict = validateChallenge(challenge('protected-lamp'), correctProtectedLamp());
-    expect(verdict.state).toBe('complete');
+    expect(verdict.state).toBe('in-progress');
     expect(verdict.requirements.map((r) => r.label)).toEqual([
       'Protected by an MCB',
       'Switch controls the lamp',
       'Complete return path',
       'Lamp operates correctly',
     ]);
-    expect(verdict.requirements.every((r) => r.met)).toBe(true);
-    expect(verdict.requirements.every((r) => r.firstRule === null)).toBe(true);
+    expect(verdict.requirements.filter((r) => !r.met).map((r) => r.id)).toHaveLength(1);
+    expect(verdict.nextRule?.reason).toMatch(/not assessed/);
   });
 
   it('still rejects a broken circuit even though the rule list is hidden', () => {

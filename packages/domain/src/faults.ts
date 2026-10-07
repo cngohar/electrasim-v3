@@ -11,8 +11,8 @@
  * Keep pure and dependency-free so it can run seamlessly in Web Workers.
  */
 
-import { COMPONENT_DEFS } from './components';
-import { isAutomaticProtection } from './protectionRoles';
+import { assessFaultTarget } from './faultApplicability';
+import { hasOperationEvidence } from './simulationEvidence';
 import type {
   Circuit,
   FaultCategory,
@@ -173,7 +173,7 @@ export const FAULT_REGISTRY: Record<FaultType, FaultDefinition> = {
     description:
       'Direct low-impedance contact between Line conductor and earthed metalwork or CPC, producing high fault current.',
     simulationEffect:
-      'Direct fault path from Live to Earth. Trips upstream RCD/RCBO instantaneously or overcurrent device if loop impedance is sufficiently low.',
+      'Bridges a declared component Live/PE pair. Fault current and clearing use supported source, conductor and protective-device models; no automatic trip is implied.',
     detectionBehavior:
       'Insulation resistance tester shows < 1.0 MΩ (typically 0.00 Ω). RCD/RCBO trips on start.',
     repairBehavior:
@@ -192,7 +192,7 @@ export const FAULT_REGISTRY: Record<FaultType, FaultDefinition> = {
     description:
       'Degraded insulation allows residual leakage current from Live conductor into protective earth.',
     simulationEffect:
-      'Simulates >35 mA earth leakage current, instantly tripping any 30mA RCD/RCBO protective device upstream.',
+      'Leakage impedance is unspecified in the saved fault. Residual current and automatic tripping are not assessed.',
     detectionBehavior:
       'Insulation resistance is reduced. Test voltage and acceptable resistance depend on the equipment and applicable rules; a residual-current clamp can reveal leakage.',
     repairBehavior: 'Replace moisture-damaged, degraded, or pinched cable run.',
@@ -210,9 +210,9 @@ export const FAULT_REGISTRY: Record<FaultType, FaultDefinition> = {
     description:
       'Power-electronic loads (EV chargers, PV inverters, variable-speed drives) can leak smooth DC residual current that the toroidal core of Type AC/A/F RCDs cannot detect — the device stays closed on a live earth fault.',
     simulationEffect:
-      'Injects >10 mA of smooth DC residual current. Only a Type B device in the same network trips; Type AC/A/F tolerate at most 6/10 mA exposed DC before their core saturates and never detect this magnitude.',
+      'The saved marker has no declared smooth-DC waveform or saturation law. Residual measurements and automatic tripping are not assessed.',
     detectionBehavior:
-      'Type B RCD/RCBO trips instantly. Type AC/A/F devices show no response — a standard handheld RCD ramp test uses AC and would still PASS, which is why selection by load type matters.',
+      'Automatic residual-device operation and test outcomes are unavailable for this waveform in the current teaching model.',
     repairBehavior:
       'Fit a Type B RCD/RCBO on circuits feeding EV charge points, PV inverters or VFDs, or use EVSE with built-in 6 mA DC detection (RDC-DD, IEC 62955) upstream of a Type A device.',
   },
@@ -229,9 +229,9 @@ export const FAULT_REGISTRY: Record<FaultType, FaultDefinition> = {
     description:
       'A damaged conductor, loose terminal or crushed cable arcs in series with the load (or across insulation in parallel). Arc current sits at or below load current and creates no earth imbalance, so MCBs and RCDs stay closed while the arc reaches ignition temperatures.',
     simulationEffect:
-      'Injects an arc-fault signature on the component. Only an AFDD in the same connected network recognises the waveform and trips; a network with no AFDD keeps feeding the arc.',
+      'Arc waveform generation and AFDD detection are not modeled. The marker records the injected scenario without predicting automatic tripping.',
     detectionBehavior:
-      'AFDD trips on the arc signature. MCB/RCD/RCBO give no response — their thermal/magnetic elements and residual-current toroid are blind to this fault by design.',
+      'Automatic arc detection is unassessed. Inspect the saved fault marker without treating it as a calculated waveform or trip.',
     repairBehavior:
       'Repair the damaged conductor or terminal and assess arc-fault protection against the applicable installation rules and equipment instructions.',
   },
@@ -284,7 +284,7 @@ export const FAULT_REGISTRY: Record<FaultType, FaultDefinition> = {
     description:
       'Direct zero-resistance connection between Line (Live) and Neutral supply rails with no load impedance.',
     simulationEffect:
-      'Creates infinite current loop. Causes immediate magnetic trip on upstream circuit breakers or blows cartridge fuses.',
+      'Bridges a declared component Live/Neutral pair. Finite wire/source impedances and declared protection determine current and timed clearing; an ideal conflicting source path is rejected.',
     detectionBehavior:
       'Resistance between Line and Neutral reads 0.00 Ω with loads disconnected. Breakers trip instantaneously.',
     repairBehavior:
@@ -338,60 +338,9 @@ export function getAvailableFaultsForTarget(
   circuit: Circuit,
   target: FaultTarget,
 ): FaultDefinition[] {
-  const allDefs = Object.values(FAULT_REGISTRY);
-
-  if (target.type === 'wire') {
-    const wire = circuit.wires.find((w) => w.id === target.id);
-    if (!wire) return [];
-    return allDefs.filter(
-      (d) =>
-        d.targetType === 'wire' ||
-        d.targetType === 'any' ||
-        d.id === 'open-circuit' ||
-        d.id === 'open-live' ||
-        d.id === 'open-neutral' ||
-        d.id === 'open-earth' ||
-        d.id === 'short-circuit' ||
-        d.id === 'reverse-polarity' ||
-        d.id === 'earth-fault' ||
-        d.id === 'live-to-earth',
-    );
-  }
-
-  if (target.type === 'port') {
-    return allDefs.filter(
-      (d) =>
-        d.targetType === 'port' ||
-        d.id === 'terminal-disconnect' ||
-        d.id === 'open-circuit' ||
-        d.id === 'earth-fault',
-    );
-  }
-
-  if (target.type === 'component') {
-    const comp = circuit.components.find((c) => c.id === target.id);
-    if (!comp) return [];
-    const def = COMPONENT_DEFS[comp.type];
-
-    return allDefs.filter((d) => {
-      if (d.targetType === 'port') return false;
-      if (d.id === 'switched-neutral') {
-        return def?.isSwitch === true;
-      }
-      if (d.id === 'protection-forced-open' || d.id === 'protection-bypass') {
-        // Any protection-palette device (including isolators, which can stick
-        // open) plus the GFCI outlet, which is a residual device wearing a
-        // socket's clothing and so is not flagged `isProtection`.
-        return def?.isProtection === true || isAutomaticProtection(comp.type);
-      }
-      if (d.id === 'open-earth' || d.id === 'live-to-earth') {
-        return def?.ports.some((p) => p.type === 'earth') ?? true;
-      }
-      return true;
-    });
-  }
-
-  return allDefs;
+  return Object.values(FAULT_REGISTRY).filter(
+    (definition) => assessFaultTarget(circuit, definition.id, target).applicable,
+  );
 }
 
 /**
@@ -558,9 +507,33 @@ export function normalizeCircuitFaults(circuit: Circuit): InjectedFault[] {
 }
 
 /**
- * Checks if a fault is currently considered resolved based on circuit topology and simulation state.
+ * Checks bounded modeled recovery. Removal, target deletion and repair are distinct.
  */
 export function isFaultResolved(
+  fault: InjectedFault,
+  circuit: Circuit,
+  simResult: SimulationResult | null,
+): boolean {
+  if (!hasOperationEvidence(circuit, simResult)) return false;
+  if (simResult.phasor || simResult.faultsCleared !== true || simResult.errors.length > 0)
+    return false;
+  const target = fault.target;
+  const component = circuit.components.find(
+    (c) => c.id === (target.type === 'port' ? target.componentId : target.id),
+  );
+  const wire = target.type === 'wire' ? circuit.wires.find((w) => w.id === target.id) : undefined;
+  if (
+    target.type === 'wire'
+      ? !wire || wire.isBusted
+      : !component || component.state.isBlown || component.state.isTripped
+  )
+    return false;
+  return isFaultRemoved(fault, circuit, simResult);
+}
+
+/** Removal is bookkeeping only. It cannot establish modeled repair or safety.
+ * Existing diagnosis scoring migrates its operating-point checks in 1.5F.2. */
+export function isFaultRemoved(
   fault: InjectedFault,
   circuit: Circuit,
   simResult: SimulationResult | null,

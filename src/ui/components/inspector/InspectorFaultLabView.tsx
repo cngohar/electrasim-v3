@@ -18,9 +18,12 @@ import {
   COMPONENT_DEFS,
   type FaultType,
   type InjectedFault,
+  assessFaultTarget,
+  getAvailableFaultsForTarget,
   isWireFaultType,
   normalizeCircuitFaults,
 } from '@electrasim/domain';
+import { isCurrentSimulation } from '@electrasim/domain/simulationEvidence';
 import {
   AlertTriangle,
   Crosshair,
@@ -37,7 +40,7 @@ import {
   Waves,
   Zap,
 } from 'lucide-react';
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useState } from 'react';
 import { focusFaultTarget, useCircuitStore, useUiStore } from '../../../store';
 import { useConfigurationLockReason } from '../../../store/electricalEditing';
 import { faultFxConfig } from '../../canvas/faultFx';
@@ -110,7 +113,7 @@ const FAULTS: FaultDef[] = [
   {
     type: 'smooth-dc-residual',
     label: 'Smooth DC',
-    hint: 'EV/PV — blinds RCD',
+    hint: 'DC waveform effect unassessed',
     fx: 'DC wave drifts off component',
     icon: Waves,
     cat: 'leakage',
@@ -118,7 +121,7 @@ const FAULTS: FaultDef[] = [
   {
     type: 'arc-fault',
     label: 'Arc Fault',
-    hint: 'Only AFDD detects',
+    hint: 'Arc detection unassessed',
     fx: 'White-hot arc strobe',
     icon: Flame,
     cat: 'leakage',
@@ -140,34 +143,6 @@ const FAULTS: FaultDef[] = [
     icon: Sliders,
     scope: 'protection',
     cat: 'device',
-  },
-];
-
-/** Faults injectable on a wire target (mirror of the wire context menu). */
-const WIRE_FAULTS: FaultDef[] = [
-  {
-    type: 'open-circuit',
-    label: 'Open Circuit',
-    hint: 'Cut this conductor',
-    fx: 'Wire fades out at the cut',
-    icon: Scissors,
-    cat: 'conductor',
-  },
-  {
-    type: 'open-neutral',
-    label: 'Open Neutral',
-    hint: 'Neutral return cut',
-    fx: 'Neutral run fades out',
-    icon: Unplug,
-    cat: 'conductor',
-  },
-  {
-    type: 'short-circuit',
-    label: 'Short Circuit',
-    hint: 'L–N bolted fault on this run',
-    fx: 'Sparks first, then fire',
-    icon: Zap,
-    cat: 'conductor',
   },
 ];
 
@@ -210,8 +185,19 @@ export function InspectorFaultLabView() {
       ? (wires.find((w) => w.id === selectedWireIds[0]) ?? null)
       : null;
   const def = selectedComp ? COMPONENT_DEFS[selectedComp.type] : null;
-  const isSwitch = def?.isSwitch ?? false;
-  const isProtection = def?.isProtection ?? false;
+  const [terminalSelection, setTerminalSelection] = useState<{
+    componentId: string | null;
+    index: number | null;
+  }>({ componentId: null, index: null });
+  const terminal = terminalSelection.componentId === selectedId ? terminalSelection.index : null;
+  const faultTarget = selectedComp
+    ? terminal !== null && def?.ports[terminal]
+      ? { type: 'port' as const, componentId: selectedComp.id, portIndex: terminal }
+      : { type: 'component' as const, id: selectedComp.id }
+    : selectedWire
+      ? { type: 'wire' as const, id: selectedWire.id }
+      : null;
+  const circuit = useCircuitStore.getState();
 
   const targetLabel = selectedComp
     ? (def?.label ?? selectedComp.type)
@@ -252,8 +238,10 @@ export function InspectorFaultLabView() {
   };
 
   const inject = (type: FaultType) => {
-    if (!storeTarget || !targetLabel) return;
-    useUiStore.getState().beginFaultInjection(type, storeTarget);
+    if (!storeTarget || !targetLabel || !faultTarget) return;
+    if (faultTarget.type === 'port' || (!isWireFaultType(type) && faultTarget.type === 'wire')) {
+      void useCircuitStore.getState().injectFault({ type, target: faultTarget });
+    } else useUiStore.getState().beginFaultInjection(type, storeTarget);
     logInjection(type, targetLabel);
   };
 
@@ -304,18 +292,29 @@ export function InspectorFaultLabView() {
 
   // Grid contents: component faults grouped by category; wire faults are a
   // single conductor group.
-  const componentFaults = FAULTS.filter((f) => {
-    if (f.scope === 'switch') return isSwitch;
-    if (f.scope === 'protection') return isProtection;
-    return true;
-  });
+  const available = faultTarget ? getAvailableFaultsForTarget(circuit, faultTarget) : [];
+  const choices: FaultDef[] = faultTarget
+    ? available.map(
+        (fault) =>
+          FAULTS.find((f) => f.type === fault.id) ?? {
+            type: fault.id,
+            label: fault.label,
+            icon: Scissors,
+            fx: '',
+            cat: fault.category === 'earth' ? 'leakage' : 'conductor',
+          },
+      )
+    : FAULTS;
   const groups = CATEGORY_ORDER.map((cat) => ({
     cat,
-    items: (selectedComp ? componentFaults : WIRE_FAULTS).filter((f) => f.cat === cat),
+    items: choices.filter((f) => f.cat === cat),
   })).filter((g) => g.items.length > 0);
 
   // Threshold-override telemetry (component targets only).
-  const compCalc = selectedComp ? simResult?.componentCalculations?.[selectedComp.id] : undefined;
+  const compCalc =
+    selectedComp && isCurrentSimulation(circuit, simResult)
+      ? simResult.componentCalculations?.[selectedComp.id]
+      : undefined;
   const voltageLimit = selectedComp?.state.customMaxVolts ?? def?.maxVolts;
   const currentLimit = selectedComp?.state.customMaxAmps ?? def?.maxAmps;
   const powerRating = selectedComp?.state.customPowerWatts ?? def?.powerWatts;
@@ -326,6 +325,28 @@ export function InspectorFaultLabView() {
 
   return (
     <div aria-label="Fault Lab panel" className="flex flex-col gap-3 p-3">
+      {selectedComp && def && (
+        <label className="text-xs">
+          Fault target terminal
+          <select
+            aria-label="Fault target terminal"
+            value={terminal ?? 'component'}
+            onChange={(event) =>
+              setTerminalSelection({
+                componentId: selectedId,
+                index: event.target.value === 'component' ? null : Number(event.target.value),
+              })
+            }
+          >
+            <option value="component">Whole component</option>
+            {def.ports.map((port, index) => (
+              <option key={`${port.label}-${index}`} value={index}>
+                {port.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       {/* Intro strip */}
       <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50/70 px-3 py-2.5 dark:border-amber-900/50 dark:bg-amber-950/40">
         <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-lg bg-amber-500 text-white shadow-sm shadow-amber-500/30">
@@ -403,6 +424,9 @@ export function InspectorFaultLabView() {
             </div>
             <div className="grid grid-cols-2 gap-2">
               {group.items.map((f) => {
+                const coverage = faultTarget
+                  ? assessFaultTarget(circuit, f.type, faultTarget)
+                  : null;
                 const isActive = targetFault === f.type;
                 const isArming = armingType === f.type;
                 return (
@@ -430,7 +454,9 @@ export function InspectorFaultLabView() {
                     <f.icon className="size-4" />
                     {isArming ? 'Arming…' : f.label}
                     <span className="text-center text-[8px] leading-tight font-normal opacity-70">
-                      {f.fx}
+                      {coverage?.coverage === 'not-assessed'
+                        ? 'Electrical effect not assessed'
+                        : (coverage?.reason ?? f.fx)}
                     </span>
                   </button>
                 );

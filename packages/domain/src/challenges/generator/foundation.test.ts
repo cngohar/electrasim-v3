@@ -23,7 +23,7 @@ import { validateCircuit } from '../../circuitValidation';
 import { COMPONENT_DEFS } from '../../components';
 import {
   createInjectedFault,
-  isFaultResolved,
+  isFaultRemoved,
   normalizeCircuitFaults,
   validateFaultCoexistence,
 } from '../../faults';
@@ -160,7 +160,7 @@ describe.each(CHALLENGE_DIFFICULTIES)(
             const result = simulate(repaired, { appMode: 'pro' });
             const label = `seed ${metadata.seed}: ${type} on ${describeTarget(target)}`;
 
-            expect(isFaultResolved(fault, repaired, result), label).toBe(true);
+            expect(isFaultRemoved(fault, repaired, result), label).toBe(true);
             expect(result.errors, label).toEqual([]);
             expect(result.errorComponents.size, label).toBe(0);
             expect(result.errorWires.size, label).toBe(0);
@@ -181,7 +181,7 @@ describe.each(CHALLENGE_DIFFICULTIES)(
             const faultedCircuit = withFaults(circuit, [fault]);
             const result = simulate(faultedCircuit, { appMode: 'pro' });
             expect(
-              isFaultResolved(fault, faultedCircuit, result),
+              isFaultRemoved(fault, faultedCircuit, result),
               `seed ${metadata.seed}: ${type} on ${describeTarget(target)}`,
             ).toBe(false);
           }
@@ -201,7 +201,7 @@ describe.each(CHALLENGE_DIFFICULTIES)(
           };
           const result = simulate(rewired, { appMode: 'pro' });
           expect(
-            isFaultResolved(fault, rewired, result),
+            isFaultRemoved(fault, rewired, result),
             `seed ${metadata.seed}: deleting ${wire.id}`,
           ).toBe(true);
         }

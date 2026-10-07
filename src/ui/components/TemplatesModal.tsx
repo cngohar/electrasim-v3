@@ -16,7 +16,7 @@ import { getSimulationLimitations } from '@electrasim/domain/simulationCoverage'
 import { GUIDED_CIRCUIT_TEMPLATES, type GuidedCircuitTemplate } from '@electrasim/domain/templates';
 import { BookOpen, CheckCircle2, CircuitBoard, Search, Sparkles, Wrench, X } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
-import { isGuideCompleted } from '../../lib/guideProgressPersistence';
+import { isGuideCompleted, wasGuideCompletedEarlier } from '../../lib/guideProgressPersistence';
 import { loadGuidedCircuitIntoEditor } from '../../lib/guidedCircuitLoader';
 import { useDialogFocus } from '../hooks/useDialogFocus';
 
@@ -46,6 +46,7 @@ function GuideCard({
   onLoad: (template: GuidedCircuitTemplate) => void;
 }) {
   const completed = isGuideCompleted(template.id);
+  const historical = wasGuideCompletedEarlier(template.id);
   const limitations = getSimulationLimitations(template.circuit);
   return (
     <article className="flex min-h-[210px] flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/5 transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md dark:border-slate-700 dark:bg-slate-900/70 dark:hover:border-blue-700">
@@ -77,7 +78,11 @@ function GuideCard({
           className={`flex items-center gap-1 ${completed ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}
         >
           {completed ? <CheckCircle2 className="size-3" /> : <CircuitBoard className="size-3" />}
-          {completed ? 'Guide completed' : 'Not started'}
+          {completed
+            ? 'Checklist reviewed'
+            : historical
+              ? 'Earlier checklist saved'
+              : 'Not started'}
         </span>
         <span className="text-slate-300 dark:text-slate-600">·</span>
         <span className="text-slate-400 dark:text-slate-500">

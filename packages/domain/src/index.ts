@@ -12,6 +12,7 @@ export * from './types';
 export * from './components';
 export * from './componentLabel';
 export * from './faults';
+export * from './faultApplicability';
 export * from './geometry';
 export * from './electricalCalculations';
 export * from './componentHelp';

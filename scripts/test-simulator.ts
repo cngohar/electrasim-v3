@@ -10,6 +10,8 @@ import type {
 import { normalizeCircuitDocument } from '@electrasim/domain/core';
 import { explicitSupplyProfile } from '@electrasim/domain/core/supplies';
 import { simulate } from '@electrasim/domain/simulation';
+import { isCurrentSimulation } from '@electrasim/domain/simulationEvidence';
+import { readVoltage } from '@electrasim/domain/simulationReadings';
 import type { SimulationResult } from '@electrasim/domain/types';
 import { controlCircuit, setControlSwitch } from '../packages/domain/src/core/controlFixtures';
 import {
@@ -17,6 +19,7 @@ import {
   damageCircuit,
   protectedDamageCircuit,
 } from '../packages/domain/src/core/damageFixtures';
+import { seriesFixture } from '../packages/domain/src/core/mnaFixtures';
 import { motorAcceptanceCircuits, motorCircuit } from '../packages/domain/src/core/motorFixtures';
 import {
   protectionCircuit,
@@ -73,6 +76,30 @@ export async function runSimulatorTests(context: Context) {
     'advanced_diagnostics',
   ]);
   const grant = await assign(plan.id, user);
+  await check(
+    'local Hono consumer evidence is current, normalized and rejects a changed circuit',
+    async () => {
+      const circuit = seriesFixture();
+      const result = await request<SimulationResult>('/simulator/simulate', {
+        user,
+        method: 'POST',
+        data: { circuit },
+        expected: 200,
+      });
+      assert.equal(isCurrentSimulation(circuit, result), true);
+      assert.equal(
+        isCurrentSimulation({ ...circuit, wires: circuit.wires.slice(1) }, result),
+        false,
+      );
+      const pair = readVoltage(
+        circuit,
+        result,
+        { componentId: 'r0', portIndex: 0 },
+        { componentId: 'r0', portIndex: 1 },
+      );
+      assert(Math.abs(pair.volts! - (12 * 6) / 12.21) < 1e-9);
+    },
+  );
   await check(
     'paid phasor motor/coil replay matches domain, persists declarations and guards malformed state',
     async () => {

@@ -14,6 +14,7 @@ import { resolveWireProperties } from '@electrasim/domain/core/wireProperties';
 import { AlertTriangle, Lock, OctagonAlert, Zap } from 'lucide-react';
 import { useCircuitStore, useSettingsStore, useUiStore } from '../../../store';
 import { EmojiGlyph } from '../EmojiGlyph';
+import { ElectricalReadings } from './ElectricalReadings';
 import { PhasorReadings, PhasorWireReadings } from './PhasorReadings';
 import type { InspectorSelectionState } from './useInspectorSelectionState';
 
@@ -314,10 +315,10 @@ export function InspectorSimulationContent({
                 <button
                   type="button"
                   onClick={() => useCircuitStore.getState().resetTrippedComponent(comp.id)}
-                  disabled={!(simResult?.faultsCleared ?? true)}
+                  disabled={simRunning}
                   className="flex-1 rounded-lg border border-emerald-300 bg-emerald-600 py-2 text-xs font-bold text-white hover:bg-emerald-500 transition shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  ↻ RESET Breaker
+                  Reset breaker to OFF
                 </button>
               )}
             </div>
@@ -325,7 +326,7 @@ export function InspectorSimulationContent({
               <div className="rounded-lg bg-red-100 dark:bg-red-950/60 p-2 text-[10px] text-red-800 dark:text-red-300">
                 <strong>Status:</strong> TRIPPED ({comp.state.tripReason ?? 'manual-fault'})
                 <br />
-                <strong>Action:</strong> Clear faults before resetting
+                <strong>Action:</strong> Stop, then reset to OFF. Clear faults separately.
               </div>
             )}
           </div>
@@ -340,18 +341,15 @@ export function InspectorSimulationContent({
             </div>
             <button
               type="button"
-              onClick={() =>
-                useCircuitStore.getState().updateComponentState(comp.id, {
-                  isBlown: false,
-                  blownReason: undefined,
-                })
-              }
+              disabled={simRunning}
+              onClick={() => useCircuitStore.getState().repairBlownComponent(comp.id)}
               className="w-full rounded-lg bg-red-600 py-1.5 text-xs font-bold text-white hover:bg-red-500 transition"
             >
-              Reset Fault / Replace Device
+              Replace damaged device
             </button>
           </div>
         )}
+        <ElectricalReadings componentId={comp.id} result={simResult} />
       </div>
     );
   }

@@ -431,6 +431,8 @@ export interface SimulationLimitation {
 }
 
 export interface SimulationResult {
+  /** Exact electrical input identity for current-revision consumers and exports. */
+  inputRevision?: string;
   /** Complex RMS results and display readings never enter scalar protection/scoring. */
   phasor?: import('./core/phasor').PhasorSimulationResult;
   phasorComponents?: Record<string, import('./simulation/phasorAdapter').PhasorComponentReading>;
@@ -546,9 +548,9 @@ export interface SimulationResult {
     cableMm2: number;
   }[];
   /**
-   * True when the last simulation pass produced no error-level findings.
-   * Gates pro-mode breaker resets — a tripped device may only be reset
-   * once the underlying circuit fault has been cleared.
+   * Compatibility finding flag. The tagged legacy path retains observation
+   * bookkeeping for unmigrated exercises; it never establishes repair or safety.
+   * Assessment consumers must require current versioned operation/coverage evidence.
    */
   faultsCleared?: boolean;
   /** Thermal data for each component based on power dissipation. */

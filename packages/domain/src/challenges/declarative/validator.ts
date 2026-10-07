@@ -19,6 +19,7 @@ import { COMPONENT_DEFS } from '../../components';
 import { exerciseSupplyIssue } from '../../core/exerciseSupply';
 import { validateCircuitRules } from '../../electrical/validation';
 import { simulate } from '../../simulation';
+import { hasOperationEvidence } from '../../simulationEvidence';
 import type { Circuit } from '../../types';
 import { getChallengeDefinition } from './definitions';
 import { indexGraph, structuralIssues } from './graph';
@@ -72,7 +73,9 @@ function evaluateRequirements(
     return {
       id: requirement.id,
       label: requirement.label,
-      check: requirement.check,
+      check: firstRule?.assessmentUnavailable
+        ? (firstRule.reason ?? requirement.check)
+        : requirement.check,
       met: firstRule === null && matching.length > 0,
       firstRule,
     };
@@ -250,6 +253,7 @@ export function validateChallenge(
     };
     const result = simulate(evidenceCircuit, { appMode: 'pro' });
     electricallySound =
+      hasOperationEvidence(evidenceCircuit, result) &&
       result.errors.length === 0 &&
       (result.trippedComponents?.length ?? 0) === 0 &&
       (result.blownComponents?.length ?? 0) === 0 &&
@@ -261,13 +265,14 @@ export function validateChallenge(
 
   const completedRules = rules.filter((result) => result.verdict === 'pass').length;
   const nextRule = rules.find((result) => result.verdict !== 'pass') ?? null;
-  const state = overallState(rules.map((result) => result.verdict));
+  const ruleState = overallState(rules.map((result) => result.verdict));
+  const state = ruleState === 'complete' && !electricallySound ? 'in-progress' : ruleState;
   const completion = rules.length === 0 ? 1 : completedRules / rules.length;
 
   let summary: string;
   if (state === 'complete') summary = 'Circuit complete and working correctly.';
   else if (state === 'has-errors') summary = nextRule?.reason ?? 'Something is not right yet.';
-  else summary = nextRule?.reason ?? 'Keep building.';
+  else summary = nextRule?.reason ?? 'Current modeled operation is required before completion.';
 
   return {
     state,

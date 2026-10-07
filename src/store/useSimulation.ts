@@ -23,6 +23,7 @@
 
 import { COMPONENT_DEFS } from '@electrasim/domain';
 import type { ElectricalSimulationState } from '@electrasim/domain/core/contracts';
+import { circuitRevision } from '@electrasim/domain/simulationEvidence';
 import { useEffect, useRef, useState } from 'react';
 import { simulateAsync } from '../sim-worker/client';
 import { useCircuitStore } from './circuitStore';
@@ -140,17 +141,22 @@ export function useSimulation() {
 
           // Derived solver effects are one internal projection, not new user edits.
           // Authorization was checked for this exact request; membership never changes physics.
+          const modeled =
+            !result.legacyObservation &&
+            (result.electrical?.status ?? result.phasor?.status) === 'converged';
           const current = useCircuitStore.getState();
-          const changedComponents = current.components.some(
-            (component) =>
-              (result.blownComponents?.some((item) => item.id === component.id) &&
-                !component.state.isBlown) ||
-              (result.trippedComponents?.some((item) => item.id === component.id) &&
-                !component.state.isTripped),
-          );
-          const changedWires = current.wires.some(
-            (wire) => result.bustedWires?.has(wire.id) && !wire.isBusted,
-          );
+          const changedComponents =
+            modeled &&
+            current.components.some(
+              (component) =>
+                (result.blownComponents?.some((item) => item.id === component.id) &&
+                  !component.state.isBlown) ||
+                (result.trippedComponents?.some((item) => item.id === component.id) &&
+                  !component.state.isTripped),
+            );
+          const changedWires =
+            modeled &&
+            current.wires.some((wire) => result.bustedWires?.has(wire.id) && !wire.isBusted);
           if (changedComponents || changedWires) {
             const history = useCircuitStore.temporal.getState();
             const tracking = history.isTracking;
@@ -190,6 +196,10 @@ export function useSimulation() {
             if (tracking) history.resume();
           }
 
+          // The final solve includes these declared trip/damage openings. Bind
+          // its readings to the saved post-event projection, not an old graph.
+          if (changedComponents || changedWires)
+            result.inputRevision = circuitRevision(useCircuitStore.getState());
           useUiStore.getState().setSimResult(result);
           runtimeRef.current = result.simulationState;
           acceptedTickRef.current = clockTick;
@@ -253,7 +263,7 @@ export function useSimulation() {
           }
 
           // Check if protection tripped or wire melted during simulation
-          if (result.trippedComponents && result.trippedComponents.length > 0) {
+          if (modeled && result.trippedComponents && result.trippedComponents.length > 0) {
             const trip = result.trippedComponents[0];
             const ui = useUiStore.getState();
             ui.setSimRunning(false); // Stop simulation immediately
@@ -308,7 +318,7 @@ export function useSimulation() {
                 reason: diagnosing ? 'protection operated' : trip.cause,
               },
             });
-          } else if (result.wireMeltEvents && result.wireMeltEvents.length > 0) {
+          } else if (modeled && result.wireMeltEvents && result.wireMeltEvents.length > 0) {
             const melt = result.wireMeltEvents[0];
             const ui = useUiStore.getState();
             ui.setSimRunning(false); // Stop simulation immediately
@@ -334,151 +344,6 @@ export function useSimulation() {
                 currentAmps: melt.currentAmps,
                 cableMm2: melt.cableMm2,
                 reason: 'Current exceeded cable capacity',
-              },
-            });
-          } else if (
-            ((!result.electrical && !result.phasor) || result.legacyObservation) &&
-            ((result.faultDiagnostics && result.faultDiagnostics.length > 0) ||
-              (result.errors.length > 0 &&
-                (useCircuitStore.getState().components.some((c) => c.state?.fault) ||
-                  useCircuitStore.getState().wires.some((w) => w.fault))))
-          ) {
-            const cs = useCircuitStore.getState();
-            const faultedComp = cs.components.find((c) => c.state?.fault);
-            const faultedWire = cs.wires.find((w) => w.fault);
-            const ui = useUiStore.getState();
-            ui.setSimRunning(false); // Stop simulation immediately on manual fault injection
-
-            // §14: this whole branch exists to narrate the injected fault by
-            // name ("MANUAL SHORT CIRCUIT FAULT!", "...injected on Fuse (13A)").
-            // During a Diagnosis exercise that is precisely the answer under
-            // test, so stop the simulation but say nothing.
-            const inDiagnosis = useUiStore.getState().diagnosisActive;
-            if (inDiagnosis) {
-              // fall through: no alert, no event-history entry
-            } else if (faultedComp?.state.fault) {
-              const fType = faultedComp.state.fault;
-              const def = COMPONENT_DEFS[faultedComp.type];
-              const compLabel = faultedComp.state.autoLabel ?? def?.label ?? faultedComp.type;
-              let faultTitle = 'MANUAL FAULT SIMULATION DETECTED!';
-              let faultReason = `Manual fault injected on ${compLabel}.`;
-              let resolution =
-                'Fault Clearing Instructions:\n1. Click "Clear Fault" in the Inspector panel.\n2. Restart simulation.';
-
-              if (fType === 'short-circuit') {
-                faultTitle = 'MANUAL SHORT CIRCUIT FAULT!';
-                faultReason = `A manual short-circuit fault was injected on ${compLabel}, triggering immediate emergency shutdown.`;
-                resolution =
-                  'Fault Clearing Instructions:\n1. Select the component in the Inspector.\n2. Click "Clear Fault" in the Manual Fault Simulation section.\n3. Restart simulation.';
-              } else if (fType === 'open-circuit') {
-                faultTitle = 'MANUAL OPEN CIRCUIT BREAK!';
-                faultReason = `A manual open-circuit break was injected on ${compLabel}, interrupting the conductive path.`;
-                resolution =
-                  'Fault Clearing Instructions:\n1. Click "Clear Fault" in the Inspector or Context Menu to restore contact continuity.\n2. Restart simulation.';
-              } else if (fType === 'reverse-polarity') {
-                faultTitle = 'MANUAL REVERSE POLARITY FAULT!';
-                faultReason = `A manual reverse-polarity fault was injected on ${compLabel} (Live and Neutral are swapped).`;
-                resolution =
-                  'Fault Clearing Instructions:\n1. Click "Clear Fault" in the Inspector panel or reverse wire connections.\n2. Restart simulation.';
-              } else if (fType === 'earth-fault') {
-                faultTitle = 'MANUAL EARTH FAULT!';
-                faultReason = `A manual earth leakage / missing ground fault was injected on ${compLabel}.`;
-                resolution =
-                  'Fault Clearing Instructions:\n1. Click "Clear Fault" in the Inspector panel.\n2. Ensure continuous CPC protective bonding.';
-              } else if (fType === 'smooth-dc-residual') {
-                faultTitle = 'SMOOTH DC RESIDUAL — RCD BLINDED!';
-                faultReason = `A smooth DC residual fault (EV/PV/VFD earth leakage) was injected on ${compLabel}. Type AC/A/F residual devices cannot detect smooth DC — the sensing toroid saturates and the device stays closed on a live earth fault (BS EN 62423, BS 7671 Reg 531.3.3). Only a Type B device trips on it.`;
-                resolution =
-                  'Fault Clearing Instructions:\n1. Select the guarding RCD/RCBO and set its Residual Current Type to B in the Inspector (EV/PV/VFD circuits need Type B or 6 mA RDC-DD protection).\n2. Click "Clear Fault" on the faulted component.\n3. Restart simulation and confirm the Type B device trips.';
-              } else if (fType === 'arc-fault') {
-                faultTitle = 'ARC FAULT — NO AFDD PROTECTION!';
-                faultReason = `An arc fault (series/parallel arcing) was injected on ${compLabel}. No AFDD guards this network, so nothing tripped: arc current rides at/below load current with no earth imbalance, leaving MCBs and RCDs blind while the arc reaches ignition temperatures. Only an AFDD (BS EN 62606) detects the waveform.`;
-                resolution =
-                  'Fault Clearing Instructions:\n1. Add an AFDD (BS EN 62606) at the origin of this circuit — Reg 421.1.7 requires it on socket circuits up to 32 A in higher-risk residential buildings, HMOs, student accommodation and care homes.\n2. Click "Clear Fault" on the faulted component and repair the damaged conductor/terminal.\n3. Restart simulation and confirm the AFDD trips on a reinjected arc.';
-              }
-
-              const faultAlert = {
-                title: faultTitle,
-                kind: fType === 'short-circuit' ? ('melt' as const) : ('trip' as const),
-                deviceId: faultedComp.id,
-                deviceName: compLabel,
-                reason: faultReason,
-                currentAmps: 0,
-                limitAmps: 16,
-                resolutionHint: resolution,
-                timestamp: Date.now(),
-              };
-              ui.setFaultAlert(faultAlert);
-              ui.addEventHistory({
-                eventType: 'fault_injected',
-                componentName: compLabel,
-                componentId: faultedComp.id,
-                description: faultReason,
-                severity: 'critical',
-                details: { faultType: fType },
-              });
-            } else if (faultedWire?.fault) {
-              const wfType = faultedWire.fault;
-              const faultAlert = {
-                title:
-                  wfType === 'short-circuit' ? 'MANUAL WIRE SHORT CIRCUIT!' : 'MANUAL WIRE BREAK!',
-                kind: wfType === 'short-circuit' ? ('melt' as const) : ('trip' as const),
-                wireId: faultedWire.id,
-                reason:
-                  wfType === 'short-circuit'
-                    ? `Manual short-circuit injected across wire #${faultedWire.id.slice(0, 6)}.`
-                    : `Manual wire break injected on wire #${faultedWire.id.slice(0, 6)}.`,
-                currentAmps: 0,
-                limitAmps: 16,
-                resolutionHint:
-                  'Click "Clear Wire Fault" in the Wire Inspector or Context Menu, then restart simulation.',
-                timestamp: Date.now(),
-              };
-              ui.setFaultAlert(faultAlert);
-              ui.addEventHistory({
-                eventType: 'fault_injected',
-                wireId: faultedWire.id,
-                description: faultAlert.reason,
-                severity: 'critical',
-                details: { faultType: wfType },
-              });
-            }
-          } else if (
-            ((!result.electrical && !result.phasor) || result.legacyObservation) &&
-            result.blownComponents &&
-            result.blownComponents.length > 0
-          ) {
-            const blown = result.blownComponents[0];
-            const comp = useCircuitStore.getState().components.find((c) => c.id === blown.id);
-            const ui = useUiStore.getState();
-            ui.setSimRunning(false);
-            const isVoltageMismatch = blown.reason === 'overvoltage';
-            const faultAlert = {
-              title: isVoltageMismatch
-                ? 'VOLTAGE MISMATCH & OVERVOLTAGE FAULT!'
-                : 'COMPONENT BURNED OUT!',
-              kind: 'melt' as const,
-              deviceId: blown.id,
-              deviceName: comp?.state.autoLabel ?? comp?.type ?? 'Component',
-              reason: isVoltageMismatch
-                ? `The legacy model reported an overvoltage event for ${comp?.state.autoLabel ?? comp?.type ?? 'this component'}. Compare its declared voltage limit with the actual terminal voltage; the timed damage model is not assessed.`
-                : `Component was blown due to ${blown.reason}.`,
-              currentAmps: 0,
-              limitAmps: 0,
-              resolutionHint: isVoltageMismatch
-                ? 'Fault Clearing Instructions:\n1. Match the supply voltage in the Inspector panel (e.g. 110V vs 230V).\n2. Alternatively, install a 230V-to-110V step-down transformer before the 110V load.\n3. Click "Repair & Reset" to restore the damaged component.'
-                : 'Reduce supply voltage or replace component with higher rated model, then click "Repair & Reset".',
-              timestamp: Date.now(),
-            };
-            ui.setFaultAlert(faultAlert);
-            ui.addEventHistory({
-              eventType: 'component_blown',
-              componentName: comp?.state.autoLabel ?? comp?.type ?? 'Component',
-              componentId: blown.id,
-              description: `Component destroyed due to ${blown.reason}`,
-              severity: 'critical',
-              details: {
-                reason: blown.reason,
               },
             });
           }

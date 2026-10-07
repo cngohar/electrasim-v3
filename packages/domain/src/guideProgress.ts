@@ -1,3 +1,6 @@
+import { exerciseSupplyIssue } from './core/exerciseSupply';
+import { hasFindingFreeEvidence, isCurrentSimulation } from './simulationEvidence';
+import { circuitRevision } from './simulationEvidence';
 /**
  * guideProgress — checklist tracking for Guided Circuits.
  *
@@ -54,10 +57,34 @@ function objectivesFor(template: GuidedCircuitTemplate): GuidedCircuitObjective[
 export function getGuideProgress(
   template: GuidedCircuitTemplate,
   circuit: Circuit,
-  simRunning: boolean,
+  _simRunning: boolean,
   simResult: SimulationResult | null,
 ): GuideProgress {
   const objectives = objectivesFor(template);
+  const modelComponents = (document: Circuit) =>
+    document.components.map((component) => ({
+      ...component,
+      state: Object.fromEntries(
+        Object.entries(component.state).filter(
+          ([key]) =>
+            key.startsWith('custom') ||
+            key.endsWith('Model') ||
+            ['mcbType', 'rcdType', 'ratedLeakage_mA'].includes(key),
+        ),
+      ),
+    }));
+  const authoredModels =
+    !exerciseSupplyIssue(template.circuit, circuit) &&
+    template.circuit.components.every((expected) =>
+      circuit.components.some((c) => c.id === expected.id && c.type === expected.type),
+    ) &&
+    circuitRevision({
+      ...template.circuit,
+      components: modelComponents(template.circuit),
+      wires: [],
+      faults: [],
+    }) ===
+      circuitRevision({ ...circuit, components: modelComponents(circuit), wires: [], faults: [] });
   const completedIds = objectives
     .filter((objective) => {
       if (objective.kind === 'component-types') {
@@ -66,8 +93,8 @@ export function getGuideProgress(
         );
       }
       if (objective.kind === 'wire-count') return circuit.wires.length >= (objective.minimum ?? 1);
-      if (objective.kind === 'run-simulation') return simRunning || simResult !== null;
-      return Boolean(simResult && simResult.errors.length === 0 && simResult.warnings.length === 0);
+      if (objective.kind === 'run-simulation') return isCurrentSimulation(circuit, simResult);
+      return authoredModels && hasFindingFreeEvidence(circuit, simResult);
     })
     .map((objective) => objective.id);
   const completed = completedIds.length === objectives.length;

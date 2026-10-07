@@ -32,7 +32,7 @@ describe('Pro Challenge Mode definitions', () => {
     }
   });
 
-  it('defines Mission 0 as an automatically completable seven-step lamp lesson', () => {
+  it('retains Mission 0 steps while withholding undeclared LED operation completion', () => {
     const mission = getChallengeDefinition('first-lamp-tutorial')!;
     const components = [
       { id: 'live', type: 'live-terminal', x: 100, y: 200, state: {} },
@@ -66,7 +66,7 @@ describe('Pro Challenge Mode definitions', () => {
 
     expect(mission.kind).toBe('tutorial');
     expect(mission.steps).toHaveLength(7);
-    expect(verdict.state).toBe('complete');
-    expect(getChallengeStepProgress(mission, verdict).completedCount).toBe(7);
+    expect(verdict.state).toBe('in-progress');
+    expect(getChallengeStepProgress(mission, verdict).completedCount).toBe(6);
   });
 });

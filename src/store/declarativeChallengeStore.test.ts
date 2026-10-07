@@ -235,18 +235,18 @@ describe('reset (plan §15)', () => {
 });
 
 describe('completion (plan §33, §34)', () => {
-  it('records progress and keeps the normal circuit intact', async () => {
+  it('withholds unassessed completion and keeps the normal circuit intact', async () => {
     await useDeclarativeChallengeStore.getState().start('protected-lamp');
     // Build the correct answer directly into the challenge canvas.
     const answer = correctProtectedLamp();
     useCircuitStore.getState().setCircuit(answer);
 
     const verdict = useDeclarativeChallengeStore.getState().check();
-    expect(verdict?.state).toBe('complete');
+    expect(verdict?.state).toBe('in-progress');
     await flush();
 
     const progress = mem.get(__CHALLENGE2_PROGRESS_KEY) as Record<string, unknown>;
-    expect(progress['protected-lamp']).toBeDefined();
+    expect(progress?.['protected-lamp']).toBeUndefined();
     // The learner's normal circuit is still the snapshot.
     expect(useDeclarativeChallengeStore.getState().returnCircuit?.components[0]?.id).toBe(
       'my-live',

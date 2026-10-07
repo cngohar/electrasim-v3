@@ -42,7 +42,7 @@ function rcboCircuit() {
   const l = C('live-terminal');
   const n = C('neutral-terminal');
   const rcbo = C('rcbo', { on: true });
-  const bulb = C('bulb');
+  const bulb = C('bulb-incandescent');
   const wires = [
     W({ c: l, p: 0 }, { c: rcbo, p: 0 }, 10),
     W({ c: n, p: 0 }, { c: rcbo, p: 1 }, 10),
@@ -153,4 +153,29 @@ it('does not claim a disconnection time for a failed estimate', () => {
     w.lengthMeters = 500;
   });
   expect(buildEicReportData(c).rows[0].disconnection).toBe('Not established');
+});
+
+it('recalculates changed export snapshots and withholds a pass for model gaps, faults and saved failures', () => {
+  const healthy = rcboCircuit();
+  expect(buildEicReportData(healthy).calculation.assessment).toBe('modeled');
+  for (const mutate of [
+    (c: Circuit) => {
+      c.components[3]!.type = 'bulb';
+    },
+    (c: Circuit) => {
+      c.components[3]!.state.fault = 'arc-fault';
+    },
+    (c: Circuit) => {
+      c.components[3]!.state.isBlown = true;
+    },
+    (c: Circuit) => {
+      c.components[2]!.state.isTripped = true;
+    },
+  ]) {
+    const changed = structuredClone(healthy);
+    mutate(changed);
+    const data = buildEicReportData(changed);
+    expect(data.calculation.assessment).toBe('not-assessed');
+    expect(renderEicHtml(data)).not.toContain('class="verdict yes"');
+  }
 });

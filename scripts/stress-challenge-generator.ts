@@ -33,7 +33,7 @@ import { validateCircuit } from '@electrasim/domain/circuitValidation';
 import { COMPONENT_DEFS } from '@electrasim/domain/components';
 import {
   createInjectedFault,
-  isFaultResolved,
+  isFaultRemoved,
   normalizeCircuitFaults,
   validateFaultCoexistence,
 } from '@electrasim/domain/faults';
@@ -352,13 +352,13 @@ function checkFaultLoop(
         );
 
       // The fault must not be reported as resolved while it is still present.
-      if (isFaultResolved(fault, faultedCircuit, faulted))
+      if (isFaultRemoved(fault, faultedCircuit, faulted))
         fail('fault-liveness', ctx, `${type} reported resolved while still injected`);
 
       // --- Repair leg 1: clear the fault (the Diagnosis Lab "fix it" action).
       const cleared = withFaults(faultedCircuit, []);
       const clearedResult = simulate(cleared, { appMode: 'pro' });
-      if (!isFaultResolved(fault, cleared, clearedResult))
+      if (!isFaultRemoved(fault, cleared, clearedResult))
         fail('repair-clear', ctx, `${type} not resolved after clearing`);
       const clearRegression = isFullRecovery(baseline, clearedResult);
       if (clearRegression) fail('repair-clear', ctx, `${type}: ${clearRegression}`);
@@ -371,7 +371,7 @@ function checkFaultLoop(
           wires: faultedCircuit.wires.filter((w) => w.id !== target.id),
         };
         const rewiredResult = simulate(rewired, { appMode: 'pro' });
-        if (!isFaultResolved(fault, rewired, rewiredResult))
+        if (!isFaultRemoved(fault, rewired, rewiredResult))
           fail('repair-delete', ctx, `${type} not resolved after deleting wire ${target.id}`);
         else tally.repairsVerified += 1;
       }

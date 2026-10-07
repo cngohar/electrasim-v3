@@ -1,5 +1,6 @@
 import { COMPONENT_DEFS, type ComponentInstance, type WireInstance } from '@electrasim/domain';
 import { hasDamageSettings } from '@electrasim/domain/core/damageModel';
+import { isCurrentSimulation } from '@electrasim/domain/simulationEvidence';
 import { useCircuitStore } from '../../../store/circuitStore';
 import { useConfigurationLockReason } from '../../../store/electricalEditing';
 import { useUiStore } from '../../../store/uiStore';
@@ -17,7 +18,10 @@ export default function FaultRepairPanel({
 }: { component: ComponentInstance | null; wire: WireInstance | null }) {
   const components = useCircuitStore((s) => s.components);
   const wires = useCircuitStore((s) => s.wires);
-  const result = useUiStore((s) => s.simResult);
+  const providedResult = useUiStore((s) => s.simResult);
+  const result = isCurrentSimulation(useCircuitStore.getState(), providedResult)
+    ? providedResult
+    : null;
   const running = useUiStore((s) => s.simRunning);
   const locked = useConfigurationLockReason();
   const damaged = components.filter((c) => c.state.isBlown);

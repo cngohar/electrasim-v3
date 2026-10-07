@@ -9,6 +9,7 @@ import { solveControlledOperatingPoint } from '../core/dimming';
 import { solvePhasorCircuit } from '../core/phasor';
 import { advancePhasorControlStep } from '../core/phasorControlStep';
 import { getLegacySimulationLimitations, getSimulationLimitations } from '../simulationCoverage';
+import { circuitRevision } from '../simulationEvidence';
 import type { Circuit, SimulationResult } from '../types';
 import { type SimulateOptions, simulateLegacy } from './legacy';
 import { adaptMnaResult } from './mnaAdapter';
@@ -17,6 +18,13 @@ import { adaptPhasorResult } from './phasorAdapter';
 export type { SimulateOptions } from './legacy';
 
 export function simulate(circuit: Circuit, options: SimulateOptions = {}): SimulationResult {
+  const result = simulateCircuit(circuit, options);
+  return result.electricalContract?.status === 'invalid'
+    ? result
+    : { ...result, inputRevision: circuitRevision(circuit) };
+}
+
+function simulateCircuit(circuit: Circuit, options: SimulateOptions): SimulationResult {
   const defs = options.defs ?? COMPONENT_DEFS;
   const compiled = compileCircuit(circuit, { defs });
   if (compiled.status === 'compiled' && compiled.graph.sources.some((s) => s.phaseSystemId)) {
@@ -135,6 +143,7 @@ export function simulate(circuit: Circuit, options: SimulateOptions = {}): Simul
     coverage: electrical.coverage,
     diagnostics: electrical.diagnostics,
   };
+  // Compatibility observation for unmigrated F.2 generators, never repair evidence.
   if (electrical.readiness.topology === 'empty' || electrical.readiness.topology === 'no-source')
     legacy.faultsCleared = false;
   return legacy;

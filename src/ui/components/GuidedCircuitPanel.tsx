@@ -34,19 +34,30 @@ export function GuidedCircuitPanel({ isPhone }: Props) {
   const rightClass = 'right-14';
   const components = useCircuitStore((s) => s.components);
   const wires = useCircuitStore((s) => s.wires);
+  const supply = useCircuitStore((s) => s.supply);
+  const globalVoltage = useCircuitStore((s) => s.globalVoltage);
+  const faults = useCircuitStore((s) => s.faults);
   const selectedComponentId = useCircuitStore((s) => s.selectedComponentId);
   const inspectorVisible = selectedComponentId !== null;
   const [showHint, setShowHint] = useState(false);
   const template = activeGuideId ? getGuidedCircuitTemplate(activeGuideId) : undefined;
   const progress = useMemo(
     () =>
-      template ? getGuideProgress(template, { components, wires }, simRunning, simResult) : null,
-    [template, components, wires, simRunning, simResult],
+      template
+        ? getGuideProgress(
+            template,
+            { components, wires, supply, globalVoltage, faults },
+            simRunning,
+            simResult,
+          )
+        : null,
+    [template, components, wires, supply, globalVoltage, faults, simRunning, simResult],
   );
 
   useEffect(() => {
-    if (template && progress?.completed) markGuideCompleted(template.id);
-  }, [template, progress?.completed]);
+    if (template && progress?.completed)
+      markGuideCompleted(template, { components, wires, supply, globalVoltage, faults }, simResult);
+  }, [template, progress?.completed, components, wires, supply, globalVoltage, faults, simResult]);
 
   if (!template || !progress) return null;
 

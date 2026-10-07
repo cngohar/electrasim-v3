@@ -1,70 +1,56 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { seriesFixture } from '@electrasim/domain/core/mnaFixtures';
+import { simulate } from '@electrasim/domain/simulation';
+import { getGuidedCircuitTemplate } from '@electrasim/domain/templates';
+import { beforeEach, expect, it } from 'vitest';
 import {
   clearGuideProgress,
   getCompletedGuideIds,
   isGuideCompleted,
   markGuideCompleted,
+  wasGuideCompletedEarlier,
 } from './guideProgressPersistence';
-
-const NEW_KEY = 'electrasim:guide-progress:v1';
-const LEGACY_KEY = 'electrasim:challenge-progress:v1';
-
-beforeEach(() => {
-  window.localStorage.clear();
+beforeEach(() => window.localStorage.clear());
+const key = 'electrasim:guide-progress:v2';
+it('records only current finding-free checklists with versions and stable timestamps', () => {
+  const circuit = seriesFixture([6]);
+  const template = { ...getGuidedCircuitTemplate('simple-lamp')!, circuit };
+  const result = simulate(circuit);
+  expect(markGuideCompleted(template, circuit, result)).toBe(true);
+  const first = JSON.parse(localStorage.getItem(key)!);
+  expect(first['simple-lamp']).toMatchObject({ version: 2, inputRevision: result.inputRevision });
+  expect(markGuideCompleted(template, circuit, result)).toBe(true);
+  expect(JSON.parse(localStorage.getItem(key)!)['simple-lamp'].completedAt).toBe(
+    first['simple-lamp'].completedAt,
+  );
+  expect(getCompletedGuideIds()).toEqual(['simple-lamp']);
 });
-
-describe('guideProgressPersistence', () => {
-  it('marks a guide completed and keeps the timestamp stable', () => {
-    markGuideCompleted('simple-lamp');
-    expect(isGuideCompleted('simple-lamp')).toBe(true);
-    expect(isGuideCompleted('other-guide')).toBe(false);
-    expect(getCompletedGuideIds()).toEqual(['simple-lamp']);
-
-    const first = JSON.parse(window.localStorage.getItem(NEW_KEY) ?? '{}') as Record<
-      string,
-      number
-    >;
-    markGuideCompleted('simple-lamp');
-    const second = JSON.parse(window.localStorage.getItem(NEW_KEY) ?? '{}') as Record<
-      string,
-      number
-    >;
-    expect(second['simple-lamp']).toBe(first['simple-lamp']);
-  });
-
-  it('migrates completions from the retired challenge-labelled key', () => {
-    window.localStorage.setItem(
-      LEGACY_KEY,
-      JSON.stringify({ 'simple-lamp': 123, 'timer-bell': 456 }),
-    );
-
-    expect(isGuideCompleted('simple-lamp')).toBe(true);
-    expect(getCompletedGuideIds()).toEqual(['simple-lamp', 'timer-bell']);
-
-    // The new key holds the migrated data and the legacy key is cleaned up.
-    const migrated = JSON.parse(window.localStorage.getItem(NEW_KEY) ?? '{}') as Record<
-      string,
-      number
-    >;
-    expect(migrated['simple-lamp']).toBe(123);
-    expect(window.localStorage.getItem(LEGACY_KEY)).toBeNull();
-  });
-
-  it('tolerates corrupt storage without throwing', () => {
-    window.localStorage.setItem(NEW_KEY, '{not json');
-    window.localStorage.setItem(LEGACY_KEY, '"also not an object"');
-
-    expect(isGuideCompleted('simple-lamp')).toBe(false);
-    expect(getCompletedGuideIds()).toEqual([]);
-  });
-
-  it('clears both the current and the legacy keys', () => {
-    window.localStorage.setItem(NEW_KEY, JSON.stringify({ a: 1 }));
-    window.localStorage.setItem(LEGACY_KEY, JSON.stringify({ b: 2 }));
-
-    clearGuideProgress();
-
-    expect(window.localStorage.getItem(NEW_KEY)).toBeNull();
-    expect(window.localStorage.getItem(LEGACY_KEY)).toBeNull();
-  });
+it('retains historical completions without granting current-model completion', () => {
+  localStorage.setItem('electrasim:guide-progress:v1', JSON.stringify({ 'simple-lamp': 123 }));
+  expect(wasGuideCompletedEarlier('simple-lamp')).toBe(true);
+  expect(isGuideCompleted('simple-lamp')).toBe(false);
+  expect(getCompletedGuideIds()).toEqual([]);
+  expect(localStorage.getItem('electrasim:guide-progress:v1')).not.toBeNull();
+});
+it('rejects unsupported, missing, stale and obsolete evidence without changing history', () => {
+  const template = getGuidedCircuitTemplate('simple-lamp')!;
+  expect(markGuideCompleted(template, template.circuit, simulate(template.circuit))).toBe(false);
+  const circuit = seriesFixture([6]);
+  const supported = { ...template, circuit };
+  const result = simulate(circuit);
+  expect(markGuideCompleted(supported, circuit, null)).toBe(false);
+  expect(markGuideCompleted(supported, circuit, { ...result, inputRevision: 'stale' })).toBe(false);
+  expect(
+    markGuideCompleted(supported, circuit, {
+      ...result,
+      electricalContract: { ...result.electricalContract!, modelVersion: 'obsolete' },
+    }),
+  ).toBe(false);
+  expect(getCompletedGuideIds()).toEqual([]);
+});
+it('tolerates corrupt storage and clears all generations on explicit reset', () => {
+  for (const item of [key, 'electrasim:guide-progress:v1', 'electrasim:challenge-progress:v1'])
+    localStorage.setItem(item, 'invalid');
+  expect(getCompletedGuideIds()).toEqual([]);
+  clearGuideProgress();
+  expect(localStorage.length).toBe(0);
 });

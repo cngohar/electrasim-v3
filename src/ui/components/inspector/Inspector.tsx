@@ -11,6 +11,7 @@ import {
   type WireInstance,
 } from '@electrasim/domain';
 import { getSimulationLimitations } from '@electrasim/domain/simulationCoverage';
+import { isCurrentSimulation } from '@electrasim/domain/simulationEvidence';
 import {
   ChevronLeft,
   ChevronRight,
@@ -43,6 +44,9 @@ const ValidationReportView = lazy(() =>
 );
 const InspectorFaultLabView = lazy(() =>
   import('./InspectorFaultLabView').then((m) => ({ default: m.InspectorFaultLabView })),
+);
+const InspectorAnalyticsView = lazy(() =>
+  import('./InspectorAnalyticsView').then((m) => ({ default: m.InspectorAnalyticsView })),
 );
 const InspectorHistoryView = lazy(() =>
   import('./InspectorHistoryView').then((m) => ({ default: m.InspectorHistoryView })),
@@ -78,9 +82,11 @@ interface Props {
 export function Inspector({
   selectedComp: initialSelectedComp,
   selectedWire: initialSelectedWire,
-  simResult,
+  simResult: providedResult,
   isPhone,
 }: Props) {
+  const circuit = useCircuitStore((s) => s);
+  const simResult = isCurrentSimulation(circuit, providedResult) ? providedResult : null;
   const selectionState = useInspectorSelectionState({
     selectedComp: initialSelectedComp,
     selectedWire: initialSelectedWire,
@@ -213,7 +219,7 @@ export function Inspector({
                   ? 'bg-purple-600 text-white shadow-xs'
                   : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
               }`}
-              title="Waveform Scope"
+              title="Current calculated readings"
             >
               <Sparkles className="size-4" />
             </button>
@@ -417,20 +423,9 @@ export function Inspector({
             ))}
 
           {activeInspectorTab === 'analytics' && (
-            <div className="space-y-3 p-4 text-xs text-slate-700 dark:text-slate-200">
-              <p className="font-semibold">Waveform and energy measurements unavailable</p>
-              <p>
-                The current calculation does not provide terminal-pair waveforms, power factor,
-                temperature or accumulated energy measurements.
-              </p>
-              <button
-                type="button"
-                className="underline"
-                onClick={() => setActiveInspectorTab('properties')}
-              >
-                Review available estimates in component properties
-              </button>
-            </div>
+            <Suspense fallback={<TabLoadingFallback />}>
+              <InspectorAnalyticsView simResult={simResult} selectedComp={initialSelectedComp} />
+            </Suspense>
           )}
 
           {activeInspectorTab === 'validation' && (
@@ -570,7 +565,7 @@ export function Inspector({
                 ? 'bg-purple-600 text-white shadow-md'
                 : 'text-slate-500 hover:bg-slate-200/60 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800'
             }`}
-            title="Waveform Oscilloscope"
+            title="Current calculated readings"
           >
             <Sparkles className="size-4" />
             {activeInspectorTab === 'analytics' && (

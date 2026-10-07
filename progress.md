@@ -394,3 +394,21 @@ remain 44.76–66.88 ms, so performance targets remain open.
 [Acceptance and scope](docs/audits/phase-1-dol-guide.md). Updated the phase, core
 rebuild and behavior plans. Next is 1.5F full consumer/lab migration and legacy
 retirement. No remote account operations, deployment or database migration.
+
+
+## 2026-10-07 — Phase 1.5F.1 current consumers accepted locally
+
+Continued from the clean E.3 baseline. Added `packages/domain/src/{simulationEvidence,simulationReadings,faultApplicability}.ts` and `simulation/consumerFixtures.ts`. Simulation results bind to exact normalized electrical inputs; consumers reject missing/stale/obsolete evidence, retain named terminal-pair readings and independent references, and keep unsupported operation separate from completion. Circuit validation and declarative functional rules now withhold unassessed passes, with plain model-gap feedback. Guide progress receives the full circuit and checks authored sources/device models; version-2 completion history preserves old timestamps as historical checklists. EIC export recalculates current input and suppresses passing verdicts for model gaps, faults and failed items.
+
+Replaced the hidden fabricated analytics with shared solved readings, migrated inspector/Fault Lab freshness, shared all 14 fault applicability decisions between the panel and context menus, added phone terminal targeting, and routed Simulation-tab replacement through the stopped repair action. Clearing logs follow successful authorization. The browser no longer projects unassessed legacy trips/damage or emits the old automatic arc/DC-blinding alert flow; supported timed post-event projection stays current. `isFaultRemoved` is bookkeeping, while bounded `isFaultResolved` requires current supported evidence and an existing undamaged target. Unmigrated generators retain their tagged observation flag until F.2; no full grading or legacy-retirement claim is made.
+
+Added `verify:phase-1.5f1`, six consumer-evidence regressions, an export regression, versioned-history checks, 21 consumer/guide parity cases, a real Hono replay group and desktop/phone browser cases. **Required stages passed across comprehensive and focused runs:** all project typechecks, the **155-module** domain boundary, repository lint across **773 files**, **135 unit files / 2,185 tests**, final build/assets/links/SEO/CSP, numerical benchmark, **821 exact Bun/workerd cases**, **18 actual Worker/D1/cookie groups** and **47 unique Chromium cases in nine files**. The initial aggregate browser run exposed stale feedback/menu expectations and old readiness/demo flows; focused corrections passed, including unchanged DOL desktop/phone assertions after the desktop's initial five-second wait. No single uninterrupted green default phase run is claimed.
+
+Final assets: **251,292 B gzip initial JavaScript / 300,000 B**, **26,004 B CSS / 30,000 B**; 193 HTML link checks and 191 SEO page checks passed. Series/isolated-transformer/cascade median/p95: **1.19/2.84 ms**, **0.82/1.35 ms**, **1.13/1.84 ms**. Dense fixtures remain **52.94–78.09 ms median / 68.61–132.74 ms p95**, with dense solver and renderer targets open. Evidence is recorded in [the consumer audit](docs/audits/phase-1-consumer-integration.md), `.wrangler/phase15f1-*.log`, `.wrangler/domain-tests-a3WmEH/` and `.wrangler/membership-tests-X84DgF/`. Local listeners/Chromium required sandbox escalation; no remote Cloudflare access was involved.
+
+**Next: 1.5F.2 — basic/advanced Diagnosis Lab and Ohmageddon operating-point grading, supported generation, authorized attempts and versioned replay.** F.3 legacy retirement and full `verify`/stress suites remain before effects. Changes are local and uncommitted; no database migration, deployment or Git push occurred.
+
+
+## 2026-10-07 — Phase 1.5F.1 GitHub publication requested
+
+The user requested committing and pushing the accepted current phase. Reviewed the 50-file F.1 change and its recorded local checks. A fresh `git fetch origin main` confirmed the local branch also contains the unpublished E.3 dependency, `34afaaa`; publication includes that commit followed by the F.1 commit. Normal commit hooks will run formatting/lint and all project typechecks. GitHub synchronization is verified after the push separately from the local acceptance evidence; this request performs no Cloudflare operation.

@@ -12,6 +12,7 @@
 
 import { COMPONENT_DEFS } from '../../components';
 import { simulate } from '../../simulation';
+import { hasOperationEvidence } from '../../simulationEvidence';
 import type { Circuit, FaultType } from '../../types';
 import {
   type CircuitGraph,
@@ -33,6 +34,8 @@ export interface RuleTarget {
 
 export interface RuleEvaluation {
   verdict: RuleVerdict;
+  /** A model gap must be explained without blaming the learner's wiring. */
+  assessmentUnavailable?: boolean;
   /** Human reason when not passing. */
   reason?: string;
   /** Components/wires the UI can focus when this rule is selected. */
@@ -81,9 +84,10 @@ function energisedCount(
   circuit: Circuit,
   loadType: string,
   pressedTypes: ReadonlySet<string>,
-): number {
+): number | null {
   const evidence = withPresses(circuit, pressedTypes);
   const result = simulate(evidence, { appMode: 'pro' });
+  if (!hasOperationEvidence(evidence, result)) return null;
   const energised = result.energizedComponents;
   return circuit.components.filter(
     (component) => component.type === loadType && energised.has(component.id),
@@ -295,6 +299,13 @@ export function energisedWhile(
       };
     }
     const live = energisedCount(ctx.circuit, loadType, pressed);
+    if (live === null)
+      return {
+        verdict: 'incomplete',
+        assessmentUnavailable: true,
+        reason: 'This load behavior is not assessed by the current model.',
+        targets,
+      };
     const needed = expected === 'all' ? total : Math.min(expected, total);
     if (options.count === 0) {
       if (live === 0) return { verdict: 'pass', targets };

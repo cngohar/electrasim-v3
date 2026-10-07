@@ -63,9 +63,12 @@ describe('InspectorFaultLabView', () => {
 
     expect(screen.getByText(`Wire #${wireId.slice(0, 8)}`)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Open Circuit/ })).toBeEnabled();
-    expect(screen.getByRole('button', { name: /Open Neutral/ })).toBeEnabled();
+    expect(screen.queryByRole('button', { name: /Open Neutral/ })).toBeNull();
+    expect(screen.getAllByText(/Electrical effect not assessed/).length).toBeGreaterThan(0);
     // Component-only faults and thresholds are not offered for wires.
-    expect(screen.queryByRole('button', { name: /Reverse Polarity/ })).toBeNull();
+    expect(screen.getByRole('button', { name: /Reverse Polarity/ })).toHaveTextContent(
+      'Electrical effect not assessed',
+    );
     expect(screen.queryByText('Threshold Overrides')).toBeNull();
   });
 

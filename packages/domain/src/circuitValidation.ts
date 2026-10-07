@@ -7,6 +7,7 @@ import { assessWireCapacity } from './core/wireCapacity';
 import { resolveWireProperties } from './core/wireProperties';
 import { isOvercurrentDevice, isResidualDevice } from './protectionRoles';
 import { getSimulationLimitations } from './simulationCoverage';
+import { isCurrentSimulation } from './simulationEvidence';
 import { getStandard } from './standards';
 import type { StandardId } from './standards';
 import type { Circuit, ComponentInstance, SimulationResult, WireInstance } from './types';
@@ -38,9 +39,11 @@ function resolveConductorMm2(
 
 export function validateCircuit(
   rawCircuit: Circuit,
-  simResult?: SimulationResult | null,
+  providedResult?: SimulationResult | null,
   standard: StandardId = 'uk',
 ): ValidationReport {
+  const resultCurrent = isCurrentSimulation(rawCircuit, providedResult);
+  const simResult = resultCurrent ? providedResult : null;
   const input = validateCircuitInput(rawCircuit);
   if (!input.valid)
     return {
@@ -222,6 +225,17 @@ export function validateCircuit(
     };
   }
 
+  if (!resultCurrent)
+    issues.push({
+      id: 'simulation_evidence_unavailable',
+      severity: 'warning',
+      category: 'configuration',
+      title: 'Current calculation required',
+      blocking: false,
+      description:
+        'No versioned calculation matches this circuit. Wiring checks below do not establish successful operation or repair.',
+      recommendation: 'Run the current circuit to refresh its calculated results.',
+    });
   const modelLimitations = simResult?.modelLimitations ?? getSimulationLimitations(circuit);
   if (simResult?.phasor || components.some((c) => c.type === 'ac-three-phase-supply'))
     issues.push({

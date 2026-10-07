@@ -1,3 +1,4 @@
+import { assessFaultTarget, getAvailableFaultsForTarget } from '@electrasim/domain';
 /**
  * Context-menu item builders — the target-aware menu entry lists.
  *
@@ -7,12 +8,10 @@
 
 import { COMPONENT_DEFS } from '@electrasim/domain';
 import {
-  AlertTriangle,
   ArrowRightLeft,
   BookOpen,
   Copy,
   Download,
-  Flame,
   HelpCircle,
   Keyboard,
   MousePointerClick,
@@ -65,6 +64,7 @@ export function buildItems(target: ContextMenuState['target']): MenuEntry[] {
   const items: MenuEntry[] = [];
   const close = () => useUiStore.getState().setContextMenu(null);
   const simRunning = useUiStore.getState().simRunning;
+  const cs = useCircuitStore.getState();
 
   // Manual fault-injection menu items only appear in Pro Electrician Mode
   // and while the master "Faults" toggle is armed. Student Mode keeps the
@@ -230,8 +230,8 @@ export function buildItems(target: ContextMenuState['target']): MenuEntry[] {
         items.push({
           icon: ShieldCheck,
           label: 'Clear Injected Fault',
-          action: () => {
-            useCircuitStore.getState().setComponentFault(target.id, undefined);
+          action: async () => {
+            if (!(await useCircuitStore.getState().setComponentFault(target.id, undefined))) return;
             useUiStore
               .getState()
               .addLog(`Cleared fault on ${def?.label ?? 'component'}`, 'success');
@@ -240,131 +240,19 @@ export function buildItems(target: ContextMenuState['target']): MenuEntry[] {
         });
       }
 
-      items.push({
-        icon: Scissors,
-        label: 'Inject Open Circuit (Break)',
-        disabled: comp?.state.fault === 'open-circuit',
-        action: () => {
-          useCircuitStore.getState().setComponentFault(target.id, 'open-circuit');
-          useUiStore
-            .getState()
-            .addLog(`Injected Open Circuit fault on ${def?.label ?? 'component'}`, 'warning');
-          close();
-        },
-      });
-
-      items.push({
-        icon: Flame,
-        label: 'Inject Short Circuit',
-        disabled: comp?.state.fault === 'short-circuit',
-        action: () => {
-          useCircuitStore.getState().setComponentFault(target.id, 'short-circuit');
-          useUiStore
-            .getState()
-            .addLog(`Injected Short Circuit fault on ${def?.label ?? 'component'}`, 'error');
-          close();
-        },
-      });
-
-      items.push({
-        icon: RefreshCcw,
-        label: 'Inject Reverse Polarity (L↔N Swap)',
-        disabled: comp?.state.fault === 'reverse-polarity',
-        action: () => {
-          useCircuitStore.getState().setComponentFault(target.id, 'reverse-polarity');
-          useUiStore
-            .getState()
-            .addLog(`Injected Reverse Polarity fault on ${def?.label ?? 'component'}`, 'warning');
-          close();
-        },
-      });
-
-      if (def?.isSwitch) {
+      for (const fault of getAvailableFaultsForTarget(cs, { type: 'component', id: target.id })) {
+        const coverage = assessFaultTarget(cs, fault.id, { type: 'component', id: target.id });
         items.push({
-          icon: AlertTriangle,
-          label: 'Inject Switched Neutral (BS 7671 Reg 132.14 Hazard)',
-          disabled: comp?.state.fault === 'switched-neutral',
-          action: () => {
-            useCircuitStore.getState().setComponentFault(target.id, 'switched-neutral');
-            useUiStore
-              .getState()
-              .addLog(`Injected Switched Neutral Hazard on ${def?.label ?? 'switch'}`, 'error');
+          icon: Scissors,
+          label: `Inject ${fault.id === 'short-circuit' ? 'Short Circuit' : fault.label}${coverage.coverage === 'not-assessed' ? ' (not assessed)' : ''}`,
+          disabled: comp?.state.fault === fault.id,
+          action: async () => {
+            if (!(await useCircuitStore.getState().setComponentFault(target.id, fault.id))) return;
+            useUiStore.getState().addLog(`${fault.label}: ${coverage.reason}`, 'warning');
             close();
           },
         });
       }
-
-      if (def?.isProtection) {
-        items.push({
-          icon: Zap,
-          label: 'Inject Protection Bypass (Bridged)',
-          disabled: comp?.state.fault === 'protection-bypass',
-          action: () => {
-            useCircuitStore.getState().setComponentFault(target.id, 'protection-bypass');
-            useUiStore
-              .getState()
-              .addLog(`Injected Protection Bypass on ${def?.label ?? 'breaker'}`, 'warning');
-            close();
-          },
-        });
-        items.push({
-          icon: Sliders,
-          label: 'Inject Breaker Jammed Open',
-          disabled: comp?.state.fault === 'protection-forced-open',
-          action: () => {
-            useCircuitStore.getState().setComponentFault(target.id, 'protection-forced-open');
-            useUiStore
-              .getState()
-              .addLog(`Injected Mechanism Jam on ${def?.label ?? 'breaker'}`, 'warning');
-            close();
-          },
-        });
-      }
-
-      items.push({
-        icon: Unlink,
-        label: 'Inject Earth Leakage / Earth Fault',
-        disabled: comp?.state.fault === 'earth-fault' || comp?.state.fault === 'live-to-earth',
-        action: () => {
-          useCircuitStore.getState().setComponentFault(target.id, 'earth-fault');
-          useUiStore
-            .getState()
-            .addLog(`Injected Earth Fault on ${def?.label ?? 'component'}`, 'warning');
-          close();
-        },
-      });
-
-      items.push({
-        icon: Unlink,
-        label: 'Inject Smooth DC Residual (EV/PV fault)',
-        disabled: comp?.state.fault === 'smooth-dc-residual',
-        action: () => {
-          useCircuitStore.getState().setComponentFault(target.id, 'smooth-dc-residual');
-          useUiStore
-            .getState()
-            .addLog(
-              `Injected Smooth DC Residual fault on ${def?.label ?? 'component'} — only Type B RCD/RCBOs detect it`,
-              'warning',
-            );
-          close();
-        },
-      });
-
-      items.push({
-        icon: Flame,
-        label: 'Inject Arc Fault (series/parallel)',
-        disabled: comp?.state.fault === 'arc-fault',
-        action: () => {
-          useCircuitStore.getState().setComponentFault(target.id, 'arc-fault');
-          useUiStore
-            .getState()
-            .addLog(
-              `Injected Arc Fault on ${def?.label ?? 'component'} — only an AFDD (BS EN 62606) detects arcing`,
-              'warning',
-            );
-          close();
-        },
-      });
     } // end faultsArmed (component)
 
     items.push({ separator: true });
@@ -424,61 +312,42 @@ export function buildItems(target: ContextMenuState['target']): MenuEntry[] {
     if (faultsArmed) {
       items.push({ separator: true });
 
-      if (wire?.fault) {
+      if (
+        wire?.fault ||
+        cs.faults.some(
+          (fault) =>
+            !fault.resolved && fault.target.type === 'wire' && fault.target.id === target.id,
+        )
+      ) {
         items.push({
           icon: ShieldCheck,
           label: 'Clear Wire Fault',
-          action: () => {
-            useCircuitStore.getState().setWireFault(target.id, undefined);
+          action: async () => {
+            if (!(await useCircuitStore.getState().setWireFault(target.id, undefined))) return;
             useUiStore.getState().addLog('Cleared fault from wire', 'success');
             close();
           },
         });
       }
 
-      items.push({
-        icon: Scissors,
-        label: 'Inject Open Circuit (Break Wire)',
-        disabled: wire?.fault === 'open-circuit',
-        action: () => {
-          useCircuitStore.getState().setWireFault(target.id, 'open-circuit');
-          useUiStore.getState().addLog('Injected Open Circuit break on wire', 'warning');
-          close();
-        },
-      });
-
-      items.push({
-        icon: Scissors,
-        label: 'Inject Broken Neutral Return',
-        disabled: wire?.fault === 'open-neutral',
-        action: () => {
-          useCircuitStore.getState().setWireFault(target.id, 'open-neutral');
-          useUiStore.getState().addLog('Injected Floating/Broken Neutral on wire', 'warning');
-          close();
-        },
-      });
-
-      items.push({
-        icon: Flame,
-        label: 'Inject Short Circuit (L-N Fault)',
-        disabled: wire?.fault === 'short-circuit',
-        action: () => {
-          useCircuitStore.getState().setWireFault(target.id, 'short-circuit');
-          useUiStore.getState().addLog('Injected Short Circuit fault on wire', 'error');
-          close();
-        },
-      });
-
-      items.push({
-        icon: Unlink,
-        label: 'Inject Live-to-Earth Insulation Breakdown',
-        disabled: wire?.fault === 'live-to-earth',
-        action: () => {
-          useCircuitStore.getState().setWireFault(target.id, 'live-to-earth');
-          useUiStore.getState().addLog('Injected Live-to-Earth fault on wire', 'error');
-          close();
-        },
-      });
+      for (const fault of getAvailableFaultsForTarget(cs, { type: 'wire', id: target.id })) {
+        const coverage = assessFaultTarget(cs, fault.id, { type: 'wire', id: target.id });
+        items.push({
+          icon: Scissors,
+          label: `Inject ${fault.id === 'short-circuit' ? 'Short Circuit' : fault.label}${coverage.coverage === 'not-assessed' ? ' (not assessed)' : ''}`,
+          disabled: wire?.fault === fault.id,
+          action: async () => {
+            if (
+              !(await useCircuitStore
+                .getState()
+                .injectFault({ type: fault.id, target: { type: 'wire', id: target.id } }))
+            )
+              return;
+            useUiStore.getState().addLog(`${fault.label}: ${coverage.reason}`, 'warning');
+            close();
+          },
+        });
+      }
     } // end faultsArmed (wire)
 
     items.push({ separator: true });

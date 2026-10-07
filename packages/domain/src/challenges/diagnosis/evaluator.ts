@@ -37,7 +37,7 @@
  */
 
 import { exerciseSupplyIssue } from '../../core/exerciseSupply';
-import { isFaultResolved } from '../../faults';
+import { isFaultRemoved } from '../../faults';
 import { simulate } from '../../simulation';
 import type { Circuit, FaultType, SimulationResult } from '../../types';
 import { describeFaultTarget } from '../faults/injection';
@@ -175,7 +175,7 @@ export function evaluateDiagnosis(
     locationKey: entry.locationKey,
     identified: already.has(entry.fault.id),
     newlyIdentified: entry.fault.id === newlyIdentifiedId,
-    cleared: isFaultResolved(entry.fault, userCircuit, simulation),
+    cleared: isFaultRemoved(entry.fault, userCircuit, simulation),
   }));
 
   // Half-marks reporting, so the panel can say "right kind, wrong place"
@@ -186,7 +186,7 @@ export function evaluateDiagnosis(
   const outstandingCount = faults.filter((result) => !result.identified).length;
 
   // Repair is judged from three independent angles, because each alone is
-  // foolable: `isFaultResolved` would accept a circuit "fixed" by deleting the
+  // foolable: `isFaultRemoved` would accept a circuit "fixed" by deleting the
   // load; a behavioural diff would accept a severed earth; a structural diff
   // would accept a reconnected-but-still-faulted cable.
   const faultCleared = faults.every((result) => result.cleared);

@@ -1,6 +1,8 @@
 /** Printable educational schedule; never a certificate or field measurement. */
 
 import { resolveDocumentSupply } from '@electrasim/domain/core/supplies';
+import { simulate } from '@electrasim/domain/simulation';
+import { hasOperationEvidence } from '@electrasim/domain/simulationEvidence';
 import { getStandard } from '@electrasim/domain/standards';
 import type { Circuit } from '@electrasim/domain/types';
 import {
@@ -31,6 +33,12 @@ export interface EicCircuitRow {
 }
 
 export interface EicReportData {
+  calculation: {
+    engineVersion: string;
+    modelVersion: string;
+    status: string;
+    assessment: 'modeled' | 'not-assessed';
+  };
   generatedIso: string;
   earthing: ZsEarthArrangement;
   zeOhms: number | null;
@@ -97,8 +105,23 @@ export function buildEicReportData(
   now: Date = new Date(),
 ): EicReportData {
   const checks = runZsChecks(circuit, context);
+  // Recalculate the export snapshot. A cached UI result is never export evidence.
+  const result = simulate(circuit, { standard: context.standard });
+  const assessed =
+    hasOperationEvidence(circuit, result) &&
+    !result.phasor &&
+    result.errors.length === 0 &&
+    (result.activeInjectedFaults?.length ?? 0) === 0 &&
+    !circuit.components.some((c) => c.state.isBlown || c.state.isTripped) &&
+    !circuit.wires.some((w) => w.isBusted);
   const supply = resolveDocumentSupply(circuit).model;
   return {
+    calculation: {
+      engineVersion: result.electricalContract?.engineVersion ?? 'unavailable',
+      modelVersion: result.electricalContract?.modelVersion ?? 'unavailable',
+      status: result.electricalContract?.status ?? 'not-assessed',
+      assessment: assessed ? 'modeled' : 'not-assessed',
+    },
     generatedIso: now.toISOString(),
     earthing: context.earthing,
     zeOhms:
@@ -106,7 +129,16 @@ export function buildEicReportData(
     supplyVoltage: supply.voltage,
     frequencyHz: supply.kind === 'dc' ? 0 : supply.frequencyHz,
     reference: getStandard(context.standard).citation,
-    rows: checks.map(rowFromZs),
+    rows: checks.map(rowFromZs).map((row) =>
+      !assessed && row.verdict !== 'EXCEEDS MODEL'
+        ? {
+            ...row,
+            verdict: 'NOT ASSESSED' as const,
+            disconnection: 'Not assessed',
+            description: `${row.description}. Current operation/repair is not assessed; these are design estimates only.`,
+          }
+        : row,
+    ),
     wireCount: circuit.wires.length,
     componentCount: circuit.components.length,
     totalRunMeters: circuit.wires.reduce((acc, w) => acc + (w.lengthMeters ?? 0), 0),
@@ -208,6 +240,7 @@ export function renderEicHtml(data: EicReportData): string {
   </div>
 
   <h2>Part 2 — Teaching estimates · ${e(data.reference)}</h2>
+  <p>Fresh calculation: ${e(data.calculation.status)} · ${e(data.calculation.engineVersion)} · model ${e(data.calculation.modelVersion)}. Operation/repair assessment: ${e(data.calculation.assessment)}.</p>
   <table>
     <thead>
       <tr>

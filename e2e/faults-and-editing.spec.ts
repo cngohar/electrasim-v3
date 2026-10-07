@@ -53,7 +53,20 @@ async function loadGuide(page: Page, templateId: string, title: string) {
 
 async function runSim(page: Page) {
   await page.getByRole('button', { name: /^Run Simulation$/ }).click();
-  await expect(page.getByRole('button', { name: /^Stop$/ })).toBeVisible();
+  const stop = page.getByRole('button', { name: /^Stop$/ });
+  const review = page.getByRole('dialog', { name: 'Circuit readiness' });
+  const override = page.getByRole('button', { name: 'Run anyway (teacher/demo)', exact: true });
+  await expect
+    .poll(
+      async () =>
+        (await stop.isVisible()) || (await review.isVisible()) || (await override.isVisible()),
+    )
+    .toBe(true);
+  if (!(await stop.isVisible())) {
+    if (await override.isVisible()) await override.click();
+    else await review.getByRole('button', { name: 'Run diagnostic', exact: true }).click();
+  }
+  await expect(stop).toBeVisible();
 }
 
 /**
@@ -77,32 +90,8 @@ async function collapsePalette(page: Page) {
   }
 }
 
-/** Amber dashed frame + badge rendered on a tripped protection device. */
-function tripMarker(page: Page, componentId: string) {
-  const node = page.locator(`[data-component-id="${componentId}"]`);
-  return {
-    dot: node.locator('circle[fill="#f59e0b"]'),
-    frame: node.locator('rect[stroke="#f59e0b"][stroke-dasharray="4 3"]'),
-  };
-}
-
 const faultAlertDialog = (page: Page) =>
   page.getByRole('dialog').filter({ has: page.getByText('CIRCUIT PROTECTION TRIPPED!') });
-
-async function dismissFaultAlert(page: Page) {
-  await faultAlertDialog(page).getByRole('button', { name: 'Close modal' }).click();
-  await expect(faultAlertDialog(page)).toBeHidden();
-}
-
-/** Open the Inspector → Simulation tab for the component and reset its trip. */
-async function resetBreakerViaInspector(page: Page, componentId: string) {
-  await hitbox(page, componentId).click();
-  await page.getByRole('button', { name: 'Simulation Telemetry & Faults' }).click();
-  const reset = page.getByRole('button', { name: /RESET Breaker/ });
-  await expect(reset).toBeVisible();
-  await expect(reset).toBeEnabled();
-  await reset.click();
-}
 
 test.describe('faults & editing', () => {
   test.beforeEach(async ({ page }, testInfo) => {
@@ -125,187 +114,78 @@ test.describe('faults & editing', () => {
     page.on('dialog', (dialog) => dialog.accept());
   });
 
-  test('a bolted short trips the guarding MCB; reset → re-trip → clear → clean run', async ({
-    page,
-  }) => {
-    const mcbId = `${STAIRCASE}-mcb`;
-    const bulbId = `${STAIRCASE}-bulb`;
-
-    await loadGuide(page, STAIRCASE, 'Two-Way Staircase Light');
-    await runSim(page);
-
-    // The guide panel overlays the rightmost canvas components at tablet
-    // widths; "Hide guide" is the (now non-destructive) way to free the space.
-    await page.getByRole('button', { name: 'Hide guide' }).click();
-
-    await hitbox(page, bulbId).click({ button: 'right' });
-    await page.getByRole('button', { name: 'Inject Short Circuit' }).click();
-
-    // Injection pauses the sim; re-running lets the fault operate protection.
-    await page.getByRole('button', { name: /^Run Simulation$/ }).click();
-    await expect(faultAlertDialog(page)).toBeVisible();
-
-    const mcbAria = hitboxIn(page.locator(`[data-component-id="${mcbId}"]`));
-    await expect(mcbAria).toHaveAttribute('aria-label', /, tripped/);
-    await expect(tripMarker(page, mcbId).dot.first()).toBeVisible();
-    await expect(tripMarker(page, mcbId).frame.first()).toBeVisible();
-    await expect(page.getByRole('button', { name: /^Stop$/ })).toBeHidden();
-    await dismissFaultAlert(page);
-
-    // Resetting the breaker with the fault still injected must re-trip —
-    // a real breaker reclosing onto a bolted fault does exactly this.
-    await resetBreakerViaInspector(page, mcbId);
-    await expect(mcbAria).not.toHaveAttribute('aria-label', /, tripped/);
-    await page.getByRole('button', { name: /^Run Simulation$/ }).click();
-    await expect(faultAlertDialog(page)).toBeVisible();
-    await expect(mcbAria).toHaveAttribute('aria-label', /, tripped/);
-    await dismissFaultAlert(page);
-
-    // The expanded drawer covers right-side canvas components at tablet
-    // widths; collapse it to reach the faulted bulb again.
-    await page.getByRole('button', { name: 'Collapse Inspector' }).first().click();
-    await hitbox(page, bulbId).click({ button: 'right' });
-    await page.getByRole('button', { name: 'Clear Injected Fault' }).click();
-    await resetBreakerViaInspector(page, mcbId);
-    await page.getByRole('button', { name: /^Run Simulation$/ }).click();
-    await expect(page.getByRole('button', { name: /^Stop$/ })).toBeVisible();
-    await expect(faultAlertDialog(page)).toBeHidden();
-    await expect(mcbAria).not.toHaveAttribute('aria-label', /, tripped/);
-    // Both travellers at L1 energise the lamp again (single-halo glow).
-    await expect(
-      page.locator(`[data-component-id="${bulbId}"]`).locator('circle[fill="#facc15"]').first(),
-    ).toBeVisible();
-
-    // Hiding the guide earlier must not have ended the challenge: the
-    // floating pill brings the checklist back with progress intact. The MCB
-    // is still selected with the drawer open, so the panel yields to the
-    // Inspector — the drawer's own return strip closes the loop.
-    await page.getByRole('button', { name: 'Show guide steps' }).click();
-    await page.getByRole('button', { name: 'Close inspector and return to guide' }).click();
-    await expect(page.getByRole('heading', { name: 'Two-Way Staircase Light' })).toBeVisible();
-  });
-
-  test('earth leakage trips the RCBO guarding the faulted network', async ({ page }) => {
-    const rcboId = `${RCBO_TEMPLATE}-rcbo`;
-    const socketId = `${RCBO_TEMPLATE}-socket`;
-
-    await loadGuide(page, RCBO_TEMPLATE, 'RCBO-Protected Socket');
-    await runSim(page);
-
-    await hitbox(page, socketId).click({ button: 'right' });
-    await page.getByRole('button', { name: 'Inject Earth Leakage / Earth Fault' }).click();
-
-    await page.getByRole('button', { name: /^Run Simulation$/ }).click();
-    await expect(faultAlertDialog(page)).toBeVisible();
-    /* The guided template re-specs the RCBO to 20 A on a 2.5 mm² radial, so the
-       learner-facing name is the instance rating, not the catalogue default. */
-    await expect(faultAlertDialog(page)).toContainText('RCBO (20 A)');
-
-    const rcboAria = hitboxIn(page.locator(`[data-component-id="${rcboId}"]`));
-    await expect(rcboAria).toHaveAttribute('aria-label', /, tripped/);
-    await dismissFaultAlert(page);
-
-    // Recover fully: clear the fault, reset the RCBO, and the lamp relights.
-    await hitbox(page, socketId).click({ button: 'right' });
-    await page.getByRole('button', { name: 'Clear Injected Fault' }).click();
-    await resetBreakerViaInspector(page, rcboId);
-    await page.getByRole('button', { name: /^Run Simulation$/ }).click();
-    await expect(page.getByRole('button', { name: /^Stop$/ })).toBeVisible();
-    await expect(faultAlertDialog(page)).toBeHidden();
-  });
-
-  test('smooth DC residual leakage blinds a Type A RCBO but trips it once set to Type B', async ({
-    page,
-  }) => {
-    const rcboId = `${RCBO_TEMPLATE}-rcbo`;
-    const socketId = `${RCBO_TEMPLATE}-socket`;
-    const manualFaultDialog = (p: Page) =>
-      p.getByRole('dialog').filter({ has: p.getByText('SMOOTH DC RESIDUAL') });
-
-    await loadGuide(page, RCBO_TEMPLATE, 'RCBO-Protected Socket');
-    await runSim(page);
-
-    // Template default is Type A (modern baseline). A smooth DC residual
-    // fault must NOT trip it — the app stops the sim and explains the
-    // blinding instead (BS EN 62423 / BS 7671 Reg 531.3.3).
-    await hitbox(page, socketId).click({ button: 'right' });
-    await page.getByRole('button', { name: 'Inject Smooth DC Residual (EV/PV fault)' }).click();
-
-    await page.getByRole('button', { name: /^Run Simulation$/ }).click();
-    await expect(manualFaultDialog(page)).toBeVisible();
-    await expect(manualFaultDialog(page)).toContainText('RCD BLINDED');
-    await expect(faultAlertDialog(page)).toHaveCount(0);
-
-    const rcboAria = hitboxIn(page.locator(`[data-component-id="${rcboId}"]`));
-    await expect(rcboAria).not.toHaveAttribute('aria-label', /, tripped/);
-    await expect(page.getByRole('button', { name: /^Stop$/ })).toBeHidden();
-    await manualFaultDialog(page).getByRole('button', { name: 'Close modal' }).click();
-    await expect(manualFaultDialog(page)).toBeHidden();
-
-    // Re-spec the device as Type B in the Inspector — the deliberate fix a
-    // BS 7671-compliant install specifies for EV/PV/VFD loads.
-    await hitbox(page, rcboId).click();
-    await page.getByRole('button', { name: 'Properties & Settings' }).click();
-    await page.getByRole('button', { name: /SMOOTH DC/ }).click();
-    await expect(page.getByText('Type B', { exact: true })).toBeVisible();
-
-    // Same fault, same run — now the Type B device trips like an earth fault.
-    await page.getByRole('button', { name: /^Run Simulation$/ }).click();
-    await expect(faultAlertDialog(page)).toBeVisible();
-    await expect(faultAlertDialog(page)).toContainText('RCBO (20 A)');
-    await expect(rcboAria).toHaveAttribute('aria-label', /, tripped/);
-    await dismissFaultAlert(page);
-
-    // Full recovery: clear the fault, reset the RCBO, clean run.
-    await page.getByRole('button', { name: 'Collapse Inspector' }).first().click();
-    await hitbox(page, socketId).click({ button: 'right' });
-    await page.getByRole('button', { name: 'Clear Injected Fault' }).click();
-    await resetBreakerViaInspector(page, rcboId);
-    await page.getByRole('button', { name: /^Run Simulation$/ }).click();
-    await expect(page.getByRole('button', { name: /^Stop$/ })).toBeVisible();
-    await expect(faultAlertDialog(page)).toBeHidden();
-    await expect(manualFaultDialog(page)).toHaveCount(0);
-    await expect(rcboAria).not.toHaveAttribute('aria-label', /, tripped/);
-  });
-
-  test('an arc fault with no AFDD in the network stops the sim with the Reg 421.1.7 blind-spot modal', async ({
-    page,
-  }) => {
-    const rcboId = `${RCBO_TEMPLATE}-rcbo`;
-    const socketId = `${RCBO_TEMPLATE}-socket`;
-    const arcFaultDialog = (p: Page) =>
-      p.getByRole('dialog').filter({ has: p.getByText('ARC FAULT') });
-
-    await loadGuide(page, RCBO_TEMPLATE, 'RCBO-Protected Socket');
-    await runSim(page);
-
-    // The template guards the socket with an RCBO + upstream MCB only — no
-    // AFDD. BS EN 62606: arcing rides at/below load current with no earth
-    // imbalance, so NOTHING may trip; the app teaches the blind spot instead.
-    await hitbox(page, socketId).click({ button: 'right' });
-    await page.getByRole('button', { name: 'Inject Arc Fault (series/parallel)' }).click();
-
-    await page.getByRole('button', { name: /^Run Simulation$/ }).click();
-    await expect(arcFaultDialog(page)).toBeVisible();
-    await expect(arcFaultDialog(page)).toContainText('NO AFDD PROTECTION');
-    await expect(faultAlertDialog(page)).toHaveCount(0);
-
-    const rcboAria = hitboxIn(page.locator(`[data-component-id="${rcboId}"]`));
-    await expect(rcboAria).not.toHaveAttribute('aria-label', /, tripped/);
-    await expect(page.getByRole('button', { name: /^Stop$/ })).toBeHidden();
-    // Teach the standard: the modal names the regulation behind the advice.
-    await expect(arcFaultDialog(page)).toContainText('BS EN 62606');
-    await arcFaultDialog(page).getByRole('button', { name: 'Close modal' }).click();
-    await expect(arcFaultDialog(page)).toBeHidden();
-
-    // Recover: clear the injected arc fault and prove a clean run.
-    await hitbox(page, socketId).click({ button: 'right' });
-    await page.getByRole('button', { name: 'Clear Injected Fault' }).click();
-    await page.getByRole('button', { name: /^Run Simulation$/ }).click();
-    await expect(page.getByRole('button', { name: /^Stop$/ })).toBeVisible();
-    await expect(arcFaultDialog(page)).toHaveCount(0);
-    await expect(faultAlertDialog(page)).toBeHidden();
-  });
+  for (const scenario of [
+    {
+      type: 'short-circuit',
+      menu: /^Inject Short Circuit/,
+      guide: STAIRCASE,
+      title: 'Two-Way Staircase Light',
+      target: `${STAIRCASE}-bulb`,
+    },
+    {
+      type: 'earth-fault',
+      menu: /^Inject Earth Fault/,
+      guide: RCBO_TEMPLATE,
+      title: 'RCBO-Protected Socket',
+      target: `${RCBO_TEMPLATE}-socket`,
+    },
+    {
+      type: 'smooth-dc-residual',
+      menu: /^Inject Smooth DC Residual/,
+      guide: RCBO_TEMPLATE,
+      title: 'RCBO-Protected Socket',
+      target: `${RCBO_TEMPLATE}-socket`,
+    },
+    {
+      type: 'arc-fault',
+      menu: /^Inject Arc Fault/,
+      guide: RCBO_TEMPLATE,
+      title: 'RCBO-Protected Socket',
+      target: `${RCBO_TEMPLATE}-socket`,
+    },
+  ]) {
+    test(`${scenario.type}: context-menu injection retains model coverage without persisting an unassessed trip`, async ({
+      page,
+    }) => {
+      await loadGuide(page, scenario.guide, scenario.title);
+      await page.getByRole('button', { name: 'Hide guide' }).click();
+      await hitbox(page, scenario.target).click({ button: 'right' });
+      await page.getByRole('button', { name: scenario.menu }).click();
+      await runSim(page);
+      await expect
+        .poll(() =>
+          page.evaluate(async () => {
+            const path = '/src/store/uiStore.ts';
+            return (await import(path)).useUiStore.getState().simResult?.electricalContract?.status;
+          }),
+        )
+        .toBe('not-assessed');
+      const observed = await page.evaluate(async () => {
+        const storePath = '/src/store/circuitStore.ts';
+        const uiPath = '/src/store/uiStore.ts';
+        const evidencePath = '/packages/domain/src/simulationEvidence.ts';
+        const circuit = (await import(storePath)).useCircuitStore.getState();
+        const result = (await import(uiPath)).useUiStore.getState().simResult;
+        return {
+          faulty: circuit.faults.map((f: { type: string }) => f.type),
+          tripped: circuit.components.some(
+            (c: { state: { isTripped?: boolean; isBlown?: boolean } }) =>
+              c.state.isTripped || c.state.isBlown,
+          ),
+          assessed: (await import(evidencePath)).hasOperationEvidence(circuit, result),
+        };
+      });
+      expect(observed.faulty).toContain(scenario.type);
+      expect(observed.tripped).toBe(false);
+      expect(observed.assessed).toBe(false);
+      await expect(faultAlertDialog(page)).toBeHidden();
+      await page.getByRole('button', { name: 'Stop', exact: true }).click();
+      await hitbox(page, scenario.target).click({ button: 'right' });
+      await page.getByRole('button', { name: 'Clear Injected Fault' }).click();
+      await runSim(page);
+      await expect(faultAlertDialog(page)).toBeHidden();
+    });
+  }
 
   test('deleting a component asks for confirmation and Ctrl+Z restores it', async ({ page }) => {
     const bulbId = `${STAIRCASE}-bulb`;
@@ -336,7 +216,7 @@ test.describe('faults & editing', () => {
     await page.getByRole('button', { name: 'Hide guide' }).click();
 
     await hitbox(page, bulbId).click({ button: 'right' });
-    await page.getByRole('button', { name: 'Inject Short Circuit' }).click();
+    await page.getByRole('button', { name: /^Inject Short Circuit/ }).click();
     // Fault badge renders on the faulted component (red dashed fault frame).
     const bulbNode = page.locator(`[data-component-id="${bulbId}"]`);
     await expect(bulbNode.locator('rect[stroke-dasharray="4 3"]').first()).toBeVisible();

@@ -17,6 +17,11 @@ test.describe('new Guided Circuits', () => {
     const bell = page.locator('[data-component-id="push-button-doorbell-bell"]');
 
     await page.getByRole('button', { name: /^Run Simulation$/ }).click();
+    await page
+      .getByRole('dialog', { name: 'Circuit readiness' })
+      .getByRole('button', { name: 'Run diagnostic', exact: true })
+      .click();
+    await expect(page.getByRole('button', { name: 'Stop', exact: true })).toBeVisible();
     await expect(bell.locator('.electrasim-bell-pulse')).toHaveCount(0);
 
     await button.focus();

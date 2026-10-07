@@ -215,9 +215,7 @@ test.describe('Challenge Mode', () => {
     await expect(page.locator('[data-circuit-canvas]')).toHaveAttribute('aria-disabled', 'false');
   });
 
-  test('Protected Lamp: starts blank, gives feedback, completes (plan §23, §38-1)', async ({
-    page,
-  }) => {
+  test('Protected Lamp: starts blank and withholds unassessed LED completion', async ({ page }) => {
     await startChallenge(page, 'Build a Protected Lamp');
 
     // The starter is a blank canvas (plan §23).
@@ -279,8 +277,8 @@ test.describe('Challenge Mode', () => {
     await panel(page)
       .getByRole('button', { name: /Check circuit/ })
       .click();
-    await expect(completePanel(page).getByText(/COMPLETE!/i)).toBeVisible();
-    await expect(completePanel(page).getByText(/protection, switching/i)).toBeVisible();
+    await expect(panel(page)).toContainText('not assessed');
+    await expect(completePanel(page)).toHaveCount(0);
   });
 
   test('exit restores the normal circuit exactly (plan §13, §38-2)', async ({ page }) => {
@@ -333,7 +331,7 @@ test.describe('Challenge Mode', () => {
     await expect(page.locator('[data-component-type="bulb"]').first()).toBeVisible();
   });
 
-  test('Doorbell: wiring through the momentary button completes (plan §24, §38-4)', async ({
+  test('Doorbell: retains construction progress while sounder operation is unassessed', async ({
     page,
   }) => {
     await startChallenge(page, 'Wire a Push-Button Doorbell');
@@ -353,20 +351,11 @@ test.describe('Challenge Mode', () => {
     // Bring the panel back and check.
     await showPanel(page);
     await expect(panel(page).getByRole('button', { name: /Check circuit/ })).toBeVisible();
-    // Check Circuit runs the functional rules: with the button released the
-    // bell is off AND with it pressed the bell is on — only the momentary
-    // topology satisfies both, so this completes.
     await panel(page)
       .getByRole('button', { name: /Check circuit/ })
       .click();
-    await expect(completePanel(page).getByText(/COMPLETE!/i)).toBeVisible();
-    // The panel now explains the momentary contact twice — the "you used…"
-    // verdict and a standing teaching note — so take the first match.
-    await expect(
-      completePanel(page)
-        .getByText(/momentary contact/i)
-        .first(),
-    ).toBeVisible();
+    await expect(panel(page)).toContainText('not assessed');
+    await expect(completePanel(page)).toHaveCount(0);
   });
 
   test('RCBO: missing earth is rejected (plan §25, §38-6)', async ({ page }) => {

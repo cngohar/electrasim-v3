@@ -2,6 +2,9 @@
 
 Development is local only. Start `bun run dev:worker` (127.0.0.1:8791) and `bun run dev` (port 3000). Vite proxies `/api` to that local Worker. Apply migrations with `bun x wrangler d1 migrations apply DB --local --persist-to .wrangler/state`. No Cloudflare account or deployment is needed.
 
+
+Phase 1.5F.1 calculation consumers require `inputRevision` plus the current electrical model version. The identity canonicalizes normalized electrical inputs while excluding canvas geometry/selection; it is freshness metadata, not authorization. Scalar/complex readings retain their named terminal pairs and independent references. Missing, stale, obsolete or unassessed evidence cannot earn a validator/guide pass. Exports recalculate their snapshot, and version-2 guide history preserves earlier records as historical checklist progress. Tagged legacy observation flags remain transitional bookkeeping for F.2 and cannot certify repair, protection or safety. [Consumer acceptance](../audits/phase-1-consumer-integration.md).
+
 ## Authorization
 
 Basic editing, simulation, single basic faults and basic diagnosis run locally without a session or network. Premium editor mutations and simulation request fresh membership from primary local D1. A local capability snapshot drives presentation, not authorization. Every server endpoint derives requirements from validated component types and normalized faults. Advanced diagnosis and every Ohmageddon tier add their own requirements from the stored scenario.
