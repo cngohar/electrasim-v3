@@ -68,6 +68,7 @@
     "verify:phase-1.5e0": "bun scripts/verify-phase15e0.mjs",
     "verify:phase-1.5e1": "bun scripts/verify-phase15e1.mjs",
     "verify:phase-1.5e2": "bun scripts/verify-phase15e2.mjs",
+    "verify:phase-1.5e3": "bun scripts/verify-phase15e3.mjs",
     "test:domain-local": "bun scripts/test-domain-local.ts"
   },
   "dependencies": {

@@ -30,11 +30,15 @@ import {
 import { timerDimmingAcceptanceCircuits } from '../packages/domain/src/core/timerDimmingFixtures';
 import { transformerAcceptanceCircuits } from '../packages/domain/src/core/transformerFixtures';
 import { component as C, wire as W } from '../packages/domain/src/simulation/auditFixtures';
+import { dolAcceptanceCircuits } from '../packages/domain/src/simulation/dolFixtures';
 import { runtimeAcceptanceCircuits } from '../packages/domain/src/simulation/runtimeFixtures';
 
 export function domainParityFixture(): string {
   const results: unknown[] = [];
-  for (const [name, circuit] of Object.entries(motorAcceptanceCircuits())) {
+  for (const [name, circuit] of Object.entries({
+    ...motorAcceptanceCircuits(),
+    ...dolAcceptanceCircuits(),
+  })) {
     let previous = simulate(circuit);
     results.push({ motorCase: name, step: 'reset', result: previous });
     for (const deltaSeconds of [0.999999, 0.000001, 0.25]) {

@@ -29,6 +29,7 @@ import {
   timerCircuit,
   timerDimmingAcceptanceCircuits,
 } from '../packages/domain/src/core/timerDimmingFixtures';
+import { dolAcceptanceCircuits } from '../packages/domain/src/simulation/dolFixtures';
 import {
   portableResult,
   runtimeAcceptanceCircuits,
@@ -75,7 +76,10 @@ export async function runSimulatorTests(context: Context) {
   await check(
     'paid phasor motor/coil replay matches domain, persists declarations and guards malformed state',
     async () => {
-      for (const [name, circuit] of Object.entries(motorAcceptanceCircuits())) {
+      for (const [name, circuit] of Object.entries({
+        ...motorAcceptanceCircuits(),
+        ...dolAcceptanceCircuits(),
+      })) {
         let previous: SimulationResult | undefined;
         for (const deltaSeconds of [0, 0.999999, 0.000001, 0.25]) {
           const simulationState = previous?.simulationState;

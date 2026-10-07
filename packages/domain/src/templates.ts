@@ -1,4 +1,5 @@
 import { COMPONENT_DEFS } from './components';
+import { explicitSupplyProfile } from './core/supplies';
 import type { Circuit, ComponentInstance, WireInstance } from './types';
 
 export type GuidedCircuitDifficulty = 'Beginner' | 'Intermediate' | 'Advanced';
@@ -497,15 +498,42 @@ function rcboProtectedSocketTemplate(): GuidedCircuitTemplate {
 
 function threePhaseDolStarterTemplate(): GuidedCircuitTemplate {
   const id = 'pro-3phase-dol-starter';
-  const live1 = component(id, 'live-1', 'live-terminal', 100, 140);
-  const live2 = component(id, 'live-2', 'live-terminal', 100, 250);
-  const live3 = component(id, 'live-3', 'live-terminal', 100, 360);
-  const earth = component(id, 'earth', 'earth-terminal', 100, 480);
+  const source = component(id, 'source', 'ac-three-phase-supply', 100, 250, {
+    sourceProfile: explicitSupplyProfile({
+      kind: 'ac-three-phase',
+      voltage: 400 / Math.sqrt(3),
+      frequencyHz: 50,
+      sequence: 'abc',
+    }),
+  });
+  const control = component(id, 'control', 'single-way-switch', 320, 520, { on: true });
   const mcb1 = component(id, 'mcb-l1', 'mcb-type-d', 300, 140, { on: true, customMaxAmps: 16 });
   const mcb2 = component(id, 'mcb-l2', 'mcb-type-d', 300, 250, { on: true, customMaxAmps: 16 });
   const mcb3 = component(id, 'mcb-l3', 'mcb-type-d', 300, 360, { on: true, customMaxAmps: 16 });
-  const contactor = component(id, 'contactor', 'contactor-3p', 560, 250, { on: true });
-  const motor = component(id, 'motor', 'motor-3phase', 860, 250, { customCableMm2: 2.5 });
+  const contactor = component(id, 'contactor', 'contactor-3p', 560, 250, {
+    coilModel: {
+      version: 1,
+      supply: { kind: 'ac-single-phase', voltage: 230, frequencyHz: 50 },
+      nominalPowerWatts: 8,
+      pickupRatio: 0.8,
+      dropoutRatio: 0.2,
+      onDelaySeconds: 0,
+      offDelaySeconds: 0,
+    },
+  });
+  const motor = component(id, 'motor', 'motor-3phase', 860, 250, {
+    customCableMm2: 2.5,
+    motorModel: {
+      version: 1,
+      kind: 'balanced-resistive',
+      nominalLineVoltage: 400,
+      inputPowerWatts: 3000,
+      frequencyHz: 50,
+      operatingLineVoltageRange: { min: 360, max: 440 },
+      maximumUnbalanceRatio: 0.02,
+      requiredSequence: 'abc',
+    },
+  });
 
   return {
     id,
@@ -516,30 +544,33 @@ function threePhaseDolStarterTemplate(): GuidedCircuitTemplate {
     summary:
       'A direct-on-line starter: three phases feed a motor through per-phase Type-D breakers and a three-pole contactor, with a protective earth.',
     teaches:
-      'Trace the separate power poles and protective earth in this illustrative drawing. Actual motor protection, linked disconnection and starter coordination require equipment-specific design.',
+      'Trace three power poles and a separate 230 V L1-N coil circuit with maintained control. The motor is a 3 kW electrical-input, unity-PF teaching equivalent; torque, inrush, heating, timed protection and starter coordination are unassessed.',
     expected:
-      'Drawing only: three-phase voltage, motor operation and phase-loss behavior are not assessed. You can inspect, edit and export this layout; electrical simulation is unavailable.',
+      'Run with the control switch closed: the coil closes all three poles and the motor teaching model runs. Open the control switch to release the contactor and stop the motor. This is not a start/stop seal-in circuit or a protection design assessment.',
     steps: [
-      'Follow each live terminal (L1, L2, L3) through its own Type-D MCB into the contactor poles.',
+      'Follow source L1, L2 and L3 through their separate Type-D MCB poles into the contactor; these breakers do not model linked disconnection or timed three-phase protection.',
       'Trace the three switched phases from the contactor to the motor windings U, V and W.',
-      'Confirm the motor frame PE conductor runs to the earth terminal. Phase-loss and motor-operation tests require the future three-phase model.',
+      'Trace source L1 through the maintained control switch to A1, A2 back to source N, and source PE directly to the motor frame. Toggle the control switch while running.',
     ],
     faultPrompt:
-      'Phase-to-phase fault currents and protection coordination are not assessed for this drawing.',
+      'Open an L2 or L3 conductor: the motor teaching state is blocked by phase loss. Swap two motor phase leads to block the required ABC sequence. Automatic protection and repair success remain unassessed.',
     circuit: {
       globalVoltage: 400,
-      components: [live1, live2, live3, earth, mcb1, mcb2, mcb3, contactor, motor],
+      components: [source, mcb1, mcb2, mcb3, contactor, motor, control],
       wires: [
-        wire(id, 'l1-mcb', live1, 0, mcb1, 0),
+        wire(id, 'l1-mcb', source, 0, mcb1, 0),
         wire(id, 'mcb1-contactor', mcb1, 1, contactor, 0),
         wire(id, 'contactor-motor-u', contactor, 3, motor, 0),
-        wire(id, 'l2-mcb', live2, 0, mcb2, 0),
+        wire(id, 'l2-mcb', source, 1, mcb2, 0),
         wire(id, 'mcb2-contactor', mcb2, 1, contactor, 1),
         wire(id, 'contactor-motor-v', contactor, 4, motor, 1),
-        wire(id, 'l3-mcb', live3, 0, mcb3, 0),
+        wire(id, 'l3-mcb', source, 2, mcb3, 0),
         wire(id, 'mcb3-contactor', mcb3, 1, contactor, 2),
         wire(id, 'contactor-motor-w', contactor, 5, motor, 2),
-        wire(id, 'earth-motor', earth, 0, motor, 3),
+        wire(id, 'earth-motor', source, 4, motor, 3),
+        wire(id, 'control-feed', source, 0, control, 0),
+        wire(id, 'coil-feed', control, 1, contactor, 6),
+        wire(id, 'coil-return', contactor, 7, source, 3),
       ],
     },
   };
@@ -970,17 +1001,5 @@ export function getGuidedCircuitTemplate(id: string): GuidedCircuitTemplate | un
 }
 
 export function cloneTemplateCircuit(template: GuidedCircuitTemplate): Circuit {
-  return {
-    components: template.circuit.components.map((component) => ({
-      ...component,
-      state: { ...component.state },
-    })),
-    wires: template.circuit.wires.map((wire) => ({
-      ...wire,
-      controlPoints: wire.controlPoints.map((point) => ({ ...point })),
-    })),
-    ...(template.circuit.globalVoltage !== undefined
-      ? { globalVoltage: template.circuit.globalVoltage }
-      : {}),
-  };
+  return JSON.parse(JSON.stringify(template.circuit)) as Circuit;
 }

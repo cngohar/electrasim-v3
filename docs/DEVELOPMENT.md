@@ -18,6 +18,7 @@ phase commands.
 | Build assets for inspection | `bun run build` |
 | Accept the E.1 source/editing/measurement milestone | `bun run verify:phase-1.5e1` |
 | Accept the E.2 motor/coil/pole milestone | `bun run verify:phase-1.5e2` |
+| Accept E.3 DOL and complete three-phase teaching scope | `bun run verify:phase-1.5e3` |
 
 `test:related` and `test:changed` use Vitest's dependency graph. A shared compiler, catalogue or
 configuration change can affect many tests and should run them. File-specific tests are fastest

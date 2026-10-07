@@ -279,23 +279,40 @@ describe('guided circuit templates', () => {
     }
   });
 
-  it('marks the DOL drawing unassessed until a real three-phase model is available', () => {
+  it('runs the declared DOL motor and releases all poles when control opens', () => {
     const circuit = cloneTemplateCircuit(requireTemplate('pro-3phase-dol-starter'));
-    const motorId = 'pro-3phase-dol-starter-motor';
-    const contactor = requireComponent(circuit, 'pro-3phase-dol-starter-contactor');
-
     const result = simulate(circuit);
-    expect(result.energizedComponents.has(motorId)).toBe(false);
-    expect(result.modelLimitations).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ code: 'three-phase-model', blocking: true }),
-      ]),
-    );
+    expect(result.phasor?.motors[0]?.state).toBe('running');
+    expect(result.faultsCleared).toBe(false);
     expect(result.componentCalculations).toBeUndefined();
+    requireComponent(circuit, 'pro-3phase-dol-starter-control').state.on = false;
+    expect(simulate(circuit).phasor?.motors[0]?.state).toBe('stopped');
+  });
 
-    // Opening the contactor does not make the unsupported drawing assessable.
-    contactor.state.on = false;
-    expect(simulate(circuit).energizedComponents.has(motorId)).toBe(false);
+  it('blocks DOL phase loss and reversed sequence without a false repair verdict', () => {
+    for (const fault of ['loss', 'reverse']) {
+      const circuit = cloneTemplateCircuit(requireTemplate('pro-3phase-dol-starter'));
+      const v = circuit.wires.find((w) => w.id.endsWith('contactor-motor-v'))!;
+      const w = circuit.wires.find((w) => w.id.endsWith('contactor-motor-w'))!;
+      if (fault === 'loss') v.fault = 'open-circuit';
+      else {
+        v.toPortIndex = 2;
+        w.toPortIndex = 1;
+      }
+      const result = simulate(circuit);
+      expect(result.phasor?.motors[0]?.state).toBe('blocked');
+      expect(result.faultsCleared).toBe(false);
+    }
+  });
+
+  it('isolates nested source, coil and motor settings between guide copies', () => {
+    const template = requireTemplate('pro-3phase-dol-starter');
+    const circuit = cloneTemplateCircuit(template);
+    requireComponent(circuit, `${template.id}-motor`).state
+      .motorModel!.operatingLineVoltageRange.min = 1;
+    requireComponent(circuit, `${template.id}-contactor`).state.coilModel!.supply.voltage = 12;
+    requireComponent(circuit, `${template.id}-source`).state.sourceProfile!.model.voltage = 12;
+    expect(simulate(cloneTemplateCircuit(template)).phasor?.motors[0]?.state).toBe('running');
   });
 
   it('keeps the solar DC drawing without inventing source-voltage measurements', () => {
@@ -320,11 +337,11 @@ describe('guided circuit templates', () => {
     expect(result.errors).toEqual([]);
   });
 
-  it('assesses supported Pro guides and explicitly guards the two unsupported drawings', () => {
+  it('assesses supported Pro guides and explicitly guards the unsupported solar drawing', () => {
     for (const template of GUIDED_CIRCUIT_TEMPLATES) {
       if (template.tier !== 'pro') continue;
       const result = simulate(cloneTemplateCircuit(template));
-      if (['pro-3phase-dol-starter', 'pro-solar-dc-system'].includes(template.id)) {
+      if (template.id === 'pro-solar-dc-system') {
         expect(
           result.modelLimitations?.some((l) => l.blocking),
           template.id,

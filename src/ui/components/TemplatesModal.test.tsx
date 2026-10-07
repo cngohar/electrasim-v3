@@ -35,11 +35,19 @@ afterEach(() => {
 describe('TemplatesModal', () => {
   it('labels unsupported electrical guides before loading and retains access to the drawing', () => {
     render(<TemplatesModal open onClose={() => undefined} />);
-    for (const title of ['Three-Phase DOL Motor Starter', 'Solar PV with Battery Storage']) {
+    for (const title of ['Solar PV with Battery Storage']) {
       const card = within(cardFor(title));
       expect(card.getByText(/Drawing only: electrical simulation is not assessed/)).toBeVisible();
       expect(card.getByRole('button', { name: 'Load guide' })).toBeEnabled();
     }
+    expect(
+      within(cardFor('Three-Phase DOL Motor Starter')).getByText(/Declared resistive phasor/),
+    ).toBeVisible();
+    expect(
+      within(cardFor('Three-Phase DOL Motor Starter')).queryByText(
+        /Drawing only|Manual switching only/,
+      ),
+    ).not.toBeInTheDocument();
     expect(
       within(cardFor('Simple Protected Lamp')).queryByText(/Drawing only/),
     ).not.toBeInTheDocument();

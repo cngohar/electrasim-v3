@@ -5,6 +5,7 @@ import {
   motorCircuit,
   motorFixtureModel,
 } from '../packages/domain/src/core/motorFixtures';
+import { dolAcceptanceCircuits } from '../packages/domain/src/simulation/dolFixtures';
 import { portableResult } from '../packages/domain/src/simulation/runtimeFixtures';
 import { simulate } from '../packages/domain/src/simulation/simulate';
 import { test } from './helpers/paid-test';
@@ -175,7 +176,7 @@ test('motor and delayed contactor replay match direct domain, Comlink and local 
   page,
 }) => {
   await openCircuit(page, motorCircuit());
-  const cases = motorAcceptanceCircuits();
+  const cases = { ...motorAcceptanceCircuits(), ...dolAcceptanceCircuits() };
   const rows = await page.evaluate(async (circuits) => {
     const path = '/src/sim-worker/client.ts';
     const worker = await import(path);

@@ -95,7 +95,7 @@ function GuideCard({
         <p className="mt-2 text-xs text-amber-800 dark:text-amber-200">
           {limitations.some((l) => l.blocking)
             ? 'Drawing only: electrical simulation is not assessed for this guide. You can load, edit and export it.'
-            : 'Manual switching only: timing or dimming response is not assessed.'}
+            : limitations.map((limitation) => limitation.message).join(' ')}
         </p>
       )}
 

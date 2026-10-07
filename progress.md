@@ -371,3 +371,26 @@ The user requested reducing repeated verification for small fixes. All 15 `verif
 Added `check:changed` for repository lint plus affected Git-change unit tests, and `test:gates` for the runner's own checks. Updated the [development workflow](docs/DEVELOPMENT.md), Phase 1 method and changelog: reuse earlier passing evidence only when a fix leaves it valid, rerun from the earliest affected stage, and keep complete milestone coverage. No automatic cache assumes an old result is valid for changed code. Commit hooks still enforce their existing format/type checks.
 
 Targeted validation passed **nine runner tests**, including default coverage, selected execution order, failure/interruption/invalid-selector handling and separate browser groups. Compared dry-run output for all **15 phase entry points** against their prior Git versions: every acceptance command, argument and order is preserved, with the existing `check` chain split into type/lint/unit stages. Real selected-stage execution and formatting/lint checks passed. This tooling change does not rerun or replace the accepted E.2 simulator evidence; E.3 remains next. No electrical runtime, dependencies, lockfile, database migration, Cloudflare configuration/account/resource, deployment or remote test changed.
+
+
+## 2026-10-07 — Phase 1.5E.3 DOL and complete three-phase acceptance
+
+Completed the in-progress DOL migration in `packages/domain/src/templates.ts` and
+`src/ui/components/TemplatesModal.tsx`: explicit 400 V L-L source, declared 3 kW
+electrical-input motor, maintained 230 V coil control, independent nested guide
+copies and truthful model-limit text. Added `simulation/dolFixtures.ts` and
+regressions for operating/stopped/phase-loss/coil-loss/reversed/undeclared cases,
+retaining false repair and guide-completion verdicts for unassessed protection.
+
+Added `verify:phase-1.5e3`, DOL desktop/phone deep-link browser checks and shared
+DOL replay through `scripts/domain-parity-fixture.ts`, `scripts/test-simulator.ts`
+and `e2e/three-phase-motor.spec.ts`. All project types, lint, 2,178 unit tests,
+build/assets/link/SEO/CSP checks, 800 exact Bun/workerd cases, 17 actual local
+Worker/D1/cookie groups and 35 browser cases passed. Evidence spans the initial
+typecheck and the lint-onward rerun after replacing a fixture deletion with an
+undefined assignment; the domain typecheck passed again. Dense solver medians
+remain 44.76–66.88 ms, so performance targets remain open.
+
+[Acceptance and scope](docs/audits/phase-1-dol-guide.md). Updated the phase, core
+rebuild and behavior plans. Next is 1.5F full consumer/lab migration and legacy
+retirement. No remote account operations, deployment or database migration.
