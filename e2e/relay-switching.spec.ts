@@ -1,6 +1,9 @@
 import type { Circuit, WireInstance } from '@electrasim/domain';
 import { expect, test } from '@playwright/test';
 
+// This inspector workflow is a desktop surface; run it on every browser engine.
+test.use({ viewport: { width: 1280, height: 900 } });
+
 const wire = (id: string, from: string, port: number, to: string, end: number): WireInstance => ({
   id,
   fromComponentId: from,
@@ -15,14 +18,29 @@ const circuit: Circuit = {
     ['neutral', 'neutral-terminal', 280, 540],
     ['control', 'single-way-switch', 460, 220],
     ['relay', 'relay-spdt', 650, 330],
-    ['no', 'bulb', 880, 220],
-    ['nc', 'bulb', 880, 540],
+    ['no', 'bulb-incandescent', 880, 220],
+    ['nc', 'bulb-incandescent', 880, 540],
   ].map(([id, type, x, y]) => ({
     id: String(id),
     type: String(type),
     x: Number(x),
     y: Number(y),
-    state: { on: false },
+    state: {
+      on: false,
+      ...(type === 'relay-spdt'
+        ? {
+            coilModel: {
+              version: 1 as const,
+              supply: { kind: 'ac-single-phase' as const, voltage: 230, frequencyHz: 50 },
+              nominalPowerWatts: 2,
+              pickupRatio: 0.8,
+              dropoutRatio: 0.2,
+              onDelaySeconds: 0,
+              offDelaySeconds: 0,
+            },
+          }
+        : {}),
+    },
   })),
   wires: [
     wire('contact-feed', 'live', 0, 'relay', 2),

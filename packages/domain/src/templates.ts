@@ -95,7 +95,7 @@ function simpleLampTemplate(): GuidedCircuitTemplate {
   const live = component(id, 'live', 'live-terminal', 120, 220);
   const neutral = component(id, 'neutral', 'neutral-terminal', 120, 390);
   const mcb = component(id, 'mcb', 'mcb', 310, 220, { on: true });
-  const bulb = component(id, 'bulb', 'bulb', 540, 220);
+  const bulb = component(id, 'bulb', 'bulb-incandescent', 540, 220);
 
   return {
     id,
@@ -130,7 +130,7 @@ function oneWaySwitchTemplate(): GuidedCircuitTemplate {
   const neutral = component(id, 'neutral', 'neutral-terminal', 110, 390);
   const mcb = component(id, 'mcb', 'mcb', 280, 210, { on: true });
   const sw = component(id, 'switch', 'single-way-switch', 480, 210, { on: false });
-  const bulb = component(id, 'bulb', 'bulb', 700, 210);
+  const bulb = component(id, 'bulb', 'bulb-incandescent', 700, 210);
 
   return {
     id,
@@ -170,8 +170,8 @@ function twoBulbParallelTemplate(): GuidedCircuitTemplate {
   const mcb = component(id, 'mcb', 'mcb', 260, 300, { on: true });
   const sw = component(id, 'switch', 'single-way-switch', 430, 300, { on: true });
   const junction = component(id, 'junction', 'junction-box', 600, 300);
-  const bulbA = component(id, 'bulb-a', 'bulb', 810, 220);
-  const bulbB = component(id, 'bulb-b', 'bulb', 810, 420);
+  const bulbA = component(id, 'bulb-a', 'bulb-incandescent', 810, 220);
+  const bulbB = component(id, 'bulb-b', 'bulb-incandescent', 810, 420);
 
   return {
     id,
@@ -254,7 +254,7 @@ function twoWaySwitchTemplate(): GuidedCircuitTemplate {
   const mcb = component(id, 'mcb', 'mcb', 260, 210, { on: true });
   const swA = component(id, 'switch-a', 'two-way-switch', 450, 170, { on: true });
   const swB = component(id, 'switch-b', 'two-way-switch', 660, 170, { on: true });
-  const bulb = component(id, 'bulb', 'bulb', 820, 210);
+  const bulb = component(id, 'bulb', 'bulb-incandescent', 820, 210);
 
   return {
     id,
@@ -295,7 +295,7 @@ function rcdFaultTemplate(): GuidedCircuitTemplate {
   const earth = component(id, 'earth', 'earth-terminal', 100, 530);
   const rcd = component(id, 'rcd', 'rcd', 310, 250, { on: true });
   const socket = component(id, 'socket', 'socket-3pin', 560, 250, { fault: 'earth-fault' });
-  const lamp = component(id, 'lamp', 'bulb', 800, 250);
+  const lamp = component(id, 'lamp', 'bulb-incandescent', 800, 250);
 
   return {
     id,
@@ -453,7 +453,7 @@ function rcboProtectedSocketTemplate(): GuidedCircuitTemplate {
   const earth = component(id, 'earth', 'earth-terminal', 100, 540);
   const rcbo = component(id, 'rcbo', 'rcbo', 330, 260, { on: true, customMaxAmps: 20 });
   const socket = component(id, 'socket', 'socket-3pin', 600, 260, { customCableMm2: 2.5 });
-  const testLamp = component(id, 'test-lamp', 'bulb', 850, 260);
+  const testLamp = component(id, 'test-lamp', 'bulb-incandescent', 850, 260);
 
   return {
     id,
@@ -464,7 +464,7 @@ function rcboProtectedSocketTemplate(): GuidedCircuitTemplate {
     summary:
       'A socket outlet supplied through an RCBO, with protective earth and a lamp representing a plugged-in appliance.',
     teaches:
-      'An RCBO combines overcurrent and residual-current protection for one circuit. Earth-leakage and bolted-short faults trip it (educational thresholds), and its residual type (AC/A/F/B) decides whether smooth DC leakage trips it too.',
+      'An RCBO combines overcurrent and residual-current protection for one circuit. Automatic operation requires declared protection settings, actual pole currents and elapsed time. Unspecified leakage and smooth DC waveform markers are unassessed.',
     expected:
       'Run the simulation: the test lamp energises while the RCBO is closed. Open the RCBO and both outgoing Live and Neutral paths are interrupted; Earth remains connected.',
     steps: [
@@ -844,7 +844,7 @@ function spdConsumerUnitTemplate(): GuidedCircuitTemplate {
   const board = component(id, 'board', 'distribution-board', 560, 240);
   const rcbo = component(id, 'rcbo', 'rcbo', 820, 200, { on: true, customMaxAmps: 20 });
   const socket = component(id, 'socket', 'double-socket', 1080, 200, { customCableMm2: 2.5 });
-  const lamp = component(id, 'lamp', 'bulb', 1080, 380);
+  const lamp = component(id, 'lamp', 'bulb-incandescent', 1080, 380);
 
   return {
     id,
@@ -905,7 +905,7 @@ function generatorBackupTemplate(): GuidedCircuitTemplate {
     teaches:
       'Backup generation supplies a local distribution system of its own. The generator frame is earthed to a rod (a TT-style local earth), and the emergency loads are protected by their own MCB.',
     expected:
-      'Run the simulation: both the emergency light and the siren energise from the generator while its MCB is closed.',
+      'The generator drawing stays editable; emergency-light and siren load laws are unassessed, so Run provides no accepted operating measurements.',
     steps: [
       'Trace the generator Live through the MCB, then out to the light and the siren.',
       'Follow the Neutral return from both loads back to the generator N terminal.',

@@ -4,6 +4,10 @@ import { explicitSupplyProfile } from '@electrasim/domain/core/supplies';
 import { type Page, expect, test } from '@playwright/test';
 import { component as C, wire as W } from '../packages/domain/src/simulation/auditFixtures';
 
+// This flow exercises the desktop context bar; phone supply editing has its
+// own visible-Supply-button coverage in electrical-editing.spec.ts.
+test.use({ viewport: { width: 1280, height: 900 } });
+
 async function openCircuit(page: Page, circuit: Circuit) {
   await page.addInitScript(() => {
     localStorage.setItem('electrasim:welcomed', '1');

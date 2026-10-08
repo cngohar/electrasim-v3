@@ -28,10 +28,16 @@ async function importCircuit(page: Page, circuit: Circuit) {
   await page.keyboard.press('f');
 }
 
-test('N23: a guest overload trips the breaker through Comlink without persisting destroyed state', async ({
+test('N23: a guest declared high-current trip through Comlink stays resettable', async ({
   page,
 }) => {
-  const circuit = protectedLoad();
+  const circuit = protectedLoad('mcb', 7400, 4);
+  circuit.components.find((c) => c.id === 'device')!.state.protectionModel = {
+    version: 1,
+    kind: 'mcb',
+    ratedCurrentAmps: 4,
+    curve: 'B',
+  };
   circuit.components.forEach((c, i) => {
     c.x = 220 + i * 180;
     c.y = i === 1 ? 440 : 220;
@@ -43,20 +49,23 @@ test('N23: a guest overload trips the breaker through Comlink without persisting
       page.evaluate(async () => {
         const storePath = '/src/store/circuitStore.ts';
         const workerPath = '/src/sim-worker/client.ts';
+        const uiPath = '/src/store/uiStore.ts';
+        const result = (await import(uiPath)).useUiStore.getState().simResult;
         const component = (await import(storePath)).useCircuitStore
           .getState()
           .components.find((c: { id: string }) => c.id === 'device');
         return {
-          tripped: component?.state.isTripped === true,
+          tripped: result?.simulationState?.protection?.device?.tripped === true,
+          persistedTrip: component?.state.isTripped === true,
           damaged: component?.state.isBlown === true,
           worker: (await import(workerPath)).simWorkerActive(),
         };
       }),
     )
-    .toEqual({ tripped: true, damaged: false, worker: true });
+    .toEqual({ tripped: true, persistedTrip: false, damaged: false, worker: true });
 });
 
-test('N12: unsupported transformer preserves the drawing and shows unassessed measurements', async ({
+test('N12: an unmodeled transformer secondary load preserves the drawing and withholds measurements', async ({
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name !== 'chromium', 'The floating inspector is a desktop interface.');
@@ -99,17 +108,18 @@ test('N12: unsupported transformer preserves the drawing and shows unassessed me
       }),
     )
     .toEqual({
-      code: 'transformer-model',
+      code: 'load-model',
       measurements: null,
       energized: 0,
       components: 4,
       damaged: false,
     });
   await page.locator('[data-component-id="transformer"] [data-component-hitbox]').click();
-  await page.getByRole('button', { name: 'Inspect', exact: true }).click();
-  await expect(
-    page.getByText('Voltage, current and power: not assessed.', { exact: true }),
-  ).toBeVisible();
+  await page.getByTitle(/^Properties & (Settings|Specs)$/).click();
+  const inspector = page.locator('[data-tour="inspector"]');
+  await expect(inspector.locator('[data-reading="voltage"]')).toHaveText('Unavailable');
+  await expect(inspector.locator('[data-reading="current"]')).toHaveText('Unavailable');
+  await expect(inspector.locator('[data-reading="power"]')).toHaveText('Unavailable');
   // Read the actual backup serializer after the run; no destructive projection is allowed.
   const exported = await page.evaluate(async () => {
     const storePath = '/src/store/circuitStore.ts';

@@ -6,9 +6,13 @@ import { operatingPointAcceptanceCircuits } from '../core/operatingPointFixtures
 import { threePhaseAcceptanceCircuits } from '../core/threePhaseFixtures';
 import { transformerAcceptanceCircuits } from '../core/transformerFixtures';
 import type { Circuit } from '../types';
+import { retirementAcceptanceCircuits } from './retirementFixtures';
 
 export function runtimeAcceptanceCircuits(): Record<string, Circuit> {
   return Object.fromEntries([
+    ...Object.entries(retirementAcceptanceCircuits()).map(
+      ([name, circuit]) => [`retired-${name}`, circuit] as const,
+    ),
     ...Object.entries(motorAcceptanceCircuits()).map(
       ([name, circuit]) => [`motor-${name}`, circuit] as const,
     ),

@@ -7,12 +7,14 @@ import type { Circuit, SimulationResult } from './types';
 export function circuitRevision(circuit: Circuit): string {
   const canonical = (value: unknown): unknown => {
     if (Array.isArray(value)) return value.map(canonical);
-    if (value && typeof value === 'object')
-      return Object.fromEntries(
-        Object.entries(value)
-          .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
-          .map(([key, item]) => [key, canonical(item)]),
-      );
+    if (value && typeof value === 'object') {
+      // Keep exact sorted-key JSON identity without allocating an entry pair
+      // for every property. A null prototype preserves literal special keys.
+      const result: Record<string, unknown> = Object.create(null);
+      for (const key of Object.keys(value).sort())
+        result[key] = canonical((value as Record<string, unknown>)[key]);
+      return result;
+    }
     return value;
   };
   if (!circuit || !Array.isArray(circuit.components) || !Array.isArray(circuit.wires))
@@ -39,6 +41,8 @@ export function isCurrentSimulation(
 ): result is SimulationResult {
   return (
     !!result &&
+    !result.legacyObservation &&
+    result.electricalContract?.engineVersion !== 'legacy-rail-1.5b' &&
     typeof result.inputRevision === 'string' &&
     result.inputRevision === circuitRevision(circuit) &&
     result.electricalContract?.version === 1 &&

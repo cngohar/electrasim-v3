@@ -11,6 +11,10 @@ import { simulate } from '../packages/domain/src/simulation/simulate';
 import { test } from './helpers/paid-test';
 import { documentAt, inspect, openCircuit, run } from './helpers/three-phase';
 
+// Generic inspector cases use the desktop surface on every browser engine.
+// Explicit phone cases below retain their 390 px viewport.
+test.use({ viewport: { width: 1280, height: 900 } });
+
 async function runtime(page: Page) {
   return page.evaluate(async () => {
     const ui = '/src/store/uiStore.ts';

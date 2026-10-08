@@ -15,7 +15,7 @@ import { useCircuitStore } from './circuitStore';
 import { FAULT_ARM_MS, useUiStore } from './uiStore';
 
 function firstLoadId(): string {
-  const bulb = useCircuitStore.getState().components.find((c) => c.type === 'bulb');
+  const bulb = useCircuitStore.getState().components.find((c) => c.type === 'bulb-incandescent');
   if (!bulb) throw new Error('seed circuit must contain a bulb');
   return bulb.id;
 }

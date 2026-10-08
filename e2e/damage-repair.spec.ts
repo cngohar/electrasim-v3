@@ -7,6 +7,13 @@ import { protectionCircuit } from '../packages/domain/src/core/protectionFixture
 
 test.use({ reducedMotion: 'reduce' });
 
+// Desktop repair flow uses the persistent inspector; the explicit phone case
+// below exercises the same controls in the phone dialog.
+test.beforeEach(async ({ page }, testInfo) => {
+  if (!testInfo.title.includes('on a phone'))
+    await page.setViewportSize({ width: 1280, height: 900 });
+});
+
 async function openCircuit(page: Page, circuit: Circuit) {
   await page.addInitScript(() => {
     localStorage.setItem('electrasim:welcomed', '1');

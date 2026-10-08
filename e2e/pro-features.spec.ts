@@ -147,7 +147,12 @@ test.describe('Dual standard & pro features', () => {
     await page.locator('[data-component-id="two-5"]').locator(':scope > g[role="button"]').click();
     await page.waitForTimeout(300);
     const panel = page.getByLabel('Fault Lab panel');
-    await expect(panel.getByRole('button', { name: /Short Circuit/ })).toBeEnabled();
+    await page
+      .locator('[data-tour="inspector"]')
+      .getByRole('button', { name: 'Fault Lab (manual fault injection)', exact: true })
+      .click();
+    await expect(panel.getByRole('button', { name: /Short Circuit/ })).toHaveCount(0);
+    await expect(panel.getByRole('button', { name: /Open Circuit/ })).toBeEnabled();
     await expect(panel.getByRole('button', { name: /Switched Neutral/ })).toBeVisible();
     // Threshold overrides moved here too.
     await expect(panel.getByText('Threshold Overrides')).toBeVisible();
@@ -281,7 +286,9 @@ test.describe('Dual standard & pro features', () => {
     await expect(inspector).toContainText('Operating load law is unassessed.');
     await expect(inspector.locator('[data-reading="voltage"]')).toHaveText('Unavailable');
     await expect(inspector.locator('[data-recommended-protection]')).toHaveCount(0);
-    await page.getByTitle('Waveform Oscilloscope').click();
-    await expect(inspector).toContainText('Waveform and energy measurements unavailable');
+    await page.getByTitle('Current calculated readings').click();
+    await expect(inspector).toContainText(
+      'Waveform, power factor, temperature and accumulated energy measurements remain unavailable.',
+    );
   });
 });

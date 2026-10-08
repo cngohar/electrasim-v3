@@ -232,7 +232,7 @@ const redHerring: RageModifier = {
           ...scenario.faultCandidateWireIds.filter((id) => id !== wireId),
           ...spliced.addedWireIds,
         ],
-        note: `spliced a ${label} into ${wireId}`,
+        note: `Added a healthy ${label} as an extra connection.`,
       };
     }
     return null;

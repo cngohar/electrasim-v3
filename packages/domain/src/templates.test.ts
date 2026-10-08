@@ -86,16 +86,17 @@ describe('guided circuit templates', () => {
     ]);
   });
 
-  it('energises the doorbell only while its push button is held', () => {
+  it('preserves the doorbell drawing without inventing a sounder load law', () => {
     const circuit = cloneTemplateCircuit(requireTemplate('push-button-doorbell'));
     const button = requireComponent(circuit, 'push-button-doorbell-button');
-    const bellId = 'push-button-doorbell-bell';
-
-    expect(simulate(circuit).energizedComponents.has(bellId)).toBe(false);
-    button.state.on = true;
-    expect(simulate(circuit).energizedComponents.has(bellId)).toBe(true);
-    button.state.on = false;
-    expect(simulate(circuit).energizedComponents.has(bellId)).toBe(false);
+    for (const on of [false, true]) {
+      button.state.on = on;
+      const result = simulate(circuit);
+      expect(result.electrical?.status).toBe('unsupported');
+      expect(result.energizedComponents.size).toBe(0);
+      expect(result.componentCalculations).toBeUndefined();
+      expect(result.faultsCleared).toBe(false);
+    }
   });
 
   it('defines the RCBO socket topology and states the simulation limits', () => {
@@ -106,8 +107,8 @@ describe('guided circuit templates', () => {
       difficulty: 'Intermediate',
       topic: 'Combined circuit protection',
     });
-    expect(template.teaches).toContain('Earth-leakage and bolted-short faults trip it');
-    expect(template.teaches).toContain('residual type (AC/A/F/B)');
+    expect(template.teaches).toContain('actual pole currents and elapsed time');
+    expect(template.teaches).toContain('smooth DC waveform markers are unassessed');
     expect(template.steps).toHaveLength(3);
     expect(template.faultPrompt).toContain('outgoing RCBO conductor');
     expect(template.circuit.components).toHaveLength(6);
@@ -328,13 +329,13 @@ describe('guided circuit templates', () => {
     expect(circuit.globalVoltage).toBe(12);
   });
 
-  it('energises the generator backup loads through the generator earth path', () => {
+  it('withholds generator-backup operation for undeclared emergency-light and siren models', () => {
     const circuit = cloneTemplateCircuit(requireTemplate('pro-generator-backup'));
     const result = simulate(circuit);
-
-    expect(result.energizedComponents.has('pro-generator-backup-light')).toBe(true);
-    expect(result.energizedComponents.has('pro-generator-backup-siren')).toBe(true);
-    expect(result.errors).toEqual([]);
+    expect(result.electrical?.status).toBe('unsupported');
+    expect(result.energizedComponents.size).toBe(0);
+    expect(result.componentCalculations).toBeUndefined();
+    expect(result.faultsCleared).toBe(false);
   });
 
   it('assesses supported Pro guides and explicitly guards the unsupported solar drawing', () => {

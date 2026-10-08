@@ -88,6 +88,14 @@ describe('bounded linear factorization', () => {
       ).status,
     ).toBe('too-large');
   });
+
+  it('returns portable zero for a zero RHS with a negative pivot', () => {
+    const result = solveLinearSystem(rows([[-2]]), Float64Array.from([0]));
+    expect(result.status).toBe('solved');
+    if (result.status !== 'solved') throw new Error(result.status);
+    expect(Object.is(result.values[0], 0)).toBe(true);
+    expect([...result.values]).toEqual(JSON.parse(JSON.stringify([...result.values])));
+  });
 });
 
 describe('ideal voltage constraint dependence', () => {

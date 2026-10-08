@@ -4,6 +4,9 @@ import { explicitSupplyProfile } from '@electrasim/domain/core/supplies';
 import { type Page, expect, test } from '@playwright/test';
 import { component as C, wire as W } from '../packages/domain/src/simulation/auditFixtures';
 
+// This inspector workflow is a desktop surface; run it on every browser engine.
+test.use({ viewport: { width: 1280, height: 900 } });
+
 async function importWireCircuit(page: Page, dc = false) {
   const circuit: Circuit = {
     supply: explicitSupplyProfile(

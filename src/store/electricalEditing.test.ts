@@ -270,7 +270,7 @@ describe('staged configuration and transaction history', () => {
       if (edit === 'imported-supply')
         circuit.supply = explicitSupplyProfile({ kind: 'dc', voltage: 12 });
       if (edit === 'rating')
-        circuit.components.find((c) => c.type === 'bulb')!.state.customPowerWatts = 20;
+        circuit.components.find((c) => c.type === 'bulb-incandescent')!.state.customPowerWatts = 20;
       if (edit === 'wire') circuit.wires[0].lengthMeters = 25;
       if (edit === 'fault')
         circuit.faults = [

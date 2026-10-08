@@ -116,7 +116,6 @@ async function expectLampState(
       new RegExp(`6\\s*comps\\s*•\\s*6\\s*wires\\s*•\\s*${energised ? 1 : 0}\\s*energized`),
     );
   }
-  // An energised bulb renders exactly one #facc15 outer glow halo (r=22) plus
-  // inner #fde047/white highlight circles per the current component design.
-  await expect(bulb.locator('circle[fill="#facc15"]')).toHaveCount(energised ? 1 : 0);
+  // A modeled incandescent lamp renders its own warm startup glow.
+  await expect(bulb.locator('.electrasim-incandescent-startup')).toHaveCount(energised ? 1 : 0);
 }

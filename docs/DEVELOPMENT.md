@@ -74,6 +74,6 @@ authorization gates or final Phase 1 acceptance requirements. See [AGENTS.md](..
 `bun run verify:phase-1.5f2` checks Diagnosis Lab/Ohmageddon generation, authored
 repair grading, versioned replay/resume and real local Worker/D1/browser flows.
 Its browser stage includes desktop recovery/reload and phone compound repair.
-F.3 owns legacy runtime retirement and the full `verify`/three stress commands;
+`bun run verify:phase-1.5f3` runs the full `verify`, domain parity, simulator acceptance and three default stress commands. [F.3 evidence](audits/phase-1-legacy-retirement.md) records the user-directed closure with performance exceptions and aggregate browser evidence; budgets remain unchanged and the full gate is not green;
 the F.2 gate cannot close those checks. Earlier exercise snapshots remain
 inspectable, with new grading withheld when their assessment is obsolete.

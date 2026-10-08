@@ -6,7 +6,7 @@ for (const phone of [false, true]) {
   test(`DOL guide runs and stops through its coil control (${phone ? 'phone' : 'desktop'})`, async ({
     page,
   }) => {
-    if (phone) await page.setViewportSize({ width: 390, height: 844 });
+    await page.setViewportSize(phone ? { width: 390, height: 844 } : { width: 1280, height: 900 });
     await page.addInitScript(() => {
       localStorage.setItem('electrasim:welcomed', '1');
       localStorage.setItem('electrasim:mobile-suitability:v1', '1');

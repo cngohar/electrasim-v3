@@ -443,7 +443,8 @@ export interface SimulationResult {
   readiness?: CircuitReadiness;
   /** Full versioned MNA calculation, including explicit unavailable measurements. */
   electrical?: ElectricalSimulationResult;
-  /** Present only for the temporary qualitative legacy path awaiting 1.5D/F. */
+  /** Historical result marker retained only to reject obsolete cached/replay evidence.
+   * The current runtime never produces legacy observations. */
   legacyObservation?: { engineVersion: 'legacy-rail-1.5b'; reason: string };
   /** Source-relative conductor potentials are not voltage across a load or to PE. */
   wireStates?: Record<
@@ -472,7 +473,7 @@ export interface SimulationResult {
   timerContactStates?: Record<string, boolean>;
   /** Derived protection contact operation; never persisted into the manual switch state. */
   protectionContactStates?: Record<string, boolean>;
-  /** Loads with nonzero solved power; legacy continuity is explicitly tagged separately. */
+  /** Loads with nonzero accepted solved power. */
   energizedComponents: Set<string>;
   /** Wires with current or nonzero source-relative potential. This is not a current measurement. */
   energizedWires: Set<string>;

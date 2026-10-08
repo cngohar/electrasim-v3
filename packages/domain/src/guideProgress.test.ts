@@ -55,7 +55,8 @@ describe('guide progress (guided circuits, not challenges)', () => {
   });
 
   it('withholds completion when the legacy LED model remains unassessed', () => {
-    const template = requireTemplate('simple-lamp');
+    const template = structuredClone(requireTemplate('simple-lamp'));
+    template.circuit.components.find((c) => c.type === 'bulb-incandescent')!.type = 'bulb';
     const circuit = cloneTemplateCircuit(template);
     const result = simulate(circuit);
 

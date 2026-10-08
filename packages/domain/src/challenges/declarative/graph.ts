@@ -111,7 +111,8 @@ function internalPorts(
 
 /**
  * Walk one rail from `startKeys` ("id:port") across the wiring graph.
- * Mirrors `simulation/traversal.ts` semantics for the fault-free case.
+ * Provides fault-free connectivity for authored structural rules. Electrical
+ * operation is assessed separately by the numerical runtime.
  */
 export function walkRail(
   graph: CircuitGraph,

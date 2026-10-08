@@ -463,3 +463,124 @@ documentation index and changelog. **Next is F.3 legacy retirement, full `verify
 and all three stress suites before effects.** The scoped local commit runs the
 normal format/type hooks. No dependency/lockfile, database migration, Cloudflare
 account/credentials/resources, live-site test, deployment or Git push changed.
+
+
+## 2026-10-07 — Phase 1.5F.3 legacy retirement implemented; acceptance open
+
+Continued from local F.2 commit `2d561f5`. Removed the rail numerical runtime,
+its coil/traversal/index helpers and blanket legacy coverage guard. The app,
+Comlink and local Hono keep their shared scalar/phasor entry point; options now
+live independently in `simulation/options.ts`. Missing laws return unavailable
+operation/telemetry. Historical markers and the old engine are rejected as fresh
+evidence. Saved source aliases, fault mirrors, terminals and failure states remain
+supported, with component connectivity retained only for conservative Zs checks.
+
+Added retirement/restore and the 20-guide model matrix, preserved pole/relay and
+fault regressions against declared models, selected modeled incandescent lamps
+for new lighting demos/guides, and corrected misleading RCBO/generator text.
+The final renderer review removed the remaining nameplate-based temperature
+prediction and added real-heater/obsolete-temperature regressions. Default
+version-3 generator stress now tests six supported recipes, rejected historical
+recipes, physical fault applicability, inactive travellers, numerical recovery
+and false repair by deletion. The full Ohmageddon sweep found rejection notes
+that exposed future fault-target IDs; those notes and regressions are corrected.
+
+Added `verify:phase-1.5f3` with the existing full `verify`, numerical benchmark,
+real local parity/simulator acceptance and all three default stress commands.
+Browser helpers use actual phone inspection controls and explicitly scoped
+desktop surfaces on all engines, preserve authored phone cases and electrical
+assertions, and handle WebKit actionability through native keyboard activation
+or a verified unobstructed SVG hit. The initial comprehensive browser attempt
+was interrupted; the corrected matrix is running. No full-browser acceptance
+claim is made yet.
+
+Evidence so far: all project types, 156 domain modules, lint; 2,200 comprehensive
+unit passes with one unchanged 50 ms smoke failure under load, then 37 isolated
+simulation passes; 6 final renderer checks; final build/assets/link/SEO/CSP;
+858 exact Bun/workerd cases; 20 simulator and 36 full membership D1/cookie groups;
+600 diagnosis and 1,800 Ohmageddon scenarios; 3,006 generator scenarios with all
+functional invariants passing but time budgets failing; 759 stronger final
+harness scenarios with the same result; renderer fallback gate and 53 production
+browser cases. [Detailed results and limits](docs/audits/phase-1-legacy-retirement.md)
+record aggregate evidence rather than one uninterrupted green default gate.
+
+**F.3 acceptance remains open.** The modeled dense application benchmark misses
+8 ms p95; generation/full-loop time limits and the dense 60 fps goal remain
+unresolved. Next is measured optimization and the remaining complete matrix/full
+gate, before 1.6 effects. Changes are local and uncommitted. No repository
+dependency/lockfile, database schema, remote Cloudflare operation, deployment or Git
+push changed. WebKit was downloaded only into the local browser cache.
+
+## 2026-10-08 — F.3 resumed: local services and solver profiling
+
+Restarted the local development Worker (8791), browser-test Worker (8792), Vite
+(3000), built-site preview (8788), and Astro development server (4321). The saved
+495-case browser run had ended at case 236 without a final result; it is not a
+completed acceptance run. A fresh full matrix completed with 452 passes,
+20 intentional skips and 23 failures. Serial follow-ups passed 19, then the
+remaining four after inspection/context-menu/shortcut-label corrections. All
+475 runnable cases therefore have aggregate passing evidence; this is not one
+uninterrupted green matrix. A real tablet toolbar overlap was corrected and nine
+focused browser checks passed across all three projects, including unobstructed
+control hit-testing at 834 px.
+
+CPU profiling identified dense factorization and temporary residual arrays as
+major costs. Combined input validation/scaling into indexed loops, accumulated
+compensated residuals without temporary dense arrays, and ordered voltage nodes
+by degree before shared supply rails to reduce fill-in. All equations, finite
+checks, pivot thresholds, and conservation tolerances remain enforced. A coil
+regression caught negative zero after permutation; numerical solution zero is
+now canonicalized, with a regression for JSON portability. The 18-test coil
+suite passes. The first isolated application run improved to 27.19 ms median /
+40.46 ms p95, still failing the existing 8 ms p95 budget. Serialization timing is
+now collected in its own phase to avoid charging its allocations to the next
+solve sample. Exact degree-two series-path reduction then improved the isolated
+measurement to 21.78 ms median / 39.97 ms p95. It preserves the original graph,
+source/transformer constraints and physical-terminal conservation checks; its
+three focused regressions pass. The 8 ms gate remains failed. Fresh complete
+`check` passed all project types, the 157-module boundary, lint (783 files), and
+139 files / 2,207 tests after the numerical and toolbar changes. Exact runtime
+parity passed all 858 cases. Fresh build/assets/link/SEO/CSP checks passed:
+250,029 B initial gzip JS and 26,092 B CSS. The latest application measurement
+is 23.07 ms median / 29.13 ms p95; an unchanged-benchmark Node diagnostic also
+missed 8 ms at 28.86 ms p95. The required Bun runtime and budget are unchanged.
+
+The rebuilt site passed all 53 production browser cases, and real local
+membership/D1/cookie acceptance passed all 36 groups. Diagnosis passed 600
+scenarios / 10,916 evaluations (build/evaluation p95 15.4/7.0 ms); Ohmageddon
+passed 1,800 scenarios / 6,818 evaluations (build p95 39.89 ms). The complete
+default generator sweep passed all functional invariants for 3,006 circuits,
+174,048 faults and 310,476 repair checks, plus 60,000 identity samples with zero
+collisions. Timing still failed: difficulty full-loop p95 88.7/225.6/611.6 ms
+against 120 ms; pinned contactor generation median 5.336 ms against 5 ms.
+No requirement was relaxed. F.3 remains incomplete, with no completion commit
+or push. Vite was restored to normal HMR against local Worker 8791, with the
+browser Worker, built preview and Astro development services also running.
+
+GitHub was fetched for the requested publication. `origin/main` is F.1 commit
+`34521c0`; local F.2 `2d561f5` is directly ahead, with no divergent commits.
+Commit/push is authorized after completion; F.3 acceptance remains open.
+
+## 2026-10-08 — F.3 finished by user decision with explicit exceptions
+
+After the results above were reported, the user instructed that they be recorded
+and the phase marked finished with explicit notes. **F.3 is now finished with
+accepted performance exceptions; next is 1.6 visual effects.** This supersedes
+the earlier open milestone status, not the measured gate outcomes.
+
+Saved in `docs/audits/phase-1-legacy-retirement.md`: simulation p95 29.13 ms
+against 8 ms; generator difficulty full-loop p95 88.7/225.6/611.6 ms against
+120 ms; pinned contactor generation median 5.336 ms against 5 ms. Dense 60 fps
+remains unmet, and development-browser coverage is aggregate rather than one
+uninterrupted green matrix. All existing budgets/assertions stay unchanged.
+The full verification command is not green; these are accepted deferrals, not
+fixed or passed performance tests.
+
+Fresh passing evidence remains 2,207 unit tests, 858 exact runtime-parity cases,
+36 local API groups, 53 production browser cases, build/assets/link/SEO/CSP,
+600 Diagnosis and 1,800 Ohmageddon scenarios. Generator correctness passed all
+3,006 circuits / 174,048 faults / 310,476 repair checks and 60,000 identity samples.
+Active plans, documentation index, development notes and changelog now point to
+this closure and its exceptions. A separate requested memory note records this
+decision for continuation. Commit and GitHub push follow the user's earlier
+authorization; Cloudflare remains local-only. No 1.6 implementation is included.

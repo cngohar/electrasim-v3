@@ -3,6 +3,14 @@ import type { Circuit } from '@electrasim/domain';
 import { type Page, expect, test } from '@playwright/test';
 import { editingCircuit, variantCircuit } from '../packages/domain/src/core/editingFixtures';
 import { component as C, wire as W } from '../packages/domain/src/simulation/auditFixtures';
+import { activateControl, inspectComponent } from './helpers/workbench';
+
+// The desktop toolbar/palette/analytics workflow is checked on every engine.
+// The explicit phone case below checks its Supply/Review confirmation controls.
+test.beforeEach(async ({ page }, testInfo) => {
+  if (!testInfo.title.startsWith('phone '))
+    await page.setViewportSize({ width: 1280, height: 900 });
+});
 
 async function openCircuit(page: Page, circuit: Circuit) {
   await page.addInitScript(() => {
@@ -11,14 +19,14 @@ async function openCircuit(page: Page, circuit: Circuit) {
   });
   await page.goto('/');
   await expect(page.getByRole('button', { name: 'Run Simulation', exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Menu', exact: true }).click();
-  await page.getByRole('button', { name: /^Import \/ Export/ }).click();
+  await activateControl(page, page.getByRole('button', { name: 'Menu', exact: true }));
+  await activateControl(page, page.getByRole('button', { name: /^Import \/ Export/ }));
   const dialog = page.getByRole('dialog');
-  await dialog.getByRole('button', { name: 'Import', exact: true }).click();
+  await activateControl(page, dialog.getByRole('button', { name: 'Import', exact: true }));
   await dialog
     .locator('textarea')
     .fill(JSON.stringify({ version: circuit.supply ? 2 : 1, exportedAt: 0, circuit }));
-  await dialog.getByRole('button', { name: 'Import from paste' }).click();
+  await activateControl(page, dialog.getByRole('button', { name: 'Import from paste' }));
   await expect(
     dialog.getByText(
       `Loaded ${circuit.components.length} components, ${circuit.wires.length} wires.`,
@@ -38,10 +46,7 @@ async function documentAt(page: Page): Promise<Circuit> {
 }
 
 async function inspect(page: Page, id: string) {
-  await page.getByTitle('Zoom to fit all (F)').click();
-  await page.locator(`[data-component-id="${id}"] [data-component-hitbox]`).click();
-  await page.getByTitle(/^Properties & (Settings|Specs)$/).click();
-  return page.locator('[data-tour="inspector"]');
+  return inspectComponent(page, id);
 }
 
 test('supply dialog stages, cancels, restores focus and applies one coherent Undo/Redo transaction', async ({
@@ -54,17 +59,17 @@ test('supply dialog stages, cancels, restores focus and applies one coherent Und
   const dialog = page.getByRole('dialog', { name: 'Change supply' });
   await dialog.getByLabel('Supply voltage in volts').fill('12');
   expect(await documentAt(page)).toEqual(original);
-  await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await activateControl(page, dialog.getByRole('button', { name: 'Cancel', exact: true }));
   await expect(dialog).not.toBeVisible();
   await expect(trigger).toBeFocused();
   await trigger.click();
-  await dialog.getByRole('button', { name: '24 V', exact: true }).click();
+  await activateControl(page, dialog.getByRole('button', { name: '24 V', exact: true }));
   await page.keyboard.press('Escape');
   expect(await documentAt(page)).toEqual(original);
   await expect(trigger).toBeFocused();
   await trigger.click();
-  await dialog.getByRole('button', { name: '12 V', exact: true }).click();
-  await dialog.getByRole('button', { name: 'Apply supply change' }).click();
+  await activateControl(page, dialog.getByRole('button', { name: '12 V', exact: true }));
+  await activateControl(page, dialog.getByRole('button', { name: 'Apply supply change' }));
   await expect(trigger).toContainText('12 V AC 50 Hz');
   const after = await documentAt(page);
   for (const id of ['heater', 'independent', 'other-load', 'pe'])
@@ -74,7 +79,7 @@ test('supply dialog stages, cancels, restores focus and applies one coherent Und
   expect(after.wires).toEqual(original.wires);
   const notice = page.locator('output').filter({ hasText: 'Supply changed from' });
   await expect(notice).toContainText('components need review');
-  await notice.getByRole('button', { name: 'Undo', exact: true }).click();
+  await activateControl(page, notice.getByRole('button', { name: 'Undo', exact: true }));
   await expect(trigger).toContainText('230 V AC 50 Hz');
   expect(await documentAt(page)).toEqual(original);
   await page.keyboard.press('Control+y');
@@ -94,18 +99,18 @@ test('AC/DC changes preserve independent sources and the inspector edits only it
   await dialog.getByLabel('Supply kind').selectOption('dc');
   await dialog.getByLabel('Supply voltage in volts').fill('48');
   await expect(dialog).toContainText('PE remains protective earth');
-  await dialog.getByRole('button', { name: 'Apply supply change' }).click();
+  await activateControl(page, dialog.getByRole('button', { name: 'Apply supply change' }));
   expect((await documentAt(page)).supply?.model).toEqual({ kind: 'dc', voltage: 48 });
   const inspector = await inspect(page, 'independent');
   await expect(inspector).toContainText('Independent source output');
-  await inspector.getByRole('button', { name: 'Edit supply…' }).click();
+  await activateControl(page, inspector.getByRole('button', { name: 'Edit supply…' }));
   await expect(dialog).toContainText('12 V AC 60 Hz');
   await dialog.getByLabel('Supply kind').selectOption('dc');
   await expect(dialog.getByRole('button', { name: 'Apply supply change' })).toBeDisabled();
   await expect(dialog).toContainText('different physical AC/DC interface');
   await dialog.getByLabel('Supply kind').selectOption('ac-single-phase');
   await dialog.getByLabel('Supply voltage in volts').fill('24');
-  await dialog.getByRole('button', { name: 'Apply supply change' }).click();
+  await activateControl(page, dialog.getByRole('button', { name: 'Apply supply change' }));
   const after = await documentAt(page);
   expect(after.supply?.model).toEqual({ kind: 'dc', voltage: 48 });
   expect(after.components.find((c) => c.id === 'independent')?.state.sourceProfile?.model).toEqual({
@@ -136,7 +141,7 @@ test('preview refreshes on document revision and its notice never undoes a later
     (await import(path)).useCircuitStore.getState().moveComponent('heater', 540, 250);
   });
   await expect(dialog).toContainText('preview has been refreshed');
-  await dialog.getByRole('button', { name: 'Apply supply change' }).click();
+  await activateControl(page, dialog.getByRole('button', { name: 'Apply supply change' }));
   expect((await documentAt(page)).components.find((c) => c.id === 'heater')?.x).toBe(540);
   await page.evaluate(async () => {
     const path = '/src/store/circuitStore.ts';
@@ -144,7 +149,7 @@ test('preview refreshes on document revision and its notice never undoes a later
   });
   const notice = page.locator('output').filter({ hasText: 'Supply changed from' });
   await expect(notice.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled();
-  await notice.getByRole('button', { name: 'Review' }).click();
+  await activateControl(page, notice.getByRole('button', { name: 'Review' }));
   await expect(page.getByRole('dialog', { name: 'Circuit readiness' })).toContainText(
     'declared ratings',
   );
@@ -199,7 +204,7 @@ test('Run distinguishes empty, missing supply, no-load, open, partial, short and
       const review = page.getByRole('dialog', { name: 'Circuit readiness' });
       await expect(review).toBeVisible();
       await expect(review).toContainText('live conductor can carry zero current');
-      await review.getByRole('button', { name: 'Run diagnostic' }).click();
+      await activateControl(page, review.getByRole('button', { name: 'Run diagnostic' }));
       await expect(page.getByRole('button', { name: 'Stop', exact: true })).toBeVisible();
     }
     await expect(page.getByText('Healthy', { exact: true })).toHaveCount(0);
@@ -228,7 +233,7 @@ test('palette, command suggestions and placed components share compatibility wit
   const dialog = page.getByRole('dialog', { name: 'Change supply' });
   await dialog.getByLabel('Supply kind').selectOption('dc');
   await dialog.getByLabel('Supply voltage in volts').fill('12');
-  await dialog.getByRole('button', { name: 'Apply supply change' }).click();
+  await activateControl(page, dialog.getByRole('button', { name: 'Apply supply change' }));
   await palette.getByLabel('Placement supply').selectOption('');
   await expect(
     palette.locator('[data-palette-type="bulb"][data-compatibility="incompatible"]').first(),
@@ -255,12 +260,15 @@ test('variant confirmation maps MCB output to RCCB L-out and preserves a port fa
   await openCircuit(page, circuit);
   const original = await documentAt(page);
   const inspector = await inspect(page, 'breaker');
-  await inspector.getByRole('button', { name: 'RCD / RCCB (80A 30mA)', exact: true }).click();
+  await activateControl(
+    page,
+    inspector.getByRole('button', { name: 'RCD / RCCB (80A 30mA)', exact: true }),
+  );
   const dialog = page.getByRole('dialog', { name: 'Replace component variant' });
   await expect(dialog).toContainText('L-out: terminal 2 → 3');
   await expect(dialog).toContainText('N-in, N-out');
   expect(await documentAt(page)).toEqual(original);
-  await dialog.getByRole('button', { name: 'Apply replacement' }).click();
+  await activateControl(page, dialog.getByRole('button', { name: 'Apply replacement' }));
   const after = await documentAt(page);
   expect(after.wires.find((w) => w.id === 'breaker-out')?.fromPortIndex).toBe(2);
   expect(after.faults?.[0]?.target).toMatchObject({ portIndex: 2 });
@@ -273,13 +281,13 @@ test('running and graded attempts lock configuration while supported runtime swi
   page,
 }) => {
   await openCircuit(page, editingCircuit());
-  await page.getByRole('button', { name: 'Run Simulation', exact: true }).click();
+  await activateControl(page, page.getByRole('button', { name: 'Run Simulation', exact: true }));
   await expect(page.getByRole('button', { name: 'Stop', exact: true })).toBeVisible();
   await expect(
     page.getByTitle('Stop the simulation to change electrical configuration.'),
   ).toBeDisabled();
   const inspector = await inspect(page, 'switch');
-  await inspector.getByRole('button', { name: 'CLOSED (ON)', exact: true }).click();
+  await activateControl(page, inspector.getByRole('button', { name: 'CLOSED (ON)', exact: true }));
   await expect(inspector.getByRole('button', { name: 'OPEN (OFF)', exact: true })).toBeVisible();
   const before = await documentAt(page);
   await page.evaluate(async () => {
@@ -289,7 +297,7 @@ test('running and graded attempts lock configuration while supported runtime swi
     store.updateComponentState('independent', { customVoltage: 48 });
   });
   expect(await documentAt(page)).toEqual(before);
-  await page.getByRole('button', { name: 'Stop', exact: true }).click();
+  await activateControl(page, page.getByRole('button', { name: 'Stop', exact: true }));
   await page.evaluate(async () => {
     const path = '/src/store/uiStore.ts';
     (await import(path)).useUiStore.setState({ challengeAttemptId: 'local-graded-test' });
@@ -302,13 +310,13 @@ test('running and graded attempts lock configuration while supported runtime swi
 test('phone supply and readiness controls use the same confirmation flow', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await openCircuit(page, editingCircuit());
-  await page.getByRole('button', { name: 'Supply', exact: true }).click();
+  await activateControl(page, page.getByRole('button', { name: 'Supply', exact: true }));
   const dialog = page.getByRole('dialog', { name: 'Change supply' });
   await dialog.getByLabel('Supply kind').selectOption('dc');
-  await dialog.getByRole('button', { name: '24 V', exact: true }).click();
-  await dialog.getByRole('button', { name: 'Apply supply change' }).click();
+  await activateControl(page, dialog.getByRole('button', { name: '24 V', exact: true }));
+  await activateControl(page, dialog.getByRole('button', { name: 'Apply supply change' }));
   expect((await documentAt(page)).supply?.model).toEqual({ kind: 'dc', voltage: 24 });
-  await page.getByRole('button', { name: 'Review', exact: true }).last().click();
+  await activateControl(page, page.getByRole('button', { name: 'Review', exact: true }).last());
   await expect(page.getByRole('dialog', { name: 'Circuit readiness' })).toContainText(
     'declared ratings',
   );
@@ -341,19 +349,19 @@ test('a delayed real Comlink response cannot replace results after a confirmed s
   circuit.components = circuit.components.filter((c) => ['l', 'n', 'heater'].includes(c.id));
   circuit.wires = circuit.wires.filter((w) => ['feed', 'return'].includes(w.id));
   await openCircuit(page, circuit);
-  await page.getByRole('button', { name: 'Run Simulation', exact: true }).click();
+  await activateControl(page, page.getByRole('button', { name: 'Run Simulation', exact: true }));
   const queued = () =>
     page.evaluate(
       () => (window as unknown as { electricalReplies: (() => void)[] }).electricalReplies.length,
     );
   await expect.poll(queued).toBe(1);
-  await page.getByRole('button', { name: 'Stop', exact: true }).click();
+  await activateControl(page, page.getByRole('button', { name: 'Stop', exact: true }));
   await page.getByTitle('Click to change Global Supply Voltage').click();
   const dialog = page.getByRole('dialog', { name: 'Change supply' });
   await dialog.getByLabel('Supply kind').selectOption('dc');
-  await dialog.getByRole('button', { name: '12 V', exact: true }).click();
-  await dialog.getByRole('button', { name: 'Apply supply change' }).click();
-  await page.getByRole('button', { name: 'Run Simulation', exact: true }).click();
+  await activateControl(page, dialog.getByRole('button', { name: '12 V', exact: true }));
+  await activateControl(page, dialog.getByRole('button', { name: 'Apply supply change' }));
+  await activateControl(page, page.getByRole('button', { name: 'Run Simulation', exact: true }));
   await expect.poll(queued).toBe(2);
   await page.evaluate(() =>
     (window as unknown as { electricalReplies: (() => void)[] }).electricalReplies.pop()!(),
@@ -380,8 +388,8 @@ test('a delayed real Comlink response cannot replace results after a confirmed s
   // than merely comparing a status that is shared with the obsolete 230 V run.
   expect(await reading()).toEqual(accepted);
   expect((await documentAt(page)).supply?.model).toEqual({ kind: 'dc', voltage: 12 });
-  await page.getByTitle('Waveform Scope', { exact: true }).click();
+  await page.getByTitle('Current calculated readings', { exact: true }).click();
   await expect(page.locator('[data-tour="inspector"]')).toContainText(
-    'Waveform and energy measurements unavailable',
+    'Waveform, power factor, temperature and accumulated energy measurements remain unavailable.',
   );
 });

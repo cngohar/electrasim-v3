@@ -46,7 +46,10 @@ test('all shipped guide consumers replay exactly through real Comlink with stale
   expect(actual.results).toEqual(portableResult(consumerEvidenceFixture()));
 });
 
-test('analytics shows actual series power and withholds a stale reading', async ({ page }) => {
+test('desktop analytics shows actual series power and withholds a stale reading', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
   await openCircuit(page, seriesFixture());
   await page.getByRole('button', { name: 'Run Simulation', exact: true }).click();
   await expect

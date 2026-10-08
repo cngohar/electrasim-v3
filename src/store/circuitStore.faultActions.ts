@@ -18,7 +18,7 @@ import { useUiStore } from './uiStore';
 
 type CircuitSetState = (recipe: (state: CircuitState) => void) => boolean | Promise<boolean>;
 
-/** Timed fault edits are inputs to the current run; legacy observations keep their stop behavior. */
+/** Timed fault edits are inputs to the current run; static results are invalidated. */
 function stopUntimedRun(state: CircuitState) {
   const ui = useUiStore.getState();
   if (

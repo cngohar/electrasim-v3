@@ -1,5 +1,5 @@
 /** Local numerical-slice evidence. This measures validation, compilation, MNA,
- * measurement recovery and conservation checks, not rendering or the legacy adapter.
+ * measurement recovery and conservation checks, not rendering or result serialization.
  */
 import assert from 'node:assert/strict';
 import { performance } from 'node:perf_hooks';
@@ -99,5 +99,5 @@ for (const { name, circuit, sourceCurrent } of scenarios) {
   );
 }
 console.log(
-  'Numerical-slice timings are evidence for later integration. The legacy simulation budget is unchanged; this command does not certify browser frame rate or production throughput.',
+  'Numerical-slice timings are evidence for later integration. The application simulation budget is unchanged; this command does not certify browser frame rate or production throughput.',
 );

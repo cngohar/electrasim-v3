@@ -1297,3 +1297,18 @@ describe('timeLimit — Rage 4 optional timer (plan §27, §53 F6)', () => {
     expect(next).toBeNull();
   });
 });
+
+describe('rage summary answer concealment', () => {
+  it.each([39608, 166312, 490991])(
+    'keeps rejected decoy validation targets out of visible notes at seed %s',
+    (seed) => {
+      const scenario = buildDiagnosisScenario({ seed, difficulty: 'beginner', rageTier: 'rage-1' });
+      const notes = scenario.rage!.applications.map((a) => a.note).join(' ');
+      const tokens = new Set(notes.split(/[^A-Za-z0-9_-]+/));
+      for (const entry of scenario.faults) {
+        const target = entry.fault.target;
+        expect(tokens.has(target.type === 'port' ? target.componentId : target.id)).toBe(false);
+      }
+    },
+  );
+});

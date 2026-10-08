@@ -31,9 +31,11 @@ import {
 } from '@electrasim/domain/challenges';
 import { validateCircuit } from '@electrasim/domain/circuitValidation';
 import { COMPONENT_DEFS } from '@electrasim/domain/components';
+import { assessFaultTarget } from '@electrasim/domain/faultApplicability';
 import {
   createInjectedFault,
   isFaultRemoved,
+  isFaultResolved,
   normalizeCircuitFaults,
   validateFaultCoexistence,
 } from '@electrasim/domain/faults';
@@ -48,6 +50,8 @@ import type {
   Point2D,
   SimulationResult,
 } from '@electrasim/domain/types';
+import { hasDiagnosisEvidence } from '../packages/domain/src/challenges/diagnosis/assessment';
+import { SUPPORTED_RECIPE_IDS } from '../packages/domain/src/challenges/generator/supportedRecipes';
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -69,25 +73,48 @@ const P95_BUDGET_MS = 20;
 const LOOP_P95_BUDGET_MS = 120;
 
 /** Fault kinds exercised on every candidate, with the target family each uses. */
-const FAULT_MATRIX: { type: FaultType; targets: 'wires' | 'ports' | 'protection' }[] = [
+const FAULT_MATRIX: { type: FaultType; targets: 'wires' | 'ports' | 'protection' | 'loads' }[] = [
   { type: 'open-circuit', targets: 'wires' },
   { type: 'open-live', targets: 'wires' },
   { type: 'open-neutral', targets: 'wires' },
+  { type: 'open-earth', targets: 'wires' },
+  { type: 'short-circuit', targets: 'loads' },
   { type: 'short-circuit', targets: 'wires' },
   { type: 'earth-fault', targets: 'wires' },
   { type: 'live-to-earth', targets: 'wires' },
+  { type: 'reverse-polarity', targets: 'loads' },
   { type: 'reverse-polarity', targets: 'wires' },
   { type: 'terminal-disconnect', targets: 'ports' },
   { type: 'protection-forced-open', targets: 'protection' },
 ];
 
-/**
- * `open-earth` removes only the CPC. On a TN circuit with no earth-referenced
- * measurement it is intentionally *silent* in the load-energisation sense — it
- * is a safety defect, not a functional one. It is stress-tested for stability
- * and repair, but exempt from the "must change observable behaviour" rule.
- */
-const BEHAVIOURALLY_SILENT_FAULTS = new Set<FaultType>(['open-earth']);
+/** Open CPCs and unused travellers need not change load operation at rest.
+ * They remain fault records; diagnosis generation separately requires a real
+ * solo load consequence before selecting a target for grading. */
+function inactiveOpenTarget(
+  circuit: Circuit,
+  baseline: SimulationResult,
+  type: FaultType,
+  target: FaultTarget,
+): boolean {
+  if (!type.startsWith('open-') && type !== 'terminal-disconnect') return false;
+  const wires = circuit.wires.filter((wire) =>
+    target.type === 'wire'
+      ? wire.id === target.id
+      : target.type === 'port'
+        ? (wire.fromComponentId === target.componentId &&
+            wire.fromPortIndex === target.portIndex) ||
+          (wire.toComponentId === target.componentId && wire.toPortIndex === target.portIndex)
+        : wire.fromComponentId === target.id || wire.toComponentId === target.id,
+  );
+  return (
+    wires.length > 0 &&
+    wires.every((wire) => {
+      const current = baseline.wireCalculations?.[wire.id]?.currentAmps;
+      return typeof current === 'number' && Math.abs(current) <= 1e-9;
+    })
+  );
+}
 
 // ---------------------------------------------------------------------------
 // CLI
@@ -132,6 +159,8 @@ function fail(
 function fingerprint(circuit: Circuit): string {
   return JSON.stringify({
     v: circuit.globalVoltage,
+    supply: circuit.supply,
+    faults: circuit.faults,
     c: circuit.components.map((c) => [c.id, c.type, c.x, c.y, c.state]),
     w: circuit.wires.map((w) => [
       w.id,
@@ -175,6 +204,19 @@ function diffSymptom(
   const newErrorComponents = faulted.errorComponents.size > base.errorComponents.size;
   const newErrorWires = faulted.errorWires.size > base.errorWires.size;
   const newErrors = faulted.errors.length > base.errors.length;
+  const operatingChange = loadIds.some((id) => {
+    const a = base.componentCalculations?.[id];
+    const b = faulted.componentCalculations?.[id];
+    return (
+      a &&
+      b &&
+      ['voltage', 'currentAmps', 'powerWatts'].some((key) => {
+        const x = a[key as keyof typeof a];
+        const y = b[key as keyof typeof b];
+        return typeof x === 'number' && typeof y === 'number' && Math.abs(x - y) > 1e-6;
+      })
+    );
+  });
   return {
     deEnergisedLoads,
     tripped,
@@ -182,18 +224,14 @@ function diffSymptom(
     newErrorComponents,
     newErrorWires,
     newErrors,
-    observable:
-      deEnergisedLoads.length > 0 ||
-      tripped ||
-      blown ||
-      newErrorComponents ||
-      newErrorWires ||
-      newErrors,
+    observable: deEnergisedLoads.length > 0 || tripped || blown || operatingChange,
   };
 }
 
 /** Did the circuit return exactly to its pre-fault electrical state? */
 function isFullRecovery(base: SimulationResult, repaired: SimulationResult): string | null {
+  if (JSON.stringify(repaired.electrical) !== JSON.stringify(base.electrical))
+    return 'solved operating points changed';
   if (repaired.errors.length !== base.errors.length)
     return `errors ${base.errors.length} → ${repaired.errors.length}`;
   if (repaired.energizedComponents.size !== base.energizedComponents.size)
@@ -237,6 +275,8 @@ function checkBaseline(challenge: GeneratedChallenge, ctx: Ctx): SimulationResul
   const { circuit, scenario } = challenge;
   const result = simulate(circuit, { appMode: 'pro' });
 
+  if (!hasDiagnosisEvidence(circuit, result))
+    fail('baseline-evidence', ctx, 'current supported operating evidence is required');
   if (result.errors.length > 0)
     fail('baseline-simulation', ctx, `errors: ${result.errors.join('; ')}`);
   if (result.faultsCleared === false)
@@ -293,7 +333,7 @@ function checkSerialisation(
   if (fingerprint(round) !== fingerprint(challenge.circuit))
     fail('serialisation', ctx, 'circuit changed across a JSON round trip');
   const result = simulate(round, { appMode: 'pro' });
-  if (result.energizedComponents.size !== baseline.energizedComponents.size)
+  if (JSON.stringify(result.electrical) !== JSON.stringify(baseline.electrical))
     fail('serialisation', ctx, 'rehydrated circuit simulates differently');
 }
 
@@ -317,9 +357,13 @@ function checkFaultLoop(
               componentId: w.toComponentId,
               portIndex: w.toPortIndex,
             }))
-          : scenario.protectionComponentIds.map((id) => ({ type: 'component', id }));
+          : (targets === 'loads' ? scenario.loadComponentIds : scenario.protectionComponentIds).map(
+              (id) => ({ type: 'component', id }),
+            );
 
     for (const target of targetList) {
+      const applicability = assessFaultTarget(circuit, type, target);
+      if (!applicability.applicable) continue;
       const fault = createInjectedFault(type, target);
 
       // Coexistence must accept a single fault on a clean circuit.
@@ -343,8 +387,17 @@ function checkFaultLoop(
       const symptom = diffSymptom(baseline, faulted, loadIds);
       tally.faultsInjected += 1;
 
-      if (symptom.observable) tally.faultsObservable += 1;
-      else if (!BEHAVIOURALLY_SILENT_FAULTS.has(type))
+      if (applicability.coverage === 'not-assessed') {
+        if (
+          faulted.electrical?.status !== 'unsupported' ||
+          faulted.componentCalculations ||
+          faulted.energizedComponents.size ||
+          faulted.faultsCleared
+        )
+          fail('unassessed-fault', ctx, `${type} fabricated operating evidence`);
+      } else if (symptom.observable) tally.faultsObservable += 1;
+      else if (inactiveOpenTarget(circuit, baseline, type, target)) tally.faultsSilent += 1;
+      else
         fail(
           'fault-observability',
           ctx,
@@ -374,6 +427,8 @@ function checkFaultLoop(
         if (!isFaultRemoved(fault, rewired, rewiredResult))
           fail('repair-delete', ctx, `${type} not resolved after deleting wire ${target.id}`);
         else tally.repairsVerified += 1;
+        if (isFaultResolved(fault, rewired, rewiredResult))
+          fail('repair-delete', ctx, `${type} deletion falsely earned recovery evidence`);
       }
     }
   }
@@ -395,6 +450,7 @@ interface Tally {
   retries: number;
   faultsInjected: number;
   faultsObservable: number;
+  faultsSilent: number;
   repairsVerified: number;
   genTimes: number[];
   loopTimes: number[];
@@ -409,6 +465,7 @@ function newTally(): Tally {
     retries: 0,
     faultsInjected: 0,
     faultsObservable: 0,
+    faultsSilent: 0,
     repairsVerified: 0,
     genTimes: [],
     loopTimes: [],
@@ -437,7 +494,7 @@ function runSeed(
     fail(
       'generation',
       { difficulty, seed, recipeId: recipeId ?? '(any)' },
-      outcome.rejection?.reasons?.join('; ') ?? 'generation failed',
+      outcome.rejections.flatMap((r) => r.reasons).join('; ') ?? 'generation failed',
     );
     return;
   }
@@ -521,7 +578,7 @@ function report(label: string, tally: Tally): boolean {
   );
   console.log(`  full loop p95 ${loopP95.toFixed(1)} ms  (budget ${LOOP_P95_BUDGET_MS} ms)`);
   console.log(
-    `  faults injected ${tally.faultsInjected}  observable ${tally.faultsObservable}  repairs verified ${tally.repairsVerified}`,
+    `  faults injected ${tally.faultsInjected}  observable ${tally.faultsObservable}  inactive openings ${tally.faultsSilent}  repairs verified ${tally.repairsVerified}`,
   );
   if (VERBOSE) {
     for (const [recipe, count] of [...tally.recipeHits].sort((a, b) => b[1] - a[1]))
@@ -551,11 +608,14 @@ function report(label: string, tally: Tally): boolean {
 
 console.log(
   `Generator stress test — ${SEEDS_PER_DIFFICULTY} seeds × ${DIFFICULTIES.length} difficulties, ` +
-    `plus ${SEEDS_PER_PINNED_RECIPE} seeds × ${CHALLENGE_RECIPES.length} pinned recipes.`,
+    `plus ${SEEDS_PER_PINNED_RECIPE} seeds × ${SUPPORTED_RECIPE_IDS.length} supported pinned recipes.`,
 );
 
 let budgetsOk = true;
 const overall = newTally();
+const currentRecipes = CHALLENGE_RECIPES.filter((r) =>
+  SUPPORTED_RECIPE_IDS.some((id) => id === r.id),
+);
 
 for (const difficulty of DIFFICULTIES) {
   const tally = newTally();
@@ -564,7 +624,7 @@ for (const difficulty of DIFFICULTIES) {
   }
   budgetsOk = report(`Difficulty: ${difficulty}`, tally) && budgetsOk;
 
-  const expected = CHALLENGE_RECIPES.filter((r) => r.difficulty === difficulty).length;
+  const expected = currentRecipes.filter((r) => r.difficulty === difficulty).length;
   if (tally.recipeHits.size !== expected) {
     console.error(`  ✗ only ${tally.recipeHits.size}/${expected} recipes were ever selected`);
     budgetsOk = false;
@@ -576,24 +636,29 @@ for (const difficulty of DIFFICULTIES) {
 
 // --- Sweep 2: every recipe pinned, so rare recipes get equal coverage.
 
-for (const recipe of CHALLENGE_RECIPES) {
+for (const recipe of currentRecipes) {
   const tally = newTally();
   for (let seed = 1; seed <= SEEDS_PER_PINNED_RECIPE; seed += 1) {
     runSeed(recipe.difficulty, seed * 7919 + 13, recipe.id, tally);
   }
-  if (tally.generationFailures > 0 || VERBOSE) {
-    budgetsOk = report(`Recipe: ${recipe.id}`, tally) && budgetsOk;
-  } else {
-    const gen = [...tally.genTimes].sort((a, b) => a - b);
-    console.log(
-      `  ${recipe.id.padEnd(34)} ${tally.generated} ok, ${tally.retries} retries, ` +
-        `median ${percentile(gen, 0.5).toFixed(3)} ms, ${tally.faultsInjected} faults`,
-    );
-  }
-  if (tally.generationFailures > 0) budgetsOk = false;
+  budgetsOk = report(`Recipe: ${recipe.id}`, tally) && budgetsOk;
   overall.faultsInjected += tally.faultsInjected;
   overall.repairsVerified += tally.repairsVerified;
   overall.generated += tally.generated;
+}
+
+for (const recipe of CHALLENGE_RECIPES.filter((r) => !currentRecipes.includes(r))) {
+  const outcome = tryGenerateChallenge({
+    seed: 13,
+    difficulty: recipe.difficulty,
+    recipeId: recipe.id,
+  });
+  if (outcome.ok)
+    fail(
+      'historical-recipe',
+      { seed: 13, difficulty: recipe.difficulty, recipeId: recipe.id },
+      'Historical recipe entered current grading',
+    );
 }
 
 // --- Sweep 3: adversarial seed values.

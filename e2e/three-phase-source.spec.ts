@@ -8,6 +8,11 @@ import { portableResult } from '../packages/domain/src/simulation/runtimeFixture
 import { simulate } from '../packages/domain/src/simulation/simulate';
 import { test as paidTest } from './helpers/paid-test';
 import { documentAt, inspect, openCircuit, run } from './helpers/three-phase';
+import { activateControl } from './helpers/workbench';
+
+// Generic inspector cases use the desktop surface on every browser engine.
+// Explicit phone cases below retain their 390 px viewport.
+test.use({ viewport: { width: 1280, height: 900 } });
 
 test('guest palette placement has five canonical phase terminals and independent saved defaults', async ({
   page,
@@ -40,20 +45,20 @@ test('confirmed L-L and sequence edits cancel, apply and Undo without rewriting 
   await openCircuit(page, input);
   const before = await documentAt(page);
   const inspector = await inspect(page, 's');
-  await inspector.getByRole('button', { name: 'Edit supply…' }).click();
+  await activateControl(page, inspector.getByRole('button', { name: 'Edit supply…' }));
   const dialog = page.getByRole('dialog', { name: 'Change supply' });
   await dialog.getByLabel('Line-to-line voltage in volts').fill('400');
   await dialog.getByLabel('Phase sequence', { exact: true }).selectOption('acb');
   await dialog.getByLabel('Supply frequency in hertz').fill('60');
   expect(await documentAt(page)).toEqual(before);
-  await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await activateControl(page, dialog.getByRole('button', { name: 'Cancel', exact: true }));
   expect(await documentAt(page)).toEqual(before);
-  await inspector.getByRole('button', { name: 'Edit supply…' }).click();
+  await activateControl(page, inspector.getByRole('button', { name: 'Edit supply…' }));
   await expect(dialog.getByLabel('Phase sequence', { exact: true })).toHaveValue('abc');
   await dialog.getByLabel('Line-to-line voltage in volts').fill('400');
   await dialog.getByLabel('Phase sequence', { exact: true }).selectOption('acb');
   await dialog.getByLabel('Supply frequency in hertz').fill('60');
-  await dialog.getByRole('button', { name: 'Apply supply change' }).click();
+  await activateControl(page, dialog.getByRole('button', { name: 'Apply supply change' }));
   await expect(dialog).not.toBeVisible();
   const after = await documentAt(page);
   expect(after.components[0]!.state.sourceProfile?.model).toEqual({
@@ -68,7 +73,7 @@ test('confirmed L-L and sequence edits cancel, apply and Undo without rewriting 
     page.locator('[data-device-art="ac-three-phase-supply"] [data-device-rating]'),
   ).toContainText('ACB');
   const notice = page.locator('output').filter({ hasText: 'Supply changed from' });
-  await notice.getByRole('button', { name: 'Undo', exact: true }).click();
+  await activateControl(page, notice.getByRole('button', { name: 'Undo', exact: true }));
   expect(await documentAt(page)).toEqual(before);
   await page.keyboard.press('Control+y');
   expect(await documentAt(page)).toEqual(after);
@@ -158,7 +163,7 @@ test('phone source properties use the same voltage and sequence confirmation', a
   await dialog.getByLabel('Supply voltage in volts').fill('120');
   await dialog.getByLabel('Phase sequence', { exact: true }).selectOption('acb');
   await page.screenshot({ path: '.wrangler/phase15e1-source-phone.png' });
-  await dialog.getByRole('button', { name: 'Apply supply change' }).click();
+  await activateControl(page, dialog.getByRole('button', { name: 'Apply supply change' }));
   await expect(dialog).not.toBeVisible();
   expect((await documentAt(page)).components[0]!.state.sourceProfile?.model).toMatchObject({
     voltage: 120,

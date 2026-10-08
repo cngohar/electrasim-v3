@@ -40,7 +40,8 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  // Bound localhost concurrency; all projects and assertions still run.
+  workers: process.env.CI ? 1 : 2,
   reporter: [['html', { open: 'never' }], ['list']],
 
   use: {
@@ -52,7 +53,9 @@ export default defineConfig({
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
     { name: 'mobile-chrome', use: { ...devices['Pixel 7'] } },
-    { name: 'tablet-safari', use: { ...devices['iPad Pro 11'] } },
+    // WPE/WebKit runs active circuit animations slowly when two pages compete
+    // for this host. Keep the same deadlines and cases with one Safari worker.
+    { name: 'tablet-safari', workers: 1, use: { ...devices['iPad Pro 11'] } },
   ],
 
   webServer: process.env.PLAYWRIGHT_BASE_URL

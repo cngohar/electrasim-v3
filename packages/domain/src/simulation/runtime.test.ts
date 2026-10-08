@@ -109,13 +109,13 @@ describe('1.5C.5 application MNA adapter', () => {
     expect(result.blownComponents).toBeUndefined();
   });
 
-  it('preserves legacy switching observations with unavailable numeric readings for an unknown LED', () => {
+  it('withholds operation and numeric readings for an unknown LED', () => {
     const circuit = heaterFixture();
     circuit.components[1] = C('heater', 'bulb');
     const result = simulate(circuit);
-    expect(result.legacyObservation?.engineVersion).toBe('legacy-rail-1.5b');
+    expect(result.legacyObservation).toBeUndefined();
     expect(result.electrical?.status).toBe('unsupported');
-    expect(result.energizedComponents.has('heater')).toBe(true);
+    expect(result.energizedComponents.has('heater')).toBe(false);
     expect(result.componentCalculations).toBeUndefined();
     expect(result.wireCalculations).toBeUndefined();
     expect(result.thermalData).toBeUndefined();

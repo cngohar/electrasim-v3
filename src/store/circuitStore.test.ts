@@ -145,7 +145,7 @@ describe('circuitStore — mutations', () => {
     );
 
     // Try toggling a load — should be a no-op.
-    const bulb = useCircuitStore.getState().components.find((c) => c.type === 'bulb')!;
+    const bulb = useCircuitStore.getState().components.find((c) => c.type === 'bulb-incandescent')!;
     const bulbBefore = bulb.state.on;
     useCircuitStore.getState().toggleSwitch(bulb.id);
     expect(useCircuitStore.getState().components.find((c) => c.id === bulb.id)?.state.on).toBe(
@@ -304,7 +304,7 @@ describe('circuitStore — undo/redo (zundo)', () => {
 
   it('undo removes an injected fault and its mirrored component marker together', () => {
     useCircuitStore.setState({ faults: [] });
-    const bulb = useCircuitStore.getState().components.find((c) => c.type === 'bulb')!;
+    const bulb = useCircuitStore.getState().components.find((c) => c.type === 'bulb-incandescent')!;
     const entriesBefore = useCircuitStore.temporal.getState().pastStates.length;
 
     useCircuitStore.getState().setComponentFault(bulb.id, 'short-circuit');

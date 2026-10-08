@@ -22,6 +22,7 @@ import {
 import { LINEAR_SYSTEM_LIMITS, solveLinearSystem } from './linearSystem';
 import { deriveOperatingPoints } from './operatingPoint';
 import { type CircuitReadiness, assessCompiledCircuitReadiness } from './readiness';
+import { reduceSeriesPaths } from './seriesReduction';
 import { inspectVoltageConstraints } from './voltageConstraints';
 
 export const MNA_ENGINE_VERSION = 'mna-linear-2' as const;
@@ -472,23 +473,44 @@ export function solveCompiledCircuit(
       for (const domain of plan.domains) for (const net of domain.nets) potentials.set(net, 0);
       continue;
     }
-    const voltageNets = plan.domains.flatMap((domain) =>
-      domain.nets.filter((id) => id !== domain.reference),
+    const retained = new Set(plan.domains.map((domain) => domain.reference));
+    for (const { source } of plan.sources) {
+      retained.add(netByTerminal.get(source.positive)!);
+      retained.add(netByTerminal.get(source.negative)!);
+    }
+    for (const transformer of plan.transformers)
+      for (const terminal of [...transformer.primary, ...transformer.secondary])
+        retained.add(netByTerminal.get(terminal)!);
+    const reduced = reduceSeriesPaths(
+      plan.resistors.map((branch) => ({
+        from: netByTerminal.get(branch.from)!,
+        to: netByTerminal.get(branch.to)!,
+        resistance: branch.wire?.resistanceOhms ?? branch.resistanceOhms!,
+      })),
+      retained,
     );
+    const voltageNets = plan.domains.flatMap((domain) =>
+      domain.nets.filter((id) => id !== domain.reference && !reduced.eliminatedNodes.has(id)),
+    );
+    // Keep shared rails late in the remaining system to reduce fill-in.
+    const degree = new Map<string, number>();
+    for (const { from, to } of reduced.resistors) {
+      degree.set(from, (degree.get(from) ?? 0) + 1);
+      degree.set(to, (degree.get(to) ?? 0) + 1);
+    }
+    voltageNets.sort((a, b) => (degree.get(a) ?? 0) - (degree.get(b) ?? 0) || compareIds(a, b));
     const indices = new Map(voltageNets.map((id, index) => [id, index]));
-    const matrix = Array.from({ length: plan.unknowns }, () => new Float64Array(plan.unknowns));
-    const rhs = new Float64Array(plan.unknowns);
+    const size = voltageNets.length + plan.sources.length + plan.transformers.length;
+    const matrix = Array.from({ length: size }, () => new Float64Array(size));
+    const rhs = new Float64Array(size);
     const stamp = (row: number, column: number, value: number) => {
       const coefficients = matrix[row]!;
       coefficients[column] = coefficients[column]! + value;
     };
-    for (const branch of plan.resistors) {
-      const from = netByTerminal.get(branch.from)!;
-      const to = netByTerminal.get(branch.to)!;
-      if (from === to) continue;
+    for (const { from, to, resistance } of reduced.resistors) {
       const a = indices.get(from);
       const b = indices.get(to);
-      const conductance = 1 / (branch.wire?.resistanceOhms ?? branch.resistanceOhms!);
+      const conductance = 1 / resistance;
       if (a !== undefined) stamp(a, a, conductance);
       if (b !== undefined) stamp(b, b, conductance);
       if (a !== undefined && b !== undefined) {
@@ -551,6 +573,7 @@ export function solveCompiledCircuit(
     );
     for (const domain of plan.domains) potentials.set(domain.reference, 0);
     for (const [net, index] of indices) potentials.set(net, solved.values[index]!);
+    reduced.recover(potentials);
     plan.sources.forEach(({ branch }, index) => {
       result.branchCurrents[branch.id] = solved.values[voltageNets.length + index]!;
     });

@@ -42,7 +42,7 @@ function bypassedFcuCircuit(): Circuit {
   const neutral = C('neutral-terminal', 0, 300);
   const mcb = C('mcb', 200, 100, { on: true });
   const fcu = C('fused-spur', 400, 100, { on: true });
-  const bulb = C('bulb', 600, 100);
+  const bulb = C('bulb-incandescent', 600, 100);
   return {
     components: [live, neutral, mcb, fcu, bulb],
     wires: [
@@ -60,7 +60,7 @@ function correctFcuCircuit(): Circuit {
   const neutral = C('neutral-terminal', 0, 300);
   const mcb = C('mcb', 200, 100, { on: true });
   const fcu = C('fused-spur', 400, 100, { on: true });
-  const bulb = C('bulb', 600, 100);
+  const bulb = C('bulb-incandescent', 600, 100);
   return {
     components: [live, neutral, mcb, fcu, bulb],
     wires: [
@@ -89,7 +89,7 @@ describe('validation check 10 — conductor bypass', () => {
   it('the simulation still runs the bypassed circuit — physics, not validation', () => {
     const circuit = bypassedFcuCircuit();
     const result = simulate(circuit);
-    const bulb = circuit.components.find((c) => c.type === 'bulb');
+    const bulb = circuit.components.find((c) => c.type === 'bulb-incandescent');
     // The loop is genuinely closed, so the bulb energises; the defect is a
     // wiring-practice problem that validation (not the solver) must own.
     expect(result.energizedComponents.has(bulb?.id ?? '')).toBe(true);
@@ -123,7 +123,7 @@ describe('validation check 10 — conductor bypass', () => {
     const live = C('live-terminal', 0, 100);
     const neutral = C('neutral-terminal', 0, 300);
     const rcd = C('rcd', 200, 100, { on: true });
-    const bulb = C('bulb', 400, 100);
+    const bulb = C('bulb-incandescent', 400, 100);
     // Find RCD live in/out port indexes dynamically to stay schema-proof.
     const report = validateCircuit({
       components: [live, neutral, rcd, bulb],

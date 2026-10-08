@@ -132,12 +132,11 @@ describe('resistive RMS dimming', () => {
       circuit.components.find((c) => c.id === 'lamp')!.type = type;
       const result = simulate(circuit);
       expect(result.electrical?.status).toBe('unsupported');
-      expect(result.legacyObservation?.reason).toContain(
-        'dimming and motor speed are not assessed',
-      );
+      expect(result.legacyObservation).toBeUndefined();
+      expect(result.energizedComponents.size).toBe(0);
       expect(result.componentCalculations).toBeUndefined();
       expect(result.electrical?.assessment).toBe('not-assessed');
-      // Explicit time requests cannot substitute qualitative legacy observations.
+      // Explicit time requests also withhold unsupported operation.
       expect(simulate(circuit, { deltaSeconds: 1 }).legacyObservation).toBeUndefined();
     }
     const dc = dimmingCircuit(0);
@@ -167,14 +166,14 @@ describe('resistive RMS dimming', () => {
     expect(simulate(next).componentCalculations?.lamp.currentAmps).toBeCloseTo(iOn, 9);
   });
 
-  it('preserves legacy five-position fan inputs with unassessed measurements and zero-level continuity', () => {
+  it('preserves five-position fan inputs while withholding unassessed operation', () => {
     const circuit = dimmingCircuit(5);
     circuit.components[1]!.type = 'fan-dimmer';
     circuit.components[2]!.type = 'ceiling-fan';
     expect(validateCircuitInput(circuit).valid).toBe(true);
     const full = simulate(circuit);
-    expect(full.legacyObservation).toBeDefined();
-    expect(full.energizedComponents.has('lamp')).toBe(true);
+    expect(full.legacyObservation).toBeUndefined();
+    expect(full.energizedComponents.has('lamp')).toBe(false);
     expect(full.componentCalculations).toBeUndefined();
     expect(full.electrical?.operation).toBe('not-assessed');
     circuit.components[1]!.state.speed = 0;

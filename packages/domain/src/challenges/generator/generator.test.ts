@@ -111,9 +111,17 @@ describe('generator versioning (plan §6, §38)', () => {
   });
 
   it('gives the same seed a different circuit under a different version', () => {
-    const v1 = generateChallenge({ seed: 11, difficulty: 'intermediate', generatorVersion: 1 });
-    const v2 = generateChallenge({ seed: 11, difficulty: 'intermediate', generatorVersion: 2 });
-    expect(v2.metadata.generatorVersion).toBe(2);
+    const v1 = generateChallenge({
+      seed: 11,
+      difficulty: 'intermediate',
+      generatorVersion: GENERATOR_VERSION,
+    });
+    const v2 = generateChallenge({
+      seed: 11,
+      difficulty: 'intermediate',
+      generatorVersion: GENERATOR_VERSION + 1,
+    });
+    expect(v2.metadata.generatorVersion).toBe(GENERATOR_VERSION + 1);
     expect(fingerprint(v2.circuit)).not.toBe(fingerprint(v1.circuit));
     expect(v2.metadata.challengeId).not.toBe(v1.metadata.challengeId);
   });

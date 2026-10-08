@@ -96,18 +96,14 @@ describe('Phase 1.5A independent audit regressions', () => {
     },
   );
 
-  it('N24: residual leakage still operates the RCCB when the injected wire begins at the RCCB', () => {
+  it('N24: a wire leakage marker without impedance cannot predict RCCB operation', () => {
     const circuit = protectedLoad('rcd', 9, 80);
     circuit.faults = [createInjectedFault('live-to-earth', { type: 'wire', id: 'branch' })];
     const result = simulate(circuit);
-    expect(result.trippedComponents).toEqual([
-      expect.objectContaining({
-        id: 'device',
-        cause: 'ground-fault',
-        mechanism: 'residual',
-        ratingAmps: 0.03,
-      }),
-    ]);
+    expect(result.electrical?.status).toBe('unsupported');
+    expect(result.trippedComponents ?? []).toEqual([]);
+    expect(result.componentCalculations).toBeUndefined();
+    expect(result.faultsCleared).toBe(false);
   });
 
   it('N22: forced-open interrupts supply and bypass prevents overload and injected-short trips', () => {

@@ -7,6 +7,14 @@ export function transformerCoupling(graph: TerminalGraph): {
   broken: CompiledTransformer[];
   groups: { id: string; domainIds: string[]; transformers: CompiledTransformer[] }[];
 } {
+  if (!graph.transformers.length)
+    return {
+      active: [],
+      broken: [],
+      groups: [...graph.domains]
+        .sort((a, b) => compareIds(a.id, b.id))
+        .map((domain) => ({ id: domain.id, domainIds: [domain.id], transformers: [] })),
+    };
   const branchById = new Map(graph.branches.map((branch) => [branch.id, branch]));
   const domainByTerminal = new Map(
     graph.domains.flatMap((domain) => domain.terminals.map((id) => [id, domain.id] as const)),

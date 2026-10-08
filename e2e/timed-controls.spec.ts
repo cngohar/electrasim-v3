@@ -4,6 +4,11 @@ import { type Page, expect, test } from '@playwright/test';
 import { controlCircuit, setControlSwitch } from '../packages/domain/src/core/controlFixtures';
 import { portableResult } from '../packages/domain/src/simulation/runtimeFixtures';
 import { simulate } from '../packages/domain/src/simulation/simulate';
+import { activateControl, inspectComponent } from './helpers/workbench';
+
+// Generic inspector cases use the desktop surface on every browser engine.
+// Explicit phone cases below retain their 390 px viewport.
+test.use({ viewport: { width: 1280, height: 900 } });
 
 async function openCircuit(page: Page, circuit: Circuit) {
   await page.addInitScript(() => {
@@ -11,12 +16,12 @@ async function openCircuit(page: Page, circuit: Circuit) {
     localStorage.setItem('electrasim:mobile-suitability:v1', '1');
   });
   await page.goto('/');
-  await page.getByRole('button', { name: 'Menu', exact: true }).click();
-  await page.getByRole('button', { name: /^Import \/ Export/ }).click();
+  await activateControl(page, page.getByRole('button', { name: 'Menu', exact: true }));
+  await activateControl(page, page.getByRole('button', { name: /^Import \/ Export/ }));
   const dialog = page.getByRole('dialog');
-  await dialog.getByRole('button', { name: 'Import', exact: true }).click();
+  await activateControl(page, dialog.getByRole('button', { name: 'Import', exact: true }));
   await dialog.locator('textarea').fill(JSON.stringify({ version: 1, exportedAt: 0, circuit }));
-  await dialog.getByRole('button', { name: 'Import from paste' }).click();
+  await activateControl(page, dialog.getByRole('button', { name: 'Import from paste' }));
   await expect(dialog).toContainText(
     `Loaded ${circuit.components.length} components, ${circuit.wires.length} wires.`,
   );
@@ -25,9 +30,7 @@ async function openCircuit(page: Page, circuit: Circuit) {
 }
 
 async function inspectRelay(page: Page) {
-  await page.getByTitle('Zoom to fit all (F)').click();
-  await page.locator('[data-component-id="relay"] [data-component-hitbox]').click();
-  await page.getByTitle(/^Properties & (Settings|Specs)$/).click();
+  await inspectComponent(page, 'relay');
 }
 
 async function runtime(page: Page) {
@@ -56,7 +59,7 @@ test('guest Run advances a declared coil through Comlink, displays current, drop
     page,
     setControlSwitch(controlCircuit({ onDelaySeconds: 0.3, offDelaySeconds: 0.2 }), false),
   );
-  await page.getByRole('button', { name: 'Run Simulation', exact: true }).click();
+  await activateControl(page, page.getByRole('button', { name: 'Run Simulation', exact: true }));
   await expect.poll(async () => (await runtime(page)).coil).toBe(false);
   await page.locator('[data-component-id="switch"] [data-component-hitbox]').press('Enter');
   await expect.poll(async () => (await runtime(page)).coil).toBe(true);
@@ -72,9 +75,9 @@ test('guest Run advances a declared coil through Comlink, displays current, drop
   await page.locator('[data-component-id="switch"] [data-component-hitbox]').press('Enter');
   await expect.poll(async () => (await runtime(page)).coil).toBe(false);
   expect(await runtime(page)).toMatchObject({ no: false, nc: true });
-  await page.getByRole('button', { name: 'Stop', exact: true }).click();
+  await activateControl(page, page.getByRole('button', { name: 'Stop', exact: true }));
   await expect.poll(async () => (await runtime(page)).time).toBeUndefined();
-  await page.getByRole('button', { name: 'Run Simulation', exact: true }).click();
+  await activateControl(page, page.getByRole('button', { name: 'Run Simulation', exact: true }));
   await expect.poll(async () => (await runtime(page)).coil).toBe(false);
   expect((await runtime(page)).time).toBeLessThan(0.5);
   expect(errors).toEqual([]);
@@ -91,7 +94,7 @@ test('explicit coil settings support Apply, Undo/Redo and reload without persist
   await page.getByLabel('Coil nominal real power (W)', { exact: true }).fill('1');
   await page.getByLabel('Coil on delay (s)', { exact: true }).fill('1');
   await page.getByLabel('Coil off delay (s)', { exact: true }).fill('0.25');
-  await page.getByRole('button', { name: 'Apply coil model' }).click();
+  await activateControl(page, page.getByRole('button', { name: 'Apply coil model' }));
   const settings = () =>
     page.evaluate(async () => {
       const path = '/src/store/circuitStore.ts';

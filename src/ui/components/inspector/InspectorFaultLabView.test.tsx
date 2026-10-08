@@ -10,7 +10,7 @@ import { useCircuitStore, useUiStore, useViewportStore } from '../../../store';
 import { InspectorFaultLabView } from './InspectorFaultLabView';
 
 function seedBulbId(): string {
-  const bulb = useCircuitStore.getState().components.find((c) => c.type === 'bulb');
+  const bulb = useCircuitStore.getState().components.find((c) => c.type === 'bulb-incandescent');
   if (!bulb) throw new Error('seed circuit must contain a bulb');
   return bulb.id;
 }

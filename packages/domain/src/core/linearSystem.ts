@@ -50,19 +50,22 @@ export function solveLinearSystem(
 ): LinearSystemResult {
   const size = matrix.length;
   if (size > LINEAR_SYSTEM_LIMITS.maxUnknowns) return { status: 'too-large' };
-  if (
-    rhs.length !== size ||
-    matrix.some((row) => row.length !== size || row.some((value) => !Number.isFinite(value))) ||
-    rhs.some((value) => !Number.isFinite(value))
-  )
-    return { status: 'invalid' };
-  const rows = matrix.map((row) => row.slice());
+  if (rhs.length !== size) return { status: 'invalid' };
+  const rows: Float64Array[] = [];
   const values = rhs.slice();
-  const scales = Float64Array.from(rows, (row) => {
+  const scales = new Float64Array(size);
+  for (let row = 0; row < size; row++) {
+    const original = matrix[row]!;
+    if (original.length !== size || !Number.isFinite(rhs[row])) return { status: 'invalid' };
     let largest = 0;
-    for (const value of row) largest = Math.max(largest, Math.abs(value));
-    return largest;
-  });
+    for (let column = 0; column < size; column++) {
+      const value = original[column]!;
+      if (!Number.isFinite(value)) return { status: 'invalid' };
+      largest = Math.max(largest, Math.abs(value));
+    }
+    rows.push(original.slice());
+    scales[row] = largest;
+  }
   let minimumScaledPivot = 1;
   for (let column = 0; column < size; column++) {
     let pivotRow = column;
@@ -106,15 +109,35 @@ export function solveLinearSystem(
       value -= coefficients[column]! * values[column]!;
     values[row] = value / coefficients[row]!;
     if (!Number.isFinite(values[row])) return { status: 'ill-conditioned' };
+    // Signed zero has no directional information and must survive JSON replay.
+    if (values[row] === 0) values[row] = 0;
   }
   let maximumResidualRatio = 0;
   for (let row = 0; row < size; row++) {
-    const products = Array.from(
-      matrix[row]!,
-      (coefficient, column) => coefficient * values[column]!,
-    );
-    const residual = compensatedSum([...products, -rhs[row]!]);
-    const scale = compensatedSum(products.map(Math.abs)) + Math.abs(rhs[row]!);
+    // Accumulate the original equations directly, with the same Neumaier
+    // compensation and coefficient order, without allocating two dense arrays.
+    let sum = 0;
+    let correction = 0;
+    let magnitude = 0;
+    let magnitudeCorrection = 0;
+    const original = matrix[row]!;
+    for (let column = 0; column <= size; column++) {
+      const value = column === size ? -rhs[row]! : original[column]! * values[column]!;
+      const next = sum + value;
+      correction += Math.abs(sum) >= Math.abs(value) ? sum - next + value : value - next + sum;
+      sum = next;
+      if (column < size) {
+        const absolute = Math.abs(value);
+        const nextMagnitude = magnitude + absolute;
+        magnitudeCorrection +=
+          magnitude >= absolute
+            ? magnitude - nextMagnitude + absolute
+            : absolute - nextMagnitude + magnitude;
+        magnitude = nextMagnitude;
+      }
+    }
+    const residual = sum + correction;
+    const scale = magnitude + magnitudeCorrection + Math.abs(rhs[row]!);
     const ratio = residualRatio(residual, scale);
     if (!Number.isFinite(ratio) || ratio > 1) return { status: 'residual-failed' };
     maximumResidualRatio = Math.max(maximumResidualRatio, ratio);

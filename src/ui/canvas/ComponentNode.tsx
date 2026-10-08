@@ -161,18 +161,17 @@ export function ComponentNode({
   const isHighlightedInTrace = Boolean(traceComponentIds?.has(component.id));
 
   const diagnosticOverlayMode = useSettingsStore((s) => s.diagnosticOverlayMode);
-  // Heat + V-drop gets its component halos from StressZoneOverlay; keeping the
-  // legacy temperature cards to Heat-only prevents two overlays stacking.
-  const showHeatOnlyCard = diagnosticOverlayMode === 'heat';
+  // Temperature needs a declared thermal law. A solved power/current value
+  // alone cannot supply a temperature or destruction prediction.
   const autoLabelsEnabled = useSettingsStore((s) => s.automaticComponentLabels);
-  const compThermal = simulation?.thermalData?.[component.id];
+  const compThermal = simulation?.legacyObservation
+    ? undefined
+    : simulation?.thermalData?.[component.id];
+  const showHeatOnlyCard =
+    diagnosticOverlayMode === 'heat' && Number.isFinite(compThermal?.temperature);
   const powerW =
-    compThermal?.powerWatts ??
-    (energized
-      ? (component.state.customPowerWatts ??
-        (component.type.includes('motor') ? 750 : component.type.includes('bulb') ? 60 : 15))
-      : 0);
-  const tempC = compThermal?.temperature ?? (energized ? 25 + Math.min(85, powerW * 0.45) : 22);
+    compThermal?.powerWatts ?? simulation?.componentCalculations?.[component.id]?.powerWatts ?? 0;
+  const tempC = compThermal?.temperature ?? 0;
   const thermalColor =
     compThermal?.colorCode ??
     (tempC >= 75 ? '#ef4444' : tempC >= 55 ? '#f97316' : tempC >= 40 ? '#eab308' : '#22c55e');

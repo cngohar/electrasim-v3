@@ -53,7 +53,7 @@ function denseCircuitJson(): string {
         y: switchY,
         state: { on: index % 2 === 0 },
       },
-      { id: bulbId, type: 'bulb', x, y: switchY + 65, state: {} },
+      { id: bulbId, type: 'bulb-incandescent', x, y: switchY + 65, state: {} },
     );
     wires.push(
       {

@@ -109,7 +109,7 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
         <Zap className="size-3.5" strokeWidth={3} />
       </div>
       {!isPhone && (
-        <div className="leading-tight">
+        <div className="hidden leading-tight xl:block">
           <div className="text-[13px] font-semibold tracking-tight text-slate-900 dark:text-slate-100">
             ElectraSim
           </div>
@@ -138,7 +138,7 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
       className="flex items-center gap-1.5 rounded-lg border border-blue-100 bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-100 dark:border-blue-900 dark:bg-blue-950/60 dark:text-blue-300 dark:hover:bg-blue-900/70"
     >
       <BookOpen className="size-3.5" />
-      {!isPhone && <span className="hidden md:inline">Guides</span>}
+      {!isPhone && <span className="sr-only lg:not-sr-only">Guides</span>}
     </button>
   );
 
@@ -197,7 +197,7 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
         <Wrench className="size-3.5" />
       )}
       {!isPhone && (
-        <span className="hidden md:inline">{appMode === 'basic' ? 'Student' : 'Pro'}</span>
+        <span className="sr-only lg:not-sr-only">{appMode === 'basic' ? 'Student' : 'Pro'}</span>
       )}
     </button>
   );
@@ -212,7 +212,7 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
       className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm transition hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-900/70"
     >
       <ShieldCheck className="size-3.5 text-emerald-600 dark:text-emerald-400" />
-      {!isPhone && <span className="hidden md:inline">Validate</span>}
+      {!isPhone && <span className="sr-only lg:not-sr-only">Validate</span>}
     </button>
   );
 
@@ -414,7 +414,7 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
   }
 
   return (
-    <header className="absolute inset-x-0 top-0 z-30 grid h-12 grid-cols-[1fr_auto_1fr] items-center gap-1 border-b border-slate-200/80 bg-white/90 px-2 shadow-sm ring-1 ring-slate-900/5 backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-900/90 dark:ring-slate-700/50">
+    <header className="absolute inset-x-0 top-0 z-30 flex h-12 items-center justify-between gap-1 border-b border-slate-200/80 bg-white/90 px-2 shadow-sm ring-1 ring-slate-900/5 backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-900/90 dark:ring-slate-700/50 2xl:grid 2xl:grid-cols-[1fr_auto_1fr]">
       {/* Left zone — identity + history + active standard */}
       <div className="flex min-w-0 items-center gap-1 justify-self-start">
         {brand}
@@ -424,7 +424,7 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
         <Sep />
       </div>
 
-      {/* Center zone — the workbench command cluster, exactly centered */}
+      {/* Centered on wide screens; intrinsic widths prevent tablet overlap. */}
       <div className="flex items-center gap-1">
         {guidesBtn}
         {modeBtn}

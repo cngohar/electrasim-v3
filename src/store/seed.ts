@@ -1,23 +1,22 @@
 /**
  * Seed circuits — initial state for the editor on first load.
  *
- * Two demos, one per application mode, both engineered to pass every
- * validation check at 100:
+ * Two editable demos, one per application mode. Electrical coverage and
+ * validation depend on the declared models:
  *
  * - **Student demo** (`buildStudentSeedCircuit`): a friendly two-branch
  *   bench — protected lighting (MCB → switch → bulb) and an RCBO-protected
  *   socket with earth. Small enough to read at a glance.
- * - **Pro demo** (`buildProSeedCircuit`): a compliant three-branch bench —
- *   two-way staircase lighting, an RCBO socket circuit, and a C-curve
+ * - **Pro demo** (`buildProSeedCircuit`): a three-branch drawing —
+ *   two-way staircase lighting, an RCBO socket circuit, and a D-curve
  *   breaker + contactor motor starter. Exercises Validate, the diagnostics
- *   overlay, Zs checks and the Fault Lab without triggering compliance
- *   findings out of the box.
+ *   overlay, Zs checks and the Fault Lab with the single-phase motor explicitly unassessed.
  *
- * Compliance recipe (see `circuitValidation.ts`):
- * - Breaker rating = `state.customAmps ?? def.maxAmps`; default cable is
+ * Drawing configuration (see `circuitValidation.ts`):
+ * - Breaker rating = `state.customMaxAmps ?? def.maxAmps`; default cable is
  *   1.5 mm² (≈20 A clipped direct), so every breaker here declares a
  *   realistic rating ≤ its cable's ampacity.
- * - The socket load declares `customCableMm2: 2.5` per its recommended
+ * - The unloaded socket declares `customCableMm2: 2.5` per its recommended
  *   conductor, and sits behind an RCBO (RCD-on-sockets rule).
  * - The motor sits behind a **D-curve** breaker (inrush rule) and both its
  *   conductors route through the contactor (conductor-bypass rule).
@@ -58,7 +57,7 @@ const W = (
 const resolveSocket = (socketTypeArg: string) =>
   COMPONENT_DEFS[socketTypeArg] ? socketTypeArg : 'socket-3pin';
 
-/** Simple, fully-valid Student bench: protected light + RCBO socket. */
+/** Student bench with modeled incandescent lighting: protected light + RCBO socket. */
 export function buildStudentSeedCircuit(socketTypeArg = 'socket-3pin'): Circuit {
   const socketType = resolveSocket(socketTypeArg);
   // Deterministic ids: reset the counter so every call produces the same
@@ -74,7 +73,7 @@ export function buildStudentSeedCircuit(socketTypeArg = 'socket-3pin'): Circuit 
   // ── Branch 1: protected lighting — MCB 6 A → switch → bulb ────────────
   const mcb = C('mcb', 330, 150, { on: true, customMaxAmps: 6 });
   const sw = C('single-way-switch', 560, 150, { on: true });
-  const bulb = C('bulb', 790, 150);
+  const bulb = C('bulb-incandescent', 790, 150);
 
   // ── Branch 2: RCBO-protected socket with earth ────────────────────────
   const rcbo = C('rcbo', 330, 420, { on: true, customMaxAmps: 20 });
@@ -98,7 +97,7 @@ export function buildStudentSeedCircuit(socketTypeArg = 'socket-3pin'): Circuit 
   return { components, wires };
 }
 
-/** Richer, fully-compliant Pro bench: staircase light, RCBO socket, motor. */
+/** Pro drawing with modeled lighting and an unassessed motor: staircase light, RCBO socket, motor. */
 export function buildProSeedCircuit(socketTypeArg = 'socket-3pin'): Circuit {
   const socketType = resolveSocket(socketTypeArg);
   nextId = 0;
@@ -112,7 +111,7 @@ export function buildProSeedCircuit(socketTypeArg = 'socket-3pin'): Circuit {
   const mcb = C('mcb', 330, 110, { on: true, customMaxAmps: 6 });
   const sw1 = C('two-way-switch', 560, 60, { on: true });
   const sw2 = C('two-way-switch', 790, 60, { on: true });
-  const bulb = C('bulb', 1010, 110);
+  const bulb = C('bulb-incandescent', 1010, 110);
 
   // ── Branch 2: RCBO-protected socket with earth ────────────────────────
   const rcbo = C('rcbo', 330, 400, { on: true, customMaxAmps: 20 });

@@ -1,23 +1,9 @@
-/**
- * Fault→protection propagation — find which protective devices a fault can
- * actually reach through the wire graph, so faults operate the devices that
- * guard the faulted network rather than every device on the canvas.
- *
- * Pure module: no React / DOM imports so it can ship into `simulation.worker.ts`.
- *
- * NOTE (teaching simplification): within the faulted connected network ALL
- * capable devices are candidates. Selectivity/discrimination requires actual
- * current paths, device curves/settings and timing; nearest-device selection
- * alone cannot establish it. The replacement core supplies those in Phase 1.5D.
- */
+/** Component adjacency for the conservative Zs applicability check. This is
+ * connectivity only; actual protection operation comes from solved pole currents. */
+import type { Circuit } from '../types';
 
-import { isAutomaticProtection } from '../protectionRoles';
-import type { Circuit, ComponentDef, ComponentInstance } from '../types';
-
-/** ComponentDefMap alias matching the traverse/simulate modules. */
-type ComponentDefMap = Record<string, ComponentDef>;
-
-/** All component ids in the same galvanically-connected network as `startId`. */
+/** Component adjacency neighborhood, without terminal or winding isolation.
+ * Suitable for conservative drawing checks, never a solved current path. */
 export function connectedNetworkComponents(startId: string, circuit: Circuit): Set<string> {
   // Component-to-component adjacency from the wire list (undirected: fault
   // current propagates both ways through a network)
@@ -44,17 +30,4 @@ export function connectedNetworkComponents(startId: string, circuit: Circuit): S
     }
   }
   return visited;
-}
-
-/**
- * Automatic devices in the connected network, including a fault target that
- * is itself protective. The caller must filter for the fault's actual mechanism.
- */
-export function findProtectionDevicesInNetwork(
-  faultedComponentId: string,
-  circuit: Circuit,
-  defs: ComponentDefMap,
-): ComponentInstance[] {
-  const network = connectedNetworkComponents(faultedComponentId, circuit);
-  return circuit.components.filter((c) => network.has(c.id) && isAutomaticProtection(c.type, defs));
 }

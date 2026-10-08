@@ -10,7 +10,9 @@ test.describe('new Guided Circuits', () => {
     page.on('dialog', (dialog) => dialog.accept());
   });
 
-  test('loads the Push-Button Doorbell and pulses only while held', async ({ page }) => {
+  test('loads the Push-Button Doorbell with momentary control and unassessed sounder operation', async ({
+    page,
+  }) => {
     await loadGuide(page, 'push-button-doorbell', 'Push-Button Doorbell');
 
     const button = page.locator('[data-momentary-control="push-button-doorbell-button"]');
@@ -27,7 +29,20 @@ test.describe('new Guided Circuits', () => {
     await button.focus();
     await page.keyboard.down('Enter');
     await expect(button).toHaveAttribute('aria-pressed', 'true');
-    await expect(bell.locator('.electrasim-bell-pulse')).toHaveCount(1);
+    await expect(bell.locator('.electrasim-bell-pulse')).toHaveCount(0);
+    await expect
+      .poll(() =>
+        page.evaluate(async () => {
+          const path = '/src/store/uiStore.ts';
+          const result = (await import(path)).useUiStore.getState().simResult;
+          return {
+            status: result?.electrical?.status,
+            energized: result?.energizedComponents.size,
+            cleared: result?.faultsCleared,
+          };
+        }),
+      )
+      .toEqual({ status: 'unsupported', energized: 0, cleared: false });
 
     await page.keyboard.up('Enter');
     await expect(button).toHaveAttribute('aria-pressed', 'false');
@@ -44,8 +59,8 @@ test.describe('new Guided Circuits', () => {
     const lamp = page.locator('[data-component-id="rcbo-protected-socket-test-lamp"]');
 
     await page.getByRole('button', { name: /^Run Simulation$/ }).click();
-    // Energised lamp renders one #facc15 outer glow halo per the current design.
-    await expect(lamp.locator('circle[fill="#facc15"]')).toHaveCount(1);
+    // The modeled incandescent lamp renders its warm startup glow.
+    await expect(lamp.locator('.electrasim-incandescent-startup')).toHaveCount(1);
 
     if (isPhone) {
       // On phones the guide sheet overlays the lower canvas; "Hide guide" is
@@ -55,7 +70,7 @@ test.describe('new Guided Circuits', () => {
 
     await rcbo.dblclick();
     await expect(rcbo).toHaveAttribute('aria-pressed', 'false');
-    await expect(lamp.locator('circle[fill="#facc15"]')).toHaveCount(0);
+    await expect(lamp.locator('.electrasim-incandescent-startup')).toHaveCount(0);
   });
 
   test('the guided circuits window has a visible close control and closes', async ({ page }) => {

@@ -114,7 +114,7 @@ export function applyCircuitStage(input: ApplyCircuitStageInput): ApplyCircuitSt
         id,
         label: modifier.label,
         applied: false,
-        note: `discarded — ${rejection}`,
+        note: 'discarded — the healthy baseline would change',
       });
       continue;
     }

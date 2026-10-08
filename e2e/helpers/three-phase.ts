@@ -1,5 +1,6 @@
 import type { Circuit } from '@electrasim/domain';
 import { type Page, expect } from '@playwright/test';
+import { activateControl, inspectComponent } from './workbench';
 
 export async function openCircuit(page: Page, input: Circuit) {
   await page.addInitScript(() => {
@@ -15,14 +16,14 @@ export async function openCircuit(page: Page, input: Circuit) {
       y: 140 + Math.floor(i / 3) * 200,
     })),
   };
-  await page.getByRole('button', { name: 'Menu', exact: true }).click();
-  await page.getByRole('button', { name: /^Import \/ Export/ }).click();
+  await activateControl(page, page.getByRole('button', { name: 'Menu', exact: true }));
+  await activateControl(page, page.getByRole('button', { name: /^Import \/ Export/ }));
   const dialog = page.getByRole('dialog');
-  await dialog.getByRole('button', { name: 'Import', exact: true }).click();
+  await activateControl(page, dialog.getByRole('button', { name: 'Import', exact: true }));
   await dialog
     .locator('textarea')
     .fill(JSON.stringify({ version: circuit.supply ? 2 : 1, exportedAt: 0, circuit }));
-  await dialog.getByRole('button', { name: 'Import from paste' }).click();
+  await activateControl(page, dialog.getByRole('button', { name: 'Import from paste' }));
   await expect(dialog).toContainText(
     `Loaded ${circuit.components.length} components, ${circuit.wires.length} wires.`,
   );
@@ -38,13 +39,10 @@ export async function documentAt(page: Page): Promise<Circuit> {
   });
 }
 export async function inspect(page: Page, id: string) {
-  await page.getByTitle('Zoom to fit all (F)').click();
-  await page.locator(`[data-component-id="${id}"] [data-component-hitbox]`).click();
-  await page.getByTitle(/^Properties & (Settings|Specs)$/).click();
-  return page.locator('[data-tour="inspector"]');
+  return inspectComponent(page, id);
 }
 export async function run(page: Page) {
-  await page.getByRole('button', { name: 'Run Simulation', exact: true }).click();
+  await activateControl(page, page.getByRole('button', { name: 'Run Simulation', exact: true }));
   await expect
     .poll(() =>
       page.evaluate(async () => {

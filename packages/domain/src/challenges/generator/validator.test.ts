@@ -172,23 +172,14 @@ describe('validateCandidate — gate 1: structure', () => {
 });
 
 describe('validateCandidate — gate 3: simulation', () => {
-  it('rejects a component short-circuiting live onto neutral', () => {
-    // Port typing makes a *structural* rail crossing impossible, so the only
-    // way to bridge the rails is an internal short — exactly the condition
-    // `simulate()` detects by overlapping the live and neutral traversals.
+  it('rejects a short across a declared load conductor pair', () => {
     const circuit = healthyCircuit();
-    circuit.components.push(
-      component('shorted', 'single-way-switch', 480, 270, {
-        on: true,
-        fault: 'short-circuit',
-      }),
-    );
-    circuit.wires.push(wire('w4', 'mcb', 1, 'shorted', 0));
-
+    circuit.components.find((c) => c.id === 'lamp')!.state.fault = 'short-circuit';
     const result = validateCandidate({ circuit, expectedEnergisedLoadIds: ['lamp'] });
     expect(result.ok).toBe(false);
-    expect(result.rejections.some((rejection) => rejection.stage === 'simulation')).toBe(true);
-    expect(reasonsOf(result)).toMatch(/SHORT CIRCUIT/i);
+    expect(result.rejections.some((r) => r.stage === 'simulation')).toBe(true);
+    expect(result.proResult?.electrical?.status).toBe('converged');
+    expect(reasonsOf(result)).toMatch(/short circuit/i);
   });
 
   it('rejects a wire-level open circuit present at baseline', () => {

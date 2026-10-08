@@ -13,6 +13,14 @@ import {
 } from '../packages/domain/src/simulation/runtimeFixtures';
 import { simulate } from '../packages/domain/src/simulation/simulate';
 import { test } from './helpers/paid-test';
+import {
+  activateControl,
+  closePhoneProperties,
+  fitCanvas,
+  inspectComponent,
+  isPhone,
+  supplyTrigger,
+} from './helpers/workbench';
 
 async function openCircuit(page: Page, input: Circuit) {
   const circuit = {
@@ -41,7 +49,7 @@ async function openCircuit(page: Page, input: Circuit) {
   );
   await page.keyboard.press('Escape');
   await expect(dialog).not.toBeVisible();
-  await page.getByTitle('Zoom to fit all (F)').click();
+  await fitCanvas(page);
 }
 
 async function run(page: Page) {
@@ -57,11 +65,8 @@ async function run(page: Page) {
 }
 
 async function inspect(page: Page, componentId: string) {
-  // Opening the inspector changes the available canvas area between selections.
-  await page.getByTitle('Zoom to fit all (F)').click();
-  await page.locator(`[data-component-id="${componentId}"] [data-component-hitbox]`).click();
-  await page.getByTitle(/^Properties & (Settings|Specs)$/).click();
-  return page.locator(`[data-electrical-readings="${componentId}"]`);
+  const panel = await inspectComponent(page, componentId);
+  return panel.locator(`[data-electrical-readings="${componentId}"]`);
 }
 
 test('the running application and inspector display calculated series measurements', async ({
@@ -118,8 +123,9 @@ test('confirmed supply edits re-solve a fixed heater and do not retain old power
   await expect(readings.locator('[data-reading="power"]')).toHaveText(
     `${Number(((230 / 26.59) ** 2 * 26.45).toFixed(4))} W`,
   );
-  await page.getByRole('button', { name: 'Stop', exact: true }).click();
-  await page.getByTitle('Click to change Global Supply Voltage').click();
+  await closePhoneProperties(page);
+  await activateControl(page, page.getByRole('button', { name: 'Stop', exact: true }));
+  await supplyTrigger(page).click();
   const dialog = page.getByRole('dialog', { name: 'Change supply' });
   await dialog.getByLabel('Supply kind').selectOption('dc');
   await dialog.getByLabel('Supply voltage in volts').fill('12');
@@ -129,9 +135,7 @@ test('confirmed supply edits re-solve a fixed heater and do not retain old power
   await expect(readings.locator('[data-reading="power"]')).toHaveText(
     `${Number(((12 / 26.59) ** 2 * 26.45).toFixed(4))} W`,
   );
-  await expect(
-    page.locator('[data-tour="inspector"]').getByLabel('Power rating in watts'),
-  ).toHaveValue('2000');
+  await expect(page.getByLabel('Power rating in watts')).toHaveValue('2000');
 });
 
 test('an isolated transformer displays separate winding and load measurements', async ({
@@ -172,12 +176,16 @@ test('an open return has live potential, zero current and no current-flow animat
     .toMatchObject({ fromPotentialVolts: 230, toPotentialVolts: 230, carryingCurrent: false });
   const wire = page.locator('[data-wire-id="feed"]');
   await expect(wire.locator('.electrasim-wire-flow')).toHaveCount(0);
-  await wire.press('Enter');
-  await page.getByTitle('Simulation Telemetry & Faults', { exact: true }).click();
-  await expect(page.locator('[data-tour="inspector"]')).toContainText('LIVE · ZERO CURRENT');
-  await expect(page.locator('[data-wire-readings="feed"]')).toContainText(
-    'From potential: 230.0000 V',
-  );
+  if (!isPhone(page)) {
+    await wire.press('Enter');
+    const telemetry = page.getByTitle('Simulation Telemetry & Faults', { exact: true });
+    if (page.context().browser()?.browserType().name() === 'webkit') await telemetry.press('Enter');
+    else await telemetry.click();
+    await expect(page.locator('[data-tour="inspector"]')).toContainText('LIVE · ZERO CURRENT');
+    await expect(page.locator('[data-wire-readings="feed"]')).toContainText(
+      'From potential: 230.0000 V',
+    );
+  }
 });
 
 test('branch protection shows its own current and leaves timed operation unassessed', async ({
@@ -203,16 +211,15 @@ test('branch protection shows its own current and leaves timed operation unasses
   expect(state.trips).toEqual([]);
 });
 
-test('unsupported LED measurements remain unavailable with an explicit legacy notice', async ({
-  page,
-}) => {
+test('unsupported LED measurements and operation remain unavailable', async ({ page }) => {
   const circuit = heaterFixture();
   circuit.components[1]!.type = 'bulb';
   circuit.components[1]!.state = {};
   await openCircuit(page, circuit);
   await page.getByRole('button', { name: 'Run Simulation', exact: true }).click();
   const readings = await inspect(page, 'heater');
-  await expect(readings).toContainText('legacy observations');
+  await expect(readings).toContainText('Calculation unassessed');
+  await expect(readings).not.toContainText('legacy observations');
   await expect(readings.locator('[data-reading="voltage"]')).toHaveText('Unavailable');
   await expect(readings.locator('[data-reading="current"]')).toHaveText('Unavailable');
   await expect(readings.locator('[data-reading="power"]')).toHaveText('Unavailable');

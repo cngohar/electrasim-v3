@@ -91,7 +91,10 @@ export function StandardSelector({ compact = false }: Props) {
           <Globe className="size-3.5 shrink-0 text-indigo-500" />
           <EmojiGlyph emoji={current.flag} size={13} />
           <span className="shrink-0 font-bold">{current.shortLabel}</span>
-          <span className="truncate text-slate-500 dark:text-slate-400" data-standard-citation>
+          <span
+            className={`${compact ? 'hidden xl:inline ' : ''}truncate text-slate-500 dark:text-slate-400`}
+            data-standard-citation
+          >
             {current.citation}
           </span>
           <Lock aria-hidden="true" className="size-3 shrink-0 text-slate-400" />

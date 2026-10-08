@@ -1,5 +1,6 @@
 import { type Locator, type Page, expect } from '@playwright/test';
 import { test } from './helpers/paid-test';
+import { fitCanvas } from './helpers/workbench';
 
 /**
  * Fault-injection → protection-trip → reset flows, plus the editing
@@ -149,6 +150,7 @@ test.describe('faults & editing', () => {
     }) => {
       await loadGuide(page, scenario.guide, scenario.title);
       await page.getByRole('button', { name: 'Hide guide' }).click();
+      await fitCanvas(page);
       await hitbox(page, scenario.target).click({ button: 'right' });
       await page.getByRole('button', { name: scenario.menu }).click();
       await runSim(page);
@@ -159,7 +161,9 @@ test.describe('faults & editing', () => {
             return (await import(path)).useUiStore.getState().simResult?.electricalContract?.status;
           }),
         )
-        .toBe('not-assessed');
+        .toBe(
+          ['arc-fault', 'smooth-dc-residual'].includes(scenario.type) ? 'unsupported' : 'converged',
+        );
       const observed = await page.evaluate(async () => {
         const storePath = '/src/store/circuitStore.ts';
         const uiPath = '/src/store/uiStore.ts';
@@ -173,13 +177,16 @@ test.describe('faults & editing', () => {
               c.state.isTripped || c.state.isBlown,
           ),
           assessed: (await import(evidencePath)).hasOperationEvidence(circuit, result),
+          cleared: result?.faultsCleared,
         };
       });
       expect(observed.faulty).toContain(scenario.type);
       expect(observed.tripped).toBe(false);
-      expect(observed.assessed).toBe(false);
+      expect(observed.assessed).toBe(!['arc-fault', 'smooth-dc-residual'].includes(scenario.type));
+      expect(observed.cleared).toBe(false);
       await expect(faultAlertDialog(page)).toBeHidden();
       await page.getByRole('button', { name: 'Stop', exact: true }).click();
+      await fitCanvas(page);
       await hitbox(page, scenario.target).click({ button: 'right' });
       await page.getByRole('button', { name: 'Clear Injected Fault' }).click();
       await runSim(page);
@@ -229,7 +236,10 @@ test.describe('faults & editing', () => {
     // worker and could pass before a ghost-fault trip lands.
     await runSim(page);
     await expect(
-      page.locator(`[data-component-id="${bulbId}"]`).locator('circle[fill="#facc15"]').first(),
+      page
+        .locator(`[data-component-id="${bulbId}"]`)
+        .locator('.electrasim-incandescent-startup')
+        .first(),
     ).toBeVisible();
     await expect(faultAlertDialog(page)).toBeHidden();
     await expect(hitboxIn(page.locator(`[data-component-id="${mcbId}"]`))).not.toHaveAttribute(

@@ -34,6 +34,26 @@ test.describe('workbench shell', () => {
     await page.locator('[data-circuit-canvas]').waitFor({ state: 'attached' });
   });
 
+  test('tablet standards and mode controls remain unobstructed', async ({ page }) => {
+    await page.setViewportSize({ width: 834, height: 1194 });
+    for (const mode of ['basic', 'pro']) {
+      const toggle = page.locator('[data-tour="mode-toggle"]');
+      await expect(toggle).toBeVisible();
+      for (const control of [toggle, page.locator('[data-standard-selector]')]) {
+        await expect
+          .poll(() =>
+            control.evaluate((node) => {
+              const box = node.getBoundingClientRect();
+              const hit = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
+              return hit !== null && node.contains(hit);
+            }),
+          )
+          .toBe(true);
+      }
+      if (mode === 'basic') await toggle.click();
+    }
+  });
+
   test('top application bar renders all primary controls', async ({ page }) => {
     await expect(page.locator('header').getByText('ElectraSim', { exact: true })).toBeVisible();
     // Undo / Redo are icon buttons (aria titles). The shortcut label is
@@ -113,7 +133,10 @@ test.describe('workbench shell', () => {
       .click();
     await expect(palette).not.toBeVisible();
     // The header control opens the same dialog; Escape closes it.
-    await page.locator('header').getByTitle('Command palette (Ctrl+K)').click();
+    await page
+      .locator('header')
+      .getByTitle(/^Command palette \(/)
+      .click();
     await expect(palette).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(palette).not.toBeVisible();

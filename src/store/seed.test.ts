@@ -2,31 +2,25 @@ import { simulate } from '@electrasim/domain/simulation';
 import { expect, it } from 'vitest';
 import { buildProSeedCircuit, buildStudentSeedCircuit } from './seed';
 
-it('energises every branch of both shipped demo benches', () => {
-  // Student bench: lighting + RCBO socket.
+it('solves the Student incandescent branch and the unloaded outlet without invented demand', () => {
   const student = buildStudentSeedCircuit();
-  const studentLoads = [
-    student.components.find((component) => component.type === 'bulb'),
-    student.components.find((component) => component.type === 'socket-3pin'),
-  ];
-  expect(studentLoads.every(Boolean)).toBe(true);
-  const studentResult = simulate(student);
-  for (const load of studentLoads) {
-    expect(studentResult.energizedComponents.has(load!.id)).toBe(true);
-  }
+  const lamp = student.components.find((c) => c.type === 'bulb-incandescent')!;
+  const socket = student.components.find((c) => c.type === 'socket-3pin')!;
+  const result = simulate(student);
+  expect(result.electrical?.status).toBe('converged');
+  expect(result.energizedComponents.has(lamp.id)).toBe(true);
+  expect(result.componentCalculations?.[lamp.id].powerWatts).toBeGreaterThan(0);
+  expect(result.energizedComponents.has(socket.id)).toBe(true);
+  expect(result.componentCalculations?.[socket.id].currentAmps).toBeUndefined();
+});
 
-  // Pro bench: staircase lighting + RCBO socket + contactor motor.
+it('preserves the Pro motor drawing while withholding unassessed operation', () => {
   const seed = buildProSeedCircuit();
-  const secondaryLoads = [
-    seed.components.find((component) => component.type === 'bulb'),
-    seed.components.find((component) => component.type === 'socket-3pin'),
-    seed.components.find((component) => component.type === 'motor'),
-  ];
-  expect(secondaryLoads.every(Boolean)).toBe(true);
-
-  const r = simulate(seed);
-
-  for (const load of secondaryLoads) {
-    expect(r.energizedComponents.has(load!.id)).toBe(true);
-  }
+  expect(seed.components.some((c) => c.type === 'motor')).toBe(true);
+  const result = simulate(seed);
+  expect(result.electrical?.status).toBe('unsupported');
+  expect(result.legacyObservation).toBeUndefined();
+  expect(result.energizedComponents.size).toBe(0);
+  expect(result.componentCalculations).toBeUndefined();
+  expect(result.faultsCleared).toBe(false);
 });

@@ -5,6 +5,9 @@ import {
   rcdBalancedCircuit,
 } from '../packages/domain/src/core/protectionFixtures';
 
+// This inspector workflow is a desktop surface; run it on every browser engine.
+test.use({ viewport: { width: 1280, height: 900 } });
+
 async function openCircuit(page: Page, circuit: Circuit) {
   await page.addInitScript(() => {
     localStorage.setItem('electrasim:welcomed', '1');
