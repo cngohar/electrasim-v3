@@ -16,6 +16,7 @@
     "build": "vite build && bun run build:astro && bun scripts/postbuild.mjs",
     "build:astro": "bun run --cwd astro-site build",
     "build:stats": "BUILD_STATS=1 vite build && bun run build:astro && bun scripts/postbuild.mjs",
+    "benchmark:effects": "bun scripts/benchmark-effects.ts",
     "benchmark:simulation": "bun scripts/benchmark-simulation.ts",
     "benchmark:mna": "bun scripts/benchmark-mna.ts",
     "stress:generator": "bun scripts/stress-challenge-generator.ts",
@@ -71,11 +72,14 @@
     "verify:phase-1.5e3": "bun scripts/verify-phase15e3.mjs",
     "verify:phase-1.5f1": "bun scripts/verify-phase15f1.mjs",
     "verify:phase-1.5f2": "bun scripts/verify-phase15f2.mjs",
+    "verify:phase-1.6": "bun scripts/verify-phase16.mjs",
     "verify:phase-1.5f3": "bun scripts/verify-phase15f3.mjs",
     "test:domain-local": "bun scripts/test-domain-local.ts"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "^1.7.6",
+    "@electrasim/access": "workspace:*",
+    "@electrasim/domain": "workspace:*",
     "better-auth": "^1.7.6",
     "comlink": "^4.4.2",
     "drizzle-orm": "^0.45.3",
@@ -83,13 +87,12 @@
     "idb-keyval": "^6.2.2",
     "immer": "^11.1.18",
     "lucide-react": "^0.546.0",
+    "matter-js": "0.20.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "workbox-window": "^7.4.1",
     "zundo": "^2.3.0",
-    "zustand": "^5.0.12",
-    "@electrasim/domain": "workspace:*",
-    "@electrasim/access": "workspace:*"
+    "zustand": "^5.0.12"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
@@ -100,6 +103,7 @@
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.7",
     "@types/better-sqlite3": "^9.6.0",
+    "@types/matter-js": "0.20.2",
     "@types/node": "^22.14.0",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",

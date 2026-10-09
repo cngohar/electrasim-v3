@@ -28,6 +28,7 @@ import {
 } from './canvas-actions';
 import { ComponentLayer, ComponentTooltip } from './canvas/ComponentLayer';
 import { FaultFxLayer } from './canvas/FaultFxLayer';
+import { MatterLayer } from './canvas/MatterLayer';
 import { CanvasOverlayLayer } from './canvas/OverlayLayer';
 import { StressZoneOverlay } from './canvas/StressZoneOverlay';
 import { WireJointsLayer } from './canvas/WireJointsLayer';
@@ -120,6 +121,9 @@ export function CircuitCanvas({
   const showTooltips = useSettingsStore((s) => s.showTooltips);
   const currentFlowAnim = useSettingsStore((s) => s.currentFlowAnimation);
   const activeLoadEffectsSetting = useSettingsStore((s) => s.activeLoadEffects);
+  const physicsEffects = useSettingsStore((s) => s.physicsEffects);
+  const simRunning = useUiStore((s) => s.simRunning);
+  const diagnosisActive = useUiStore((s) => s.diagnosisActive);
   const reducedEffectsSetting = useSettingsStore((s) => s.reducedEffects);
   const customWiringMode = useSettingsStore((s) => s.customWiringMode);
   const autoWireJoints = useSettingsStore((s) => s.autoWireJoints);
@@ -572,6 +576,16 @@ export function CircuitCanvas({
               onContextMenu={openComponentMenu}
             />
           </CanvasOverlayLayer>
+
+          <MatterLayer
+            circuit={circuit}
+            simulation={simResult}
+            paths={orthogonalPathD}
+            pan={pan}
+            zoom={zoom}
+            enabled={physicsEffects && !diagnosisActive}
+            animate={simRunning && !challengePaused && !reducedEffects}
+          />
 
           {/* Pro-only heatmap overlay. Sits above wires and components so
               the stress halos are always visible; pointer-events disabled. */}

@@ -584,3 +584,38 @@ Active plans, documentation index, development notes and changelog now point to
 this closure and its exceptions. A separate requested memory note records this
 decision for continuation. Commit and GitHub push follow the user's earlier
 authorization; Cloudflare remains local-only. No 1.6 implementation is included.
+
+## 2026-10-09 — Phase 1.6 continuous implementation started
+
+Following the user's instruction, Phase 1.6 is one continuous implementation
+with one final consolidated local gate. No separate slice acceptance gates run.
+The [delivery plan](docs/plans/PHASE_1_6_EFFECTS_PLAN.md) records scope and checks.
+Implemented a read-only current-result/saved-damage projection, lazy Matter SVG
+accents, persisted toggle, bounded fixed-step animation, settled-scene disposal,
+reduced-motion/static fallback and visibility/viewport suppression. Ordinary
+protection trips do not create damage effects. Existing electrical, repair and
+assessment contracts remain authoritative. Added final-gate projection/lifecycle,
+parity, desktop/phone and dense-canvas checks; acceptance is pending.
+
+## 2026-10-09 — Phase 1.6 visual effects completed locally
+
+Completed the continuous implementation and final consolidated acceptance with
+focused recovery, as requested. The first comprehensive unit run passed 2,216 of
+2,218 tests; corrected two test expectations (new preference default and shared
+basic-mode trip evidence), then all 19 tests in those files passed. No runtime
+change was needed for these failures. Typecheck/lint, build/assets/links/SEO/CSP,
+858 exact Bun/local-workerd cases, 20 local Hono/D1/session groups and all 24
+Chromium browser cases passed. The browser set includes four new effects cases,
+phone preference persistence, reduced motion, stop/toggle/offscreen behavior,
+dense suppression, and existing repair/consumer/Diagnosis/Ohmageddon regression.
+
+Maximum 48-body effects physics/path p95 is 0.260 ms; Chromium update/write p95 is
+0.900 ms (4 ms budget). Dense 200-component/400-wire idle frame p95 is 16.7 ms
+with zero animated bodies. This does not close the earlier dense interaction or
+solver/generator performance limits. The [acceptance record](docs/audits/phase-1-visual-effects.md)
+separates comprehensive, focused and resumed evidence; no uninterrupted full
+green gate is claimed. Current plans now point to **1.7 UI and modes**.
+
+A single scoped local commit closes Phase 1.6 under the phase plan delivery rule.
+No Cloudflare account/resource operation, remote test, deployment or GitHub
+publication occurred.

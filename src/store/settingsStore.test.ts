@@ -72,6 +72,7 @@ describe('settingsStore — Phase 6.1', () => {
       showTooltips: false,
       currentFlowAnimation: false,
       activeLoadEffects: false,
+      physicsEffects: true,
       colorScheme: 'dark',
       routingStyle: 'bezier',
       reducedEffects: true,

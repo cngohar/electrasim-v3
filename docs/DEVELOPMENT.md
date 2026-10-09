@@ -77,3 +77,14 @@ Its browser stage includes desktop recovery/reload and phone compound repair.
 `bun run verify:phase-1.5f3` runs the full `verify`, domain parity, simulator acceptance and three default stress commands. [F.3 evidence](audits/phase-1-legacy-retirement.md) records the user-directed closure with performance exceptions and aggregate browser evidence; budgets remain unchanged and the full gate is not green;
 the F.2 gate cannot close those checks. Earlier exercise snapshots remain
 inspectable, with new grading withheld when their assessment is obsolete.
+
+Phase 1.6 uses a continuous implementation cycle with one consolidated final
+`bun run verify:phase-1.6` gate. Use builds/typechecks during implementation;
+do not run complete acceptance after every work item. The final command covers
+quality/build/assets, exact local domain parity, local simulator API acceptance,
+and effects/repair/consumer/diagnosis/Ohmageddon browser cases. Its effects browser
+case records 30 Hz update/DOM-write p95 (4 ms budget) separately from a dense
+200-component/400-wire idle frame sample. The latter records evidence, not a
+60 fps interaction pass. Existing F.3 solver/generator and dense renderer
+exceptions remain in force. `--from` and `--only` retain their explicit partial
+run semantics when addressing a failed stage.

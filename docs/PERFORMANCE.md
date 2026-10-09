@@ -152,3 +152,19 @@ Parse the `const data = {...}` blob: `nodeParts[uid].renderedLength` for sizes,
 `nodeMetas[uid].id` / `.importedBy` for the graph. To find why a module is in the entry chunk, BFS
 *upward* over `importedBy` to an eager root — reading only the first parent is misleading and cost a
 session's worth of a dead end.
+
+## Phase 1.6 effects — 2026-10-09
+
+The separate lazy Matter chunk is 28.07 kB gzip. Initial JS totals 252,084 B gzip
+and CSS 26,092 B, inside unchanged 300,000/30,000 B budgets.
+
+| Measurement | Result | Scope |
+|---|---:|---|
+| Maximum Matter scene (24 targets / 48 bodies), 900 samples | median 0.197 ms; p95 0.260 ms | Two fixed substeps plus SVG path generation; 4 ms p95 budget |
+| Chromium effect updates, 45 displayed frames | mean 0.300 ms; p95 0.900 ms | Physics plus SVG attribute writes; excludes paint; 4 ms p95 budget |
+| Dense 200 components / 400 wires | idle frame p95 16.7 ms; 0 physics bodies | Performance mode; idle sample only |
+
+The dense fixture does not certify 60 fps panning/dragging/zooming. F.3 solver and
+generator exceptions remain unchanged. Effects stop allocating active scenes
+when hidden/offscreen/reduced/stopped and dispose settled scenes after 45 steps.
+See [acceptance and evidence](audits/phase-1-visual-effects.md).

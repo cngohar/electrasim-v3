@@ -44,6 +44,8 @@ export interface UserSettings {
   currentFlowAnimation: boolean;
   /** Visually emphasise active loads (bulb glow, fan spin, motor pulse). */
   activeLoadEffects: boolean;
+  /** Illustrative sag, snap and overload accents; never changes electrical results. */
+  physicsEffects: boolean;
   /** Phase 6.8: Color scheme preference. */
   colorScheme: ColorScheme;
   /**
@@ -174,6 +176,7 @@ const DEFAULTS: UserSettings = {
   showTooltips: true,
   currentFlowAnimation: true,
   activeLoadEffects: true,
+  physicsEffects: true,
   colorScheme: 'light',
   routingStyle: 'orthogonal',
   reducedEffects: false,
@@ -260,6 +263,7 @@ function parsePersistedSettings(value: unknown): UserSettings | null {
       DEFAULTS.currentFlowAnimation,
     ),
     activeLoadEffects: booleanOrDefault(stored.activeLoadEffects, DEFAULTS.activeLoadEffects),
+    physicsEffects: booleanOrDefault(stored.physicsEffects, DEFAULTS.physicsEffects),
     colorScheme: enumOrDefault(stored.colorScheme, COLOR_SCHEMES, DEFAULTS.colorScheme),
     routingStyle: enumOrDefault(stored.routingStyle, ROUTING_STYLES, DEFAULTS.routingStyle),
     reducedEffects: booleanOrDefault(stored.reducedEffects, DEFAULTS.reducedEffects),
@@ -387,6 +391,7 @@ function snapshot(state: SettingsState): UserSettings {
     showTooltips: state.showTooltips,
     currentFlowAnimation: state.currentFlowAnimation,
     activeLoadEffects: state.activeLoadEffects,
+    physicsEffects: state.physicsEffects,
     colorScheme: state.colorScheme,
     routingStyle: state.routingStyle,
     reducedEffects: state.reducedEffects,
@@ -438,6 +443,7 @@ export async function startSettingsPersistence(): Promise<void> {
       state.showTooltips === prev.showTooltips &&
       state.currentFlowAnimation === prev.currentFlowAnimation &&
       state.activeLoadEffects === prev.activeLoadEffects &&
+      state.physicsEffects === prev.physicsEffects &&
       state.colorScheme === prev.colorScheme &&
       state.routingStyle === prev.routingStyle &&
       state.reducedEffects === prev.reducedEffects &&

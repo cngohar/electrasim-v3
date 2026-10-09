@@ -171,6 +171,7 @@ function SimulationSettings() {
   const currentFlowAnimation = useSettingsStore((state) => state.currentFlowAnimation);
   const activeLoadEffects = useSettingsStore((state) => state.activeLoadEffects);
   const reducedEffects = useSettingsStore((state) => state.reducedEffects);
+  const physicsEffects = useSettingsStore((state) => state.physicsEffects);
   const ohmageddonMode = useSettingsStore((state) => state.ohmageddonMode);
   const setSetting = useSettingsStore((state) => state.setSetting);
 
@@ -202,6 +203,17 @@ function SimulationSettings() {
         }
         checked={activeLoadEffects}
         onChange={(value) => setSetting('activeLoadEffects', value)}
+      />
+      <ElectricToggle
+        label="Wire and damage effects"
+        description="Illustrative wire sag, snap and overload cues. Electrical readings and repair behavior are unchanged. Respects reduced motion and performance mode."
+        preview={
+          physicsEffects
+            ? 'Effects enabled; damage and overload indicators remain available in reduced motion.'
+            : 'Effects disabled; standard fault and damage indicators remain visible.'
+        }
+        checked={physicsEffects}
+        onChange={(value) => setSetting('physicsEffects', value)}
       />
       <ElectricToggle
         label="Reduced effects (performance mode)"

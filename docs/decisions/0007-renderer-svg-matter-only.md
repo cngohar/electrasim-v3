@@ -33,3 +33,27 @@ slows pan and lacks interaction/accessibility/export parity. Keep SVG for Phase 
 still an open performance target**, not a passed gate. No production renderer dependency or
 Matter effects were added. Culling requires a later measured design that preserves focus,
 wire crossings, gesture previews and exports.
+
+## Phase 1.6 implementation — 2026-10-09
+
+Matter 0.20.0 is dynamically imported only for visible, enabled, current-result
+consequence animations. SVG draws illustrative local cable sag/snap accents and
+device stress/damage halos. The original routed conductors and their hit targets
+remain authoritative. No fire or temperature prediction is implied.
+
+At most 24 visible targets / 48 non-colliding bodies run at a throttled 30 Hz,
+using two fixed 60 Hz substeps. After 45 displayed steps the scene is disposed and
+its settled SVG retained. Hidden/offscreen, stopped, paused, reduced-motion and
+dense (>50 components) views allocate no active physics. A persisted setting can
+remove the extra layer; existing fault/damage indicators remain. Diagnosis
+exercises suppress the extra layer to avoid adding fault-location hints.
+
+The animation clock never advances electrical time. Current contract/revision
+checks gate result-driven consequences; saved damage remains visible while
+stopped. Trips are separate from irreversible damage. Tests and measurements are
+collected once after full implementation in `verify:phase-1.6`; see the
+[delivery plan](../plans/PHASE_1_6_EFFECTS_PLAN.md). Earlier dense interaction and
+solver performance exceptions remain unchanged.
+
+Physics API reference: [Matter.Engine](https://brm.io/matter-js/docs/classes/Engine.html)
+and [Matter.Constraint](https://brm.io/matter-js/docs/classes/Constraint.html).
