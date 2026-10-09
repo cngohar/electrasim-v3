@@ -1,0 +1,409 @@
+/* Phase 1.7 Lab Glass shell. Existing actions, panel data and canvas geometry are shared. */
+.electrasim-editor {
+  --workspace-bg: rgba(255, 255, 255, 0.96);
+  --workspace-border: #e2e8f0;
+  --workspace-text: #0f172a;
+  --workspace-muted: #475569;
+  --workspace-soft: #eff6ff;
+  --workspace-left: 324px;
+  --workspace-right: 320px;
+}
+.dark .electrasim-editor {
+  --workspace-bg: rgba(30, 41, 59, 0.97);
+  --workspace-border: #334155;
+  --workspace-text: #f1f5f9;
+  --workspace-muted: #94a3b8;
+  --workspace-soft: #172d4f;
+}
+.electrasim-editor[data-palette-open="false"] {
+  --workspace-left: 112px;
+}
+.electrasim-editor[data-inspector-open="false"] {
+  --workspace-right: 48px;
+}
+.workspace-header {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 64px;
+  z-index: 35;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 0 20px;
+  background: var(--workspace-bg);
+  border-bottom: 1px solid var(--workspace-border);
+  color: var(--workspace-text);
+}
+.workspace-history,
+.workspace-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.workspace-history {
+  border-left: 1px solid var(--workspace-border);
+  padding-left: 20px;
+}
+.workspace-header-actions {
+  margin-left: auto;
+}
+.workspace-mode {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.workspace-mode > span {
+  font-size: 10px;
+  color: var(--workspace-muted);
+}
+.workspace-mode button {
+  background: var(--workspace-soft);
+  color: var(--workspace-text);
+  border-color: var(--workspace-border);
+}
+.workspace-export {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  padding: 9px;
+  border: 1px solid var(--workspace-border);
+  border-radius: 8px;
+}
+.workspace-rail {
+  position: absolute;
+  left: 0;
+  top: 64px;
+  bottom: 0;
+  width: 64px;
+  z-index: 25;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 22px 4px 16px;
+  background: var(--workspace-bg);
+  border-right: 1px solid var(--workspace-border);
+  color: var(--workspace-muted);
+}
+.workspace-rail > button,
+.workspace-rail-item,
+.workspace-rail-settings {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
+  width: 56px;
+}
+.workspace-rail > button {
+  padding: 10px 0;
+  border-radius: 9px;
+}
+.workspace-rail > button[aria-pressed="true"] {
+  background: var(--workspace-soft);
+  color: #2563eb;
+}
+.dark .workspace-rail > button[aria-pressed="true"] {
+  color: #60a5fa;
+}
+.workspace-rail-item button {
+  border: 0;
+  box-shadow: none;
+  background: none;
+  padding: 8px;
+  color: inherit;
+}
+.workspace-rail-item button span {
+  display: none;
+}
+.workspace-rail-item button svg {
+  width: 21px;
+  height: 21px;
+}
+.workspace-rail-settings {
+  margin-top: auto;
+}
+.electrasim-editor [data-workspace-context] {
+  top: 64px;
+  left: 64px;
+  box-shadow: none;
+  border-color: var(--workspace-border);
+  background: var(--workspace-bg);
+  height: 40px;
+}
+.electrasim-editor [data-workspace-context] > div > div {
+  margin: 0;
+  min-height: 40px;
+}
+.electrasim-editor[data-phone="false"] [data-workspace-library] {
+  left: 64px;
+  top: 104px;
+  box-shadow: none;
+  border-color: var(--workspace-border);
+  background: var(--workspace-bg);
+}
+.electrasim-editor [data-workspace-library] input {
+  border-radius: 8px;
+  min-height: 36px;
+}
+.component-preview {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex-shrink: 0;
+  color: var(--workspace-text, #334155);
+}
+.component-preview img,
+.component-preview svg {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+.electrasim-editor[data-phone="false"] [data-workspace-library] [data-palette-type] {
+  min-height: 94px;
+  border-radius: 10px;
+  box-shadow: none;
+}
+.electrasim-editor[data-phone="false"] [data-workspace-library] .grid-cols-3 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.electrasim-editor [data-tour="inspector"] {
+  top: 104px;
+  box-shadow: none;
+  border-radius: 0;
+  border-top: 0;
+  background: var(--workspace-bg);
+}
+.electrasim-editor [data-tour="inspector"]:not([title]) {
+  width: 320px;
+}
+.electrasim-editor [data-tour="inspector"] > div:first-child {
+  min-width: 0;
+  width: 100%;
+}
+.electrasim-editor [data-workspace-tools] {
+  top: 126px;
+  left: calc(var(--workspace-left) + 16px);
+  transform: none;
+  flex-direction: column;
+  box-shadow: 0 4px 16px #0f172a08;
+  border-color: var(--workspace-border);
+  background: var(--workspace-bg);
+}
+.electrasim-editor [data-workspace-tools] > div {
+  height: 1px;
+  width: 20px;
+  margin: 5px;
+}
+.workspace-simulation {
+  position: absolute;
+  z-index: 21;
+  left: calc(var(--workspace-left) + 18px);
+  right: calc(var(--workspace-right) + 18px);
+  bottom: 50px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--workspace-border);
+  border-radius: 12px;
+  background: var(--workspace-bg);
+  color: var(--workspace-text);
+  box-shadow: 0 6px 24px #0f172a08;
+  min-height: 62px;
+  flex-wrap: wrap;
+}
+.workspace-simulation > button {
+  min-height: 36px;
+}
+.workspace-clock {
+  min-width: 90px;
+}
+.workspace-clock small {
+  display: block;
+  font-size: 10px;
+  color: var(--workspace-muted);
+  max-width: 120px;
+}
+.workspace-clock output {
+  font: 13px ui-monospace, monospace;
+}
+.workspace-simulation-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+.workspace-simulation-actions button {
+  box-shadow: none;
+}
+.electrasim-editor [data-workspace-status] {
+  left: var(--workspace-left);
+  right: var(--workspace-right);
+  height: 34px;
+  overflow: auto;
+  gap: 24px;
+  white-space: nowrap;
+  box-shadow: none;
+}
+.electrasim-editor [data-workspace-status] > div {
+  flex-shrink: 0;
+}
+.electrasim-editor button:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 3px;
+}
+.workspace-header button,
+.workspace-rail button,
+.workspace-simulation button {
+  cursor: pointer;
+}
+.workspace-header button:hover,
+.workspace-rail button:hover {
+  filter: brightness(0.96);
+}
+@media (max-width: 1100px) {
+  .workspace-header {
+    gap: 12px;
+    padding: 0 12px;
+  }
+  .workspace-history {
+    padding-left: 10px;
+    gap: 2px;
+  }
+  .workspace-mode > span {
+    display: none;
+  }
+  .workspace-simulation-actions button span {
+    display: none;
+  }
+  .workspace-simulation {
+    gap: 8px;
+  }
+  .electrasim-editor {
+    --workspace-right: 290px;
+  }
+  .electrasim-editor [data-tour="inspector"]:not([title]) {
+    width: 290px;
+  }
+}
+.electrasim-editor[data-phone="true"] {
+  --workspace-left: 0px;
+  --workspace-right: 0px;
+}
+.electrasim-editor[data-phone="true"] .workspace-header {
+  height: 56px;
+  padding: 0 10px;
+  gap: 8px;
+}
+.electrasim-editor[data-phone="true"] .workspace-header-actions {
+  gap: 5px;
+}
+.electrasim-editor[data-phone="true"] .workspace-simulation {
+  left: 10px;
+  right: 10px;
+  bottom: 76px;
+  padding: 9px;
+  gap: 8px;
+  min-height: 56px;
+}
+.electrasim-editor[data-phone="true"] .workspace-clock small {
+  max-width: 110px;
+  font-size: 9px;
+}
+.electrasim-editor[data-phone="true"] .workspace-simulation-actions {
+  margin-left: auto;
+}
+.electrasim-editor[data-phone="true"] [data-phone-navigation] {
+  bottom: 0;
+  left: 0;
+  transform: none;
+  width: 100%;
+  height: 64px;
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--workspace-bg);
+  border-color: var(--workspace-border);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .electrasim-editor *,
+  .electrasim-editor *::before,
+  .electrasim-editor *::after {
+    scroll-behavior: auto;
+  }
+}
+.workspace-inspector-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 12px;
+  border-bottom: 1px solid var(--workspace-border);
+  flex-shrink: 0;
+}
+.workspace-inspector-tabs button {
+  font-size: 11px;
+  padding: 7px 9px;
+  border-radius: 6px;
+  color: var(--workspace-muted);
+}
+.workspace-inspector-tabs button[aria-current="page"] {
+  background: var(--workspace-soft);
+  color: #2563eb;
+}
+.dark .workspace-inspector-tabs button[aria-current="page"] {
+  color: #60a5fa;
+}
+.electrasim-editor [data-phone-inspector="true"] {
+  position: absolute;
+  top: 56px;
+  left: 0;
+  right: 0;
+  bottom: 64px;
+  width: 100% !important;
+  z-index: 45;
+}
+.workspace-mode button {
+  padding: 3px;
+  gap: 2px;
+  background: none;
+}
+.workspace-mode button > span {
+  padding: 5px 9px;
+  border-radius: 5px;
+  color: var(--workspace-muted);
+}
+.workspace-mode button > .mode-selected {
+  background: var(--workspace-soft);
+  color: #2563eb;
+}
+.dark .workspace-mode button > .mode-selected {
+  color: #60a5fa;
+}
+.electrasim-editor [data-workspace-console] {
+  left: calc(var(--workspace-left) + 18px);
+  right: calc(var(--workspace-right) + 18px);
+  width: auto;
+  transform: none;
+  bottom: 120px;
+  box-shadow: none;
+}
+.electrasim-editor[data-phone="true"] .workspace-tour-offer {
+  top: 66px;
+  right: 12px;
+  max-width: calc(100% - 24px);
+}
+.electrasim-editor [data-workspace-tools],
+.electrasim-editor [data-workspace-console],
+.electrasim-editor [data-phone-navigation] {
+  translate: none;
+}
+.electrasim-editor .workspace-tour-offer {
+  right: calc(var(--workspace-right) + 18px);
+}
+.electrasim-editor[data-phone="true"] .workspace-tour-offer {
+  right: 12px;
+}

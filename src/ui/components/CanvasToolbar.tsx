@@ -39,6 +39,7 @@ export function CanvasToolbar() {
 
   return (
     <div
+      data-workspace-tools
       data-canvas-occluder
       className="absolute left-1/2 top-[88px] z-10 flex -translate-x-1/2 items-center gap-1 rounded-lg border border-white/80 bg-white/90 p-1 shadow-lg ring-1 ring-slate-900/5 backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-900/90 dark:ring-slate-700/50"
     >

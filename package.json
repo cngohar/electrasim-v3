@@ -72,9 +72,16 @@
     "verify:phase-1.5e3": "bun scripts/verify-phase15e3.mjs",
     "verify:phase-1.5f1": "bun scripts/verify-phase15f1.mjs",
     "verify:phase-1.5f2": "bun scripts/verify-phase15f2.mjs",
+    "verify:phase-1.7": "bun scripts/verify-phase17.mjs",
     "verify:phase-1.6": "bun scripts/verify-phase16.mjs",
     "verify:phase-1.5f3": "bun scripts/verify-phase15f3.mjs",
-    "test:domain-local": "bun scripts/test-domain-local.ts"
+    "test:domain-local": "bun scripts/test-domain-local.ts",
+    "graph:status": "bun scripts/code-graph.mjs status",
+    "test:graph": "node --test scripts/code-graph.test.mjs",
+    "graph:build": "bun scripts/code-graph.mjs build",
+    "graph:find": "bun scripts/code-graph.mjs find",
+    "graph:phase": "bun scripts/code-graph.mjs phase",
+    "graph:impact": "bun scripts/code-graph.mjs impact"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "^1.7.6",

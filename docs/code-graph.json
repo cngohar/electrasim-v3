@@ -1,0 +1,295 @@
+{
+  "activePhase": "1.8",
+  "phases": [
+    {
+      "id": "0",
+      "status": "historical; consult scoped evidence",
+      "evidence": ["docs/phases/phase-0-foundation.md", "progress.md"]
+    },
+    {
+      "id": "1",
+      "status": "in-progress",
+      "evidence": ["docs/phases/phase-1-simulator-core.md"]
+    },
+    {
+      "id": "1.0",
+      "status": "complete within documented scope",
+      "evidence": ["docs/phases/phase-1-simulator-core.md", "progress.md"]
+    },
+    {
+      "id": "1.1",
+      "status": "complete within documented scope",
+      "evidence": ["docs/phases/phase-1-simulator-core.md", "progress.md"]
+    },
+    {
+      "id": "1.2",
+      "status": "complete within documented scope",
+      "evidence": ["docs/phases/phase-1-simulator-core.md", "progress.md"]
+    },
+    {
+      "id": "1.3",
+      "status": "complete within documented scope",
+      "evidence": ["docs/phases/phase-1-simulator-core.md", "progress.md"]
+    },
+    {
+      "id": "1.4",
+      "status": "complete within documented scope",
+      "evidence": ["docs/phases/phase-1-simulator-core.md", "progress.md"]
+    },
+    {
+      "id": "1.5",
+      "status": "complete within documented scope",
+      "evidence": ["docs/phases/phase-1-simulator-core.md", "progress.md"]
+    },
+    {
+      "id": "1.5F.3",
+      "status": "finished with user-accepted performance exceptions; full gate not green",
+      "evidence": ["docs/audits/phase-1-legacy-retirement.md"]
+    },
+    {
+      "id": "1.6",
+      "status": "complete locally; consolidated and focused recovery evidence",
+      "evidence": ["docs/audits/phase-1-visual-effects.md"]
+    },
+    {
+      "id": "1.7",
+      "status": "complete locally; consolidated and focused recovery evidence",
+      "evidence": [
+        "docs/audits/phase-1-ui-modes.md",
+        "docs/plans/PHASE_1_7_UI_MODES_PLAN.md",
+        "docs/phases/phase-1-simulator-core.md",
+        "progress.md"
+      ]
+    },
+    {
+      "id": "1.8",
+      "status": "planned",
+      "evidence": ["docs/phases/phase-1-simulator-core.md"]
+    },
+    {
+      "id": "1.9",
+      "status": "planned",
+      "evidence": ["docs/phases/phase-1-simulator-core.md"]
+    },
+    {
+      "id": "2",
+      "status": "planned; original timing is not a delivery commitment",
+      "evidence": ["docs/REWRITE_PLAN_V3_FULL.md"]
+    },
+    {
+      "id": "3",
+      "status": "planned; original timing is not a delivery commitment",
+      "evidence": ["docs/REWRITE_PLAN_V3_FULL.md"]
+    },
+    {
+      "id": "4",
+      "status": "planned; original timing is not a delivery commitment",
+      "evidence": ["docs/REWRITE_PLAN_V3_FULL.md"]
+    },
+    {
+      "id": "5",
+      "status": "planned; original timing is not a delivery commitment",
+      "evidence": ["docs/REWRITE_PLAN_V3_FULL.md"]
+    },
+    {
+      "id": "6",
+      "status": "planned; original timing is not a delivery commitment",
+      "evidence": ["docs/REWRITE_PLAN_V3_FULL.md"]
+    },
+    {
+      "id": "7",
+      "status": "planned; original timing is not a delivery commitment",
+      "evidence": ["docs/REWRITE_PLAN_V3_FULL.md"]
+    },
+    {
+      "id": "8",
+      "status": "planned; original timing is not a delivery commitment",
+      "evidence": ["docs/REWRITE_PLAN_V3_FULL.md"]
+    },
+    {
+      "id": "1.5A",
+      "status": "complete within documented scope; see phase acceptance links",
+      "evidence": ["docs/phases/phase-1-simulator-core.md", "progress.md"]
+    },
+    {
+      "id": "1.5B",
+      "status": "complete within documented scope; see phase acceptance links",
+      "evidence": ["docs/phases/phase-1-simulator-core.md", "progress.md"]
+    },
+    {
+      "id": "1.5C.0",
+      "status": "complete within documented scope; see phase acceptance links",
+      "evidence": ["docs/phases/phase-1-simulator-core.md", "progress.md"]
+    },
+    {
+      "id": "1.5C.1",
+      "status": "complete within documented scope; see phase acceptance links",
+      "evidence": ["docs/phases/phase-1-simulator-core.md", "progress.md"]
+    },
+    {
+      "id": "1.5C.2",
+      "status": "complete within documented scope; see phase acceptance links",
+      "evidence": ["docs/phases/phase-1-simulator-core.md", "progress.md"]
+    },
+    {
+      "id": "1.5C.3",
+      "status": "complete within documented scope; see phase acceptance links",
+      "evidence": ["docs/phases/phase-1-simulator-core.md", "progress.md"]
+    },
+    {
+      "id": "1.5C.4",
+      "status": "complete within documented scope; see phase acceptance links",
+      "evidence": ["docs/phases/phase-1-simulator-core.md", "progress.md"]
+    },
+    {
+      "id": "1.5C.5",
+      "status": "complete within documented scope; see phase acceptance links",
+      "evidence": ["docs/phases/phase-1-simulator-core.md", "progress.md"]
+    },
+    {
+      "id": "1.5D.0",
+      "status": "complete within documented scope; see phase acceptance links",
+      "evidence": ["docs/phases/phase-1-simulator-core.md", "progress.md"]
+    },
+    {
+      "id": "1.5D.1",
+      "status": "complete within documented scope; see phase acceptance links",
+      "evidence": ["docs/phases/phase-1-simulator-core.md", "progress.md"]
+    },
+    {
+      "id": "1.5D.2",
+      "status": "complete within documented scope; see phase acceptance links",
+      "evidence": ["docs/phases/phase-1-simulator-core.md", "progress.md"]
+    },
+    {
+      "id": "1.5D.3",
+      "status": "complete within documented scope; see phase acceptance links",
+      "evidence": ["docs/phases/phase-1-simulator-core.md", "progress.md"]
+    },
+    {
+      "id": "1.5E.0",
+      "status": "complete within documented scope; see phase acceptance links",
+      "evidence": ["docs/phases/phase-1-simulator-core.md", "progress.md"]
+    },
+    {
+      "id": "1.5E.1",
+      "status": "complete within documented scope; see phase acceptance links",
+      "evidence": ["docs/phases/phase-1-simulator-core.md", "progress.md"]
+    },
+    {
+      "id": "1.5E.2",
+      "status": "complete within documented scope; see phase acceptance links",
+      "evidence": ["docs/phases/phase-1-simulator-core.md", "progress.md"]
+    },
+    {
+      "id": "1.5E.3",
+      "status": "complete within documented scope; see phase acceptance links",
+      "evidence": ["docs/phases/phase-1-simulator-core.md", "progress.md"]
+    },
+    {
+      "id": "1.5F.1",
+      "status": "complete within documented scope; see phase acceptance links",
+      "evidence": ["docs/phases/phase-1-simulator-core.md", "progress.md"]
+    },
+    {
+      "id": "1.5F.2",
+      "status": "complete within documented scope; see phase acceptance links",
+      "evidence": ["docs/phases/phase-1-simulator-core.md", "progress.md"]
+    }
+  ],
+  "facts": [
+    {
+      "id": "appearance-terminal-invariance",
+      "summary": "Component appearance changes interior artwork only; canonical terminal anchors, saved circuits and electrical results remain unchanged.",
+      "evidence": [
+        "src/ui/canvas/ComponentNode.tsx",
+        "src/ui/canvas/componentAppearance.test.tsx",
+        "e2e/workspace-design.spec.ts"
+      ]
+    },
+    {
+      "id": "appearance-persistence",
+      "summary": "componentAppearance is validated and persisted through the settings whitelist, snapshot and equality subscription.",
+      "evidence": ["src/store/settingsStore.ts", "src/store/settingsStore.test.ts"]
+    },
+    {
+      "id": "matter-consumer-only",
+      "summary": "Matter effects consume accepted signals; reduced motion, offscreen and dense-scene suppression remain in effect.",
+      "evidence": [
+        "src/ui/canvas/MatterLayer.tsx",
+        "src/ui/canvas/matterEffects.ts",
+        "e2e/matter-effects.spec.ts"
+      ]
+    },
+    {
+      "id": "membership-not-interface-mode",
+      "summary": "Basic and Pro are interface modes, not membership grants. Premium actions and read-only recovery use the existing access boundary.",
+      "evidence": [
+        "src/store/simulatorAccess.ts",
+        "src/ui/components/SimulatorAccessBanner.tsx",
+        "src/ui/components/Toolbar.tsx"
+      ]
+    },
+    {
+      "id": "scope-acceptance",
+      "summary": "Phase 1.7 UI acceptance is separate from the Phase 1.9 full matrix; F.3 performance exceptions remain open.",
+      "evidence": [
+        "docs/plans/PHASE_1_7_UI_MODES_PLAN.md",
+        "docs/audits/phase-1-legacy-retirement.md"
+      ]
+    },
+    {
+      "id": "local-only",
+      "summary": "All phases develop and test locally; no Cloudflare remote actions or publication are implied by local acceptance.",
+      "evidence": ["AGENTS.md"]
+    },
+    {
+      "id": "phone-fault-lab-single-surface",
+      "summary": "Phone Fault Lab is owned by FaultLabDialog; the new phone Inspector must hide while that dialog is open to avoid duplicate controls and intercepted clicks.",
+      "evidence": [
+        "src/ui/components/PhoneDock.tsx",
+        "src/ui/components/FaultLabDialog.tsx",
+        "src/ui/components/inspector/Inspector.tsx",
+        "e2e/consumer-evidence.spec.ts",
+        "e2e/damage-repair.spec.ts"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "from": "src/ui/canvas/componentAppearance.test.tsx",
+      "relation": "tests",
+      "to": "src/ui/canvas/ComponentNode.tsx"
+    },
+    {
+      "from": "e2e/workspace-design.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/Editor.tsx"
+    },
+    {
+      "from": "e2e/workspace-design.spec.ts",
+      "relation": "tests",
+      "to": "src/store/settingsStore.ts"
+    },
+    {
+      "from": "e2e/matter-effects.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/canvas/MatterLayer.tsx"
+    },
+    {
+      "from": "e2e/consumer-evidence.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/components/inspector/Inspector.tsx"
+    },
+    {
+      "from": "e2e/damage-repair.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/components/inspector/Inspector.tsx"
+    },
+    {
+      "from": "e2e/workspace-design.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/components/inspector/Inspector.tsx"
+    }
+  ]
+}

@@ -26,7 +26,7 @@ export function TourOfferChip({ isPhone }: { isPhone: boolean }) {
   };
 
   return (
-    <div className="pointer-events-auto fixed bottom-16 left-1/2 z-40 -translate-x-1/2">
+    <div className="workspace-tour-offer pointer-events-auto fixed top-28 right-16 z-40">
       <div className="flex items-center gap-1 rounded-full border border-sky-200 bg-white/95 py-1 pl-3 pr-1 shadow-xl ring-1 ring-slate-900/5 backdrop-blur dark:border-sky-900 dark:bg-slate-900/95 dark:ring-slate-700/50">
         <Sparkles aria-hidden="true" className="size-3.5 text-sky-500" />
         <span className="text-xs font-medium text-slate-700 dark:text-slate-200">New here?</span>

@@ -63,3 +63,13 @@ Deferred is **Published Circuit** (sharing to feed `/feed` `/explore` `/c/[id]` 
 **Continuation (2026-10-06):** **1.5D.3 is complete locally.** Declared current/voltage damage budgets, persisted failed items and separate fault clearing, breaker reset and replacement passed `bun run verify:phase-1.5d3`, including the real Worker/D1 and Comlink/browser checks. [Scope and acceptance](docs/audits/phase-1-damage-repair.md) records the results. **Next is 1.5E: supported three-phase teaching models**, followed by full lab migration in 1.5F.
 
 **Continuation (2026-10-08):** 1.5E.0–3 and 1.5F.1–2 are complete locally. **1.5F.3 is finished with user-accepted performance exceptions**: the rail fallback is removed and missing models return unavailable results. [Closure, measured failures and aggregate evidence](docs/audits/phase-1-legacy-retirement.md) preserve the unchanged budgets; the full gate is not green. **Next: 1.6 visual effects.**
+
+
+## Current continuation — 2026-10-09
+
+Phase 1.7 UI and modes is complete locally with consolidated and focused recovery
+evidence; see [acceptance](docs/audits/phase-1-ui-modes.md). Next is Phase 1.8
+super-admin membership UI, followed by Phase 1.9 full local verification. Existing
+F.3 performance exceptions remain open. All remaining phases use and maintain the
+[knowledge graph](docs/KNOWLEDGE_GRAPH.md) under AGENTS.md. Remote operations remain
+unauthorized.

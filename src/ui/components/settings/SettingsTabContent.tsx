@@ -110,6 +110,7 @@ function DisplaySettings() {
   const colorScheme = useSettingsStore((state) => state.colorScheme);
   const showGrid = useSettingsStore((state) => state.showGrid);
   const showMiniMap = useSettingsStore((state) => state.showMiniMap);
+  const componentAppearance = useSettingsStore((state) => state.componentAppearance);
   const canvasPreset = useSettingsStore((state) => state.canvasPreset);
   const wireColorStandard = useSettingsStore((state) => state.wireColorStandard);
   const setSetting = useSettingsStore((state) => state.setSetting);
@@ -159,6 +160,33 @@ function DisplaySettings() {
         checked={showMiniMap}
         onChange={(value) => setSetting('showMiniMap', value)}
       />
+      <fieldset className="rounded-xl border border-slate-200 p-4 dark:border-slate-700">
+        <legend className="px-1 text-sm font-semibold">Component appearance</legend>
+        <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
+          Display only. Terminals, wiring and electrical behavior stay unchanged.
+        </p>
+        <div className="flex flex-wrap gap-3">
+          {(['icons', 'symbols', 'both'] as const).map((value) => (
+            <label
+              key={value}
+              className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 p-3 text-xs dark:border-slate-700"
+            >
+              <input
+                type="radio"
+                name="component-appearance"
+                value={value}
+                checked={componentAppearance === value}
+                onChange={() => setSetting('componentAppearance', value)}
+              />
+              {value === 'icons'
+                ? 'Device icons'
+                : value === 'symbols'
+                  ? 'Circuit symbols'
+                  : 'Both'}
+            </label>
+          ))}
+        </div>
+      </fieldset>
       <CanvasPresetSelector
         value={canvasPreset}
         onChange={(value) => setSetting('canvasPreset', value)}

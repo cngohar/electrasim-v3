@@ -20,6 +20,7 @@ import type { MouseEvent, PointerEvent } from 'react';
 import { emojiDataUri } from '../../lib/emoji/emojiSvg';
 import { useSettingsStore } from '../../store';
 import { useEmojiGlyphsReady } from '../hooks/useEmojiGlyphsReady';
+import { ComponentSymbol } from './ComponentSymbol';
 import { DeviceArtwork } from './DeviceArtwork';
 import type { CanvasTheme, PortLoc } from './types';
 
@@ -95,6 +96,7 @@ export function ComponentNode({
   // Fault badges and pictograph icons come from the lazily-loaded Twemoji
   // table; re-render once it arrives (no-op after the first load).
   useEmojiGlyphsReady();
+  const appearance = useSettingsStore((s) => s.componentAppearance);
   const definition = COMPONENT_DEFS[component.type];
   // Catalogue labels embed a *default* rating ("RCBO (32A 30mA)"); an instance
   // may override it via `state.customMaxAmps`. Draw the instance's real rating
@@ -179,6 +181,7 @@ export function ComponentNode({
   return (
     <g
       data-component-id={component.id}
+      data-component-appearance={appearance}
       data-render-detail={reducedDetails ? 'reduced' : 'full'}
       data-compatibility={compatibilityReview}
       transform={`translate(${x} ${y}) rotate(${rotation} ${COMP_W / 2} ${COMP_H / 2})`}
@@ -325,16 +328,36 @@ export function ComponentNode({
           stroke={stroke}
           strokeWidth={selected || error ? 2 : active ? 1.5 : 1}
         />
-        <DeviceArtwork
-          component={
-            coilState === undefined
-              ? component
-              : { ...component, state: { ...component.state, on: coilState } }
-          }
-          energized={energized && fault !== 'open-circuit'}
-          compact={reducedDetails && !selected}
-          animate={activeLoadEffects}
-        />
+        {appearance !== 'symbols' && (
+          <g transform={appearance === 'both' ? 'translate(0 9) scale(.64)' : undefined}>
+            <DeviceArtwork
+              component={
+                coilState === undefined
+                  ? component
+                  : { ...component, state: { ...component.state, on: coilState } }
+              }
+              energized={energized && fault !== 'open-circuit'}
+              compact={reducedDetails && !selected}
+              animate={activeLoadEffects}
+            />
+          </g>
+        )}
+        {appearance !== 'icons' && (
+          <svg
+            x={appearance === 'both' ? 55 : 21}
+            y={appearance === 'both' ? 10 : 0}
+            width={appearance === 'both' ? 38 : 58}
+            height={appearance === 'both' ? 38 : 58}
+            viewBox="0 0 64 64"
+            color={theme.component.text}
+            pointerEvents="none"
+            aria-hidden="true"
+          >
+            <ComponentSymbol
+              component={{ ...component, state: { ...component.state, on: isOn } }}
+            />
+          </svg>
+        )}
         {(active || error) && (
           <circle cx={COMP_W - 8} cy={8} r={3} fill={error ? '#ef4444' : theme.component.accent} />
         )}

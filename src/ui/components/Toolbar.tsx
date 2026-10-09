@@ -18,13 +18,15 @@ import { COMPONENT_DEFS } from '@electrasim/domain';
 import {
   BookOpen,
   Command,
+  FileUp,
   Flame,
   FlaskConical,
-  GraduationCap,
+  Layers,
   Moon,
   OctagonAlert,
   Play,
   Redo2,
+  Route,
   Search,
   Settings,
   ShieldCheck,
@@ -32,7 +34,6 @@ import {
   Square,
   Sun,
   Undo2,
-  Wrench,
   Zap,
 } from 'lucide-react';
 import { isMacPlatform, remapShortcutLabel } from '../../lib/platform';
@@ -41,6 +42,7 @@ import { useSettingsStore } from '../../store/settingsStore';
 import { preloadSettings } from '../deferredSurfacePreloads';
 import { useResolvedTheme } from '../hooks/useResolvedTheme';
 import { IconBtn } from './IconBtn';
+import { SimulationClock } from './SimulationClock';
 import { StandardSelector } from './StandardSelector';
 
 interface Props {
@@ -52,6 +54,8 @@ interface Props {
 
 export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard }: Props) {
   const readiness = useCircuitReadiness();
+  const paletteOpen = useUiStore((s) => s.paletteOpen);
+  const inspectorCollapsed = useUiStore((s) => s.inspectorCollapsed);
   const diagnosisActive = useUiStore((s) => s.diagnosisActive);
   const runDisabled = !simRunning && ordinaryRunBlocked(readiness);
   const appMode = useSettingsStore((s) => s.appMode);
@@ -108,16 +112,16 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
       <div className="grid size-7 place-items-center rounded-lg bg-blue-600 text-white shadow-sm shadow-blue-600/30">
         <Zap className="size-3.5" strokeWidth={3} />
       </div>
-      {!isPhone && (
-        <div className="hidden leading-tight xl:block">
+      {
+        <div className="leading-tight">
           <div className="text-[13px] font-semibold tracking-tight text-slate-900 dark:text-slate-100">
             ElectraSim
           </div>
           <div className="text-[9px] leading-tight text-slate-400 dark:text-slate-500">
-            Wiring Workbench
+            Circuit workspace
           </div>
         </div>
-      )}
+      }
     </div>
   );
 
@@ -162,7 +166,7 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
             useUiStore
               .getState()
               .showNoticeToast(
-                `${proCount} Pro component${proCount === 1 ? '' : 's'} stay${proCount === 1 ? 's' : ''} active on the canvas — Student mode only hides them from the palette.`,
+                `${proCount} Pro component${proCount === 1 ? '' : 's'} stay${proCount === 1 ? 's' : ''} on the canvas — Basic mode changes the palette, not membership permissions.`,
               );
           }
         }
@@ -173,7 +177,7 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
           .getState()
           .addLog(
             nextMode === 'pro'
-              ? 'Switched to Pro Electrician Mode — cable sizing, BS 7671 calculations & commercial components unlocked.'
+              ? 'Pro interface selected. Paid actions still require an active membership.'
               : 'Switched to Basic Student Mode — simplified domestic wiring view.',
             'info',
           );
@@ -191,14 +195,8 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
           : 'border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 dark:border-purple-800 dark:bg-purple-950/60 dark:text-purple-300',
       ].join(' ')}
     >
-      {appMode === 'basic' ? (
-        <GraduationCap className="size-3.5" />
-      ) : (
-        <Wrench className="size-3.5" />
-      )}
-      {!isPhone && (
-        <span className="sr-only lg:not-sr-only">{appMode === 'basic' ? 'Student' : 'Pro'}</span>
-      )}
+      <span className={appMode === 'basic' ? 'mode-selected' : ''}>Basic</span>
+      <span className={appMode === 'pro' ? 'mode-selected' : ''}>Pro</span>
     </button>
   );
 
@@ -392,62 +390,95 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
 
   const menuBtn = <MenuTrigger />;
 
-  if (isPhone) {
-    return (
-      <header className="absolute inset-x-0 top-0 z-30 flex h-12 items-center justify-between gap-1 border-b border-slate-200/80 bg-white/90 px-2 shadow-sm ring-1 ring-slate-900/5 backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-900/90 dark:ring-slate-700/50">
-        <div className="flex items-center gap-1">
-          {brand}
-          <Sep />
-          {undoRedo}
-          {guidesBtn}
-          {modeBtn}
-          {validateBtn}
-          {runBtn}
-        </div>
-        <div className="flex items-center gap-1">
+  return (
+    <>
+      <header className="workspace-header" data-canvas-occluder>
+        {brand}
+        {!isPhone && (
+          <div className="workspace-history">
+            {undoRedo}
+            <StandardSelector compact />
+          </div>
+        )}
+        <div className="workspace-header-actions">
+          <div className="workspace-mode" aria-label="Interface mode">
+            {modeBtn}
+            <span>Interface</span>
+          </div>
+          {commandHint}
           {themeBtn}
-          {settingsBtn}
+          {!isPhone && (
+            <button
+              type="button"
+              aria-label="Open file import and export"
+              className="workspace-export"
+              onClick={() => useUiStore.getState().setImportExportOpen(true)}
+            >
+              <FileUp size={15} /> Files
+            </button>
+          )}
+          {isPhone && settingsBtn}
           {menuBtn}
         </div>
       </header>
-    );
-  }
-
-  return (
-    <header className="absolute inset-x-0 top-0 z-30 flex h-12 items-center justify-between gap-1 border-b border-slate-200/80 bg-white/90 px-2 shadow-sm ring-1 ring-slate-900/5 backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-900/90 dark:ring-slate-700/50 2xl:grid 2xl:grid-cols-[1fr_auto_1fr]">
-      {/* Left zone — identity + history + active standard */}
-      <div className="flex min-w-0 items-center gap-1 justify-self-start">
-        {brand}
-        <Sep />
-        {undoRedo}
-        <StandardSelector compact />
-        <Sep />
-      </div>
-
-      {/* Centered on wide screens; intrinsic widths prevent tablet overlap. */}
-      <div className="flex items-center gap-1">
-        {guidesBtn}
-        {modeBtn}
-        {validateBtn}
+      {!isPhone && (
+        <nav className="workspace-rail" aria-label="Workspace navigation" data-canvas-occluder>
+          <button
+            type="button"
+            aria-label="Build: component library"
+            aria-pressed={paletteOpen}
+            onClick={() => useUiStore.getState().setPaletteOpen(!paletteOpen)}
+          >
+            <Layers size={21} />
+            <span>Build</span>
+          </button>
+          <div className="workspace-rail-item">
+            {guidesBtn}
+            <span>Learn</span>
+          </div>
+          <button
+            type="button"
+            aria-label="Labs and activities"
+            onClick={() => useUiStore.getState().setMenuOpen(true)}
+          >
+            <FlaskConical size={21} />
+            <span>Labs</span>
+          </button>
+          <button
+            type="button"
+            aria-label="Circuit netlist"
+            onClick={() => {
+              useUiStore.getState().setInspectorCollapsed(false);
+              useUiStore.getState().setActiveInspectorTab('connections');
+            }}
+          >
+            <Route size={21} />
+            <span>Netlist</span>
+          </button>
+          <div className="workspace-rail-settings">
+            {settingsBtn}
+            <span>Settings</span>
+          </div>
+        </nav>
+      )}
+      <section
+        className="workspace-simulation"
+        aria-label="Simulation controls"
+        data-canvas-occluder
+        data-palette-open={paletteOpen}
+        data-inspector-open={!inspectorCollapsed}
+      >
         {runBtn}
-        {analyzeBtn}
-        {diagnosticsBtn}
-        {faultLabBtn}
-      </div>
-
-      {/* Right zone — command palette, theme, settings, menu */}
-      <div className="flex items-center gap-1 justify-self-end">
-        {commandHint}
-        {themeBtn}
-        {settingsBtn}
-        {menuBtn}
-      </div>
-    </header>
+        <SimulationClock />
+        <div className="workspace-simulation-actions">
+          {validateBtn}
+          {analyzeBtn}
+          {diagnosticsBtn}
+          {faultLabBtn}
+        </div>
+      </section>
+    </>
   );
-}
-
-function Sep() {
-  return <div className="mx-1 h-4 w-px shrink-0 bg-slate-200 dark:bg-slate-700" />;
 }
 
 /** MCB breaker-switch menu trigger — Phase 6.5. */

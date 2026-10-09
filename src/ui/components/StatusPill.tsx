@@ -50,6 +50,7 @@ export function StatusPill({
 
   return (
     <div
+      data-workspace-status
       className={`absolute bottom-0 ${leftClass} ${rightClass} z-10 hidden items-center justify-between border-t border-slate-200/80 bg-white/95 px-3 py-1 text-[11px] font-medium text-slate-600 shadow-lg backdrop-blur-xl transition-all duration-150 md:flex dark:border-slate-800/80 dark:bg-slate-900/95 dark:text-slate-300`}
     >
       {/* Left: supply + health */}

@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { Suspense, lazy } from 'react';
 import { useCircuitStore, useSettingsStore, useUiStore } from '../../../store';
+import { ComponentPreview } from '../ComponentPreview';
 import { useInspectorSelectionState } from './useInspectorSelectionState';
 
 // Heavy Inspector tabs code-split with dynamic import (perf & initial bundle optimization)
@@ -111,7 +112,7 @@ export function Inspector({
   const isCollapsed = useUiStore((s) => s.inspectorCollapsed);
   const setIsCollapsed = (c: boolean) => useUiStore.getState().setInspectorCollapsed(c);
 
-  if (isPhone) return null;
+  if (isPhone && (isCollapsed || faultLabOpen)) return null;
 
   // Collapsed State View
   if (isCollapsed) {
@@ -296,6 +297,7 @@ export function Inspector({
   return (
     <aside
       data-tour="inspector"
+      data-phone-inspector={isPhone}
       className="fixed right-0 top-[84px] bottom-0 z-20 flex shadow-2xl border-l border-t rounded-tl-2xl border-slate-200/80 bg-white/95 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/95"
     >
       {/* Main Drawer Body Area */}
@@ -306,7 +308,13 @@ export function Inspector({
             {selectionState.kind === 'wire' ? (
               <Route className="size-4 flex-shrink-0 text-blue-600 dark:text-blue-400" />
             ) : selectionState.kind === 'component' ? (
-              <Sliders className="size-4 flex-shrink-0 text-purple-600 dark:text-purple-400" />
+              <ComponentPreview
+                type={selectionState.component.type}
+                label={
+                  COMPONENT_DEFS[selectionState.component.type]?.label ??
+                  selectionState.component.type
+                }
+              />
             ) : (
               <Layers className="size-4 flex-shrink-0 text-slate-500 dark:text-slate-400" />
             )}
@@ -376,6 +384,44 @@ export function Inspector({
         )}
 
         {/* Dynamic Tab Body View */}
+        <nav className="workspace-inspector-tabs" aria-label="Inspector sections">
+          {(
+            [
+              ['properties', 'Properties', 'Properties & Specs'],
+              ['simulation', 'Readings', 'Simulation Telemetry & Faults'],
+              ['connections', 'Netlist', 'Connections & Topology'],
+              ['analytics', 'Analysis', 'Current calculated readings'],
+              ['validation', 'Checks', 'Circuit Safety & Compliance'],
+              ['logs', 'Logs', 'Console Logs & CLI'],
+              ...(isPro
+                ? [
+                    ['faultlab', 'Fault Lab', 'Fault Lab — manual fault injection'],
+                    ['history', 'History', 'Simulation History (audit log)'],
+                  ]
+                : []),
+            ] as const
+          ).map(([tab, label, title]) => (
+            <button
+              type="button"
+              key={tab}
+              title={title}
+              aria-label={
+                tab === 'faultlab'
+                  ? 'Fault Lab (manual fault injection)'
+                  : tab === 'history'
+                    ? 'Simulation History (audit log)'
+                    : undefined
+              }
+              aria-current={activeInspectorTab === tab ? 'page' : undefined}
+              onClick={() => {
+                if (tab === 'faultlab') useUiStore.getState().setFaultLabOpen(true);
+                else setActiveInspectorTab(tab as Parameters<typeof setActiveInspectorTab>[0]);
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
         <div className="flex-1 overflow-y-auto">
           {activeInspectorTab === 'properties' && (
             <Suspense fallback={<TabLoadingFallback />}>
@@ -473,179 +519,6 @@ export function Inspector({
             </Suspense>
           )}
         </div>
-      </div>
-
-      {/* Vertical Navigation Tab Bar (Right side edge) */}
-      <div className="w-12 border-l border-slate-200/80 bg-slate-50/90 py-3 flex flex-col items-center justify-between dark:border-slate-800 dark:bg-slate-950/80 flex-shrink-0 select-none">
-        <div className="flex flex-col items-center gap-2">
-          {/* Properties Tab */}
-          <button
-            type="button"
-            onClick={() => setActiveInspectorTab('properties')}
-            className={`p-2 rounded-xl transition relative ${
-              activeInspectorTab === 'properties'
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'text-slate-500 hover:bg-slate-200/60 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800'
-            }`}
-            title="Properties & Specs"
-          >
-            <Sliders className="size-4" />
-            {activeInspectorTab === 'properties' && (
-              <span className="absolute -left-1 top-1/2 -translate-y-1/2 w-1 h-3 bg-blue-600 rounded-r" />
-            )}
-          </button>
-
-          {/* Connections Tab */}
-          <button
-            type="button"
-            onClick={() => setActiveInspectorTab('connections')}
-            className={`p-2 rounded-xl transition relative ${
-              activeInspectorTab === 'connections'
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'text-slate-500 hover:bg-slate-200/60 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800'
-            }`}
-            title="Connections & Topology"
-          >
-            <Route className="size-4" />
-            {activeInspectorTab === 'connections' && (
-              <span className="absolute -left-1 top-1/2 -translate-y-1/2 w-1 h-3 bg-blue-600 rounded-r" />
-            )}
-          </button>
-
-          {/* Simulation Tab */}
-          <button
-            type="button"
-            onClick={() => setActiveInspectorTab('simulation')}
-            className={`p-2 rounded-xl transition relative ${
-              activeInspectorTab === 'simulation'
-                ? 'bg-amber-500 text-white shadow-md'
-                : 'text-slate-500 hover:bg-slate-200/60 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800'
-            }`}
-            title="Simulation Telemetry & Faults"
-          >
-            <Zap className="size-4" />
-            {activeInspectorTab === 'simulation' && (
-              <span className="absolute -left-1 top-1/2 -translate-y-1/2 w-1 h-3 bg-amber-500 rounded-r" />
-            )}
-          </button>
-
-          {/* Fault Lab Tab (Pro) — arms fault mode as a side effect. */}
-          {isPro && (
-            <button
-              type="button"
-              onClick={() => useUiStore.getState().setFaultLabOpen(true)}
-              className={`p-2 rounded-xl transition relative ${
-                activeInspectorTab === 'faultlab' && faultLabOpen
-                  ? 'bg-amber-600 text-white shadow-md'
-                  : 'text-slate-500 hover:bg-slate-200/60 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800'
-              }`}
-              aria-label="Fault Lab (manual fault injection)"
-              title="Fault Lab — manual fault injection"
-            >
-              <FlaskConical className="size-4" />
-              {activeInspectorTab === 'faultlab' && faultLabOpen && (
-                <span className="absolute -left-1 top-1/2 -translate-y-1/2 w-1 h-3 bg-amber-600 rounded-r" />
-              )}
-              {injectedFaultCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex size-3.5 items-center justify-center rounded-full bg-amber-500 text-[8px] font-bold text-white">
-                  {injectedFaultCount > 9 ? '9+' : injectedFaultCount}
-                </span>
-              )}
-            </button>
-          )}
-
-          <div className="my-1.5 h-px w-6 bg-slate-200 dark:bg-slate-800" />
-
-          {/* Scope Tab */}
-          <button
-            type="button"
-            onClick={() => setActiveInspectorTab('analytics')}
-            className={`p-2 rounded-xl transition relative ${
-              activeInspectorTab === 'analytics'
-                ? 'bg-purple-600 text-white shadow-md'
-                : 'text-slate-500 hover:bg-slate-200/60 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800'
-            }`}
-            title="Current calculated readings"
-          >
-            <Sparkles className="size-4" />
-            {activeInspectorTab === 'analytics' && (
-              <span className="absolute -left-1 top-1/2 -translate-y-1/2 w-1 h-3 bg-purple-600 rounded-r" />
-            )}
-          </button>
-
-          {/* Validation Tab */}
-          <button
-            type="button"
-            onClick={() => setActiveInspectorTab('validation')}
-            className={`p-2 rounded-xl transition relative ${
-              activeInspectorTab === 'validation'
-                ? 'bg-emerald-600 text-white shadow-md'
-                : 'text-slate-500 hover:bg-slate-200/60 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800'
-            }`}
-            title="Circuit Safety & Compliance"
-          >
-            <ShieldCheck className="size-4" />
-            {activeInspectorTab === 'validation' && (
-              <span className="absolute -left-1 top-1/2 -translate-y-1/2 w-1 h-3 bg-emerald-600 rounded-r" />
-            )}
-            {(validationReport?.summary.errorsCount ?? 0) > 0 && (
-              <span className="absolute -top-1 -right-1 flex size-3.5 items-center justify-center rounded-full bg-red-500 text-[8px] font-bold text-white">
-                {validationReport?.summary.errorsCount}
-              </span>
-            )}
-          </button>
-
-          {/* Console Tab */}
-          <button
-            type="button"
-            onClick={() => setActiveInspectorTab('logs')}
-            className={`p-2 rounded-xl transition relative ${
-              activeInspectorTab === 'logs'
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'text-slate-500 hover:bg-slate-200/60 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800'
-            }`}
-            title="Console Logs & CLI"
-          >
-            <Terminal className="size-4" />
-            {activeInspectorTab === 'logs' && (
-              <span className="absolute -left-1 top-1/2 -translate-y-1/2 w-1 h-3 bg-blue-600 rounded-r" />
-            )}
-          </button>
-
-          {isPro && (
-            <button
-              type="button"
-              onClick={() => setActiveInspectorTab('history')}
-              className={`p-2 rounded-xl transition relative ${
-                activeInspectorTab === 'history'
-                  ? 'bg-indigo-600 text-white shadow-md'
-                  : 'text-slate-500 hover:bg-slate-200/60 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800'
-              }`}
-              aria-label="Simulation History (audit log)"
-              title="Simulation History (audit log)"
-            >
-              <Clock className="size-4" />
-              {activeInspectorTab === 'history' && (
-                <span className="absolute -left-1 top-1/2 -translate-y-1/2 w-1 h-3 bg-indigo-600 rounded-r" />
-              )}
-              {eventHistory.length > 0 && activeInspectorTab !== 'history' && (
-                <span className="absolute -top-1 -right-1 flex size-3.5 items-center justify-center rounded-full bg-indigo-500 text-[8px] font-bold text-white">
-                  {eventHistory.length > 9 ? '9+' : eventHistory.length}
-                </span>
-              )}
-            </button>
-          )}
-        </div>
-
-        {/* Collapse Button */}
-        <button
-          type="button"
-          onClick={() => setIsCollapsed(true)}
-          className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-200/70 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition"
-          title="Collapse Inspector"
-        >
-          <ChevronRight className="size-4" />
-        </button>
       </div>
     </aside>
   );

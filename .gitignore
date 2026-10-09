@@ -82,3 +82,6 @@ seo/
 
 # Tooling state
 .geaix/
+
+# Generated local code graph
+.code-graph/

@@ -168,3 +168,13 @@ The dense fixture does not certify 60 fps panning/dragging/zooming. F.3 solver a
 generator exceptions remain unchanged. Effects stop allocating active scenes
 when hidden/offscreen/reduced/stopped and dispose settled scenes after 45 steps.
 See [acceptance and evidence](audits/phase-1-visual-effects.md).
+
+## Phase 1.7 workspace measurement (2026-10-09)
+
+The existing 200-component/400-wire Chromium benchmark passed its handler/idle
+limits after the redesign. Idle mean/p95: 18.88/16.8 ms. Pan handlers mean/p95:
+0.083/0.20 ms; drag: 0.055/0.10 ms; release commits: 0.5/2.3 ms. Paint mean/p95:
+pan 22.60/100 ms, drag 38.70/50 ms, zoom 131.92/150 ms. The dense 60 fps goal
+remains unmet; no limit changed. Assets: 251,223 B gzip JS (300,000 B budget),
+27,542 B gzip CSS (30,000 B budget). Evidence: `.wrangler/phase17/dense.log` and
+[Phase 1.7 acceptance](audits/phase-1-ui-modes.md).

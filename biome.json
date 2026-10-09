@@ -15,6 +15,7 @@
       "playwright-report",
       "test-results",
       ".wrangler",
+      ".code-graph",
       "astro-site/.astro",
       "src/App.legacy.tsx",
       "**/*.md",

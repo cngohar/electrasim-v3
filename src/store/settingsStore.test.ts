@@ -84,6 +84,7 @@ describe('settingsStore — Phase 6.1', () => {
       showRecentComponents: true,
       appMode: 'basic',
       canvasPreset: 'high-contrast',
+      componentAppearance: 'icons',
       wireColorStandard: 'uk_eu',
       automaticComponentLabels: true,
       diagnosticOverlayMode: 'off',
@@ -256,4 +257,17 @@ describe('settingsStore — backup support', () => {
     useSettingsStore.getState().setSetting('showTooltips', false);
     expect(getSettingsSnapshot().showTooltips).toBe(false);
   });
+});
+
+it('validates appearance independently of circuit data and round-trips the preference', () => {
+  for (const componentAppearance of ['icons', 'symbols', 'both'] as const) {
+    useSettingsStore.getState().setSetting('componentAppearance', componentAppearance);
+    expect(sanitizeSettingsPayload(getSettingsSnapshot())?.componentAppearance).toBe(
+      componentAppearance,
+    );
+  }
+  expect(sanitizeSettingsPayload({ componentAppearance: 'invalid' })?.componentAppearance).toBe(
+    'icons',
+  );
+  useSettingsStore.getState().setSetting('componentAppearance', 'icons');
 });

@@ -1,4 +1,6 @@
+import './workspace.css';
 import { useElectricalEditing } from '../store/electricalEditing';
+import { fitCanvasView } from './canvas/fitView';
 /** Composition root for the interactive editor and its optional surfaces. */
 
 import { isGuidedCircuitId } from '@electrasim/domain/guidedCircuitIds';
@@ -163,6 +165,10 @@ export function Editor() {
   );
   const commandPaletteOpen = useUiStore((s) => s.commandPaletteOpen);
   const shortcutsOpen = useUiStore((s) => s.shortcutsOpen);
+  useEffect(() => {
+    const frame = requestAnimationFrame(fitCanvasView);
+    return () => cancelAnimationFrame(frame);
+  }, []);
   useSimulation();
   useKeyboardShortcuts();
   const resolvedTheme = useResolvedTheme();
@@ -312,6 +318,9 @@ export function Editor() {
   return (
     <div
       className="electrasim-editor relative h-full w-full overflow-hidden"
+      data-phone={isPhone}
+      data-palette-open={paletteOpen}
+      data-inspector-open={!inspectorCollapsed}
       style={{ fontFamily: canvasTheme.font, background: bgGradient }}
     >
       <CircuitCanvas

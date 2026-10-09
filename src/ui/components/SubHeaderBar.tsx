@@ -30,9 +30,9 @@ export function SubHeaderBar() {
 
   const [projectName, setProjectName] = useState(() => {
     try {
-      return localStorage.getItem('electrasim:project-name') || 'Kitchen Lighting & Sockets';
+      return localStorage.getItem('electrasim:project-name') || 'Untitled circuit';
     } catch {
-      return 'Kitchen Lighting & Sockets';
+      return 'Untitled circuit';
     }
   });
   const [isEditing, setIsEditing] = useState(false);
@@ -206,14 +206,6 @@ export function SubHeaderBar() {
         })()
       ) : (
         <>
-          <div className="flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-emerald-500 shadow-[0_0_6px] shadow-emerald-400" />
-            <span className="font-medium text-slate-500 dark:text-slate-400">System:</span>
-            <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">TN-S</span>
-          </div>
-
-          <div className="hidden h-3 w-px bg-slate-200 dark:bg-slate-700 sm:block" />
-
           <div className="hidden items-center gap-1.5 sm:flex">
             <span className="font-medium text-slate-500 dark:text-slate-400">Project:</span>
             {isEditing ? (
@@ -265,7 +257,11 @@ export function SubHeaderBar() {
   );
 
   return (
-    <div className="absolute inset-x-0 top-12 z-40 border-b border-slate-200/80 bg-white/95 shadow-sm ring-1 ring-slate-900/5 backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-900/95 dark:ring-slate-700/50">
+    <div
+      data-workspace-context
+      data-canvas-occluder
+      className="absolute inset-x-0 top-12 z-40 border-b border-slate-200/80 bg-white/95 shadow-sm ring-1 ring-slate-900/5 backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-900/95 dark:ring-slate-700/50"
+    >
       {/* Scroll layer: when the content fits, the centered row sits dead
           center; when it overflows it scrolls from the left edge. */}
       <div className="overflow-x-auto">

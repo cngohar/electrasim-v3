@@ -17,9 +17,7 @@ import { ChevronDown, ChevronLeft, ChevronRight, Layers, Search, X } from 'lucid
 import { useCallback, useMemo, useState } from 'react';
 import { useUiStore } from '../../store';
 import { useSettingsStore } from '../../store/settingsStore';
-import { getDefaultArt } from '../canvas/componentArt';
-import { EmojiGlyph } from './EmojiGlyph';
-import { getComponentImage } from './componentImages';
+import { ComponentPreview } from './ComponentPreview';
 
 interface PaletteEntry {
   type: string;
@@ -248,46 +246,11 @@ interface Props {
   isPhone: boolean;
 }
 
-/** Renders a palette tile's icon: near-realistic SVG art when upgraded, else
- *  the legacy photo (lighting) or emoji glyph. Keeps palette consistent with
- *  the upgraded canvas components. */
 function TileIcon({
   type,
   label,
-  icon,
-  isLighting,
-}: {
-  type: string;
-  label: string;
-  icon: string;
-  isLighting: boolean;
-}) {
-  const art = getDefaultArt(type);
-  if (art) {
-    return (
-      <div className="size-8 rounded-lg bg-slate-50 flex items-center justify-center p-0.5 dark:bg-slate-800">
-        <img
-          src={art}
-          alt={label}
-          referrerPolicy="no-referrer"
-          className="size-full object-contain"
-        />
-      </div>
-    );
-  }
-  if (isLighting) {
-    return (
-      <div className="size-8 rounded-lg overflow-hidden bg-slate-900 flex items-center justify-center p-0.5 border border-slate-700/60">
-        <img
-          src={getComponentImage(type, 'lighting')}
-          alt={label}
-          referrerPolicy="no-referrer"
-          className="size-full object-contain"
-        />
-      </div>
-    );
-  }
-  return <EmojiGlyph emoji={icon} size={20} className="shrink-0" />;
+}: { type: string; label: string; icon: string; isLighting: boolean }) {
+  return <ComponentPreview type={type} label={label} />;
 }
 
 /** Collapsible section header for palette groups (Recent, essentials and
@@ -444,7 +407,10 @@ export function Palette({ open, isPhone }: Props) {
          * panels sit at z-30): only one bottom surface should be usable at a
          * time (plan §19), and the palette must be the top one while open.
          */}
-        <aside className="absolute bottom-0 left-0 right-0 z-50 flex max-h-[62vh] flex-col overflow-hidden rounded-t-2xl border-t border-white/80 bg-white/95 shadow-2xl shadow-slate-900/20 dark:border-slate-700/80 dark:bg-slate-900/95">
+        <aside
+          data-workspace-library
+          className="absolute bottom-0 left-0 right-0 z-50 flex max-h-[62vh] flex-col overflow-hidden rounded-t-2xl border-t border-white/80 bg-white/95 shadow-2xl shadow-slate-900/20 dark:border-slate-700/80 dark:bg-slate-900/95"
+        >
           {/* Drag handle */}
           <div className="flex justify-center pt-2.5 pb-1">
             <div className="h-1 w-10 rounded-full bg-slate-300 dark:bg-slate-600" />
@@ -466,6 +432,7 @@ export function Palette({ open, isPhone }: Props) {
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
               <input
+                aria-label="Search components"
                 placeholder="Search components…"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -618,6 +585,7 @@ export function Palette({ open, isPhone }: Props) {
     if (isPhone) return null;
     return (
       <aside
+        data-workspace-library
         className="fixed left-0 top-[84px] bottom-0 z-20 flex w-12 flex-col items-center justify-between border-r border-slate-200/80 bg-white/90 p-2 shadow-xl backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/90"
         title="Component Library (Collapsed)"
       >
@@ -645,6 +613,7 @@ export function Palette({ open, isPhone }: Props) {
 
   return (
     <aside
+      data-workspace-library
       data-tour="palette"
       className="fixed left-0 top-[84px] bottom-0 z-20 flex w-[260px] flex-col overflow-hidden border-r border-slate-200/80 bg-white/90 shadow-2xl backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/90"
     >
@@ -674,7 +643,8 @@ export function Palette({ open, isPhone }: Props) {
         <div className="relative">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-slate-400" />
           <input
-            placeholder="Search…"
+            aria-label="Search components"
+            placeholder="Search components…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-full rounded-full border border-slate-200 bg-white/80 py-1.5 pl-8 pr-8 text-xs outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-800/80 dark:text-slate-200 dark:placeholder:text-slate-500 dark:focus:border-blue-500 dark:focus:ring-blue-900/50"

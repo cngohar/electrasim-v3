@@ -222,6 +222,31 @@ export function InspectorConnectionsContent({
         Select any wire or component on the canvas to inspect terminal ports, trace connection
         paths, or swap wire endpoints.
       </p>
+      <div className="space-y-2 text-left" aria-label="Circuit netlist">
+        {components.map((component) => (
+          <button
+            type="button"
+            key={component.id}
+            className="block w-full rounded-lg border border-slate-200 p-3 text-left dark:border-slate-700"
+            onClick={() => useCircuitStore.getState().selectComponent(component.id)}
+          >
+            {COMPONENT_DEFS[component.type]?.label ?? component.type} · {component.id}
+          </button>
+        ))}
+        {wires.map((wire) => {
+          const from = components.find((c) => c.id === wire.fromComponentId);
+          const to = components.find((c) => c.id === wire.toComponentId);
+          const endpoint = (c: ComponentInstance | undefined, index: number) =>
+            c
+              ? `${COMPONENT_DEFS[c.type]?.label ?? c.type} (${c.id}) / ${COMPONENT_DEFS[c.type]?.ports[index]?.label ?? index}`
+              : 'Missing component';
+          return (
+            <p key={wire.id} className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800">
+              {endpoint(from, wire.fromPortIndex)} → {endpoint(to, wire.toPortIndex)}
+            </p>
+          );
+        })}
+      </div>
       <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-left font-mono text-[11px] space-y-1 dark:border-slate-800 dark:bg-slate-950">
         <div>• Total Components: {components.length}</div>
         <div>• Total Cable Wires: {wires.length}</div>

@@ -106,6 +106,8 @@ export interface UserSettings {
    *   - 'deuteranopia' — red/blue replaced by orange/purple (no green reliance)
    */
   canvasPreset: 'default' | 'high-contrast' | 'deuteranopia';
+  /** Visual only; canonical terminal and wire geometry never changes. */
+  componentAppearance: 'icons' | 'symbols' | 'both';
   /**
    * Regional wire color standard:
    *   - 'uk_eu' — Live = Brown, Neutral = Blue, Earth = Green/Yellow (BS 7671 / IEC)
@@ -187,6 +189,7 @@ const DEFAULTS: UserSettings = {
   showMiniMap: true,
   appMode: 'basic',
   canvasPreset: 'default',
+  componentAppearance: 'icons',
   wireColorStandard: 'uk_eu',
   automaticComponentLabels: true,
   diagnosticOverlayMode: 'off',
@@ -276,6 +279,11 @@ function parsePersistedSettings(value: unknown): UserSettings | null {
     ),
     showMiniMap: booleanOrDefault(stored.showMiniMap, DEFAULTS.showMiniMap),
     appMode: enumOrDefault(stored.appMode, APP_MODES, DEFAULTS.appMode),
+    componentAppearance: enumOrDefault(
+      stored.componentAppearance,
+      ['icons', 'symbols', 'both'] as const,
+      DEFAULTS.componentAppearance,
+    ),
     canvasPreset: enumOrDefault(stored.canvasPreset, CANVAS_PRESETS, DEFAULTS.canvasPreset),
     wireColorStandard: enumOrDefault(
       stored.wireColorStandard,
@@ -402,6 +410,7 @@ function snapshot(state: SettingsState): UserSettings {
     showMiniMap: state.showMiniMap,
     appMode: state.appMode,
     canvasPreset: state.canvasPreset,
+    componentAppearance: state.componentAppearance,
     wireColorStandard: state.wireColorStandard,
     automaticComponentLabels: state.automaticComponentLabels,
     diagnosticOverlayMode: state.diagnosticOverlayMode,
@@ -454,6 +463,7 @@ export async function startSettingsPersistence(): Promise<void> {
       state.showMiniMap === prev.showMiniMap &&
       state.appMode === prev.appMode &&
       state.canvasPreset === prev.canvasPreset &&
+      state.componentAppearance === prev.componentAppearance &&
       state.wireColorStandard === prev.wireColorStandard &&
       state.automaticComponentLabels === prev.automaticComponentLabels &&
       state.diagnosticOverlayMode === prev.diagnosticOverlayMode &&

@@ -9,6 +9,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 
 ### Added
 
+- Phase 1.7: redesigned Lab Glass desktop/phone workspace, shared persisted icons/symbols/both appearance with invariant terminals, actual simulation clock and keyboard netlist. Completed locally with consolidated and focused recovery evidence; existing performance exceptions remain. [Acceptance](docs/audits/phase-1-ui-modes.md).
+- Incremental local knowledge graph with bounded dependency queries, explicit phase/evidence metadata, freshness checks and workspace import resolution. Required workflow for all remaining phases; generated indexes remain ignored. [Guide](docs/KNOWLEDGE_GRAPH.md).
+
 - Phase 1.6 visual effects: optional lazy Matter cable sag/snap and stress/damage accents, current-result guards, persisted toggle, static reduced-motion/dense fallback, offscreen suspension and bounded settling/disposal. Electrical state and assessment remain unchanged. Completed locally with comprehensive/focused unit evidence, 858 runtime parity cases, 20 API groups and 24 browser cases. [Acceptance](docs/audits/phase-1-visual-effects.md).
 
 - Phase 1.5F.2: supported diagnosis/Ohmageddon generation, authored device/connection/rating and operating-point repair checks, separate identification and recovery, and generator/model/engine/profile versions for replay and accepted scores. Older snapshots retain repairs with new grading blocked; D1 preserves server-owned progress and fresh authorization. Diagnosis readiness labels conceal answer names while retaining diagnostic controls. Local acceptance covers 2,175 comprehensive unit passes plus 473 focused checks, 849 exact Bun/workerd cases, 20 local D1/session groups and 35 browser cases across comprehensive/focused stages. [Acceptance](docs/audits/phase-1-diagnosis-integration.md). F.3 closure and retained exceptions are recorded below.

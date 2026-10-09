@@ -619,3 +619,47 @@ green gate is claimed. Current plans now point to **1.7 UI and modes**.
 A single scoped local commit closes Phase 1.6 under the phase plan delivery rule.
 No Cloudflare account/resource operation, remote test, deployment or GitHub
 publication occurred.
+
+## 2026-10-09 — Phase 1.7 accepted design and implementation
+
+The user accepted a completely new simulator interface retaining the existing
+Lab Glass colors/theme, with Settings choices for device icons, circuit symbols,
+or both. Corrected the standalone preview's lamp anchors. Production appearance
+uses unchanged domain terminal anchors and component frames. Implemented the
+workspace rail, revised library/Inspector, bottom simulation controls using
+accepted solver time, phone navigation/Inspector and keyboard netlist access.
+Existing access checks, editing/repair actions and Matter/device effects remain
+in use. The [delivery plan](docs/plans/PHASE_1_7_UI_MODES_PLAN.md) records scope;
+consolidated local acceptance is underway. No remote operation is authorized.
+
+## 2026-10-09 — Knowledge graph adopted for all remaining phases
+
+At the user's request, all remaining phases now start with the local code graph
+and keep verified findings/evidence current. `AGENTS.md` records the workflow;
+[graph guidance](docs/KNOWLEDGE_GRAPH.md) explains limits and commands. Improved
+the existing graph with bounded reverse dependency queries, AST imports/lazy
+imports/re-exports and workspace alias resolution, automatic freshness checks,
+incremental syntax reuse, explicit sourced phase metadata, and optional semantic
+call indexing. Generated caches are ignored by Git and Biome. Graph tests cover
+cycles/hubs, output limits, lazy imports and workspace resolution. The graph
+indexes acceptance evidence; it does not assert that gates have passed.
+
+## 2026-10-09 — Phase 1.7 complete locally
+
+Completed the approved Lab Glass redesign and appearance settings. The final
+[acceptance record](docs/audits/phase-1-ui-modes.md) distinguishes the consolidated
+gate from recovery: 142 files / 2,220 unit passes; 36 real local D1/cookie groups;
+31/35 initial browser passes, then all 9 affected consumer/repair/workspace cases
+passed after fixing duplicate phone Fault Lab presentation and preserving the
+descriptive tab label. All 35 planned browser cases have passing evidence; no
+uninterrupted full green gate is claimed. Final typecheck/lint/build/asset/link/
+SEO/CSP checks passed. The four knowledge-graph tests passed.
+
+Final assets: 251,223 B gzip JS / 300,000 B; 27,542 B CSS / 30,000 B. Dense
+200-component/400-wire benchmark passed its current gate: idle p95 16.8 ms,
+pan/drag handler p95 0.20/0.10 ms, commits 0.5/2.3 ms. Zoom paint p95 was 150 ms;
+60 fps dense interaction and the existing solver/generator exceptions remain
+unresolved. Budgets were not relaxed. Matter/reduced-motion/offscreen and phone
+flows retain passing acceptance. The phase plan and knowledge graph now point
+to **1.8 super-admin membership UI**. No remote operation, deployment or GitHub
+publication occurred. Delivery is a scoped local commit.
