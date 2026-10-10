@@ -31,3 +31,13 @@ Maintain `docs/code-graph.json` with explicit phases, sourced findings and revie
 test edges. Phase numbers are not guessed from arbitrary prose, version strings,
 or benchmark decimals. The graph is an index of evidence, not an acceptance result.
 Generated cache files in `.code-graph/` are ignored by Git and Biome.
+
+The inventory includes the separate `admin/` entry, public script/header/redirect
+files and an explicit allowlist of root Vite, Vitest, Playwright and local Wrangler
+configs. It never scans arbitrary root files or environment secrets. Reviewed
+`configured-by` edges connect HTML entries to build/security configuration and
+participate in bounded impact queries; they are not inferred runtime imports.
+For membership work, start with `graph:phase 1.8`, `graph:find -- src/admin`, and
+`graph:impact -- public/_headers`. Browser tests cross the separate HTML entry,
+real-cookie test Worker and local D1; an import-only traversal cannot prove that
+coverage. Keep those test relationships explicit in `docs/code-graph.json`.

@@ -1,6 +1,6 @@
 # Paid Membership — Phase 1 Implementation Plan
 
-> **Status:** Phase 1.3 backend foundation completed locally on 2026-09-27: trusted roles/bootstrap, canonical schema, shared resolver and audited manual APIs. Simulator enforcement/persistence (1.5), simulator controls (1.7) and admin UI (1.8) remain pending. Decisions confirmed by the user on 2026-09-26. See [API contract and local verification](../api/membership.md).
+> **Status:** Phase 1.3 backend foundation completed locally on 2026-09-27: trusted roles/bootstrap, canonical schema, shared resolver and audited manual APIs. Simulator enforcement/persistence (1.5), simulator controls (1.7) and [admin UI (1.8)](../audits/phase-1-membership-ui.md) are complete locally as of 2026-10-10; the full Phase 1.9 matrix remains separate. Decisions confirmed by the user on 2026-09-26. See [API contract and local verification](../api/membership.md).
 > **Parent:** [Phase 1](../phases/phase-1-simulator-core.md), [Master plan §9](../REWRITE_PLAN_V3_FULL.md#9-paid-membership--super-admin-managed).
 
 ## 1. Confirmed scope

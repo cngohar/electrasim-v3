@@ -42,6 +42,13 @@ const appHtml = readFileSync(appHtmlPath, 'utf8');
 const initialScripts = [...appHtml.matchAll(/<script\b[^>]*\bsrc="([^"]+\.js)"[^>]*>/gi)].map(
   ([tag, url]) => ({ url, isModule: /\btype="module"/i.test(tag) }),
 );
+// Multi-entry builds extract shared runtime chunks. Count their eager preloads
+// once so splitting React out of the entry cannot hide initial download cost.
+for (const [tag, url] of appHtml.matchAll(/<link\b[^>]*\bhref="([^"]+\.js)"[^>]*>/gi)) {
+  if (/\brel="modulepreload"/i.test(tag) && !initialScripts.some((script) => script.url === url)) {
+    initialScripts.push({ url, isModule: true });
+  }
+}
 const entryStyle = appHtml.match(/<link[^>]+href="([^"]+\.css)"/)?.[1];
 
 if (initialScripts.length === 0) {

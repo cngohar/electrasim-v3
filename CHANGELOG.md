@@ -9,6 +9,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 
 ### Added
 
+- Phase 1.8: separate super-admin membership UI for plans, localized benefits, searchable member grants and audit history; reviewed/versioned mutations and responsive session/role denial. Completed local gate: 2,223 units, 36 Worker/D1 groups, 22 desktop/phone cases. [Acceptance](docs/audits/phase-1-membership-ui.md).
+- Knowledge graph coverage for admin entrypoints, public headers/redirects and root build/test/local-Worker configs, with reviewed configuration edges and documented layout/request/loading findings. Long-email member search avoids D1 LIKE limits; asset budgets count eager shared chunks.
+
 - Phase 1.7: redesigned Lab Glass desktop/phone workspace, shared persisted icons/symbols/both appearance with invariant terminals, actual simulation clock and keyboard netlist. Completed locally with consolidated and focused recovery evidence; existing performance exceptions remain. [Acceptance](docs/audits/phase-1-ui-modes.md).
 - Incremental local knowledge graph with bounded dependency queries, explicit phase/evidence metadata, freshness checks and workspace import resolution. Required workflow for all remaining phases; generated indexes remain ignored. [Guide](docs/KNOWLEDGE_GRAPH.md).
 

@@ -88,3 +88,26 @@ case records 30 Hz update/DOM-write p95 (4 ms budget) separately from a dense
 60 fps interaction pass. Existing F.3 solver/generator and dense renderer
 exceptions remain in force. `--from` and `--only` retain their explicit partial
 run semantics when addressing a failed stage.
+
+### Membership administration (Phase 1.8)
+
+Open `/admin/pro/` on the local Vite server with `bun run dev:worker` running.
+Use an existing local account and the explicit
+[super-admin bootstrap](api/membership.md#local-setup-and-first-super-admin);
+signup and paid membership never grant administration privileges. The independent
+admin entry supports manual Plans, Benefits, Members and Audit, and does not
+initialize the circuit editor or its persisted document.
+
+Run `bun run verify:phase-1.8` for the local gate. Its browser suite uses the
+isolated Playwright Worker and real session cookies on desktop and phone. Keep
+logs under ignored `.wrangler/`, not `/tmp/`, when evidence must survive a session
+change. `--from browser` and `--only browser` are focused evidence, not a new
+complete run. See [acceptance](audits/phase-1-membership-ui.md).
+
+The HTML entry is an explicit Vite build input. `postbuild` preserves
+`dist/admin/pro/index.html` while moving shared assets into `/app/assets/`.
+`public/_headers` supplies a same-origin CSP for `/admin/pro/*`; the admin page
+has noindex metadata and private API responses use no-store. Shared eager JS
+chunks must be counted in simulator asset budgets, even when extracted by a
+multi-entry build. Use the graph's reviewed configuration and test edges to
+inspect these relationships before changing routing or bundling.

@@ -7,10 +7,30 @@ import { impact, parseSource, resolveImport } from './code-graph-lib.mjs';
 const root = process.cwd();
 const outputDir = path.join(root, '.code-graph');
 const outputFile = path.join(outputDir, 'index.json');
-const sourceRoots = ['src', 'packages', 'scripts', 'e2e', 'astro-site/src', 'docs', 'migrations'];
+const sourceRoots = [
+  'src',
+  'packages',
+  'scripts',
+  'e2e',
+  'astro-site/src',
+  'docs',
+  'migrations',
+  'admin',
+  'public',
+];
 const ignored = new Set(['node_modules', 'dist', '.wrangler', '.git', 'coverage']);
 const codePattern = /\.(?:[cm]?[jt]sx?|astro|md|mdx|sql|json|jsonc|yaml|yml|css|html)$/;
-const graphVersion = 2;
+const graphVersion = 3;
+// Explicit build/runtime inputs, never arbitrary root files or environment secrets.
+const rootInputs = new Set([
+  'vite.config.ts',
+  'vitest.config.ts',
+  'playwright.config.ts',
+  'playwright.production.config.ts',
+  'wrangler.jsonc',
+  'wrangler.membership-test.jsonc',
+  'index.html',
+]);
 async function filesUnder(relative) {
   let entries;
   try {
@@ -24,7 +44,11 @@ async function filesUnder(relative) {
     if (ignored.has(entry.name)) continue;
     const child = path.join(relative, entry.name);
     if (entry.isDirectory()) files.push(...(await filesUnder(child)));
-    else if (entry.isFile() && codePattern.test(entry.name)) files.push(child);
+    else if (
+      entry.isFile() &&
+      (codePattern.test(entry.name) || ['_headers', '_redirects'].includes(entry.name))
+    )
+      files.push(child);
   }
   return files;
 }
@@ -45,6 +69,7 @@ async function inventory() {
   const files = [
     ...new Set([
       ...(await Promise.all(sourceRoots.map(filesUnder))).flat(),
+      ...(await readdir(root)).filter((file) => rootInputs.has(file)),
       'PLAN.md',
       'progress.md',
       'AGENTS.md',

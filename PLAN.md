@@ -68,8 +68,9 @@ Deferred is **Published Circuit** (sharing to feed `/feed` `/explore` `/c/[id]` 
 ## Current continuation — 2026-10-09
 
 Phase 1.7 UI and modes is complete locally with consolidated and focused recovery
-evidence; see [acceptance](docs/audits/phase-1-ui-modes.md). Next is Phase 1.8
-super-admin membership UI, followed by Phase 1.9 full local verification. Existing
+evidence; see [acceptance](docs/audits/phase-1-ui-modes.md). Phase 1.8 super-admin
+membership UI is complete locally; see [acceptance](docs/audits/phase-1-membership-ui.md).
+Next is Phase 1.9 full local verification. Existing
 F.3 performance exceptions remain open. All remaining phases use and maintain the
-[knowledge graph](docs/KNOWLEDGE_GRAPH.md) under AGENTS.md. Remote operations remain
-unauthorized.
+[knowledge graph](docs/KNOWLEDGE_GRAPH.md) under AGENTS.md. The user authorized the Phase 1.8 local commit and GitHub push
+on 2026-10-10; Cloudflare operations remain local-only.

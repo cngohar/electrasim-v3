@@ -85,9 +85,14 @@ test('CLI refreshes edited inputs incrementally and reports unknown phases accur
         activePhase: '1.8',
         phases: [{ id: '1.8', status: 'planned', evidence: ['PLAN.md'] }],
         facts: [],
+        relations: [{ from: 'src/a.ts', relation: 'configured-by', to: 'vite.config.ts' }],
       }),
     );
     await writeFile(path.join(fixture, 'src/a.ts'), 'export const original = 1;');
+    await writeFile(path.join(fixture, 'vite.config.ts'), 'export default {};');
+    await writeFile(path.join(fixture, '.env.local'), 'PRIVATE=do-not-index');
+    await mkdir(path.join(fixture, 'admin/pro'), { recursive: true });
+    await writeFile(path.join(fixture, 'admin/pro/index.html'), '<div>Admin entry</div>');
     const run = (...args) =>
       execFileSync(process.execPath, [script, ...args], {
         cwd: fixture,
@@ -96,6 +101,8 @@ test('CLI refreshes edited inputs incrementally and reports unknown phases accur
       });
     assert.match(run('phase'), /Phase 1.8: planned/);
     assert.match(run('status'), /Current graph/);
+    assert.match(run('find', 'admin/pro/index.html'), /admin\/pro\/index.html/);
+    assert.match(run('impact', 'vite.config.ts'), /configured-by\s+src\/a.ts/);
     await writeFile(path.join(fixture, 'src/a.ts'), 'export const replacementLonger = 2;');
     assert.match(run('status'), /STALE/);
     assert.match(run('find', 'replacementLonger'), /replacementLonger/);
@@ -105,6 +112,10 @@ test('CLI refreshes edited inputs incrementally and reports unknown phases accur
       false,
     );
     assert.equal(graph.semantic, false);
+    assert.equal(
+      graph.nodes.some((n) => n.path === '.env.local'),
+      false,
+    );
     assert.throws(
       () => run('phase', '99'),
       (error) => /Unknown phase: 99/.test(error.stderr) && !/index missing/.test(error.stderr),

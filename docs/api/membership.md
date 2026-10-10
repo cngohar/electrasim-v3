@@ -1,6 +1,6 @@
 # Manual memberships — Phase 1.3
 
-This is the local backend and shared access-policy foundation. Simulator enforcement and persistence follow in 1.5, simulator membership controls in 1.7, and the super-admin interface in 1.8. Checkout remains Phase 7. Electrical computation and basic safety findings are independent of membership.
+This is the local backend and shared access-policy foundation. Simulator enforcement/persistence and simulator controls are delivered in 1.5/1.7. The Phase 1.8 super-admin interface is served at `/admin/pro/`; see [local acceptance](../audits/phase-1-membership-ui.md). Checkout remains Phase 7. Electrical computation and basic safety findings are independent of membership.
 
 ## Local setup and first super admin
 
@@ -58,7 +58,7 @@ Private responses include a generated `X-Request-Id`, also saved with mutation a
 | `POST /admin/pro/memberships` | Assign a manual grant to an existing user and an active plan |
 | `PATCH /admin/pro/memberships/:id` | Edit dates, suspend/resume or reassign to an active plan; user is immutable |
 | `DELETE /admin/pro/memberships/:id` | Revoke and retain the row and audit history |
-| `GET /admin/pro/users?q=...` | Paginated name/email search for the future member picker |
+| `GET /admin/pro/users?q=...` | Paginated name/email search for the member picker |
 | `GET /admin/pro/audit` | Paginated audit, optionally filtered by `targetId` |
 
 Plans accept:
@@ -102,7 +102,7 @@ Manual grants accept:
 }
 ```
 
-Grant dates are explicit: a future assignment form can prefill from the plan's duration policy, but the API never silently changes existing dates. `endsAt > startsAt` is required unless `noExpiry: true` and `endsAt: null` are supplied together. The server fixes `source` to `manual`. A revoked row is terminal; grant again with a new assignment. All these fields except `userId` can be edited before revocation. Patches merge omitted fields with stored data, then validate the full result.
+Grant dates are explicit: the assignment form can prefill from the plan's duration policy, but the API never silently changes existing dates. `endsAt > startsAt` is required unless `noExpiry: true` and `endsAt: null` are supplied together. The server fixes `source` to `manual`. A revoked row is terminal; grant again with a new assignment. All these fields except `userId` can be edited before revocation. Patches merge omitted fields with stored data, then validate the full result.
 
 ## Access and deletion semantics
 
@@ -122,3 +122,8 @@ bun run test:membership
 ```
 
 The dedicated API gate creates a new `.wrangler/membership-tests-*` directory, applies the actual migrations, starts the actual Hono Worker using `wrangler.membership-test.jsonc`, registers users with Better Auth and uses issued session cookies. It also executes the operator bootstrap command, tests role/CSRF denial, concurrent edits, lifecycle changes, marketing archive versus disablement, and forced audit/read failures. It shuts down its test Worker and leaves local evidence in the isolated directory. It does not change ordinary development users or call any live site.
+
+The admin entry supports sign-in for an existing account; first-super-admin promotion
+continues to use the explicit local bootstrap command above. User searches are literal,
+case-insensitive substrings; long email addresses and literal percent/underscore
+characters do not use SQL wildcard patterns.

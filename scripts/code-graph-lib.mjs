@@ -1,7 +1,7 @@
 import path from 'node:path';
 import ts from 'typescript';
 
-export const dependencyRelations = new Set(['imports', 'calls-into', 'tests']);
+export const dependencyRelations = new Set(['imports', 'calls-into', 'tests', 'configured-by']);
 
 /** Only dependency edges affect impact. Phase and declaration hubs must not fan out. */
 export function impact(graph, file, { depth = 2, limit = 40, direction = 'dependents' } = {}) {

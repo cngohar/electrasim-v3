@@ -663,3 +663,37 @@ unresolved. Budgets were not relaxed. Matter/reduced-motion/offscreen and phone
 flows retain passing acceptance. The phase plan and knowledge graph now point
 to **1.8 super-admin membership UI**. No remote operation, deployment or GitHub
 publication occurred. Delivery is a scoped local commit.
+
+
+## 2026-10-10 — Phase 1.8 complete locally; GitHub publication authorized
+
+Implemented `/admin/pro/` as an independent Vite entry with Plans, Benefits,
+Members and Audit. Forms cover descriptive pricing/duration, locale maps,
+searchable user/plan selection, explicit UTC dates, grant extension and
+suspension/resume/revocation. Review requires reasons and current versions;
+removal explains archive/delete/revoke semantics and detail exposes impact counts.
+Fresh server guards deny ordinary staff and organization owners; expired or
+changed-role sessions clear private screens. Checkout remains out of scope.
+
+Fixed long-email search against D1, phone overflow/hit-testing for long names,
+focus-check cancellation and plan-feature preservation while choices load.
+The [acceptance record](docs/audits/phase-1-membership-ui.md) preserves the initial
+17/18 browser result and the renewed passing gate: **143 unit files / 2,223 tests,
+4 graph tests, 36 real Worker/D1/cookie groups, 22 desktop/phone browser cases**,
+plus type/lint/build/assets/links/SEO/CSP. Final initial assets are **250,732 B gzip
+JS / 300,000 B**, **27,549 B CSS / 30,000 B**, counting shared eager JS. Final-tree
+commit hooks cover the last form refinements after the gate's initial checks.
+Evidence: `.wrangler/phase18-final-gate.log`, focused recovery logs and
+`.wrangler/membership-tests-MAnVFB/`.
+
+Expanded the knowledge graph to admin HTML, public security/routing files and an
+explicit root configuration allowlist. Added reviewed configuration/test edges,
+request/layout/loading findings and durable evidence guidance. The active pointer
+now advances to **1.9 full local verification**, retaining all historical phase
+status and F.3 performance exceptions. No dense-performance fix is claimed.
+
+The user explicitly requested a local commit followed by GitHub push on
+2026-10-10; publication includes the preceding local Phase 1.7 commit. No
+Cloudflare account, credential, resource, remote test or deployment operation
+was performed. The scoped local commit and GitHub synchronization follow these
+local acceptance results.

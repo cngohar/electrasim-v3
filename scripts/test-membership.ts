@@ -405,6 +405,14 @@ try {
           [],
         );
         await api('/admin/pro/users?q=paid', { user: superAdmin, expected: 200 });
+        const longUser = await signup(`search-${'x'.repeat(60)}`);
+        const searched = await api(
+          `/admin/pro/users?q=${encodeURIComponent(longUser.email.toUpperCase())}`,
+          { user: superAdmin, expected: 200 },
+        );
+        assert.equal(searched.body.items[0].id, longUser.id);
+        const literal = await api('/admin/pro/users?q=%25', { user: superAdmin, expected: 200 });
+        assert.equal(literal.body.total, 0, 'percent is literal, not a wildcard');
       },
     );
     await check(

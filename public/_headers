@@ -123,3 +123,8 @@
 /admin/config.yml
   Cache-Control: no-store, no-cache, must-revalidate
   Content-Type: text/yaml; charset=utf-8
+
+# Membership administration uses only same-origin code and APIs.
+/admin/pro/*
+  Cache-Control: no-store
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'

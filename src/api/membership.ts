@@ -125,14 +125,15 @@ membershipApi.get('/admin/pro/audit', async (c) => {
 membershipApi.get('/admin/pro/users', async (c) => {
   const { limit, offset } = pagination(c.req.query());
   const search = string(c.req.query('q') ?? '', 'q', 200, true);
-  const pattern = `%${search.replace(/[\\%_]/g, (char) => `\\${char}`)}%`;
+  // Literal substring search avoids D1's short LIKE-pattern limit and treats
+  // percent/underscore as ordinary user-search text.
   const db = c.get('db');
-  const where = " WHERE email LIKE ? ESCAPE '\\' OR name LIKE ? ESCAPE '\\'";
+  const where = ' WHERE instr(lower(email), lower(?)) > 0 OR instr(lower(name), lower(?)) > 0';
   const [rows, count] = await db.batch<Data>([
     db
       .prepare(`SELECT id, email, name FROM user${where} ORDER BY email LIMIT ? OFFSET ?`)
-      .bind(pattern, pattern, limit, offset),
-    db.prepare(`SELECT COUNT(*) AS total FROM user${where}`).bind(pattern, pattern),
+      .bind(search, search, limit, offset),
+    db.prepare(`SELECT COUNT(*) AS total FROM user${where}`).bind(search, search),
   ]);
   return c.json({ items: rows.results, total: count.results[0].total, limit, offset });
 });

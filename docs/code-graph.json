@@ -1,5 +1,5 @@
 {
-  "activePhase": "1.8",
+  "activePhase": "1.9",
   "phases": [
     {
       "id": "0",
@@ -63,8 +63,12 @@
     },
     {
       "id": "1.8",
-      "status": "planned",
-      "evidence": ["docs/phases/phase-1-simulator-core.md"]
+      "status": "complete locally; renewed gate and final-tree commit checks",
+      "evidence": [
+        "docs/phases/phase-1-simulator-core.md",
+        "docs/audits/phase-1-membership-ui.md",
+        "progress.md"
+      ]
     },
     {
       "id": "1.9",
@@ -253,6 +257,54 @@
         "e2e/consumer-evidence.spec.ts",
         "e2e/damage-repair.spec.ts"
       ]
+    },
+    {
+      "id": "membership-admin-independent-entry",
+      "summary": "Membership administration has its own Vite entry at /admin/pro/ and uses fresh server-guarded APIs; it does not boot simulator persistence. Multi-entry builds require counting modulepreload chunks in the initial JS budget.",
+      "evidence": [
+        "src/admin/main.tsx",
+        "src/admin/Admin.tsx",
+        "src/api/context.ts",
+        "scripts/check-performance.mjs"
+      ]
+    },
+    {
+      "id": "membership-picker-literal-search",
+      "summary": "The local browser lifecycle exposed D1 LIKE pattern limits for long emails. The member picker now uses case-insensitive literal instr search, preserving percent and underscore as literal text.",
+      "evidence": [
+        "src/api/membership.ts",
+        "scripts/test-membership.ts",
+        "e2e/admin-membership.spec.ts"
+      ]
+    },
+    {
+      "id": "membership-admin-browser-fixtures",
+      "summary": "Real-cookie role fixtures are isolated to scripts/browser-test-worker.ts and its local Playwright database. Production src/worker.ts never imports that entrypoint.",
+      "evidence": [
+        "scripts/browser-test-worker.ts",
+        "scripts/start-browser-worker.ts",
+        "src/worker.ts",
+        "e2e/admin-membership.spec.ts"
+      ]
+    },
+    {
+      "id": "admin-mobile-long-names",
+      "summary": "Long unbroken benefit names must wrap in headings and records, and form grids must use minmax(0, 1fr). Otherwise mobile document overflow changes hit-testing and can make checkbox clicks land on unrelated fields.",
+      "evidence": [
+        "src/admin/style.css",
+        "e2e/admin-membership.spec.ts",
+        "docs/audits/phase-1-membership-ui.md"
+      ]
+    },
+    {
+      "id": "admin-focus-request-generation",
+      "summary": "List-effect cleanup only cancels that list request. It must not invalidate the newer access-check generation when focus revalidation changes access to checking; that race leaves the admin screen stuck.",
+      "evidence": ["src/admin/Admin.tsx", "e2e/admin-membership.spec.ts"]
+    },
+    {
+      "id": "plan-benefits-loading-preservation",
+      "summary": "Plan PATCH replaces the complete feature list. The editor must block review until all benefit choices have loaded; an empty loading form must never become an empty replacement. A readonly required input does not enforce this browser validation.",
+      "evidence": ["src/admin/Editor.tsx", "src/api/membership.ts", "e2e/admin-membership.spec.ts"]
     }
   ],
   "relations": [
@@ -290,6 +342,46 @@
       "from": "e2e/workspace-design.spec.ts",
       "relation": "tests",
       "to": "src/ui/components/inspector/Inspector.tsx"
+    },
+    {
+      "from": "e2e/admin-membership.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/Admin.tsx"
+    },
+    {
+      "from": "e2e/admin-membership.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/Editor.tsx"
+    },
+    {
+      "from": "e2e/admin-membership.spec.ts",
+      "relation": "tests",
+      "to": "src/api/membership.ts"
+    },
+    {
+      "from": "admin/pro/index.html",
+      "relation": "imports",
+      "to": "src/admin/main.tsx"
+    },
+    {
+      "from": "admin/pro/index.html",
+      "relation": "configured-by",
+      "to": "vite.config.ts"
+    },
+    {
+      "from": "admin/pro/index.html",
+      "relation": "configured-by",
+      "to": "public/_headers"
+    },
+    {
+      "from": "index.html",
+      "relation": "configured-by",
+      "to": "vite.config.ts"
+    },
+    {
+      "from": "e2e/admin-membership.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/style.css"
     }
   ]
 }
