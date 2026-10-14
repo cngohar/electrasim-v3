@@ -7,7 +7,7 @@ function resetStores() {
   act(() => {
     useUiStore.setState({
       menuOpen: false,
-      diagnosisOpen: false,
+      faultLabOpen: false,
       templatesOpen: false,
       shortcutsOpen: false,
       commandPaletteOpen: false,
@@ -39,7 +39,7 @@ describe('MenuOverlay', () => {
     // Learn & practice tiles.
     expect(screen.getByRole('button', { name: /^Guided Circuits/ })).toBeVisible();
     expect(screen.queryByRole('button', { name: /^Challenge Mode/ })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /^Diagnosis Lab/ })).toBeVisible();
+    expect(screen.getByRole('button', { name: /^Fault Lab/ })).toBeVisible();
     expect(screen.getByRole('button', { name: /^Interactive Tutorial/ })).toBeVisible();
 
     // Tools & info tiles — accessible names match the legacy e2e selectors.
@@ -69,9 +69,9 @@ describe('MenuOverlay', () => {
     const onClose = vi.fn();
     render(<MenuOverlay open onClose={onClose} />);
 
-    fireEvent.click(screen.getByRole('button', { name: /^Diagnosis Lab/ }));
+    fireEvent.click(screen.getByRole('button', { name: /^Fault Lab/ }));
 
-    expect(useUiStore.getState().diagnosisOpen).toBe(true);
+    expect(useUiStore.getState().faultLabOpen).toBe(true);
     expect(onClose).toHaveBeenCalledOnce();
   });
 
@@ -91,14 +91,14 @@ describe('MenuOverlay', () => {
     expect(useUiStore.getState().commandPaletteOpen).toBe(true);
   });
 
-  it('opens Guided Circuits, Diagnosis Lab, docs and settings from their tiles', () => {
+  it('opens Guided Circuits, Fault Lab, docs and settings from their tiles', () => {
     render(<MenuOverlay open onClose={() => undefined} />);
 
     fireEvent.click(screen.getByRole('button', { name: /^Guided Circuits/ }));
     expect(useUiStore.getState().templatesOpen).toBe(true);
 
-    fireEvent.click(screen.getByRole('button', { name: /^Diagnosis Lab/ }));
-    expect(useUiStore.getState().diagnosisOpen).toBe(true);
+    fireEvent.click(screen.getByRole('button', { name: /^Fault Lab/ }));
+    expect(useUiStore.getState().faultLabOpen).toBe(true);
 
     fireEvent.click(screen.getByRole('button', { name: /^Documentation/ }));
     expect(useUiStore.getState().docsOpen).toBe(true);

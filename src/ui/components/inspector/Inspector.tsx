@@ -294,7 +294,12 @@ export function Inspector({
           {detail.tab === 'faultlab' &&
             (detail.isPro && detail.faultLabOpen ? (
               <Suspense fallback={<TabLoadingFallback />}>
-                <InspectorFaultLabView />
+                <InspectorFaultLabView
+                  onAdvanced={() => {
+                    useUiStore.getState().setFaultLabOpen(false);
+                    setModelOpen(true);
+                  }}
+                />
               </Suspense>
             ) : (
               <Suspense fallback={<TabLoadingFallback />}>

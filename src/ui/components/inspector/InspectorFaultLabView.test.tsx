@@ -1,130 +1,262 @@
-/**
- * Render tests for the Inspector Fault Lab tab: target handling (component
- * and wire), grouped grid, the active-faults command centre
- * (Focus / Replay / Clear), and the arming state.
- */
-
-import { act, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
-import { useCircuitStore, useUiStore, useViewportStore } from '../../../store';
+import { simulate } from '@electrasim/domain/simulation';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { damageCircuit } from '../../../../packages/domain/src/core/damageFixtures';
+import { selectCircuit, undo, useCircuitStore } from '../../../store/circuitStore';
+import { useFaultLabStore } from '../../../store/faultLabStore';
+import { invalidateAccess, useSimulatorAccess } from '../../../store/simulatorAccess';
+import { useUiStore } from '../../../store/uiStore';
+import { Modal } from '../Modal';
 import { InspectorFaultLabView } from './InspectorFaultLabView';
 
-function seedBulbId(): string {
-  const bulb = useCircuitStore.getState().components.find((c) => c.type === 'bulb-incandescent');
-  if (!bulb) throw new Error('seed circuit must contain a bulb');
-  return bulb.id;
-}
+const documentAt = () => selectCircuit(useCircuitStore.getState());
+const library = () => {
+  fireEvent.click(screen.getByRole('button', { name: /Browse fault library/ }));
+  return screen.getByRole('dialog', { name: 'Fault library' });
+};
+const openDraft = (name = /Open Circuit Break/) => {
+  fireEvent.click(within(library()).getByRole('button', { name }));
+  return screen.getByRole('dialog', { name: 'Review fault edit' });
+};
+const capture = () => act(() => useUiStore.setState({ simResult: simulate(documentAt()) }));
 
-function resetStores(): void {
-  useUiStore.setState({ pendingFaultFx: null });
-  useCircuitStore.getState().clearAllFaults();
-  useCircuitStore.getState().clearSelection();
-  useCircuitStore.getState().selectWire(null);
-}
-
-afterEach(() => {
-  act(() => resetStores());
+beforeEach(() => {
+  invalidateAccess();
+  useSimulatorAccess.setState({ userId: null, capabilities: [], message: null });
+  useUiStore.setState({
+    simRunning: false,
+    simResult: null,
+    faultLabOpen: true,
+    pendingFaultFx: null,
+  });
+  useCircuitStore.getState().setCircuit(damageCircuit());
+  useCircuitStore.temporal.getState().clear();
+  useFaultLabStore.setState({ original: null, responses: {}, edits: [] });
 });
 
-describe('InspectorFaultLabView', () => {
-  it('guides the user when nothing is targeted', () => {
+afterEach(() => vi.restoreAllMocks());
+
+describe('accepted Fault Lab investigation', () => {
+  it('opening another modal pauses explanation playback without changing the circuit', async () => {
+    useCircuitStore.getState().selectWire('load-feed');
     render(<InspectorFaultLabView />);
-    expect(
-      screen.getByText(/Click a component or a wire on the canvas to target it/i),
-    ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Short Circuit/ })).toBeDisabled();
-  });
-
-  it('targets the selected component with a grouped grid and thresholds', () => {
-    const id = seedBulbId();
-    act(() => {
-      useCircuitStore.getState().selectComponent(id);
-    });
-    render(<InspectorFaultLabView />);
-
-    expect(screen.getByText('Target')).toBeInTheDocument();
-    // Grouped catalogue headers.
-    expect(screen.getByText('Conductor')).toBeInTheDocument();
-    expect(screen.getByText('Polarity & Wiring')).toBeInTheDocument();
-    expect(screen.getByText('Leakage & Residual')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Short Circuit/ })).toBeEnabled();
-    expect(screen.getByRole('button', { name: /Open Neutral/ })).toBeEnabled();
-    // Threshold overrides live here (moved from Properties).
-    expect(screen.getByText('Threshold Overrides')).toBeInTheDocument();
-  });
-
-  it('targets a selected wire with the conductor fault set', () => {
-    const wireId = useCircuitStore.getState().wires[0]?.id;
-    if (!wireId) throw new Error('seed circuit must contain wires');
-    act(() => {
-      useCircuitStore.getState().selectWire(wireId);
-    });
-    render(<InspectorFaultLabView />);
-
-    expect(screen.getByText(`Wire #${wireId.slice(0, 8)}`)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Open Circuit/ })).toBeEnabled();
-    expect(screen.queryByRole('button', { name: /Open Neutral/ })).toBeNull();
-    expect(screen.getAllByText(/Electrical effect not assessed/).length).toBeGreaterThan(0);
-    // Component-only faults and thresholds are not offered for wires.
-    expect(screen.getByRole('button', { name: /Reverse Polarity/ })).toHaveTextContent(
-      'Electrical effect not assessed',
+    capture();
+    const before = documentAt();
+    fireEvent.click(screen.getByRole('button', { name: 'Play' }));
+    expect(screen.getByRole('button', { name: 'Pause' })).toBeEnabled();
+    render(
+      <Modal open title="Another tool" onClose={() => undefined}>
+        Settings
+      </Modal>,
     );
-    expect(screen.queryByText('Threshold Overrides')).toBeNull();
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Pause' })).toBeNull(), {
+      timeout: 5000,
+    });
+    expect(documentAt()).toEqual(before);
   });
 
-  it('injects with choreography: arming state locks the grid, then the fault lands', () => {
-    const id = seedBulbId();
-    act(() => {
-      useCircuitStore.getState().selectComponent(id);
-    });
+  it('loading another drawing resets the investigation and cannot restore the earlier document', async () => {
+    useCircuitStore.getState().selectWire('load-feed');
     render(<InspectorFaultLabView />);
-
-    act(() => {
-      screen.getByRole('button', { name: /Short Circuit/ }).click();
-    });
-    expect(useUiStore.getState().pendingFaultFx).toMatchObject({
-      target: { componentId: id },
-      type: 'short-circuit',
-    });
-    expect(screen.getByText(/arming short-circuit/i)).toBeInTheDocument();
-    expect(screen.getByText(/Arming Short circuit/i)).toBeInTheDocument();
-    // Cancel affordance is offered during arming.
-    expect(screen.getByTitle('Cancel pending injection')).toBeInTheDocument();
-    act(() => {
-      useUiStore.getState().clearPendingFaultFx();
-    });
+    capture();
+    const next = damageCircuit('device-current');
+    act(() => useCircuitStore.getState().setCircuit(next));
+    await waitFor(() =>
+      expect(useFaultLabStore.getState().original?.circuit.components).toEqual(
+        documentAt().components,
+      ),
+    );
+    expect(useFaultLabStore.getState().responses).toEqual({});
+    expect(useFaultLabStore.getState().original?.circuit.components[2]?.state.damageModel).toEqual(
+      next.components[2]?.state.damageModel,
+    );
   });
-
-  it('lists active faults with Focus / Replay / Clear controls', () => {
-    const id = seedBulbId();
-    act(() => {
-      useCircuitStore.getState().setComponentFault(id, 'earth-fault');
-      useCircuitStore.getState().selectComponent(id);
-    });
+  it('keeps the complete registry visible with target guidance and disables unselected edits', () => {
     render(<InspectorFaultLabView />);
-
-    expect(screen.getByText('Active faults (1)')).toBeInTheDocument();
-    expect(screen.getByLabelText('Focus Earth fault on canvas')).toBeInTheDocument();
-    expect(screen.getByLabelText('Replay Earth fault animation')).toBeInTheDocument();
-
-    // Focus centres the viewport on the faulted component.
-    const bulb = useCircuitStore.getState().components.find((c) => c.id === id);
-    expect(bulb).toBeDefined();
-    act(() => {
-      screen.getByLabelText('Focus Earth fault on canvas').click();
-    });
-    expect(useViewportStore.getState().pan).toEqual({
-      x: 600 - (bulb?.x ?? 0),
-      y: 360 - (bulb?.y ?? 0),
-    });
-
-    // Clear resolves the entry (component state + scenario list together).
-    act(() => {
-      screen.getByLabelText('Clear Earth fault').click();
-    });
-    expect(useCircuitStore.getState().faults).toHaveLength(0);
+    expect(screen.getByText(/Click a component or a wire on the canvas/)).toBeVisible();
+    const browser = within(library());
+    expect(browser.getByRole('button', { name: /Dead Short Circuit/ })).toBeDisabled();
+    expect(browser.getByRole('button', { name: /Arc Fault/ })).toBeDisabled();
     expect(
-      useCircuitStore.getState().components.find((c) => c.id === id)?.state.fault,
-    ).toBeUndefined();
+      browser.getAllByRole('button').filter((button) => button.closest('.fault-lab-library'))
+        .length,
+    ).toBe(14);
+  });
+
+  it('canceling a fault draft leaves the circuit and history exactly unchanged', () => {
+    useCircuitStore.getState().selectWire('load-feed');
+    render(<InspectorFaultLabView />);
+    const before = documentAt();
+    fireEvent.click(within(openDraft()).getByRole('button', { name: 'Cancel' }));
+    expect(documentAt()).toEqual(before);
+    expect(useCircuitStore.temporal.getState().pastStates).toHaveLength(0);
+    expect(useUiStore.getState().pendingFaultFx).toBeNull();
+  });
+
+  it('applies one undoable edit without animation-driven circuit mutation', async () => {
+    useCircuitStore.getState().selectWire('load-feed');
+    render(<InspectorFaultLabView />);
+    fireEvent.click(within(openDraft()).getByRole('button', { name: 'Apply fault edit' }));
+    await waitFor(() => expect(documentAt().faults).toHaveLength(1));
+    expect(documentAt().faults?.[0]).toMatchObject({
+      type: 'open-circuit',
+      target: { type: 'wire', id: 'load-feed' },
+    });
+    expect(useCircuitStore.temporal.getState().pastStates).toHaveLength(1);
+    expect(useUiStore.getState().pendingFaultFx).toBeNull();
+    act(() => undo());
+    expect(documentAt().faults).toHaveLength(0);
+  });
+
+  it('switches the applied edit between Inside and the actual Circuit view, then clears without hook errors', async () => {
+    useCircuitStore.getState().selectWire('load-feed');
+    render(<InspectorFaultLabView />);
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const before = documentAt();
+    fireEvent.click(within(openDraft()).getByRole('button', { name: 'Apply fault edit' }));
+    await waitFor(() => expect(documentAt().faults).toHaveLength(1));
+    expect(document.querySelector('[data-fault-application-state="applied"]')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Circuit' }));
+    const overview = screen.getByRole('img', { name: 'Current circuit topology overview' });
+    expect(overview.querySelectorAll('[data-component-symbol]')).toHaveLength(
+      before.components.length,
+    );
+    expect(overview.querySelectorAll('[data-fault-overview-wire]')).toHaveLength(
+      before.wires.length,
+    );
+    expect(overview.querySelector('[data-fault-fx="open-circuit"]')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Inside' }));
+    expect(document.querySelector('[data-fault-application-state="applied"]')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Clear Open Circuit Break' }));
+    await waitFor(() => expect(documentAt().faults).toHaveLength(0));
+    expect(document.querySelector('[data-fault-application-state="applied"]')).toBeNull();
+    expect(errors.mock.calls).toEqual([]);
+  });
+
+  it('applies a named terminal disconnect without rewriting other terminals or wires', async () => {
+    useCircuitStore.getState().selectComponent('lamp');
+    render(<InspectorFaultLabView />);
+    const original = documentAt();
+    fireEvent.change(screen.getByLabelText('Fault target terminal'), { target: { value: '0' } });
+    fireEvent.click(
+      within(openDraft(/Loose \/ Disconnected Terminal/)).getByRole('button', {
+        name: 'Apply fault edit',
+      }),
+    );
+    await waitFor(() => expect(documentAt().faults).toHaveLength(1));
+    expect(documentAt().faults?.[0]?.target).toEqual({
+      type: 'port',
+      componentId: 'lamp',
+      portIndex: 0,
+    });
+    expect(documentAt().wires).toEqual(original.wires);
+    expect(documentAt().components).toEqual(original.components);
+  });
+
+  it('requires fresh accepted results for replay and invalidates readings immediately on edit', async () => {
+    useCircuitStore.getState().selectWire('load-feed');
+    render(<InspectorFaultLabView />);
+    expect(screen.getByRole('button', { name: 'Replay' })).toBeDisabled();
+    capture();
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Replay' })).toBeEnabled());
+    act(() => useCircuitStore.getState().setWireFault('load-feed', 'open-circuit'));
+    expect(screen.getByRole('button', { name: 'Replay' })).toBeDisabled();
+    expect(screen.getByText(/Stale response/)).toBeVisible();
+    fireEvent.click(screen.getByRole('tab', { name: 'Readings' }));
+    expect(screen.getByText(/Run the current circuit to capture fresh readings/)).toBeVisible();
+  });
+
+  it('seeking, replay, speed and comparison preserve electrical inputs, runtime and undo history', async () => {
+    useCircuitStore.getState().selectWire('load-feed');
+    render(<InspectorFaultLabView />);
+    capture();
+    act(() => useCircuitStore.getState().setWireFault('load-feed', 'open-circuit'));
+    capture();
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Compare previous' })).toBeEnabled(),
+    );
+    const before = documentAt();
+    const runtime = useUiStore.getState().simResult;
+    const history = useCircuitStore.temporal.getState().pastStates;
+    fireEvent.click(screen.getByRole('button', { name: 'Response' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Replay' }));
+    fireEvent.change(screen.getByLabelText('Playback speed'), { target: { value: '2' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Compare previous' }));
+    expect(documentAt()).toEqual(before);
+    expect(useUiStore.getState().simResult).toBe(runtime);
+    expect(useCircuitStore.temporal.getState().pastStates).toBe(history);
+  });
+
+  it('keeps an accepted detached response available after Stop clears live telemetry', async () => {
+    useCircuitStore.getState().selectWire('load-feed');
+    render(<InspectorFaultLabView />);
+    capture();
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Replay' })).toBeEnabled());
+    act(() => useUiStore.setState({ simResult: null, simRunning: false }));
+    expect(screen.getByRole('button', { name: 'Replay' })).toBeEnabled();
+    act(() => useCircuitStore.getState().setWireFault('load-feed', 'open-circuit'));
+    expect(screen.getByRole('button', { name: 'Replay' })).toBeDisabled();
+  });
+
+  it('clearing one cause preserves unrelated faults, cable damage and the declared model', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(
+      async () =>
+        new Response(
+          JSON.stringify({
+            userId: 'member',
+            capabilities: ['advanced_faults'],
+            nextChangeAt: null,
+          }),
+        ),
+    );
+    useSimulatorAccess.setState({ capabilities: ['advanced_faults'] });
+    const circuit = damageCircuit();
+    circuit.wires[1]!.isBusted = true;
+    useCircuitStore.getState().setCircuit(circuit);
+    await useCircuitStore
+      .getState()
+      .injectFault({ type: 'open-circuit', target: { type: 'wire', id: 'load-feed' } });
+    await useCircuitStore
+      .getState()
+      .injectFault({ type: 'open-circuit', target: { type: 'component', id: 'lamp' } });
+    useCircuitStore.getState().selectWire('load-feed');
+    render(<InspectorFaultLabView />);
+    const active = screen.getByLabelText('Active faults');
+    fireEvent.click(
+      within(active).getAllByRole('button', { name: 'Clear Open Circuit Break' })[0]!,
+    );
+    await waitFor(() => expect(documentAt().faults).toHaveLength(1));
+    expect(documentAt().wires[1]).toMatchObject({
+      isBusted: true,
+      damageModel: circuit.wires[1]!.damageModel,
+    });
+    expect(documentAt().faults?.[0]?.target).toEqual({ type: 'component', id: 'lamp' });
+  });
+
+  it('does not substitute a related component photograph for a wire target', () => {
+    useCircuitStore.getState().selectWire('load-feed');
+    render(<InspectorFaultLabView />);
+    fireEvent.click(screen.getByRole('button', { name: 'Reference photo' }));
+    const photo = screen.getByRole('dialog', { name: 'Target reference photo' });
+    expect(within(photo).getByText(/No direct photograph/)).toBeVisible();
+    expect(within(photo).queryByRole('img')).toBeNull();
+  });
+
+  it('restores the initial drawing and groups as one edit, and Undo recovers the changed drawing', async () => {
+    useCircuitStore.getState().selectWire('load-feed');
+    useCircuitStore.setState({
+      componentGroups: [
+        { id: 'g', name: 'Lamp', componentIds: ['lamp'], position: { x: 0, y: 0 } },
+      ],
+    });
+    render(<InspectorFaultLabView />);
+    act(() => useCircuitStore.getState().setWireFault('load-feed', 'open-circuit'));
+    const changed = documentAt();
+    fireEvent.click(screen.getByRole('button', { name: 'Leave the lab' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Restore starting circuit and leave' }));
+    await waitFor(() => expect(documentAt().faults).toHaveLength(0));
+    expect(useCircuitStore.getState().componentGroups[0]?.id).toBe('g');
+    act(() => undo());
+    expect(documentAt()).toEqual(changed);
   });
 });

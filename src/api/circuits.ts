@@ -17,13 +17,8 @@ circuitsApi.onError((error, c) => {
 
 circuitsApi.post('/simulator/authorize', async (c) => {
   const input = object(await c.req.json());
-  keys(input, ['circuit', 'diagnosis']);
-  if (input.diagnosis !== undefined && !['basic', 'advanced'].includes(String(input.diagnosis)))
-    throw new HTTPException(400, { message: 'Unknown diagnosis mode' });
-  const required = circuitRequirements(
-    readCircuit(input.circuit),
-    input.diagnosis as 'basic' | 'advanced' | undefined,
-  );
+  keys(input, ['circuit']);
+  const required = circuitRequirements(readCircuit(input.circuit));
   const access = await authorize(c, required);
   return c.json({
     userId: c.get('actor')?.id,

@@ -4,7 +4,7 @@ import { ELECTRICAL_MODEL_VERSION } from '@electrasim/domain/core/contracts';
 import { type Page, expect, test } from '@playwright/test';
 import { damageCircuit } from '../packages/domain/src/core/damageFixtures';
 import { protectionCircuit } from '../packages/domain/src/core/protectionFixtures';
-import { openCircuitTools } from './helpers/workbench';
+import { applyLabFault, openCircuitTools } from './helpers/workbench';
 
 test.use({ reducedMotion: 'reduce' });
 
@@ -45,6 +45,7 @@ async function faultPanel(page: Page) {
     await openCircuitTools(page);
     await page.getByTitle(/^Toggle the Fault Lab/).click();
   }
+  await panel.getByRole('tab', { name: 'Repair', exact: true }).click();
   await expect(panel.getByLabel('Fault repair and reset')).toBeVisible();
   return panel;
 }
@@ -114,12 +115,16 @@ test('guest cable damage persists through fault clearing and replacement preserv
   await expect(
     panel.getByRole('button', { name: 'Replace wire #load-fee', exact: true }),
   ).toBeDisabled();
-  await panel.getByTitle('Clear all injected faults', { exact: true }).click();
+  await applyLabFault(page, /Open Circuit Break/);
+  await expect.poll(async () => (await runtime(page)).faults.length).toBe(1);
+  await panel
+    .getByRole('button', { name: 'Clear all injected faults from the active list', exact: true })
+    .click();
   expect(
     (await runtime(page)).wires.find((w: { id: string }) => w.id === 'load-feed')?.isBusted,
   ).toBe(true);
   expect((await runtime(page)).worker).toBe(true);
-  await panel.getByRole('button', { name: /^Open Circuit/ }).click();
+  await applyLabFault(page, /Open Circuit Break/);
   await expect.poll(async () => (await runtime(page)).faults.length).toBe(1);
   const injectedFaults = (await runtime(page)).faults;
   expect(injectedFaults[0]).toMatchObject({
@@ -147,7 +152,9 @@ test('guest cable damage persists through fault clearing and replacement preserv
   await run(page, true);
   await expect.poll(async () => (await runtime(page)).watts, { timeout: 20000 }).toBe(0);
   panel = await faultPanel(page);
-  await panel.getByTitle('Clear all injected faults', { exact: true }).click();
+  await panel
+    .getByRole('button', { name: 'Clear all injected faults from the active list', exact: true })
+    .click();
   await expect
     .poll(
       async () =>
@@ -219,7 +226,7 @@ test('a timed short trips without destruction; clearing and resetting restores o
   await run(page);
   await expect.poll(async () => (await runtime(page)).time, { timeout: 20000 }).toBeGreaterThan(0);
   let panel = await faultPanel(page);
-  await panel.getByRole('button', { name: /^Short Circuit/ }).click();
+  await applyLabFault(page, /Dead Short Circuit/);
   await expect.poll(async () => (await runtime(page)).tripped, { timeout: 20000 }).toBe(true);
   await panel
     .getByRole('button', { name: 'Clear all injected faults from the active list', exact: true })
@@ -230,13 +237,7 @@ test('a timed short trips without destruction; clearing and resetting restores o
   await expect.poll(async () => (await runtime(page)).tripped, { timeout: 20000 }).toBe(true);
   await panel.getByRole('button', { name: /^Reset .* to OFF$/ }).press('Enter');
   await expect.poll(async () => (await runtime(page)).tripped, { timeout: 20000 }).toBe(false);
-  await page.locator('[data-component-id="control"] [data-component-hitbox]').click();
-  if (!(await page.getByRole('complementary', { name: 'Inspector', exact: true }).isVisible()))
-    await page.getByRole('button', { name: 'Inspect', exact: true }).click();
-  await page
-    .getByRole('complementary', { name: 'Inspector', exact: true })
-    .getByRole('button', { name: 'OPEN (OFF)', exact: true })
-    .click();
+  await panel.getByRole('button', { name: /^Switch .* ON$/ }).click();
   await expect
     .poll(async () => (await runtime(page)).watts, { timeout: 20000 })
     .toBeGreaterThan(990);

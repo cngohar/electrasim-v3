@@ -14,7 +14,6 @@ import { useUiStore } from '../../store/uiStore';
 export function CircuitReadinessDetails() {
   const circuit = useCircuitDocument();
   const readiness = useCircuitReadiness();
-  const diagnosisActive = useUiStore((s) => s.diagnosisActive);
   const result = useUiStore((s) => s.simResult);
   const running = useUiStore((s) => s.simRunning);
   const limitations = getSimulationLimitations(circuit);
@@ -30,7 +29,7 @@ export function CircuitReadinessDetails() {
       data-circuit-readiness={readiness.topology}
       className="space-y-3 text-xs text-slate-700 dark:text-slate-200"
     >
-      <output className="block font-semibold">{readinessLabel(readiness, diagnosisActive)}</output>
+      <output className="block font-semibold">{readinessLabel(readiness)}</output>
       <p>
         Readiness describes the connections and declared ratings. Operation and standards compliance
         remain unassessed until the applicable checks run.

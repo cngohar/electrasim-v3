@@ -1,6 +1,6 @@
 import { heaterFixture } from '@electrasim/domain/core/operatingPointFixtures';
 import { simulate } from '@electrasim/domain/simulation';
-import type { SimulationResult } from '@electrasim/domain/types';
+import type { ComponentInstance, FaultType, SimulationResult } from '@electrasim/domain/types';
 import { render } from '@testing-library/react';
 import { afterEach, expect, it, vi } from 'vitest';
 import { useSettingsStore } from '../../store';
@@ -8,7 +8,13 @@ import { labGlassLight } from '../theme';
 import { ComponentNode } from './ComponentNode';
 
 const previousMode = useSettingsStore.getState().diagnosticOverlayMode;
-afterEach(() => useSettingsStore.setState({ diagnosticOverlayMode: previousMode }));
+const previousAppearance = useSettingsStore.getState().componentAppearance;
+afterEach(() =>
+  useSettingsStore.setState({
+    diagnosticOverlayMode: previousMode,
+    componentAppearance: previousAppearance,
+  }),
+);
 
 function heatCard(result: SimulationResult) {
   useSettingsStore.setState({ diagnosticOverlayMode: 'heat' });
@@ -53,3 +59,41 @@ it('does not display retained legacy temperatures as current measurements', () =
   };
   expect(heatCard(result).container.textContent).not.toContain('°C');
 });
+
+it.each(['protection-forced-open', 'protection-bypass'] as const)(
+  'shows the protective contacts open for %s while retaining the device state',
+  (fault: FaultType) => {
+    useSettingsStore.setState({ componentAppearance: 'symbols' });
+    const component: ComponentInstance = {
+      id: 'mcb',
+      type: 'mcb',
+      x: 120,
+      y: 80,
+      state: { on: true, fault },
+    };
+    const { container } = render(
+      <svg role="img" aria-label="Faulted protective device">
+        <ComponentNode
+          component={component}
+          componentsById={new Map([[component.id, component]])}
+          theme={labGlassLight}
+          selected={false}
+          energized={false}
+          error={false}
+          wireMode={false}
+          pendingFrom={null}
+          customPathFrom={null}
+          activeLoadEffects={false}
+          reducedDetails={false}
+          onPointerDown={vi.fn()}
+          onPortClick={vi.fn()}
+          onHoverChange={vi.fn()}
+          onContextMenu={vi.fn()}
+        />
+      </svg>,
+    );
+    expect(container.querySelector('[data-forced-open-contacts="true"]')).toBeInTheDocument();
+    expect(container.querySelector('[data-component-id="mcb"]')).toBeInTheDocument();
+    expect(component.state.on).toBe(true);
+  },
+);

@@ -88,7 +88,6 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
   }, [toolsOpen]);
   const readiness = useCircuitReadiness();
   const inspectorCollapsed = useUiStore((s) => s.inspectorCollapsed);
-  const diagnosisActive = useUiStore((s) => s.diagnosisActive);
   const runDisabled = !simRunning && ordinaryRunBlocked(readiness);
   const appMode = useSettingsStore((s) => s.appMode);
   const setSetting = useSettingsStore((s) => s.setSetting);
@@ -250,8 +249,7 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
   const runBtn = (
     <>
       <span id="run-readiness-explanation" className="sr-only">
-        {readinessLabel(readiness, diagnosisActive)}.{' '}
-        {readiness.diagnostics.map((d) => d.message).join(' ')}
+        {readinessLabel(readiness)}. {readiness.diagnostics.map((d) => d.message).join(' ')}
       </span>
       <button
         type="button"
@@ -465,7 +463,6 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
           aria-pressed={!inspectorCollapsed && !faultLabOpen}
           onClick={() => {
             const ui = useUiStore.getState();
-            if (isPhone && (faultLabOpen || inspectorCollapsed)) ui.setDiagnosisOpen(false);
             if (faultLabOpen) {
               ui.setFaultLabOpen(false);
               ui.setInspectorCollapsed(false);
@@ -511,14 +508,6 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
             >
               <Route size={17} />
               Netlist
-            </button>
-            <button
-              type="button"
-              className="table-command-action"
-              onClick={() => useUiStore.getState().setDiagnosisOpen(true)}
-            >
-              <FlaskConical size={17} />
-              Diagnosis Lab
             </button>
           </div>
           <div className="table-tool-preferences">

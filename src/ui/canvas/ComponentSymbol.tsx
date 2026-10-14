@@ -3,10 +3,18 @@ import type { ReactNode } from 'react';
 import { DEVICE_FAMILIES } from './deviceVectors';
 
 /** Family glyph, not a second set of connectable terminals or an internal netlist. */
-export function ComponentSymbol({ component }: { component: ComponentInstance }) {
+export function ComponentSymbol({
+  component,
+  contactsOpen = false,
+}: {
+  component: ComponentInstance;
+  /** Override the contact glyph when a Fault Lab cause opens the modeled poles. */
+  contactsOpen?: boolean;
+}) {
   const def = COMPONENT_DEFS[component.type];
   const family = DEVICE_FAMILIES[component.type];
-  const on = component.state.on && !component.state.isTripped && !component.state.isBlown;
+  const on =
+    !contactsOpen && component.state.on && !component.state.isTripped && !component.state.isBlown;
   let shape: ReactNode;
   if (family === 'lamp') {
     shape = (
@@ -90,6 +98,7 @@ export function ComponentSymbol({ component }: { component: ComponentInstance })
   return (
     <g
       data-component-symbol={component.type}
+      data-forced-open-contacts={contactsOpen ? 'true' : undefined}
       fill="none"
       stroke="currentColor"
       strokeWidth="2"

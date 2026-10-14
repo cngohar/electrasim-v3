@@ -56,7 +56,7 @@ export async function fitCanvas(page: Page) {
 
 export function supplyTrigger(page: Page) {
   return isPhone(page)
-    ? page.getByRole('button', { name: 'Supply', exact: true })
+    ? page.locator('[data-workspace-context]').getByRole('button', { name: 'Supply', exact: true })
     : page.getByTitle('Click to change Global Supply Voltage');
 }
 
@@ -89,4 +89,22 @@ export async function openCircuitTools(page: Page) {
   if ((await trigger.getAttribute('aria-expanded')) !== 'true')
     await activateControl(page, trigger);
   return page.getByRole('region', { name: 'Circuit tools', exact: true });
+}
+
+/** Review one target draft, then apply one real circuit edit. */
+export async function applyLabFault(page: Page, name: RegExp) {
+  await activateControl(
+    page,
+    page.getByLabel('Fault Lab panel').getByRole('button', { name: /Browse fault library/ }),
+  );
+  await activateControl(
+    page,
+    page.getByRole('dialog', { name: 'Fault library', exact: true }).getByRole('button', { name }),
+  );
+  await activateControl(
+    page,
+    page
+      .getByRole('dialog', { name: 'Review fault edit' })
+      .getByRole('button', { name: 'Apply fault edit' }),
+  );
 }

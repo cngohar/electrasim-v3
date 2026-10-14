@@ -49,6 +49,7 @@ import {
   sameCircuitRevision,
   useElectricalEditing,
 } from './electricalEditing';
+import { useFaultLabStore } from './faultLabStore';
 import { buildProSeedCircuit, buildSeedCircuit, buildStudentSeedCircuit } from './seed';
 import { useUiStore } from './uiStore';
 
@@ -133,7 +134,23 @@ export const useCircuitStore = create<CircuitState>()(
         selectedComponentIds: [],
         componentGroups: [],
 
-        setCircuit: (circuit) =>
+        restoreCircuitSnapshot: (circuit, groups) =>
+          set((s) => {
+            const normalized = normalizeCircuitDocument(circuit, false);
+            s.components = normalized.components;
+            s.wires = normalized.wires;
+            s.faults = [...(normalized.faults ?? [])];
+            s.supply = normalized.supply;
+            s.globalVoltage = normalized.supply?.model.voltage ?? normalized.globalVoltage ?? 230;
+            s.componentGroups = groups.filter((group) =>
+              group.componentIds.every((id) => s.components.some((c) => c.id === id)),
+            );
+            s.selectedComponentId = null;
+            s.selectedComponentIds = [];
+            s.selectedWireIds = [];
+          }, replacementAllowed),
+
+        setCircuit: (circuit) => {
           commit((s) => {
             // Authored exercises may intentionally supply a held contact. File/backup
             // adapters release momentary inputs before calling this in-memory boundary.
@@ -148,7 +165,11 @@ export const useCircuitStore = create<CircuitState>()(
             s.selectedComponentId = null;
             s.selectedComponentIds = [];
             s.selectedWireIds = [];
-          }),
+          });
+          // Loading a drawing begins a new investigation. A restore action
+          // uses the separate authorized, undoable snapshot transaction.
+          useFaultLabStore.setState({ original: null, responses: {}, edits: [] });
+        },
 
         swapDemoSocketForPlug: (socketType) =>
           set(

@@ -112,10 +112,7 @@ export const FAULT_ACCESS = {
 export function requirementsForContent(content: {
   componentTypes: readonly string[];
   injectedFaultTypes: readonly string[];
-  diagnosis?: 'basic' | 'advanced';
 }): Capability[] {
-  if (content.diagnosis !== undefined && !['basic', 'advanced'].includes(content.diagnosis))
-    throw new Error('Unknown diagnosis mode');
   const required = new Set<Capability>();
   for (const type of content.componentTypes) {
     if (!Object.hasOwn(COMPONENT_DEFS, type)) throw new Error(`Unknown component: ${type}`);
@@ -126,8 +123,6 @@ export function requirementsForContent(content: {
     if (FAULT_ACCESS[type as FaultType] === 'advanced') required.add('advanced_faults');
   }
   if (content.injectedFaultTypes.length > 1) required.add('advanced_faults');
-  if (content.diagnosis === 'advanced' || (content.diagnosis && required.has('advanced_faults')))
-    required.add('advanced_diagnostics');
   return CAPABILITIES.filter((key) => required.has(key));
 }
 export function missingCapabilities(owned: readonly Capability[], required: readonly Capability[]) {

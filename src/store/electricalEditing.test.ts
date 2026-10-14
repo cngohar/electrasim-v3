@@ -17,7 +17,6 @@ const snapshot = () => selectCircuit(useCircuitStore.getState());
 beforeEach(() => {
   invalidateAccess();
   useSimulatorAccess.setState({
-    exercise: null,
     capabilities: [],
     userId: null,
     message: null,
@@ -25,7 +24,6 @@ beforeEach(() => {
   });
   useUiStore.setState({
     simRunning: false,
-    diagnosisActive: false,
     simResult: null,
     validationReport: null,
   });
@@ -43,7 +41,7 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('staged configuration and transaction history', () => {
-  it('validates explicit motor settings and preserves Undo/Redo and run/exercise locks', async () => {
+  it('validates explicit motor settings and preserves Undo/Redo and running locks', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(
@@ -77,7 +75,7 @@ describe('staged configuration and transaction history', () => {
     expect(settings()).toEqual(motorFixtureModel());
     useCircuitStore.getState().updateComponentState('s', { motorModel: motorFixtureModel() });
     expect(snapshot().components[0]!.state.motorModel).toBeUndefined();
-    for (const lock of [{ simRunning: true }, { simRunning: false, diagnosisActive: true }]) {
+    for (const lock of [{ simRunning: true }]) {
       useUiStore.setState(lock);
       useCircuitStore.getState().updateComponentState('motor', { motorModel: undefined });
       expect(settings()).toEqual(motorFixtureModel());
@@ -116,7 +114,7 @@ describe('staged configuration and transaction history', () => {
     expect(useElectricalEditing.getState().request).toBeNull();
     expect(snapshot()).toEqual(after);
   });
-  it('preserves timer programs through undo/redo, validates inputs and locks edits during runs/exercises', () => {
+  it('preserves timer programs through undo/redo, validates inputs and locks edits during runs', () => {
     const circuit = timerCircuit();
     const program = circuit.components[1]!.state.timerModel!;
     circuit.components[1]!.state.timerModel = undefined;
@@ -133,7 +131,7 @@ describe('staged configuration and transaction history', () => {
       timerModel: { version: 1, kind: 'interval', durationSeconds: 1, retrigger: 'restart' },
     });
     expect(settings()).toEqual(program);
-    for (const lock of [{ simRunning: true }, { simRunning: false, diagnosisActive: true }]) {
+    for (const lock of [{ simRunning: true }]) {
       useUiStore.setState(lock);
       useCircuitStore.getState().updateComponentState('control', { timerModel: undefined });
       expect(settings()).toEqual(program);
@@ -245,7 +243,7 @@ describe('staged configuration and transaction history', () => {
     expect(snapshot().components.find((c) => c.id === 'switch')?.state.on).toBe(false);
   });
 
-  it.each([{ simRunning: true }, { diagnosisActive: true }])(
+  it.each([{ simRunning: true }])(
     'does not replace demo hardware through display preferences while configuration is locked: %j',
     (lock) => {
       useCircuitStore.getState().setCircuit(buildStudentSeedCircuit());
@@ -286,21 +284,6 @@ describe('staged configuration and transaction history', () => {
       expect(snapshot()).toEqual(before);
     }
   });
-
-  it.each(['diagnosis', 'server-exercise'])(
-    'locks authored source and variant configuration during %s',
-    (kind) => {
-      if (kind === 'diagnosis') useUiStore.setState({ diagnosisActive: true });
-      else useSimulatorAccess.setState({ exercise: { circuit: editingCircuit(), mode: 'basic' } });
-      const before = snapshot();
-      useCircuitStore.getState().setGlobalSupplyVoltage(12);
-      useCircuitStore.getState().updateComponentType('heater', 'water-heater');
-      useCircuitStore.getState().updateComponentState('heater', { customPowerWatts: 1 });
-      expect(snapshot()).toEqual(before);
-      expect(useElectricalEditing.getState().request).toBeNull();
-      expect(useUiStore.getState().undoToast?.message).toContain('locked during this exercise');
-    },
-  );
 
   it.each(['cancel', 'start', 'revise'])(
     'rechecks %s while premium authorization is pending',

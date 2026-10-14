@@ -49,7 +49,7 @@ describe('WelcomeModal', () => {
     expect(screen.getByRole('button', { name: /^Guided Circuits/ })).toBeVisible();
     expect(screen.getByRole('button', { name: /^Component Library/ })).toBeVisible();
     expect(screen.queryByRole('button', { name: /^Challenge Mode/ })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /^Diagnosis Lab/ })).toBeVisible();
+    expect(screen.queryByRole('button', { name: /^Diagnosis Lab/ })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^Fault Lab/ })).toBeVisible();
     expect(screen.getByRole('button', { name: /^Validation & Diagnostics/ })).toBeVisible();
 

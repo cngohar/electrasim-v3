@@ -145,15 +145,15 @@ test.describe('Dual standard & pro features', () => {
     await page.locator('[data-component-id="two-5"]').locator(':scope > g[role="button"]').click();
     await page.waitForTimeout(300);
     const panel = page.getByLabel('Fault Lab panel');
-    await page
-      .locator('[data-tour="inspector"]')
-      .getByRole('button', { name: 'Fault Lab (manual fault injection)', exact: true })
-      .click();
-    await expect(panel.getByRole('button', { name: /Short Circuit/ })).toHaveCount(0);
-    await expect(panel.getByRole('button', { name: /Open Circuit/ })).toBeEnabled();
-    await expect(panel.getByRole('button', { name: /Switched Neutral/ })).toBeVisible();
-    // Threshold overrides moved here too.
-    await expect(panel.getByText('Threshold Overrides')).toBeVisible();
+    await panel.getByRole('button', { name: /Browse fault library/ }).click();
+    const catalogue = page.getByRole('dialog', { name: 'Fault library', exact: true });
+    await expect(catalogue.getByRole('button', { name: /Dead Short Circuit/ })).toBeDisabled();
+    await expect(catalogue.getByRole('button', { name: /Open Circuit Break/ })).toBeEnabled();
+    await expect(catalogue.getByRole('button', { name: /Switched Neutral/ })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(
+      panel.getByRole('button', { name: 'Detailed model settings', exact: true }),
+    ).toBeVisible();
   });
 
   test('student mode hides Fault Lab and shows its active standard read-only', async ({ page }) => {

@@ -1,42 +1,7 @@
-/**
- * FaultFxLayer — renders the *physical consequences* of injected faults
- * directly on the circuit canvas.
- *
- * What it draws, per fault kind (all CSS-driven, see `electrasim-fx-*` in
- * index.css):
- *
- *   open-circuit / open-neutral  … the conductor visually severs: attached
- *                                  wires fade out and a cut zone with
- *                                  sparking exposed ends opens at the gap.
- *   short-circuit                … fire: sparks burst, then a flame with
- *                                  pulsing heat halos over the fault point.
- *   reverse-polarity /
- *   switched-neutral             … conductor *identity* swap: the attached
- *                                  wire runs cross-fade to the opposite
- *                                  colour while a crossover arc spins over
- *                                  the device. Ports are never re-mated —
- *                                  L never lands on N in the model, only
- *                                  the roles rendered on the runs change
- *                                  (which is exactly the physical fault).
- *   earth-fault / live-to-earth  … leakage bolt with rings sinking to an
- *                                  earth symbol below the component.
- *   smooth-dc-residual           … purple DC waveform drifting off the
- *                                  component (the leakage the RCD misses).
- *   arc-fault                    … irregular white-hot series-arc strobe.
- *   protection-bypass            … a bridge arc draws itself across the
- *                                  protective device.
- *   protection-forced-open       … a shaking jammed padlock on the device.
- *
- * Manual Fault Lab injections pass through `pendingFaultFx` first: the
- * "arming" choreography (sparks BEFORE the fault lands) is rendered from
- * that slice; the circuit-store commit arrives moments later and mounts the
- * persistent indicator, whose entrance animation plays on mount. Faults
- * injected automatically (Diagnosis Lab, challenges, context menu, undo)
- * get the same persistent+entrance treatment with no arming lead time, so
- * every fault is visible however it arrived.
- *
- * Everything is pointer-events-transparent and id-based, so it never
- * interferes with interaction, undo, or circuit state.
+/** Canvas input markers and structural editing indicators. Short, arc and
+ * smooth-DC faults use cause badges; material failure and waveforms are not
+ * derived from these markers. Accepted event playback lives in Fault Lab.
+ * Geometry and pointer interaction remain owned by the ordinary canvas.
  */
 
 import {
@@ -45,7 +10,9 @@ import {
   COMP_W,
   type ComponentInstance,
   type WireInstance,
+  getPortControlOffset,
   getPortPos,
+  sampleWire,
 } from '@electrasim/domain';
 import { emojiDataUri } from '../../lib/emoji/emojiSvg';
 import { useUiStore } from '../../store';
@@ -69,6 +36,8 @@ interface WireGeom {
   d: string | null;
 }
 
+type TerminalTarget = { componentId: string; portIndex: number };
+
 const SEVER_GAP = 26;
 const SPARK_SPOKES = [0, 45, 90, 135, 180, 225, 270, 315];
 
@@ -86,7 +55,7 @@ export function FaultFxLayer({
   const pendingFx = useUiStore((s) => s.pendingFaultFx);
   const wiresById = new Map(wires.map((w) => [w.id, w]));
 
-  const wireGeom = (wireId: string): WireGeom | null => {
+  const wireGeom = (wireId: string, terminal?: TerminalTarget): WireGeom | null => {
     const w = wiresById.get(wireId);
     if (!w) return null;
     const a = componentsById.get(w.fromComponentId);
@@ -94,9 +63,27 @@ export function FaultFxLayer({
     if (!a || !b) return null;
     const start = getPortPos(a, w.fromPortIndex, COMPONENT_DEFS);
     const end = getPortPos(b, w.toPortIndex, COMPONENT_DEFS);
+    let mid = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
+    let angle = (Math.atan2(end.y - start.y, end.x - start.x) * 180) / Math.PI;
+    if (terminal) {
+      const points = sampleWire(w, new Map(componentsById), COMPONENT_DEFS);
+      const fromTarget =
+        terminal.componentId === w.fromComponentId && terminal.portIndex === w.fromPortIndex;
+      const ordered = fromTarget ? points : [...points].reverse();
+      const first = ordered[0];
+      const next =
+        first && ordered.find((point) => Math.hypot(point.x - first.x, point.y - first.y) > 0.1);
+      if (first && next) {
+        const dx = next.x - first.x;
+        const dy = next.y - first.y;
+        const length = Math.hypot(dx, dy);
+        mid = { x: first.x + (dx / length) * 18, y: first.y + (dy / length) * 18 };
+        angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+      }
+    }
     return {
-      mid: { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 },
-      angle: (Math.atan2(end.y - start.y, end.x - start.x) * 180) / Math.PI,
+      mid,
+      angle,
       d:
         orthogonalPaths.get(wireId) ??
         buildWirePath(w, componentsById as Map<string, ComponentInstance>),
@@ -106,7 +93,10 @@ export function FaultFxLayer({
   const anchorOf = (item: FaultFxItem): { x: number; y: number } | null => {
     if (item.componentId) {
       const comp = componentsById.get(item.componentId);
-      return comp ? { x: comp.x, y: comp.y } : null;
+      if (!comp) return null;
+      return item.portIndex !== undefined
+        ? getPortPos(comp, item.portIndex, COMPONENT_DEFS)
+        : { x: comp.x, y: comp.y };
     }
     if (item.wireId) {
       const geom = wireGeom(item.wireId);
@@ -125,6 +115,7 @@ export function FaultFxLayer({
             key={item.key}
             item={item}
             anchor={anchor}
+            component={item.componentId ? componentsById.get(item.componentId) : undefined}
             wireGeom={wireGeom}
             theme={theme}
             wireWidth={wireWidth}
@@ -153,13 +144,15 @@ export function FaultFxLayer({
 function FaultIndicator({
   item,
   anchor,
+  component,
   wireGeom,
   theme,
   wireWidth,
 }: {
   item: FaultFxItem;
   anchor: { x: number; y: number };
-  wireGeom: (wireId: string) => WireGeom | null;
+  component?: ComponentInstance;
+  wireGeom: (wireId: string, terminal?: TerminalTarget) => WireGeom | null;
   theme: CanvasTheme;
   wireWidth: number;
 }) {
@@ -167,7 +160,19 @@ function FaultIndicator({
   const onWire = !item.componentId;
 
   return (
-    <g data-fault-fx={item.fault} data-fault-key={item.key}>
+    <g
+      data-fault-fx={item.fault}
+      data-fault-key={item.key}
+      data-fault-component={item.componentId}
+      data-fault-port={item.portIndex}
+      data-fault-wire={item.wireId}
+    >
+      {item.portIndex !== undefined && (
+        <g transform={`translate(${anchor.x} ${anchor.y})`} data-fault-terminal-marker>
+          <circle r={9} fill="none" stroke={color} strokeWidth={2.5} />
+          <path d="M-6 6 6-6" stroke={color} strokeWidth={2} />
+        </g>
+      )}
       {/* Specialized indicator body */}
       {item.indicator === 'sever' && (
         <>
@@ -176,16 +181,21 @@ function FaultIndicator({
             <SeverCut
               geom={wireGeom(item.wireId)}
               color={color}
-              bg={theme.bg}
+              bg={theme.bg === 'transparent' ? 'var(--table-paper, #fff)' : theme.bg}
               wireWidth={wireWidth}
             />
           )}
           {item.severWireIds.map((wireId) => (
             <SeverCut
               key={`${item.key}:${wireId}`}
-              geom={wireGeom(wireId)}
+              geom={wireGeom(
+                wireId,
+                item.portIndex !== undefined && item.componentId
+                  ? { componentId: item.componentId, portIndex: item.portIndex }
+                  : undefined,
+              )}
               color={color}
-              bg={theme.bg}
+              bg={theme.bg === 'transparent' ? 'var(--table-paper, #fff)' : theme.bg}
               wireWidth={wireWidth}
             />
           ))}
@@ -193,47 +203,49 @@ function FaultIndicator({
       )}
 
       {item.indicator === 'flame' && (
-        <g transform={`translate(${anchor.x} ${anchor.y})`} className="electrasim-fx-pop-in">
-          {/* one-shot spark burst as the short lands */}
-          <g className="electrasim-fx-sparkburst">
-            {SPARK_SPOKES.map((deg) => (
-              <line
-                key={deg}
-                x1={0}
-                y1={0}
-                x2={0}
-                y2={-26}
-                stroke="#fbbf24"
-                strokeWidth={2}
-                strokeLinecap="round"
-                transform={`rotate(${deg})`}
-              />
-            ))}
+        <g transform={`translate(${anchor.x} ${anchor.y})`}>
+          <g className="electrasim-fx-pop-in">
+            {/* one-shot spark burst as the short lands */}
+            <g className="electrasim-fx-sparkburst">
+              {SPARK_SPOKES.map((deg) => (
+                <line
+                  key={deg}
+                  x1={0}
+                  y1={0}
+                  x2={0}
+                  y2={-26}
+                  stroke="#fbbf24"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  transform={`rotate(${deg})`}
+                />
+              ))}
+            </g>
+            {/* persistent heat halos + flame */}
+            <circle
+              r={24}
+              fill="none"
+              stroke={color}
+              strokeWidth={2.5}
+              className="electrasim-fx-halo"
+            />
+            <circle
+              r={24}
+              fill="none"
+              stroke={color}
+              strokeWidth={1.5}
+              className="electrasim-fx-halo"
+              style={{ animationDelay: '0.55s' }}
+            />
+            <image
+              href={emojiDataUri('flame', onWire ? 14 : 18) ?? ''}
+              x={onWire ? -7 : -9}
+              y={onWire ? -7 : -9}
+              width={onWire ? 14 : 18}
+              height={onWire ? 14 : 18}
+              className="electrasim-flame-flicker"
+            />
           </g>
-          {/* persistent heat halos + flame */}
-          <circle
-            r={24}
-            fill="none"
-            stroke={color}
-            strokeWidth={2.5}
-            className="electrasim-fx-halo"
-          />
-          <circle
-            r={24}
-            fill="none"
-            stroke={color}
-            strokeWidth={1.5}
-            className="electrasim-fx-halo"
-            style={{ animationDelay: '0.55s' }}
-          />
-          <image
-            href={emojiDataUri('flame', onWire ? 14 : 18) ?? ''}
-            x={onWire ? -7 : -9}
-            y={onWire ? -7 : -9}
-            width={onWire ? 14 : 18}
-            height={onWire ? 14 : 18}
-            className="electrasim-flame-flicker"
-          />
         </g>
       )}
 
@@ -290,42 +302,41 @@ function FaultIndicator({
       )}
 
       {item.indicator === 'earth' && (
-        <g
-          transform={`translate(${anchor.x} ${anchor.y + COMP_H / 2 + 20})`}
-          className="electrasim-fx-pop-in"
-        >
-          {/* leakage rings sinking to ground */}
-          <circle
-            cy={-6}
-            r={7}
-            fill="none"
-            stroke={color}
-            strokeWidth={1.5}
-            className="electrasim-fx-earth-ring"
-          />
-          <circle
-            cy={-6}
-            r={7}
-            fill="none"
-            stroke={color}
-            strokeWidth={1.5}
-            className="electrasim-fx-earth-ring"
-            style={{ animationDelay: '0.75s' }}
-          />
-          {/* leakage bolt */}
-          <path
-            d="M 2 -18 L -3 -4 L 1 -4 L -2 8"
-            fill="none"
-            stroke={color}
-            strokeWidth={2.5}
-            strokeLinejoin="round"
-            className="electrasim-fx-cut-pulse"
-          />
-          {/* earth symbol */}
-          <g stroke={color} strokeWidth={1.5} strokeLinecap="round">
-            <line x1={-9} y1={12} x2={9} y2={12} />
-            <line x1={-5} y1={16} x2={5} y2={16} />
-            <line x1={-2} y1={20} x2={2} y2={20} />
+        <g transform={`translate(${anchor.x} ${anchor.y + COMP_H / 2 + 20})`}>
+          <g className="electrasim-fx-pop-in">
+            {/* leakage rings sinking to ground */}
+            <circle
+              cy={-6}
+              r={7}
+              fill="none"
+              stroke={color}
+              strokeWidth={1.5}
+              className="electrasim-fx-earth-ring"
+            />
+            <circle
+              cy={-6}
+              r={7}
+              fill="none"
+              stroke={color}
+              strokeWidth={1.5}
+              className="electrasim-fx-earth-ring"
+              style={{ animationDelay: '0.75s' }}
+            />
+            {/* leakage bolt */}
+            <path
+              d="M 2 -18 L -3 -4 L 1 -4 L -2 8"
+              fill="none"
+              stroke={color}
+              strokeWidth={2.5}
+              strokeLinejoin="round"
+              className="electrasim-fx-cut-pulse"
+            />
+            {/* earth symbol */}
+            <g stroke={color} strokeWidth={1.5} strokeLinecap="round">
+              <line x1={-9} y1={12} x2={9} y2={12} />
+              <line x1={-5} y1={16} x2={5} y2={16} />
+              <line x1={-2} y1={20} x2={2} y2={20} />
+            </g>
           </g>
         </g>
       )}
@@ -377,26 +388,32 @@ function FaultIndicator({
         </g>
       )}
 
-      {item.indicator === 'bridge' && (
-        <g transform={`translate(${anchor.x} ${anchor.y})`}>
-          <path
-            d={`M ${-COMP_W / 2} 8 Q 0 ${-COMP_H / 2 - 24} ${COMP_W / 2} 8`}
-            fill="none"
-            stroke={color}
-            strokeWidth={wireWidth + 1.5}
-            strokeLinecap="round"
-            strokeDasharray={140}
-            className="electrasim-fx-bridge-draw"
-          />
-          <path
-            d={`M ${-COMP_W / 2} 8 Q 0 ${-COMP_H / 2 - 24} ${COMP_W / 2} 8`}
-            fill="none"
-            stroke={color}
-            strokeWidth={wireWidth + 4}
-            strokeLinecap="round"
-            opacity={0.2}
-            className="electrasim-fx-cut-pulse"
-          />
+      {item.indicator === 'bridge' && component && (
+        <g transform={`rotate(${component.rotation ?? 0} ${component.x} ${component.y})`}>
+          {item.bridgePortPairs?.map((pair) => {
+            const unrotated = { ...component, rotation: 0 };
+            const from = getPortPos(unrotated, pair.from, COMPONENT_DEFS);
+            const to = getPortPos(unrotated, pair.to, COMPONENT_DEFS);
+            const ports = COMPONENT_DEFS[component.type]!.ports;
+            const fromOffset = getPortControlOffset(ports[pair.from]!);
+            const toOffset = getPortControlOffset(ports[pair.to]!);
+            const fromX = from.x + Math.sign(fromOffset.x) * 26;
+            const toX = to.x + Math.sign(toOffset.x) * 26;
+            const top = component.y - COMP_H / 2 - 24;
+            return (
+              <path
+                key={`${pair.from}:${pair.to}`}
+                data-fault-bypass-pole={`${pair.from}:${pair.to}`}
+                d={`M ${from.x} ${from.y} H ${fromX} V ${top} H ${toX} V ${to.y} H ${to.x}`}
+                fill="none"
+                stroke={color}
+                strokeWidth={wireWidth + 1.5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="electrasim-fx-bridge-draw"
+              />
+            );
+          })}
         </g>
       )}
 
@@ -417,7 +434,11 @@ function FaultIndicator({
 
       {/* Universal per-fault badge chip (also the entire indicator for
           fault kinds without a specialized visual). */}
-      <FaultChip x={anchor.x} y={anchor.y - (onWire ? 22 : COMP_H / 2 + 14)} item={item} />
+      <FaultChip
+        x={anchor.x}
+        y={anchor.y - (item.portIndex !== undefined ? 19 : onWire ? 22 : COMP_H / 2 + 14)}
+        item={item}
+      />
     </g>
   );
 }
@@ -425,23 +446,21 @@ function FaultIndicator({
 /** Rounded badge chip showing the fault code, popped in on mount. */
 function FaultChip({ x, y, item }: { x: number; y: number; item: FaultFxItem }) {
   return (
-    <g
-      transform={`translate(${x} ${y})`}
-      className="electrasim-fx-pop-in"
-      data-fault-chip={item.fault}
-    >
-      <rect
-        x={-15}
-        y={-8}
-        width={30}
-        height={15}
-        rx={4.5}
-        fill={item.config.color}
-        className="electrasim-fx-chip-pulse"
-      />
-      <text y={4} textAnchor="middle" fontSize={8.5} fontWeight="bold" fill="#ffffff">
-        {item.config.code}
-      </text>
+    <g transform={`translate(${x} ${y})`} data-fault-chip={item.fault}>
+      <g className="electrasim-fx-pop-in">
+        <rect
+          x={-15}
+          y={-8}
+          width={30}
+          height={15}
+          rx={4.5}
+          fill={item.config.color}
+          className="electrasim-fx-chip-pulse"
+        />
+        <text y={4} textAnchor="middle" fontSize={8.5} fontWeight="bold" fill="#ffffff">
+          {item.config.code}
+        </text>
+      </g>
     </g>
   );
 }

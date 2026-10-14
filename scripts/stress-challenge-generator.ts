@@ -50,7 +50,7 @@ import type {
   Point2D,
   SimulationResult,
 } from '@electrasim/domain/types';
-import { hasDiagnosisEvidence } from '../packages/domain/src/challenges/diagnosis/assessment';
+import { hasSupportedGeneratedBaseline } from '../packages/domain/src/challenges/generator/assessmentEvidence';
 import { SUPPORTED_RECIPE_IDS } from '../packages/domain/src/challenges/generator/supportedRecipes';
 
 // ---------------------------------------------------------------------------
@@ -275,7 +275,7 @@ function checkBaseline(challenge: GeneratedChallenge, ctx: Ctx): SimulationResul
   const { circuit, scenario } = challenge;
   const result = simulate(circuit, { appMode: 'pro' });
 
-  if (!hasDiagnosisEvidence(circuit, result))
+  if (!hasSupportedGeneratedBaseline(circuit, result))
     fail('baseline-evidence', ctx, 'current supported operating evidence is required');
   if (result.errors.length > 0)
     fail('baseline-simulation', ctx, `errors: ${result.errors.join('; ')}`);

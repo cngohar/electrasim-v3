@@ -2,7 +2,6 @@ import type { Circuit } from '@electrasim/domain';
 import type { SupplyProfile } from '@electrasim/domain/core/supplies';
 import type { SupplyTarget } from '@electrasim/domain/core/supplyEditing';
 import { create } from 'zustand';
-import { useSimulatorAccess } from './simulatorAccess';
 import { useUiStore } from './uiStore';
 
 export type ElectricalEdit =
@@ -35,15 +34,11 @@ let nextRequest = 0;
 export function configurationLockReason(): string | null {
   const ui = useUiStore.getState();
   if (ui.simRunning) return 'Stop the simulation to change electrical configuration.';
-  if (ui.diagnosisActive || useSimulatorAccess.getState().exercise)
-    return 'Supply and device configuration are locked during this exercise. End the attempt to edit in the sandbox.';
   return null;
 }
 
 export function useConfigurationLockReason(): string | null {
   useUiStore((s) => s.simRunning);
-  useUiStore((s) => s.diagnosisActive);
-  useSimulatorAccess((s) => s.exercise);
   return configurationLockReason();
 }
 

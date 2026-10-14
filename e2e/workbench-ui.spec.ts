@@ -1,5 +1,5 @@
 import { type Page, expect, test } from '@playwright/test';
-import { activateControl, openCircuitTools } from './helpers/workbench';
+import { activateControl, applyLabFault, openCircuitTools } from './helpers/workbench';
 
 test.use({ viewport: { width: 1680, height: 1000 } });
 const faultLabToggle = (page: Page) => page.getByTitle(/^Toggle the Fault Lab/);
@@ -139,6 +139,7 @@ test.describe('Open Drafting Table workbench', () => {
     await activateControl(page, page.getByTitle('Zoom to fit all (F)'));
     const target = page.locator('[data-component-id^="bulb-"] [data-component-hitbox]').first();
     await activateControl(page, target, true);
+    await panel.locator('summary').click();
     await expect(panel.getByRole('button', { name: /Short Circuit/ })).toBeEnabled();
     await expect(page.getByRole('dialog', { name: 'Fault Lab', exact: true })).not.toHaveAttribute(
       'aria-modal',
@@ -170,9 +171,9 @@ test.describe('Open Drafting Table workbench', () => {
       true,
     );
     const panel = page.getByLabel('Fault Lab panel');
-    await activateControl(page, panel.getByRole('button', { name: /Short Circuit/ }));
+    await applyLabFault(page, /Dead Short Circuit/);
     await expect(panel.getByText('Active faults (1)')).toBeVisible();
-    await expect(panel.getByLabel('Replay Short circuit animation')).toBeVisible();
+    await expect(panel.getByLabel(/Replay Dead Short Circuit.* explanation/)).toBeVisible();
     await activateControl(
       page,
       panel.getByRole('button', {

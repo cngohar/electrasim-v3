@@ -1,7 +1,6 @@
 import type { CircuitReadiness } from './readiness';
 
-export function readinessLabel(readiness: CircuitReadiness, concealFaultName = false): string {
-  if (concealFaultName && readiness.topology === 'open') return 'No complete load path';
+export function readinessLabel(readiness: CircuitReadiness): string {
   const labels = {
     invalid: 'Invalid circuit',
     empty: 'Empty circuit',

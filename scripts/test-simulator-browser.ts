@@ -5,6 +5,7 @@ import { createWriteStream, writeFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import type { Circuit } from '@electrasim/domain';
 import { chromium, expect } from '@playwright/test';
+import { damageCircuit } from '../packages/domain/src/core/damageFixtures';
 import { localTestUrl } from './local-test-url';
 
 export async function runSimulatorBrowser(options: {
@@ -65,34 +66,35 @@ export async function runSimulatorBrowser(options: {
         throw error;
       });
     await page.getByRole('button', { name: 'Menu', exact: true }).click();
-    await page.getByText('Diagnosis Lab', { exact: false }).first().click();
-    await page.getByRole('button', { name: /Intermediate/ }).click();
-    await expect(
-      page
-        .locator('section[aria-label="Diagnosis Lab"]')
-        .getByText(/Something isn.t working correctly/i),
-    ).toBeVisible();
-    // Load the modules while online, then complete the actual guest exercise offline.
-    await page.evaluate(async () => {
-      const d = '/src/store/diagnosisStore.ts';
-      const c = '/src/store/circuitStore.ts';
-      await import(d);
-      await import(c);
-    });
+    await page.getByRole('button', { name: /^Import \/ Export/ }).click();
+    const guestFiles = page.getByRole('dialog');
+    await guestFiles.getByRole('button', { name: 'Import', exact: true }).click();
+    await guestFiles
+      .locator('textarea')
+      .fill(JSON.stringify({ version: 2, exportedAt: 0, circuit: damageCircuit() }));
+    await guestFiles.getByRole('button', { name: 'Import from paste', exact: true }).click();
+    await expect(guestFiles).toContainText('Loaded 3 components, 3 wires.');
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: 'Menu', exact: true }).click();
+    await page
+      .getByRole('dialog', { name: 'ElectraSim menu' })
+      .getByRole('button', { name: /^Fault Lab/ })
+      .click();
+    const bulb = page.locator('[data-component-id="lamp"] [data-component-hitbox]').first();
+    await bulb.press('Enter');
+    const lab = page.getByLabel('Fault Lab panel');
+    await lab.getByRole('button', { name: /Browse fault library/ }).click();
+    await page
+      .getByRole('dialog', { name: 'Fault library', exact: true })
+      .getByRole('button', { name: /Open Circuit Break/ })
+      .click();
+    await page.getByRole('button', { name: 'Apply fault edit', exact: true }).click();
+    await expect(lab.locator('[data-active-fault="open-circuit"]')).toBeVisible();
     await guest.setOffline(true);
-    const verdict = await page.evaluate(async () => {
-      const diagnosisPath = '/src/store/diagnosisStore.ts';
-      const circuitPath = '/src/store/circuitStore.ts';
-      const { useDiagnosisStore } = await import(diagnosisPath);
-      const { useCircuitStore } = await import(circuitPath);
-      const state = useDiagnosisStore.getState();
-      const fault = state.scenario.faults[0];
-      useCircuitStore.getState().removeFault(fault.fault.id);
-      state.selectFaultType(fault.fault.type);
-      state.selectLocation(fault.locationKey);
-      return state.submit()?.verdict;
-    });
-    assert.equal(verdict, 'success');
+    await lab
+      .getByRole('button', { name: 'Clear all injected faults from the active list', exact: true })
+      .click();
+    await expect(lab.locator('[data-active-fault]')).toHaveCount(0);
     await guest.close();
 
     const context = await browser.newContext();
@@ -165,62 +167,10 @@ export async function runSimulatorBrowser(options: {
     ).toBeVisible();
     await paidPage.getByRole('button', { name: 'Close', exact: true }).last().click();
     await paidPage.evaluate(async () => {
-      const path = '/src/store/diagnosisStore.ts';
-      await (await import(path)).useDiagnosisStore.getState().start('advanced', 42);
-    });
-    const attemptId = await paidPage.evaluate(async () => {
-      const path = '/src/store/diagnosisStore.ts';
-      return (await import(path)).useDiagnosisStore.getState().serverAttemptId;
-    });
-    assert(attemptId);
-    // Completion is accepted by the Worker, leaves the active IDB record and
-    // contributes to stats exactly once before the next exercise starts.
-    const faultCount = await paidPage.evaluate(async () => {
-      const d = '/src/store/diagnosisStore.ts';
-      const c = '/src/store/circuitStore.ts';
-      const state = (await import(d)).useDiagnosisStore.getState();
-      (await import(c)).useCircuitStore.getState().setCircuit(state.scenario.healthyCircuit);
-      return state.scenario.faults.length;
-    });
-    for (let i = 0; i < faultCount; i++) {
-      const version = await paidPage.evaluate(async (index) => {
-        const path = '/src/store/diagnosisStore.ts';
-        const state = (await import(path)).useDiagnosisStore.getState();
-        const fault = state.scenario.faults[index];
-        state.selectFaultType(fault.fault.type);
-        state.selectLocation(fault.locationKey);
-        state.submit();
-        return state.serverVersion;
-      }, i);
-      await expect
-        .poll(() =>
-          paidPage.evaluate(async () => {
-            const path = '/src/store/diagnosisStore.ts';
-            return (await import(path)).useDiagnosisStore.getState().serverVersion;
-          }),
-        )
-        .toBeGreaterThan(version);
-    }
-    await expect
-      .poll(() =>
-        paidPage.evaluate(async () => {
-          const path = '/src/store/diagnosisStore.ts';
-          return (await import(path)).useDiagnosisStore.getState().stats?.completed;
-        }),
-      )
-      .toBe(1);
-    assert.equal(
-      await paidPage.evaluate(async () => {
-        const path = '/src/store/diagnosisStore.ts';
-        const store = (await import(path)).useDiagnosisStore;
-        store.getState().exit();
-        return store.getState().resume();
-      }),
-      false,
-    );
-    await paidPage.evaluate(async () => {
-      const path = '/src/store/diagnosisStore.ts';
-      await (await import(path)).useDiagnosisStore.getState().start('advanced', 43);
+      const circuitPath = '/src/store/circuitStore.ts';
+      const persistPath = '/src/store/persistence.ts';
+      const { useCircuitStore, selectCircuit } = await import(circuitPath);
+      await (await import(persistPath)).persistCircuit(selectCircuit(useCircuitStore.getState()));
     });
     await options.revoke();
     const before = await paidPage.evaluate(async () => {
@@ -252,27 +202,19 @@ export async function runSimulatorBrowser(options: {
       }),
       before,
     );
-    // Reloading a revoked exercise must retain the original document and repairs.
+    // Ordinary autosave restores the premium drawing read-only after revocation.
     await paidPage.reload();
     await expect(paidPage.getByRole('button', { name: 'Menu', exact: true })).toBeVisible();
+    await expect(
+      paidPage.getByRole('complementary', { name: 'Membership and recovery' }),
+    ).toBeVisible();
     assert.equal(
       await paidPage.evaluate(async () => {
-        const path = '/src/store/diagnosisStore.ts';
-        return (await import(path)).useDiagnosisStore.getState().resume();
+        const path = '/src/store/circuitStore.ts';
+        const state = (await import(path)).useCircuitStore.getState();
+        return JSON.stringify({ components: state.components, faults: state.faults });
       }),
-      true,
-    );
-    assert.deepEqual(
-      await paidPage.evaluate(async () => {
-        const d = '/src/store/diagnosisStore.ts';
-        const c = '/src/store/circuitStore.ts';
-        const state = (await import(c)).useCircuitStore.getState();
-        return {
-          blocked: (await import(d)).useDiagnosisStore.getState().accessBlocked,
-          document: JSON.stringify({ components: state.components, faults: state.faults }),
-        };
-      }),
-      { blocked: true, document: before },
+      before,
     );
     const recovery = paidPage.getByRole('complementary', { name: 'Membership and recovery' });
     const recoveryBounds = await recovery.boundingBox();

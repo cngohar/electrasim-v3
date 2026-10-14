@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildDiagnosisScenario } from './diagnosis/scenario';
+import { generateChallenge } from './generator/generator';
 import { GENERATOR_VERSION } from './generator/seed';
 import { type ShareTicket, formatShareCode, formatShareText, parseShareText } from './share';
 import type { ChallengeDifficulty, ChallengeMode } from './types';
@@ -95,26 +95,28 @@ describe('replay (plan §5, §30)', () => {
    * pass every test above and still be broken.
    */
   it('a copied ticket regenerates the identical exercise', () => {
-    const original = buildDiagnosisScenario({ seed: 482_917, difficulty: 'advanced' });
+    const original = generateChallenge({
+      seed: 482_917,
+      difficulty: 'advanced',
+      mode: 'diagnosis',
+    });
     const parsed = parseShareText(
       formatShareText({
-        seed: original.seed,
-        difficulty: original.difficulty,
+        seed: original.metadata.seed,
+        difficulty: original.metadata.difficulty,
         mode: 'diagnosis',
-        generatorVersion: original.generatorVersion,
+        generatorVersion: original.metadata.generatorVersion,
       }),
       FALLBACK,
     );
     expect(parsed).not.toBeNull();
 
-    const replayed = buildDiagnosisScenario({
+    const replayed = generateChallenge({
       seed: parsed!.seed,
       difficulty: parsed!.difficulty,
+      mode: parsed!.mode,
     });
-    expect(replayed.challengeId).toBe(original.challengeId);
-    expect(replayed.faultedCircuit).toEqual(original.faultedCircuit);
-    expect(replayed.faults.map((f) => f.fault.type)).toEqual(
-      original.faults.map((f) => f.fault.type),
-    );
+    expect(replayed.metadata.challengeId).toBe(original.metadata.challengeId);
+    expect(replayed.circuit).toEqual(original.circuit);
   });
 });

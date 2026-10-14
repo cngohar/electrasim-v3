@@ -51,7 +51,10 @@ export interface ComponentNodeProps {
   theme: CanvasTheme;
   selected: boolean;
   flagged?: boolean;
+  forcedOpenCause?: boolean;
   compatibilityReview?: 'incompatible' | 'unassessed';
+  compatibilityMissingModel?: boolean;
+  compatibilityDetails?: string;
   energized: boolean;
   error: boolean;
   wireMode: boolean;
@@ -76,7 +79,10 @@ export function ComponentNode({
   theme,
   selected,
   flagged,
+  forcedOpenCause = false,
   compatibilityReview,
+  compatibilityMissingModel = false,
+  compatibilityDetails,
   energized,
   error,
   wireMode,
@@ -109,6 +115,9 @@ export function ComponentNode({
   if (!definition) return null;
 
   const coilState = simulation?.coilStates?.[component.id];
+  const fault = component.state.fault;
+  const contactsForcedOpen =
+    forcedOpenCause || fault === 'protection-forced-open' || fault === 'protection-bypass';
   const isOn =
     coilState ??
     simulation?.timerContactStates?.[component.id] ??
@@ -116,7 +125,6 @@ export function ComponentNode({
     (component.state.on === true && (!definition.isDimmer || (component.state.speed ?? 3) > 0));
   const isTripped = component.state.isTripped === true;
   const active = energized || (definition.isSwitch && (Boolean(definition.changeover) || isOn));
-  const fault = component.state.fault;
   const faultColor =
     fault === 'short-circuit'
       ? '#ef4444'
@@ -201,8 +209,8 @@ export function ComponentNode({
           aria-label={`Electrical compatibility ${compatibilityReview}; inspect this component`}
         >
           <title>
-            Electrical compatibility {compatibilityReview}. Inspect the component for ratings and
-            supply findings.
+            {compatibilityDetails ??
+              `Electrical compatibility ${compatibilityReview}. Inspect the component for ratings and supply findings.`}
           </title>
           <rect
             x={0}
@@ -213,7 +221,11 @@ export function ComponentNode({
             fill={compatibilityReview === 'incompatible' ? '#b91c1c' : '#92400e'}
           />
           <text x={COMP_W / 2} y={-6} textAnchor="middle" fontSize={8} fill="white">
-            {compatibilityReview === 'incompatible' ? '! Incompatible' : '? Unassessed'}
+            {compatibilityReview === 'incompatible'
+              ? '! Incompatible'
+              : compatibilityMissingModel
+                ? '? Model unavailable'
+                : '? Ratings unknown'}
           </text>
         </g>
       )}
@@ -336,12 +348,8 @@ export function ComponentNode({
         {appearance !== 'symbols' && (
           <g transform={appearance === 'both' ? 'translate(1 4) scale(.8)' : undefined}>
             <DeviceArtwork
-              component={
-                coilState === undefined
-                  ? component
-                  : { ...component, state: { ...component.state, on: coilState } }
-              }
-              energized={energized && fault !== 'open-circuit'}
+              component={{ ...component, state: { ...component.state, on: isOn } }}
+              energized={energized && fault !== 'open-circuit' && !contactsForcedOpen}
               compact={reducedDetails && !selected}
               animate={activeLoadEffects}
             />
@@ -372,6 +380,7 @@ export function ComponentNode({
           >
             <ComponentSymbol
               component={{ ...component, state: { ...component.state, on: isOn } }}
+              contactsOpen={contactsForcedOpen}
             />
           </svg>
         )}

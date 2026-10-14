@@ -354,6 +354,32 @@
 .table-project-context [title="Inspect in side panel"] {
   display: none;
 }
+.table-simulation-feedback {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 680px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid #d5a64d;
+  border-radius: 10px;
+  background: var(--table-paper);
+  color: var(--table-ink);
+  font-size: 11px;
+  line-height: 1.45;
+  box-shadow: 0 3px 14px #152b3920;
+}
+.table-simulation-feedback .table-feedback-line {
+  display: block;
+  margin-top: 4px;
+}
+.table-simulation-feedback button {
+  flex: none;
+  padding: 5px 8px;
+  border: 1px solid var(--table-line);
+  border-radius: 6px;
+  font-weight: 600;
+}
 .table-zoom {
   position: absolute;
   left: 24px;

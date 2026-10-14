@@ -9,7 +9,7 @@ import { Modal } from './Modal';
  *
  * Redesigned from scratch to cover every surface shipped to date:
  * Guided Circuits, the component library, simulation,
- * the Diagnosis Lab, the Fault Lab, validation & diagnostics, docs,
+ * the Fault Lab, validation & diagnostics, docs,
  * the command palette and keyboard shortcuts.
  */
 
@@ -27,12 +27,11 @@ import {
   Search,
   ShieldCheck,
   Sparkles,
-  Stethoscope,
   X,
   Zap,
 } from 'lucide-react';
 import { isMacPlatform, modShortcut } from '../../lib/platform';
-import { useUiStore } from '../../store';
+import { useSettingsStore, useUiStore } from '../../store';
 import { APP_VERSION } from '../../version';
 
 const STEPS = [
@@ -87,18 +86,13 @@ export function WelcomeModal() {
       open: () => closeThen(() => useUiStore.getState().setPaletteOpen(true)),
     },
     {
-      icon: Stethoscope,
-      label: 'Diagnosis Lab',
-      desc: 'A fault is planted on a generated circuit. Find and clear it.',
-      open: () => closeThen(() => useUiStore.getState().setDiagnosisOpen(true)),
-    },
-    {
       icon: FlaskConical,
       label: 'Fault Lab',
-      desc: 'Inject shorts and opens by hand, with canvas spark effects (Pro).',
+      desc: 'Review a cause, run and inspect the accepted response (Pro workspace).',
       open: () =>
         closeThen(() => {
           const s = useUiStore.getState();
+          useSettingsStore.getState().setSetting('appMode', 'pro');
           s.setFaultLabOpen(true);
           s.addLog('Fault Lab opened — select a component on the canvas, then inject.', 'info');
         }),

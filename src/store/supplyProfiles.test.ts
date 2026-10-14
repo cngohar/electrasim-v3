@@ -36,10 +36,9 @@ const fixture = (): Circuit => ({
 beforeEach(() => {
   useElectricalEditing.setState({ request: null, reviewOpen: false, notice: null });
   invalidateAccess();
-  useSimulatorAccess.setState({ exercise: null, userId: null, capabilities: [], message: null });
+  useSimulatorAccess.setState({ userId: null, capabilities: [], message: null });
   useUiStore.setState({
     simRunning: false,
-    diagnosisActive: false,
     validationReport: null,
   });
   useCircuitStore.getState().setCircuit(fixture());
@@ -99,18 +98,6 @@ describe('supply profiles across editor boundaries', () => {
       false,
     );
   });
-
-  it.each([{ diagnosisActive: true }])(
-    'locks authored source edits during an exercise: %j',
-    (mode) => {
-      useUiStore.setState(mode);
-      useCircuitStore.getState().setGlobalSupplyVoltage(12);
-      useCircuitStore.getState().updateComponentState('l', { customVoltage: 12 });
-      expect(useCircuitStore.getState().supply).toEqual(ac60);
-      expect(useCircuitStore.getState().components[0].state.customVoltage).toBeUndefined();
-      expect(useUiStore.getState().undoToast?.message).toContain('locked during this exercise');
-    },
-  );
 
   it('updates an independent source magnitude without losing its frequency or changing the document', () => {
     useCircuitStore.getState().updateComponentState('independent', { customVoltage: 48 });

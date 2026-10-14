@@ -17,6 +17,7 @@ interface ComponentLayerProps {
   activeLoadEffects: boolean;
   reducedDetails: boolean;
   flaggedIds?: Set<string>;
+  forcedOpenIds?: ReadonlySet<string>;
   traceComponentIds?: Set<string> | null;
   onPointerDown: (component: ComponentInstance, event: PointerEvent<SVGGElement>) => void;
   onSelect?: (id: string | null) => void;
@@ -39,6 +40,7 @@ export const ComponentLayer = memo(function ComponentLayer({
   activeLoadEffects,
   reducedDetails,
   flaggedIds,
+  forcedOpenIds,
   traceComponentIds,
   onPointerDown,
   onSelect,
@@ -58,6 +60,18 @@ export const ComponentLayer = memo(function ComponentLayer({
     }
     return entries;
   }, [readiness]);
+  const reviewDetails = useMemo(() => {
+    const entries = new Map<string, { missingModel: boolean; reasons: string[] }>();
+    for (const group of readiness.groups) {
+      const entry = entries.get(group.componentId) ?? { missingModel: false, reasons: [] };
+      entry.missingModel ||= group.result.reasons.some(
+        (reason) => reason.code === 'unsupported-model',
+      );
+      entry.reasons.push(...group.result.reasons.map((reason) => reason.message));
+      entries.set(group.componentId, entry);
+    }
+    return entries;
+  }, [readiness]);
   // Render selected component last so it stays on top of other components on canvas
   const orderedComponents = selectedId
     ? [...components].sort((a, b) => (a.id === selectedId ? 1 : b.id === selectedId ? -1 : 0))
@@ -74,7 +88,10 @@ export const ComponentLayer = memo(function ComponentLayer({
           theme={theme}
           selected={selectedId === component.id}
           flagged={flaggedIds?.has(component.id)}
+          forcedOpenCause={forcedOpenIds?.has(component.id)}
           compatibilityReview={reviews.get(component.id)}
+          compatibilityMissingModel={reviewDetails.get(component.id)?.missingModel}
+          compatibilityDetails={reviewDetails.get(component.id)?.reasons.join(' ')}
           energized={simulation?.energizedComponents.has(component.id) ?? false}
           error={simulation?.errorComponents.has(component.id) ?? false}
           wireMode={wireMode}

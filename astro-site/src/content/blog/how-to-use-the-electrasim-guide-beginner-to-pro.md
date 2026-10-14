@@ -135,11 +135,11 @@ Reading is comprehension. Being tested is retention. Everything below runs on th
 
 1. **[In the App](/guide/templates/)** — all 20 guided templates, mapped to the walkthrough that explains each one. Use it when you want to build without being taught.
 2. **Challenge Mode** — you get a goal and outcome requirements, deliberately *without* a construction recipe. Rules are checked on topology, not coordinates, so any electrically equivalent wiring passes.
-3. **Diagnosis Lab** — the generator breaks a working circuit on purpose and hands it to you with a vague symptom: *"the hallway light is dead."* You investigate, diagnose, repair, and get scored. Every exercise is deterministic from a seed, so the same seed always gives the identical circuit — which is also what makes it usable in a classroom.
+3. **Fault Lab** — select a real target on your drawing, review a deliberate fault, run and read the accepted response. Clear the cause, reset protection or replace damage separately, then run again.
 5. **The Fault Lab** — inject open circuits, shorts, reversed polarity, earth faults and arc faults by hand, and watch which protective device responds, or pointedly fails to.
 6. **Compliance and reporting** — check a circuit against the active standard and export the result.
 
-If you teach, the seed is the feature that matters: hand out a seed, and every student gets the same fault to find. If you are self-taught, the sequence that works is walkthrough → build it → break it → Diagnosis Lab on the same circuit type.
+For teaching, export the actual circuit drawing so learners start from the same saved inputs. Work through a guided circuit, build it, then investigate a known cause in Fault Lab. Diagnosis Lab is retired in the V3 rewrite; Challenge Mode remains deferred with its plan preserved.
 
 ---
 

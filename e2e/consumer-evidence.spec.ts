@@ -4,7 +4,7 @@ import { consumerEvidenceFixture } from '../packages/domain/src/simulation/consu
 import { portableResult } from '../packages/domain/src/simulation/runtimeFixtures';
 import { test } from './helpers/paid-test';
 import { inspect, openCircuit } from './helpers/three-phase';
-import { activateControl, openCircuitTools } from './helpers/workbench';
+import { activateControl, applyLabFault, openCircuitTools } from './helpers/workbench';
 
 test('all shipped guide consumers replay exactly through real Comlink with stale results rejected', async ({
   page,
@@ -95,7 +95,7 @@ test('the shared Fault Lab offers a named terminal disconnect on a phone', async
   await activateControl(page, page.getByRole('button', { name: 'Fault Lab', exact: true }));
   const panel = page.getByLabel('Fault Lab panel');
   await panel.getByLabel('Fault target terminal').selectOption('0');
-  await panel.getByRole('button', { name: /Loose \/ Disconnected Terminal/ }).click();
+  await applyLabFault(page, /Loose \/ Disconnected Terminal/);
   await expect(panel.locator('[data-active-fault="terminal-disconnect"]')).toBeVisible();
   const fault = await page.evaluate(async () => {
     const path = '/src/store/circuitStore.ts';

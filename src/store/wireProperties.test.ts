@@ -8,8 +8,8 @@ import { useUiStore } from './uiStore';
 
 beforeEach(() => {
   invalidateAccess();
-  useSimulatorAccess.setState({ exercise: null, userId: null, capabilities: [], message: null });
-  useUiStore.setState({ simRunning: false, diagnosisActive: false });
+  useSimulatorAccess.setState({ userId: null, capabilities: [], message: null });
+  useUiStore.setState({ simRunning: false });
   const circuit = heaterFixture();
   circuit.components[1]!.state.customCableMm2 = 1;
   circuit.wires[0]!.customCableMm2 = undefined;

@@ -1,5 +1,5 @@
 {
-  "activePhase": "1.10",
+  "activePhase": "1.11",
   "phases": [
     {
       "id": "0",
@@ -214,6 +214,20 @@
         "docs/design/open-drafting-table/CLEANUP_REVIEW.md",
         "progress.md"
       ]
+    },
+    {
+      "id": "1.11",
+      "status": "complete locally (2026-10-14) after explicit design approval; aggregate functional acceptance with focused recovery; Diagnosis runtime retired with records and shared contracts preserved; historical performance exceptions remain",
+      "evidence": [
+        "docs/phases/phase-1-simulator-core.md",
+        "docs/plans/FAULT_LAB_REDESIGN_PLAN.md",
+        "docs/design/fault-lab/README.md",
+        "docs/design/fault-lab/SCREENS.md",
+        "docs/design/fault-lab/DIAGNOSIS_RETIREMENT_REVIEW.md",
+        "docs/handoffs/fault-lab-next-chat.md",
+        "progress.md",
+        "docs/audits/phase-1-fault-lab-redesign.md"
+      ]
     }
   ],
   "facts": [
@@ -266,7 +280,7 @@
     },
     {
       "id": "phone-fault-lab-single-surface",
-      "summary": "Phase 1.10 hosts one shared modeless InspectorFaultLabView tool window on desktop and phone. Inspect closes Fault Lab and returns to Properties, preserving canvas picking and fault/repair controls. This replaces the old PhoneDock/FaultLabDialog ownership; those obsolete wrappers were explicitly approved and removed on 2026-10-14.",
+      "summary": "Phase 1.10 established one shared modeless InspectorFaultLabView on desktop and phone; Phase 1.11 implements the approved responsive investigation there. Inspect returns to Properties, Change target narrows the tool for canvas picking, Console stays independent and the phone sheet remains above the shelf. No old PhoneDock/FaultLabDialog wrappers were restored.",
       "evidence": [
         "src/ui/components/Toolbar.tsx",
         "src/ui/components/inspector/Inspector.tsx",
@@ -274,12 +288,16 @@
         "e2e/workbench-ui.spec.ts",
         "e2e/consumer-evidence.spec.ts",
         "e2e/damage-repair.spec.ts",
-        "docs/design/open-drafting-table/CLEANUP_REVIEW.md"
+        "docs/design/open-drafting-table/CLEANUP_REVIEW.md",
+        "src/ui/components/inspector/fault-lab.css",
+        "e2e/fault-lab-redesign.spec.ts",
+        "e2e/fault-lab-redesign.production.spec.ts",
+        "docs/audits/phase-1-fault-lab-redesign.md"
       ],
       "review": {
-        "at": "2026-10-14T05:25:44.652Z",
-        "scope": "Reviewed Toolbar toggle/Inspect handoff, the shared modeless InspectorFaultLabView and removed old wrapper references. Post-deletion three-project tests passed actual phone terminal-disconnect injection, phone damage editing/access/focus return and modeless canvas picking/Inspect handoff, within the 18-case clean-exit source gate. Shared fault/repair logic remains active; no duplicate phone wrapper.",
-        "fingerprint": "524abe36dfe3a6d2ab73bac5cfee80ae357783f37ca05e87e55426f79b109108"
+        "at": "2026-10-14T10:36:01.330Z",
+        "scope": "Reviewed shared Inspector ownership, canvas picking width, responsive CSS and actual screenshots. Three-project source workflows and final desktop/phone built cases pass, including independent Console clicks without forcing desktop pointers. Approved old wrappers remain absent.",
+        "fingerprint": "3e46af51cd5d64e9c18699987ce3f9dfeb15f73cdff8fa85e074265b90da12c0"
       }
     },
     {
@@ -363,7 +381,6 @@
       "evidence": [
         "src/ui/components/Toolbar.tsx",
         "src/ui/open-table.css",
-        "src/ui/components/DiagnosisPanel.tsx",
         "src/ui/components/GuidedCircuitPanel.tsx",
         "src/ui/components/ElectricalEditDialog.tsx",
         "e2e/helpers/workbench.ts",
@@ -395,7 +412,7 @@
     },
     {
       "id": "fault-edit-fresh-runtime-result",
-      "summary": "Fault edits clear stale simResult while useSimulation carries the active run state into the next solve. A trip must be checked on the fresh runtime result; a component-state latch is not interchangeable with that runtime state. Browser clear/reset actions use named controls and real keyboard input when headless WebKit scroll/frame stability blocks automated pointer checks.",
+      "summary": "Fault edits invalidate live and captured outcomes through current input identity. useSimulation carries active run state into the next fresh solve; runtime trip and saved device latch are distinct. Fault Lab Stop retains a detached capture only for unchanged inputs. Clearing causes preserves damage/trips; reset OFF and deliberate ON/replacement remain separate guarded edits. Browser acceptance uses native Chrome pointers and real WebKit keyboard input where headless frame stability requires it.",
       "evidence": [
         "src/store/uiStore.ts",
         "src/store/useSimulation.ts",
@@ -403,12 +420,16 @@
         "src/ui/components/inspector/InspectorFaultLabView.tsx",
         "e2e/damage-repair.spec.ts",
         "e2e/workbench-ui.spec.ts",
-        "docs/audits/phase-1-full-verification.md"
+        "docs/audits/phase-1-full-verification.md",
+        "src/ui/components/inspector/faultLabEvidence.ts",
+        "src/store/faultLabStore.ts",
+        "e2e/fault-lab-redesign.spec.ts",
+        "docs/audits/phase-1-fault-lab-redesign.md"
       ],
       "review": {
-        "at": "2026-10-12T07:28:13.823Z",
-        "scope": "Reviewed stale-result invalidation, active runtime state carry-over and clear/reset controls. Fresh protection checks passed all three projects with real keyboard actions; electrical polls retain 20 seconds, lifecycle envelope is 60 seconds. Headless pointer stability is not claimed fixed.",
-        "fingerprint": "548ec64a816516e84e496a1e8a8e15646a3896b0cb97a69f67dca3e7a7df3f26"
+        "at": "2026-10-14T12:41:42.359Z",
+        "scope": "Reviewed current Fault Lab application and accepted-response boundary after the preview follow-up. Apply changes the faulted circuit and shows no accepted response until a fresh run; unassessed effects remain unclaimed. Focused preview/Inspector cases and final typecheck pass; the separate phase closure evidence remains scoped.",
+        "fingerprint": "0dc1b05a2df1efe86e54c6e12fd284e61903378375ded04a8ec8d103e185d6a6"
       }
     },
     {
@@ -491,7 +512,6 @@
         "src/ui/hooks/useSurfacePresence.ts",
         "src/ui/hooks/useDialogFocus.ts",
         "src/ui/components/SurfacePresence.tsx",
-        "src/ui/components/DiagnosisPanel.tsx",
         "src/ui/components/GuidedCircuitPanel.tsx",
         "src/store/wireProperties.test.ts",
         "src/ui/Editor.tsx",
@@ -521,9 +541,124 @@
         "scope": "Reviewed explicit 2026-10-14 approval after the exact four-file/function table and patch, applied deletion ledger/backups and active replacements. Removed only 718 current-file lines (Git-base diff 710 due to eight backed-up prior local CSS lines). No remaining source/test/build imports. Post-deletion full check 2115 units, build/static, 18 affected source cases, six built cases and five graph implementation tests all exit 0. Phase 1.10 cleanup complete; no wider deletion or remote work.",
         "fingerprint": "28339469668145d07d125645f6b2b27e20e616a284417255e107d76b44a3e502"
       }
+    },
+    {
+      "id": "diagnosis-retirement-proposal",
+      "summary": "Phase 1.11 completed locally after explicit 2026-10-14 design approval and scoped Fault Lab replacement acceptance: 19 direct Diagnosis files plus runtime integrations retired. Full registered unit count reconciles 2115 to 2004; 138 unique source cases, 8 built cases, 842 parity cases and 34 local Worker/D1 groups pass with aggregate/focused recovery. Browser keys, diagnosis_attempts schema/migrations and advanced_diagnostics grants remain; seeded existing records cannot resume over the normal saved drawing. Shared generator baseline evidence and share metadata extracted without broader conditional cleanup.",
+      "evidence": [
+        "docs/plans/FAULT_LAB_REDESIGN_PLAN.md",
+        "docs/design/fault-lab/README.md",
+        "docs/design/fault-lab/SCREENS.md",
+        "docs/design/fault-lab/DIAGNOSIS_RETIREMENT_REVIEW.md",
+        "docs/phases/phase-1-simulator-core.md",
+        "docs/handoffs/fault-lab-next-chat.md",
+        "docs/audits/phase-1-fault-lab-redesign.md",
+        "e2e/diagnosis-retirement.spec.ts",
+        "scripts/test-simulator.ts",
+        "src/api/circuits.ts",
+        "src/worker.ts",
+        "packages/domain/src/challenges/generator/assessmentEvidence.ts",
+        "packages/domain/src/challenges/replayIdentity.ts",
+        "packages/domain/src/challenges/share.test.ts"
+      ],
+      "review": {
+        "at": "2026-10-14T10:35:57.468Z",
+        "scope": "Reviewed approved 19-file retirement inventory, integration and preserved generator/share boundaries, seeded browser-record and real D1 historical-row preservation tests, retired route checks and exact 2115-to-2004 unit reconciliation. Replacement acceptance preceded retirement; no schema/migration/record/grant deletion or conditional cleanup.",
+        "fingerprint": "00b1766f375a0699229c305470adfc6bf44197b4cae86c4dd2dd6635e1602028"
+      }
+    },
+    {
+      "id": "fault-lab-captured-presentation",
+      "summary": "Fault Lab deep-clones accepted scalar electrical output bound to circuitRevision; Stop retains a capture, edits make it stale, new documents reset investigation and restarted runs reset event timing. Playback cannot change topology, faults, protection, damage or solver time. Unassessed models suppress measurements/outcome events. Two lazy decorative bodies integrate at 1/60 s, schedule at most 30 Hz, clamp visible motion to 0-8 units and dispose on pause/stale/hidden/reduced/modal/target replacement; local Engine.update p95 0.9 ms is separate from whole-frame/solver performance. Console clears messages only and navigates current real targets. Applied-fault views keep React hook order stable; Circuit/Inside switches between real topology and target application presentation. The latest 14-type Apply/Clear captures precede a fresh simulation; rebuilt desktop/phone checks cover fresh capture and clearing.",
+      "evidence": [
+        "src/ui/components/inspector/faultLabEvidence.ts",
+        "src/ui/components/inspector/faultLabEvidence.test.ts",
+        "src/store/faultLabStore.ts",
+        "src/ui/components/inspector/InspectorFaultLabView.tsx",
+        "src/ui/components/inspector/InspectorFaultLabView.test.tsx",
+        "src/ui/components/inspector/FaultLabStage.tsx",
+        "src/ui/components/inspector/fault-lab.css",
+        "src/ui/components/LogPanel.tsx",
+        "src/ui/components/LogPanel.test.tsx",
+        "e2e/fault-lab-redesign.spec.ts",
+        "e2e/fault-lab-redesign.production.spec.ts",
+        "docs/audits/phase-1-fault-lab-redesign.md"
+      ],
+      "review": {
+        "at": "2026-10-14T14:22:24.674Z",
+        "scope": "Reviewed the stable hook order and separate applied Inside versus actual Circuit overview branches, source all-14 Apply/Clear/view transitions and zero page errors, plus rebuilt 1280/390 browser fresh capture, Stop/replay and separate Clear. New captures show saved causes before a run; this review does not renew numerical, playback timing or performance evidence.",
+        "fingerprint": "69c908a642f31e4a72d620fc8dc06320565d187be24ff49335c4216447b5f899"
+      }
+    },
+    {
+      "id": "fault-lab-application-preview",
+      "summary": "Fault application uses the actual target symbol, canonical rotated terminal geometry or saved wire route. Canvas effects read normalized active canonical faults including ports; exact-pin cuts and markers clear with the cause. Circuit view works after Apply with actual symbols/ports/routes; animation preserves chip placement. Unassessed neutral mappings do not invent conductor colors, and protection bypass follows declared model poles. All 14 types pass exact canonical/compiled target Apply/Clear and document restoration; 42 pre-simulation review/applied/cleared captures, 57 focused cases and rebuilt desktop/phone checks passed.",
+      "evidence": [
+        "src/ui/components/inspector/FaultApplicationPreview.tsx",
+        "src/ui/components/inspector/FaultApplicationPreview.test.tsx",
+        "src/ui/components/inspector/FaultTargetApplicationDiagram.tsx",
+        "src/ui/components/inspector/FaultLabStage.tsx",
+        "src/ui/components/inspector/InspectorFaultLabView.tsx",
+        "src/ui/canvas/ComponentNode.tsx",
+        "src/ui/canvas/ComponentNode.test.tsx",
+        "src/ui/canvas/ComponentSymbol.tsx",
+        "e2e/fault-lab-application-review.spec.ts",
+        "docs/audits/phase-1-fault-lab-redesign.md",
+        "src/ui/canvas/faultFx.ts",
+        "src/ui/canvas/faultFx.test.ts",
+        "src/ui/canvas/FaultFxLayer.tsx",
+        "src/ui/canvas/FaultFxLayer.test.tsx",
+        "src/ui/canvas/ComponentLayer.tsx",
+        "src/ui/CircuitCanvas.tsx",
+        "src/ui/CircuitCanvas.test.tsx",
+        "src/ui/components/inspector/InspectorFaultLabView.test.tsx",
+        "e2e/fault-lab-redesign.production.spec.ts"
+      ],
+      "review": {
+        "at": "2026-10-14T14:21:49.585Z",
+        "scope": "Reviewed canonical component/wire/port canvas markers, exact-pin cuts, declared protection bypass poles, rotated target geometry, stable Inside/Circuit/Apply/Clear rendering and animation placement. All 14 source Apply/Clear flows passed exact canonical/compiled targets and document restoration; 42 capture contact sheets and selected full-size applied images visually reviewed. Focused 57 units, final full types/E2E types/lint/build/delivery budgets and rebuilt desktop/phone checks passed. Captures precede a fresh simulation; full 2004-case closure suite and numerical performance were not rerun.",
+        "fingerprint": "db98bcd7a1858540fe5566025e781d86f92bc7bc36aca352bd60e8dac626b095"
+      }
+    },
+    {
+      "id": "catalogue-model-coverage-and-feedback",
+      "summary": "The 116-entry placement-default audit finds 31 unassessed models: 27 loads and four other devices. The three-phase motor becomes supported after explicit settings; 30 other entries need missing behaviour code. Several other contact/control entries remain conditional or partial. Unavailable numerical results now show a visible component-specific message with the Console closed; canvas badges distinguish missing behaviour from unknown ratings. Shared nominal-voltage mismatch warnings retain unassessed operation when ranges are unknown and avoid global-voltage comparisons for unsolved series paths. This reporting repair does not implement the missing catalogue calculations or establish whole-catalogue acceptance.",
+      "evidence": [
+        "docs/audits/catalogue-simulation-gaps.md",
+        "docs/plans/CATALOGUE_MODEL_COMPLETION_PLAN.md",
+        "packages/domain/src/core/models.ts",
+        "packages/domain/src/core/capabilityCatalogue.ts",
+        "packages/domain/src/core/capabilities.ts",
+        "packages/domain/src/core/compatibility.ts",
+        "packages/domain/src/core/readiness.ts",
+        "packages/domain/src/core/readiness.test.ts",
+        "src/ui/components/SimulationFeedback.tsx",
+        "src/ui/components/SimulationFeedback.test.tsx",
+        "src/ui/components/SubHeaderBar.tsx",
+        "src/ui/canvas/ComponentLayer.tsx",
+        "src/ui/canvas/ComponentNode.tsx",
+        "e2e/helpers/unsupported-load-feedback.ts",
+        "e2e/unsupported-load-feedback.spec.ts",
+        "e2e/unsupported-load-feedback.production.spec.ts"
+      ],
+      "review": {
+        "at": "2026-10-14T16:06:12.688Z",
+        "scope": "Reviewed the current implementation, audit and evidence, including final formatting-only normalization of the tested browser helper. The 116 default entries include 31 unassessed models, of which one motor is configurable and 30 need behaviour code. Feedback and nominal mismatch diagnostics passed 465 affected units, 842 local parity cases, three native source flows, three Comlink regressions and two built native flows. Missing component calculations remain unimplemented; no whole-catalogue runtime acceptance is claimed.",
+        "fingerprint": "c699620f653c0311dc4ce281198da95b63e4b99ee28157ae74702c0c3c66a631"
+      }
     }
   ],
   "relations": [
+    {
+      "from": "src/ui/components/inspector/FaultApplicationPreview.test.tsx",
+      "relation": "tests",
+      "to": "src/ui/components/inspector/FaultTargetApplicationDiagram.tsx"
+    },
+    {
+      "from": "src/ui/canvas/ComponentNode.test.tsx",
+      "relation": "tests",
+      "to": "src/ui/canvas/ComponentNode.tsx"
+    },
     {
       "from": "src/ui/canvas/componentAppearance.test.tsx",
       "relation": "tests",
@@ -631,18 +766,6 @@
     },
     {
       "from": "e2e/damage-repair.spec.ts",
-      "to": "playwright.config.ts",
-      "relation": "configured-by",
-      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
-    },
-    {
-      "from": "e2e/diagnosis-assessment.spec.ts",
-      "to": "playwright.config.ts",
-      "relation": "configured-by",
-      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
-    },
-    {
-      "from": "e2e/diagnosis-lab.spec.ts",
       "to": "playwright.config.ts",
       "relation": "configured-by",
       "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
@@ -881,6 +1004,101 @@
       "from": "e2e/production.spec.ts",
       "relation": "tests",
       "to": "scripts/preview-server.mjs"
+    },
+    {
+      "from": "src/ui/components/inspector/InspectorFaultLabView.test.tsx",
+      "relation": "tests",
+      "to": "src/ui/components/inspector/InspectorFaultLabView.tsx"
+    },
+    {
+      "from": "src/ui/components/inspector/InspectorFaultLabView.test.tsx",
+      "relation": "tests",
+      "to": "src/store/faultLabStore.ts"
+    },
+    {
+      "from": "src/ui/components/inspector/InspectorFaultLabView.test.tsx",
+      "relation": "tests",
+      "to": "src/store/circuitStore.ts"
+    },
+    {
+      "from": "src/ui/components/inspector/faultLabEvidence.test.ts",
+      "relation": "tests",
+      "to": "src/ui/components/inspector/faultLabEvidence.ts"
+    },
+    {
+      "from": "src/ui/components/inspector/faultLabEvidence.test.ts",
+      "relation": "tests",
+      "to": "src/store/faultLabStore.ts"
+    },
+    {
+      "from": "src/ui/components/LogPanel.test.tsx",
+      "relation": "tests",
+      "to": "src/ui/components/LogPanel.tsx"
+    },
+    {
+      "from": "e2e/fault-lab-redesign.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/components/inspector/InspectorFaultLabView.tsx"
+    },
+    {
+      "from": "e2e/fault-lab-redesign.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/components/inspector/FaultLabStage.tsx"
+    },
+    {
+      "from": "e2e/fault-lab-redesign.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/components/inspector/fault-lab.css"
+    },
+    {
+      "from": "e2e/fault-lab-redesign.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/components/LogPanel.tsx"
+    },
+    {
+      "from": "e2e/fault-lab-redesign.production.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/components/inspector/fault-lab.css"
+    },
+    {
+      "from": "e2e/diagnosis-retirement.spec.ts",
+      "relation": "tests",
+      "to": "src/worker.ts"
+    },
+    {
+      "from": "e2e/diagnosis-retirement.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/Editor.tsx"
+    },
+    {
+      "from": "scripts/test-simulator.ts",
+      "relation": "tests",
+      "to": "src/api/circuits.ts"
+    },
+    {
+      "from": "scripts/domain-parity-fixture.ts",
+      "relation": "tests",
+      "to": "packages/domain/src/simulation/faultLabFixtures.ts"
+    },
+    {
+      "from": "src/ui/components/SimulationFeedback.test.tsx",
+      "relation": "tests",
+      "to": "src/ui/components/SimulationFeedback.tsx"
+    },
+    {
+      "from": "packages/domain/src/core/readiness.test.ts",
+      "relation": "tests",
+      "to": "packages/domain/src/core/compatibility.ts"
+    },
+    {
+      "from": "e2e/unsupported-load-feedback.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/components/SimulationFeedback.tsx"
+    },
+    {
+      "from": "e2e/unsupported-load-feedback.production.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/components/SimulationFeedback.tsx"
     }
   ],
   "features": [
@@ -919,7 +1137,6 @@
         "src/ui/components/inspector/InspectorQuickSettings.tsx",
         "src/ui/components/inspector/SwitchOperation.tsx",
         "src/ui/components/GuidedCircuitPanel.tsx",
-        "src/ui/components/DiagnosisPanel.tsx",
         "src/ui/components/SimulatorAccessBanner.tsx",
         "src/ui/ErrorBoundary.tsx",
         "src/ui/canvas/ComponentNode.tsx",
@@ -981,7 +1198,6 @@
             "e2e/three-phase-source.spec.ts",
             "e2e/consumer-evidence.spec.ts",
             "e2e/guided-circuits.spec.ts",
-            "e2e/diagnosis-assessment.spec.ts",
             "e2e/challenge-retirement.spec.ts"
           ],
           "reason": "All 90 consumer assertions pass across three engines, including real Comlink/local-Hono, reviews/Undo/persistence, damage/repair, guides and grading. Reporter completed; outer shell 143. Current bounded graded repair/reload and UI recovery exit 0; no electrical or deadline assertions were weakened."
@@ -1017,12 +1233,12 @@
         },
         {
           "command": "PLAYWRIGHT_DEV_PORT=3002 bun x playwright test e2e/diagnosis-assessment.spec.ts e2e/open-drafting-table.spec.ts --workers=1 --grep 'versioned diagnosis simulations|correct diagnosis needs|obsolete saved model|Properties preserves|retain exits'",
-          "files": ["e2e/diagnosis-assessment.spec.ts", "e2e/open-drafting-table.spec.ts"],
+          "files": ["e2e/open-drafting-table.spec.ts"],
           "reason": "Final bounded 15-case clean-exit source recovery across all engines after the shorter phone sheet, keeping real repair/reload/stale-model, atomic drafts and exit-content/manual-motion assertions."
         },
         {
           "command": "PLAYWRIGHT_DEV_PORT=3002 bun x playwright test e2e/diagnosis-lab.spec.ts e2e/open-drafting-table.spec.ts --workers=1 --grep 'frames the circuit clear|Console stays reachable'",
-          "files": ["e2e/diagnosis-lab.spec.ts", "e2e/open-drafting-table.spec.ts"],
+          "files": ["e2e/open-drafting-table.spec.ts"],
           "reason": "Final six cases exit 0: actual unobstructed hit targets during learning, no circuit overlap, unchanged 25 px legibility, scrollable fixed guide footer and preserved exercise on Console handoff."
         },
         {
@@ -1283,9 +1499,9 @@
           "reason": "Default full generator, fault/repair and deterministic replay workloads with unchanged timing assertions."
         },
         {
-          "command": "bun run stress:diagnosis",
-          "files": ["scripts/stress-diagnosis.ts"],
-          "reason": "Default full diagnosis generation/repair/evaluation/replay workload."
+          "command": "Historical retired check: bun run stress:diagnosis",
+          "files": ["docs/audits/phase-1-fault-lab-redesign.md"],
+          "reason": "Historical Diagnosis check; the runtime is retired in Phase 1.11. Refer to preserved prior acceptance and the retirement audit."
         },
         {
           "command": "bun run test:gates",
@@ -1392,7 +1608,7 @@
     },
     {
       "id": "diagnosis-standard-only",
-      "summary": "Diagnosis Lab is the sole generated learning mode after user-directed Challenge Mode retirement; shared generation, faults, replay and server-owned grading remain.",
+      "summary": "Historical Diagnosis learning-mode acceptance. Phase 1.11 retires the runtime and keeps browser/D1 records, capability data, generator utilities and historical evidence. Current Fault Lab coverage is recorded separately.",
       "tags": [
         "diagnosis",
         "cleanup",
@@ -1405,11 +1621,7 @@
         "replay"
       ],
       "entryPoints": [
-        "packages/domain/src/challenges/diagnosis/scenario.ts",
         "packages/domain/src/challenges/share.ts",
-        "src/store/diagnosisStore.ts",
-        "src/ui/components/DiagnosisPanel.tsx",
-        "src/api/diagnosis.ts",
         "packages/domain/src/challenges/faults/verification.ts",
         "src/store/settingsStore.ts",
         "src/ui/components/settings/SettingsTabContent.tsx",
@@ -1425,43 +1637,35 @@
       ],
       "checks": [
         {
-          "command": "bun run check",
+          "command": "Historical Phase 1.9 check (retired runtime): bun run check",
           "files": [
-            "packages/domain/src/challenges/diagnosis/scenario.test.ts",
-            "packages/domain/src/challenges/diagnosis/assessment.test.ts",
             "packages/domain/src/challenges/share.test.ts",
-            "src/store/diagnosisStore.test.ts",
-            "src/store/diagnosisPersistence.test.ts",
             "src/store/settingsStore.test.ts",
             "packages/domain/src/challenges/faults/verification.test.ts",
             "packages/domain/src/challenges/generator/generator.test.ts",
             "packages/domain/src/challenges/generator/seed.test.ts"
           ],
-          "reason": "Ordinary scenarios, authored repairs, grading, persisted settings and strict standard seed replay."
+          "reason": "Historical acceptance mapping; current runtime retired in Phase 1.11. Ordinary scenarios, authored repairs, grading, persisted settings and strict standard seed replay."
         },
         {
-          "command": "bun run test:membership",
+          "command": "Historical Phase 1.9 check (retired runtime): bun run test:membership",
           "files": ["scripts/test-membership.ts", "scripts/test-simulator.ts"],
-          "reason": "Real local Worker/D1/cookie auth, advanced diagnosis actions, revocation and preserved content."
+          "reason": "Historical acceptance mapping; current runtime retired in Phase 1.11. Real local Worker/D1/cookie auth, advanced diagnosis actions, revocation and preserved content."
         },
         {
-          "command": "PLAYWRIGHT_DEV_PORT=3002 bun x playwright test e2e/diagnosis-lab.spec.ts e2e/diagnosis-assessment.spec.ts --grep 'offers three difficulties|requires BOTH|a wrong diagnosis|copies a seed|versioned diagnosis simulations|correct diagnosis needs|obsolete saved' --workers=1",
-          "files": [
-            "e2e/diagnosis-lab.spec.ts",
-            "e2e/diagnosis-assessment.spec.ts",
-            "playwright.config.ts"
-          ],
-          "reason": "Focused standard diagnosis controls, repair/reload, clipboard replay, worker parity and stale-evidence rejection across desktop, phone and tablet; Safari clipboard case is intentionally skipped."
+          "command": "Historical Phase 1.9 check (retired runtime): PLAYWRIGHT_DEV_PORT=3002 bun x playwright test e2e/diagnosis-lab.spec.ts e2e/diagnosis-assessment.spec.ts --grep 'offers three difficulties|requires BOTH|a wrong diagnosis|copies a seed|versioned diagnosis simulations|correct diagnosis needs|obsolete saved' --workers=1",
+          "files": ["playwright.config.ts"],
+          "reason": "Historical acceptance mapping; current runtime retired in Phase 1.11. Focused standard diagnosis controls, repair/reload, clipboard replay, worker parity and stale-evidence rejection across desktop, phone and tablet; Safari clipboard case is intentionally skipped."
         },
         {
-          "command": "bun run build && bun run check:perf && bun run check:links && bun run check:seo && bun run check:csp",
+          "command": "Historical Phase 1.9 check (retired runtime): bun run build && bun run check:perf && bun run check:links && bun run check:seo && bun run check:csp",
           "files": [
             "astro-site/src/content/pages/landing.json",
             "astro-site/src/components/landing/LandingCoreSections.astro",
             "astro-site/src/styles/landing.css",
             "astro-site/src/content/updates/electrasim-2-0-release.md"
           ],
-          "reason": "Build simulator and Astro output, remove retired marketing copy and validate the two-card desktop/mobile section alongside static site budgets, links, SEO and CSP."
+          "reason": "Historical acceptance mapping; current runtime retired in Phase 1.11. Build simulator and Astro output, remove retired marketing copy and validate the two-card desktop/mobile section alongside static site budgets, links, SEO and CSP."
         }
       ],
       "broaderChecks": [
@@ -1473,7 +1677,7 @@
         "scope": "Reviewed cleanup audit, standard diagnosis schema/API entry points, data-only copy migration and current Phase 1.9 evidence. Ordinary modes retain 2147 unit passes, 842 parity cases, 36 membership and 20 simulator groups, current browser flows and 600 Diagnosis scenarios. Migration is current locally; phase closed by explicit user decision with timing exceptions.",
         "fingerprint": "769fc0c3804eac8b8bccc964f4c657607290f45b5c913fa8d498cf3827f398ce"
       },
-      "facts": ["challenge-mode-deferred-by-user"]
+      "facts": ["challenge-mode-deferred-by-user", "diagnosis-retirement-proposal"]
     },
     {
       "id": "workspace-control-reachability",
@@ -1494,7 +1698,6 @@
       "entryPoints": [
         "src/ui/components/Toolbar.tsx",
         "src/ui/open-table.css",
-        "src/ui/components/DiagnosisPanel.tsx",
         "src/ui/components/GuidedCircuitPanel.tsx",
         "src/ui/components/ElectricalEditDialog.tsx",
         "e2e/helpers/workbench.ts",
@@ -1510,7 +1713,6 @@
           "files": [
             "e2e/mna-runtime.spec.ts",
             "e2e/guided-circuits.spec.ts",
-            "e2e/diagnosis-lab.spec.ts",
             "e2e/three-phase-source.spec.ts",
             "e2e/workbench-ui.spec.ts",
             "e2e/helpers/workbench.ts"
@@ -1625,12 +1827,7 @@
         },
         {
           "command": "PLAYWRIGHT_DEV_PORT=3002 bun x playwright test e2e/challenge-retirement.spec.ts e2e/diagnosis-lab.spec.ts e2e/diagnosis-assessment.spec.ts e2e/guided-circuits.spec.ts --grep 'retired Challenge|Diagnosis remains|offers three difficulties|versioned diagnosis simulations|correct diagnosis needs|loads the Push-Button Doorbell|visible close control' --workers=1",
-          "files": [
-            "e2e/challenge-retirement.spec.ts",
-            "e2e/diagnosis-assessment.spec.ts",
-            "e2e/diagnosis-lab.spec.ts",
-            "e2e/guided-circuits.spec.ts"
-          ],
+          "files": ["e2e/challenge-retirement.spec.ts", "e2e/guided-circuits.spec.ts"],
           "reason": "Real desktop/phone/tablet absence, old-IDB-session non-resume, normal circuit preservation, Diagnosis repair/replay/reload and guides. Safari uses the existing keyboard activation helper for unstable menu spans."
         },
         {
@@ -1652,6 +1849,281 @@
         "at": "2026-10-14T05:25:50.522Z",
         "scope": "Reviewed preserved Challenge retirement/defer audit and updated implementation/phase plan after approved shell cleanup. Original retirement evidence remains scoped; current full 2115-test cleanup check preserves shared Diagnosis contracts. Earlier 20 Worker groups and absence/non-resume browser evidence are retained, not claimed rerun after deletion. No plans/docs removed or remote action.",
         "fingerprint": "4349c2592de29058fb295113e9fbccf37503fcdbe471a8efa84705dc84c7e07e"
+      }
+    },
+    {
+      "id": "fault-lab-redesign-proposal",
+      "summary": "Phase 1.11 is complete locally after explicit design approval: real target investigation, type-specific 14-fault review and applied previews with all types captured, detached fresh responses, Explain/Readings/Repair, separate clear/reset/ON/replacement, bounded visual-only conductor motion and independent Console target navigation. Diagnosis runtime retirement followed replacement acceptance; records/schema/grants and shared electrical contracts remain. Original closure evidence: full 2004 units, 138 unique source cases, 8 built cases, 842 runtime parity cases and 34 Worker/D1 groups. The application follow-up uses actual target component symbols/terminals or wire routes, with 42 review/applied/cleared screenshots and 57 focused cases. Historical performance exceptions remain; no publication. Separate catalogue audit records existing missing LED/fan/appliance calculations; Fault Lab acceptance is not whole-catalogue operation acceptance.",
+      "tags": [
+        "fault-lab",
+        "redesign",
+        "diagnosis-retirement",
+        "design-review",
+        "matter-visual-only",
+        "local-only"
+      ],
+      "entryPoints": [
+        "src/ui/components/inspector/InspectorFaultLabView.tsx",
+        "src/ui/components/inspector/FaultLabStage.tsx",
+        "src/ui/components/inspector/FaultApplicationPreview.tsx",
+        "src/ui/components/inspector/FaultTargetApplicationDiagram.tsx",
+        "src/ui/components/inspector/faultLabEvidence.ts",
+        "src/store/faultLabStore.ts",
+        "src/ui/components/inspector/FaultRepairPanel.tsx",
+        "src/ui/components/inspector/fault-lab.css",
+        "src/ui/components/LogPanel.tsx",
+        "src/ui/components/inspector/Inspector.tsx",
+        "scripts/verify-phase111.mjs"
+      ],
+      "evidence": [
+        "docs/design/fault-lab/index.html",
+        "docs/design/fault-lab/studio.css",
+        "docs/design/fault-lab/scenes.js",
+        "docs/design/fault-lab/studio.js",
+        "docs/design/fault-lab/README.md",
+        "docs/design/fault-lab/SCREENS.md",
+        "docs/design/fault-lab/DIAGNOSIS_RETIREMENT_REVIEW.md",
+        "docs/plans/FAULT_LAB_REDESIGN_PLAN.md",
+        "scripts/preview-fault-lab.mjs",
+        "docs/audits/open-drafting-table-implementation.md",
+        "docs/audits/phase-1-fault-lab-redesign.md",
+        "e2e/fault-lab-redesign.spec.ts",
+        "e2e/fault-lab-redesign.production.spec.ts",
+        "e2e/diagnosis-retirement.spec.ts",
+        "e2e/fault-lab-application-review.spec.ts",
+        "src/ui/components/inspector/FaultApplicationPreview.test.tsx",
+        "src/ui/canvas/ComponentNode.test.tsx"
+      ],
+      "facts": [
+        "diagnosis-retirement-proposal",
+        "fault-edit-fresh-runtime-result",
+        "matter-consumer-only",
+        "local-only",
+        "fault-lab-captured-presentation",
+        "fault-lab-application-preview"
+      ],
+      "checks": [
+        {
+          "command": "PLAYWRIGHT_DEV_PORT=3001 bun x playwright test e2e/fault-lab-application-review.spec.ts --project=chromium --reporter=line",
+          "files": [
+            "e2e/fault-lab-application-review.spec.ts",
+            "src/ui/components/inspector/FaultApplicationPreview.tsx",
+            "src/ui/components/inspector/FaultTargetApplicationDiagram.tsx",
+            "src/ui/components/inspector/FaultLabStage.tsx",
+            "src/ui/components/inspector/InspectorFaultLabView.tsx",
+            "src/ui/canvas/ComponentNode.tsx",
+            "src/ui/canvas/ComponentSymbol.tsx",
+            "src/ui/canvas/faultFx.ts",
+            "src/ui/canvas/FaultFxLayer.tsx",
+            "src/ui/canvas/ComponentLayer.tsx",
+            "src/ui/CircuitCanvas.tsx"
+          ],
+          "reason": "All 14 types pass exact canonical and compiled graph target Apply/Clear, actual target preview, main canvas marker and chip placement, both drawing views and starting-document restoration. Captured 42 review/applied/cleared screens before a fresh simulation; unassessed effects remain labeled."
+        },
+        {
+          "command": "bun x vitest run src/ui/canvas/faultFx.test.ts src/ui/canvas/FaultFxLayer.test.tsx src/ui/components/inspector/InspectorFaultLabView.test.tsx src/ui/components/inspector/FaultApplicationPreview.test.tsx src/ui/canvas/ComponentNode.test.tsx src/ui/CircuitCanvas.test.tsx",
+          "files": [
+            "src/ui/components/inspector/FaultApplicationPreview.test.tsx",
+            "src/ui/components/inspector/FaultTargetApplicationDiagram.tsx",
+            "src/ui/canvas/ComponentNode.test.tsx",
+            "src/ui/canvas/ComponentNode.tsx",
+            "src/ui/canvas/ComponentSymbol.tsx",
+            "src/ui/canvas/faultFx.ts",
+            "src/ui/canvas/faultFx.test.ts",
+            "src/ui/canvas/FaultFxLayer.tsx",
+            "src/ui/canvas/FaultFxLayer.test.tsx",
+            "src/ui/canvas/ComponentLayer.tsx",
+            "src/ui/CircuitCanvas.tsx",
+            "src/ui/CircuitCanvas.test.tsx",
+            "src/ui/components/inspector/InspectorFaultLabView.test.tsx"
+          ],
+          "reason": "57 focused cases verify canonical port/wire causes, legacy mirror deduplication, resolved/cleared cause removal, exact terminal cut position, model pole bypass geometry, preserved SVG animation placement, target glyphs and stable Apply/Circuit/Inside/Clear hook order."
+        },
+        {
+          "command": "bun run check",
+          "files": [
+            "src/ui/components/inspector/InspectorFaultLabView.test.tsx",
+            "src/ui/components/inspector/faultLabEvidence.test.ts",
+            "src/ui/components/inspector/FaultRepairPanel.test.tsx",
+            "src/ui/components/LogPanel.test.tsx",
+            "src/store/damageRepair.test.ts",
+            "src/ui/canvas/FaultFxLayer.test.tsx",
+            "src/ui/canvas/faultFx.test.ts"
+          ],
+          "reason": "Full registered types/lint/unit gate; reviewed drafts, stale/captured playback, modal pause, undo/original/groups, separate fault and damage actions, Console target navigation and truthful legacy indicators."
+        },
+        {
+          "command": "PLAYWRIGHT_DEV_PORT=3002 bun x playwright test e2e/fault-lab-redesign.spec.ts e2e/diagnosis-retirement.spec.ts e2e/damage-repair.spec.ts e2e/consumer-evidence.spec.ts e2e/workbench-ui.spec.ts e2e/open-drafting-table.spec.ts e2e/electrical-editing.spec.ts e2e/challenge-retirement.spec.ts e2e/matter-effects.spec.ts --workers=1",
+          "files": [
+            "e2e/fault-lab-redesign.spec.ts",
+            "e2e/diagnosis-retirement.spec.ts",
+            "e2e/damage-repair.spec.ts",
+            "e2e/consumer-evidence.spec.ts",
+            "e2e/workbench-ui.spec.ts",
+            "e2e/open-drafting-table.spec.ts",
+            "e2e/electrical-editing.spec.ts",
+            "e2e/challenge-retirement.spec.ts",
+            "e2e/matter-effects.spec.ts",
+            "e2e/helpers/workbench.ts"
+          ],
+          "reason": "138 unique cases across desktop Chrome, phone Chrome and tablet Safari: real reviewed edits, freshness/playback, independent Console clicks, protection/damage lifecycle, unchanged historical records, ordinary guides/editing/shell and bounded visual consumers. Final 15 affected cases renewed after Console layering fix."
+        },
+        {
+          "command": "bun x playwright test --config=playwright.production.config.ts e2e/fault-lab-redesign.production.spec.ts e2e/open-drafting-table.production.spec.ts --workers=1",
+          "files": [
+            "e2e/fault-lab-redesign.production.spec.ts",
+            "e2e/open-drafting-table.production.spec.ts"
+          ],
+          "reason": "Eight final built delivery cases, actual import/draft/capture/Stop/clear/Console navigation and accepted shell at desktop/phone widths."
+        },
+        {
+          "command": "bun run test:domain-local",
+          "files": [
+            "scripts/domain-parity-fixture.ts",
+            "packages/domain/src/simulation/faultLabFixtures.ts"
+          ],
+          "reason": "842 exact Bun/workerd cases; twelve retired Diagnosis grading fixtures replaced explicitly by twelve ordinary electrical lifecycle fixtures."
+        },
+        {
+          "command": "bun run test:membership",
+          "files": [
+            "scripts/test-membership.ts",
+            "scripts/test-simulator.ts",
+            "scripts/test-simulator-browser.ts",
+            "src/api/circuits.ts",
+            "src/worker.ts",
+            "packages/access/src/circuit.ts"
+          ],
+          "reason": "34 real local Worker/D1/cookie groups, retained historical attempt rows and grants, retired endpoints, normal guest/paid save/edit/revoke/export/basic-copy behavior; no remote operations."
+        },
+        {
+          "command": "bun run build && bun run check:perf && bun run check:links && bun run check:seo && bun run check:csp",
+          "files": [
+            "src/ui/components/inspector/fault-lab.css",
+            "astro-site/src/content/pages/landing.json",
+            "astro-site/src/content/blog/how-to-use-the-electrasim-guide-beginner-to-pro.md",
+            "src/ui/components/docs/DocsContent.tsx",
+            "src/ui/components/docs/data.ts"
+          ],
+          "reason": "Current local delivery and truthful help/marketing, static assets/links/SEO/CSP; asset budgets do not close historical numerical/dense-render exceptions."
+        }
+      ],
+      "decisions": [
+        "The user explicitly approved implementation on 2026-10-14; replacement acceptance preceded direct Diagnosis runtime retirement.",
+        "Preserve shared fault, protection, damage, repair and ordinary circuit behavior.",
+        "Preserve browser/database records and historical migrations; do not clear or drop data.",
+        "Generator/challenge utility deletion is conditional on dependency review and a separate user decision.",
+        "Matter.js remains a visual-only consumer of accepted electrical outcomes."
+      ],
+      "broaderChecks": [
+        "Shared result contracts, restore/edit guards, authorization or route changes require full units and actual local Worker/D1/runtime parity in addition to affected three-project and built browser evidence.",
+        "Playback must use detached current evidence and remain presentation-only; stale/unassessed models cannot acquire simulated outcomes from animation.",
+        "Historical solver/generator/dense-render exceptions remain open. Graph freshness is not a passing test."
+      ],
+      "review": {
+        "at": "2026-10-14T12:41:44.392Z",
+        "scope": "Reviewed final Phase 1.11 plan, completion audit and application follow-up: 14 registry types each have real review/apply screenshots, target-specific previews, verified active edits and explicit unassessed boundaries. Focused preview/Inspector cases, full typecheck and the completed browser capture pass are recorded; prior full-suite count predates added preview cases. Local only.",
+        "fingerprint": "455572096f705c57113eac3bf896c559341ad618cc5841b5ddeb72fc2f32dd7c"
+      }
+    },
+    {
+      "id": "catalogue-simulation-coverage",
+      "summary": "Placement-default model audit and visible unsupported-calculation feedback. Missing model code is an explicit product gap, distinct from unknown rating checks and from the completed Fault Lab editing/visual workflow. The catalogue completion plan is proposed, not implemented.",
+      "tags": [
+        "catalogue",
+        "simulation",
+        "LED",
+        "fans",
+        "unassessed",
+        "unavailable",
+        "readiness",
+        "supply",
+        "voltage",
+        "models",
+        "local-only"
+      ],
+      "entryPoints": [
+        "packages/domain/src/core/models.ts",
+        "packages/domain/src/core/capabilities.ts",
+        "packages/domain/src/core/compatibility.ts",
+        "src/ui/components/SimulationFeedback.tsx",
+        "src/ui/components/SubHeaderBar.tsx"
+      ],
+      "evidence": [
+        "docs/audits/catalogue-simulation-gaps.md",
+        "docs/plans/CATALOGUE_MODEL_COMPLETION_PLAN.md",
+        "packages/domain/src/core/models.ts",
+        "packages/domain/src/core/capabilityCatalogue.ts",
+        "packages/domain/src/core/capabilities.ts",
+        "packages/domain/src/core/compatibility.ts",
+        "packages/domain/src/core/readiness.ts",
+        "packages/domain/src/core/readiness.test.ts",
+        "src/ui/components/SimulationFeedback.tsx",
+        "src/ui/components/SimulationFeedback.test.tsx",
+        "src/ui/components/SubHeaderBar.tsx",
+        "src/ui/canvas/ComponentLayer.tsx",
+        "src/ui/canvas/ComponentNode.tsx",
+        "e2e/helpers/unsupported-load-feedback.ts",
+        "e2e/unsupported-load-feedback.spec.ts",
+        "e2e/unsupported-load-feedback.production.spec.ts"
+      ],
+      "facts": ["catalogue-model-coverage-and-feedback", "local-only"],
+      "checks": [
+        {
+          "command": "bun x vitest run packages/domain/src/core src/store/supplyProfiles.test.ts src/store/useSimulation.test.ts src/ui/components/SimulationFeedback.test.tsx src/ui/canvas/ComponentNode.test.tsx src/ui/canvas/componentAppearance.test.tsx src/ui/CircuitCanvas.test.tsx",
+          "files": [
+            "packages/domain/src/core/readiness.test.ts",
+            "packages/domain/src/core/operatingPoint.test.ts",
+            "src/ui/components/SimulationFeedback.test.tsx",
+            "src/ui/canvas/ComponentNode.test.tsx",
+            "src/store/useSimulation.test.ts",
+            "src/store/supplyProfiles.test.ts"
+          ],
+          "reason": "465 affected core/store/canvas/UI cases; truthful nominal mismatch, no fabricated load law, current/stale unavailable feedback and supported numerical behaviour."
+        },
+        {
+          "command": "bun run test:domain-local",
+          "files": [
+            "packages/domain/src/core/compatibility.ts",
+            "packages/domain/src/core/readiness.ts",
+            "scripts/domain-parity-fixture.ts"
+          ],
+          "reason": "842 exact Bun/workerd compiler/preflight/numerical-result cases after shared diagnostic metadata changes."
+        },
+        {
+          "command": "PLAYWRIGHT_DEV_PORT=3001 bun x playwright test e2e/unsupported-load-feedback.spec.ts",
+          "files": [
+            "e2e/helpers/unsupported-load-feedback.ts",
+            "e2e/unsupported-load-feedback.spec.ts",
+            "src/ui/components/SimulationFeedback.tsx",
+            "src/ui/components/SubHeaderBar.tsx",
+            "src/ui/canvas/ComponentLayer.tsx"
+          ],
+          "reason": "Actual L/N/LED placement, port wiring, confirmed supply edits, Run, visible unavailable results with Console closed, findings navigation and unavailable readings across source browser projects."
+        },
+        {
+          "command": "bun x playwright test e2e/unsupported-load-feedback.production.spec.ts --config=playwright.production.config.ts",
+          "files": [
+            "e2e/unsupported-load-feedback.production.spec.ts",
+            "e2e/helpers/unsupported-load-feedback.ts",
+            "src/ui/open-table.css"
+          ],
+          "reason": "Same native placement/wiring workflow on rebuilt 1280/390 px delivery; screenshot and viewport inspection."
+        }
+      ],
+      "decisions": [
+        "Do not equate available artwork or nameplate power with a numerical component model.",
+        "A nominal design-voltage difference with no operating band remains a warning, not an invented device trip or damage prediction.",
+        "The proposed catalogue model slices require explicit model laws and independently validated operating parameters before missing load calculations can be counted as implemented."
+      ],
+      "broaderChecks": [
+        "Electrical law/default/source/branch changes require affected numerical and shared runtime/browser gates; catalogue inventory review alone is not complete runtime acceptance.",
+        "Feedback freshness must follow the exact electrical input revision; missing ratings on solved resistive components must not be relabeled as missing numerical models."
+      ],
+      "review": {
+        "at": "2026-10-14T16:06:14.919Z",
+        "scope": "Reviewed the final current catalogue audit, proposed model-completion slices, implementation and local evidence. Final browser-helper whitespace normalization changes no assertions or runtime behaviour. Supported-source numerical regressions and unavailable LED feedback passed; the inventory is source/model review, not 116-circuit runtime validation. Actual missing lamp/fan/appliance models still require implementation.",
+        "fingerprint": "83a81667932239e6cba977804ed55c196da60eed3a50e6b469d3e77f6ba44647"
       }
     }
   ]

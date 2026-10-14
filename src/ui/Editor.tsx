@@ -45,9 +45,6 @@ const TemplatesModal = lazy(() =>
 const GuidedCircuitPanel = lazy(() =>
   import('./components/GuidedCircuitPanel').then((m) => ({ default: m.GuidedCircuitPanel })),
 );
-const DiagnosisPanel = lazy(() =>
-  import('./components/DiagnosisPanel').then((m) => ({ default: m.DiagnosisPanel })),
-);
 const MobileSuitabilityModal = lazy(() =>
   import('./components/MobileSuitabilityModal').then((m) => ({
     default: m.MobileSuitabilityModal,
@@ -250,7 +247,6 @@ export function Editor() {
   const activeGuideId = useUiStore((s) => s.activeGuideId);
   const guideHidden = useUiStore((s) => s.guideHidden);
   const visibleGuideId = useClosingValue(activeGuideId);
-  const diagnosisOpen = useUiStore((s) => s.diagnosisOpen);
   const mobileSuitabilityOpen = useUiStore((s) => s.mobileSuitabilityOpen);
   const welcomeOpen = useUiStore((s) => s.welcomeOpen);
   const tourId = useUiStore((s) => s.tourId);
@@ -318,7 +314,7 @@ export function Editor() {
       data-interface-motion={interfaceMotion}
       data-palette-open={paletteOpen}
       data-inspector-open={!inspectorCollapsed}
-      data-learning-open={diagnosisOpen || (!!activeGuideId && !guideHidden && inspectorCollapsed)}
+      data-learning-open={!!activeGuideId && !guideHidden && inspectorCollapsed}
       style={{ fontFamily: canvasTheme.font, background: bgGradient }}
     >
       <CircuitCanvas
@@ -365,11 +361,6 @@ export function Editor() {
         </Suspense>
       </SurfacePresence>
 
-      <SurfacePresence open={diagnosisOpen} animate>
-        <Suspense fallback={null}>
-          <DiagnosisPanel isPhone={isPhone} open={diagnosisOpen} />
-        </Suspense>
-      </SurfacePresence>
       {showMiniMap && !isPhone && (
         <MiniMap consoleOffset={dashboardOpen ? 'expanded' : tabletConsoleOffset} />
       )}

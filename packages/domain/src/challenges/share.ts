@@ -1,15 +1,12 @@
 import { ELECTRICAL_MODEL_VERSION } from '../core/contracts';
-import { DIAGNOSIS_PROFILE_VERSION, type DiagnosisAssessment } from './diagnosis/assessment';
 import { GENERATOR_VERSION, normalizeSeed } from './generator/seed';
+import { LEGACY_DIAGNOSIS_PROFILE_VERSION, type ReplayAssessmentIdentity } from './replayIdentity';
 import type { ChallengeDifficulty, ChallengeMode } from './types';
 import { CHALLENGE_DIFFICULTIES, CHALLENGE_MODES } from './types';
 
 /** Everything needed to replay an exercise (plan §21, §29, §30). */
 export interface ShareTicket {
-  assessment?: Pick<
-    DiagnosisAssessment,
-    'version' | 'modelVersion' | 'engineVersion' | 'profileVersion'
-  >;
+  assessment?: ReplayAssessmentIdentity;
   seed: number;
   difficulty: ChallengeDifficulty;
   mode: ChallengeMode;
@@ -142,7 +139,7 @@ export function parseShareText(
             assessmentMismatch:
               Number(assessmentVersion) !== 1 ||
               modelVersion !== ELECTRICAL_MODEL_VERSION ||
-              profileVersion !== DIAGNOSIS_PROFILE_VERSION,
+              profileVersion !== LEGACY_DIAGNOSIS_PROFILE_VERSION,
           }
         : {}),
       seed: normalizeSeed(Number(rawSeed)),

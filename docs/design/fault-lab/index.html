@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Fault Lab — design review · ElectraSim</title>
+    <link rel="stylesheet" href="studio.css" />
+    <script defer src="../../../node_modules/matter-js/build/matter.min.js"></script>
+    <script defer src="../open-drafting-table/catalog-data.js"></script>
+    <script defer src="../open-drafting-table/artwork.js"></script>
+    <script defer src="scenes.js"></script>
+    <script defer src="studio.js"></script>
+  </head>
+  <body>
+    <div class="workspace" id="workspace">
+      <header class="app-header">
+        <a class="brand" href="../../../README.md" aria-label="ElectraSim project">E<span>ElectraSim</span></a>
+        <nav class="header-island" aria-label="Workspace">
+          <button type="button" data-action="canvas">Circuit</button>
+          <button type="button" class="selected" data-action="lab">Fault Lab</button>
+          <button type="button" data-action="states">Review states</button>
+        </nav>
+        <div class="header-actions">
+          <button type="button" class="quiet" data-action="motion" aria-pressed="false" title="Reduce motion">Motion</button>
+          <button type="button" class="quiet" data-action="theme" aria-label="Switch to light theme">◐</button>
+        </div>
+      </header>
+
+      <main class="lab" id="lab">
+        <div class="lab-heading">
+          <div><p class="eyebrow">FAULT LAB · EXPLORE</p><h1>Follow the failure.</h1><p class="intro">Look inside. See the response. Put it right.</p></div>
+          <span class="design-label">Design preview · illustrative states</span>
+        </div>
+        <div class="lab-layout">
+          <section class="demonstration" aria-label="Fault demonstration">
+            <div class="scene-toolbar">
+              <label class="scene-picker">Demonstration<select id="case-select" aria-label="Demonstration"></select></label>
+              <div class="view-switch" role="group" aria-label="Drawing view">
+                <button type="button" data-view="inside" aria-pressed="true">Inside</button>
+                <button type="button" data-view="circuit" aria-pressed="false">Circuit</button>
+              </div>
+              <button type="button" class="quiet reference-trigger" data-action="reference">Reference photo</button>
+            </div>
+            <div class="scene-context">
+              <div><span class="status-dot" id="status-dot"></span><span id="scene-status">Healthy circuit</span></div>
+              <span id="target-summary">W1 · live conductor</span>
+              <button type="button" class="mobile-inspector-trigger" data-action="inspector" aria-expanded="true" aria-controls="fault-inspector">Inspector</button>
+            </div>
+            <div class="visual-stage" id="visual-stage">
+              <svg id="scene-svg" viewBox="0 0 900 410" role="group" aria-label="Expanded fault demonstration"></svg>
+              <span class="stage-note">Representative cutaway · sample circuit</span>
+              <button type="button" class="compare-button" data-action="compare" aria-pressed="false">Compare healthy</button>
+            </div>
+            <div class="stage-caption" aria-live="polite"><span class="step-number" id="step-number">01</span><div><h2 id="step-title">Before the fault</h2><p id="step-summary">A complete path supplies the lamp.</p></div></div>
+            <div class="timeline" aria-label="Demonstration timeline">
+              <div id="steps" class="steps" role="group" aria-label="Sequence stages"></div>
+              <div class="playback-row">
+                <button type="button" class="primary" id="introduce" data-action="introduce">Introduce fault</button>
+                <button type="button" id="run-sample" data-action="run">Run sample</button>
+                <button type="button" class="play-button" id="play" data-action="play" aria-label="Play sequence">▶ <span>Play</span></button>
+                <button type="button" class="quiet" data-action="previous" aria-label="Previous stage">←</button>
+                <button type="button" class="quiet" data-action="next" aria-label="Next stage">→</button>
+                <button type="button" class="quiet" data-action="replay">Replay</button>
+                <label class="speed">Speed<select id="speed" aria-label="Playback speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></label>
+                <span id="playback-label" class="playback-label">Paused · 1 / 6</span>
+              </div>
+              <p class="sequence-note">Stages show cause and response. Playback speed changes the presentation.</p>
+            </div>
+            <div class="session-row"><button type="button" data-action="catalogue">Browse fault library <span>↗</span></button><button type="button" data-action="faults">Active faults <span id="fault-count">0</span></button><button type="button" data-action="console">Console <span id="console-count">1</span></button><button type="button" data-action="history">History &amp; Undo</button></div>
+          </section>
+
+          <aside class="evidence" id="fault-inspector" aria-label="Fault Inspector">
+            <div class="evidence-heading"><span class="eyebrow">FAULT INSPECTOR</span><button type="button" class="quiet" data-action="empty" title="Review the empty target state">Change target</button></div>
+            <div class="target-card"><div class="target-art" id="target-art"></div><div><strong id="target-name">Live conductor · W1</strong><span id="target-kind">Wire · conductor fault</span></div></div>
+            <div class="evidence-tabs" role="tablist" aria-label="Fault Inspector sections">
+              <button type="button" role="tab" id="tab-explain" aria-controls="evidence-content" aria-selected="true" data-tab="explain">Explain</button>
+              <button type="button" role="tab" id="tab-readings" aria-controls="evidence-content" aria-selected="false" tabindex="-1" data-tab="readings">Readings</button>
+              <button type="button" role="tab" id="tab-repair" aria-controls="evidence-content" aria-selected="false" tabindex="-1" data-tab="repair">Repair</button>
+            </div>
+            <div id="evidence-content" class="evidence-content" role="tabpanel" aria-labelledby="tab-explain"></div>
+            <div class="evidence-footer"><span id="coverage-pill" class="coverage-pill">Model scope shown</span><button type="button" class="quiet" data-action="details">Model details</button></div>
+          </aside>
+        </div>
+        <p class="review-footnote">A standalone review of the next Fault Lab. No saved circuit, grading or simulator setting is changed here. <a href="README.md">Review guide</a></p>
+      </main>
+
+      <footer class="component-shelf" aria-label="Full-width component shelf">
+        <div class="shelf-label"><span>COMPONENTS</span><small>Current simulator shelf</small></div>
+        <div class="shelf-parts" id="shelf-parts"></div>
+        <button type="button" data-action="canvas" class="shelf-edit">Edit circuit <span>↗</span></button>
+      </footer>
+      <div id="toast" class="toast" role="status" hidden></div>
+    </div>
+
+    <dialog id="dialog" aria-labelledby="dialog-title">
+      <header class="dialog-header"><div><p class="eyebrow" id="dialog-eyebrow">FAULT LAB</p><h2 id="dialog-title">Fault library</h2></div><button type="button" class="close-button" data-action="close-dialog" aria-label="Close window">×</button></header>
+      <div class="dialog-body" id="dialog-content"></div>
+      <footer class="dialog-footer" id="dialog-footer"></footer>
+    </dialog>
+  </body>
+</html>

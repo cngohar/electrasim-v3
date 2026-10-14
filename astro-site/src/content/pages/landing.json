@@ -1,10 +1,10 @@
 {
-  "seo_title": "Electrical Wiring Simulator \u2014 Free Online Lab | ElectraSim",
+  "seo_title": "Electrical Wiring Simulator — Free Online Lab | ElectraSim",
   "seo_description": "Free online electrical wiring simulator. Wire real house circuits with MCBs, RCDs, switches, and sockets. Test live trips and faults directly in browser.",
-  "hero_badge": "Free \u00b7 No sign-up \u00b7 Works offline",
+  "hero_badge": "Free · No sign-up · Works offline",
   "hero_heading": "Real electrical wiring,",
   "hero_heading_highlight": "in your browser",
-  "hero_description": "An interactive wiring lab that behaves like the real thing. Place a breaker, run the cable, close the switch \u2014 and watch current actually flow, trip and fault.",
+  "hero_description": "An interactive wiring lab that behaves like the real thing. Place a breaker, run the cable, close the switch — and watch current actually flow, trip and fault.",
   "hero_cta_primary": "Launch the Simulator",
   "hero_cta_secondary": "See how it works",
   "hero_trust_items": [
@@ -37,7 +37,7 @@
       "note": "Nothing leaves the device"
     }
   ],
-  "release_label": "ElectraSim 2.0 \u00b7 What's inside",
+  "release_label": "ElectraSim 2.0 · What's inside",
   "release_heading": "A workbench, a fault lab and a classroom in one tab",
   "release_description": "The simulator is only half of it. Around the canvas sit the modes and references that turn a wiring drawing into something you can learn from, practise on and hand over.",
   "release_highlights": [
@@ -45,19 +45,19 @@
       "icon": "grid",
       "tag": "Learn",
       "title": "Guided Circuits",
-      "body": "Twenty ready-made templates \u2014 protected lamp, two-way staircase, parallel lamps, dimmable lighting, doorbell, RCBO socket, RCD earth-fault demo, Pro SPD consumer unit \u2014 each lands on the canvas with an in-app checklist that ticks off as you wire it correctly."
+      "body": "Twenty ready-made templates — protected lamp, two-way staircase, parallel lamps, dimmable lighting, doorbell, RCBO socket, RCD earth-fault demo, Pro SPD consumer unit — each lands on the canvas with an in-app checklist that ticks off as you wire it correctly."
     },
     {
       "icon": "fault",
       "tag": "Practise",
       "title": "Fault Lab",
-      "body": "Inject an open circuit, reversed polarity, an earth fault or an arc into any component or wire, then watch the right protective device respond live on the canvas \u2014 trip, blow or sit there blind, exactly as the physics says."
+      "body": "Select a component, terminal or conductor, review a deliberate fault edit, then run and inspect a fresh response. Protection and damage follow declared models; unassessed effects stay explicit."
     },
     {
       "icon": "bolt",
       "tag": "Teach",
-      "title": "Seedable exercises",
-      "body": "Every diagnosis exercise is deterministic from its seed. Copy it, paste it, get the identical circuit \u2014 so a lecturer can hand one code to the room and every learner faces the same fault."
+      "title": "Share a circuit",
+      "body": "Export a drawing and import it in another local workspace. Keep the actual component identities, conductor properties and declared models so learners can inspect the same circuit."
     },
     {
       "icon": "standards",
@@ -69,7 +69,7 @@
       "icon": "cable",
       "tag": "Reference",
       "title": "Electrical Toolbox",
-      "body": "Free calculators on the site: voltage drop and cable sizing against BS 7671 and IEC 60364 limits \u2014 each with a live scene, real presets and a shareable result URL. No sign-up, no tracking."
+      "body": "Free calculators on the site: voltage drop and cable sizing against BS 7671 and IEC 60364 limits — each with a live scene, real presets and a shareable result URL. No sign-up, no tracking."
     },
     {
       "icon": "route",
@@ -81,18 +81,18 @@
       "icon": "monitor",
       "tag": "Everywhere",
       "title": "Accessibility & dark mode",
-      "body": "Full keyboard control, reduced-motion support, a colour-blind canvas preset and a proper dark theme across the app and the site \u2014 the interface adapts to how you work, not the other way round."
+      "body": "Full keyboard control, reduced-motion support, a colour-blind canvas preset and a proper dark theme across the app and the site — the interface adapts to how you work, not the other way round."
     },
     {
       "icon": "share",
       "tag": "Workbench",
       "title": "Portable & private",
-      "body": "Your settings travel as a profile backup file; circuits export as schema-versioned JSON, SVG or 2\u00d7 PNG, or compress into a single share URL. Everything stays on your device \u2014 there is no account and no backend."
+      "body": "Your settings travel as a profile backup file; circuits export as schema-versioned JSON, SVG or 2× PNG, or compress into a single share URL. Everything stays on your device — there is no account and no backend."
     }
   ],
-  "features_label": "Way 01 \u00b7 The workbench",
+  "features_label": "Way 01 · The workbench",
   "features_heading": "A wiring bench that answers back",
-  "features_description": "Every component is modelled \u2014 ports, poles, ratings and behaviour. Close a switch and the engine re-solves the Live, Neutral and Earth paths, then shows you what that means.",
+  "features_description": "Every component is modelled — ports, poles, ratings and behaviour. Close a switch and the engine re-solves the Live, Neutral and Earth paths, then shows you what that means.",
   "features": [
     {
       "icon": "palette",
@@ -107,12 +107,12 @@
     {
       "icon": "fault",
       "title": "Honest fault behaviour",
-      "body": "Open neutral, missing earth, short to live, reverse polarity, overload. Protective devices trip because the circuit says they should \u2014 not because a script fired."
+      "body": "Open neutral, missing earth, short to live, reverse polarity, overload. Protective devices trip because the circuit says they should — not because a script fired."
     },
     {
       "icon": "route",
       "title": "Smart + custom routing",
-      "body": "Two clicks and the router lays a tidy orthogonal path around obstacles \u2014 L-route in under a millisecond, A* for dense boards. Or draw the run yourself, checkpoint by checkpoint."
+      "body": "Two clicks and the router lays a tidy orthogonal path around obstacles — L-route in under a millisecond, A* for dense boards. Or draw the run yourself, checkpoint by checkpoint."
     },
     {
       "icon": "standards",
@@ -122,26 +122,26 @@
     {
       "icon": "share",
       "title": "Export and hand over",
-      "body": "Schema-versioned JSON, animated SVG, 2\u00d7 PNG, a printable title block, or a share URL that carries the whole circuit in the fragment. No backend, ever."
+      "body": "Schema-versioned JSON, animated SVG, 2× PNG, a printable title block, or a share URL that carries the whole circuit in the fragment. No backend, ever."
     }
   ],
-  "modes_label": "Way 02 \u00b7 Learning modes",
+  "modes_label": "Way 02 · Learning modes",
   "modes_heading": "Practise finding and repairing faults",
-  "modes_description": "Diagnosis Lab gives you a working circuit with a fault to identify and repair.",
+  "modes_description": "Fault Lab helps you inspect deliberate causes and repair an existing drawing with fresh simulation evidence.",
   "modes": [
     {
-      "ref": "DX",
-      "rating": "Diagnose",
-      "title": "Diagnosis Lab",
-      "body": "The generator breaks a working circuit on purpose and hands it to you. Find the fault, prove it, repair it. Trip messages that would name the fault are withheld so the answer stays hidden.",
+      "ref": "FL",
+      "rating": "Explore",
+      "title": "Fault Lab",
+      "body": "Investigate a known cause on your own drawing. Review accepted readings and recorded events, then clear causes, reset protection or replace damage as separate edits.",
       "points": [
-        "Deterministic from a seed \u2014 copy it, paste it, same circuit",
-        "Three difficulty profiles",
-        "Verified across 269,808 fault injections"
+        "Review the exact target before applying an edit",
+        "Explain, Readings and Repair beside the circuit",
+        "Playback preserves the circuit and simulation clock"
       ]
     }
   ],
-  "how_label": "Way 03 \u00b7 First circuit",
+  "how_label": "Way 03 · First circuit",
   "how_heading": "Energised in four steps",
   "how_description": "No account, no download, no setup. Open it and start wiring.",
   "steps": [
@@ -162,7 +162,7 @@
       "body": "Run the simulation, flip switches, then inject a fault and watch the protective device do its job. Undo is bounded to the last 100 states."
     }
   ],
-  "usecases_label": "Way 04 \u00b7 On the bench",
+  "usecases_label": "Way 04 · On the bench",
   "usecases_heading": "Who has it open",
   "usecases_description": "Anyone who needs to understand a circuit before touching one.",
   "use_cases": [
@@ -187,9 +187,9 @@
       "body": "Understand what is behind the faceplate. Relays, contactors, timers and PIR sensors, all safe to get wrong."
     }
   ],
-  "blog_label": "Way 05 \u00b7 Reference",
+  "blog_label": "Way 05 · Reference",
   "blog_heading": "Wiring guides, written properly",
-  "blog_description": "Regulations, circuit theory and step-by-step installs \u2014 the same material the simulator is built on.",
+  "blog_description": "Regulations, circuit theory and step-by-step installs — the same material the simulator is built on.",
   "cta_heading": "Open the bench",
   "cta_description": "Free, instant, and everything stays on your device. No account, no download, no risk.",
   "cta_button": "Launch ElectraSim"

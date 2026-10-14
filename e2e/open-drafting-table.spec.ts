@@ -211,9 +211,7 @@ test('Console has visible filters and Clear leaves faults and event history inta
   ).toBe(true);
 });
 
-test('Console stays reachable during guides and Diagnosis without ending the exercise', async ({
-  page,
-}) => {
+test('Console stays reachable during guides without ending the walkthrough', async ({ page }) => {
   page.on('dialog', (dialog) => dialog.accept());
   await page.goto('/?template=simple-lamp');
   const guide = page.locator('.table-guide');
@@ -243,22 +241,7 @@ test('Console stays reachable during guides and Diagnosis without ending the exe
   expect(await hit(end)).toBe(true);
   await activateControl(page, end);
   await activateControl(page, page.getByRole('button', { name: 'Menu', exact: true }));
-  await activateControl(page, page.getByRole('button', { name: /^Diagnosis Lab/ }));
-  const diagnosis = page.getByRole('region', { name: 'Diagnosis Lab', exact: true });
-  await activateControl(page, diagnosis.getByRole('button', { name: /Beginner/ }));
-  await expect(diagnosis).toContainText(/Something isn.t working correctly/);
-  const attempt = () =>
-    page.evaluate(async () => {
-      const path = '/src/store/diagnosisStore.ts';
-      const state = (await import(path)).useDiagnosisStore.getState();
-      return { status: state.status, seed: state.scenario?.seed };
-    });
-  const before = await attempt();
-  expect(await hit(consoleButton)).toBe(true);
-  await activateControl(page, consoleButton);
-  await expect(consolePanel).toBeVisible();
-  expect(await hit(consolePanel.getByRole('button', { name: 'All', exact: true }))).toBe(true);
-  expect(await attempt()).toEqual(before);
+  await expect(page.getByRole('button', { name: /^Diagnosis Lab/ })).toHaveCount(0);
 });
 
 test('Inspector and Console retain exits, cancel stale closes and honor manual reduced motion', async ({
@@ -393,5 +376,5 @@ test('all settings sections and file/account windows stay within the viewport', 
   await page.keyboard.press('Escape');
   const tools = await openCircuitTools(page);
   await expect(tools.getByTitle('Guided circuits')).toBeVisible();
-  await expect(tools.getByRole('button', { name: 'Diagnosis Lab', exact: true })).toBeVisible();
+  await expect(tools.getByRole('button', { name: 'Diagnosis Lab', exact: true })).toHaveCount(0);
 });

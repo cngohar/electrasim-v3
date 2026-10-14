@@ -110,8 +110,6 @@ export function SimulatorAccessBanner() {
                     original.faults !== useCircuitStore.getState().faults
                   )
                     throw new Error('Circuit changed; retry the copy.');
-                  const { useDiagnosisStore } = await import('../../store/diagnosisStore');
-                  useDiagnosisStore.getState().exit();
                   useCircuitStore.getState().setCircuit(copy);
                   clearHistory();
                   setCopying(false);

@@ -6,7 +6,7 @@
  *
  *   ┌─ brand header (version + mode chip) ──────────────────────────┐
  *   │  LEARN & PRACTICE                                             │
- *   │  [Guided Circuits] [Diagnosis Lab]                           │
+ *   │  [Guided Circuits] [Fault Lab]                           │
  *   │  [Interactive Tutorial]                     │
  *   │  TOOLS & INFO                                                 │
  *   │  [Documentation] [Keyboard Shortcuts] [Import / Export]       │
@@ -23,13 +23,13 @@ import {
   BookOpen,
   Command,
   Download,
+  FlaskConical,
   Info,
   Keyboard,
   type LucideIcon,
   Mail,
   Settings,
   Sparkles,
-  Stethoscope,
 } from 'lucide-react';
 import { useEffect } from 'react';
 import { isMacPlatform, modShortcut } from '../../lib/platform';
@@ -61,12 +61,15 @@ const FEATURE_TILES: FeatureTile[] = [
     action: () => useUiStore.getState().setTemplatesOpen(true),
   },
   {
-    icon: Stethoscope,
-    label: 'Diagnosis Lab',
-    description: 'Find and clear the fault on a generated circuit',
+    icon: FlaskConical,
+    label: 'Fault Lab',
+    description: 'Inspect a target, review a cause, run and repair',
     accent:
       'bg-amber-50 text-amber-600 ring-amber-100 group-hover:bg-amber-500 group-hover:text-white dark:bg-amber-950/60 dark:text-amber-300 dark:ring-amber-900/60',
-    action: () => useUiStore.getState().setDiagnosisOpen(true),
+    action: () => {
+      useSettingsStore.getState().setSetting('appMode', 'pro');
+      useUiStore.getState().setFaultLabOpen(true);
+    },
   },
   {
     icon: Sparkles,

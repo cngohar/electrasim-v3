@@ -23,11 +23,10 @@ const document = () => selectCircuit(useCircuitStore.getState());
 
 beforeEach(() => {
   invalidateAccess();
-  useSimulatorAccess.setState({ exercise: null, userId: null, capabilities: [], message: null });
+  useSimulatorAccess.setState({ userId: null, capabilities: [], message: null });
   useUiStore.setState({
     simRunning: false,
     simResult: null,
-    diagnosisActive: false,
   });
   useCircuitStore.getState().setCircuit(damageCircuit());
 });
@@ -76,7 +75,7 @@ describe('Fault Lab damage settings and repair controls', () => {
     });
   });
 
-  it('locks configuration in a run or exercise and replacement until stopped', () => {
+  it('locks configuration and replacement until the simulation is stopped', () => {
     const circuit = damageCircuit();
     circuit.wires[1]!.isBusted = true;
     useCircuitStore.getState().setCircuit(circuit);
@@ -87,10 +86,7 @@ describe('Fault Lab damage settings and repair controls', () => {
     expect(replace).toBeDisabled();
     fireEvent.click(replace);
     expect(document().wires[1]!.isBusted).toBe(true);
-    act(() => useUiStore.setState({ simRunning: false, diagnosisActive: true }));
-    expect(screen.getByRole('button', { name: 'Apply damage model' })).toBeDisabled();
-    expect(screen.getByText(/locked during this exercise/)).toBeVisible();
-    act(() => useUiStore.setState({ diagnosisActive: false }));
+    act(() => useUiStore.setState({ simRunning: false }));
     expect(replace).toBeEnabled();
     expect(screen.getByRole('button', { name: 'Apply damage model' })).toBeEnabled();
   });

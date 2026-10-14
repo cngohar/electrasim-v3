@@ -5,8 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./circuit": "./src/circuit.ts",
-    "./diagnosis": "./src/diagnosis.ts"
+    "./circuit": "./src/circuit.ts"
   },
   "dependencies": {
     "@electrasim/domain": "workspace:*"

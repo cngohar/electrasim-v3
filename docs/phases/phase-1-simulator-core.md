@@ -2,6 +2,10 @@
 
 > **Status:** PHASE 1 COMPLETE LOCALLY WITH DOCUMENTED PERFORMANCE EXCEPTIONS (2026-10-12) — Phase 1.0–1.5 milestones and 1.5A/B/C.0–5 are recorded complete within their documented scope; dense rendering/solver targets remain open. **Updated 2026-10-07: 1.5D.0–3 are complete locally.** The accepted slices cover declared coil controls, deterministic time/state/events, timer programs, resistive RMS dimming, actual-pole timed protection and explicit cable/device damage budgets. Fault Lab separates clearing injected faults, resetting breakers to OFF and replacing damaged items, using shared desktop and phone controls. The [damage/repair acceptance](../audits/phase-1-damage-repair.md) closes the complete local D.3 gate. **1.5E.0–3 are complete locally: phasor foundation, source/editing/application measurements, declared motor, timed contactor operation and the migrated DOL guide. [E.3 acceptance](../audits/phase-1-dol-guide.md) closes the complete local three-phase teaching gate**, **1.5F.1 current consumers and 1.5F.2 Diagnosis Lab are complete locally; [consumer acceptance](../audits/phase-1-consumer-integration.md) and [diagnosis acceptance](../audits/phase-1-diagnosis-integration.md) record the gates. F.3 is finished with user-accepted performance exceptions (2026-10-08); the full gate is not green and budgets remain unchanged**, **1.6 visual effects are complete locally (2026-10-09)**; [acceptance](../audits/phase-1-visual-effects.md) records the consolidated gate and focused recovery. [1.7 UI and modes](../audits/phase-1-ui-modes.md) are complete locally with consolidated and focused recovery evidence. [1.8 super-admin membership UI](../audits/phase-1-membership-ui.md) is complete locally. [1.9 full local verification](../audits/phase-1-full-verification.md) is complete locally by explicit user decision with documented performance exceptions; the strict full gate is not green. See [timed-control acceptance](../audits/phase-1-timed-controls.md), [timer/dimming acceptance](../audits/phase-1-timers-dimming.md), [protection acceptance](../audits/phase-1-protection.md), [ADR 0013](../decisions/0013-damage-and-repair.md), the preceding [MNA runtime gate](../audits/phase-1-mna-runtime.md) and [core rebuild plan](../plans/SIMULATOR_CORE_REBUILD_PLAN.md).
 > **Method:** Sub-phase → Steps → Gate. Each implementation sub-phase ships as its own scoped commit. All development is local-only: the old live-account credentials were removed locally; a new account will be configured after development. Passing a gate never authorizes remote access (see root `AGENTS.md`).
+> **Current extension (2026-10-14):** [Phase 1.11 Fault Lab redesign and Diagnosis retirement](../audits/phase-1-fault-lab-redesign.md) is complete locally after explicit design approval. Diagnosis runtime is retired; shared electrical behavior and historical records remain. Acceptance is aggregate with focused recovery, and historical performance exceptions remain open.
+
+> **Catalogue coverage gap (2026-10-14):** The [default catalogue audit](../audits/catalogue-simulation-gaps.md) finds 31 unassessed placement defaults, including LED/CFL lamps, fans and appliance loads. Thirty need missing electrical behaviour code; the three-phase motor already supports an explicit configured teaching model. Completed phase gates cover their documented models, not full operation of every palette entry. The [catalogue completion proposal](../plans/CATALOGUE_MODEL_COMPLETION_PLAN.md) records the required follow-up; the reporting repair does not implement these models.
+
 > **Feedback and reruns:** For 1.6, the user requested one continuous implementation with builds/typechecks during work and one consolidated final acceptance gate, followed only by affected failure recovery. For other phases, use affected-file tests during implementation. Phase commands support `--only STAGE` and `--from STAGE` for focused reruns; retain earlier passing evidence only when the fix leaves it valid. Every required stage still needs acceptance evidence, and selected runs report partial acceptance. See [local development workflow](../DEVELOPMENT.md).
 > **Previous baseline:** Phase 0 recorded `typecheck/lint/vitest 97/1464`, local D1 14 tables and auth 200. These are historical results, not checks rerun for this planning revision.
 > **Principle:** Electrical standards are code-owned (§32). D1 `electrical_standards` remains read-only, including for super admins. Membership controls features, never electrical rules or the truth of basic safety diagnostics.
@@ -104,6 +108,7 @@ This replaces the previous 1.0–1.7 sequence. Membership foundations precede pe
 | **1.8** | **Super-admin membership UI — complete locally** | `/admin/pro` plans/benefits/members/audit; grant, edit, extend, suspend/revoke, archive/delete | admin UI + APIs from 1.3 | Create plan → assign member → unlock → edit → revoke; ordinary admin/org owner denied by API and UI |
 | **1.9** | **Verify — complete locally with user-accepted performance exceptions (2026-10-12)** | Full local gate, authorization matrix, expiry/revocation, legacy migration, D1 burst and perf | scripts, local API/browser suites | `bun run verify` plus dedicated Worker API/E2E gates against local Wrangler; all required cases below pass |
 | **1.10** | **Accepted simulator redesign — complete locally (2026-10-14)** | User-directed Challenge runtime deferral, complete accepted simulator UI migration and explicitly approved four-file cleanup | `src/ui/**`, UI settings, approved unused wrappers/styles, phase/audit/graph records | [Scoped acceptance](../audits/open-drafting-table-implementation.md), clean post-cleanup types/lint/2,115 units, build/static checks, 18 affected source cases and six built cases; historical Phase 1.9 performance exceptions remain |
+| **1.11** | **Fault Lab redesign and Diagnosis retirement — complete locally (2026-10-14)** | Approved target investigation, captured explanation, bounded motion and direct Diagnosis runtime retirement; preserve historical data and shared electrical contracts | Fault Lab UI/display store, Console, approved Diagnosis integration boundaries | [Consolidated and focused recovery evidence](../audits/phase-1-fault-lab-redesign.md): 2,004 units, 138 unique source cases, 8 built cases, 842 Bun/workerd cases, 34 Worker/D1 groups; historical performance exceptions remain |
 
 **Phase 1.9 closure (2026-10-12):** the user selected “Close locally with documented exceptions” after functional verification. The [acceptance record](../audits/phase-1-full-verification.md) preserves 2,147 unit passes, 505 development browser passes plus 20 intentional skips, 53 production passes, 36 membership/API groups, 20 simulator groups, 842 runtime parity cases and full generator/Diagnosis invariants. Browser evidence is aggregate. Simulation p95 56.65 ms versus 8 ms, generator timing limits and dense 60 fps remain unmet; no assertion was relaxed to turn these into passes. Local closure does not authorize remote work.
 
@@ -221,3 +226,28 @@ six built-browser and five graph implementation tests passed with clean command
 exit 0. **Phase 1.10 is complete locally, including the approved cleanup.**
 Phase 1.9 closure and performance exceptions remain unchanged; no Community phase
 or remote action starts here.
+
+## 7. Phase 1.11 — Fault Lab redesign and Diagnosis retirement (2026-10-14)
+
+**Status: complete locally after explicit user design approval.** After the
+Phase 1.10 checkpoint (`fa74721`), the user reviewed and approved the Fault Lab
+plan/prototype and instructed implementation. The replacement passed scoped
+local acceptance before the approved direct Diagnosis runtime was retired.
+See the [Phase 1.11 plan](../plans/FAULT_LAB_REDESIGN_PLAN.md),
+[clickable design](../design/fault-lab/index.html), [screen inventory](../design/fault-lab/SCREENS.md),
+and [concrete Diagnosis retirement review](../design/fault-lab/DIAGNOSIS_RETIREMENT_REVIEW.md).
+
+The redesigned modeless workspace uses real targets, the full 14-type fault
+library, reviewed edits, detached fresh captures, Explain/Readings/Repair,
+bounded visual-only motion and independent Console navigation. Cause clear,
+protection reset/ON and damage replacement remain separate. Diagnosis runtime
+entry points and grading/persistence/API services are retired; historical
+browser/D1 records, schema/migrations, grants and Challenge plans remain.
+Shared electrical simulation, faults, protection and damage remain authoritative.
+
+[Acceptance](../audits/phase-1-fault-lab-redesign.md) records the exact 2,115 →
+2,004 unit reconciliation, 138 unique source-browser cases, 8 built cases,
+842 actual Bun/workerd parity cases and 34 local Worker/D1/cookie groups, with
+passing types/lint/build/assets/links/SEO/CSP and scoped failure recovery.
+This is aggregate functional acceptance. Phase 1.9 solver/generator/dense-render
+performance exceptions remain unchanged. No commit, push or deployment occurred.

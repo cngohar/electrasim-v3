@@ -2,7 +2,6 @@
 import { Hono } from 'hono';
 import { circuitsApi } from './api/circuits';
 import { type ApiEnv, requestAuth } from './api/context';
-import { diagnosisApi } from './api/diagnosis';
 import { membershipApi } from './api/membership';
 
 // ── Durable Object stub ──
@@ -89,7 +88,6 @@ app.get('/api/standards', async (c) => {
 app.on(['GET', 'POST'], '/api/auth/*', (c) => requestAuth(c).handler(c.req.raw));
 app.route('/api', membershipApi);
 app.route('/api', circuitsApi);
-app.route('/api', diagnosisApi);
 
 // ── Locale redirect + hreflang (applied to every non-API/asset request) ──
 app.use('*', async (c, next) => {

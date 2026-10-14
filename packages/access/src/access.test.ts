@@ -107,27 +107,25 @@ describe('canonical content policy', () => {
     }
     expect(pro).toHaveLength(41);
   });
-  it('keeps each confirmed basic single fault and basic diagnosis free', () => {
+  it('keeps each confirmed basic single fault free', () => {
     for (const [type, level] of Object.entries(FAULT_ACCESS)) {
       if (level === 'basic')
         expect(
           requirementsForContent({
             componentTypes: [],
             injectedFaultTypes: [type],
-            diagnosis: 'basic',
           }),
         ).toEqual([]);
     }
   });
-  it('requires all applicable capabilities for premium multi-fault diagnosis', () => {
+  it('requires all applicable capabilities for premium multi-fault circuits', () => {
     const pro = Object.keys(COMPONENT_DEFS).find((key) => COMPONENT_DEFS[key].tier === 'pro')!;
     expect(
       requirementsForContent({
         componentTypes: [pro],
         injectedFaultTypes: ['open-live', 'open-neutral'],
-        diagnosis: 'basic',
       }),
-    ).toEqual(CAPABILITIES);
+    ).toEqual(['pro_components', 'advanced_faults']);
     expect(
       requirementsForContent({ componentTypes: [], injectedFaultTypes: ['arc-fault'] }),
     ).toEqual(['advanced_faults']);

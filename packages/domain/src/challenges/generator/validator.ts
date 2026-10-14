@@ -21,8 +21,8 @@ import { COMPONENT_DEFS } from '../../components';
 import { validateCircuitRules } from '../../electrical/validation';
 import { simulate } from '../../simulation';
 import type { Circuit, SimulationResult } from '../../types';
-import { hasDiagnosisEvidence } from '../diagnosis/assessment';
 import type { CandidateValidationResult, GenerationRejection } from '../types';
+import { hasSupportedGeneratedBaseline } from './assessmentEvidence';
 import { hasOverlappingComponents, isGridAligned } from './layout';
 
 type Rejection = Omit<GenerationRejection, 'attempt' | 'recipeId'>;
@@ -218,7 +218,7 @@ export function validateCandidate(options: ValidateCandidateOptions): CandidateV
     ['basic', basicResult],
     ['pro', proResult],
   ] as const) {
-    if (options.requireAssessment && !hasDiagnosisEvidence(circuit, result))
+    if (options.requireAssessment && !hasSupportedGeneratedBaseline(circuit, result))
       simulationReasons.push(`${label}: current supported operation evidence is required`);
     for (const error of result.errors) {
       simulationReasons.push(`${label}: ${error}`);

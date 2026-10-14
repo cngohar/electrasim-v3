@@ -262,6 +262,15 @@ export function assessCompiledCircuitReadiness(
         sourceIds: sources.map((s) => s.id),
         result,
       });
+      for (const reason of result.reasons) {
+        if (reason.code !== 'nominal-voltage-mismatch') continue;
+        base.diagnostics.push({
+          code: reason.code,
+          severity: reason.severity,
+          componentId: component.id,
+          message: `${defs[component.type]?.label ?? component.id}: ${reason.message}`,
+        });
+      }
     }
   }
   base.compatibility = base.groups.some((g) => g.result.status === 'incompatible')

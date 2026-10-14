@@ -596,6 +596,8 @@ export interface LogEntry {
   id: string;
   type: LogLevel;
   message: string;
+  /** Optional navigation to the actual affected editor target. */
+  target?: FaultTarget;
 }
 
 // ─── Interaction modes (UI layer; lives here only because legacy

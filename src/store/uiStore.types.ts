@@ -6,6 +6,7 @@
 
 import type {
   Circuit,
+  FaultTarget,
   FaultType,
   InteractionMode,
   LogEntry,
@@ -175,18 +176,6 @@ export interface UiState {
   templatesOpen: boolean;
   /** Loaded guided circuit whose checklist is currently shown. */
   activeGuideId: string | null;
-  /** Diagnosis Lab panel mounted (plan §32). Session state lives in diagnosisStore. */
-  diagnosisOpen: boolean;
-  /**
-   * A Diagnosis Lab exercise is currently being solved (plan §14).
-   *
-   * Mirrored here, rather than read from `diagnosisStore`, purely so the
-   * eagerly-loaded simulation hook can honour §14 ("never name the fault")
-   * without importing the diagnosis store — that import dragged the entire
-   * challenge generator into the first-paint bundle. `diagnosisStore` owns the
-   * truth and pushes changes here; nothing else may write it.
-   */
-  diagnosisActive: boolean;
   /**
    * The active guide's checklist is temporarily hidden so the canvas it
    * overlays becomes reachable again. Distinct from `activeGuideId: null`
@@ -300,7 +289,7 @@ export interface UiState {
   setFaultAlert: (alert: ElectricalFaultAlert | null) => void;
   setWhatHappenedOpen: (open: boolean) => void;
   clearFaultAlert: () => void;
-  addLog: (message: string, type: LogLevel) => void;
+  addLog: (message: string, type: LogLevel, target?: FaultTarget) => void;
   clearLogs: () => void;
   /** Add an event to the event history */
   addEventHistory: (entry: Omit<EventHistoryEntry, 'id' | 'timestamp'>) => void;
@@ -371,9 +360,6 @@ export interface UiState {
   setDocsOpen: (open: boolean, scrollTo?: string | null) => void;
   setContactOpen: (open: boolean) => void;
   setTemplatesOpen: (open: boolean) => void;
-  setDiagnosisOpen: (open: boolean) => void;
-  /** Set by `diagnosisStore` only — see {@link UiState.diagnosisActive}. */
-  setDiagnosisActive: (active: boolean) => void;
   setActiveGuideId: (id: string | null) => void;
   setGuideHidden: (hidden: boolean) => void;
   setWelcomeOpen: (open: boolean) => void;

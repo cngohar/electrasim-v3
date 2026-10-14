@@ -118,9 +118,9 @@ export const LEARNING_MODES: Array<{
     body: 'Deferred by explicit user request on 2026-10-13; its runtime code was removed for a later-stage rebuild. The preserved plan describes: Challenge Mode gives you a goal and validates the result — it does not hand you a step-by-step construction recipe. Build a protected lamp, wire a momentary doorbell, protect a socket with an RCBO. Each challenge presents a clear mission and high-level outcome requirements (e.g. "Protected by an MCB", "Complete return path"); how you arrange and wire the components is up to you. Check Circuit gives plain-English, non-spoiling feedback on which outcome is not yet met, and three progressive hints reveal more only if you want them. Extra components are warned about, never deleted. Your normal circuit is snapshotted the moment a challenge starts and restored exactly when you leave — challenges can never destroy it.',
   },
   {
-    name: 'Diagnosis Lab',
-    tagline: 'Fix this',
-    body: 'A working installation develops one intentional fault. You are told only that something is wrong — never what or where. Investigate by running the simulation, operating switches and tracing wires, then name both the fault type and its location. The exercise is complete only once the installation actually recovers, not merely when you guess the right name.',
+    name: 'Fault Lab',
+    tagline: 'Inspect, run, repair',
+    body: 'Explore an existing circuit with a reviewed fault edit, an accepted response and Explain, Readings and Repair tabs. The library lists all 14 fault types with target and model limits. Playback is a causal walkthrough; measured timing appears only for recorded engine events. Console clearing preserves causes, protection and damage.',
   },
 ];
 

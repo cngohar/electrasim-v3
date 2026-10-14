@@ -11,6 +11,7 @@ import {
   useElectricalEditing,
 } from '../../store/electricalEditing';
 import { useCircuitReadiness } from '../../store/electricalReadiness';
+import { SimulationFeedback } from './SimulationFeedback';
 
 export function SubHeaderBar() {
   const simRunning = useUiStore((s) => s.simRunning);
@@ -18,9 +19,12 @@ export function SubHeaderBar() {
   const supply = useCircuitStore((s) => s.supply);
   const supplyLocked = useConfigurationLockReason();
   const readiness = useCircuitReadiness();
-  const diagnosisActive = useUiStore((s) => s.diagnosisActive);
   const supplyRequest = useElectricalEditing((s) => s.request);
   const simResult = useUiStore((s) => s.simResult);
+  const calculationUnavailable =
+    simRunning &&
+    !!simResult &&
+    (simResult.electrical?.status ?? simResult.phasor?.status) !== 'converged';
 
   const selectedComponentIds = useCircuitStore((s) => s.selectedComponentIds);
   const selectedWireIds = useCircuitStore((s) => s.selectedWireIds);
@@ -98,7 +102,7 @@ export function SubHeaderBar() {
         onClick={() => useElectricalEditing.setState({ reviewOpen: true })}
         title="Review circuit readiness and compatibility"
       >
-        {readinessLabel(readiness, diagnosisActive)} · Review
+        {readinessLabel(readiness)} · Review
       </button>
       <div className="h-3 w-px bg-slate-200 dark:bg-slate-700" />
 
@@ -241,15 +245,19 @@ export function SubHeaderBar() {
         <span className="font-medium text-slate-500 dark:text-slate-400">Sim:</span>
         <span
           className={`flex items-center gap-1 font-semibold ${
-            simRunning
+            simRunning && !calculationUnavailable
               ? 'text-emerald-600 dark:text-emerald-400'
               : 'text-slate-500 dark:text-slate-400'
           }`}
         >
-          {simRunning ? 'Running' : 'Paused'}
+          {calculationUnavailable ? 'Unavailable' : simRunning ? 'Running' : 'Paused'}
           <span
             className={`size-2 rounded-full ${
-              simRunning ? 'bg-emerald-500 shadow-[0_0_6px] shadow-emerald-400' : 'bg-slate-400'
+              calculationUnavailable
+                ? 'bg-amber-500'
+                : simRunning
+                  ? 'bg-emerald-500 shadow-[0_0_6px] shadow-emerald-400'
+                  : 'bg-slate-400'
             }`}
           />
         </span>
@@ -266,6 +274,7 @@ export function SubHeaderBar() {
           {voltagePicker}
         </div>
       </div>
+      <SimulationFeedback />
     </div>
   );
 }

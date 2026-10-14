@@ -62,22 +62,11 @@ test('retired Challenge Mode does not resume or replace the normal autosaved cir
   await page.getByRole('button', { name: 'Menu', exact: true }).click();
   await expect(page.getByRole('button', { name: /^Challenge Mode/ })).toHaveCount(0);
   await expect(page.getByRole('button', { name: /^Guided Circuits/ })).toBeVisible();
-  await expect(page.getByRole('button', { name: /^Diagnosis Lab/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Diagnosis Lab/ })).toHaveCount(0);
   const restored = await page.evaluate(async () => {
     const path = '/src/store/circuitStore.ts';
     const circuit = (await import(path)).useCircuitStore.getState();
     return { components: circuit.components, wires: circuit.wires };
   });
   expect(restored).toEqual(original);
-});
-
-test('Diagnosis remains available after Challenge Mode removal', async ({ page }) => {
-  await page.goto('/');
-  await page.getByRole('button', { name: 'Menu', exact: true }).click();
-  await page.getByRole('button', { name: /^Diagnosis Lab/ }).click();
-  const panel = page.locator('section[aria-label="Diagnosis Lab"]');
-  await expect(panel).toBeVisible();
-  await panel.getByRole('button', { name: /Beginner/ }).click();
-  await expect(panel.getByText(/Something isn.t working correctly/i)).toBeVisible();
-  await expect(panel.getByText(/WHAT IS WRONG\?/i)).toBeVisible();
 });

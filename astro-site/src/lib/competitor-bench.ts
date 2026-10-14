@@ -122,7 +122,7 @@ export const benchTools: BenchTool[] = [
       ),
       teaching: signal(
         'strong',
-        'Guided circuits, challenge mode, diagnosis work and a browser-first learning flow.',
+        'Guided circuits, deliberate fault exploration and a browser learning flow.',
       ),
       sharing: signal('strong', 'Local autosave plus JSON, SVG, PNG and shareable circuit URLs.'),
       offline: signal(

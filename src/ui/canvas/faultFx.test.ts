@@ -4,11 +4,16 @@
  * tests pin the non-destructive design decisions:
  *
  *  - open faults sever *wires visually* (the wire objects stay intact);
- *  - switched-neutral / reverse-polarity swap conductor *identity* on the
- *    attached runs — never the ports (live can never land on neutral).
+ *  - reverse-polarity overlays declared L/N identity; unassessed mappings
+ *    retain the original conductor colors.
  */
 
-import type { ComponentInstance, WireInstance } from '@electrasim/domain';
+import {
+  type ComponentInstance,
+  FAULT_REGISTRY,
+  type InjectedFault,
+  type WireInstance,
+} from '@electrasim/domain';
 import { describe, expect, it } from 'vitest';
 import {
   collectFaultFx,
@@ -17,6 +22,16 @@ import {
   severedWireIdSet,
   wiresAttachedTo,
 } from './faultFx';
+
+function cause(type: InjectedFault['type'], target: InjectedFault['target']): InjectedFault {
+  return {
+    id: `${type}-${JSON.stringify(target)}`,
+    type,
+    target,
+    category: FAULT_REGISTRY[type].category,
+    createdAt: 0,
+  };
+}
 
 function comp(id: string, type: string, fault?: ComponentInstance['state']['fault']) {
   return { id, type, x: 0, y: 0, state: fault ? { fault } : {} } as ComponentInstance;
@@ -98,23 +113,54 @@ describe('faultFx model', () => {
     );
   });
 
-  it('switched-neutral on a series switch exchanges identities between the two runs — ports never change', () => {
+  it('keeps unassessed switched-neutral mappings as a badge without inventing conductor identities', () => {
     const f = buildFixture();
     f.sw.state.fault = 'switched-neutral';
+    const before = structuredClone(f.wires);
+    const items = collectFaultFx({ components: f.components, wires: f.wires }, byId(f.components));
+    expect(items[0]!.indicator).toBe('badge');
+    expect(items[0]!.swapWires).toEqual([]);
+    expect(f.wires).toEqual(before);
+  });
 
-    // Both switch ports are live-typed (a series device has no neutral
-    // mate); the identity swap must therefore happen between the two runs.
-    const first = collectFaultFx({ components: f.components, wires: f.wires }, byId(f.components));
-    const second = collectFaultFx({ components: f.components, wires: f.wires }, byId(f.components));
+  it('reads canonical terminal faults and cuts only wires attached to that exact pin', () => {
+    const f = buildFixture();
+    const faults = [
+      cause('terminal-disconnect', { type: 'port', componentId: 'b1', portIndex: 1 }),
+    ];
+    const circuit = { components: f.components, wires: f.wires, faults };
+    const items = collectFaultFx(circuit, byId(f.components));
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({
+      key: 'port:b1:1:terminal-disconnect',
+      componentId: 'b1',
+      portIndex: 1,
+      indicator: 'sever',
+      severWireIds: ['w3'],
+    });
+    expect(severedWireIdSet(items).size).toBe(0);
+    expect(f.bulb.state.fault).toBeUndefined();
+    faults[0]!.resolved = true;
+    expect(collectFaultFx(circuit, byId(f.components))).toEqual([]);
+  });
 
-    expect(first[0]!.swapWires).toHaveLength(2);
-    const roles = new Set(first[0]!.swapWires.map((s) => s.as));
-    expect(roles).toEqual(new Set(['live', 'neutral']));
-    // Deterministic across runs so the canvas never flickers.
-    expect(second[0]!.swapWires).toEqual(first[0]!.swapWires);
-    // …and the circuit model is untouched: wires still connect L→L.
-    expect(f.wires[0]!.fromPortIndex).toBe(0);
-    expect(f.wires[0]!.toPortIndex).toBe(0);
+  it('retains separate canonical faults, deduplicates legacy mirrors and changes signature when cleared', () => {
+    const f = buildFixture();
+    f.bulb.state.fault = 'open-neutral';
+    const circuit = {
+      components: f.components,
+      wires: f.wires,
+      faults: [
+        cause('open-neutral', { type: 'component', id: 'b1' }),
+        cause('open-live', { type: 'wire', id: 'w1' }),
+      ],
+    };
+    const items = collectFaultFx(circuit, byId(f.components));
+    expect(items).toHaveLength(2);
+    expect(items[1]).toMatchObject({ wireId: 'w1', indicator: 'sever' });
+    const signature = faultFxSignature(circuit);
+    circuit.faults.pop();
+    expect(faultFxSignature(circuit)).not.toBe(signature);
   });
 
   it('wire-level open faults anchor on the wire itself (no sever list — WireLayer already shows them)', () => {
@@ -127,16 +173,16 @@ describe('faultFx model', () => {
     expect(items[0]!.severWireIds).toEqual([]);
   });
 
-  it('every fault kind maps to a distinct indicator style', () => {
+  it('every fault kind has a cause marker without inventing unmodeled consequences', () => {
     const byKind = {
       'open-circuit': 'sever',
       'open-neutral': 'sever',
-      'short-circuit': 'flame',
+      'short-circuit': 'badge',
       'reverse-polarity': 'swap',
-      'switched-neutral': 'swap',
+      'switched-neutral': 'badge',
       'earth-fault': 'earth',
-      'smooth-dc-residual': 'wave',
-      'arc-fault': 'arc',
+      'smooth-dc-residual': 'badge',
+      'arc-fault': 'badge',
       'protection-bypass': 'bridge',
       'protection-forced-open': 'jam',
     } as const;

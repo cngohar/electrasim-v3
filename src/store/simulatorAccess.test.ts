@@ -33,7 +33,6 @@ beforeEach(() => {
   fetcher.mockReset().mockImplementation(async () => response(true));
   invalidateAccess();
   useSimulatorAccess.setState({
-    exercise: null,
     userId: 'paid',
     capabilities: capabilities as 'pro_components'[],
     message: null,

@@ -9,6 +9,26 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 
 ### Added
 
+- Fault Lab application follow-up: actual target symbols, terminal geometry and
+  wire routes; canonical terminal fault markers, stable Circuit/Inside transitions,
+  positioned SVG badges and modeled protection bypass poles. All 14 fault types
+  passed Apply/Clear with 42 local captures and 57 focused cases.
+- Catalogue simulation gap audit and visible unavailable-calculation feedback:
+  31 of 116 placement defaults are unassessed, including one configurable motor
+  and 30 missing behaviour implementations. Distinct model/rating badges and a
+  nominal design-voltage mismatch warning clarify the result. Affected acceptance:
+  465 units, 842 local runtime parity cases, six source browser cases and two built
+  desktop/phone cases. Missing LED/fan/appliance calculations remain unimplemented.
+  [Gap inventory and evidence](docs/audits/catalogue-simulation-gaps.md).
+- Phase 1.11: implemented the approved Fault Lab investigation workspace with
+  real targets, a 14-type reviewed fault library, fresh captured explanation,
+  Explain/Readings/Repair, independent Console navigation and bounded visual-only
+  motion. Retired the approved direct Diagnosis runtime after replacement
+  acceptance, preserving browser/D1 records, schema, grants and shared electrical
+  contracts. Local functional evidence: 2,004 units, 138 unique source cases,
+  8 built cases, 842 Bun/workerd parity cases and 34 Worker/D1 groups; static,
+  type, lint and build checks pass. Historical performance exceptions remain.
+  [Exact reconciliation and recovery](docs/audits/phase-1-fault-lab-redesign.md).
 - Phase 1.10: accepted full Open Drafting Table simulator redesign, centered commands,
   full-width component shelf, 116-type physical artwork, three Inspector tabs with
   reference photos/basic drafts, visible Console filters, direct arrangement and

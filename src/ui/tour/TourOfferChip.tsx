@@ -17,7 +17,7 @@ export function TourOfferChip({ isPhone }: { isPhone: boolean }) {
   const mobileSuitabilityOpen = useUiStore((s) => s.mobileSuitabilityOpen);
   const inspectorOpen = useUiStore((s) => !s.inspectorCollapsed);
   const tourId = useUiStore((s) => s.tourId);
-  const exerciseOpen = useUiStore((s) => s.diagnosisOpen || s.activeGuideId !== null);
+  const exerciseOpen = useUiStore((s) => s.activeGuideId !== null);
   const [dismissed, setDismissed] = useState(() => isTourOfferDismissed() || isTourDone('student'));
 
   if (

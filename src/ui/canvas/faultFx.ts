@@ -1,7 +1,7 @@
 /**
  * faultFx — pure model for the canvas fault-effects system.
  *
- * The Fault Lab (and every auto-injector: Diagnosis Lab, challenges, the
+ * The Fault Lab (and other injectors: challenges and the
  * context menu) writes faults into the circuit store. This module maps that
  * *model* state to renderable effect descriptors consumed by
  * `FaultFxLayer.tsx`. It is deliberately free of React and DOM APIs so it
@@ -10,15 +10,13 @@
  * Design notes
  * ────────────
  * • Nothing here mutates the circuit: an "open" conductor is a *visual*
- *   sever (fade-out gap + sparking ends) — the wire object stays intact so
+ *   sever (marked conductor gap) — the wire object stays intact so
  *   clearing the fault restores it perfectly.
- * • 'switched-neutral' / 'reverse-polarity' are conductor-*identity* swaps,
- *   not re-wiring. Ports never change mates (the connection solver still
- *   forbids live→neutral); only the rendered colour of the attached runs
- *   swaps, which is exactly what the physical mis-wiring looks like.
+ * • Read canonical injected faults as well as legacy mirrors. A terminal
+ *   fault anchors on its actual pin; unassessed mappings use cause badges.
  */
 
-import { COMPONENT_DEFS } from '@electrasim/domain';
+import { COMPONENT_DEFS, assessFaultTarget, normalizeCircuitFaults } from '@electrasim/domain';
 import type {
   Circuit,
   ComponentInstance,
@@ -26,10 +24,11 @@ import type {
   PortType,
   WireInstance,
 } from '@electrasim/domain';
+import { resolveDeviceModel } from '@electrasim/domain/core/models';
 
 /** Which persistent canvas indicator a fault kind uses. */
 export type FaultFxIndicator =
-  | 'sever' // conductor fade-out gap + sparking exposed ends
+  | 'sever' // marked gap in the conductor
   | 'flame' // fire + red pulsing halo (short circuit)
   | 'swap' // conductor identity swap recolour + crossover arc
   | 'earth' // leakage bolt + expanding earth pulse rings
@@ -61,16 +60,16 @@ const DEFAULT_FX: FaultFxConfig = {
  * fault ring palette so the canvas reads as one system.
  */
 export const FAULT_FX: Record<string, FaultFxConfig> = {
-  'short-circuit': { color: '#ef4444', code: 'SC', label: 'Short circuit', indicator: 'flame' },
+  'short-circuit': { color: '#ef4444', code: 'SC', label: 'Short circuit', indicator: 'badge' },
   'open-circuit': { color: '#dc2626', code: 'OC', label: 'Open circuit', indicator: 'sever' },
   'open-neutral': { color: '#2563eb', code: 'ON', label: 'Open neutral', indicator: 'sever' },
   'open-live': { color: '#b91c1c', code: 'OL', label: 'Open live', indicator: 'sever' },
-  'open-earth': { color: '#ca8a04', code: 'OE', label: 'Open earth', indicator: 'badge' },
+  'open-earth': { color: '#ca8a04', code: 'OE', label: 'Open earth', indicator: 'sever' },
   'terminal-disconnect': {
     color: '#b91c1c',
     code: 'TD',
     label: 'Terminal disconnect',
-    indicator: 'badge',
+    indicator: 'sever',
   },
   'reverse-polarity': {
     color: '#f97316',
@@ -82,7 +81,7 @@ export const FAULT_FX: Record<string, FaultFxConfig> = {
     color: '#f59e0b',
     code: 'SN',
     label: 'Switched neutral',
-    indicator: 'swap',
+    indicator: 'badge',
   },
   'earth-fault': { color: '#eab308', code: 'EF', label: 'Earth fault', indicator: 'earth' },
   'live-to-earth': { color: '#ca8a04', code: 'LE', label: 'Live to earth', indicator: 'earth' },
@@ -90,9 +89,9 @@ export const FAULT_FX: Record<string, FaultFxConfig> = {
     color: '#8b5cf6',
     code: 'DC',
     label: 'Smooth DC residual',
-    indicator: 'wave',
+    indicator: 'badge',
   },
-  'arc-fault': { color: '#dc2626', code: 'AF', label: 'Arc fault', indicator: 'arc' },
+  'arc-fault': { color: '#dc2626', code: 'AF', label: 'Arc fault', indicator: 'badge' },
   'protection-bypass': {
     color: '#f97316',
     code: 'BYP',
@@ -116,22 +115,27 @@ export interface FaultFxWireTouch {
   id: string;
   end: 'from' | 'to';
   portType: PortType | null;
+  portIndex: number;
 }
 
 export interface FaultFxItem {
-  /** Stable identity: `comp:<id>:<fault>` or `wire:<id>:<fault>`. */
+  /** Stable identity includes the exact component, wire or terminal target. */
   key: string;
   fault: FaultType;
   config: FaultFxConfig;
   indicator: FaultFxIndicator;
   /** Anchor component (component-level faults). */
   componentId?: string;
+  /** Exact terminal on the anchor component, when the cause targets a port. */
+  portIndex?: number;
   /** Anchor wire (wire-level faults). */
   wireId?: string;
   /** Wires to visually sever (open faults). */
   severWireIds: string[];
-  /** Wires whose rendered conductor identity swaps (reverse-polarity / switched-neutral). */
+  /** Wires whose rendered conductor identity swaps for a declared L/N pair. */
   swapWires: { id: string; as: PortType }[];
+  /** Declared protective contact poles; never guessed from pin placement. */
+  bridgePortPairs?: { from: number; to: number }[];
 }
 
 /**
@@ -152,12 +156,14 @@ export function wiresAttachedTo(
         id: wire.id,
         end: 'from',
         portType: def?.ports[wire.fromPortIndex]?.type ?? null,
+        portIndex: wire.fromPortIndex,
       });
     } else if (wire.toComponentId === componentId) {
       touches.push({
         id: wire.id,
         end: 'to',
         portType: def?.ports[wire.toPortIndex]?.type ?? null,
+        portIndex: wire.toPortIndex,
       });
     }
   }
@@ -167,45 +173,31 @@ export function wiresAttachedTo(
 /** Which wires an "open …" fault on a component visually severs. */
 function severWiresFor(fault: FaultType, touches: FaultFxWireTouch[]): string[] {
   if (touches.length === 0) return [];
-  if (fault === 'open-neutral') {
-    const neutral = touches.filter((t) => t.portType === 'neutral').map((t) => t.id);
-    if (neutral.length > 0) return neutral;
-  }
-  if (fault === 'open-live') {
-    const live = touches.filter((t) => t.portType === 'live').map((t) => t.id);
-    if (live.length > 0) return live;
-  }
+  const role =
+    fault === 'open-live'
+      ? 'live'
+      : fault === 'open-neutral'
+        ? 'neutral'
+        : fault === 'open-earth'
+          ? 'earth'
+          : null;
+  if (role) return touches.filter((touch) => touch.portType === role).map((touch) => touch.id);
   return touches.map((t) => t.id);
 }
 
 /**
  * Which identity each attached wire should render after an L↔N swap.
  *
- * When the device's ports carry explicit roles (a load with L/N terminals)
- * the swap is literal: live-coloured runs render neutral and vice-versa.
- * When the device is a series switch (both ports live-typed, so no legal
- * neutral mate exists — this is exactly why a switched-neutral install is
- * wrong) the two runs exchange identities between themselves instead of
- * re-mating ports: the supply-side run renders neutral and the load-side
- * run renders live. Deterministic by wire id so the swap never flickers
- * between renders.
+ * Only a declared live/neutral mapping may recolor attached runs.
  */
-function swapWiresFor(
-  touches: FaultFxWireTouch[],
-  wiresById: ReadonlyMap<string, WireInstance>,
-): { id: string; as: PortType }[] {
+function swapWiresFor(touches: FaultFxWireTouch[]): { id: string; as: PortType }[] {
   const typed = touches.filter((t) => t.portType === 'live' || t.portType === 'neutral');
   const hasMixedRoles =
     typed.some((t) => t.portType === 'live') && typed.some((t) => t.portType === 'neutral');
   if (hasMixedRoles) {
     return typed.map((t) => ({ id: t.id, as: t.portType === 'live' ? 'neutral' : 'live' }));
   }
-  const series = [...touches].sort((a, b) => a.id.localeCompare(b.id)).slice(0, 2);
-  if (series.length < 2) return [];
-  const asRoles: PortType[] = ['neutral', 'live'];
-  return series
-    .map((t, i) => (wiresById.has(t.id) ? { id: t.id, as: asRoles[i] ?? 'neutral' } : null))
-    .filter((x): x is { id: string; as: PortType } => x !== null);
+  return [];
 }
 
 /**
@@ -214,46 +206,62 @@ function swapWiresFor(
  * time so item identity stays stable across pan/drag.
  */
 export function collectFaultFx(
-  circuit: Pick<Circuit, 'components' | 'wires'>,
+  circuit: Circuit,
   componentsById: ReadonlyMap<string, ComponentInstance>,
 ): FaultFxItem[] {
   const items: FaultFxItem[] = [];
-  const wiresById = new Map(circuit.wires.map((w) => [w.id, w]));
-
-  for (const comp of circuit.components) {
-    const fault = comp.state?.fault;
-    if (!fault) continue;
+  for (const cause of normalizeCircuitFaults(circuit)) {
+    if (cause.resolved) continue;
+    const { type: fault, target } = cause;
     const config = faultFxConfig(fault);
-    const touches = wiresAttachedTo(circuit.wires, componentsById, comp.id);
+    const coverage = assessFaultTarget(circuit, fault, target).coverage;
+    const componentId =
+      target.type === 'port'
+        ? target.componentId
+        : target.type === 'component'
+          ? target.id
+          : undefined;
+    const component = componentId ? componentsById.get(componentId) : undefined;
+    if (componentId && !component) continue;
+    if (target.type === 'wire' && !circuit.wires.some((wire) => wire.id === target.id)) continue;
+    if (
+      target.type === 'port' &&
+      (!component || !COMPONENT_DEFS[component.type]?.ports[target.portIndex])
+    )
+      continue;
+    const touches = componentId ? wiresAttachedTo(circuit.wires, componentsById, componentId) : [];
+    const targetedTouches =
+      target.type === 'port'
+        ? touches.filter((touch) => touch.portIndex === target.portIndex)
+        : touches;
     const item: FaultFxItem = {
-      key: `comp:${comp.id}:${fault}`,
+      key:
+        target.type === 'port'
+          ? `port:${target.componentId}:${target.portIndex}:${fault}`
+          : `${target.type === 'component' ? 'comp' : 'wire'}:${target.id}:${fault}`,
       fault,
       config,
-      indicator: config.indicator,
-      componentId: comp.id,
+      indicator: coverage === 'supported' ? config.indicator : 'badge',
+      componentId,
+      portIndex: target.type === 'port' ? target.portIndex : undefined,
+      wireId: target.type === 'wire' ? target.id : undefined,
       severWireIds: [],
       swapWires: [],
     };
-    if (config.indicator === 'sever') {
-      item.severWireIds = severWiresFor(fault, touches);
-    } else if (config.indicator === 'swap') {
-      item.swapWires = swapWiresFor(touches, wiresById);
+    if (item.indicator === 'sever') {
+      item.severWireIds =
+        target.type === 'port'
+          ? targetedTouches.map((touch) => touch.id)
+          : severWiresFor(fault, touches);
+    } else if (item.indicator === 'swap') {
+      item.swapWires = swapWiresFor(touches);
+    }
+    if (item.indicator === 'bridge' && component) {
+      const model = resolveDeviceModel(component, COMPONENT_DEFS[component.type]!, circuit);
+      if (model.kind === 'contacts')
+        item.bridgePortPairs = model.poles.map((pole) => ({ from: pole.common, to: pole.no }));
     }
     items.push(item);
-  }
-
-  for (const wire of circuit.wires) {
-    if (!wire.fault) continue;
-    const config = faultFxConfig(wire.fault);
-    items.push({
-      key: `wire:${wire.id}:${wire.fault}`,
-      fault: wire.fault,
-      config,
-      indicator: config.indicator,
-      wireId: wire.id,
-      severWireIds: [],
-      swapWires: [],
-    });
   }
 
   return items;
@@ -263,6 +271,7 @@ export function collectFaultFx(
 export function severedWireIdSet(items: readonly FaultFxItem[]): Set<string> {
   const set = new Set<string>();
   for (const item of items) {
+    if (item.portIndex !== undefined) continue;
     for (const id of item.severWireIds) set.add(id);
   }
   return set;
@@ -272,12 +281,18 @@ export function severedWireIdSet(items: readonly FaultFxItem[]): Set<string> {
  * Signature of the circuit's fault state — memo key so per-frame sim ticks
  * don't recompute descriptors.
  */
-export function faultFxSignature(circuit: Pick<Circuit, 'components' | 'wires'>): string {
+export function faultFxSignature(circuit: Circuit): string {
   const compPart = circuit.components
     .map((c) => (c.state?.fault ? `${c.id}:${c.state.fault}` : ''))
     .join(',');
   const wirePart = circuit.wires
     .map((w) => `${w.id}:${w.fault ?? ''}:${w.fromPortIndex}:${w.toPortIndex}`)
     .join(',');
-  return `${compPart}|${wirePart}`;
+  const explicit = (circuit.faults ?? [])
+    .map(
+      (fault) =>
+        `${fault.id}:${fault.type}:${JSON.stringify(fault.target)}:${Boolean(fault.resolved)}`,
+    )
+    .join(',');
+  return `${compPart}|${wirePart}|${explicit}`;
 }

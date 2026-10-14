@@ -240,8 +240,6 @@ export const useUiStore = create<UiState>()(
     contactOpen: false,
     templatesOpen: false,
     activeGuideId: null,
-    diagnosisOpen: false,
-    diagnosisActive: false,
     guideHidden: false,
     welcomeOpen: !hasWelcomed() && !mobileSuitabilityInitiallyOpen,
     mobileSuitabilityOpen: mobileSuitabilityInitiallyOpen,
@@ -389,9 +387,9 @@ export const useUiStore = create<UiState>()(
         s.faultAlert = null;
       }),
 
-    addLog: (message, type) =>
+    addLog: (message, type, target) =>
       set((s) => {
-        s.logs.unshift({ id: `log-${++nextLogId}`, message, type });
+        s.logs.unshift({ id: `log-${++nextLogId}`, message, type, ...(target ? { target } : {}) });
         if (s.logs.length > MAX_LOGS) s.logs.length = MAX_LOGS;
       }),
     clearLogs: () =>
@@ -871,7 +869,6 @@ export const useUiStore = create<UiState>()(
         s.docsOpen = false;
         s.faultLabOpen = false;
 
-        s.diagnosisOpen = false;
         s.importExportOpen = false;
         s.menuOpen = false;
         s.contactOpen = false;
@@ -1031,14 +1028,6 @@ export const useUiStore = create<UiState>()(
     setContactOpen: (open) =>
       set((s) => {
         s.contactOpen = open;
-      }),
-    setDiagnosisOpen: (open) =>
-      set((s) => {
-        s.diagnosisOpen = open;
-      }),
-    setDiagnosisActive: (active) =>
-      set((s) => {
-        s.diagnosisActive = active;
       }),
     setTemplatesOpen: (open) =>
       set((s) => {

@@ -5,7 +5,6 @@ import { create } from 'zustand';
 
 export class AccessError extends Error {}
 interface AccessState {
-  exercise: { circuit: Circuit; mode: 'basic' | 'advanced' } | null;
   userId: string | null;
   capabilities: Capability[];
   nextChangeAt: number | null;
@@ -14,7 +13,6 @@ interface AccessState {
   message: string | null;
 }
 export const useSimulatorAccess = create<AccessState>(() => ({
-  exercise: null,
   userId: null,
   capabilities: [],
   nextChangeAt: null,
@@ -109,33 +107,21 @@ export function isCircuitReadOnly(circuit: Circuit) {
   }
 }
 export function requiredForEditor(circuit: Circuit) {
-  const exercise = useSimulatorAccess.getState().exercise;
-  return [
-    ...new Set([
-      ...circuitRequirements(circuit),
-      ...(exercise ? circuitRequirements(exercise.circuit, exercise.mode) : []),
-    ]),
-  ];
+  return circuitRequirements(circuit);
 }
 export async function authorizeCircuit(circuit: Circuit): Promise<void> {
-  const exercise = useSimulatorAccess.getState().exercise;
   if (!requiredForEditor(circuit).length) return;
   const generation = sessionGeneration;
   useSimulatorAccess.setState((s) => ({ pending: s.pending + 1 }));
   try {
-    let data = await apiJSON<{
+    const data = await apiJSON<{
       userId: string;
       capabilities: Capability[];
       nextChangeAt: number | null;
     }>('/simulator/authorize', 'POST', { circuit });
     if (generation !== sessionGeneration)
       throw new AccessError('Session changed; retry the action.');
-    if (exercise && circuitRequirements(exercise.circuit, exercise.mode).length)
-      data = await apiJSON('/simulator/authorize', 'POST', {
-        circuit: exercise.circuit,
-        diagnosis: exercise.mode,
-      });
-    if (generation !== sessionGeneration || exercise !== useSimulatorAccess.getState().exercise)
+    if (generation !== sessionGeneration)
       throw new AccessError('Session changed; retry the action.');
     applySnapshot(data);
     accessMessage(null);

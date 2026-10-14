@@ -22,7 +22,6 @@ import {
   type ComponentGroup,
   FAULTS,
   GUIDE_WALKTHROUGH_ANCHORS,
-  LEARNING_DIFFICULTIES,
   LEARNING_MODES,
   SHORTCUTS,
   SITE_DESTINATIONS,
@@ -483,79 +482,29 @@ function LearningModesSection() {
       <SectionHeading icon={GraduationCap} color="bg-indigo-600">
         Learning Modes
       </SectionHeading>
+      <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-400">
+        Guided Circuits and Fault Lab use the current drawing and shared simulator. Select a real
+        component, terminal or wire, review a cause, run and inspect the accepted response. Clear
+        causes, reset protection, operate devices and replace damaged items as separate edits.
+      </p>
       <div className="space-y-3">
-        <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-400">
-          Guided Circuits and Diagnosis Lab use the same circuit model and simulator as the
-          free-form workspace. Challenge Mode is deferred by the user for a later-stage rebuild; its
-          plans remain available, but its implementation is removed from this build.
-        </p>
-
         {LEARNING_MODES.map((mode) => (
           <div
             key={mode.name}
-            className="rounded-xl border border-slate-100 bg-white/60 p-4 dark:border-slate-700 dark:bg-slate-800/60"
+            className="rounded-xl border border-slate-100 p-4 dark:border-slate-700"
           >
-            <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-              {mode.name}{' '}
-              <span className="ml-1 rounded-md bg-indigo-50 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300">
-                {mode.tagline}
-              </span>
+            <h3 className="font-semibold">
+              {mode.name} · {mode.tagline}
             </h3>
-            <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
-              {mode.body}
-            </p>
+            <p className="text-xs">{mode.body}</p>
           </div>
         ))}
-
-        <div className="rounded-xl border border-slate-100 bg-white/60 p-4 dark:border-slate-700 dark:bg-slate-800/60">
-          <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-            Difficulty levels
-          </h3>
-          <ul className="mt-2 space-y-1.5 text-xs text-slate-600 dark:text-slate-400">
-            {LEARNING_DIFFICULTIES.map(([name, description]) => (
-              <li key={name} className="flex gap-2">
-                <span className="mt-0.5 size-1.5 flex-shrink-0 rounded-full bg-indigo-400" />
-                <span>
-                  <strong className="text-slate-800 dark:text-slate-200">{name}</strong> —{' '}
-                  {description}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="rounded-xl border border-slate-100 bg-white/60 p-4 dark:border-slate-700 dark:bg-slate-800/60">
-          <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-            Seeds &amp; replay
-          </h3>
-          <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
-            Every exercise is generated from a <strong>seed</strong> — a number shown next to its id
-            (for example{' '}
-            <code className="rounded bg-slate-100 px-1 dark:bg-slate-700">ES-DIAG-482917</code>).
-            Generation is deterministic, so the same seed, difficulty and app version always rebuild
-            the identical circuit and fault. Use <strong>Copy seed</strong> in the Diagnosis Lab
-            header to share an exercise with a tutor or attach it to a bug report, and paste one
-            into <strong>Replay a seed</strong> to work through exactly the same problem. Nothing is
-            uploaded — the seed is all that travels.
-          </p>
-        </div>
-
-        <div className="rounded-xl border border-slate-100 bg-white/60 p-4 dark:border-slate-700 dark:bg-slate-800/60">
-          <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-            Progress &amp; privacy
-          </h3>
-          <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
-            Attempts, hints used, completion times and accuracy are stored locally in your browser
-            (IndexedDB), alongside the exercise you currently have open — so a reload drops you back
-            where you were. None of it leaves your device, and there is no account or backend.
-          </p>
-        </div>
       </div>
-      <div className="mt-3">
-        <ExternalLink href="https://electrasim.com/guide/templates/#templates-h">
-          Every built-in guided circuit, listed on the website
-        </ExternalLink>
-      </div>
+      <p className="mt-3 text-xs">
+        Captured explanations are tied to a known circuit revision. Playback changes the
+        presentation; edits require another run. Unassessed models do not acquire a consequence
+        through animation. Saved circuits and historical records are preserved.
+      </p>
     </section>
   );
 }

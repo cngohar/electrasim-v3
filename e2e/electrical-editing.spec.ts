@@ -285,7 +285,7 @@ test('variant confirmation maps MCB output to RCCB L-out and preserves a port fa
   expect(await documentAt(page)).toEqual(original);
 });
 
-test('running and graded attempts lock configuration while supported runtime switches remain usable', async ({
+test('running locks configuration while supported runtime switches remain usable', async ({
   page,
 }) => {
   await openCircuit(page, editingCircuit());
@@ -308,13 +308,7 @@ test('running and graded attempts lock configuration while supported runtime swi
   await page.keyboard.press('Escape');
   await expect(inspector).not.toBeVisible();
   await activateControl(page, page.getByRole('button', { name: 'Stop', exact: true }));
-  await page.evaluate(async () => {
-    const path = '/src/store/uiStore.ts';
-    (await import(path)).useUiStore.setState({ diagnosisActive: true });
-  });
-  await expect(
-    page.getByTitle(/Supply and device configuration are locked during this exercise/),
-  ).toBeDisabled();
+  await expect(page.getByTitle('Click to change Global Supply Voltage')).toBeEnabled();
 });
 
 test('phone supply and readiness controls use the same confirmation flow', async ({ page }) => {

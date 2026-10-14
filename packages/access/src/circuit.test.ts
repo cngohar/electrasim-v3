@@ -1,8 +1,6 @@
 import { type Circuit, createInjectedFault } from '@electrasim/domain';
-import { GENERATOR_VERSION } from '@electrasim/domain/challenges';
 import { describe, expect, it } from 'vitest';
 import { circuitRequirements } from './circuit';
-import { buildAccessibleDiagnosis, scenarioRequirements } from './diagnosis';
 
 const circuit: Circuit = {
   components: [{ id: 'lamp', type: 'bulb', x: 0, y: 0, state: {} }],
@@ -44,20 +42,5 @@ describe('content access policy', () => {
         ],
       }),
     ).toEqual([]);
-  });
-  it('selects free content upfront and preserves old version identities', () => {
-    for (const difficulty of ['beginner', 'intermediate'] as const)
-      for (let seed = 0; seed < 40; seed++) {
-        expect(scenarioRequirements(buildAccessibleDiagnosis({ seed, difficulty }))).toEqual([]);
-      }
-    const request = { seed: 33, difficulty: 'intermediate' } as const;
-    expect(buildAccessibleDiagnosis(request).generatorVersion).toBe(GENERATOR_VERSION);
-    for (const generatorVersion of [1, 2])
-      expect(() => buildAccessibleDiagnosis({ ...request, generatorVersion })).toThrow(
-        'saved work is preserved',
-      );
-    expect(() => buildAccessibleDiagnosis({ ...request, generatorVersion: 999 })).toThrow(
-      'Unsupported',
-    );
   });
 });

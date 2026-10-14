@@ -1,7 +1,7 @@
 import type { LogEntry } from '@electrasim/domain';
 import { Terminal, X } from 'lucide-react';
 import { useState } from 'react';
-import { useUiStore } from '../../store';
+import { focusFaultTarget, useCircuitStore, useUiStore } from '../../store';
 import { useSurfacePresence } from '../hooks/useSurfacePresence';
 
 interface Props {
@@ -18,9 +18,12 @@ const FILTERS: { value: Filter; label: string }[] = [
   { value: 'warning', label: 'Warnings' },
   { value: 'info', label: 'Info' },
 ];
+const targetId = (target: LogEntry['target']) =>
+  target?.type === 'port' ? target.componentId : target?.id;
 
 /** Console stays reachable independently of selection, including on phones. */
 export function LogPanel({ isPhone, open, simRunning, logs }: Props) {
+  const circuit = useCircuitStore((s) => s);
   const [filter, setFilter] = useState<Filter>('all');
   const presence = useSurfacePresence(open);
   const errors = logs.filter((entry) => entry.type === 'error').length;
@@ -33,7 +36,6 @@ export function LogPanel({ isPhone, open, simRunning, logs }: Props) {
     if (next && isPhone) {
       const ui = useUiStore.getState();
       ui.setInspectorCollapsed(true);
-      ui.setDiagnosisOpen(false);
       if (ui.activeGuideId) ui.setGuideHidden(true);
     }
     useUiStore.getState().setLogOpen(next);
@@ -84,7 +86,11 @@ export function LogPanel({ isPhone, open, simRunning, logs }: Props) {
                 </button>
               ))}
             </fieldset>
-            <button type="button" onClick={() => useUiStore.getState().clearLogs()}>
+            <button
+              type="button"
+              title="Clear messages only"
+              onClick={() => useUiStore.getState().clearLogs()}
+            >
               Clear
             </button>
           </div>
@@ -94,6 +100,31 @@ export function LogPanel({ isPhone, open, simRunning, logs }: Props) {
               <div key={entry.id} className="table-console-entry">
                 <span className={`table-log-type ${entry.type}`}>{entry.type}</span>
                 <span>{entry.message}</span>
+                {entry.target && (
+                  <button
+                    type="button"
+                    aria-label={`Focus target for ${entry.message}`}
+                    onClick={() => {
+                      const target = entry.target!;
+                      const id = target.type === 'port' ? target.componentId : target.id;
+                      if (target.type === 'wire') {
+                        circuit.selectWire(id);
+                        focusFaultTarget({ wireId: id });
+                      } else {
+                        circuit.selectComponent(id);
+                        focusFaultTarget({ componentId: id });
+                      }
+                      useUiStore.getState().setLogOpen(false);
+                    }}
+                    disabled={
+                      entry.target.type === 'wire'
+                        ? !circuit.wires.some((w) => w.id === targetId(entry.target))
+                        : !circuit.components.some((c) => c.id === targetId(entry.target))
+                    }
+                  >
+                    Focus target
+                  </button>
+                )}
               </div>
             ))}
           </div>

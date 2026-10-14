@@ -3,6 +3,8 @@ import { hasDamageSettings } from '@electrasim/domain/core/damageModel';
 import { isCurrentSimulation } from '@electrasim/domain/simulationEvidence';
 import { useCircuitStore } from '../../../store/circuitStore';
 import { useConfigurationLockReason } from '../../../store/electricalEditing';
+import { recordFaultLabEdit } from '../../../store/faultLabStore';
+import { isCircuitReadOnly, useSimulatorAccess } from '../../../store/simulatorAccess';
 import { useUiStore } from '../../../store/uiStore';
 import DamageModelEditor from './DamageModelEditor';
 
@@ -23,6 +25,8 @@ export default function FaultRepairPanel({
     ? providedResult
     : null;
   const running = useUiStore((s) => s.simRunning);
+  useSimulatorAccess((s) => s.revision);
+  const readOnly = isCircuitReadOnly(useCircuitStore.getState());
   const locked = useConfigurationLockReason();
   const damaged = components.filter((c) => c.state.isBlown);
   const damagedWires = wires.filter((w) => w.isBusted);
@@ -59,12 +63,42 @@ export default function FaultRepairPanel({
             <button
               type="button"
               className={button}
-              onClick={() => useCircuitStore.getState().resetTrippedComponent(c.id)}
+              disabled={readOnly}
+              onClick={async () => {
+                if (await useCircuitStore.getState().resetTrippedComponent(c.id))
+                  recordFaultLabEdit(`Reset ${label(c)} to OFF.`);
+              }}
             >
               Reset {label(c)} to OFF
             </button>
           </div>
         ))}
+        {components
+          .filter(
+            (c) =>
+              c.state.protectionModel &&
+              c.state.protectionModel.kind !== 'fuse' &&
+              !c.state.isBlown &&
+              !c.state.isTripped &&
+              !tripped.some((t) => t.id === c.id) &&
+              c.state.on === false,
+          )
+          .map((c) => (
+            <div key={c.id} className="flex flex-wrap items-center justify-between gap-2">
+              <span>{label(c)} · OFF</span>
+              <button
+                type="button"
+                className={button}
+                disabled={readOnly}
+                onClick={async () => {
+                  if (await useCircuitStore.getState().toggleSwitch(c.id))
+                    recordFaultLabEdit(`Operated ${label(c)} to ON; fresh verification required.`);
+                }}
+              >
+                Switch {label(c)} ON
+              </button>
+            </div>
+          ))}
         {damaged.map((c) => (
           <div key={c.id} className="flex flex-wrap items-center justify-between gap-2">
             <span>
@@ -73,7 +107,7 @@ export default function FaultRepairPanel({
             <button
               type="button"
               className={button}
-              disabled={running}
+              disabled={running || readOnly}
               onClick={() => useCircuitStore.getState().repairBlownComponent(c.id)}
             >
               Replace {label(c)}
@@ -86,7 +120,7 @@ export default function FaultRepairPanel({
             <button
               type="button"
               className={button}
-              disabled={running}
+              disabled={running || readOnly}
               onClick={() => useCircuitStore.getState().setWireBusted(w.id, false)}
             >
               Replace wire #{w.id.slice(0, 8)}
@@ -98,7 +132,7 @@ export default function FaultRepairPanel({
             <button
               type="button"
               className={button}
-              disabled={running}
+              disabled={running || readOnly}
               onClick={() => useCircuitStore.getState().repairAllFaults()}
             >
               Replace all damaged items

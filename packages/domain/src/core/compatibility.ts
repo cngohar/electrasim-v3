@@ -9,6 +9,7 @@ export type CompatibilityReasonCode =
   | 'underpowered'
   | 'undervoltage'
   | 'overvoltage'
+  | 'nominal-voltage-mismatch'
   | 'unknown-rating'
   | 'unsupported-model'
   | 'missing-supply'
@@ -155,6 +156,19 @@ export function assessTerminalCompatibility(
         ? LINEAR_SYSTEM_LIMITS.absoluteTolerance +
           Math.max(voltage, boundary) * LINEAR_SYSTEM_LIMITS.relativeTolerance
         : 0;
+    if (
+      group.loadLaw.kind !== 'fixed-resistance' &&
+      group.operatingVoltageRange.status === 'unknown' &&
+      group.nominalVoltage.status === 'known' &&
+      Math.abs(voltage - group.nominalVoltage.value) > tolerance(group.nominalVoltage.value)
+    ) {
+      unassessed = true;
+      add(
+        'nominal-voltage-mismatch',
+        `${measured ? 'Terminal' : 'Nominal supply'} voltage ${voltage} V differs from the device design voltage ${group.nominalVoltage.value} V. Its operating voltage range is unspecified; operation is unassessed.`,
+        basis,
+      );
+    }
     if (group.operatingVoltageRange.status === 'known') {
       const range = group.operatingVoltageRange.value;
       if (

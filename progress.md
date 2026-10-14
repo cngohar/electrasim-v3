@@ -833,3 +833,62 @@ above. GitHub synchronization is verified separately from local test results;
 this authorization does not include Cloudflare deployment/account operations.
 Diagnosis retirement and new Fault Lab production work await the requested
 plan/design review; they are not part of this completed runtime checkpoint.
+
+## 2026-10-14 — Phase 1.11 Fault Lab plan and design prepared for review
+
+Prepared a standalone darker-slate Fault Lab prototype, 21-screen inventory,
+implementation plan and concrete Diagnosis retirement/data-preservation review
+after the `fa74721` checkpoint was pushed. The design includes a separate
+Console view with visible severity selection, three representative sequences,
+the 14-type coverage catalogue and explicit visual-only Matter boundaries.
+Only open-conductor and protected-short examples have full fault sequences;
+overload is a derived damage-budget example. No production Diagnosis or Fault
+Lab runtime code was changed or deleted. The next phase is awaiting the user's
+design review. Prototype browser geometry could not be reviewed in the
+restricted authoring environment, so no browser acceptance is claimed. Local-only
+rules and Phase 1.9 performance exceptions remain unchanged. See
+`docs/plans/FAULT_LAB_REDESIGN_PLAN.md` and
+`docs/handoffs/fault-lab-next-chat.md`.
+
+## Session 2026-10-14 — Phase 1.11 design approved, implementation started
+
+The user accepted the Fault Lab plan/prototype and instructed implementation. The scoped sequence preserves current electrical contracts, accepts the replacement locally, then removes the reviewed Diagnosis runtime while retaining browser/D1 records and conditional generator code. Local baseline/evidence are tracked in `docs/audits/phase-1-fault-lab-redesign.md`. Implementation and acceptance are in progress; no remote operation is authorized.
+
+## Session 2026-10-14 — Phase 1.11 complete locally
+
+Implemented the approved Fault Lab workspace: real component/wire/named-terminal targets, all 14 library entries with applicability/coverage, reviewed Cancel/Apply, detached accepted response playback, Explain/Readings/Repair, active causes, photo/no-photo handling, history/Undo/original restore and independent Console target navigation. Playback preserves solver clock/topology; stale and unassessed states suppress outcome claims. Two bounded decorative Matter bodies are disposed on pause; static cutaways remain. Clear causes, reset OFF, operate ON and replacement retain separate semantics.
+
+Replacement passed scoped local unit/source/built acceptance before the 19 approved direct Diagnosis files and integration were retired. No saved circuit, browser record, D1 schema/migration, historical attempt or stored capability was deleted. Shared generator evidence and replay metadata were preserved by extracting their small dependency boundaries; conditional generator cleanup remains excluded.
+
+Final functional acceptance is aggregate full/focused evidence: **2,004 / 2,004 units**, **138 unique source-browser cases** across desktop Chrome/phone Chrome/tablet Safari, **8 built-browser cases**, **842 actual Bun/workerd parity cases**, **34 real local Worker/D1/cookie groups**, **5 graph implementation tests**, full types/lint/build and asset/link/SEO/CSP checks. Final Console overlap recovery passed 15 affected source cases and all 8 rebuilt cases using actual controls. Baseline **2,115** reconciles exactly to **2,004** after 127 retired exercise cases, five replaced old Fault Lab cases and 21 replacement/additional cases. [Audit](docs/audits/phase-1-fault-lab-redesign.md) retains failures, recovery paths, screenshots, raw evidence and distinct performance limits.
+
+Phase/plan/help/API/changelog/handoff and knowledge graph reflect current retirement and preserved history. Historical solver **56.65 ms p95 vs 8 ms**, generator timing and dense **60 fps** exceptions remain open; new motion/asset measurements do not close them. All changes remain local and uncommitted. No GitHub publication, deployment, live-site test, credential or Cloudflare account/resource operation occurred.
+
+## 2026-10-14 — Fault application flow and all-type captures
+
+The user pointed out that the investigation panel had been redesigned while the fault-application presentation still needed review. Corrected the screenshot evidence: the earlier set was in “Compare previous” mode and showed the healthy baseline. Added a type-specific preview to the fault edit review and active applied state, with explicit modeled versus unassessed boundaries. Applied every one of the 14 registry faults through the real browser UI against an applicable target and captured 14 review plus 14 applied-state screenshots in `.wrangler/fault-lab-application/index.html`. The browser capture assertion passed; 26 focused component/Inspector cases and typecheck passed. Screenshots document application before a new simulation, not electrical response. Updated [the audit](docs/audits/phase-1-fault-lab-redesign.md) and [handoff](docs/handoffs/fault-lab-next-chat.md); no commit or remote operation.
+
+## 2026-10-14 — Fault application visuals corrected to match their targets
+
+After reviewing those captures, the user noted that generic conductor/device sketches looked unrelated to the real component. Replaced them with the actual canvas component symbol and canonical terminal positions, or the saved wire route and connected endpoint symbols. Open pins, L/N/PE bridges, protection contacts and bypass paths now appear on the selected target. Unassessed faults show the target plus the missing-model reason without an invented waveform. The canvas contact glyph shows protection contacts open while retaining the handle state.
+
+The refreshed local gallery still contains all **14 review and 14 applied screenshots**; the applied contact sheet is `.wrangler/fault-lab-application/contact-sheet-applied.jpg`. The final browser run passed all 14 apply flows with target-specific assertions; focused application/Inspector/component rendering passed **30 cases**, and typecheck passed. Screenshots remain before a fresh simulation and make no measured-response claim. Updated the [audit](docs/audits/phase-1-fault-lab-redesign.md), [plan](docs/plans/FAULT_LAB_REDESIGN_PLAN.md), [handoff](docs/handoffs/fault-lab-next-chat.md) and scoped graph records. No commit or remote operation.
+
+
+## 2026-10-14 — Fault Lab Apply/Clear verification and canvas repairs
+
+Checked the actual applied-fault workflow and found remaining renderer defects: canonical terminal causes were saved without a canvas marker; the Circuit button was ignored after Apply and hook order changed; entrance animation moved badges/earth indicators to the canvas origin. Fixed those, stopped invented conductor recoloring for unassessed switched-neutral causes, connected bypass drawings to actual modeled contact poles, and kept canonical protective contacts open independently of legacy mirrors. Target diagrams now share canonical rotated port geometry/directions.
+
+The source browser passed **all 14 Apply/Clear flows** with exact canonical and compiled fault targets, both drawing views, positioned canvas chips and complete starting-document restoration. Refreshed **42 captures** (review/applied/cleared) and visually reviewed all three contact sheets plus selected full-size applied images. **57 focused unit cases**, rebuilt desktop/phone **2 / 2**, full/final E2E types, repository lint, full build and delivery budgets passed. Final initial JS **255,327 B gzip**, CSS **27,986 B gzip**. The complete **2,004-case** phase closure suite predates this follow-up and was not rerun; historical solver/performance exceptions remain. See [the audit](docs/audits/phase-1-fault-lab-redesign.md) for logs. Changes remain local and uncommitted; no remote operation.
+
+
+## 2026-10-14 — Catalogue model gaps and silent Run feedback
+
+Reproduced the reported connected L/N, 12 V supply and 230 V / 9 W LED through actual placement, wiring and confirmed supply edits. Supply editing is correct; the LED returns an unsupported calculation at both 12 V and 230 V. The numerical model files were unchanged by the Fault Lab visual repairs. Audited all 116 placement defaults: 31 are unassessed; the three-phase motor is supported after explicit model settings, while 30 entries need missing behaviour code. Several other controls/protection parts have partial or conditional behaviour. See [the full catalogue gap audit](docs/audits/catalogue-simulation-gaps.md) and [proposed completion slices](docs/plans/CATALOGUE_MODEL_COMPLETION_PLAN.md). Whole-catalogue operation is not established by earlier scoped phase closure.
+
+Repaired the silent reporting: visible component-specific Simulation unavailable feedback with the Console closed, Unavailable context state, distinct Model unavailable / Ratings unknown badges and a shared nominal design-voltage mismatch warning. Missing operating bands remain unassessed; no new LED, fan or appliance law, trip or damage behaviour was fabricated. **465 affected units**, **842 exact local Bun/workerd parity cases**, **3 native source browser flows**, **3 current Comlink numerical/LED regressions**, **2 rebuilt desktop/phone native flows**, types/lint/full build and delivery budgets passed. Initial JS **256,162 B gzip**, CSS **28,085 B gzip**. The audit records the focused fixture/phone-selector recoveries. No commit or remote operation.
+
+
+## 2026-10-14 — Authorized GitHub checkpoint before the next model phase
+
+The user explicitly requested committing the repository and pushing to GitHub, then planning the new “Missing component calculation” phase. Reviewed the existing Phase 1.11 implementation/retirement, application follow-ups and catalogue reporting repair as one checkpoint. The `origin/main` remote still matches the previous `fa74721694d57f9266c1988be51eea55b65cb92b` checkpoint. Current scoped local evidence is preserved in the linked audits; commit hooks enforce staged formatting/lint and full typecheck. The publication result will be recorded after the push. This authorization is for GitHub publication and phase planning; Cloudflare restrictions remain.

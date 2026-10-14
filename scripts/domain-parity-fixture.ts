@@ -13,7 +13,6 @@ import {
 /** Shared test workload for local Bun / workerd parity; never served by the app. */
 import { simulate } from '@electrasim/domain/simulation';
 import { GUIDED_CIRCUIT_TEMPLATES } from '@electrasim/domain/templates';
-import { diagnosisEvidenceFixture } from '../packages/domain/src/challenges/diagnosis/assessmentFixtures';
 import { controlCircuit, setControlSwitch } from '../packages/domain/src/core/controlFixtures';
 import { damageAcceptanceCircuits } from '../packages/domain/src/core/damageFixtures';
 import { earthingAcceptanceCircuits } from '../packages/domain/src/core/earthingFixtures';
@@ -33,10 +32,11 @@ import { transformerAcceptanceCircuits } from '../packages/domain/src/core/trans
 import { component as C, wire as W } from '../packages/domain/src/simulation/auditFixtures';
 import { consumerEvidenceFixture } from '../packages/domain/src/simulation/consumerFixtures';
 import { dolAcceptanceCircuits } from '../packages/domain/src/simulation/dolFixtures';
+import { faultLabEvidenceFixture } from '../packages/domain/src/simulation/faultLabFixtures';
 import { runtimeAcceptanceCircuits } from '../packages/domain/src/simulation/runtimeFixtures';
 
 export function domainParityFixture(): string {
-  const results: unknown[] = [...consumerEvidenceFixture(), ...diagnosisEvidenceFixture()];
+  const results: unknown[] = [...consumerEvidenceFixture(), ...faultLabEvidenceFixture()];
   for (const [name, circuit] of Object.entries({
     ...motorAcceptanceCircuits(),
     ...dolAcceptanceCircuits(),

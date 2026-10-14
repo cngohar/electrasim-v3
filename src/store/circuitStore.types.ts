@@ -38,6 +38,11 @@ export interface GraphChanges {
 }
 
 export interface CircuitState {
+  /** Authorized investigation restore, preserving groups as one undoable edit. */
+  restoreCircuitSnapshot: (
+    circuit: Circuit,
+    groups: ComponentGroup[],
+  ) => boolean | Promise<boolean>;
   components: ComponentInstance[];
   wires: WireInstance[];
   globalVoltage: number;
@@ -69,7 +74,7 @@ export interface CircuitState {
   addComponent: (comp: ComponentInstance) => void;
   removeComponent: (id: string) => void;
   moveComponent: (id: string, x: number, y: number) => void;
-  toggleSwitch: (id: string) => void;
+  toggleSwitch: (id: string) => boolean | Promise<boolean>;
   setSwitchState: (id: string, on: boolean) => void;
 
   addWire: (wire: WireInstance) => void;

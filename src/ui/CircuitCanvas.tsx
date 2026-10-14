@@ -129,7 +129,6 @@ export function CircuitCanvas({
   const interfaceMotion = useSettingsStore((s) => s.interfaceMotion);
   const physicsEffects = useSettingsStore((s) => s.physicsEffects);
   const simRunning = useUiStore((s) => s.simRunning);
-  const diagnosisActive = useUiStore((s) => s.diagnosisActive);
   const reducedEffectsSetting = useSettingsStore((s) => s.reducedEffects);
   const customWiringMode = useSettingsStore((s) => s.customWiringMode);
   const autoWireJoints = useSettingsStore((s) => s.autoWireJoints);
@@ -231,6 +230,15 @@ export function CircuitCanvas({
   // fault key, so the layer's entrance animations only play on real fault
   // transitions, never on re-renders.
   const faultFxItems = useMemo(() => collectFaultFx(circuit, byId), [circuit, byId]);
+  const forcedOpenIds = useMemo(
+    () =>
+      new Set(
+        faultFxItems.flatMap((item) =>
+          item.componentId && ['jam', 'bridge'].includes(item.indicator) ? [item.componentId] : [],
+        ),
+      ),
+    [faultFxItems],
+  );
   const severedWireIds = useMemo(() => severedWireIdSet(faultFxItems), [faultFxItems]);
 
   // Orthogonal path computation is O(components) per wire,
@@ -558,6 +566,7 @@ export function CircuitCanvas({
             onArmEndpointReroute={handleEndpointPointerDown}
           >
             <ComponentLayer
+              forcedOpenIds={forcedOpenIds}
               components={circuit.components}
               componentsById={byId}
               simulation={simResult}
@@ -586,7 +595,7 @@ export function CircuitCanvas({
             paths={orthogonalPathD}
             pan={pan}
             zoom={zoom}
-            enabled={physicsEffects && interfaceMotion !== 'off' && !diagnosisActive}
+            enabled={physicsEffects && interfaceMotion !== 'off'}
             animate={simRunning && !reducedEffects}
           />
 

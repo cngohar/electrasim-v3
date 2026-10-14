@@ -150,6 +150,42 @@ describe('1.5C.0 explicit capability inventory', () => {
       }).status,
     ).toBe('unassessed');
   });
+
+  it('reports a directly wired LED design-voltage mismatch without inventing its operating range', () => {
+    const circuit = resistive();
+    circuit.components[2]!.type = 'bulb';
+    circuit.globalVoltage = 12;
+    const readiness = assessCircuitReadiness(circuit);
+    expect(readiness.topology).toBe('connected');
+    const result = readiness.groups.find((group) => group.componentId === 'load')!.result;
+    expect(result.status).toBe('unassessed');
+    expect(result.reasons).toContainEqual(
+      expect.objectContaining({
+        code: 'nominal-voltage-mismatch',
+        basis: 'nominal-supply',
+        severity: 'warning',
+      }),
+    );
+    expect(
+      readiness.diagnostics.find((diagnostic) => diagnostic.code === 'nominal-voltage-mismatch'),
+    ).toMatchObject({
+      componentId: 'load',
+      message: expect.stringContaining('12 V differs from the device design voltage 230 V'),
+    });
+    const group = readiness.capabilities.find((capability) => capability.componentId === 'load')!
+      .groups[0]!;
+    expect(
+      assessTerminalCompatibility(group, {
+        supply: { kind: 'ac-single-phase', voltage: 230, frequencyHz: 50 },
+      }).reasons.some((reason) => reason.code === 'nominal-voltage-mismatch'),
+    ).toBe(false);
+    expect(
+      assessTerminalCompatibility(group, {
+        supply: { kind: 'ac-single-phase', voltage: 12, frequencyHz: 50 },
+        compareNominalVoltage: false,
+      }).reasons.some((reason) => reason.code === 'nominal-voltage-mismatch'),
+    ).toBe(false);
+  });
 });
 
 describe('1.5C.0 deterministic readiness without a solve or safety verdict', () => {

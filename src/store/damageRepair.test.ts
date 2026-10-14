@@ -11,11 +11,10 @@ import { useUiStore } from './uiStore';
 const document = () => selectCircuit(useCircuitStore.getState());
 beforeEach(() => {
   invalidateAccess();
-  useSimulatorAccess.setState({ exercise: null, userId: null, capabilities: [], message: null });
+  useSimulatorAccess.setState({ userId: null, capabilities: [], message: null });
   useUiStore.setState({
     simRunning: false,
     simResult: null,
-    diagnosisActive: false,
   });
   useCircuitStore.getState().setCircuit(damageCircuit());
   clearHistory();
