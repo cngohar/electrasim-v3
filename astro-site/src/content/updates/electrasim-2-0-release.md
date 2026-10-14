@@ -1,12 +1,11 @@
 ---
 title: "ElectraSim 2.0: Challenge Mode, the Diagnosis Lab, Guided Circuits and the Electrical Toolbox"
-description: "ElectraSim 2.0 is the learning release: three structured learning modes judged by the real simulation engine, eight Guided Circuits with checklists, a live Fault Lab, compliance reporting, and a multi-standard Electrical Toolbox — plus a long list of honesty and correctness fixes. Here is everything that changed and why."
+description: "ElectraSim 2.0 is the learning release: two structured learning modes judged by the real simulation engine, eight Guided Circuits with checklists, a live Fault Lab, compliance reporting, and a multi-standard Electrical Toolbox — plus a long list of honesty and correctness fixes. Here is everything that changed and why."
 pubDate: 2026-08-31
 updatedDate: 2026-09-17
 author: ElectraSim
 category: App Update
 version: "v2.0.4"
-tags: [ElectraSim, v2.0, v2.0.1, v2.0.2, v2.0.3, v2.0.4, release notes, challenge mode, diagnosis lab, ohmageddon, guided circuits, fault lab, electrical toolbox, cable sizing, voltage drop, circuit simulator]
 featured: true
 ---
 
@@ -26,9 +25,9 @@ This post is the complete tour. Everything linked below is live today, free, wit
 
 ---
 
-## 1. Three learning modes, judged by the real simulator
+## 1. Two learning modes, judged by the real simulator
 
-Free-build is where most simulators stop. ElectraSim 2.0 ships three structured modes, and all three are judged by the same simulation engine the canvas uses — not by a script that checks whether you clicked the right pixel.
+Free-build is where most simulators stop. ElectraSim 2.0 ships two structured modes, and both are judged by the same simulation engine the canvas uses — not by a script that checks whether you clicked the right pixel.
 
 ### Challenge Mode — build to a mission
 
@@ -43,13 +42,9 @@ Two honesty details worth knowing, because they took real work:
 - **The console no longer prints the answer.** The simulator's own trip messages used to name the injected fault outright — in Diagnosis mode those messages are now withheld by index at the point they are pushed, so you still see the *consequences* a diagnostician reasons from, never the giveaway.
 - **The panel re-derives the symptom live.** The briefing text is regenerated from your actual circuit as you work, so if clearing one fault reveals another, the panel says the symptom has changed instead of describing a circuit that no longer exists.
 
-### Ohmageddon — opt-in punishment
-
-For when Diagnosis is too comfortable: compound faults that deliberately mask each other (verified by an electrical-equivalence gate, so the masking is real, not cosmetic), a misleading-symptom modifier, limited hints and a timer. It is electrically honest — never unfair — and every brutal run is shareable by seed.
-
 ## 2. A deterministic generator underneath
 
-All three modes sit on a seeded, deterministic circuit generator: same seed, same circuit, same faults, every time. It went through a generator stress lock before the modes shipped — tens of thousands of generated scenarios checked for solvability, reachability and honesty — and the diagnosis pipeline is verified across **269,808 fault injections**. If a scenario says a fault is findable, it is.
+Both modes sit on a seeded, deterministic circuit generator: same seed, same circuit, same faults, every time. It went through a generator stress lock before the modes shipped — tens of thousands of generated scenarios checked for solvability, reachability and honesty — and the diagnosis pipeline is verified across **269,808 fault injections**. If a scenario says a fault is findable, it is.
 
 ## 3. Guided Circuits — templates that teach
 
@@ -82,7 +77,6 @@ The app shell was rebuilt around speed: a **⌘K command palette** for every act
 ## 8. Correctness fixes that matter
 
 - **Conductor-bypass validation** — a circuit with an unwired Neutral pair on an FCU used to score 100%. A per-device port-connectivity check now catches bypassed conductors and unwired components, with RCD/RCBO imbalance wording where it matters.
-- **Compound-fault honesty** — a masking verdict now *replaces* the optimistic proposal row instead of merging with it, so the rage summary cannot claim a compound that does not exist.
 - **Tier escalation** is honest by burden (faults to find never decrease, hints are never restored), not by modifier count.
 - **Cable sizing sized cold cables** — fixed (see §6). The length slider no longer rounds 500 m to 501 m, and a rejected input is marked stale instead of showing a stale result as current.
 
@@ -124,7 +118,7 @@ The evidence is kept close to the claim: the page records the official product, 
 
 The guide used to be a good reference with no obvious way in. Twenty circuit walkthroughs, twenty-two components and eight tools were all there, and none of them told you which one to open first. Two things change that.
 
-**A start-here post.** [How to Use the ElectraSim Guide: Beginner to Pro](/blog/how-to-use-the-electrasim-guide-beginner-to-pro/) is the route: what to read at each level, how to read a walkthrough, when to open a component page instead, and how to tell when you are ready to move up. It ends where the reading stops being useful — Challenge Mode, the Diagnosis Lab and Ohmageddon, judged by the same engine the canvas runs on.
+**A start-here post.** [How to Use the ElectraSim Guide: Beginner to Pro](/blog/how-to-use-the-electrasim-guide-beginner-to-pro/) is the route: what to read at each level, how to read a walkthrough, when to open a component page instead, and how to tell when you are ready to move up. It ends where the reading stops being useful — Challenge Mode, the Diagnosis Lab, judged by the same engine the canvas runs on.
 
 **A guide you can take apart.** The [component pages](/guide/components/) now carry two views: the outside of the real part, with hotspots pinned to its actual geometry, and — for sixteen of them — a cutaway showing the mechanism. On an [MCB](/guide/components/mcb/) that is the latch, solenoid, arc chute and bimetal strip; on an [RCD](/guide/components/rcd/) it is the summation transformer and trip solenoid. One click on a marker fills the side rail; the picture does not move.
 

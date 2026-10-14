@@ -59,8 +59,8 @@ test.describe('new Guided Circuits', () => {
     const lamp = page.locator('[data-component-id="rcbo-protected-socket-test-lamp"]');
 
     await page.getByRole('button', { name: /^Run Simulation$/ }).click();
-    // The modeled incandescent lamp renders its warm startup glow.
-    await expect(lamp.locator('.electrasim-incandescent-startup')).toHaveCount(1);
+    // Fresh accepted lamp operation lights the local emission halo.
+    await expect(lamp.locator('.table-lamp-emission')).toHaveCount(1);
 
     if (isPhone) {
       // On phones the guide sheet overlays the lower canvas; "Hide guide" is
@@ -70,20 +70,14 @@ test.describe('new Guided Circuits', () => {
 
     await rcbo.dblclick();
     await expect(rcbo).toHaveAttribute('aria-pressed', 'false');
-    await expect(lamp.locator('.electrasim-incandescent-startup')).toHaveCount(0);
+    await expect(lamp.locator('.table-lamp-emission')).toHaveCount(0);
   });
 
   test('the guided circuits window has a visible close control and closes', async ({ page }) => {
     await page.goto('/');
     await page.locator('[data-circuit-canvas]').waitFor({ state: 'attached' });
 
-    /*
-     * Open the picker from the command hub rather than the sub-header "Guides"
-     * button: at tablet widths the header's left zone is sized to its own
-     * content and overflows on top of the centre cluster, so a click aimed at
-     * that button lands on the active-standard chip instead. The Menu tile sits
-     * in the right zone and is reachable on every viewport.
-     */
+    // The project menu exposes the same picker on every viewport.
     await page.getByRole('button', { name: 'Menu' }).click();
     await page
       .getByRole('button', { name: /^Guided Circuits/ })
@@ -117,7 +111,7 @@ test.describe('new Guided Circuits', () => {
     await expect(guidePanel.getByText(/challenge/i)).toHaveCount(0);
 
     // Loading a Pro guide promotes the workbench to Pro mode.
-    const studentToggle = page.getByRole('button', { name: /^student$/i });
+    const studentToggle = page.getByTitle(/^Basic Student Mode active/);
     await expect(studentToggle).toBeHidden({ timeout: 5000 });
 
     // End guide closes the checklist but keeps the circuit on the canvas.

@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 /**
  * Modal — minimal dialog primitive for ElectraSim (Phase 6.1).
  *
@@ -13,8 +14,9 @@
  */
 
 import { X } from 'lucide-react';
-import { type ReactNode, useCallback, useEffect, useId, useRef, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useId, useRef } from 'react';
 import { useDialogFocus } from '../hooks/useDialogFocus';
+import { useSurfacePresence } from '../hooks/useSurfacePresence';
 
 export interface ModalProps {
   open: boolean;
@@ -32,6 +34,8 @@ export interface ModalProps {
   ariaLabel?: string;
   /** Keep the dimmed backdrop without blurring the editor behind it. */
   backdropBlur?: boolean;
+  /** Modeless tool window: selection and canvas interaction remain available. */
+  interactiveCanvas?: boolean;
 }
 
 export function Modal({
@@ -44,34 +48,11 @@ export function Modal({
   widthClass = 'max-w-md',
   ariaLabel,
   backdropBlur = true,
+  interactiveCanvas = false,
 }: ModalProps) {
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement | null>(null);
-  const [mounted, setMounted] = useState(open);
-  const [isClosing, setIsClosing] = useState(false);
-
-  // Mount immediately when opened.
-  useEffect(() => {
-    if (open) {
-      setMounted(true);
-      setIsClosing(false);
-    }
-  }, [open]);
-
-  // When closed while mounted, play the 200 ms exit transition, then unmount.
-  // `isClosing` is intentionally NOT a dependency: if it were, flipping it to
-  // true would run the cleanup and cancel the unmount timer, leaving the
-  // dialog stuck in the DOM forever.
-  useEffect(() => {
-    if (open || !mounted) return;
-    setIsClosing(true);
-    const timer = window.setTimeout(() => {
-      setMounted(false);
-      setIsClosing(false);
-    }, 200);
-    return () => window.clearTimeout(timer);
-  }, [open, mounted]);
-
+  const { mounted, exiting: isClosing } = useSurfacePresence(open);
   // Always invoke the LATEST onClose callback, synchronously. The previous
   // implementation deferred the call by 200 ms inside a captured closure,
   // which both delayed the state update and could call a stale callback.
@@ -83,15 +64,29 @@ export function Modal({
     onCloseRef.current();
   }, []);
 
-  useDialogFocus(mounted && !isClosing, handleRequestClose, panelRef);
+  useDialogFocus(mounted && !isClosing && !interactiveCanvas, handleRequestClose, panelRef);
+
+  useEffect(() => {
+    if (!open || !interactiveCanvas) return;
+    const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    return () => {
+      if (previous?.isConnected && previous.offsetParent !== null) previous.focus();
+      else
+        document.querySelector<HTMLButtonElement>('[aria-label="Labs and circuit tools"]')?.focus();
+    };
+  }, [open, interactiveCanvas]);
 
   if (!mounted) return null;
 
-  return (
+  return createPortal(
     <dialog
       open
-      className="fixed inset-0 z-50 m-0 flex h-dvh w-screen max-h-none max-w-none items-center justify-center overflow-y-auto border-0 bg-transparent p-4"
-      aria-modal="true"
+      data-surface-state={isClosing ? 'closing' : 'open'}
+      inert={isClosing || undefined}
+      aria-hidden={isClosing || undefined}
+      data-interactive-canvas={interactiveCanvas || undefined}
+      className="table-dialog fixed inset-0 z-50 m-0 flex h-dvh w-screen max-h-none max-w-none items-center justify-center overflow-y-auto border-0 bg-transparent p-4"
+      aria-modal={interactiveCanvas ? undefined : true}
       aria-labelledby={title ? titleId : undefined}
       aria-label={title ? undefined : (ariaLabel ?? 'Dialog')}
     >
@@ -105,13 +100,14 @@ export function Modal({
       />
       <div
         ref={panelRef}
+        data-canvas-occluder={interactiveCanvas || undefined}
         tabIndex={-1}
-        className={`relative mx-auto my-auto min-w-0 w-full ${widthClass} max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl border border-slate-200/90 bg-white shadow-2xl shadow-slate-950/40 ring-1 ring-slate-900/10 outline-none dark:border-slate-700/80 dark:bg-slate-900 dark:ring-slate-700/50 ${
+        className={`table-dialog-panel relative mx-auto my-auto min-w-0 w-full ${widthClass} max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl border border-slate-200/90 bg-white shadow-2xl shadow-slate-950/40 ring-1 ring-slate-900/10 outline-none dark:border-slate-700/80 dark:bg-slate-900 dark:ring-slate-700/50 ${
           isClosing ? 'animate-modal-panel-out' : 'animate-modal-panel-in'
         }`}
       >
         {title && (
-          <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-5 py-4 dark:border-slate-700/60">
+          <div className="table-dialog-heading flex items-start justify-between gap-3 border-b border-slate-100 px-5 py-4 dark:border-slate-700/60">
             <div className="min-w-0">
               <h2
                 id={titleId}
@@ -137,13 +133,14 @@ export function Modal({
             </button>
           </div>
         )}
-        {title ? <div className="px-5 py-4">{children}</div> : children}
+        {title ? <div className="table-dialog-content px-5 py-4">{children}</div> : children}
         {footer && (
-          <div className="flex items-center justify-end gap-2 border-t border-slate-100 bg-slate-50 px-5 py-3 dark:border-slate-700/60 dark:bg-slate-800/60">
+          <div className="table-dialog-footer flex items-center justify-end gap-2 border-t border-slate-100 bg-slate-50 px-5 py-3 dark:border-slate-700/60 dark:bg-slate-800/60">
             {footer}
           </div>
         )}
       </div>
-    </dialog>
+    </dialog>,
+    document.querySelector('.electrasim-editor.open-table') ?? document.body,
   );
 }

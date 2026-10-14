@@ -17,7 +17,7 @@
 > **Round 3 (same day, §3.15 + N28–N31):** with the author's blessing to install anything, the
 > repo's *own* quality gates were executed for real on a cold `npm install` — typecheck, lint,
 > all 1,464 unit tests, the full build, four `check:*` suites, the simulation benchmark, all
-> three stress fuzzers, and the Playwright browser suite (Chromium pulled from the npm registry
+> the then-current stress fuzzers, and the Playwright browser suite (Chromium pulled from the npm registry
 > when the Playwright CDN proved unreachable — recipe in §9). One prior claim of mine was
 > **retracted** (§5), four defects were added (N28–N31, including *no CI at all*), and the
 > `npm run verify` chain was proven red on main (N30).
@@ -317,7 +317,6 @@ Source", 10 × "Incomplete Circuit (No Wires Connected)" — 105 quickFixes offe
 **Stress fuzzers (the repo's own, all PASS):** generator — 3,726 challenges, 223,656 faults,
 414,574 repairs verified, 0 identity-hash collisions in 60,000 samples, 36/36 adversarial cases;
 diagnosis — 600 scenarios, 10,973 evals, build p95 5.7 ms (budget 150), eval p95 0.2 ms (budget 120);
-ohmageddon — every difficulty×rage tier holds its invariants.
 
 **Browser e2e (Playwright 1.62; Chromium 153 from the npm registry, since `cdn.playwright.dev`
 is unreachable from this sandbox — full recipe in §9):**
@@ -485,7 +484,7 @@ no domains, no time), not sloppy.
 
 Round 3 raises the floor further. **Every gate the repo ships is green on a cold install** —
 1,464 unit tests, typecheck, biome, the full build, four `check:*` suites, the simulation
-benchmark 3/3, all three stress fuzzers (414,574 verified repairs!), and 155 browser e2e specs
+benchmark 3/3, the then-current stress fuzzers (414,574 verified repairs!), and 155 browser e2e specs
 with zero unexpected failures (§3.15). The e2e setup itself is unusually careful: it disables the
 dev-server HMR race it documents, asserts CSP compliance on rendered schematics, and skips
 PERF/mobile-only tests *by design* rather than accidentally. The **Zs loop-impedance check is
@@ -651,7 +650,6 @@ scripts were removed to keep the tree clean.
 npm install && npm run typecheck && npm run lint && npx vitest run && npm run build
 npm run check:perf && npm run check:seo && npm run check:csp && npm run check:links
 npm run benchmark:simulation            # ×3 → p95 2.94 / 2.81 / 2.45 ms (budget 8)
-npm run stress:generator && npm run stress:diagnosis && npm run stress:ohmageddon
 
 # browser e2e when cdn.playwright.dev is unreachable — Chromium from the npm registry:
 mkdir /tmp/chrome-npm && cd /tmp/chrome-npm && npm init -y && npm i @sparticuz/chromium

@@ -16,7 +16,7 @@ export function ComponentPreview({ type, label }: { type: string; label: string 
   const image = deviceImage(type);
   return (
     <span
-      className="component-preview"
+      className="component-preview table-icon-pair"
       role="img"
       aria-label={label}
       data-component-appearance={appearance}

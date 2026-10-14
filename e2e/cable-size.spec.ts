@@ -518,10 +518,15 @@ test.describe('Cable Size Calculator — the run is the calculator', () => {
     // trusting the sleep above: a slow style recalc under load reads both chips
     // still sitting on the idle border colour.
     await expect
-      .poll(async () => (await paint(motorSelector)).border, {
-        message: 'the selected load chip takes its own border colour',
-      })
-      .not.toBe(lighting.border);
+      .poll(
+        async () =>
+          (await paint(motorSelector)).border !==
+          (await paint('.cs2-load-chip:has(input[value="lighting"])')).border,
+        {
+          message: 'the selected load chip takes its own border colour',
+        },
+      )
+      .toBe(true);
   });
 
   test('a laptop window docks both panels beside a full-height scene (§26)', async ({ page }) => {
@@ -862,6 +867,8 @@ test.describe('Cable Size Calculator — access and motion', () => {
     expect(inputs.right - inputs.left, 'inputs starts as a rail').toBeLessThan(110);
     expect(results.right - results.left, 'results starts as a rail').toBeLessThan(110);
 
+    // Return from the prose to the calculator before interacting with a dock.
+    await page.locator('#interactive-stage').scrollIntoViewIfNeeded();
     // unfolding one gives it the room, and the strip still clears both docks
     await page.evaluate(() =>
       (document.getElementById('cs2-collapse-inputs') as HTMLButtonElement).click(),

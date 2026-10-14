@@ -4,6 +4,16 @@ import path from 'node:path';
 import ts from 'typescript';
 import { impact, parseSource, resolveImport } from './code-graph-lib.mjs';
 
+import {
+  briefing,
+  evidencePaths,
+  fingerprint,
+  freshness,
+  records,
+  reviewFingerprint,
+  validateKnowledge,
+} from './code-graph-knowledge.mjs';
+
 const root = process.cwd();
 const outputDir = path.join(root, '.code-graph');
 const outputFile = path.join(outputDir, 'index.json');
@@ -20,7 +30,7 @@ const sourceRoots = [
 ];
 const ignored = new Set(['node_modules', 'dist', '.wrangler', '.git', 'coverage']);
 const codePattern = /\.(?:[cm]?[jt]sx?|astro|md|mdx|sql|json|jsonc|yaml|yml|css|html)$/;
-const graphVersion = 3;
+const graphVersion = 4;
 // Explicit build/runtime inputs, never arbitrary root files or environment secrets.
 const rootInputs = new Set([
   'vite.config.ts',
@@ -92,6 +102,15 @@ async function build(current, existing, semantic = false) {
   const config = ts.readConfigFile(path.join(root, 'tsconfig.json'), ts.sys.readFile);
   const options = ts.parseJsonConfigFileContent(config.config, ts.sys, root).options;
   const files = new Set(current.files);
+  validateKnowledge(knowledge, files);
+  const evidenceHashes = Object.fromEntries(
+    await Promise.all(
+      [...new Set(records(knowledge).flatMap(evidencePaths))].map(async (file) => [
+        file,
+        fingerprint(await readFile(path.join(root, file))),
+      ]),
+    ),
+  );
   const nodes = current.files.map((file) => ({
     id: `file:${file}`,
     kind: /\.mdx?$/.test(file) ? 'document' : 'file',
@@ -167,6 +186,26 @@ async function build(current, existing, semantic = false) {
       edges.push({ from: `fact:${fact.id}`, relation: 'supported-by', to: `file:${evidence}` });
     }
   }
+  for (const feature of knowledge.features ?? []) {
+    nodes.push({
+      id: `feature:${feature.id}`,
+      kind: 'feature',
+      name: feature.summary,
+      path: 'docs/code-graph.json',
+    });
+    for (const file of feature.entryPoints ?? []) {
+      edges.push({ from: `feature:${feature.id}`, relation: 'implemented-by', to: `file:${file}` });
+    }
+    for (const check of feature.checks ?? []) {
+      for (const file of check.files) {
+        edges.push({
+          from: `file:${file}`,
+          relation: 'checks-feature',
+          to: `feature:${feature.id}`,
+        });
+      }
+    }
+  }
   for (const relation of knowledge.relations ?? []) {
     if (!files.has(relation.from) || !files.has(relation.to))
       throw new Error(`Invalid verified relation: ${JSON.stringify(relation)}`);
@@ -186,6 +225,8 @@ async function build(current, existing, semantic = false) {
     generatedAt: new Date().toISOString(),
     semantic,
     activePhase: knowledge.activePhase,
+    knowledge,
+    evidenceHashes,
     nodes,
     edges,
   };
@@ -197,10 +238,19 @@ async function build(current, existing, semantic = false) {
   return graph;
 }
 function options(args) {
-  const result = { depth: 2, limit: 40, direction: 'dependents', semantic: false };
+  const result = {
+    depth: 2,
+    limit: 40,
+    direction: 'dependents',
+    semantic: false,
+    scope: undefined,
+  };
   for (let i = 0; i < args.length; i++) {
     const flag = args[i];
-    if (flag === '--semantic') result.semantic = true;
+    if (flag === '--scope') {
+      result.scope = args[++i];
+      if (!result.scope?.trim()) throw new Error('--scope requires review details');
+    } else if (flag === '--semantic') result.semantic = true;
     else if (flag === '--depth' || flag === '--limit') {
       const value = Number(args[++i]);
       if (!Number.isInteger(value) || value < 1 || value > (flag === '--depth' ? 10 : 500))
@@ -216,12 +266,15 @@ function options(args) {
 }
 try {
   const [command, ...args] = process.argv.slice(2);
-  if (!['build', 'find', 'phase', 'impact', 'status'].includes(command))
+  if (!['build', 'find', 'phase', 'impact', 'status', 'brief', 'review', 'check'].includes(command))
     throw new Error(
-      'Usage: graph build|status|find QUERY|phase [PHASE]|impact FILE [--depth 2 --limit 40 --direction dependents]; build --semantic enables compiler calls.',
+      'Usage: graph build|status|brief QUERY|check|review ID --scope DETAILS|find QUERY|phase [PHASE]|impact FILE [--depth 2 --limit 40 --direction dependents]; build --semantic enables compiler calls.',
     );
   const query = args[0] && !args[0].startsWith('--') ? args.shift() : undefined;
   const opts = options(args);
+  if (command === 'brief' && !args.includes('--limit')) opts.limit = 12;
+  if (['brief', 'review'].includes(command) && !query)
+    throw new Error(`${command} requires a query or record id`);
   const existing = await readIndex();
   const current = await inventory();
   const stale = existing?.inputSignature !== current.signature;
@@ -234,6 +287,39 @@ try {
       stale || (opts.semantic && !existing?.semantic)
         ? await build(current, existing, opts.semantic)
         : existing;
+    if (command === 'brief') console.log(briefing(graph, query, opts));
+    if (command === 'check') {
+      const findings = records(graph.knowledge).map((r) => ({
+        id: r.id,
+        state: freshness(r, graph.evidenceHashes),
+      }));
+      for (const r of findings) console.log(`${r.state}\t${r.id}`);
+      console.log(
+        'Content comparison only; no tests executed. Unreviewed records need an explicit scoped review.',
+      );
+      if (findings.some((r) => r.state !== 'current evidence')) process.exitCode = 1;
+    }
+    if (command === 'review') {
+      if (!opts.scope)
+        throw new Error('review requires --scope describing what was actually inspected or tested');
+      const knowledge = JSON.parse(await readFile(path.join(root, 'docs/code-graph.json'), 'utf8'));
+      const record = [...knowledge.facts, ...(knowledge.features ?? [])].find(
+        (r) => r.id === query,
+      );
+      if (!record) throw new Error(`Unknown knowledge record: ${query}`);
+      record.review = {
+        at: new Date().toISOString(),
+        scope: opts.scope,
+        fingerprint: reviewFingerprint(record, graph.evidenceHashes),
+      };
+      await writeFile(
+        path.join(root, 'docs/code-graph.json'),
+        `${JSON.stringify(knowledge, null, 2)}\n`,
+      );
+      console.log(
+        `Recorded scoped evidence review for ${query}. No tests executed; rebuild never renews this review.`,
+      );
+    }
     if (command === 'build')
       console.log(
         `Graph current: ${graph.nodes.length} nodes, ${graph.edges.length} edges. Active phase: ${graph.activePhase}.`,

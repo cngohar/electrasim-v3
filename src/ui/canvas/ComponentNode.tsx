@@ -150,7 +150,12 @@ export function ComponentNode({
     component.type.includes('lamp') ||
     component.type === 'tube-light';
 
-  const showBulbGlow = activeLoadEffects && energized && isBulbLike;
+  const showBulbGlow =
+    activeLoadEffects &&
+    energized &&
+    isBulbLike &&
+    !component.state.isBlown &&
+    fault !== 'open-circuit';
   const changeoverPositionIndex = definition.changeover
     ? isOn
       ? definition.changeover.onPortIndex
@@ -329,7 +334,7 @@ export function ComponentNode({
           strokeWidth={selected || error ? 2 : active ? 1.5 : 1}
         />
         {appearance !== 'symbols' && (
-          <g transform={appearance === 'both' ? 'translate(0 9) scale(.64)' : undefined}>
+          <g transform={appearance === 'both' ? 'translate(1 4) scale(.8)' : undefined}>
             <DeviceArtwork
               component={
                 coilState === undefined
@@ -342,12 +347,24 @@ export function ComponentNode({
             />
           </g>
         )}
+        {appearance === 'both' && (
+          <rect
+            x={67}
+            y={28}
+            width={27}
+            height={27}
+            rx={5}
+            fill={theme.component.bg}
+            stroke={theme.component.border}
+            pointerEvents="none"
+          />
+        )}
         {appearance !== 'icons' && (
           <svg
-            x={appearance === 'both' ? 55 : 21}
-            y={appearance === 'both' ? 10 : 0}
-            width={appearance === 'both' ? 38 : 58}
-            height={appearance === 'both' ? 38 : 58}
+            x={appearance === 'both' ? 68 : 21}
+            y={appearance === 'both' ? 29 : 0}
+            width={appearance === 'both' ? 25 : 58}
+            height={appearance === 'both' ? 25 : 58}
             viewBox="0 0 64 64"
             color={theme.component.text}
             pointerEvents="none"
@@ -464,98 +481,31 @@ export function ComponentNode({
             strokeWidth={0.8}
           />
         )}
-        {showBulbGlow &&
-          (() => {
-            const isCfl = component.type === 'bulb-cfl';
-            const isFluorescent = component.type === 'tube-light';
-            const isIncandescent = component.type === 'bulb-incandescent';
-            const isHalogen = component.type === 'bulb-halogen';
-            const isSmartRgb = component.type === 'bulb-smart-rgb';
-
-            if (isCfl) {
-              return (
-                <g pointerEvents="none" className="electrasim-cfl-startup">
-                  <circle cx={COMP_W / 2} cy={28} r={24} fill="#bae6fd" opacity={0.35} />
-                  <circle cx={COMP_W / 2} cy={28} r={16} fill="#38bdf8" opacity={0.65} />
-                  <circle cx={COMP_W / 2} cy={28} r={8} fill="#ffffff" opacity={0.9} />
-                </g>
-              );
-            }
-            if (isFluorescent) {
-              return (
-                <g pointerEvents="none" className="electrasim-fluorescent-startup">
-                  <rect
-                    x={10}
-                    y={16}
-                    width={COMP_W - 20}
-                    height={24}
-                    rx={6}
-                    fill="#ecfeff"
-                    opacity={0.4}
-                  />
-                  <rect
-                    x={14}
-                    y={20}
-                    width={COMP_W - 28}
-                    height={16}
-                    rx={4}
-                    fill="#67e8f9"
-                    opacity={0.7}
-                  />
-                  <circle
-                    cx={14}
-                    cy={28}
-                    r={3}
-                    fill="#f97316"
-                    opacity={0.85}
-                    className="animate-ping"
-                  />
-                  <circle
-                    cx={COMP_W - 14}
-                    cy={28}
-                    r={3}
-                    fill="#f97316"
-                    opacity={0.85}
-                    className="animate-ping"
-                  />
-                </g>
-              );
-            }
-            if (isIncandescent) {
-              return (
-                <g pointerEvents="none" className="electrasim-incandescent-startup">
-                  <circle cx={COMP_W / 2} cy={28} r={26} fill="#ea580c" opacity={0.25} />
-                  <circle cx={COMP_W / 2} cy={28} r={18} fill="#f97316" opacity={0.5} />
-                  <circle cx={COMP_W / 2} cy={28} r={10} fill="#fef08a" opacity={0.85} />
-                </g>
-              );
-            }
-            if (isHalogen) {
-              return (
-                <g pointerEvents="none" className="electrasim-halogen-startup">
-                  <circle cx={COMP_W / 2} cy={28} r={28} fill="#fed7aa" opacity={0.3} />
-                  <circle cx={COMP_W / 2} cy={28} r={19} fill="#fde047" opacity={0.7} />
-                  <circle cx={COMP_W / 2} cy={28} r={9} fill="#ffffff" opacity={0.95} />
-                </g>
-              );
-            }
-            if (isSmartRgb) {
-              return (
-                <g pointerEvents="none" className="electrasim-rgb-startup">
-                  <circle cx={COMP_W / 2} cy={28} r={26} fill="#a855f7" opacity={0.3} />
-                  <circle cx={COMP_W / 2} cy={28} r={17} fill="#06b6d4" opacity={0.55} />
-                  <circle cx={COMP_W / 2} cy={28} r={9} fill="#f43f5e" opacity={0.85} />
-                </g>
-              );
-            }
-            return (
-              <g pointerEvents="none" className="electrasim-led-startup">
-                <circle cx={COMP_W / 2} cy={28} r={22} fill="#facc15" opacity={0.22} />
-                <circle cx={COMP_W / 2} cy={28} r={14} fill="#fde047" opacity={0.6} />
-                <circle cx={COMP_W / 2} cy={28} r={6} fill="#ffffff" opacity={0.9} />
-              </g>
-            );
-          })()}
+        {showBulbGlow && (
+          <g pointerEvents="none" className="table-lamp-emission" data-lamp-emission={component.id}>
+            <circle
+              cx={appearance === 'both' ? 41 : 50}
+              cy={appearance === 'both' ? 23 : 25}
+              r={18}
+              fill="#f8ce58"
+              opacity={0.14}
+            />
+            <circle
+              cx={appearance === 'both' ? 41 : 50}
+              cy={appearance === 'both' ? 23 : 25}
+              r={11}
+              fill="#f6d67b"
+              opacity={0.25}
+            />
+            <circle
+              cx={appearance === 'both' ? 41 : 50}
+              cy={appearance === 'both' ? 23 : 25}
+              r={5}
+              fill="#fff2c3"
+              opacity={0.55}
+            />
+          </g>
+        )}
         {component.state.isBlown && (
           <g pointerEvents="none">
             <path

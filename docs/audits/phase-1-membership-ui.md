@@ -81,3 +81,49 @@ is authorized.
 The graph now indexes admin HTML, public headers/redirects and an allowlist of
 root build/test/local-Worker configurations. Reviewed `configured-by` edges make
 these inputs navigable while preserving bounded impact and ignored private data.
+
+## Local login focus repair — 2026-10-10
+
+Returning from another window previously changed access to checking and unmounted
+the signed-out form, erasing pasted credentials. Automatic focus/online checks now
+skip the login state; initial checks, explicit checks and post-login validation
+remain, as does signed-in focus revalidation. Credentials remain only in the form.
+
+Focused Chromium and Pixel 7 verification passed all four login/session-expiry
+and focus/role-revocation cases against the isolated local test Worker, using
+PLAYWRIGHT_BASE_URL=http://127.0.0.1:3001. Tests now derive request Origin from
+the configured base URL; the initial alternate-port attempt failed at signup
+because of the old hardcoded port. This is focused repair evidence, not a rerun
+of the Phase 1.8 or 1.9 full gate.
+
+## Follow-up: clipboard workflow and signed-in refreshes — 2026-10-10
+
+The user reported that the first repair did not resolve their workflow and that
+signed-in pages refreshed repeatedly. The earlier four tests only established
+synthetic focus behavior on the source server; they did not establish actual
+clipboard paste or delivery of the updated built admin entry. The prior claim
+of complete resolution was too broad.
+
+Focus/online checks now run silently only for allowed sessions, use an independent
+access generation, and coalesce concurrent checks. Successful checks preserve
+lists and unsaved editor forms. Authorization failures still clear private data.
+The signed-out form remains mounted while copying between windows.
+
+Six focused browser cases passed on desktop Chromium and Pixel 7 using the
+isolated local Worker and source server on port 3001: real clipboard write and
+Control+V after tab switching, login/session expiry, and preservation of an unsaved
+plan draft followed by denial after role removal. Production Worker port 8791
+serves dist; source-server results alone do not prove that built UI was updated.
+This follow-up rebuilt dist as well. At that follow-up, Phase 1.9 remained planned
+and full acceptance was not claimed.
+
+The rebuild completed and the normal local Worker was restarted. Additional
+browser smoke checks passed on both http://localhost:3000/admin/pro/ and
+http://127.0.0.1:8791/admin/pro/: actual clipboard paste of the demo credentials,
+successful login, and retention of an unsaved plan draft after focus revalidation.
+Application and E2E TypeScript checks and scoped Biome checks passed. No actual
+plan was saved by these smoke checks; no remote operation occurred.
+
+Subsequent [Phase 1.9 verification](phase-1-full-verification.md) renewed the
+broader local matrix and closed with user-accepted performance exceptions on
+2026-10-12. Its aggregate evidence and failed timing limits remain explicit.

@@ -45,7 +45,6 @@ import { useViewportStore } from './viewportStore';
 
 // Re-export the moved public surface so existing imports keep working.
 export type {
-  ChallengeRuleFocus,
   ContextMenuState,
   PendingCustomPath,
   PendingDeletion,
@@ -241,13 +240,6 @@ export const useUiStore = create<UiState>()(
     contactOpen: false,
     templatesOpen: false,
     activeGuideId: null,
-    challengeOpen: false,
-    challengeIntroOpen: false,
-    challengeModeActive: false,
-    challengePaused: false,
-    challengeAllowedComponents: null,
-    challengeAttemptId: null,
-    challengeRuleFocus: null,
     diagnosisOpen: false,
     diagnosisActive: false,
     guideHidden: false,
@@ -269,7 +261,7 @@ export const useUiStore = create<UiState>()(
     tracePathMode: true,
     complianceGateBlocked: false,
 
-    paletteOpen: typeof window !== 'undefined' ? window.innerWidth >= 1024 : true,
+    paletteOpen: true,
     logOpen: false,
     inspectorOpen: true,
     inspectorCollapsed: true,
@@ -758,13 +750,11 @@ export const useUiStore = create<UiState>()(
       set((s) => {
         s.faultLabOpen = open;
         if (open) {
-          // Fault mode now owns a dedicated Inspector tab (the old floating
-          // window is gone): snap the Inspector open straight onto it.
+          // The shared Inspector host opens the modeless Fault Lab window.
           s.inspectorCollapsed = false;
           s.activeInspectorTab = 'faultlab';
         } else if (s.activeInspectorTab === 'faultlab') {
-          // Leaving fault mode while the tab is focused falls back to the
-          // component properties view so the drawer never shows a dead tab.
+          // Closing the tool restores the component Properties view.
           s.activeInspectorTab = 'properties';
         }
         if (!open && s.pendingFaultFx) {
@@ -802,7 +792,10 @@ export const useUiStore = create<UiState>()(
 
       // Reduced-motion users get the fault instantly with static indicators —
       // no pre-commit animation, no artificial delay.
-      const armMs = prefersReducedMotionNow() ? 0 : (FAULT_ARM_MS[type] ?? FAULT_ARM_DEFAULT_MS);
+      const armMs =
+        prefersReducedMotionNow() || useSettingsStore.getState().interfaceMotion === 'off'
+          ? 0
+          : (FAULT_ARM_MS[type] ?? FAULT_ARM_DEFAULT_MS);
       if (armMs <= 0) {
         set((s) => {
           s.pendingFaultFx = null;
@@ -877,7 +870,7 @@ export const useUiStore = create<UiState>()(
         s.settingsOpen = false;
         s.docsOpen = false;
         s.faultLabOpen = false;
-        s.challengeOpen = false;
+
         s.diagnosisOpen = false;
         s.importExportOpen = false;
         s.menuOpen = false;
@@ -1039,62 +1032,9 @@ export const useUiStore = create<UiState>()(
       set((s) => {
         s.contactOpen = open;
       }),
-    setChallengeOpen: (open) =>
-      set((s) => {
-        s.challengeOpen = open;
-        if (!open) s.challengeIntroOpen = false;
-        // Challenge Mode and the Diagnosis Lab both drive the editor's circuit,
-        // so only one may be live at a time.
-        if (open) s.diagnosisOpen = false;
-      }),
-    openChallengeMode: () =>
-      set((s) => {
-        s.challengeOpen = true;
-        s.challengeIntroOpen = true;
-        s.diagnosisOpen = false;
-      }),
-    setChallengeIntroOpen: (open) =>
-      set((s) => {
-        s.challengeIntroOpen = open;
-        if (open) {
-          s.challengeOpen = true;
-          s.diagnosisOpen = false;
-        }
-      }),
-    setChallengeModeActive: (active) =>
-      set((s) => {
-        s.challengeModeActive = active;
-        if (!active) {
-          s.challengePaused = false;
-          s.challengeAllowedComponents = null;
-          s.challengeAttemptId = null;
-          s.challengeRuleFocus = null;
-        }
-      }),
-    setChallengePaused: (paused) =>
-      set((s) => {
-        s.challengePaused = paused;
-        if (paused) s.challengeRuleFocus = null;
-      }),
-    setChallengeAllowedComponents: (types) =>
-      set((s) => {
-        s.challengeAllowedComponents = types ? [...types] : null;
-      }),
-    setChallengeAttemptId: (attemptId) =>
-      set((s) => {
-        s.challengeAttemptId = attemptId;
-      }),
-    setChallengeRuleFocus: (focus) =>
-      set((s) => {
-        s.challengeRuleFocus = focus;
-      }),
     setDiagnosisOpen: (open) =>
       set((s) => {
         s.diagnosisOpen = open;
-        if (open) {
-          s.challengeOpen = false;
-          s.challengeIntroOpen = false;
-        }
       }),
     setDiagnosisActive: (active) =>
       set((s) => {

@@ -1,3 +1,4 @@
+import { Modal } from './Modal';
 /**
  * ShortcutsOverlay — a quick keyboard-shortcuts reference (toggle with ?).
  * A lightweight in-canvas overlay (unlike the full Docs page) so users can
@@ -13,19 +14,14 @@ export function ShortcutsOverlay() {
   const open = useUiStore((s) => s.shortcutsOpen);
   const setOpen = useUiStore((s) => s.setShortcutsOpen);
 
-  if (!open) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm"
-      onMouseDown={() => setOpen(false)}
+    <Modal
+      open={open}
+      onClose={() => setOpen(false)}
+      ariaLabel="Keyboard shortcuts"
+      widthClass="max-w-lg"
     >
-      <dialog
-        open
-        className="m-0 w-[min(440px,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/20 dark:border-slate-700 dark:bg-slate-900"
-        onMouseDown={(e) => e.stopPropagation()}
-        aria-label="Keyboard shortcuts"
-      >
+      <div className="table-custom-content ShortcutsOverlay">
         <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-slate-800">
           <div className="flex items-center gap-2">
             <span className="grid size-7 place-items-center rounded-lg bg-blue-600 text-white">
@@ -67,7 +63,7 @@ export function ShortcutsOverlay() {
           Press <kbd className="rounded bg-slate-100 px-1 dark:bg-slate-800">?</kbd> anywhere to
           toggle this · Esc to close
         </div>
-      </dialog>
-    </div>
+      </div>
+    </Modal>
   );
 }

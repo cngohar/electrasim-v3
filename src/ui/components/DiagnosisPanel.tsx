@@ -24,14 +24,8 @@
  */
 
 import { COMP_H, COMP_W } from '@electrasim/domain';
-import type {
-  ChallengeDifficulty,
-  FaultLocationChoice,
-  RageTierId,
-} from '@electrasim/domain/challenges';
+import type { ChallengeDifficulty, FaultLocationChoice } from '@electrasim/domain/challenges';
 import {
-  RAGE_TIERS,
-  RAGE_TIER_IDS,
   formatElapsed,
   formatShareText,
   locationKeyForTarget,
@@ -54,15 +48,18 @@ import {
   X,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { useCircuitStore, useSettingsStore, useUiStore, useViewportStore } from '../../store';
+import { useCircuitStore, useUiStore, useViewportStore } from '../../store';
 import { useDiagnosisStore } from '../../store/diagnosisStore';
 import { MAX_ZOOM, MIN_ZOOM } from '../../store/viewportStore';
 import { fitCircuitIntoVisibleRegion } from '../canvas/fitRegion';
 import { useCopyToClipboard } from '../hooks/useCopyToClipboard';
+import { useReducedMotion } from '../hooks/useReducedMotion';
+import { useClosingValue } from '../hooks/useSurfacePresence';
 import { EmojiGlyph } from './EmojiGlyph';
 
 interface Props {
   isPhone: boolean;
+  open?: boolean;
 }
 
 const DIFFICULTIES: { id: ChallengeDifficulty; label: string; blurb: string }[] = [
@@ -72,16 +69,7 @@ const DIFFICULTIES: { id: ChallengeDifficulty; label: string; blurb: string }[] 
 ];
 
 function usePrefersReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return;
-    const query = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setReduced(query.matches);
-    const onChange = (event: MediaQueryListEvent) => setReduced(event.matches);
-    query.addEventListener('change', onChange);
-    return () => query.removeEventListener('change', onChange);
-  }, []);
-  return reduced;
+  return useReducedMotion();
 }
 
 /** Live mm:ss ticker driven off the store's monotonic accounting. */
@@ -96,70 +84,43 @@ function useElapsedLabel(active: boolean): string {
   return formatElapsed(totalElapsedMs());
 }
 
-/** Remaining time on a Rage 4 countdown; also settles the store when it hits 0. */
-function useRemainingLabel(active: boolean): string | null {
-  const remainingMs = useDiagnosisStore((s) => s.remainingMs);
-  const expire = useDiagnosisStore((s) => s.expire);
-  const [, force] = useState(0);
+export function DiagnosisPanel({ isPhone, open = true }: Props) {
+  const current = useDiagnosisStore();
+  const visible = useClosingValue(open ? current : null) ?? current;
+  const status = visible.status;
+  const accessBlocked = visible.accessBlocked;
   useEffect(() => {
-    if (!active) return;
-    const id = setInterval(() => {
-      const left = remainingMs();
-      if (left === 0) expire();
-      force((n) => n + 1);
-    }, 250);
-    return () => clearInterval(id);
-  }, [active, remainingMs, expire]);
-  const left = remainingMs();
-  return left === null ? null : formatElapsed(left);
-}
-
-export function DiagnosisPanel({ isPhone }: Props) {
-  const status = useDiagnosisStore((s) => s.status);
-  const accessBlocked = useDiagnosisStore((s) => s.accessBlocked);
-  useEffect(() => {
+    if (!open) return;
     const timer = setInterval(() => {
       void useDiagnosisStore.getState().checkpoint();
     }, 15000);
     return () => clearInterval(timer);
-  }, []);
-  const scenario = useDiagnosisStore((s) => s.scenario);
-  const evaluation = useDiagnosisStore((s) => s.evaluation);
-  const score = useDiagnosisStore((s) => s.score);
-  const misdiagnoses = useDiagnosisStore((s) => s.misdiagnoses);
-  const incompleteRepairs = useDiagnosisStore((s) => s.incompleteRepairs);
-  const hintsUsed = useDiagnosisStore((s) => s.hintsUsed);
-  const identifiedFaultIds = useDiagnosisStore((s) => s.identifiedFaultIds);
-  const selectedFaultType = useDiagnosisStore((s) => s.selectedFaultType);
-  const selectedLocationKey = useDiagnosisStore((s) => s.selectedLocationKey);
-  const error = useDiagnosisStore((s) => s.error);
-  const confirmingNew = useDiagnosisStore((s) => s.confirmingNew);
-  const start = useDiagnosisStore((s) => s.start);
-  const selectFaultType = useDiagnosisStore((s) => s.selectFaultType);
-  const selectLocation = useDiagnosisStore((s) => s.selectLocation);
-  const submit = useDiagnosisStore((s) => s.submit);
-  const revealHint = useDiagnosisStore((s) => s.revealHint);
-  const abandon = useDiagnosisStore((s) => s.abandon);
-  const requestNew = useDiagnosisStore((s) => s.requestNew);
-  const cancelNew = useDiagnosisStore((s) => s.cancelNew);
-  const exitDiagnosis = useDiagnosisStore((s) => s.exit);
+  }, [open]);
+  const scenario = visible.scenario;
+  const evaluation = visible.evaluation;
+  const score = visible.score;
+  const misdiagnoses = visible.misdiagnoses;
+  const incompleteRepairs = visible.incompleteRepairs;
+  const hintsUsed = visible.hintsUsed;
+  const identifiedFaultIds = visible.identifiedFaultIds;
+  const selectedFaultType = visible.selectedFaultType;
+  const selectedLocationKey = visible.selectedLocationKey;
+  const error = visible.error;
+  const confirmingNew = visible.confirmingNew;
+  const start = visible.start;
+  const selectFaultType = visible.selectFaultType;
+  const selectLocation = visible.selectLocation;
+  const submit = visible.submit;
+  const revealHint = visible.revealHint;
+  const abandon = visible.abandon;
+  const requestNew = visible.requestNew;
+  const cancelNew = visible.cancelNew;
+  const exitDiagnosis = visible.exit;
   const setDiagnosisOpen = useUiStore((s) => s.setDiagnosisOpen);
   const exit = () => {
     exitDiagnosis();
     setDiagnosisOpen(false);
   };
-
-  /**
-   * §24: Ohmageddon is opt-in from Settings and nowhere else. The panel reads
-   * the flag but never writes it, so the only way into rage is the explicit
-   * toggle the plan specifies.
-   */
-  const ohmageddonMode = useSettingsStore((s) => s.ohmageddonMode);
-  const [selectedTier, setSelectedTier] = useState<RageTierId | null>(null);
-  // Turning the setting off must not leave a stale rage selection armed.
-  useEffect(() => {
-    if (!ohmageddonMode) setSelectedTier(null);
-  }, [ohmageddonMode]);
 
   const liveFaults = useCircuitStore((s) => s.faults);
   const liveComponents = useCircuitStore((s) => s.components);
@@ -168,14 +129,11 @@ export function DiagnosisPanel({ isPhone }: Props) {
   const liveSupply = useCircuitStore((s) => s.supply);
 
   /**
-   * What the installation is doing **now** (§14, §26).
+   * What the installation is doing **now** (§14).
    *
    * `scenario.complaint` is a snapshot of the hand-over state and never
-   * changes. Showing only that would make a compound scenario unsolvable in
-   * practice: the learner clears the first fault, the symptom genuinely
-   * changes, and the panel would still be describing the original one — so the
-   * emergent second symptom, which is the entire point of §26's compound
-   * exercises, would be invisible.
+   * changes. Live feedback reflects the learner's repairs instead of
+   * continuing to describe the original faulted circuit.
    *
    * Re-derived from the learner's live circuit instead, by the same domain
    * measurement that wrote the original complaint. It is still vague by
@@ -222,8 +180,7 @@ export function DiagnosisPanel({ isPhone }: Props) {
   const [replayText, setReplayText] = useState('');
   const [replayNote, setReplayNote] = useState<string | null>(null);
   const [seedCopied, copySeed] = useCopyToClipboard();
-  const elapsedLabel = useElapsedLabel(status === 'active' || status === 'timed-out');
-  const remainingLabel = useRemainingLabel(status === 'active');
+  const elapsedLabel = useElapsedLabel(open && status === 'active');
 
   /**
    * Frame the installation under investigation.
@@ -359,7 +316,7 @@ export function DiagnosisPanel({ isPhone }: Props) {
    */
   const replaySharedSeed = () => {
     const parsed = parseShareText(replayText, {
-      difficulty: selectedTier ? 'advanced' : 'beginner',
+      difficulty: 'beginner',
       mode: 'diagnosis',
     });
     if (!parsed) {
@@ -374,13 +331,7 @@ export function DiagnosisPanel({ isPhone }: Props) {
     }
     setReplayNote(`Replaying the original generator version ${parsed.generatorVersion}.`);
     setReplayText('');
-    void start(
-      parsed.difficulty,
-      parsed.seed,
-      parsed.rageTier ?? selectedTier ?? undefined,
-      parsed.generatorVersion,
-      parsed.assessment,
-    );
+    void start(parsed.difficulty, parsed.seed, parsed.generatorVersion, parsed.assessment);
   };
 
   /** Point the canvas at whatever the learner is inspecting (§14 "trace wires"). */
@@ -399,9 +350,9 @@ export function DiagnosisPanel({ isPhone }: Props) {
   // taller than half the viewport so the circuit under investigation stays
   // visible.
   const shell = [
-    'absolute z-30 flex flex-col overflow-hidden rounded-2xl border border-white/80 bg-white/95 shadow-xl shadow-slate-900/10 ring-1 ring-slate-900/5 backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-900/95 dark:ring-slate-700/50',
+    'table-learning-panel table-diagnosis absolute z-30 flex flex-col overflow-hidden rounded-2xl border border-white/80 bg-white/95 shadow-xl shadow-slate-900/10 ring-1 ring-slate-900/5 backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-900/95 dark:ring-slate-700/50',
     isPhone
-      ? 'bottom-20 left-3 right-3 max-h-[52vh]'
+      ? 'workspace-controls-clear workspace-learning-sheet left-3 right-3'
       : 'right-14 top-24 w-56 max-h-[calc(100vh-8rem)] lg:w-[340px]',
   ].join(' ');
 
@@ -437,72 +388,12 @@ export function DiagnosisPanel({ isPhone }: Props) {
               {error}
             </p>
           )}
-          {/*
-           * Ohmageddon tier picker (plan §23, §24, §27).
-           *
-           * Only rendered when the Settings flag is on — §24: "Normal users
-           * must never accidentally enter Ohmageddon Mode." When it is off
-           * this block does not exist, so there is no stray control to trip
-           * over. When it is on, the badge and the tier buttons make the
-           * state unmissable rather than tucking it away.
-           */}
-          {ohmageddonMode && (
-            <div className="space-y-1.5 rounded-xl border border-rose-300 bg-rose-50/70 p-2 dark:border-rose-800 dark:bg-rose-950/40">
-              <p className="flex items-center gap-1.5 text-[11px] font-bold text-rose-800 dark:text-rose-200">
-                <EmojiGlyph emoji="devil" size={14} /> Ohmageddon Mode
-              </p>
-              <p className="text-[9px] leading-relaxed text-rose-700/90 dark:text-rose-300/90">
-                Harder to diagnose, never dishonest. Pick a tier, or leave it off for a normal
-                exercise.
-              </p>
-              <div className="flex flex-wrap gap-1">
-                <button
-                  type="button"
-                  onClick={() => setSelectedTier(null)}
-                  aria-pressed={selectedTier === null}
-                  className={[
-                    'min-h-[28px] rounded-lg border px-2 py-1 text-[10px] font-semibold transition',
-                    selectedTier === null
-                      ? 'border-slate-400 bg-white text-slate-800 dark:border-slate-500 dark:bg-slate-800 dark:text-slate-100'
-                      : 'border-rose-200 text-rose-700 hover:bg-rose-100 dark:border-rose-800 dark:text-rose-300',
-                  ].join(' ')}
-                >
-                  Off
-                </button>
-                {RAGE_TIER_IDS.map((tierId) => {
-                  const tier = RAGE_TIERS[tierId];
-                  const active = selectedTier === tierId;
-                  return (
-                    <button
-                      key={tierId}
-                      type="button"
-                      onClick={() => setSelectedTier(tierId)}
-                      aria-pressed={active}
-                      title={tier.blurb}
-                      className={[
-                        'min-h-[28px] rounded-lg border px-2 py-1 text-[10px] font-semibold transition',
-                        active
-                          ? 'border-rose-500 bg-rose-600 text-white'
-                          : 'border-rose-200 text-rose-700 hover:bg-rose-100 dark:border-rose-800 dark:text-rose-300',
-                      ].join(' ')}
-                    >
-                      {tier.label}
-                    </button>
-                  );
-                })}
-              </div>
-              {selectedTier && (
-                <p className="text-[9px] leading-relaxed text-rose-800 dark:text-rose-200">
-                  {RAGE_TIERS[selectedTier].blurb}
-                </p>
-              )}
-            </div>
-          )}
+
           {DIFFICULTIES.map((difficulty) => (
             <button
               key={difficulty.id}
               type="button"
-              onClick={() => void start(difficulty.id, undefined, selectedTier ?? undefined)}
+              onClick={() => void start(difficulty.id)}
               className="flex w-full items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-left transition hover:border-amber-400 hover:bg-amber-50 dark:border-slate-700 dark:hover:border-amber-500 dark:hover:bg-slate-800"
             >
               <Play className="size-3.5 text-amber-600 dark:text-amber-400" />
@@ -605,14 +496,8 @@ export function DiagnosisPanel({ isPhone }: Props) {
             "slightly more playful message... Keep it tasteful and optional."
           */}
           <p className="flex items-center justify-center gap-1 text-[13px] font-bold text-emerald-800 dark:text-emerald-200">
-            <EmojiGlyph emoji={scenario.rage ? 'devil' : 'party'} size={14} />
-            {scenario.rage
-              ? solved.length > 1
-                ? 'YOU ACTUALLY FOUND THEM ALL'
-                : 'YOU ACTUALLY FOUND IT'
-              : solved.length > 1
-                ? 'ALL FAULTS CLEARED!'
-                : 'FAULT CLEARED!'}
+            <EmojiGlyph emoji={'party'} size={14} />
+            {solved.length > 1 ? 'ALL FAULTS CLEARED!' : 'FAULT CLEARED!'}
           </p>
           {solved.map((entry) => (
             <div key={entry.id}>
@@ -646,94 +531,7 @@ export function DiagnosisPanel({ isPhone }: Props) {
         <div className="flex gap-2 p-3">
           <button
             type="button"
-            onClick={() => void start(scenario.difficulty, undefined, scenario.rage?.tier)}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-amber-500 px-3 py-2 text-[12px] font-semibold text-white hover:bg-amber-400"
-          >
-            Next Circuit <ChevronRight className="size-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={exit}
-            className="rounded-xl border border-slate-200 px-3 py-2 text-[12px] font-semibold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-          >
-            Done
-          </button>
-        </div>
-      </section>
-    );
-  }
-
-  // ── Timed out (plan §27 Rage 4) ─────────────────────────────────────────
-  // Expiry scores what was already found. It does not invent a fail, and it
-  // does not name the faults the learner never reached (§14).
-  if (status === 'timed-out') {
-    const found = scenario.faults
-      .filter((entry) => identifiedFaultIds.includes(entry.fault.id))
-      .map((entry) => ({
-        id: entry.fault.id,
-        typeLabel:
-          scenario.faultTypeChoices.find((choice) => choice.type === entry.fault.type)?.label ??
-          entry.fault.type,
-        locationLabel:
-          scenario.locationChoices.find((choice) => choice.key === entry.locationKey)?.label ??
-          'the affected part',
-      }));
-
-    return (
-      <section className={shell} aria-label="Time's up" data-canvas-occluder>
-        <div
-          className={[
-            'flex flex-col items-center gap-1 border-b border-rose-200/70 bg-rose-50 px-3 py-4 text-center dark:border-rose-900/60 dark:bg-rose-950/50',
-            reducedMotion ? '' : 'animate-in fade-in zoom-in-95 duration-300',
-          ].join(' ')}
-        >
-          <Timer className="size-6 text-rose-600 dark:text-rose-400" aria-hidden="true" />
-          <p className="text-[13px] font-bold text-rose-800 dark:text-rose-200">TIME&rsquo;S UP</p>
-          <p className="text-[10px] leading-relaxed text-rose-700/90 dark:text-rose-300/90">
-            The clock ran out. Whatever you already found still counts — the circuit was not
-            rewritten.
-          </p>
-          {found.length > 0 ? (
-            found.map((entry) => (
-              <div key={entry.id}>
-                <p className="text-[11px] font-semibold text-rose-800 dark:text-rose-200">
-                  {entry.typeLabel}
-                </p>
-                <p className="text-[10px] text-rose-700/80 dark:text-rose-300/80">
-                  {entry.locationLabel} identified before the bell
-                </p>
-              </div>
-            ))
-          ) : (
-            <p className="text-[10px] text-rose-700/80 dark:text-rose-300/80">
-              No faults logged in time.
-            </p>
-          )}
-          {score && (
-            <p className="mt-1 text-[20px] font-black tabular-nums text-rose-700 dark:text-rose-300">
-              {score.points}
-              <span className="ml-1 text-[11px] font-semibold uppercase">{score.grade}</span>
-            </p>
-          )}
-        </div>
-        <dl className="grid grid-cols-3 gap-px bg-slate-200 text-center dark:bg-slate-700">
-          {[
-            ['Time', elapsedLabel],
-            ['Found', `${identifiedFaultIds.length}/${scenario.faults.length}`],
-            ['Hints', String(hintsUsed)],
-          ].map(([label, value]) => (
-            <div key={label} className="bg-white px-2 py-2 dark:bg-slate-900">
-              <dt className="text-[9px] uppercase tracking-wide text-slate-500">{label}</dt>
-              <dd className="text-[13px] font-bold tabular-nums text-slate-800 dark:text-slate-100">
-                {value}
-              </dd>
-            </div>
-          ))}
-        </dl>
-        <div className="flex gap-2 p-3">
-          <button
-            type="button"
-            onClick={() => void start(scenario.difficulty, undefined, scenario.rage?.tier)}
+            onClick={() => void start(scenario.difficulty)}
             className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-amber-500 px-3 py-2 text-[12px] font-semibold text-white hover:bg-amber-400"
           >
             Next Circuit <ChevronRight className="size-3.5" />
@@ -755,23 +553,13 @@ export function DiagnosisPanel({ isPhone }: Props) {
 
   return (
     <section className={shell} aria-label="Diagnosis Lab" data-canvas-occluder>
-      {/*
-       * The badges below (Rage Bait, timer, copy) are intrinsically sized and
-       * must never be compressed, but at tablet panel widths (~224px) their
-       * combined width leaves nothing for the title column. `flex-1 min-w-0`
-       * then resolves to a literal 0px box and the heading/challenge id spill
-       * out as a one-character-wide column — present in the DOM, but visually
-       * broken and reported as hidden by assistive tech and Playwright alike.
-       * Allowing the header to wrap and giving the title column a real basis
-       * keeps every element at its natural size on every viewport.
-       */}
       <header className="flex flex-wrap items-center gap-2 border-b border-slate-200/80 px-3 py-2 dark:border-slate-700/80">
         <span className="grid size-6 shrink-0 place-items-center rounded-lg bg-amber-500 text-white">
           <Stethoscope className="size-3.5" />
         </span>
         <div className="min-w-[7rem] flex-1">
           <h2 className="truncate text-[12px] font-semibold text-slate-800 dark:text-slate-100">
-            {scenario.rage ? 'Ohmageddon Challenge' : 'Diagnosis Challenge'}
+            {'Diagnosis Challenge'}
           </h2>
           <p className="text-[9px] uppercase tracking-wide text-slate-500">
             {scenario.difficulty} · {scenario.challengeId}
@@ -790,10 +578,9 @@ export function DiagnosisPanel({ isPhone }: Props) {
               formatShareText({
                 seed: scenario.seed,
                 difficulty: scenario.difficulty,
-                mode: scenario.rage ? 'rage' : 'diagnosis',
+                mode: 'diagnosis',
                 generatorVersion: scenario.generatorVersion,
                 assessment: scenario.assessment,
-                rageTier: scenario.rage?.tier ?? null,
               }),
             )
           }
@@ -823,31 +610,10 @@ export function DiagnosisPanel({ isPhone }: Props) {
           </div>
         )}
         {/* §24: the status indicator. Never hide that the mode is active. */}
-        {scenario.rage && (
-          <span
-            className="flex items-center gap-1 rounded-md bg-rose-600 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white"
-            title={`${scenario.rage.tierLabel} — ${scenario.rage.applications
-              .filter((a) => a.applied)
-              .map((a) => a.label)
-              .join(', ')}`}
-          >
-            <EmojiGlyph emoji="devil" size={12} /> Rage Bait
-          </span>
-        )}
-        <span
-          className={[
-            'flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold tabular-nums',
-            remainingLabel !== null
-              ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/70 dark:text-rose-200'
-              : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200',
-          ].join(' ')}
-        >
+
+        <span className="flex items-center gap-1 rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-slate-700 dark:bg-slate-800 dark:text-slate-200">
           <Timer className="size-3" aria-hidden="true" />
-          {remainingLabel !== null ? (
-            <span aria-label={`Time remaining ${remainingLabel}`}>{remainingLabel}</span>
-          ) : (
-            <span aria-label={`Elapsed time ${elapsedLabel}`}>{elapsedLabel}</span>
-          )}
+          <span aria-label={`Elapsed time ${elapsedLabel}`}>{elapsedLabel}</span>
         </span>
       </header>
 
@@ -922,35 +688,6 @@ export function DiagnosisPanel({ isPhone }: Props) {
                 More than one thing is wrong here. Report them one at a time.
               </p>
             )}
-          </div>
-        )}
-
-        {/*
-         * §24/§26 transparency: say which modifiers are in play and promise,
-         * in the product itself, that the physics is untouched. Naming the
-         * modifiers does not leak the answer — "there is a decoy somewhere"
-         * is a different thing from "the fault is here".
-         */}
-        {scenario.rage && (
-          <div className="rounded-lg border border-rose-200 bg-rose-50/70 p-2 dark:border-rose-900 dark:bg-rose-950/40">
-            <p className="flex items-center gap-1 text-[10px] font-bold text-rose-800 dark:text-rose-200">
-              <EmojiGlyph emoji="devil" size={12} /> {scenario.rage.tierLabel} active
-            </p>
-            <ul className="mt-1 space-y-0.5">
-              {scenario.rage.applications
-                .filter((application) => application.applied)
-                .map((application) => (
-                  <li
-                    key={application.id}
-                    className="text-[9px] leading-relaxed text-rose-700 dark:text-rose-300"
-                  >
-                    • {application.label}
-                  </li>
-                ))}
-            </ul>
-            <p className="mt-1 text-[9px] italic leading-relaxed text-rose-600/90 dark:text-rose-400/90">
-              Rage against the circuit, not against physics — every reading is honest.
-            </p>
           </div>
         )}
 
@@ -1109,8 +846,7 @@ export function DiagnosisPanel({ isPhone }: Props) {
               type="button"
               onClick={() => {
                 const difficulty = scenario.difficulty;
-                const tier = scenario.rage?.tier;
-                void abandon().then(() => start(difficulty, undefined, tier));
+                void abandon().then(() => start(difficulty));
               }}
               className="flex-1 rounded-lg bg-red-600 px-2 py-1.5 text-[11px] font-semibold text-white hover:bg-red-500"
             >
@@ -1150,7 +886,7 @@ export function DiagnosisPanel({ isPhone }: Props) {
         <button
           type="button"
           onClick={() => {
-            if (!requestNew()) void start(scenario.difficulty, undefined, scenario.rage?.tier);
+            if (!requestNew()) void start(scenario.difficulty);
           }}
           aria-label="New diagnosis exercise"
           title="New diagnosis exercise"

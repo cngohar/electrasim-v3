@@ -1,3 +1,4 @@
+import { Modal } from './Modal';
 /**
  * WelcomeModal — first-visit introduction modal.
  *
@@ -7,7 +8,7 @@
  * auto-show again.
  *
  * Redesigned from scratch to cover every surface shipped to date:
- * Guided Circuits, the component library, simulation, Challenge Mode,
+ * Guided Circuits, the component library, simulation,
  * the Diagnosis Lab, the Fault Lab, validation & diagnostics, docs,
  * the command palette and keyboard shortcuts.
  */
@@ -27,15 +28,12 @@ import {
   ShieldCheck,
   Sparkles,
   Stethoscope,
-  Target,
   X,
   Zap,
 } from 'lucide-react';
-import { useRef } from 'react';
 import { isMacPlatform, modShortcut } from '../../lib/platform';
 import { useUiStore } from '../../store';
 import { APP_VERSION } from '../../version';
-import { useDialogFocus } from '../hooks/useDialogFocus';
 
 const STEPS = [
   {
@@ -66,10 +64,6 @@ interface Feature {
 export function WelcomeModal() {
   const open = useUiStore((s) => s.welcomeOpen);
   const close = () => useUiStore.getState().setWelcomeOpen(false);
-  const panelRef = useRef<HTMLDivElement | null>(null);
-  useDialogFocus(open, close, panelRef);
-
-  if (!open) return null;
 
   // Deferred surfaces mount lazily — close first, then open the target a
   // tick later so the Suspense boundary can resolve underneath.
@@ -89,14 +83,8 @@ export function WelcomeModal() {
     {
       icon: Layers,
       label: 'Component Library',
-      desc: '120+ parts from breakers to EV chargers, grouped by category.',
+      desc: '116 parts from breakers to EV chargers, grouped by category.',
       open: () => closeThen(() => useUiStore.getState().setPaletteOpen(true)),
-    },
-    {
-      icon: Target,
-      label: 'Challenge Mode',
-      desc: 'Build circuits to a spec — scored, timed and fault-checked.',
-      open: () => closeThen(() => useUiStore.getState().openChallengeMode()),
     },
     {
       icon: Stethoscope,
@@ -112,7 +100,7 @@ export function WelcomeModal() {
         closeThen(() => {
           const s = useUiStore.getState();
           s.setFaultLabOpen(true);
-          s.addLog('Fault Lab opened in the Inspector — select a component, then inject.', 'info');
+          s.addLog('Fault Lab opened — select a component on the canvas, then inject.', 'info');
         }),
     },
     {
@@ -126,26 +114,8 @@ export function WelcomeModal() {
   const mac = isMacPlatform();
 
   return (
-    <dialog
-      open
-      className="fixed inset-0 z-50 m-0 flex h-dvh w-screen max-h-none max-w-none items-center justify-center overflow-y-auto border-0 bg-transparent p-4"
-      aria-modal="true"
-      aria-label="Welcome to ElectraSim"
-    >
-      {/* Backdrop */}
-      <button
-        type="button"
-        aria-label="Close"
-        className="absolute inset-0 cursor-default bg-slate-900/50 backdrop-blur-sm animate-backdrop-fade-in"
-        onClick={close}
-      />
-
-      {/* Panel */}
-      <div
-        ref={panelRef}
-        tabIndex={-1}
-        className="relative max-h-[calc(100dvh-2rem)] w-full max-w-2xl overflow-y-auto rounded-2xl border border-white/80 bg-white shadow-2xl shadow-slate-900/20 ring-1 ring-slate-900/10 outline-none animate-dialog-fade-in dark:border-slate-700/80 dark:bg-slate-900 dark:ring-slate-700/50"
-      >
+    <Modal open={open} onClose={close} ariaLabel="Welcome to ElectraSim" widthClass="max-w-2xl">
+      <div className="table-custom-content WelcomeModal">
         {/* Header */}
         <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 px-6 py-5 text-white">
           {/* soft circuit-board glow */}
@@ -346,6 +316,6 @@ export function WelcomeModal() {
           </button>
         </div>
       </div>
-    </dialog>
+    </Modal>
   );
 }

@@ -112,7 +112,6 @@ Grant dates are explicit: the assignment form can prefill from the plan's durati
 
 Each administrative mutation uses a D1 batch transaction. The first write checks the version, the actor's current super-admin role and any applicable active-plan/reference conditions. An internal random mutation token ties feature replacements and audit insertion to that successful write. Losing concurrent requests cannot alter links or append a success audit. Audit failure rolls back the data write. Record/detail reads also batch version, feature links and impact counts together.
 
-The shared pure classifier uses canonical component IDs, fault IDs and a validated scenario mode. All 115 components and 14 fault types are covered. It distinguishes deliberate multi-fault exercises from naturally detected hazards; all confirmed basic single faults remain free. Ohmageddon requires advanced diagnostics and advanced faults, plus Pro components if present. Domain simulation imports no access code. Callers must validate content and normalize legacy injected faults before classification; wiring those action boundaries and downgrade-safe document handling is Phase 1.5/1.7 work.
 
 ## Verification
 

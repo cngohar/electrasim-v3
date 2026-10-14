@@ -38,7 +38,7 @@ The initial browser run found two fixture-navigation issues: refit the canvas af
 
 The built application was also checked at `http://127.0.0.1:8788/app/` with desktop 1440 × 1000 and phone 390 × 844 viewports. A guest series circuit ran the emitted `/app/assets/sim.worker-*.js` worker and displayed **0.9828 A**, **5.8968 V** and **5.7954 W** per 6 Ω load, including 0.21 Ω total lead resistance. Both layouts were visually inspected; the phone readings fit within its viewport, there were no page errors and no remote requests. Screenshots and the result record remain in ignored `.wrangler/phase15c5-built-evidence/`; the temporary static preview was stopped afterward. This built-assets check does not substitute for the separate real local Hono/D1/session gate.
 
-The dense MNA main-thread fallback target and dense 60 fps rendering target remain open. This phase gate does not close the broader `verify`, the three stress suites, timed/three-phase models, full lab migration or all of Phase 1. No remote testing, deployment, credential restoration or Cloudflare account/resource operation is authorized by these results.
+The dense MNA main-thread fallback target and dense 60 fps rendering target remain open. This phase gate does not close the broader `verify`, the two stress suites, timed/three-phase models, full lab migration or all of Phase 1. No remote testing, deployment, credential restoration or Cloudflare account/resource operation is authorized by these results.
 
 ## Next step
 

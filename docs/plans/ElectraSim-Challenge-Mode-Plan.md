@@ -1,5 +1,8 @@
 # ElectraSim Challenge Mode — Implementation Plan
 
+> **User decision — 2026-10-13:** Challenge Mode runtime was explicitly removed before the accepted simulator redesign and deferred for a later-stage rebuild. This plan is preserved. Shared generation, fault and replay code still supports Diagnosis Lab. See [retirement scope and evidence](../audits/challenge-mode-retirement.md).
+
+
 ## Status
 
 **Case: CHALLENGE MODE — OPEN**
@@ -1251,7 +1254,6 @@ Keep Challenge Mode focused.
                │                           │
        Functional Check              Repair + Verify
                │                           │
-             Hints                     Rage Bait
                │
          Local Progress
                │

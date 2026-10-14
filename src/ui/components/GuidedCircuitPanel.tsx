@@ -18,10 +18,12 @@ import { useCircuitStore, useUiStore } from '../../store';
 
 interface Props {
   isPhone: boolean;
+  guideId?: string | null;
 }
 
-export function GuidedCircuitPanel({ isPhone }: Props) {
-  const activeGuideId = useUiStore((s) => s.activeGuideId);
+export function GuidedCircuitPanel({ isPhone, guideId }: Props) {
+  const currentGuideId = useUiStore((s) => s.activeGuideId);
+  const activeGuideId = guideId ?? currentGuideId;
   const simRunning = useUiStore((s) => s.simRunning);
   const simResult = useUiStore((s) => s.simResult);
   const inspectorCollapsed = useUiStore((s) => s.inspectorCollapsed);
@@ -55,9 +57,20 @@ export function GuidedCircuitPanel({ isPhone }: Props) {
   );
 
   useEffect(() => {
-    if (template && progress?.completed)
+    if (currentGuideId === activeGuideId && template && progress?.completed)
       markGuideCompleted(template, { components, wires, supply, globalVoltage, faults }, simResult);
-  }, [template, progress?.completed, components, wires, supply, globalVoltage, faults, simResult]);
+  }, [
+    currentGuideId,
+    activeGuideId,
+    template,
+    progress?.completed,
+    components,
+    wires,
+    supply,
+    globalVoltage,
+    faults,
+    simResult,
+  ]);
 
   if (!template || !progress) return null;
 
@@ -69,12 +82,13 @@ export function GuidedCircuitPanel({ isPhone }: Props) {
     return (
       <button
         type="button"
+        data-canvas-occluder
         onClick={() => setGuideHidden(false)}
         aria-label="Show guide steps"
         title={`${template.title} — show guide steps`}
         className={[
-          'absolute z-20 flex items-center gap-2 rounded-full border border-white/80 bg-white/95 px-3 py-2 shadow-xl shadow-slate-900/10 ring-1 ring-slate-900/5 backdrop-blur-xl transition hover:bg-blue-50 dark:border-slate-700/80 dark:bg-slate-900/95 dark:ring-slate-700/50 dark:hover:bg-slate-800',
-          isPhone ? 'bottom-20 right-3' : 'left-1/2 top-36 -translate-x-1/2',
+          'table-guide-chip absolute z-20 flex items-center gap-2 rounded-full border border-white/80 bg-white/95 px-3 py-2 shadow-xl shadow-slate-900/10 ring-1 ring-slate-900/5 backdrop-blur-xl transition hover:bg-blue-50 dark:border-slate-700/80 dark:bg-slate-900/95 dark:ring-slate-700/50 dark:hover:bg-slate-800',
+          isPhone ? 'workspace-controls-clear right-3' : 'left-1/2 top-36 -translate-x-1/2',
         ].join(' ')}
       >
         <span className="grid size-6 place-items-center rounded-lg bg-blue-600 text-white shadow-sm shadow-blue-600/30">
@@ -99,7 +113,8 @@ export function GuidedCircuitPanel({ isPhone }: Props) {
     const selectedLabel = selected ? (COMPONENT_DEFS[selected.type]?.label ?? null) : null;
     return (
       <aside
-        className={`absolute ${rightClass} top-28 z-20 w-56 overflow-hidden rounded-2xl border border-white/80 bg-white/95 shadow-xl shadow-slate-900/10 ring-1 ring-slate-900/5 backdrop-blur-xl lg:w-[340px] dark:border-slate-700/80 dark:bg-slate-900/95 dark:ring-slate-700/50`}
+        data-canvas-occluder
+        className={`table-guide-surface absolute ${rightClass} top-28 z-20 w-56 overflow-hidden rounded-2xl border border-white/80 bg-white/95 shadow-xl shadow-slate-900/10 ring-1 ring-slate-900/5 backdrop-blur-xl lg:w-[340px] dark:border-slate-700/80 dark:bg-slate-900/95 dark:ring-slate-700/50`}
       >
         <div className="flex items-start gap-3 border-b border-slate-100 px-4 py-3 dark:border-slate-700/60">
           <div className="mt-0.5 grid size-8 flex-shrink-0 place-items-center rounded-xl bg-indigo-600 text-white shadow-sm shadow-indigo-600/30">
@@ -138,7 +153,7 @@ export function GuidedCircuitPanel({ isPhone }: Props) {
 
   // Expanded drawer + active selection: the guide panel yields entirely —
   // the Inspector drawer carries an inline "return to guide" strip.
-  if (!isPhone && inspectorVisible && !inspectorCollapsed) return null;
+  if (inspectorVisible && !inspectorCollapsed) return null;
 
   const restart = () => {
     useCircuitStore.getState().setCircuit(cloneTemplateCircuit(template));
@@ -150,10 +165,11 @@ export function GuidedCircuitPanel({ isPhone }: Props) {
 
   return (
     <aside
+      data-canvas-occluder
       className={[
-        'absolute z-20 overflow-hidden rounded-2xl border border-white/80 bg-white/95 shadow-xl shadow-slate-900/10 ring-1 ring-slate-900/5 backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-900/95 dark:ring-slate-700/50',
+        'table-learning-panel table-guide absolute z-20 overflow-hidden rounded-2xl border border-white/80 bg-white/95 shadow-xl shadow-slate-900/10 ring-1 ring-slate-900/5 backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-900/95 dark:ring-slate-700/50',
         isPhone
-          ? 'bottom-20 left-3 right-3 max-h-[52vh]'
+          ? 'workspace-controls-clear workspace-learning-sheet left-3 right-3'
           : `${rightClass} top-24 w-56 max-h-[calc(100vh-8rem)] lg:w-[340px]`,
       ].join(' ')}
     >

@@ -14,7 +14,10 @@ import { localTestUrl } from './scripts/local-test-url';
  *
  * Set PLAYWRIGHT_BASE_URL to test an already-running local preview.
  */
-const localBaseURL = 'http://127.0.0.1:3000';
+const devPort = Number(process.env.PLAYWRIGHT_DEV_PORT ?? 3000);
+if (!Number.isInteger(devPort) || devPort < 1024 || devPort > 65535)
+  throw new Error('PLAYWRIGHT_DEV_PORT must be an integer between 1024 and 65535.');
+const localBaseURL = `http://127.0.0.1:${devPort}`;
 const baseURL = localTestUrl(process.env.PLAYWRIGHT_BASE_URL, localBaseURL, 'PLAYWRIGHT_BASE_URL');
 
 /**
@@ -69,13 +72,14 @@ export default defineConfig({
         },
         {
           // HMR off: a dev-server full-reload landing mid-test surfaced as a
-          // random "unexpected navigation" failure (seen in ohmageddon and
-          // challenge-mode specs under load). Nothing edits source during a
+          // random "unexpected navigation" failure in learning-mode specs under load. Nothing edits source during a
           // run, so hot reload has no value here and only adds a race.
-          command: 'vite --port=3000 --strictPort --host=127.0.0.1',
+          command: `vite --port=${devPort} --strictPort --host=127.0.0.1`,
           env: { ...process.env, DISABLE_HMR: 'true', LOCAL_WORKER_PORT: '8792' },
           url: localBaseURL,
-          reuseExistingServer: !process.env.CI,
+          // An arbitrary existing Vite may proxy the normal development DB.
+          // An explicit test port must start its own known test-Worker proxy.
+          reuseExistingServer: !process.env.CI && !process.env.PLAYWRIGHT_DEV_PORT,
           timeout: 60_000,
         },
         // Built site (Astro pages) for cable-size.spec.ts — only when it exists.

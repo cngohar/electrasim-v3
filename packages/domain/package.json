@@ -5,9 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./challenges/declarative": "./src/challenges/declarative/index.ts",
     "./challenges": "./src/challenges/index.ts",
-    "./challenges/rage": "./src/challenges/rage/index.ts",
     "./componentHelp": "./src/componentHelp/index.ts",
     "./components": "./src/components/index.ts",
     "./electrical": "./src/electrical/index.ts",

@@ -8,15 +8,10 @@ import {
   stripShareURLPayload,
 } from './lib/exportImport';
 import { useCircuitStore } from './store/circuitStore';
-import {
-  loadActiveDeclarativeChallenge,
-  loadChallengeProgress,
-} from './store/declarativeChallengePersistence';
 import { startEventHistoryPersistence } from './store/eventHistoryPersistence';
 import { hydrateCircuit, persistCircuit, startAutosave } from './store/persistence';
 import { startSettingsPersistence, useSettingsStore } from './store/settingsStore';
 import { startAccessLifecycle } from './store/simulatorAccess';
-import { useUiStore } from './store/uiStore';
 import { applyDocumentTheme, readThemeHint, resolveThemePreference } from './ui/themePreference';
 import './index.css';
 import { ensureEmojiGlyphs } from './lib/emoji/emojiSvg';
@@ -67,22 +62,6 @@ void (async () => {
 
   startAutosave();
   startAccessLifecycle();
-
-  // Plan §14: defer the optional Challenge Mode recovery check until after
-  // the editor has mounted. This keeps the first frame independent of the
-  // challenge store and makes its first use a visible, lazy transition.
-  void (async () => {
-    const active = await loadActiveDeclarativeChallenge();
-    if (!active) return;
-
-    const { useDeclarativeChallengeStore } = await import('./store/declarativeChallengeStore');
-    const progress = await loadChallengeProgress();
-    useDeclarativeChallengeStore.setState({ progress });
-    useDeclarativeChallengeStore.setState({
-      resumePrompt: { active: true, record: { challengeId: active.challengeId } },
-    });
-    useUiStore.getState().setChallengeOpen(true);
-  })();
 
   createRoot(document.getElementById('root')!).render(
     <StrictMode>

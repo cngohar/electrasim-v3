@@ -1,5 +1,6 @@
 import { fitCanvasView } from '../canvas/fitView';
 import { usePlacementGuidance } from '../hooks/usePlacementGuidance';
+import { Modal } from './Modal';
 import { PlacementSupplyFilter } from './PlacementSupplyFilter';
 /**
  * CommandPalette — Workbench experiment (Ctrl+K).
@@ -43,7 +44,6 @@ interface Command {
 
 export function CommandPalette() {
   const guidance = usePlacementGuidance();
-  const allowedComponents = useUiStore((s) => s.challengeAllowedComponents);
   const open = useUiStore((s) => s.commandPaletteOpen);
   const setOpen = useUiStore((s) => s.setCommandPaletteOpen);
   const [query, setQuery] = useState('');
@@ -88,7 +88,7 @@ export function CommandPalette() {
         run: () => {
           const s = useUiStore.getState();
           s.setFaultLabOpen(true);
-          s.addLog('Fault Lab opened in the Inspector — manual fault controls armed.', 'info');
+          s.addLog('Fault Lab opened — manual fault controls armed.', 'info');
           setOpen(false);
         },
       },
@@ -210,10 +210,7 @@ export function CommandPalette() {
     // Every component in the registry is addable — this gives full coverage
     // (not just a hardcoded subset) and makes the palette a real search tool.
     const addCommands: Command[] = Object.entries(COMPONENT_DEFS)
-      .filter(
-        ([type]) =>
-          guidance.visible(type) && (!allowedComponents || allowedComponents.includes(type)),
-      )
+      .filter(([type]) => guidance.visible(type))
       .map(([type, def]) => ({
         id: `add-${type}`,
         label: `Add ${def.label}`,
@@ -224,9 +221,7 @@ export function CommandPalette() {
       }));
 
     return { actions: actionCommands, components: addCommands };
-  }, [setOpen, guidance, allowedComponents]);
-
-  if (!open) return null;
+  }, [setOpen, guidance]);
 
   const q = query.trim().toLowerCase();
   const scopeList =
@@ -252,17 +247,13 @@ export function CommandPalette() {
   };
 
   return (
-    <div
-      className="fixed inset-0 z-[70] flex items-start justify-center pt-[12vh] bg-slate-900/30 backdrop-blur-sm"
-      onMouseDown={() => setOpen(false)}
+    <Modal
+      open={open}
+      onClose={() => setOpen(false)}
+      ariaLabel="Command palette"
+      widthClass="max-w-2xl"
     >
-      <dialog
-        open
-        className="m-0 w-[min(560px,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/20 ring-1 ring-slate-900/5 dark:border-slate-700 dark:bg-slate-900 dark:ring-slate-700/50"
-        style={{ marginInline: 'auto' }}
-        onMouseDown={(e) => e.stopPropagation()}
-        aria-label="Command palette"
-      >
+      <div className="table-custom-content CommandPalette">
         <div className="flex items-center gap-2 border-b border-slate-100 px-4 py-3 dark:border-slate-800">
           <Search className="size-4 text-slate-400" />
           <input
@@ -371,7 +362,7 @@ export function CommandPalette() {
             {modShortcut('K')}
           </kbd>
         </div>
-      </dialog>
-    </div>
+      </div>
+    </Modal>
   );
 }

@@ -21,21 +21,11 @@ function hitboxIn(node: Locator): Locator {
   return node.locator('> g[role="button"]');
 }
 
-/**
- * Fault injection is Pro-only, so every guide here is loaded into Pro mode.
- *
- * The switch does NOT go through the sub-header mode toggle: at tablet widths
- * the header's left zone is sized to its own content (`justify-self-start` in a
- * `1fr` track) and overflows on top of the centre cluster, so a click aimed at
- * the toggle lands on the active-standard chip instead. The chip is the topmost
- * element on every viewport and its "Locked in Student mode" popover offers the
- * same switch, so drive it from there.
- */
+/** Select the current Basic/Pro toggle; its title declares the active mode. */
 async function ensureProMode(page: Page) {
-  const studentToggle = page.getByRole('button', { name: /^student$/i });
+  const studentToggle = page.getByTitle(/^Basic Student Mode active/);
   if (!(await studentToggle.isVisible().catch(() => false))) return;
-  await page.locator('[data-standard-selector][data-standard-readonly]').click();
-  await page.getByRole('button', { name: 'Switch to Pro mode' }).click();
+  await studentToggle.click();
   await expect(studentToggle).toBeHidden();
 }
 

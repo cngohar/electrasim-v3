@@ -1,3 +1,4 @@
+import { Modal } from './Modal';
 /**
  * TemplatesModal — the Guided Circuits window.
  *
@@ -15,10 +16,9 @@
 import { getSimulationLimitations } from '@electrasim/domain/simulationCoverage';
 import { GUIDED_CIRCUIT_TEMPLATES, type GuidedCircuitTemplate } from '@electrasim/domain/templates';
 import { BookOpen, CheckCircle2, CircuitBoard, Search, Sparkles, Wrench, X } from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { isGuideCompleted, wasGuideCompletedEarlier } from '../../lib/guideProgressPersistence';
 import { loadGuidedCircuitIntoEditor } from '../../lib/guidedCircuitLoader';
-import { useDialogFocus } from '../hooks/useDialogFocus';
 
 interface Props {
   open: boolean;
@@ -127,9 +127,6 @@ function GuideCard({
 }
 
 export function TemplatesModal({ open, onClose }: Props) {
-  const panelRef = useRef<HTMLDivElement | null>(null);
-  useDialogFocus(open, onClose, panelRef);
-
   const [query, setQuery] = useState('');
   const [tierFilter, setTierFilter] = useState<TierFilter>('all');
 
@@ -161,29 +158,9 @@ export function TemplatesModal({ open, onClose }: Props) {
     onClose();
   };
 
-  if (!open) return null;
-
   return (
-    <dialog
-      open
-      className="fixed inset-0 z-50 m-0 flex h-dvh w-screen max-h-none max-w-none items-center justify-center overflow-y-auto border-0 bg-transparent p-2 sm:p-4"
-      aria-modal="true"
-      aria-label="Guided Circuits"
-    >
-      {/* Backdrop */}
-      <button
-        type="button"
-        aria-label="Close"
-        className="absolute inset-0 cursor-default bg-slate-900/50 backdrop-blur-sm animate-backdrop-fade-in"
-        onClick={onClose}
-      />
-
-      {/* Window */}
-      <div
-        ref={panelRef}
-        tabIndex={-1}
-        className="relative flex max-h-[calc(100dvh-1rem)] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-white/80 bg-white shadow-2xl shadow-slate-900/20 ring-1 ring-slate-900/10 outline-none animate-dialog-fade-in dark:border-slate-700/80 dark:bg-slate-900 dark:ring-slate-700/50"
-      >
+    <Modal open={open} onClose={onClose} ariaLabel="Guided Circuits" widthClass="max-w-5xl">
+      <div className="table-custom-content TemplatesModal">
         {/* Header */}
         <div className="border-b border-slate-100 px-5 py-4 dark:border-slate-700/60">
           <div className="flex items-start gap-3">
@@ -288,6 +265,6 @@ export function TemplatesModal({ open, onClose }: Props) {
           </button>
         </div>
       </div>
-    </dialog>
+    </Modal>
   );
 }

@@ -1,41 +1,3 @@
-/**
- * Diagnosis evaluation (plan §16, §41; Phase D steps 6–7, Phase F step 1).
- *
- * Two things must both be true before a diagnosis exercise is finished:
- *
- *   1. the learner correctly named **what** is wrong and **where** (§15), and
- *   2. the circuit has actually been **repaired** and proven so by simulation.
- *
- * §16 is explicit that a correct guess alone is not completion — otherwise a
- * learner could pick the right radio button on a still-broken installation and
- * be told they had fixed it. That is why §41's truth table has *three* states,
- * not two:
- *
- *   | diagnosis        | repair            | verdict      |
- *   |------------------|-------------------|--------------|
- *   | correct type+loc | circuit recovered | success      |
- *   | correct type+loc | fault still live  | incomplete   |
- *   | anything else    | —                 | failure      |
- *
- * `incomplete` is the pedagogically interesting one: the learner has *found*
- * the fault but not *cleared* it, so the UI should keep them on the same
- * scenario and ask for the repair rather than resetting the exercise.
- *
- * ── Several faults (plan §26 "multiple faults", §27 Rage 3/4) ───────────────
- * A scenario carries a *list* of faults, so a submission is graded against the
- * whole list rather than against one answer. Only one rule had to be settled:
- * what to say to a learner who has correctly named one fault out of two. It is
- * not `failure` — they were right, and telling them "that is not the fault on
- * this circuit" would be untrue, which §26 forbids as squarely as a fake
- * ammeter reading. It is `incomplete`: the same state as a correct diagnosis on
- * an unrepaired circuit, meaning "you are right, the job is not finished".
- * `failure` is reserved for an answer that names nothing that is actually
- * wrong. On a single-fault scenario this collapses to exactly the old
- * behaviour, table above unchanged.
- *
- * Pure: no store access, no persistence, no timers.
- */
-
 import { isFaultRemoved } from '../../faults';
 import { simulate } from '../../simulation';
 import type { Circuit, FaultType, SimulationResult } from '../../types';
@@ -307,7 +269,7 @@ function guide(
 }
 
 // ---------------------------------------------------------------------------
-// Live symptom (plan §14, §26 compound scenarios)
+// Live symptom (plan §14)
 // ---------------------------------------------------------------------------
 
 /**
@@ -317,13 +279,6 @@ function guide(
  * it was first handed over. That is the right thing to show at the start, and
  * the wrong thing to show for ever: the moment the learner clears a fault the
  * complaint becomes a description of the past.
- *
- * On a compound scenario (§26) that is not merely stale, it defeats the whole
- * exercise. The entire point of a compound fault is that repairing the first
- * one *changes* the symptom and reveals the second — and a learner staring at
- * a frozen "the kitchen light is dead" has no way to notice that the complaint
- * is now a different one. They would be told, in effect, that their correct
- * repair had achieved nothing.
  *
  * So the panel re-derives this after every change to the circuit. It is the
  * same measurement the scenario builder made (`diffSymptom` against the

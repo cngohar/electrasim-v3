@@ -5,7 +5,7 @@ import { type Capability, requirementsForContent } from './index';
 /** One classification for legacy and modern documents; automatic findings are never inputs. */
 export function circuitRequirements(
   circuit: Circuit,
-  diagnosis?: 'basic' | 'advanced' | 'ohmageddon',
+  diagnosis?: 'basic' | 'advanced',
 ): Capability[] {
   return requirementsForContent({
     componentTypes: circuit.components.map((c) => c.type),

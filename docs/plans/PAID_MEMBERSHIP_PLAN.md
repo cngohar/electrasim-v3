@@ -5,7 +5,7 @@
 
 ## 1. Confirmed scope
 
-Phase 1 provides manually managed paid memberships. Super admins create, add, edit and delete membership plans and individual assignments. Online checkout remains in Phase 7. Paid access unlocks existing Pro components, advanced fault mode and advanced diagnostic mode, including Ohmageddon. Basic fault and diagnostic modes remain available to everyone, including guests.
+Phase 1 provides manually managed paid memberships. Super admins create, add, edit and delete membership plans and individual assignments. Online checkout remains in Phase 7. Paid access unlocks existing Pro components, advanced fault mode and advanced diagnostic mode. Basic fault and diagnostic modes remain available to everyone, including guests.
 
 Only these confirmed paid features launch initially. The framework supports more benefits later; this plan invents no cloud quota, export restriction, premium template pack, trial, price or support commitment.
 
@@ -19,7 +19,6 @@ Membership is an entitlement, not a global role. Buying or receiving it does not
 | `src/store/settingsStore.ts`, `src/ui/components/Toolbar.tsx` | IndexedDB stores `appMode`; anyone can toggle it; Pro components stay functional in Basic mode | Presentation preference cannot grant access; replace public unlock toggle |
 | `src/store/useSimulation.ts`, `packages/domain/src/simulation/simulate.ts` | `appMode` affects stress behavior | Separate electrical results/basic warnings from premium exercise controls |
 | `packages/domain/src/faults.ts`, `src/store/circuitStore.faultActions.ts`, Inspector | 14 fault types; manual setting described as Pro-only | Explicit basic/advanced policy, enforced at actions |
-| `src/store/diagnosisStore.ts`, `packages/domain/src/challenges/{diagnosis,rage}/*` | Three difficulty levels/four rage tiers; start/restore trust browser settings | Check actual requirements on start, regeneration, resume and submission |
 | `packages/db/*`, `packages/access/*`, `src/api/*`, `src/worker.ts` | Phase 1.3 roles, plans, entitlements, resolver and manual APIs implemented locally | Integrate simulator enforcement and admin UI in 1.5/1.7/1.8 |
 
 Simulator observations are from 2026-09-26; the backend row was updated after the 1.3 local gate on 2026-09-27. Backend completion does not mean simulator entry points or admin screens are gated yet.
@@ -32,14 +31,13 @@ Initial paid plan capabilities: `pro_components`, `advanced_faults`, `advanced_d
 |---------|---------------|-----------------|
 | Components | Current basic IDs | `pro_components`: current Pro IDs |
 | Fault injection | At most one active injected fault from the basic list | `advanced_faults`: advanced types or multiple deliberately injected faults, within engine limits |
-| Diagnosis | Beginner/intermediate with basic components and one basic fault; basic probes, tracing, hints, explanations and results | `advanced_diagnostics`: advanced difficulty, multi-fault diagnosis and every Ohmageddon tier |
+| Diagnosis | Beginner/intermediate with basic components and one basic fault; basic probes, tracing, hints, explanations and results | `advanced_diagnostics`: advanced difficulty, multi-fault diagnosis |
 | Automatic findings | All basic safety warnings, even for multiple wiring mistakes | Never gate whether a detected hazard is shown |
 
 **Initial basic injection list:** `open-circuit`, `open-live`, `open-neutral`, `open-earth`, `terminal-disconnect`, `reverse-polarity`, `switched-neutral`, `short-circuit`, `earth-fault`, `live-to-earth`.
 
 **Initial advanced injection list:** `smooth-dc-residual`, `arc-fault`, `protection-forced-open`, `protection-bypass`; more than one injected fault also requires `advanced_faults`. This initial product classification does not classify electrical severity. Super admin can reclassify implemented advanced content, but cannot remove the confirmed basic baseline or change fault physics.
 
-Scenarios declare the complete capability set. A multi-fault exercise using Pro components needs all three capabilities. Ohmageddon additionally requires `advanced_faults` because its modifiers can introduce advanced fault behavior. Free intermediate generation selects basic-eligible recipes; it must not unexpectedly paywall a basic exercise after generation.
 
 Keep diagnostic access separate from generic Challenge Mode difficulty; unrelated wiring games do not automatically become paid. Version changes to generator eligibility, preserve old records and shared-seed reproducibility, and display access requirements for premium legacy scenarios. Do not regenerate a different circuit under the same version/seed.
 
@@ -114,7 +112,7 @@ Existing browser `appMode='pro'`, cloud metadata and shared circuits do not beco
 | Roles | Guest/free/paid/admin/instructor/org owner denied membership mutations; super admin allowed; signup/profile cannot inject role |
 | Lifecycle | Create/edit/extend/suspend/revoke; future start; exact expiry; explicit no-expiry; overlapping grants; referenced-plan archive; atomic audit; stale-write conflict |
 | Free experience | Guest offline basic circuit + single basic fault + diagnosis; no premium content generated accidentally; multiple natural mistakes still reported |
-| Paid experience | Pro placement/use, advanced injected fault, multi-fault diagnosis, every Ohmageddon tier after manual grant |
+| Paid experience | Pro placement/use, advanced injected fault, multi-fault diagnosis |
 | Bypasses | Direct requests, settings changes, imports/templates, clipboard/duplicate, seeds, legacy fault fields, resume and forged capabilities |
 | Revocation/failure | Existing session loses authorization on next request despite cached config; UI refresh; expired offline cache; D1 failure retains basic access; original document recoverable |
 | Electrical parity | Identical authorized scenarios have identical findings regardless of membership presentation; benefit APIs cannot change physics/standards |

@@ -791,6 +791,11 @@ export const useCircuitStore = create<CircuitState>()(
               const w = s.wires.find((item) => item.id === id);
               if (!w) return;
               if (
+                'label' in updates &&
+                (updates.label === undefined || typeof updates.label === 'string')
+              )
+                w.label = updates.label?.trim().slice(0, 80) || undefined;
+              if (
                 'damageModel' in updates &&
                 (updates.damageModel === undefined ||
                   (isDamageModel(updates.damageModel) &&

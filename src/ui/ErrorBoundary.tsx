@@ -49,17 +49,21 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.props.fallback) return this.props.fallback(error, this.reset);
 
     return (
-      <div className="grid h-full w-full place-items-center bg-slate-50 p-8 dark:bg-slate-950">
-        <div className="max-w-md rounded-lg border border-red-100 bg-white p-6 shadow-xl shadow-red-600/5 dark:border-red-900/50 dark:bg-slate-900 dark:shadow-black/30">
+      <div className="open-table table-editor-error grid min-h-dvh w-full place-items-center p-6">
+        <div className="table-surface table-load-failure w-full max-w-lg">
           <h1 className="text-base font-semibold text-slate-900 dark:text-slate-100">
             Something went wrong
           </h1>
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-            The editor hit an unexpected error and recovered. Your circuit was autosaved.
+            The editor could not finish rendering. Try again, or reload to restore your last saved
+            circuit.
           </p>
-          <pre className="mt-3 max-h-40 overflow-auto rounded-lg bg-slate-900 p-3 text-[10px] leading-relaxed text-slate-100">
-            {error.message}
-          </pre>
+          <details className="mt-6 text-xs">
+            <summary>Technical details</summary>
+            <pre className="mt-3 max-h-40 overflow-auto rounded-lg bg-slate-900 p-3 text-xs leading-relaxed text-slate-100">
+              {error.message}
+            </pre>
+          </details>
           <div className="mt-4 flex justify-end gap-2">
             <button
               type="button"

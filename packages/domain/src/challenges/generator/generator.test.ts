@@ -55,6 +55,11 @@ function fingerprint(circuit: Circuit): string {
 // ───────────────────────────────────────────────────────────────────────────
 
 describe('generator determinism (plan §38)', () => {
+  it('rejects unsupported learning modes before generating a circuit', () => {
+    expect(() =>
+      generateChallenge({ seed: 5, difficulty: 'beginner', mode: 'unsupported' as never }),
+    ).toThrow('Unknown learning mode');
+  });
   it('same seed + same difficulty → same circuit', () => {
     for (const difficulty of CHALLENGE_DIFFICULTIES) {
       const a = generateChallenge({ seed: 1, difficulty });
@@ -151,25 +156,13 @@ describe('generator API and identity (plan §29, §35)', () => {
       generateChallenge({ seed: 5, difficulty: 'beginner', mode: 'diagnosis' }).metadata
         .challengeId,
     ).toMatch(/^ES-DIAG-\d{6}$/);
-    expect(
-      generateChallenge({ seed: 5, difficulty: 'beginner', mode: 'rage' }).metadata.challengeId,
-    ).toMatch(/^ES-RAGE-\d{6}$/);
-    expect(
-      generateChallenge({ seed: 5, difficulty: 'beginner', mode: 'challenge' }).metadata
-        .challengeId,
-    ).toMatch(/^ES-CHAL-\d{6}$/);
   });
 
-  it('folds the rage profile into identity without changing generator behaviour surface', () => {
-    const plain = generateChallenge({ seed: 9, difficulty: 'advanced', mode: 'rage' });
-    const profiled = generateChallenge({
-      seed: 9,
-      difficulty: 'advanced',
-      mode: 'rage',
-      rageProfile: 'chaos',
-    });
-    expect(profiled.metadata.challengeId).not.toBe(plain.metadata.challengeId);
-    expect(profiled.metadata.rageProfile).toBe('chaos');
+  it('defaults to Diagnosis and rejects deferred Challenge Mode requests', () => {
+    expect(generateChallenge({ seed: 5, difficulty: 'beginner' }).metadata.mode).toBe('diagnosis');
+    expect(() =>
+      generateChallenge({ seed: 5, difficulty: 'beginner', mode: 'challenge' as never }),
+    ).toThrow('Unknown learning mode');
   });
 
   it('describes the scenario without any fault or objective data', () => {
@@ -458,11 +451,11 @@ describe('foundation gate (plan §7, §57)', () => {
     // Mode only affects identity (plan §29); the circuit itself must not
     // branch on it, otherwise "no Challenge Mode logic in the generator"
     // would already be violated.
-    const base = generateChallenge({ seed: 21, difficulty: 'intermediate', mode: 'challenge' });
+    const base = generateChallenge({ seed: 21, difficulty: 'intermediate', mode: 'diagnosis' });
     const diagnosis = generateChallenge({
       seed: 21,
       difficulty: 'intermediate',
-      mode: 'challenge',
+      mode: 'diagnosis',
     });
     expect(fingerprint(diagnosis.circuit)).toBe(fingerprint(base.circuit));
   });

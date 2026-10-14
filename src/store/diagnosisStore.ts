@@ -41,7 +41,6 @@ import {
   type DiagnosisScenario,
   type DiagnosisScore,
   GENERATOR_VERSION,
-  type RageTierId,
   diagnosisAssessmentIssue,
   evaluateDiagnosis,
   scoreDiagnosis,
@@ -51,7 +50,6 @@ import { useCircuitStore } from './circuitStore';
 import {
   type DiagnosisStatsRecord,
   type DiagnosisStatus,
-  clearActiveDiagnosis,
   loadActiveDiagnosis,
   loadDiagnosisStats,
   recordDiagnosisAbandoned,
@@ -59,7 +57,6 @@ import {
   recordDiagnosisStarted,
   saveActiveDiagnosis,
 } from './diagnosisPersistence';
-import { useSettingsStore } from './settingsStore';
 import { useUiStore } from './uiStore';
 
 interface ServerAttempt {
@@ -69,7 +66,7 @@ interface ServerAttempt {
   circuit: Circuit;
   readOnly?: boolean;
   progress: {
-    status: 'active' | 'completed' | 'timed-out' | 'abandoned';
+    status: 'active' | 'completed' | 'abandoned';
     misdiagnoses: number;
     incompleteRepairs: number;
     hintsUsed: number;
@@ -120,14 +117,9 @@ export interface DiagnosisState {
   /** True while a "start a new exercise?" confirmation is pending (§22). */
   confirmingNew: boolean;
 
-  /**
-   * Begin an exercise. `rageTier` is only honoured when Ohmageddon Mode is
-   * enabled in Settings — see the §24 gate in the implementation.
-   */
   start: (
     difficulty: ChallengeDifficulty,
     seed?: number,
-    rageTier?: RageTierId,
     generatorVersion?: number,
     replayAssessment?: Pick<
       DiagnosisAssessment,
@@ -148,16 +140,6 @@ export interface DiagnosisState {
   totalElapsedMs: () => number;
   /** True once both halves of the answer are chosen (§15). */
   canSubmit: () => boolean;
-  /**
-   * Remaining time on a Rage 4 countdown, or `null` when the exercise is
-   * untimed. Hits zero and stays there.
-   */
-  remainingMs: () => number | null;
-  /**
-   * End an active timed exercise. Scores whatever the learner has already
-   * found — a timeout is not a fabricated fail (§18 / §26).
-   */
-  expire: () => void;
 }
 
 function randomSeed(): number {
@@ -191,22 +173,8 @@ export const useDiagnosisStore = create<DiagnosisState>((set, get) => ({
 
   totalElapsedMs: () => {
     const { startedAt, elapsedMs, status } = get();
-    if (
-      startedAt === null ||
-      status === 'completed' ||
-      status === 'abandoned' ||
-      status === 'timed-out'
-    ) {
-      return elapsedMs;
-    }
+    if (status !== 'active' || startedAt === null) return elapsedMs;
     return elapsedMs + Math.max(0, Date.now() - startedAt);
-  },
-
-  remainingMs: () => {
-    const { scenario } = get();
-    const limit = scenario?.rage?.timeLimitSeconds;
-    if (limit === null || limit === undefined) return null;
-    return Math.max(0, limit * 1000 - get().totalElapsedMs());
   },
 
   canSubmit: () => {
@@ -219,68 +187,17 @@ export const useDiagnosisStore = create<DiagnosisState>((set, get) => ({
     );
   },
 
-  expire: () => {
-    const state = get();
-    const scenario = state.scenario;
-    if (!scenario || state.status !== 'active') return;
-    if (state.accessBlocked) return;
-    if (state.serverAttemptId) {
-      void serverAction('expire');
-      return;
-    }
-    const limit = scenario.rage?.timeLimitSeconds;
-    if (limit === null || limit === undefined) return;
-    if (state.totalElapsedMs() < limit * 1000) return;
-
-    const elapsedMs = Math.min(state.totalElapsedMs(), limit * 1000);
-    const identified = state.identifiedFaultIds.length;
-    const score = scoreDiagnosis({
-      difficulty: scenario.difficulty,
-      elapsedMs,
-      misdiagnoses: state.misdiagnoses,
-      incompleteRepairs: state.incompleteRepairs,
-      hintsUsed: state.hintsUsed,
-      faultCount: scenario.faults.length,
-      faultsIdentified: identified,
-    });
-    set({
-      score,
-      status: 'timed-out',
-      elapsedMs,
-      startedAt: null,
-    });
-    void recordDiagnosisAbandoned({
-      difficulty: scenario.difficulty,
-      faultTypes: scenario.faults.map((entry) => entry.fault.type),
-      misdiagnoses: state.misdiagnoses,
-      hintsUsed: state.hintsUsed,
-    }).then((stats) => set({ stats }));
-  },
-
-  start: async (difficulty, seed, rageTier, generatorVersion, replayAssessment) => {
+  start: async (difficulty, seed, generatorVersion, replayAssessment) => {
     const previous = get();
     const previousExercise = useSimulatorAccess.getState().exercise;
     const generation = accessGeneration();
     set({ status: 'generating', error: null, confirmingNew: false });
     const chosenSeed = seed ?? randomSeed();
-    /**
-     * Plan §24, the safety rule: "Normal users must never accidentally enter
-     * Ohmageddon Mode."
-     *
-     * This single line is the enforcement point. The domain has no idea the
-     * settings store exists — `buildDiagnosisScenario` applies modifiers if and
-     * only if it is handed a tier — so gating here means a stale UI, a resumed
-     * record or a future caller cannot conjure a rage exercise while the
-     * setting is off. Turning the setting off mid-session downgrades the next
-     * exercise to a normal one rather than erroring.
-     */
-    const effectiveTier = useSettingsStore.getState().ohmageddonMode ? rageTier : undefined;
     try {
       const request = {
         seed: chosenSeed,
         difficulty,
         ...(generatorVersion !== undefined ? { generatorVersion } : {}),
-        ...(effectiveTier ? { rageTier: effectiveTier } : {}),
       };
       if (replayAssessment) {
         const current = buildAccessibleDiagnosis(request).assessment;
@@ -297,7 +214,6 @@ export const useDiagnosisStore = create<DiagnosisState>((set, get) => ({
       }
       const remote =
         difficulty === 'advanced' ||
-        effectiveTier ||
         (generatorVersion === 1 &&
           scenarioRequirements(buildAccessibleDiagnosis(request)).length > 0)
           ? await apiJSON<ServerAttempt>('/diagnosis/attempts', 'POST', request)
@@ -308,11 +224,7 @@ export const useDiagnosisStore = create<DiagnosisState>((set, get) => ({
       useSimulatorAccess.setState({
         exercise: {
           circuit: scenario.faultedCircuit,
-          mode: scenario.rage
-            ? 'ohmageddon'
-            : scenario.difficulty === 'advanced'
-              ? 'advanced'
-              : 'basic',
+          mode: scenario.difficulty === 'advanced' ? 'advanced' : 'basic',
         },
       });
       await authorizeCircuit(scenario.faultedCircuit);
@@ -346,7 +258,6 @@ export const useDiagnosisStore = create<DiagnosisState>((set, get) => ({
         serverAttemptId: remote?.id,
         scenario,
         circuit: scenario.faultedCircuit,
-        ...(effectiveTier ? { rageTier: effectiveTier } : {}),
         challengeId: scenario.challengeId,
         status: 'active',
         misdiagnoses: 0,
@@ -603,7 +514,6 @@ export const useDiagnosisStore = create<DiagnosisState>((set, get) => ({
           seed: record.seed,
           difficulty: record.difficulty,
           generatorVersion: record.generatorVersion,
-          ...(record.rageTier ? { rageTier: record.rageTier } : {}),
         });
       if (scenario.challengeId !== record.challengeId)
         throw new Error(
@@ -615,11 +525,7 @@ export const useDiagnosisStore = create<DiagnosisState>((set, get) => ({
       useSimulatorAccess.setState({
         exercise: {
           circuit: scenario.faultedCircuit,
-          mode: scenario.rage
-            ? 'ohmageddon'
-            : scenario.difficulty === 'advanced'
-              ? 'advanced'
-              : 'basic',
+          mode: scenario.difficulty === 'advanced' ? 'advanced' : 'basic',
         },
       });
       useCircuitStore.getState().setCircuit(circuit);
@@ -642,8 +548,6 @@ export const useDiagnosisStore = create<DiagnosisState>((set, get) => ({
       }
       if (scenarioRequirements(scenario).length) {
         try {
-          if (record.rageTier && !useSettingsStore.getState().ohmageddonMode)
-            throw new Error('Enable Ohmageddon Mode to resume this exercise.');
           await authorizeCircuit(circuit);
           let remote: ServerAttempt;
           if (record.serverAttemptId)
@@ -653,7 +557,6 @@ export const useDiagnosisStore = create<DiagnosisState>((set, get) => ({
               seed: record.seed,
               difficulty: record.difficulty,
               generatorVersion: record.generatorVersion,
-              ...(record.rageTier ? { rageTier: record.rageTier } : {}),
             });
           if (remote.scenario.challengeId !== record.challengeId || remote.readOnly)
             throw new Error('Exercise is read-only. Membership is required to continue.');
@@ -675,44 +578,6 @@ export const useDiagnosisStore = create<DiagnosisState>((set, get) => ({
           accessMessage(message);
           return true;
         }
-      }
-      const limitMs =
-        scenario.rage?.timeLimitSeconds === null || scenario.rage?.timeLimitSeconds === undefined
-          ? null
-          : scenario.rage.timeLimitSeconds * 1000;
-      if (limitMs !== null && record.elapsedMs >= limitMs) {
-        // The clock already ran out before the reload. Settle as a timeout
-        // rather than handing back an untimed-looking active session.
-        const score = scoreDiagnosis({
-          difficulty: scenario.difficulty,
-          elapsedMs: Math.min(record.elapsedMs, limitMs),
-          misdiagnoses: record.misdiagnoses,
-          incompleteRepairs: record.incompleteRepairs,
-          hintsUsed: record.hintsUsed,
-          faultCount: scenario.faults.length,
-          faultsIdentified: (record.identifiedFaultIds ?? []).filter((id) =>
-            scenario.faults.some((entry) => entry.fault.id === id),
-          ).length,
-        });
-        set({
-          status: 'timed-out',
-          scenario,
-          evaluation: null,
-          score,
-          misdiagnoses: record.misdiagnoses,
-          incompleteRepairs: record.incompleteRepairs,
-          hintsUsed: record.hintsUsed,
-          identifiedFaultIds: (record.identifiedFaultIds ?? []).filter((id) =>
-            scenario.faults.some((entry) => entry.fault.id === id),
-          ),
-          selectedFaultType: null,
-          selectedLocationKey: null,
-          startedAt: null,
-          elapsedMs: Math.min(record.elapsedMs, limitMs),
-          error: null,
-        });
-        void clearActiveDiagnosis();
-        return true;
       }
       set({
         status: 'active',
@@ -770,9 +635,6 @@ function persistProgress(
     serverAttemptId: useDiagnosisStore.getState().serverAttemptId ?? undefined,
     scenario,
     circuit: snapshotCircuit(),
-    // Derived from the scenario itself, so progress writes can never disagree
-    // with what was actually generated.
-    ...(scenario.rage ? { rageTier: scenario.rage.tier } : {}),
     challengeId: scenario.challengeId,
     status: 'active',
     misdiagnoses: progress.misdiagnoses,
@@ -784,7 +646,6 @@ function persistProgress(
       ? { identifiedFaultIds: [...progress.identifiedFaultIds] }
       : {}),
     startedAt: progress.startedAt ?? Date.now(),
-    // Bank the running segment so a Rage 4 reload cannot reset the clock.
     elapsedMs: useDiagnosisStore.getState().totalElapsedMs(),
   });
 }
@@ -816,7 +677,7 @@ function snapshotCircuit(): Circuit {
   return { components, wires, faults, globalVoltage, supply };
 }
 async function serverAction(
-  action: 'submit' | 'hint' | 'checkpoint' | 'abandon' | 'expire',
+  action: 'submit' | 'hint' | 'checkpoint' | 'abandon',
 ): Promise<boolean> {
   const state = useDiagnosisStore.getState();
   if (

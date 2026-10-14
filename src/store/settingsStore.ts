@@ -48,6 +48,7 @@ export interface UserSettings {
   physicsEffects: boolean;
   /** Phase 6.8: Color scheme preference. */
   colorScheme: ColorScheme;
+  interfaceMotion: 'subtle' | 'off';
   /**
    * Phase 6.2: default style for *new* wires. Existing wires keep their
    * own `pathKind` (PLAN.md §8.2 SR1 — additive coexistence).
@@ -150,19 +151,6 @@ export interface UserSettings {
    * 'nema5' | 'schuko' | 'as3112' | 'bs546' | 'all'. Persisted.
    */
   plugSystem: PlugSystemId;
-  /**
-   * Ohmageddon Mode (plan §23, §24).
-   *
-   * OFF by default and never enabled implicitly. When off the Diagnosis Lab
-   * offers ordinary educational exercises only — no red herrings, no remote
-   * faults, no rationed hints. When on, the rage tiers become *eligible*, and
-   * the UI is required to say so (§24: "Do not hide the fact that the mode is
-   * active").
-   *
-   * The flag gates nothing electrical. Ohmageddon changes which scenario is
-   * built, never how the simulator behaves (§26).
-   */
-  ohmageddonMode: boolean;
   /** Panel layout persistence — remembered across reloads. */
   paletteOpen: boolean;
   inspectorCollapsed: boolean;
@@ -180,6 +168,7 @@ const DEFAULTS: UserSettings = {
   activeLoadEffects: true,
   physicsEffects: true,
   colorScheme: 'light',
+  interfaceMotion: 'subtle',
   routingStyle: 'orthogonal',
   reducedEffects: false,
   customWiringMode: false,
@@ -189,7 +178,7 @@ const DEFAULTS: UserSettings = {
   showMiniMap: true,
   appMode: 'basic',
   canvasPreset: 'default',
-  componentAppearance: 'icons',
+  componentAppearance: 'both',
   wireColorStandard: 'uk_eu',
   automaticComponentLabels: true,
   diagnosticOverlayMode: 'off',
@@ -200,8 +189,6 @@ const DEFAULTS: UserSettings = {
   manualFaultInjection: true,
   autoWireJoints: false,
   plugSystem: 'bs1363',
-  // §23: "It is NOT enabled by default."
-  ohmageddonMode: false,
   paletteOpen: true,
   inspectorCollapsed: true,
   logOpen: false,
@@ -268,6 +255,11 @@ function parsePersistedSettings(value: unknown): UserSettings | null {
     activeLoadEffects: booleanOrDefault(stored.activeLoadEffects, DEFAULTS.activeLoadEffects),
     physicsEffects: booleanOrDefault(stored.physicsEffects, DEFAULTS.physicsEffects),
     colorScheme: enumOrDefault(stored.colorScheme, COLOR_SCHEMES, DEFAULTS.colorScheme),
+    interfaceMotion: enumOrDefault(
+      stored.interfaceMotion,
+      ['subtle', 'off'] as const,
+      DEFAULTS.interfaceMotion,
+    ),
     routingStyle: enumOrDefault(stored.routingStyle, ROUTING_STYLES, DEFAULTS.routingStyle),
     reducedEffects: booleanOrDefault(stored.reducedEffects, DEFAULTS.reducedEffects),
     customWiringMode: booleanOrDefault(stored.customWiringMode, DEFAULTS.customWiringMode),
@@ -319,7 +311,6 @@ function parsePersistedSettings(value: unknown): UserSettings | null {
     ).includes(stored.plugSystem as PlugSystemId)
       ? (stored.plugSystem as PlugSystemId)
       : DEFAULTS.plugSystem,
-    ohmageddonMode: booleanOrDefault(stored.ohmageddonMode, DEFAULTS.ohmageddonMode),
     paletteOpen: booleanOrDefault(stored.paletteOpen, DEFAULTS.paletteOpen),
     inspectorCollapsed: booleanOrDefault(stored.inspectorCollapsed, DEFAULTS.inspectorCollapsed),
     logOpen: booleanOrDefault(stored.logOpen, DEFAULTS.logOpen),
@@ -401,6 +392,7 @@ function snapshot(state: SettingsState): UserSettings {
     activeLoadEffects: state.activeLoadEffects,
     physicsEffects: state.physicsEffects,
     colorScheme: state.colorScheme,
+    interfaceMotion: state.interfaceMotion,
     routingStyle: state.routingStyle,
     reducedEffects: state.reducedEffects,
     customWiringMode: state.customWiringMode,
@@ -418,7 +410,6 @@ function snapshot(state: SettingsState): UserSettings {
     manualFaultInjection: state.manualFaultInjection,
     autoWireJoints: state.autoWireJoints,
     plugSystem: state.plugSystem,
-    ohmageddonMode: state.ohmageddonMode,
     paletteOpen: state.paletteOpen,
     inspectorCollapsed: state.inspectorCollapsed,
     logOpen: state.logOpen,
@@ -454,6 +445,7 @@ export async function startSettingsPersistence(): Promise<void> {
       state.activeLoadEffects === prev.activeLoadEffects &&
       state.physicsEffects === prev.physicsEffects &&
       state.colorScheme === prev.colorScheme &&
+      state.interfaceMotion === prev.interfaceMotion &&
       state.routingStyle === prev.routingStyle &&
       state.reducedEffects === prev.reducedEffects &&
       state.customWiringMode === prev.customWiringMode &&
@@ -471,7 +463,6 @@ export async function startSettingsPersistence(): Promise<void> {
       state.manualFaultInjection === prev.manualFaultInjection &&
       state.autoWireJoints === prev.autoWireJoints &&
       state.plugSystem === prev.plugSystem &&
-      state.ohmageddonMode === prev.ohmageddonMode &&
       state.paletteOpen === prev.paletteOpen &&
       state.inspectorCollapsed === prev.inspectorCollapsed &&
       state.logOpen === prev.logOpen &&

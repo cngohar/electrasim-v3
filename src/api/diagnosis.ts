@@ -7,7 +7,6 @@ import {
 import {
   type DiagnosisAnswer,
   type DiagnosisScenario,
-  type RageTierId,
   diagnosisAssessmentIssue,
   evaluateDiagnosis,
   scoreDiagnosis,
@@ -22,7 +21,7 @@ import { integer, keys, object, string } from './membership-validation';
 import { authorize, capabilityGuard, readCircuit } from './simulator-access';
 
 export interface AttemptProgress {
-  status: 'active' | 'completed' | 'abandoned' | 'timed-out';
+  status: 'active' | 'completed' | 'abandoned';
   misdiagnoses: number;
   incompleteRepairs: number;
   hintsUsed: number;
@@ -38,7 +37,7 @@ interface AttemptRow {
   updated_at: number;
 }
 function attemptScore(scenario: DiagnosisScenario, progress: AttemptProgress) {
-  return progress.status === 'completed' || progress.status === 'timed-out'
+  return progress.status === 'completed'
     ? scoreDiagnosis({
         difficulty: scenario.difficulty,
         elapsedMs: progress.elapsedMs,
@@ -60,7 +59,7 @@ diagnosisApi.onError((error, c) => {
 diagnosisApi.use('/diagnosis/*', requireSession);
 diagnosisApi.post('/diagnosis/attempts', async (c) => {
   const input = object(await c.req.json());
-  keys(input, ['difficulty', 'seed', 'rageTier', 'generatorVersion']);
+  keys(input, ['difficulty', 'seed', 'generatorVersion']);
   const difficulty = string(input.difficulty, 'difficulty', 20);
   if (!['beginner', 'intermediate', 'advanced'].includes(difficulty))
     throw new HTTPException(400, { message: 'Unknown difficulty' });
@@ -69,26 +68,11 @@ diagnosisApi.post('/diagnosis/attempts', async (c) => {
     input.generatorVersion === undefined
       ? DIAGNOSIS_VERSION
       : integer(input.generatorVersion, 'generatorVersion', DIAGNOSIS_VERSION, DIAGNOSIS_VERSION);
-  const rageTier = input.rageTier;
-  if (
-    rageTier !== undefined &&
-    !['rage-1', 'rage-2', 'rage-3', 'rage-4'].includes(String(rageTier))
-  )
-    throw new HTTPException(400, { message: 'Unknown Ohmageddon tier' });
-  // Check explicit modes before spending CPU on protected content generation.
-  await authorize(
-    c,
-    rageTier
-      ? ['advanced_diagnostics', 'advanced_faults']
-      : difficulty === 'advanced'
-        ? ['advanced_diagnostics']
-        : [],
-  );
+  await authorize(c, difficulty === 'advanced' ? ['advanced_diagnostics'] : []);
   const scenario = buildAccessibleDiagnosis({
     seed,
     difficulty: difficulty as 'beginner',
     generatorVersion: version,
-    ...(rageTier ? { rageTier: rageTier as RageTierId } : {}),
   });
   const required = scenarioRequirements(scenario);
   await authorize(c, required);
@@ -156,7 +140,7 @@ diagnosisApi.post('/diagnosis/attempts/:id', async (c) => {
   const input = object(await c.req.json());
   keys(input, ['action', 'version', 'circuit', 'answer']);
   const action = string(input.action, 'action', 20);
-  if (!['submit', 'hint', 'checkpoint', 'abandon', 'expire'].includes(action))
+  if (!['submit', 'hint', 'checkpoint', 'abandon'].includes(action))
     throw new HTTPException(400, { message: 'Unknown exercise action' });
   const version = integer(input.version, 'version', 1);
   const userId = c.get('actor').id;
@@ -216,11 +200,6 @@ diagnosisApi.post('/diagnosis/attempts/:id', async (c) => {
   if (action === 'hint')
     progress.hintsUsed = Math.min(scenario.hints.length, progress.hintsUsed + 1);
   if (action === 'abandon') progress.status = 'abandoned';
-  const limit = scenario.rage?.timeLimitSeconds;
-  if (!assessmentIssue && limit != null && progress.elapsedMs >= limit * 1000) {
-    progress.elapsedMs = limit * 1000;
-    progress.status = 'timed-out';
-  }
   const score = attemptScore(scenario, progress);
   const guard = capabilityGuard(userId, required, now);
   const result = await c

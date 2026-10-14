@@ -218,18 +218,4 @@ describe('location choices are individually selectable (plan §15)', () => {
     expect(new Set(labels).size).toBe(labels.length);
     expect(labels.some((label) => label.includes('['))).toBe(false);
   });
-
-  it('keeps every fault answerable, including the disambiguated ones', () => {
-    for (let i = 0; i < 40; i++) {
-      const scenario = buildDiagnosisScenario({
-        seed: i * 7919 + 13,
-        difficulty: 'advanced',
-        rageTier: 'rage-3',
-      });
-      for (const entry of scenario.faults) {
-        // Rewriting a label must not break the key the grader matches on.
-        expect(scenario.locationChoices.some((c) => c.key === entry.locationKey)).toBe(true);
-      }
-    }
-  });
 });

@@ -217,7 +217,8 @@ test('palette, command suggestions and placed components share compatibility wit
   const circuit = editingCircuit();
   circuit.components.push({ ...C('led', 'bulb'), x: 700, y: 460 });
   await openCircuit(page, circuit);
-  const palette = page.locator('[data-tour="palette"]');
+  await activateControl(page, page.getByRole('button', { name: 'Browse all components' }));
+  const palette = page.getByRole('dialog', { name: 'Component library' });
   await expect(palette.locator('[data-palette-type="bulb"]')).toHaveCount(0);
   await expect(palette.locator('[data-palette-type="dc-battery-12v"]')).toBeVisible();
   await expect(
@@ -227,18 +228,23 @@ test('palette, command suggestions and placed components share compatibility wit
   await expect(
     palette.locator('[data-palette-type="bulb"][data-compatibility="unassessed"]').first(),
   ).toBeVisible();
-  await palette.getByLabel('Placement supply').selectOption('independent');
+  await palette.getByLabel('Placement supply', { exact: true }).selectOption('independent');
   await expect(palette).toContainText('12 V AC 60 Hz');
+  await page.keyboard.press('Escape');
+  await expect(palette).not.toBeVisible();
   await page.getByTitle('Click to change Global Supply Voltage').click();
   const dialog = page.getByRole('dialog', { name: 'Change supply' });
   await dialog.getByLabel('Supply kind').selectOption('dc');
   await dialog.getByLabel('Supply voltage in volts').fill('12');
   await activateControl(page, dialog.getByRole('button', { name: 'Apply supply change' }));
+  await activateControl(page, page.getByRole('button', { name: 'Browse all components' }));
   await palette.getByLabel('Placement supply').selectOption('');
   await expect(
     palette.locator('[data-palette-type="bulb"][data-compatibility="incompatible"]').first(),
   ).toBeVisible();
   expect((await documentAt(page)).components.some((c) => c.id === 'led')).toBe(true);
+  await page.keyboard.press('Escape');
+  await expect(palette).not.toBeVisible();
   await page.keyboard.press('Control+k');
   const command = page.getByRole('dialog', { name: 'Command palette' });
   await command.getByLabel('Show all / fault exercise').uncheck();
@@ -273,6 +279,8 @@ test('variant confirmation maps MCB output to RCCB L-out and preserves a port fa
   expect(after.wires.find((w) => w.id === 'breaker-out')?.fromPortIndex).toBe(2);
   expect(after.faults?.[0]?.target).toMatchObject({ portIndex: 2 });
   expect(after.components.find((c) => c.id === 'breaker')?.state.customVoltage).toBeUndefined();
+  await page.keyboard.press('Escape');
+  await expect(inspector).not.toBeVisible();
   await page.keyboard.press('Control+z');
   expect(await documentAt(page)).toEqual(original);
 });
@@ -297,10 +305,12 @@ test('running and graded attempts lock configuration while supported runtime swi
     store.updateComponentState('independent', { customVoltage: 48 });
   });
   expect(await documentAt(page)).toEqual(before);
+  await page.keyboard.press('Escape');
+  await expect(inspector).not.toBeVisible();
   await activateControl(page, page.getByRole('button', { name: 'Stop', exact: true }));
   await page.evaluate(async () => {
     const path = '/src/store/uiStore.ts';
-    (await import(path)).useUiStore.setState({ challengeAttemptId: 'local-graded-test' });
+    (await import(path)).useUiStore.setState({ diagnosisActive: true });
   });
   await expect(
     page.getByTitle(/Supply and device configuration are locked during this exercise/),
@@ -310,7 +320,7 @@ test('running and graded attempts lock configuration while supported runtime swi
 test('phone supply and readiness controls use the same confirmation flow', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await openCircuit(page, editingCircuit());
-  await activateControl(page, page.getByRole('button', { name: 'Supply', exact: true }));
+  await activateControl(page, page.getByTitle('Click to change Global Supply Voltage'));
   const dialog = page.getByRole('dialog', { name: 'Change supply' });
   await dialog.getByLabel('Supply kind').selectOption('dc');
   await activateControl(page, dialog.getByRole('button', { name: '24 V', exact: true }));
@@ -388,8 +398,15 @@ test('a delayed real Comlink response cannot replace results after a confirmed s
   // than merely comparing a status that is shared with the obsolete 230 V run.
   expect(await reading()).toEqual(accepted);
   expect((await documentAt(page)).supply?.model).toEqual({ kind: 'dc', voltage: 12 });
-  await page.getByTitle('Current calculated readings', { exact: true }).click();
-  await expect(page.locator('[data-tour="inspector"]')).toContainText(
+  if (!(await page.getByRole('complementary', { name: 'Inspector' }).isVisible()))
+    await activateControl(page, page.getByRole('button', { name: 'Inspect', exact: true }));
+  await activateControl(
+    page,
+    page
+      .getByRole('complementary', { name: 'Inspector' })
+      .getByRole('button', { name: 'Analysis', exact: true }),
+  );
+  await expect(page.getByRole('dialog', { name: 'Circuit analysis' })).toContainText(
     'Waveform, power factor, temperature and accumulated energy measurements remain unavailable.',
   );
 });

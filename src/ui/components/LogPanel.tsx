@@ -1,13 +1,8 @@
-/**
- * LogPanel — bottom console drawer (workbench experiment).
- *
- * Normally collapsed to a slim strip above the status bar; expands on click.
- * Shows error/warning/info counts in the collapsed header when present.
- */
-
 import type { LogEntry } from '@electrasim/domain';
-import { ChevronUp } from 'lucide-react';
+import { Terminal, X } from 'lucide-react';
+import { useState } from 'react';
 import { useUiStore } from '../../store';
+import { useSurfacePresence } from '../hooks/useSurfacePresence';
 
 interface Props {
   isPhone: boolean;
@@ -16,70 +11,98 @@ interface Props {
   logs: LogEntry[];
 }
 
-const TYPE_COLOR: Record<LogEntry['type'], string> = {
-  success: '#10b981',
-  warning: '#f59e0b',
-  error: '#ef4444',
-  info: '#94a3b8',
-};
+type Filter = 'all' | 'error' | 'warning' | 'info';
+const FILTERS: { value: Filter; label: string }[] = [
+  { value: 'all', label: 'All' },
+  { value: 'error', label: 'Errors' },
+  { value: 'warning', label: 'Warnings' },
+  { value: 'info', label: 'Info' },
+];
 
+/** Console stays reachable independently of selection, including on phones. */
 export function LogPanel({ isPhone, open, simRunning, logs }: Props) {
-  if (isPhone) return null;
-
-  const errors = logs.filter((l) => l.type === 'error').length;
-  const warnings = logs.filter((l) => l.type === 'warning').length;
-  const issues = errors + warnings;
+  const [filter, setFilter] = useState<Filter>('all');
+  const presence = useSurfacePresence(open);
+  const errors = logs.filter((entry) => entry.type === 'error').length;
+  const warnings = logs.filter((entry) => entry.type === 'warning').length;
+  const filtered = logs.filter(
+    (entry) =>
+      filter === 'all' || entry.type === filter || (filter === 'info' && entry.type === 'success'),
+  );
+  const setOpen = (next: boolean) => {
+    if (next && isPhone) {
+      const ui = useUiStore.getState();
+      ui.setInspectorCollapsed(true);
+      ui.setDiagnosisOpen(false);
+      if (ui.activeGuideId) ui.setGuideHidden(true);
+    }
+    useUiStore.getState().setLogOpen(next);
+  };
 
   return (
-    <div
-      data-workspace-console
-      data-canvas-occluder
-      className="absolute bottom-7 left-1/2 z-10 w-[min(560px,calc(100%-2rem))] -translate-x-1/2 overflow-hidden rounded-lg border border-white/80 bg-white/95 shadow-2xl shadow-slate-900/10 ring-1 ring-slate-900/5 backdrop-blur-xl backdrop-saturate-150 dark:border-slate-700/80 dark:bg-slate-900/95 dark:ring-slate-700/50"
-    >
+    <>
       <button
         type="button"
-        onClick={() => useUiStore.getState().toggleLog()}
-        className="flex w-full items-center justify-between gap-3 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50/60 dark:text-slate-300 dark:hover:bg-slate-800/60"
+        className="table-console-trigger"
         title="Toggle console"
+        aria-label="Console"
+        aria-expanded={open}
+        aria-controls="workspace-console"
+        onClick={() => setOpen(!open)}
       >
-        <span className="flex items-center gap-2">
-          <span
-            className={[
-              'size-1.5 rounded-full',
-              simRunning ? 'bg-emerald-500 shadow-[0_0_6px] shadow-emerald-400' : 'bg-slate-400',
-            ].join(' ')}
-          />
-          <span>Console · {logs.length} entries</span>
-          {issues > 0 && (
-            <span className="flex items-center gap-1.5">
-              {errors > 0 && <span className="text-rose-500">{errors} Error</span>}
-              {warnings > 0 && <span className="text-amber-500">{warnings} Warning</span>}
-            </span>
-          )}
-        </span>
-        <ChevronUp
-          className={['size-3.5 text-slate-400 transition', open ? '' : 'rotate-180'].join(' ')}
-        />
+        <Terminal size={17} aria-hidden="true" />
+        <span>Console</span>
+        {errors > 0 && <span className="table-count error">{errors} errors</span>}
+        {warnings > 0 && <span className="table-count warning">{warnings} warnings</span>}
       </button>
-      {open && (
-        <div className="max-h-40 overflow-y-auto border-t border-slate-100 px-3 py-2 text-[11px] leading-relaxed text-slate-700 dark:border-slate-700/60 dark:text-slate-300">
-          {logs.length === 0 ? (
-            <div className="py-2 text-center text-slate-400">
-              No log entries yet — toggle a switch or modify the circuit.
-            </div>
-          ) : (
-            logs.map((l) => (
-              <div key={l.id} className="flex items-start gap-2 py-0.5">
-                <span
-                  className="mt-1 size-1.5 rounded-full"
-                  style={{ background: TYPE_COLOR[l.type] }}
-                />
-                <span>{l.message}</span>
+      {presence.mounted && (
+        <section
+          id="workspace-console"
+          aria-label="Console messages"
+          data-workspace-console
+          data-canvas-occluder
+          data-surface-state={presence.exiting ? 'closing' : 'open'}
+          inert={presence.exiting}
+          className="table-console table-surface"
+        >
+          <header className="table-surface-heading">
+            <h2>Console</h2>
+            <button type="button" aria-label="Close Console" onClick={() => setOpen(false)}>
+              <X size={18} />
+            </button>
+          </header>
+          <div className="table-console-controls">
+            <fieldset className="table-segments" aria-label="Console filters">
+              {FILTERS.map((item) => (
+                <button
+                  type="button"
+                  key={item.value}
+                  aria-pressed={filter === item.value}
+                  onClick={() => setFilter(item.value)}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </fieldset>
+            <button type="button" onClick={() => useUiStore.getState().clearLogs()}>
+              Clear
+            </button>
+          </div>
+          <div className="table-console-messages" role="log" aria-live="polite">
+            {filtered.length === 0 && <p>No messages in this view.</p>}
+            {filtered.map((entry) => (
+              <div key={entry.id} className="table-console-entry">
+                <span className={`table-log-type ${entry.type}`}>{entry.type}</span>
+                <span>{entry.message}</span>
               </div>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+          <footer className="table-surface-footer">
+            {simRunning ? 'Simulation running' : 'Simulation stopped'} · Clearing messages keeps
+            circuit faults and event history.
+          </footer>
+        </section>
       )}
-    </div>
+    </>
   );
 }

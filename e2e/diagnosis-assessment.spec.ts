@@ -4,34 +4,27 @@ import { diagnosisEvidenceFixture } from '../packages/domain/src/challenges/diag
 import { formatShareCode } from '../packages/domain/src/challenges/share';
 import { portableResult } from '../packages/domain/src/simulation/runtimeFixtures';
 import { test } from './helpers/paid-test';
+import { activateControl } from './helpers/workbench';
 
 const panel = (page: Page) => page.getByRole('region', { name: 'Diagnosis Lab', exact: true });
 
-async function start(page: Page, rage = false) {
+async function start(page: Page) {
   await page.addInitScript(() => {
     localStorage.setItem('electrasim:welcomed', '1');
     localStorage.setItem('electrasim:mobile-suitability:v1', '1');
   });
   await page.goto('/');
-  if (rage) {
-    await page.locator('button[title="Settings"]').click();
-    await page.getByRole('dialog').getByRole('button', { name: 'Simulation', exact: true }).click();
-    await page.getByRole('switch', { name: /Ohmageddon/ }).click();
-    await page.getByRole('dialog').getByRole('button', { name: 'Done', exact: true }).click();
-  }
   await page.getByRole('button', { name: 'Menu', exact: true }).click();
-  await page.getByText('Diagnosis Lab', { exact: true }).click();
+  await activateControl(page, page.getByRole('button', { name: /^Diagnosis Lab/ }));
   const scenario = buildAccessibleDiagnosis({
-    seed: rage ? 3 : 5,
-    difficulty: rage ? 'intermediate' : 'beginner',
-    ...(rage ? { rageTier: 'rage-4' as const } : {}),
+    seed: 5,
+    difficulty: 'beginner',
   });
   const code = formatShareCode({
     seed: scenario.seed,
     difficulty: scenario.difficulty,
-    mode: rage ? 'rage' : 'diagnosis',
+    mode: 'diagnosis',
     generatorVersion: scenario.generatorVersion,
-    rageTier: scenario.rage?.tier ?? null,
     assessment: scenario.assessment,
   });
   await page.getByLabel('Replay a seed').fill(code);
@@ -86,7 +79,7 @@ test('a correct diagnosis needs a real repair and survives reload with the autho
   await expect(panel(page)).toContainText('running correctly now');
   await page.reload();
   await page.getByRole('button', { name: 'Menu', exact: true }).click();
-  await page.getByText('Diagnosis Lab', { exact: true }).click();
+  await activateControl(page, page.getByRole('button', { name: /^Diagnosis Lab/ }));
   await expect(panel(page)).toContainText('running correctly now');
   await panel(page)
     .locator(`input[name="diagnosis-fault-type"][value="${fault.fault.type}"]`)
@@ -97,35 +90,6 @@ test('a correct diagnosis needs a real repair and survives reload with the autho
   await panel(page)
     .getByRole('button', { name: /Submit diagnosis/ })
     .click();
-  await expect(page.getByLabel('Diagnosis complete')).toBeVisible();
-});
-
-test('phone compound diagnosis retains partial recovery and accepts the complete server-owned repair', async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  const s = await start(page, true);
-  expect(s.faults).toHaveLength(2);
-  expect(s.rage?.applications.find((a) => a.id === 'compoundFault')?.applied).toBe(true);
-  for (const [index, fault] of s.faults.entries()) {
-    await panel(page)
-      .locator(`input[name="diagnosis-fault-type"][value="${fault.fault.type}"]`)
-      .check();
-    await panel(page)
-      .locator(`input[name="diagnosis-location"][value="${fault.locationKey}"]`)
-      .check();
-    await panel(page)
-      .getByRole('button', { name: /Carry out this repair/ })
-      .click();
-    await panel(page)
-      .getByRole('button', { name: /Submit diagnosis/ })
-      .click();
-    if (index === 0) {
-      await expect(panel(page)).toContainText('Faults found: 1 of 2');
-      await expect(panel(page)).toContainText(/Something isn.t working correctly/);
-      await expect(page.getByLabel('Diagnosis complete')).toBeHidden();
-    }
-  }
   await expect(page.getByLabel('Diagnosis complete')).toBeVisible();
 });
 
@@ -142,7 +106,7 @@ test('an obsolete saved model preserves repairs and cannot accept a new grade', 
   });
   await page.reload();
   await page.getByRole('button', { name: 'Menu', exact: true }).click();
-  await page.getByText('Diagnosis Lab', { exact: true }).click();
+  await activateControl(page, page.getByRole('button', { name: /^Diagnosis Lab/ }));
   await expect(panel(page)).toContainText('Your work is preserved');
   await expect(panel(page).getByRole('button', { name: /Submit diagnosis/ })).toBeDisabled();
 });

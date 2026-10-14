@@ -34,7 +34,7 @@ export function SimulatorAccessBanner() {
     <aside
       aria-label="Membership and recovery"
       data-canvas-occluder
-      className="fixed left-1/2 top-20 z-40 max-h-[65vh] w-[min(520px,90vw)] -translate-x-1/2 overflow-auto rounded-xl border border-amber-400 bg-white p-3 text-sm text-slate-900 shadow-xl dark:bg-slate-900 dark:text-slate-100"
+      className="table-access-surface fixed left-1/2 top-20 z-40 max-h-[65vh] w-[min(520px,90vw)] -translate-x-1/2 overflow-auto rounded-xl border border-amber-400 bg-white p-3 text-sm text-slate-900 shadow-xl dark:bg-slate-900 dark:text-slate-100"
     >
       <output className="block">
         {readOnly

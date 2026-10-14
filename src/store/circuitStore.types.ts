@@ -19,6 +19,7 @@ import type {
 
 export type EditableWireProperties = Pick<
   WireInstance,
+  | 'label'
   | 'controlPoints'
   | 'pathKind'
   | 'lengthMeters'
@@ -138,7 +139,7 @@ export interface CircuitState {
   updateComponentState: (
     id: string,
     updates: Partial<import('@electrasim/domain').ComponentState>,
-  ) => void;
+  ) => boolean | Promise<boolean> | undefined;
   /** Change component variant type and reset/sync relevant component parameters. */
   updateComponentType: (id: string, newType: string) => void;
   /** Repair a blown component after overvoltage/overcurrent overload. */
@@ -150,7 +151,10 @@ export interface CircuitState {
   /** Mark a wire as melted/busted or restored. */
   setWireBusted: (id: string, isBusted: boolean, reason?: string) => boolean | Promise<boolean>;
   /** Update editable wire metadata without exposing identity or endpoint mutation. */
-  updateWireProperties: (id: string, updates: Partial<EditableWireProperties>) => void;
+  updateWireProperties: (
+    id: string,
+    updates: Partial<EditableWireProperties>,
+  ) => boolean | Promise<boolean>;
   /** Swap origin and destination terminals of a wire. */
   swapWireEndpoints: (id: string) => void;
   /** Reset a resettable protective device to OFF. An operated fuse needs replacement. */

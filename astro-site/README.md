@@ -175,7 +175,7 @@ Every route has its own electrical identity rather than a reskinned template:
 ### Content
 
 `src/content/pages/landing.json` is the source of truth and covers what actually ships:
-115 components, Challenge Mode, the Diagnosis Lab, Ohmageddon, seed replay, Pro/BS 7671
+115 components, Challenge Mode, the Diagnosis Lab, seed replay, Pro/BS 7671
 standards mode, and the off-thread solver. Keep it in sync with `CHANGELOG.md`.
 
 ### Running it locally

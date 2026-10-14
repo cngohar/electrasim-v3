@@ -150,6 +150,8 @@ function isWire(value: unknown): value is WireInstance {
   ) {
     return false;
   }
+  if (wire.label !== undefined && (typeof wire.label !== 'string' || wire.label.length > 80))
+    return false;
   if (wire.lengthMeters !== undefined && !isPositiveFinite(wire.lengthMeters)) return false;
   if (
     wire.deratingFactor !== undefined &&

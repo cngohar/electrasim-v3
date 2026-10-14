@@ -17,8 +17,10 @@ import {
 } from '../../store/electricalEditing';
 import { useCircuitDocument } from '../../store/electricalReadiness';
 import { useUiStore } from '../../store/uiStore';
+import { useClosingValue } from '../hooks/useSurfacePresence';
 import { CircuitReadinessDetails } from './CircuitReadinessDetails';
 import { Modal } from './Modal';
+import { SurfacePresence } from './SurfacePresence';
 import { ComponentPropertiesView } from './inspector/ComponentPropertiesView';
 
 const buttonClass =
@@ -27,7 +29,7 @@ const inputClass =
   'w-full rounded-lg border border-slate-300 bg-white p-2 dark:border-slate-600 dark:bg-slate-800';
 type Request = NonNullable<ReturnType<typeof useElectricalEditing.getState>['request']>;
 
-function EditForm({ request }: { request: Request }) {
+function EditForm({ request, open }: { request: Request; open: boolean }) {
   const circuit = useCircuitDocument();
   const initial =
     request.kind === 'supply'
@@ -105,7 +107,7 @@ function EditForm({ request }: { request: Request }) {
   };
   return (
     <Modal
-      open
+      open={open}
       onClose={closeElectricalEdit}
       title={supplyPreview ? 'Change supply' : 'Replace component variant'}
       description={
@@ -356,26 +358,37 @@ export function ElectricalEditDialog() {
     sameCircuitRevision(notice.after, circuit) &&
     notice.historyEntry === useCircuitStore.temporal.getState().pastStates.at(-1) &&
     !locked;
-  const inspected = circuit.components.find((c) => c.id === inspectComponentId);
+  const inspected = useClosingValue(circuit.components.find((c) => c.id === inspectComponentId));
+  const closingRequest = useClosingValue(request);
   return (
     <>
       {inspected && !request && !reviewOpen && (
         <Modal
-          open
+          open={!!inspectComponentId && !request && !reviewOpen}
           onClose={() => useElectricalEditing.setState({ inspectComponentId: null })}
           title="Component properties"
+          widthClass="max-w-3xl"
         >
-          <ComponentPropertiesView selectedComp={inspected} simResult={simResult} />
+          <div className="table-model-content">
+            <ComponentPropertiesView selectedComp={inspected} simResult={simResult} />
+          </div>
         </Modal>
       )}
-      {request && <EditForm key={request.id} request={request} />}
-      {reviewOpen && !request && (
-        <Modal open onClose={dismissReview} title="Circuit readiness" widthClass="max-w-2xl">
+      {closingRequest && (
+        <EditForm key={closingRequest.id} request={closingRequest} open={!!request} />
+      )}
+      <SurfacePresence open={reviewOpen && !request}>
+        <Modal
+          open={reviewOpen && !request}
+          onClose={dismissReview}
+          title="Circuit readiness"
+          widthClass="max-w-2xl"
+        >
           <CircuitReadinessDetails />
         </Modal>
-      )}
+      </SurfacePresence>
       {notice && noticeVisible && !request && !reviewOpen && (
-        <output className="fixed bottom-16 left-1/2 z-[45] flex w-[min(580px,calc(100vw-2rem))] -translate-x-1/2 flex-wrap items-center gap-2 rounded-xl bg-slate-900 p-3 text-xs text-white shadow-xl">
+        <output className="workspace-controls-clear fixed left-1/2 z-[45] flex w-[min(580px,calc(100vw-2rem))] -translate-x-1/2 flex-wrap items-center gap-2 rounded-xl bg-slate-900 p-3 text-xs text-white shadow-xl">
           <span className="flex-1">{notice.message}</span>
           <button
             type="button"

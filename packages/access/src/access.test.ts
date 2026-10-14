@@ -132,18 +132,6 @@ describe('canonical content policy', () => {
       requirementsForContent({ componentTypes: [], injectedFaultTypes: ['arc-fault'] }),
     ).toEqual(['advanced_faults']);
   });
-  it('requires advanced diagnosis and faults for every Ohmageddon scenario', () => {
-    expect(
-      requirementsForContent({
-        componentTypes: [],
-        injectedFaultTypes: [],
-        diagnosis: 'ohmageddon',
-      }),
-    ).toEqual(['advanced_faults', 'advanced_diagnostics']);
-    expect(
-      requirementsForContent({ componentTypes: [], injectedFaultTypes: [], diagnosis: 'advanced' }),
-    ).toEqual(['advanced_diagnostics']);
-  });
   it.each(['unknown', '__proto__', 'constructor'])('rejects unknown or prototype IDs %s', (id) => {
     expect(() => requirementsForContent({ componentTypes: [id], injectedFaultTypes: [] })).toThrow(
       'Unknown component',

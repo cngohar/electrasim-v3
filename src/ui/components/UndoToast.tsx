@@ -7,9 +7,11 @@
 import { Undo2 } from 'lucide-react';
 import { undo } from '../../store';
 import { useUiStore } from '../../store';
+import { useClosingValue } from '../hooks/useSurfacePresence';
 
 export function UndoToast() {
-  const toast = useUiStore((s) => s.undoToast);
+  const currentToast = useUiStore((s) => s.undoToast);
+  const toast = useClosingValue(currentToast);
   const clear = useUiStore((s) => s.clearUndoToast);
 
   if (!toast) return null;
@@ -17,7 +19,10 @@ export function UndoToast() {
   return (
     <div
       key={toast.id}
-      className="absolute bottom-16 left-1/2 z-[45] flex -translate-x-1/2 items-center gap-3 rounded-full border border-white/80 bg-slate-900/90 px-4 py-2 text-xs font-medium text-white shadow-2xl backdrop-blur-xl dark:border-slate-700"
+      className="table-undo-toast table-surface absolute left-1/2 z-[45] flex -translate-x-1/2 items-center gap-3"
+      data-surface-state={currentToast ? 'open' : 'closing'}
+      aria-hidden={!currentToast || undefined}
+      inert={!currentToast || undefined}
       // biome-ignore lint/a11y/useSemanticElements: transient toast needs role=status, no suitable HTML element
       role="status"
     >

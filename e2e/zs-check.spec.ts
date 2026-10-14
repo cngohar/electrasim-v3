@@ -33,10 +33,10 @@ test.describe('zs check panel', () => {
     });
 
     // Choose UK explicitly; the default generic IEC profile is not a UK Zs assessment.
-    await page.getByRole('button', { name: /^student$/i }).click();
+    await page.getByTitle(/^Basic Student Mode active/).click();
     await page.locator('[data-standard-selector]').click();
     await page.getByRole('button', { name: /United Kingdom/ }).click();
-    await page.getByRole('button', { name: 'Validate', exact: true }).click();
+    await page.getByTitle('Validate circuit for design flaws & BS 7671 compliance').click();
 
     const panel = page.getByTestId('zs-check-panel');
     await expect(panel).toBeVisible();

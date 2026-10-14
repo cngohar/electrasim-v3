@@ -8,7 +8,7 @@ import { simulate } from '@electrasim/domain/simulation';
 import { getStandard } from '@electrasim/domain/standards';
 ```
 
-Use subpath imports for challenges, diagnosis and Ohmageddon to preserve lazy loading. The root barrel deliberately does not export those modules. Membership authorization belongs in the separate access/application layers and must not change the electrical result for an identical circuit.
+Use subpath imports for challenges, diagnosis to preserve lazy loading. The root barrel deliberately does not export those modules. Membership authorization belongs in the separate access/application layers and must not change the electrical result for an identical circuit.
 
 `bun run typecheck` includes an import-boundary check and an ES2022-only domain compile without DOM/framework types. Vitest runs domain tests in Node and app tests in jsdom. Legacy fault normalization derives stable IDs with timestamp 0 (unknown), while explicit stored fault IDs/timestamps are preserved. Creating a new manual fault remains an application event with a fresh identity.
 

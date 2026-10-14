@@ -244,8 +244,13 @@ export function ImportExportModal({ open, onClose, svgRef }: Props) {
   }, []);
 
   return (
-    <Modal open={open} onClose={onClose} ariaLabel="Import and export circuit">
-      <div className="min-w-0 w-full">
+    <Modal
+      open={open}
+      onClose={onClose}
+      ariaLabel="Import and export circuit"
+      widthClass="max-w-3xl"
+    >
+      <div className="table-custom-content table-files min-w-0 w-full">
         {/* Filename prompt overlay */}
         {filenamePrompt?.show && (
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-white/95 px-6 backdrop-blur-sm dark:bg-slate-900/95">

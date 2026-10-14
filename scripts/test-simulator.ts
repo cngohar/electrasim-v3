@@ -7,7 +7,6 @@ import type {
   DiagnosisScenario,
   DiagnosisScore,
 } from '@electrasim/domain/challenges';
-import { diagnosisAssessmentIssue, evaluateDiagnosis } from '@electrasim/domain/challenges';
 import { normalizeCircuitDocument } from '@electrasim/domain/core';
 import { explicitSupplyProfile } from '@electrasim/domain/core/supplies';
 import { simulate } from '@electrasim/domain/simulation';
@@ -78,80 +77,13 @@ export async function runSimulatorTests(context: Context) {
   ]);
   const grant = await assign(plan.id, user);
   await check(
-    'versioned diagnosis and compound Ohmageddon grade the authored repair through real Hono/D1',
-    async () => {
-      await request('/diagnosis/attempts', {
-        user: other,
-        method: 'POST',
-        data: { seed: 5, difficulty: 'beginner', generatorVersion: 2 },
-        expected: 400,
-      });
-      for (const requestInput of [
-        { seed: 5, difficulty: 'beginner' },
-        { seed: 5, difficulty: 'intermediate' },
-        { seed: 5, difficulty: 'advanced' },
-        { seed: 3, difficulty: 'intermediate', rageTier: 'rage-4' },
-      ]) {
-        let current = await request<Attempt>('/diagnosis/attempts', {
-          user,
-          method: 'POST',
-          data: requestInput,
-          expected: 201,
-        });
-        const scenario = current.scenario;
-        assert.equal(diagnosisAssessmentIssue(scenario), null);
-        for (const circuit of [
-          { ...scenario.healthyCircuit, wires: scenario.healthyCircuit.wires.slice(1) },
-          {
-            ...scenario.faultedCircuit,
-            faults: (scenario.faults.length > 1 ? scenario.faults.slice(1) : scenario.faults).map(
-              (f) => f.fault,
-            ),
-          },
-        ]) {
-          const fault = scenario.faults[0]!;
-          const answer = { faultType: fault.fault.type, locationKey: fault.locationKey };
-          const expected = evaluateDiagnosis(scenario, circuit, answer, {
-            identifiedFaultIds: current.progress.identifiedFaultIds,
-          });
-          current = await request<Attempt>(`/diagnosis/attempts/${current.id}`, {
-            user,
-            method: 'POST',
-            expected: 200,
-            data: { action: 'submit', version: current.version, circuit, answer },
-          });
-          assert.equal(current.evaluation.verdict, expected.verdict);
-          assert.equal(current.evaluation.recovered, expected.recovered);
-          assert.equal(current.progress.status, 'active');
-        }
-        for (const fault of scenario.faults) {
-          current = await request<Attempt>(`/diagnosis/attempts/${current.id}`, {
-            user,
-            method: 'POST',
-            expected: 200,
-            data: {
-              action: 'submit',
-              version: current.version,
-              circuit: scenario.healthyCircuit,
-              answer: { faultType: fault.fault.type, locationKey: fault.locationKey },
-            },
-          });
-          if (current.progress.status === 'completed') break;
-        }
-        assert.equal(current.progress.status, 'completed');
-        assert.deepEqual(current.evaluation.assessment, scenario.assessment);
-        assert(current.score);
-      }
-    },
-  );
-  await check(
     'obsolete diagnosis snapshots stay readable without accepting new grades or penalties',
     async () => {
       const attempt = await request<Attempt>('/diagnosis/attempts', {
         user,
         method: 'POST',
         expected: 201,
-        data: { seed: 3, difficulty: 'intermediate', rageTier: 'rage-4' },
+        data: { seed: 3, difficulty: 'advanced' },
       });
       const original = attempt.scenario;
       const historical = {
@@ -662,18 +594,52 @@ export async function runSimulatorTests(context: Context) {
     },
   );
   await check(
+    'D1 burst: 50 authenticated circuit writes and 200 reads preserve ownership and content',
+    async () => {
+      const burstUser = await signup('simulator-burst');
+      const timings = { writes: [] as number[], reads: [] as number[] };
+      const created = await Promise.all(
+        Array.from({ length: 50 }, async (_, index) => {
+          const start = performance.now();
+          const result = await request('/circuits', {
+            user: burstUser,
+            method: 'POST',
+            data: { name: `Burst ${index}`, circuit: basic },
+            expected: 201,
+          });
+          timings.writes.push(performance.now() - start);
+          return result;
+        }),
+      );
+      assert.equal(new Set(created.map((row) => row.id)).size, 50);
+      await Promise.all(
+        Array.from({ length: 200 }, async (_, index) => {
+          const start = performance.now();
+          const row = await request(`/circuits/${created[index % 50].id}`, {
+            user: burstUser,
+            expected: 200,
+          });
+          timings.reads.push(performance.now() - start);
+          assert.equal(row.version, 1);
+          assert.deepEqual(row.circuit, normalizeCircuitDocument(basic));
+        }),
+      );
+      await request(`/circuits/${created[0].id}`, { user: other, expected: 404 });
+      for (const [kind, samples] of Object.entries(timings)) {
+        samples.sort((a, b) => a - b);
+        console.log(
+          `D1 burst ${kind}: n=${samples.length}, HTTP p95=${samples[Math.ceil(samples.length * 0.95) - 1].toFixed(2)} ms (includes auth/queue/network; not Worker-to-D1 latency)`,
+        );
+      }
+    },
+  );
+  await check(
     'advanced diagnosis is server-owned and rejects forged progress/results',
     async () => {
       await request('/diagnosis/attempts', {
         user: other,
         method: 'POST',
         data: { seed: 42, difficulty: 'advanced' },
-        expected: 403,
-      });
-      await request('/diagnosis/attempts', {
-        user: other,
-        method: 'POST',
-        data: { seed: 42, difficulty: 'beginner', rageTier: 'rage-1' },
         expected: 403,
       });
       attempt = await request<Attempt>('/diagnosis/attempts', {

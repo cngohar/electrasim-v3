@@ -26,7 +26,6 @@ beforeEach(() => {
   useUiStore.setState({
     simRunning: false,
     diagnosisActive: false,
-    challengeAttemptId: null,
     simResult: null,
     validationReport: null,
   });
@@ -78,10 +77,7 @@ describe('staged configuration and transaction history', () => {
     expect(settings()).toEqual(motorFixtureModel());
     useCircuitStore.getState().updateComponentState('s', { motorModel: motorFixtureModel() });
     expect(snapshot().components[0]!.state.motorModel).toBeUndefined();
-    for (const lock of [
-      { simRunning: true },
-      { simRunning: false, challengeAttemptId: 'graded' },
-    ]) {
+    for (const lock of [{ simRunning: true }, { simRunning: false, diagnosisActive: true }]) {
       useUiStore.setState(lock);
       useCircuitStore.getState().updateComponentState('motor', { motorModel: undefined });
       expect(settings()).toEqual(motorFixtureModel());
@@ -137,10 +133,7 @@ describe('staged configuration and transaction history', () => {
       timerModel: { version: 1, kind: 'interval', durationSeconds: 1, retrigger: 'restart' },
     });
     expect(settings()).toEqual(program);
-    for (const lock of [
-      { simRunning: true },
-      { simRunning: false, challengeAttemptId: 'graded' },
-    ]) {
+    for (const lock of [{ simRunning: true }, { simRunning: false, diagnosisActive: true }]) {
       useUiStore.setState(lock);
       useCircuitStore.getState().updateComponentState('control', { timerModel: undefined });
       expect(settings()).toEqual(program);
@@ -252,7 +245,7 @@ describe('staged configuration and transaction history', () => {
     expect(snapshot().components.find((c) => c.id === 'switch')?.state.on).toBe(false);
   });
 
-  it.each([{ simRunning: true }, { challengeAttemptId: 'graded' }])(
+  it.each([{ simRunning: true }, { diagnosisActive: true }])(
     'does not replace demo hardware through display preferences while configuration is locked: %j',
     (lock) => {
       useCircuitStore.getState().setCircuit(buildStudentSeedCircuit());
@@ -294,11 +287,10 @@ describe('staged configuration and transaction history', () => {
     }
   });
 
-  it.each(['challenge', 'diagnosis', 'server-exercise'])(
+  it.each(['diagnosis', 'server-exercise'])(
     'locks authored source and variant configuration during %s',
     (kind) => {
-      if (kind === 'challenge') useUiStore.setState({ challengeAttemptId: 'graded' });
-      else if (kind === 'diagnosis') useUiStore.setState({ diagnosisActive: true });
+      if (kind === 'diagnosis') useUiStore.setState({ diagnosisActive: true });
       else useSimulatorAccess.setState({ exercise: { circuit: editingCircuit(), mode: 'basic' } });
       const before = snapshot();
       useCircuitStore.getState().setGlobalSupplyVoltage(12);

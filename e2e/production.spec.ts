@@ -51,7 +51,7 @@ test.describe('production Pages output', () => {
     expect(app.headers()['cache-control']).toContain('no-transform');
 
     const appHtml = await app.text();
-    const scriptPath = appHtml.match(/src="(\/app\/assets\/index-[^"]+\.js)"/)?.[1];
+    const scriptPath = appHtml.match(/<script\b[^>]*\bsrc="(\/app\/assets\/[^\"]+\.js)"/)?.[1];
     expect(scriptPath).toBeTruthy();
 
     const appAsset = await request.get(scriptPath as string);
@@ -408,7 +408,8 @@ test.describe('production Pages output', () => {
       await page.reload();
       await expect(page.getByRole('application', { name: 'Circuit diagram' })).toBeVisible();
 
-      await page.getByRole('button', { name: 'Guides' }).click();
+      await page.getByRole('button', { name: 'Menu', exact: true }).click();
+      await page.getByRole('button', { name: /^Guided Circuits\b/ }).click();
       await expect(page.getByRole('heading', { name: 'Guided Circuits' })).toBeVisible();
       await page.keyboard.press('Escape');
 

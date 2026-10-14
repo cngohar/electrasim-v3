@@ -627,7 +627,7 @@ function TourWireHints({ active }: { active: boolean }) {
               strokeDasharray="9 7"
               strokeLinecap="round"
               markerEnd="url(#tour-wire-arrow)"
-              className="challenge-hint-line"
+              className="tour-hint-line"
             />
             {/* Pulsing endpoint rings on the two ports to click */}
             <circle
@@ -637,7 +637,7 @@ function TourWireHints({ active }: { active: boolean }) {
               fill="none"
               stroke="#0ea5e9"
               strokeWidth="2.5"
-              className="challenge-hint-target"
+              className="tour-hint-target"
             />
             <circle
               cx={to.x}
@@ -646,7 +646,7 @@ function TourWireHints({ active }: { active: boolean }) {
               fill="none"
               stroke="#0ea5e9"
               strokeWidth="2.5"
-              className="challenge-hint-target"
+              className="tour-hint-target"
             />
             <g transform={`translate(${(from.x + to.x) / 2} ${(from.y + to.y) / 2 - 20})`}>
               <rect

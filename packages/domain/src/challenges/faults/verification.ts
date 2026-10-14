@@ -19,8 +19,7 @@
  * product depends on it.
  */
 
-import { COMPONENT_DEFS } from '../../components';
-import type { Circuit, FaultTarget, SimulationResult } from '../../types';
+import type { Circuit, SimulationResult } from '../../types';
 
 /** The observable, electrical consequences of a fault. Never diagnostic prose. */
 export interface FaultSymptom {
@@ -191,92 +190,6 @@ function describeSignature(signature: string): string {
 /** Convenience predicate over {@link describeRecoveryGap}. */
 export function isFullRecovery(baseline: SimulationResult, repaired: SimulationResult): boolean {
   return describeRecoveryGap(baseline, repaired) === null;
-}
-
-/**
- * Do two symptoms look the same *to a person standing in front of the board*?
- *
- * Compares only the three signals a human can actually observe:
- *
- *   - which declared loads are dead,
- *   - whether a protective device operated,
- *   - whether something failed destructively.
- *
- * It deliberately ignores `newErrorWires`, `newErrorComponents` and
- * `newErrors`. Those are *simulator* signals, and the simulator flags a faulted
- * wire as being in error simply because it carries a fault
- * (`simulate.ts:464` — measured at 1,176 of 1,176 wire faults). Including them
- * turns any comparison of "does adding this fault change anything?" into "is
- * this fault present?", to which the answer is trivially yes.
- *
- * That distinction is what makes {@link FaultSymptom.observable} the wrong
- * predicate for masking questions and this the right one. Used by the §26
- * compound-fault proof, which needs "the world with A and B present looks
- * exactly like the world with only A".
- */
-export function sameObservableWorld(a: FaultSymptom, b: FaultSymptom): boolean {
-  if (a.tripped !== b.tripped) return false;
-  if (a.blown !== b.blown) return false;
-  if (a.deEnergisedLoadIds.length !== b.deEnergisedLoadIds.length) return false;
-  const left = [...a.deEnergisedLoadIds].sort();
-  const right = [...b.deEnergisedLoadIds].sort();
-  return left.every((id, index) => id === right[index]);
-}
-
-/**
- * The location keys a learner would naturally look at, given this symptom.
- *
- * Used by `misleadingSymptom` (plan §26 / §53): a fault is only "misleading"
- * when it does **not** sit in this set. Derived from the measured symptom,
- * never from the answer.
- *
- *   - A dead load → the load itself, its terminals, and every wire that
- *     lands on it. That is the "the lamp is out, check the lamp" reflex.
- *   - A trip with no dead declared load → the protective devices.
- */
-export function obviousLocationKeys(circuit: Circuit, symptom: FaultSymptom): Set<string> {
-  const keys = new Set<string>();
-
-  const addComponentAndIncident = (id: string) => {
-    keys.add(`component:${id}`);
-    const component = circuit.components.find((c) => c.id === id);
-    const ports = component ? (COMPONENT_DEFS[component.type]?.ports.length ?? 0) : 0;
-    for (let i = 0; i < ports; i++) keys.add(`port:${id}:${i}`);
-    for (const wire of circuit.wires) {
-      if (wire.fromComponentId === id || wire.toComponentId === id) keys.add(`wire:${wire.id}`);
-    }
-  };
-
-  for (const id of symptom.deEnergisedLoadIds) addComponentAndIncident(id);
-
-  if (symptom.primary === 'tripped' && symptom.deEnergisedLoadIds.length === 0) {
-    for (const component of circuit.components) {
-      if (COMPONENT_DEFS[component.type]?.isProtection) keys.add(`component:${component.id}`);
-    }
-  }
-
-  return keys;
-}
-
-/** Stable location key matching the grader / location-choice keys. */
-export function locationKeyOfTarget(target: FaultTarget): string {
-  if (target.type === 'port') return `port:${target.componentId}:${target.portIndex}`;
-  return `${target.type}:${target.id}`;
-}
-
-/**
- * Does this fault sit somewhere *other* than where the symptom points?
- *
- * False when the symptom is not observable — an invisible fault cannot
- * mislead, it can only fail §12.
- */
-export function isMisleadingPlacement(
-  circuit: Circuit,
-  target: FaultTarget,
-  symptom: FaultSymptom,
-): boolean {
-  if (!symptom.observable) return false;
-  return !obviousLocationKeys(circuit, symptom).has(locationKeyOfTarget(target));
 }
 
 /**

@@ -7,11 +7,11 @@ Phase 1.5F.1 calculation consumers require `inputRevision` plus the current elec
 
 Phase 1.5F.2 diagnosis attempts use generator **3** and an authored `assessment` containing assessment version 1, model/engine versions, `diagnosis-profile-score-1`, and exact healthy/faulted electrical revisions. New generation selects six supported resistive/manual/declared-coil topologies and observable supported faults. Submission recalculates the authored and submitted circuits; removal, identification and operating-point recovery remain separate. Every authored component identity/model/rating, source profile, terminal connection and conductor property must be preserved. Equivalent replacement cables and geometry changes are permitted. A recovered named load must match its actual baseline voltage/current/power. Success establishes restored teaching operation, not installation safety or standards compliance. [Scope and acceptance](../audits/phase-1-diagnosis-integration.md).
 
-Older attempt snapshots remain readable. GET adds `assessmentIssue`, includes `scoreEvidence` and reports `readOnly` when assessment versions/snapshots differ, independently of membership. New attempts accept only the current generator. An obsolete active attempt rejects submit/hint/expire with 409; authorized checkpoint/abandon retain the earlier elapsed time and do not invent new grading penalties. Existing terminal scores retain their historical evidence. Current share codes pin model/engine/profile versions; IndexedDB resume restores the original scenario and repaired drawing rather than regenerating it silently.
+Older attempt snapshots remain readable. GET adds `assessmentIssue`, includes `scoreEvidence` and reports `readOnly` when assessment versions/snapshots differ, independently of membership. New attempts accept only the current generator. An obsolete active attempt rejects submit/hint with 409; authorized checkpoint/abandon retain the earlier elapsed time and do not invent new grading penalties. Existing terminal scores retain their historical evidence. Current share codes pin model/engine/profile versions; IndexedDB resume restores the original scenario and repaired drawing rather than regenerating it silently.
 
 ## Authorization
 
-Basic editing, simulation, single basic faults and basic diagnosis run locally without a session or network. Premium editor mutations and simulation request fresh membership from primary local D1. A local capability snapshot drives presentation, not authorization. Every server endpoint derives requirements from validated component types and normalized faults. Advanced diagnosis and every Ohmageddon tier add their own requirements from the stored scenario.
+Basic editing, simulation, single basic faults and basic diagnosis run locally without a session or network. Premium editor mutations and simulation request fresh membership from primary local D1. A local capability snapshot drives presentation, not authorization. Every server endpoint derives requirements from validated component types and normalized faults. Advanced diagnosis add their own requirements from the stored scenario.
 
 The browser remains user-controlled; supported editor flows are gated, while server content delivery and accepted results enforce authorization independently. Server mutations repeat capability predicates with the owner/version condition inside their SQL write, so concurrent revocation or a stale version cannot silently overwrite work. Failed writes do not increment versions or diagnosis counters.
 
@@ -28,13 +28,12 @@ All mutation bodies are JSON, require a matching Origin, and reject unknown fiel
 | `GET /api/circuits/:id` | Owner's original content, version, requirements, readOnly flag |
 | `PATCH /api/circuits/:id` | `{ name, circuit, version }`; checks both existing and replacement content |
 | `DELETE /api/circuits/:id` | `{ version }`; owner may delete after downgrade |
-| `POST /api/diagnosis/attempts` | `{ seed, difficulty, rageTier?, generatorVersion? }`; server-generated scenario, repair circuit, progress and version |
 | `GET /api/diagnosis/attempts/:id` | Owner's preserved scenario, repair circuit and accepted progress, including after downgrade |
-| `POST /api/diagnosis/attempts/:id` | `{ action, version, circuit, answer? }`; actions submit, hint, checkpoint, abandon, expire |
+| `POST /api/diagnosis/attempts/:id` | `{ action, version, circuit, answer? }`; actions submit, hint, checkpoint, abandon |
 
 Diagnosis submissions provide only the answer and repaired circuit. The server owns the original scenario, identified fault IDs, counters and accepted score. It evaluates recovery itself. The active-time model banks at most the 30 seconds since the prior accepted action; the browser checkpoints every 15 seconds. A denied/offline request does not update stored time. This is a local teaching score, not a competitive timing or anti-cheat service.
 
-Completed and timed-out attempts return the same server-derived score on subsequent reads. Confirmed terminal actions leave the local active record and update aggregate statistics; a reload can recover a finish that was accepted before its response arrived. Further mutations of a finished attempt return 409.
+Completed attempts return the same server-derived score on subsequent reads. Confirmed terminal actions leave the local active record and update aggregate statistics; a reload can recover a finish that was accepted before its response arrived. Further mutations of a finished attempt return 409.
 
 ## Persistence and recovery
 

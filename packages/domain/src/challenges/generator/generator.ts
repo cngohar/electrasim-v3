@@ -1,19 +1,3 @@
-/**
- * The challenge circuit generator (plan §7, §35, §37).
- *
- *   Seed → Difficulty Profile → Recipe Selection → Component Selection
- *        → Topology Generation → Layout Generation → Electrical Validation
- *        → Baseline Simulation Validation → GeneratedCircuit
- *
- * The pipeline STOPS at a valid circuit. Fault selection, fault injection,
- * diagnosis scoring and Ohmageddon modifiers are the concern of later phases
- * and must never leak into this module (plan §7, §51, §57).
- *
- * The function is pure: same request → same circuit, byte for byte. It reads
- * no clock, touches no storage and holds no module-level mutable state, which
- * also makes it safe to call from the existing simulation worker.
- */
-
 import { COMPONENT_DEFS } from '../../components';
 import type { Circuit } from '../../types';
 import { getDifficultyProfile } from '../difficulty/profiles';
@@ -24,6 +8,7 @@ import type {
   GenerationOutcome,
   GenerationRejection,
 } from '../types';
+import { CHALLENGE_MODES } from '../types';
 import { applyLayout } from './layout';
 import { getRecipeById, selectRecipe } from './recipes';
 import {
@@ -47,7 +32,7 @@ export const MAX_GENERATION_ATTEMPTS = 12;
 
 /** Message shown to the user when generation genuinely fails (plan §37). */
 export const GENERATION_FAILURE_MESSAGE =
-  'Unable to generate a valid challenge.\n\nTry generating another circuit.';
+  'Unable to generate a valid diagnosis circuit.\n\nTry generating another circuit.';
 
 /** Thrown by {@link generateChallenge} when every attempt was rejected. */
 export class ChallengeGenerationError extends Error {
@@ -69,12 +54,14 @@ export class ChallengeGenerationError extends Error {
 export function tryGenerateChallenge(request: GenerateChallengeRequest): GenerationOutcome {
   const generatorVersion = request.generatorVersion ?? GENERATOR_VERSION;
   const seed = normalizeSeed(request.seed);
-  const mode = request.mode ?? 'challenge';
-  const { difficulty, rageProfile } = request;
+  const mode = request.mode ?? 'diagnosis';
+  if (!CHALLENGE_MODES.includes(mode))
+    throw new ChallengeGenerationError('Unknown learning mode', []);
+  const { difficulty } = request;
   const maxAttempts = Math.max(1, request.maxAttempts ?? MAX_GENERATION_ATTEMPTS);
 
   const profile = getDifficultyProfile(difficulty);
-  const identityInputs = { generatorVersion, seed, difficulty, mode, rageProfile };
+  const identityInputs = { generatorVersion, seed, difficulty, mode };
   const identity = computeChallengeIdentity(identityInputs);
   const rootRng = createSeededRng(identityInputs);
 
@@ -187,7 +174,6 @@ export function tryGenerateChallenge(request: GenerateChallengeRequest): Generat
         seed,
         difficulty,
         mode,
-        ...(rageProfile ? { rageProfile } : {}),
         challengeId: identity.displayId,
         identity,
         recipeId: recipe.id,

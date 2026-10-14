@@ -24,7 +24,6 @@ const steps = [
     'e2e/supply-profiles.spec.ts',
     'e2e/workbench-ui.spec.ts',
     'e2e/pro-features.spec.ts',
-    'e2e/challenge-mode.spec.ts',
     'e2e/relay-switching.spec.ts',
     '--project=chromium',
     '--workers=2',

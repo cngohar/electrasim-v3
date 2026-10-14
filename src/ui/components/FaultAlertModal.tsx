@@ -1,7 +1,7 @@
 import { AlertTriangle, Flame, HelpCircle, RefreshCw, X, Zap } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useCircuitStore, useUiStore } from '../../store';
-import { useDialogFocus } from '../hooks/useDialogFocus';
+import { Modal } from './Modal';
 import { MECHANISM_LABEL, formatClearingTime } from './faultAlertFormat';
 
 export function FaultAlertModal() {
@@ -12,35 +12,10 @@ export function FaultAlertModal() {
   const running = useUiStore((s) => s.simRunning);
 
   const [currentAlert, setCurrentAlert] = useState(faultAlert);
-  const [isClosing, setIsClosing] = useState(false);
-  const panelRef = useRef<HTMLDivElement | null>(null);
-
   useEffect(() => {
-    if (faultAlert) {
-      setCurrentAlert(faultAlert);
-      setIsClosing(false);
-    } else if (currentAlert && !isClosing) {
-      setIsClosing(true);
-      const timer = window.setTimeout(() => {
-        setCurrentAlert(null);
-        setIsClosing(false);
-      }, 200);
-      return () => window.clearTimeout(timer);
-    }
-  }, [faultAlert, currentAlert, isClosing]);
-
-  const handleClose = () => {
-    if (isClosing) return;
-    setIsClosing(true);
-    window.setTimeout(() => {
-      clearFaultAlert();
-      setCurrentAlert(null);
-      setIsClosing(false);
-    }, 200);
-  };
-
-  useDialogFocus(Boolean(currentAlert) && !isClosing, handleClose, panelRef);
-
+    if (faultAlert) setCurrentAlert(faultAlert);
+  }, [faultAlert]);
+  const handleClose = () => clearFaultAlert();
   if (!currentAlert) return null;
 
   const handleRepair = async () => {
@@ -82,31 +57,13 @@ export function FaultAlertModal() {
   const isMelt = currentAlert.kind === 'melt';
 
   return (
-    <dialog
-      open
-      aria-modal="true"
-      aria-labelledby="fault-alert-title"
-      className="fixed inset-0 z-100 m-0 flex h-dvh w-screen max-h-none max-w-none items-center justify-center overflow-y-auto border-0 bg-transparent p-4"
+    <Modal
+      open={!!faultAlert}
+      onClose={handleClose}
+      ariaLabel="Electrical fault alert"
+      widthClass="max-w-2xl"
     >
-      <button
-        type="button"
-        aria-label="Close"
-        className={`absolute inset-0 cursor-default bg-slate-950/75 backdrop-blur-md transition-all ${
-          isClosing ? 'animate-backdrop-fade-out' : 'animate-backdrop-fade-in'
-        }`}
-        onClick={handleClose}
-      />
-      <div
-        ref={panelRef}
-        tabIndex={-1}
-        className={`relative w-full max-w-lg rounded-2xl border bg-white p-6 shadow-2xl transition-all dark:bg-slate-900 outline-none ${
-          isClosing ? 'animate-dialog-fade-out' : 'animate-dialog-fade-in'
-        } ${
-          isMelt
-            ? 'border-red-500/50 shadow-red-500/20 dark:border-red-600/60'
-            : 'border-amber-500/50 shadow-amber-500/20 dark:border-amber-600/60'
-        }`}
-      >
+      <div className="table-custom-content FaultAlertModal">
         {/* Header with Icon */}
         <div className="flex items-start gap-4">
           <div
@@ -241,6 +198,6 @@ export function FaultAlertModal() {
           </div>
         </div>
       </div>
-    </dialog>
+    </Modal>
   );
 }

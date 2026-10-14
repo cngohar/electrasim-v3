@@ -38,11 +38,7 @@ export function CanvasToolbar() {
   const hasSelection = !!(selectedId || selectedWireId || selectedComponentIds.length > 0);
 
   return (
-    <div
-      data-workspace-tools
-      data-canvas-occluder
-      className="absolute left-1/2 top-[88px] z-10 flex -translate-x-1/2 items-center gap-1 rounded-lg border border-white/80 bg-white/90 p-1 shadow-lg ring-1 ring-slate-900/5 backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-900/90 dark:ring-slate-700/50"
-    >
+    <div data-workspace-tools data-canvas-occluder className="table-canvas-tools">
       <IconBtn
         icon={MousePointer2}
         title="Select (V)"
@@ -87,27 +83,33 @@ export function CanvasToolbar() {
         disabled={!hasSelection || simRunning}
         onClick={requestDeleteSelection}
       />
-      <Sep />
-      <IconBtn
-        icon={ZoomOut}
-        title="Zoom out"
-        onClick={() => useViewportStore.getState().zoomBy(1 / 1.25)}
-      />
-      <IconBtn
-        icon={ZoomIn}
-        title="Zoom in"
-        onClick={() => useViewportStore.getState().zoomBy(1.25)}
-      />
-      <IconBtn
-        icon={Maximize2}
-        title="Reset view (1:1)"
-        onClick={() => useViewportStore.getState().resetView()}
-      />
       <IconBtn icon={ScanSearch} title="Zoom to fit all (F)" onClick={fitCanvasView} />
     </div>
   );
 }
 
-function Sep() {
-  return <div className="mx-0.5 h-4 w-px bg-slate-200 dark:bg-slate-700" />;
+export function ZoomControls() {
+  const scale = useViewportStore((s) => s.zoom);
+  return (
+    <div className="table-zoom table-surface" data-canvas-occluder aria-label="Canvas zoom">
+      <IconBtn
+        icon={ZoomOut}
+        title="Zoom out"
+        onClick={() => useViewportStore.getState().zoomBy(1 / 1.25)}
+      />
+      <button
+        type="button"
+        title="Reset view (1:1)"
+        onClick={() => useViewportStore.getState().resetView()}
+      >
+        {Math.round(scale * 100)}%
+      </button>
+      <IconBtn
+        icon={ZoomIn}
+        title="Zoom in"
+        onClick={() => useViewportStore.getState().zoomBy(1.25)}
+      />
+      <IconBtn icon={Maximize2} title="Fit" onClick={fitCanvasView} />
+    </div>
+  );
 }

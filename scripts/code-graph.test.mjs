@@ -84,7 +84,23 @@ test('CLI refreshes edited inputs incrementally and reports unknown phases accur
       JSON.stringify({
         activePhase: '1.8',
         phases: [{ id: '1.8', status: 'planned', evidence: ['PLAN.md'] }],
-        facts: [],
+        facts: [{ id: 'fixture', summary: 'Fixture evidence', evidence: ['src/a.ts'] }],
+        features: [
+          {
+            id: 'fixture-feature',
+            summary: 'Fixture feature',
+            evidence: ['PLAN.md'],
+            entryPoints: ['src/a.ts'],
+            facts: ['fixture'],
+            checks: [
+              {
+                command: 'echo suggested-only',
+                files: ['src/a.ts'],
+                reason: 'Fixture relationship',
+              },
+            ],
+          },
+        ],
         relations: [{ from: 'src/a.ts', relation: 'configured-by', to: 'vite.config.ts' }],
       }),
     );
@@ -101,10 +117,30 @@ test('CLI refreshes edited inputs incrementally and reports unknown phases accur
       });
     assert.match(run('phase'), /Phase 1.8: planned/);
     assert.match(run('status'), /Current graph/);
+    assert.match(run('brief', 'fixture feature'), /echo suggested-only/);
+    assert.throws(
+      () => run('check'),
+      (error) => /unreviewed/.test(error.stdout),
+    );
+    assert.throws(
+      () => run('review', 'fixture'),
+      (error) => /requires --scope/.test(error.stderr),
+    );
+    run('review', 'fixture', '--scope', 'Read fixture source only; no runtime tests');
+    run('review', 'fixture-feature', '--scope', 'Read fixture relationship');
+    assert.match(run('check'), /current evidence/);
+    await rm(path.join(fixture, '.code-graph'), { recursive: true });
+    assert.match(run('check'), /current evidence/);
+    assert.match(run('brief', 'not-a-real-feature'), /No curated match/);
     assert.match(run('find', 'admin/pro/index.html'), /admin\/pro\/index.html/);
     assert.match(run('impact', 'vite.config.ts'), /configured-by\s+src\/a.ts/);
     await writeFile(path.join(fixture, 'src/a.ts'), 'export const replacementLonger = 2;');
     assert.match(run('status'), /STALE/);
+    assert.throws(
+      () => run('check'),
+      (error) => /needs review/.test(error.stdout),
+    );
+    assert.match(run('brief', 'fixture'), /needs review/);
     assert.match(run('find', 'replacementLonger'), /replacementLonger/);
     const graph = JSON.parse(await readFile(path.join(fixture, '.code-graph/index.json'), 'utf8'));
     assert.equal(
@@ -123,4 +159,43 @@ test('CLI refreshes edited inputs incrementally and reports unknown phases accur
   } finally {
     await rm(fixture, { recursive: true, force: true });
   }
+});
+
+test('knowledge validation rejects broken mappings and fingerprints include definition changes', async () => {
+  const { fingerprint, freshness, reviewFingerprint, validateKnowledge, briefing } = await import(
+    './code-graph-knowledge.mjs'
+  );
+  const fact = { id: 'invariant', summary: 'Keep anchors', evidence: ['source.ts'] };
+  const hashes = { 'source.ts': fingerprint('original') };
+  fact.review = {
+    at: '2026-10-10',
+    scope: 'Source inspection',
+    fingerprint: reviewFingerprint(fact, hashes),
+  };
+  assert.equal(freshness(fact, hashes), 'current evidence');
+  assert.equal(freshness({ ...fact, summary: 'Changed assertion' }, hashes), 'needs review');
+  assert.equal(freshness(fact, { 'source.ts': fingerprint('changed') }), 'needs review');
+  const knowledge = { facts: [fact], features: [], phases: [{ id: '1', status: 'planned' }] };
+  assert.throws(() => validateKnowledge(knowledge, new Set()), /Missing knowledge evidence/);
+  assert.throws(
+    () => validateKnowledge({ ...knowledge, facts: [fact, fact] }, new Set(['source.ts'])),
+    /Duplicate/,
+  );
+  assert.throws(
+    () =>
+      validateKnowledge(
+        {
+          ...knowledge,
+          features: [
+            { id: 'feature', summary: 'Feature', evidence: ['source.ts'], facts: ['missing'] },
+          ],
+        },
+        new Set(['source.ts']),
+      ),
+    /Unknown fact/,
+  );
+  const graph = { knowledge, activePhase: '1', evidenceHashes: hashes, nodes: [], edges: [] };
+  assert.equal(briefing(graph, 'anchors'), briefing(graph, 'anchors'));
+  assert.match(briefing(graph, 'anchors', { limit: 1 }), /Constraints and findings \(1\/1\)/);
+  assert.throws(() => briefing(graph, '!!!'), /searchable query/);
 });

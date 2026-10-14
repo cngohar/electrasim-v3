@@ -9,6 +9,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 
 ### Added
 
+- Phase 1.10: accepted full Open Drafting Table simulator redesign, centered commands,
+  full-width component shelf, 116-type physical artwork, three Inspector tabs with
+  reference photos/basic drafts, visible Console filters, direct arrangement and
+  retained entry/exit motion. Challenge Mode runtime is deferred by explicit user
+  instruction, with its plans/docs preserved. The reviewed four-file / 718-line
+  obsolete UI cleanup was explicitly approved and applied. Final post-cleanup
+  types/lint, 2,115 units, 18 affected source-browser cases, six built cases, five
+  graph implementation tests and build/static checks pass with clean exits.
+  [Acceptance and earlier failure/recovery boundaries](docs/audits/open-drafting-table-implementation.md).
+- Phase 1.9: full local verification closed by user decision with documented
+  performance exceptions. Solver/generator timing and dense 60 fps remain unmet;
+  the strict full gate is not green. Admin clipboard/focus recovery preserves
+  signed-in drafts. [Evidence](docs/audits/phase-1-full-verification.md).
+
 - Phase 1.8: separate super-admin membership UI for plans, localized benefits, searchable member grants and audit history; reviewed/versioned mutations and responsive session/role denial. Completed local gate: 2,223 units, 36 Worker/D1 groups, 22 desktop/phone cases. [Acceptance](docs/audits/phase-1-membership-ui.md).
 - Knowledge graph coverage for admin entrypoints, public headers/redirects and root build/test/local-Worker configs, with reviewed configuration edges and documented layout/request/loading findings. Long-email member search avoids D1 LIKE limits; asset budgets count eager shared chunks.
 
@@ -17,9 +31,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 
 - Phase 1.6 visual effects: optional lazy Matter cable sag/snap and stress/damage accents, current-result guards, persisted toggle, static reduced-motion/dense fallback, offscreen suspension and bounded settling/disposal. Electrical state and assessment remain unchanged. Completed locally with comprehensive/focused unit evidence, 858 runtime parity cases, 20 API groups and 24 browser cases. [Acceptance](docs/audits/phase-1-visual-effects.md).
 
-- Phase 1.5F.2: supported diagnosis/Ohmageddon generation, authored device/connection/rating and operating-point repair checks, separate identification and recovery, and generator/model/engine/profile versions for replay and accepted scores. Older snapshots retain repairs with new grading blocked; D1 preserves server-owned progress and fresh authorization. Diagnosis readiness labels conceal answer names while retaining diagnostic controls. Local acceptance covers 2,175 comprehensive unit passes plus 473 focused checks, 849 exact Bun/workerd cases, 20 local D1/session groups and 35 browser cases across comprehensive/focused stages. [Acceptance](docs/audits/phase-1-diagnosis-integration.md). F.3 closure and retained exceptions are recorded below.
+- Phase 1.5F.2: supported diagnosis generation, authored device/connection/rating and operating-point repair checks, separate identification and recovery, and generator/model/engine/profile versions for replay and accepted scores. Older snapshots retain repairs with new grading blocked; D1 preserves server-owned progress and fresh authorization. Diagnosis readiness labels conceal answer names while retaining diagnostic controls. Local acceptance covers 2,175 comprehensive unit passes plus 473 focused checks, 849 exact Bun/workerd cases, 20 local D1/session groups and 35 browser cases across comprehensive/focused stages. [Acceptance](docs/audits/phase-1-diagnosis-integration.md). F.3 closure and retained exceptions are recorded below.
 
-- Phase 1.5F.1: current circuit/model evidence for validators, named voltage readings, inspector/analytics, all guide checklists/history and EIC exports; shared fault applicability and phone terminal injection; coherent stopped replacement/reset actions and suppression of unassessed legacy trip/damage projection. **Completed locally on 2026-10-07:** 2,185 unit tests, 821 exact Bun/workerd cases, 18 real Worker/D1/session groups and 47 unique Chromium cases passed across the comprehensive and focused stages. [Acceptance](docs/audits/phase-1-consumer-integration.md). Diagnosis/Ohmageddon grading and legacy retirement remain F.2–3.
+- Phase 1.5F.1: current circuit/model evidence for validators, named voltage readings, inspector/analytics, all guide checklists/history and EIC exports; shared fault applicability and phone terminal injection; coherent stopped replacement/reset actions and suppression of unassessed legacy trip/damage projection. **Completed locally on 2026-10-07:** 2,185 unit tests, 821 exact Bun/workerd cases, 18 real Worker/D1/session groups and 47 unique Chromium cases passed across the comprehensive and focused stages. [Acceptance](docs/audits/phase-1-consumer-integration.md). Diagnosis grading and legacy retirement remain F.2–3.
 
 - Phase 1.5E.3: migrated the DOL guide to a real three-phase source, declared motor and maintained coil control; deep-copied nested guide settings and displayed actual model limitations. **Completed locally on 2026-10-07:** all required gate stages passed across the initial run and focused lint-onward rerun: 2,178 unit tests, 800 exact Bun/workerd cases, 17 local Worker/D1 groups and 35 browser cases. Unassessed safety/repair and guide completion stay guarded. [Acceptance](docs/audits/phase-1-dol-guide.md); full lab integration and legacy retirement are next in 1.5F.
 
@@ -86,7 +100,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 
 ### Planning
 
-- **2026-10-01 simulator behavior audit and phase revision:** recorded 42 local observations and current compatibility/editing/readiness/cable findings; selected MNA in ADR 0009. Expanded 1.5C.0–5 with shared compatibility, confirmed supply changes/Undo, readiness, truthful branch/wire results and actual runtime/UI integration. Mapped timed Fault Lab behavior to 1.5D, three-phase models to 1.5E, and full Diagnosis Lab/Ohmageddon grading/replay migration to 1.5F; 1.7 retains UI refinement. These are requirements, not implemented corrections. Four existing suites passed 145 tests with five expected failures; no full acceptance or deployment claim. See [audit](docs/audits/phase-1-behavior-review.md), [behavior plan](docs/plans/SIMULATOR_BEHAVIOR_PLAN.md) and [Phase 1](docs/phases/phase-1-simulator-core.md).
+- **2026-10-01 simulator behavior audit and phase revision:** recorded 42 local observations and current compatibility/editing/readiness/cable findings; selected MNA in ADR 0009. Expanded 1.5C.0–5 with shared compatibility, confirmed supply changes/Undo, readiness, truthful branch/wire results and actual runtime/UI integration. Mapped timed Fault Lab behavior to 1.5D, three-phase models to 1.5E, and full Diagnosis Lab grading/replay migration to 1.5F; 1.7 retains UI refinement. These are requirements, not implemented corrections. Four existing suites passed 145 tests with five expected failures; no full acceptance or deployment claim. See [audit](docs/audits/phase-1-behavior-review.md), [behavior plan](docs/plans/SIMULATOR_BEHAVIOR_PLAN.md) and [Phase 1](docs/phases/phase-1-simulator-core.md).
 
 - **V3 full rewrite plan locked.** See `docs/REWRITE_PLAN_V3_FULL.md` — the real V3 (paper v3 never shipped).
   - Stack: **Bun** everywhere (`bun install/run/test/build`), **Hono on Workers**, **Better Auth + D1 (SQLite)**, **R2 + KV + Durable Objects (SQLite) + Queues**.

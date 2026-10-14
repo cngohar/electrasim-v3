@@ -38,7 +38,7 @@ describe('MenuOverlay', () => {
 
     // Learn & practice tiles.
     expect(screen.getByRole('button', { name: /^Guided Circuits/ })).toBeVisible();
-    expect(screen.getByRole('button', { name: /^Challenge Mode/ })).toBeVisible();
+    expect(screen.queryByRole('button', { name: /^Challenge Mode/ })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^Diagnosis Lab/ })).toBeVisible();
     expect(screen.getByRole('button', { name: /^Interactive Tutorial/ })).toBeVisible();
 
@@ -91,14 +91,14 @@ describe('MenuOverlay', () => {
     expect(useUiStore.getState().commandPaletteOpen).toBe(true);
   });
 
-  it('opens Guided Circuits, Challenge Mode, docs and settings from their tiles', () => {
+  it('opens Guided Circuits, Diagnosis Lab, docs and settings from their tiles', () => {
     render(<MenuOverlay open onClose={() => undefined} />);
 
     fireEvent.click(screen.getByRole('button', { name: /^Guided Circuits/ }));
     expect(useUiStore.getState().templatesOpen).toBe(true);
 
-    fireEvent.click(screen.getByRole('button', { name: /^Challenge Mode/ }));
-    expect(useUiStore.getState().challengeOpen).toBe(true);
+    fireEvent.click(screen.getByRole('button', { name: /^Diagnosis Lab/ }));
+    expect(useUiStore.getState().diagnosisOpen).toBe(true);
 
     fireEvent.click(screen.getByRole('button', { name: /^Documentation/ }));
     expect(useUiStore.getState().docsOpen).toBe(true);

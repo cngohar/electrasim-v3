@@ -8,8 +8,10 @@
 
 import { useEffect, useState } from 'react';
 import { REDUCED_MOTION_QUERY, prefersReducedMotionNow } from '../../lib/reducedMotion';
+import { useSettingsStore } from '../../store/settingsStore';
 
 export function useReducedMotion(): boolean {
+  const off = useSettingsStore((s) => s.interfaceMotion === 'off');
   const [reduced, setReduced] = useState(() => prefersReducedMotionNow());
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
@@ -19,5 +21,5 @@ export function useReducedMotion(): boolean {
     query.addEventListener('change', onChange);
     return () => query.removeEventListener('change', onChange);
   }, []);
-  return reduced;
+  return reduced || off;
 }

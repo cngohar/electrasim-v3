@@ -28,6 +28,28 @@ export function ComponentSymbol({ component }: { component: ComponentInstance })
         />
       </>
     );
+  } else if (family === 'socket') {
+    shape = <path d="M5 30h12M17 15a20 20 0 0 1 0 30M22 21h12M22 39h12M43 30h10" />;
+  } else if (family === 'terminal' || family === 'junction' || family === 'lever') {
+    shape =
+      component.type === 'earth-terminal' || component.type === 'earth-rod' ? (
+        <path d="M32 9v22M13 32h38M20 39h24M27 46h10" />
+      ) : (
+        <>
+          <path d="M5 30h20M39 30h20M32 8v15M32 37v16" />
+          <circle cx="32" cy="30" r="7" />
+        </>
+      );
+  } else if (family === 'relay' || family === 'contactor') {
+    shape = (
+      <>
+        <rect x="5" y="18" width="20" height="24" />
+        <path d="M15 7v11M15 42v11M25 30h9" strokeDasharray="2 3" />
+        <path d={on ? 'M43 9v44' : 'M43 9v9l13 20M43 43v10'} />
+        <circle cx="43" cy="18" r="2" />
+        <circle cx="43" cy="43" r="2" />
+      </>
+    );
   } else if (family === 'motor' || family === 'fan') {
     shape = (
       <>

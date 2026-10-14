@@ -1,4 +1,5 @@
-import './workspace.css';
+import { SurfacePresence } from './components/SurfacePresence';
+import './open-table.css';
 import { useElectricalEditing } from '../store/electricalEditing';
 import { fitCanvasView } from './canvas/fitView';
 /** Composition root for the interactive editor and its optional surfaces. */
@@ -44,9 +45,6 @@ const TemplatesModal = lazy(() =>
 const GuidedCircuitPanel = lazy(() =>
   import('./components/GuidedCircuitPanel').then((m) => ({ default: m.GuidedCircuitPanel })),
 );
-const ChallengeModeRuntime = lazy(() =>
-  import('./components/ChallengeModeRuntime').then((m) => ({ default: m.ChallengeModeRuntime })),
-);
 const DiagnosisPanel = lazy(() =>
   import('./components/DiagnosisPanel').then((m) => ({ default: m.DiagnosisPanel })),
 );
@@ -54,9 +52,6 @@ const MobileSuitabilityModal = lazy(() =>
   import('./components/MobileSuitabilityModal').then((m) => ({
     default: m.MobileSuitabilityModal,
   })),
-);
-const PhoneDock = lazy(() =>
-  import('./components/PhoneDock').then((m) => ({ default: m.PhoneDock })),
 );
 const WelcomeModal = lazy(() =>
   import('./components/WelcomeModal').then((m) => ({ default: m.WelcomeModal })),
@@ -91,8 +86,7 @@ const ValidationDetailsModal = lazy(() =>
 );
 import type { PendingDeletion } from '../store/uiStore';
 import { cancelPendingDeletion, confirmPendingDeletion } from './canvas-actions';
-import { AlignmentBar } from './components/AlignmentBar';
-import { CanvasToolbar } from './components/CanvasToolbar';
+import { ZoomControls } from './components/CanvasToolbar';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import { ContextMenu } from './components/ContextMenu';
 import { Inspector } from './components/Inspector';
@@ -107,6 +101,7 @@ import { Toolbar } from './components/Toolbar';
 import { UndoToast } from './components/UndoToast';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useResolvedTheme } from './hooks/useResolvedTheme';
+import { useClosingValue } from './hooks/useSurfacePresence';
 import {
   applyCanvasPreset,
   editorBackground,
@@ -253,8 +248,8 @@ export function Editor() {
   const importExportOpen = useUiStore((s) => s.importExportOpen);
   const templatesOpen = useUiStore((s) => s.templatesOpen);
   const activeGuideId = useUiStore((s) => s.activeGuideId);
-  const challengeOpen = useUiStore((s) => s.challengeOpen);
-  const challengeModeActive = useUiStore((s) => s.challengeModeActive);
+  const guideHidden = useUiStore((s) => s.guideHidden);
+  const visibleGuideId = useClosingValue(activeGuideId);
   const diagnosisOpen = useUiStore((s) => s.diagnosisOpen);
   const mobileSuitabilityOpen = useUiStore((s) => s.mobileSuitabilityOpen);
   const welcomeOpen = useUiStore((s) => s.welcomeOpen);
@@ -289,8 +284,8 @@ export function Editor() {
     // Apply saved panel layout once on mount (not on a phone).
     if (appliedLayoutRef.current) return;
     appliedLayoutRef.current = true;
+    useUiStore.getState().setPaletteOpen(savedPaletteOpen);
     if (!isPhone) {
-      useUiStore.getState().setPaletteOpen(savedPaletteOpen);
       useUiStore.getState().setInspectorCollapsed(savedInspectorCollapsed);
       useUiStore.getState().setLogOpen(savedLogOpen);
     }
@@ -309,6 +304,7 @@ export function Editor() {
     setSetting('inspectorCollapsed', inspectorCollapsed);
   }, [inspectorCollapsed, setSetting]);
 
+  const interfaceMotion = useSettingsStore((s) => s.interfaceMotion);
   const selectedComp = selectedId ? (components.find((c) => c.id === selectedId) ?? null) : null;
   const selectedWireIds = useCircuitStore((s) => s.selectedWireIds);
   const selectedWire =
@@ -317,10 +313,12 @@ export function Editor() {
 
   return (
     <div
-      className="electrasim-editor relative h-full w-full overflow-hidden"
+      className="electrasim-editor open-table relative h-full w-full overflow-hidden"
       data-phone={isPhone}
+      data-interface-motion={interfaceMotion}
       data-palette-open={paletteOpen}
       data-inspector-open={!inspectorCollapsed}
+      data-learning-open={diagnosisOpen || (!!activeGuideId && !guideHidden && inspectorCollapsed)}
       style={{ fontFamily: canvasTheme.font, background: bgGradient }}
     >
       <CircuitCanvas
@@ -334,14 +332,6 @@ export function Editor() {
         onSetSwitchState={setMomentarySwitchState}
         externalSvgRef={canvasSvgRef}
       />
-      {(challengeOpen || challengeModeActive) && (
-        <LazySurface
-          label="Challenge Mode"
-          onClose={() => useUiStore.getState().setChallengeOpen(false)}
-        >
-          <ChallengeModeRuntime isPhone={isPhone} panelOpen={challengeOpen} />
-        </LazySurface>
-      )}
 
       <Toolbar
         isPhone={isPhone}
@@ -349,8 +339,8 @@ export function Editor() {
         dashboardOpen={dashboardOpen}
         onToggleDashboard={() => setDashboardOpen(!dashboardOpen)}
       />
-      {!isPhone && <SubHeaderBar />}
-      {!isPhone && <CanvasToolbar />}
+      <SubHeaderBar />
+      <ZoomControls />
       <Palette open={paletteOpen} isPhone={isPhone} />
       <Inspector
         selectedComp={selectedComp}
@@ -359,27 +349,27 @@ export function Editor() {
         isPhone={isPhone}
         dashboardOpen={dashboardOpen}
       />
-      {eventHistoryOpen && (
+      <SurfacePresence open={!!eventHistoryOpen}>
         <Suspense fallback={null}>
           <EventHistoryPanel
-            isOpen
+            isOpen={eventHistoryOpen}
             onClose={() => useUiStore.getState().setEventHistoryOpen(false)}
           />
         </Suspense>
-      )}
+      </SurfacePresence>
       <LogPanel isPhone={isPhone} open={logOpen} simRunning={simRunning} logs={logs} />
-      <AlignmentBar />
-      {activeGuideId && (
-        <Suspense fallback={null}>
-          <GuidedCircuitPanel isPhone={isPhone} />
-        </Suspense>
-      )}
 
-      {diagnosisOpen && (
+      <SurfacePresence open={!!activeGuideId} animate className="table-guide-presence">
         <Suspense fallback={null}>
-          <DiagnosisPanel isPhone={isPhone} />
+          <GuidedCircuitPanel isPhone={isPhone} guideId={visibleGuideId} />
         </Suspense>
-      )}
+      </SurfacePresence>
+
+      <SurfacePresence open={diagnosisOpen} animate>
+        <Suspense fallback={null}>
+          <DiagnosisPanel isPhone={isPhone} open={diagnosisOpen} />
+        </Suspense>
+      </SurfacePresence>
       {showMiniMap && !isPhone && (
         <MiniMap consoleOffset={dashboardOpen ? 'expanded' : tabletConsoleOffset} />
       )}
@@ -391,113 +381,113 @@ export function Editor() {
         dashboardOpen={dashboardOpen}
       />
 
-      {isPhone && (
-        <Suspense fallback={null}>
-          <PhoneDock />
-        </Suspense>
-      )}
-
       <MenuOverlay open={menuOpen} onClose={() => useUiStore.getState().setMenuOpen(false)} />
 
-      {docsOpen && (
+      <SurfacePresence open={!!docsOpen}>
         <LazySurface label="Documentation" onClose={() => useUiStore.getState().setDocsOpen(false)}>
-          <DocsPage open onClose={() => useUiStore.getState().setDocsOpen(false)} />
+          <DocsPage open={docsOpen} onClose={() => useUiStore.getState().setDocsOpen(false)} />
         </LazySurface>
-      )}
+      </SurfacePresence>
 
-      {contactOpen && (
+      <SurfacePresence open={!!contactOpen}>
         <LazySurface label="Contact" onClose={() => useUiStore.getState().setContactOpen(false)}>
-          <ContactModal open onClose={() => useUiStore.getState().setContactOpen(false)} />
+          <ContactModal
+            open={contactOpen}
+            onClose={() => useUiStore.getState().setContactOpen(false)}
+          />
         </LazySurface>
-      )}
+      </SurfacePresence>
 
-      {importExportOpen && (
+      <SurfacePresence open={!!importExportOpen}>
         <LazySurface
           label="Import / Export"
           onClose={() => useUiStore.getState().setImportExportOpen(false)}
         >
           <ImportExportModal
-            open
+            open={importExportOpen}
             onClose={() => useUiStore.getState().setImportExportOpen(false)}
             svgRef={canvasSvgRef}
           />
         </LazySurface>
-      )}
+      </SurfacePresence>
 
-      {templatesOpen && (
+      <SurfacePresence open={!!templatesOpen}>
         <LazySurface
           label="Guided Circuits"
           onClose={() => useUiStore.getState().setTemplatesOpen(false)}
         >
-          <TemplatesModal open onClose={() => useUiStore.getState().setTemplatesOpen(false)} />
+          <TemplatesModal
+            open={templatesOpen}
+            onClose={() => useUiStore.getState().setTemplatesOpen(false)}
+          />
         </LazySurface>
-      )}
+      </SurfacePresence>
 
-      {settingsOpen && (
+      <SurfacePresence open={!!settingsOpen}>
         <LazySurface label="Settings" onClose={() => useUiStore.getState().setSettingsOpen(false)}>
           <SettingsModal
-            open
+            open={settingsOpen}
             onClose={() => useUiStore.getState().setSettingsOpen(false)}
             initialTab={settingsTab}
           />
         </LazySurface>
-      )}
+      </SurfacePresence>
 
-      {mobileSuitabilityOpen && (
+      <SurfacePresence open={!!mobileSuitabilityOpen}>
         <Suspense fallback={null}>
           <MobileSuitabilityModal />
         </Suspense>
-      )}
-      {welcomeOpen && (
+      </SurfacePresence>
+      <SurfacePresence open={!!welcomeOpen}>
         <Suspense fallback={null}>
           <WelcomeModal />
         </Suspense>
-      )}
+      </SurfacePresence>
       {tourId && (
         <Suspense fallback={null}>
           <TourOverlay isPhone={isPhone} />
         </Suspense>
       )}
       <TourOfferChip isPhone={isPhone} />
-      {hasFaultAlert && (
+      <SurfacePresence open={!!hasFaultAlert}>
         <Suspense fallback={null}>
           <FaultAlertModal />
         </Suspense>
-      )}
-      {commandPaletteOpen && (
+      </SurfacePresence>
+      <SurfacePresence open={!!commandPaletteOpen}>
         <Suspense fallback={null}>
           <CommandPalette />
         </Suspense>
-      )}
-      {shortcutsOpen && (
+      </SurfacePresence>
+      <SurfacePresence open={!!shortcutsOpen}>
         <LazySurface
           label="Keyboard shortcuts"
           onClose={() => useUiStore.getState().setShortcutsOpen(false)}
         >
           <ShortcutsOverlay />
         </LazySurface>
-      )}
+      </SurfacePresence>
       <UndoToast />
-      {electricalFeedbackOpen && (
+      <SurfacePresence open={!!electricalFeedbackOpen}>
         <Suspense fallback={null}>
           <ElectricalEditDialog />
         </Suspense>
-      )}
-      {whatHappenedOpen && (
+      </SurfacePresence>
+      <SurfacePresence open={!!whatHappenedOpen}>
         <Suspense fallback={null}>
           <WhatHappenedModal />
         </Suspense>
-      )}
-      {activeValidationIssueModal && (
+      </SurfacePresence>
+      <SurfacePresence open={!!activeValidationIssueModal}>
         <Suspense fallback={null}>
           <ValidationDetailsModal />
         </Suspense>
-      )}
-      {activeComponentInfoType && (
+      </SurfacePresence>
+      <SurfacePresence open={!!activeComponentInfoType}>
         <Suspense fallback={null}>
           <ComponentInfoModal />
         </Suspense>
-      )}
+      </SurfacePresence>
       <ContextMenu />
 
       <ConfirmDialog

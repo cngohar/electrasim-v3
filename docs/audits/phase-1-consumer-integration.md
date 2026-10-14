@@ -122,8 +122,8 @@ isolated transformer **0.82 / 1.35 ms**; cascade **1.13 / 1.84 ms**. Dense
 200–256-component cases measured **52.94–78.09 ms median / 68.61–132.74 ms p95**.
 The dense solver and 60 fps rendering targets remain open, with no changed budget.
 
-F.2 migrates basic/advanced Diagnosis Lab and Ohmageddon grading, generation and
+F.2 migrates basic/advanced Diagnosis Lab grading, generation and
 authorized replay. F.3 retires the legacy runtime and runs the full `verify` and
-three stress suites. This F.1 record does not close those gates. All services and
+two stress suites. This F.1 record does not close those gates. All services and
 persistence were local; no Cloudflare account operation, remote resource/test,
 deployment, database migration or Git push occurred.

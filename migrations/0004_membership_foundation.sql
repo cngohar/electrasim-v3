@@ -99,4 +99,4 @@ ALTER TABLE `user` ADD `global_role` text DEFAULT 'individual' NOT NULL;
 INSERT INTO pro_features (key, handler, name, description, enabled, sort_order, version, mutation_id, created_at, updated_at) VALUES
 ('pro_components', 'pro_components', '{"en":"Pro components"}', '{"en":"Use the Pro component catalog."}', 1, 0, 1, 'migration-0004', 1790467200000, 1790467200000),
 ('advanced_faults', 'advanced_faults', '{"en":"Advanced faults"}', '{"en":"Advanced fault types and exercises with multiple injected faults."}', 1, 1, 1, 'migration-0004', 1790467200000, 1790467200000),
-('advanced_diagnostics', 'advanced_diagnostics', '{"en":"Advanced diagnostics"}', '{"en":"Advanced diagnosis and Ohmageddon; scenarios may require other capabilities."}', 1, 2, 1, 'migration-0004', 1790467200000, 1790467200000);
+('advanced_diagnostics', 'advanced_diagnostics', '{"en":"Advanced diagnostics"}', '{"en":"Advanced diagnosis scenarios may require other capabilities."}', 1, 2, 1, 'migration-0004', 1790467200000, 1790467200000);

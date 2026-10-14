@@ -85,7 +85,7 @@ export function DocsNavigation({
 
       {tocOpen && (
         <nav
-          className="fixed inset-x-0 top-[53px] z-20 border-b border-slate-100 bg-white/95 p-4 shadow-lg backdrop-blur-xl md:hidden dark:border-slate-700 dark:bg-slate-900/95"
+          className="table-docs-phone-nav fixed inset-x-0 top-[53px] z-20 border-b border-slate-100 bg-white/95 p-4 shadow-lg backdrop-blur-xl md:hidden dark:border-slate-700 dark:bg-slate-900/95"
           aria-label="Documentation"
         >
           {DOCS_TOC.map((item) => (

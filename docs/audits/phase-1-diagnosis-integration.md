@@ -1,4 +1,4 @@
-# Phase 1.5F.2 — Diagnosis Lab and Ohmageddon
+# Phase 1.5F.2 — Diagnosis Lab
 
 Date: 2026-10-07. **Status: complete locally within the documented teaching assessment scope.**
 
@@ -14,18 +14,14 @@ consumption and undeclared timer recipes remain historical; they do not enter
 new graded exercises. This is a bounded operation assessment, not a safety or
 standards certificate. Unknown operating ranges and damage laws remain explicit.
 
-Basic recipes and faults are selected before generation. Advanced and Ohmageddon
+Basic recipes and faults are selected before generation. Advanced
 attempts retain fresh membership authorization and server-owned answers,
 counters and results. New attempts reject older generator versions. No database
 schema or migration is required.
 
 Every generated fault must have a supported target and a solo solved effect on
-an authored load. Simulator error labels alone are insufficient. This applies
-to initial selection, compound partner replacements and misleading-symptom
-replacements. All compound claims still require a masked pair and a changed
-visible symptom after the masking fault is removed. Modifiers that alter actual
-load operating points are discarded; approximate equality uses a bounded numeric
-tolerance. Unsupported decoys cannot enter the accepted baseline.
+an authored load. Simulator error labels alone are insufficient. The healthy
+baseline and faulted circuit must both carry current supported evidence.
 
 ## Repair and replay
 
@@ -40,7 +36,7 @@ Named load voltage/current/power and source identities must match the baseline;
 equal energization counts cannot substitute for operating points.
 
 All faults must be named before success, even on an already repaired circuit.
-Correct identification of one fault in a compound exercise remains progress;
+Correct identification of one fault in an authored multi-fault exercise remains progress;
 partial repair remains incomplete. Live symptom feedback uses the same recovery
 boundary instead of announcing health from the absence of an observable symptom.
 
@@ -49,7 +45,7 @@ versions. Current codes replay deterministically. Mismatched assessment versions
 cannot silently produce a new graded result. IndexedDB resume uses the original
 saved scenario and repair circuit. Older snapshots remain available with grading
 blocked. Hono GET retains the scenario/circuit and reports its assessment issue;
-obsolete submissions/hints/expiry are refused without new penalties. Authorized
+obsolete submissions and hints are refused without new penalties. Authorized
 checkpoint and abandonment remain available, preserving prior elapsed time.
 Existing accepted historical scores are retained as historical evidence.
 
@@ -73,7 +69,7 @@ checks; no single uninterrupted green default run is claimed.
   recipe acceptance; historical topology/registry checks remain.
 - Final build, asset/link/SEO/CSP checks passed: **251,339 B gzip initial JS /
   300,000 B**, **26,004 B CSS / 30,000 B**, 193 HTML link checks and 191 SEO pages.
-- **849 exact Bun/workerd cases** passed, including 28 diagnosis/Ohmageddon
+- **849 exact Bun/workerd cases** passed, including 28 diagnosis
   grading replays with original authored documents. Final evidence:
   `.wrangler/domain-tests-i6saJw/`.
 - **20 real local Worker/D1/cookie groups** passed, including actual authored
@@ -99,4 +95,4 @@ isolated transformer **0.73 / 1.42 ms**, cascade **0.74 / 1.19 ms** and dense
 All services and persistence were local. No dependency, lockfile, database
 migration, live-site test, Cloudflare account/credential/resource operation,
 deployment or Git push occurred. F.3 legacy retirement, full `verify` and the
-three stress suites remain open before effects.
+two stress suites remain open before effects.

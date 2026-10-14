@@ -16,9 +16,7 @@ const steps = [
     'test',
     'e2e/diagnosis-assessment.spec.ts',
     'e2e/diagnosis-lab.spec.ts',
-    'e2e/ohmageddon.spec.ts',
     'e2e/consumer-evidence.spec.ts',
-    'e2e/challenge-mode.spec.ts',
     '--project=chromium',
     '--workers=2',
   ],
@@ -27,5 +25,5 @@ process.exitCode = runPhaseGate({
   label: 'Phase 1.5F.2',
   steps,
   successMessage:
-    'Phase 1.5F.2 diagnosis/Ohmageddon grading and replay passed locally. Legacy retirement and the full verify/stress suites remain F.3. No deployment was performed.',
+    'Phase 1.5F.2 diagnosis grading and replay passed locally. Legacy retirement and the full verify/stress suites remain F.3. No deployment was performed.',
 });

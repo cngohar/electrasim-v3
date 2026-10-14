@@ -4,6 +4,7 @@ import { consumerEvidenceFixture } from '../packages/domain/src/simulation/consu
 import { portableResult } from '../packages/domain/src/simulation/runtimeFixtures';
 import { test } from './helpers/paid-test';
 import { inspect, openCircuit } from './helpers/three-phase';
+import { activateControl, openCircuitTools } from './helpers/workbench';
 
 test('all shipped guide consumers replay exactly through real Comlink with stale results rejected', async ({
   page,
@@ -51,7 +52,7 @@ test('desktop analytics shows actual series power and withholds a stale reading'
 }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await openCircuit(page, seriesFixture());
-  await page.getByRole('button', { name: 'Run Simulation', exact: true }).click();
+  await activateControl(page, page.getByRole('button', { name: 'Run Simulation', exact: true }));
   await expect
     .poll(() =>
       page.evaluate(async () => {
@@ -61,7 +62,13 @@ test('desktop analytics shows actual series power and withholds a stale reading'
     )
     .toBe('converged');
   await inspect(page, 'r0');
-  await page.getByTitle('Current calculated readings').click();
+  await page.keyboard.press('Escape');
+  await activateControl(
+    page,
+    page
+      .getByRole('complementary', { name: 'Inspector' })
+      .getByRole('button', { name: 'Analysis', exact: true }),
+  );
   const analytics = page.getByLabel('Calculated analytics');
   await expect(analytics.locator('[data-reading="power"]')).toHaveText(
     `${Number(((12 / 12.21) ** 2 * 6).toFixed(4))} W`,
@@ -84,7 +91,8 @@ test('the shared Fault Lab offers a named terminal disconnect on a phone', async
     (await import(settingsPath)).useSettingsStore.getState().setSetting('appMode', 'pro');
     (await import(circuitPath)).useCircuitStore.getState().selectComponent('r0');
   });
-  await page.getByRole('button', { name: 'Fault Lab', exact: true }).click();
+  await openCircuitTools(page);
+  await activateControl(page, page.getByRole('button', { name: 'Fault Lab', exact: true }));
   const panel = page.getByLabel('Fault Lab panel');
   await panel.getByLabel('Fault target terminal').selectOption('0');
   await panel.getByRole('button', { name: /Loose \/ Disconnected Terminal/ }).click();

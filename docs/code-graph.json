@@ -1,5 +1,5 @@
 {
-  "activePhase": "1.9",
+  "activePhase": "1.10",
   "phases": [
     {
       "id": "0",
@@ -8,7 +8,7 @@
     },
     {
       "id": "1",
-      "status": "in-progress",
+      "status": "complete locally with documented performance exceptions (2026-10-12)",
       "evidence": ["docs/phases/phase-1-simulator-core.md"]
     },
     {
@@ -72,8 +72,11 @@
     },
     {
       "id": "1.9",
-      "status": "planned",
-      "evidence": ["docs/phases/phase-1-simulator-core.md"]
+      "status": "complete locally with user-accepted performance exceptions (2026-10-12); aggregate browser evidence; strict full gate not green",
+      "evidence": [
+        "docs/phases/phase-1-simulator-core.md",
+        "docs/audits/phase-1-full-verification.md"
+      ]
     },
     {
       "id": "2",
@@ -199,6 +202,18 @@
       "id": "1.5F.2",
       "status": "complete within documented scope; see phase acceptance links",
       "evidence": ["docs/phases/phase-1-simulator-core.md", "progress.md"]
+    },
+    {
+      "id": "1.10",
+      "status": "complete locally (2026-10-14); Challenge runtime retirement, accepted simulator redesign and explicitly approved four-file cleanup; all post-cleanup test/build gates exit 0; Phase 1.9 performance exceptions unchanged",
+      "evidence": [
+        "docs/phases/phase-1-simulator-core.md",
+        "docs/audits/challenge-mode-retirement.md",
+        "docs/plans/OPEN_DRAFTING_TABLE_IMPLEMENTATION_PLAN.md",
+        "docs/audits/open-drafting-table-implementation.md",
+        "docs/design/open-drafting-table/CLEANUP_REVIEW.md",
+        "progress.md"
+      ]
     }
   ],
   "facts": [
@@ -240,23 +255,32 @@
       "evidence": [
         "docs/plans/PHASE_1_7_UI_MODES_PLAN.md",
         "docs/audits/phase-1-legacy-retirement.md"
-      ]
+      ],
+      "global": true
     },
     {
       "id": "local-only",
       "summary": "All phases develop and test locally; no Cloudflare remote actions or publication are implied by local acceptance.",
-      "evidence": ["AGENTS.md"]
+      "evidence": ["AGENTS.md"],
+      "global": true
     },
     {
       "id": "phone-fault-lab-single-surface",
-      "summary": "Phone Fault Lab is owned by FaultLabDialog; the new phone Inspector must hide while that dialog is open to avoid duplicate controls and intercepted clicks.",
+      "summary": "Phase 1.10 hosts one shared modeless InspectorFaultLabView tool window on desktop and phone. Inspect closes Fault Lab and returns to Properties, preserving canvas picking and fault/repair controls. This replaces the old PhoneDock/FaultLabDialog ownership; those obsolete wrappers were explicitly approved and removed on 2026-10-14.",
       "evidence": [
-        "src/ui/components/PhoneDock.tsx",
-        "src/ui/components/FaultLabDialog.tsx",
+        "src/ui/components/Toolbar.tsx",
         "src/ui/components/inspector/Inspector.tsx",
+        "src/ui/components/inspector/InspectorFaultLabView.tsx",
+        "e2e/workbench-ui.spec.ts",
         "e2e/consumer-evidence.spec.ts",
-        "e2e/damage-repair.spec.ts"
-      ]
+        "e2e/damage-repair.spec.ts",
+        "docs/design/open-drafting-table/CLEANUP_REVIEW.md"
+      ],
+      "review": {
+        "at": "2026-10-14T05:25:44.652Z",
+        "scope": "Reviewed Toolbar toggle/Inspect handoff, the shared modeless InspectorFaultLabView and removed old wrapper references. Post-deletion three-project tests passed actual phone terminal-disconnect injection, phone damage editing/access/focus return and modeless canvas picking/Inspect handoff, within the 18-case clean-exit source gate. Shared fault/repair logic remains active; no duplicate phone wrapper.",
+        "fingerprint": "524abe36dfe3a6d2ab73bac5cfee80ae357783f37ca05e87e55426f79b109108"
+      }
     },
     {
       "id": "membership-admin-independent-entry",
@@ -298,13 +322,205 @@
     },
     {
       "id": "admin-focus-request-generation",
-      "summary": "List-effect cleanup only cancels that list request. It must not invalidate the newer access-check generation when focus revalidation changes access to checking; that race leaves the admin screen stuck.",
-      "evidence": ["src/admin/Admin.tsx", "e2e/admin-membership.spec.ts"]
+      "summary": "Admin focus/online revalidation uses a separate access request generation, coalesces overlapping checks, and preserves signed-in lists and editor drafts on success. Login forms are not revalidated on focus. Actual clipboard-paste login, session expiry and draft-preserving role-revocation checks passed on Chromium desktop and Pixel 7; see the audit for scope. Port 3000 serves source; local Worker port 8791 serves dist and requires a rebuild to receive UI fixes.",
+      "evidence": [
+        "src/admin/Admin.tsx",
+        "e2e/admin-membership.spec.ts",
+        "docs/audits/phase-1-membership-ui.md",
+        "vite.config.ts",
+        "wrangler.jsonc"
+      ],
+      "review": {
+        "at": "2026-10-12T07:30:04.816Z",
+        "scope": "Reviewed Admin access/list generations, signed-out focus suppression, coalesced signed-in revalidation and the corrected membership audit history. Final matrix includes clipboard, draft preservation and role/session denial across browser projects; successful focus checks preserve form state.",
+        "fingerprint": "ab92171d93da2313d16a98f55aad47c64ba88f884d4098fa18fdf19a2accefdf"
+      }
     },
     {
       "id": "plan-benefits-loading-preservation",
       "summary": "Plan PATCH replaces the complete feature list. The editor must block review until all benefit choices have loaded; an empty loading form must never become an empty replacement. A readonly required input does not enforce this browser validation.",
       "evidence": ["src/admin/Editor.tsx", "src/api/membership.ts", "e2e/admin-membership.spec.ts"]
+    },
+    {
+      "id": "tour-offer-exercise-hit-targets",
+      "summary": "The workspace tour invitation overlapped the challenge Pause control and intercepted clicks. Suppress the invitation while guides, challenges or Diagnosis Lab are open; eighteen focused desktop/phone/Safari cases passed, including pause, exit/restore, clipboard and migration.",
+      "evidence": ["src/ui/tour/TourOfferChip.tsx", "docs/audits/phase-1-full-verification.md"]
+    },
+    {
+      "id": "interface-mode-active-title",
+      "summary": "The Basic/Pro toggle displays both labels after Phase 1.7; its tooltip declares the active mode. Legacy browser selectors for a Student-only button never selected Pro, leaving fault injection correctly gated off. Tests must select the current public control and confirm its active tooltip; interface mode remains independent of paid authorization.",
+      "evidence": [
+        "src/ui/components/Toolbar.tsx",
+        "src/ui/components/contextMenuItems.ts",
+        "e2e/faults-and-editing.spec.ts",
+        "e2e/pro-features.spec.ts",
+        "docs/audits/phase-1-full-verification.md"
+      ]
+    },
+    {
+      "id": "workspace-run-controls-clearance",
+      "summary": "Phase 1.9 measured Toolbar clearance remains historical audit evidence. Phase 1.10 uses open-table.css bottom-shelf clearance and responsive Inspector/learning sheets; actual occluders participate in Fit. Phone Console handoff preserves the active exercise and unobstructed controls, with a shorter scrollable Diagnosis sheet and fixed guide footer. Phase 1.10 audit records focused framing and unchanged 25 px legibility assertions; it does not renew the historical full performance gate.",
+      "evidence": [
+        "src/ui/components/Toolbar.tsx",
+        "src/ui/open-table.css",
+        "src/ui/components/DiagnosisPanel.tsx",
+        "src/ui/components/GuidedCircuitPanel.tsx",
+        "src/ui/components/ElectricalEditDialog.tsx",
+        "e2e/helpers/workbench.ts",
+        "e2e/three-phase-source.spec.ts",
+        "docs/audits/phase-1-full-verification.md",
+        "docs/audits/open-drafting-table-implementation.md"
+      ],
+      "review": {
+        "at": "2026-10-12T07:28:14.161Z",
+        "scope": "Reviewed measured Toolbar clearance, learning/supply surfaces and Inspector/search helper mappings against the final 525-case ledger: 505 passes and 20 intentional skips. Evidence is aggregate; no timing fix or uninterrupted full gate is claimed.",
+        "fingerprint": "25aa4839deddd15c1cb7db88af2546852ca95ee14b55666e619a56f71136ea2a"
+      }
+    },
+    {
+      "id": "guide-fit-occlusion",
+      "summary": "The guide checklist, Inspector hand-off and hidden-guide pill declare data-canvas-occluder. Shared Fit measures these actual surfaces so a reopened guide does not cover fitted circuit controls. The staircase browser case refits after returning from the Inspector and exercises all four traveller states with real clicks.",
+      "evidence": [
+        "src/ui/components/GuidedCircuitPanel.tsx",
+        "src/ui/canvas/fitView.ts",
+        "src/ui/canvas/fitRegion.ts",
+        "e2e/two-way-staircase.spec.ts",
+        "docs/audits/phase-1-full-verification.md"
+      ],
+      "review": {
+        "at": "2026-10-12T07:28:12.761Z",
+        "scope": "Reviewed guide markers in checklist, Inspector hand-off and hidden pill, shared Fit source and final guide/DOL/schematic/staircase recovery across three projects. Real clicks verify all traveller states after Fit; circuit and solver contracts unchanged.",
+        "fingerprint": "24671988717e34598f7c65d7eeb20c6cc2c2106876175b8a0818b8d46b3336c6"
+      }
+    },
+    {
+      "id": "fault-edit-fresh-runtime-result",
+      "summary": "Fault edits clear stale simResult while useSimulation carries the active run state into the next solve. A trip must be checked on the fresh runtime result; a component-state latch is not interchangeable with that runtime state. Browser clear/reset actions use named controls and real keyboard input when headless WebKit scroll/frame stability blocks automated pointer checks.",
+      "evidence": [
+        "src/store/uiStore.ts",
+        "src/store/useSimulation.ts",
+        "src/ui/components/inspector/FaultRepairPanel.tsx",
+        "src/ui/components/inspector/InspectorFaultLabView.tsx",
+        "e2e/damage-repair.spec.ts",
+        "e2e/workbench-ui.spec.ts",
+        "docs/audits/phase-1-full-verification.md"
+      ],
+      "review": {
+        "at": "2026-10-12T07:28:13.823Z",
+        "scope": "Reviewed stale-result invalidation, active runtime state carry-over and clear/reset controls. Fresh protection checks passed all three projects with real keyboard actions; electrical polls retain 20 seconds, lifecycle envelope is 60 seconds. Headless pointer stability is not claimed fixed.",
+        "fingerprint": "548ec64a816516e84e496a1e8a8e15646a3896b0cb97a69f67dca3e7a7df3f26"
+      }
+    },
+    {
+      "id": "phase-1.9-local-closure",
+      "summary": "On 2026-10-12 the user explicitly closed Phase 1.9 locally with documented performance exceptions after functional verification. Simulation p95 56.65 ms versus 8 ms, generator timing limits and dense 60 fps remain unmet. Browser acceptance is aggregate; strict full-gate failures remain failures. No publication, deployment or new phase execution is authorized by closure.",
+      "evidence": [
+        "docs/audits/phase-1-full-verification.md",
+        "docs/phases/phase-1-simulator-core.md",
+        "progress.md"
+      ],
+      "review": {
+        "at": "2026-10-12T07:28:10.930Z",
+        "scope": "Reviewed explicit 2026-10-12 user closure decision, final audit, phase plan and progress. Functional checks completed; simulation and generator timing failed and dense 60 fps remains unmet. Closure does not certify a green full gate or remote work.",
+        "fingerprint": "b0976452673956472d8a612ff33dc532e67603f8850a4eb8709dea9fbd5e072d"
+      }
+    },
+    {
+      "id": "open-drafting-table-design-proposal",
+      "summary": "User accepted centered header, full-width bottom shelf, icon + diagram appearance, raster reference photos, right desktop Inspector and bottom phone Inspector. The standalone multifile prototype originally included 52 simulator screen designs, visible Console severity selections, reversible entry/exit motion, actual catalogue family metadata and variant review/apply/cancel/undo. Supply/wire edits use drafts. Full design precedes production implementation; production deletion requires explicit user confirmation after a concrete impact review. Chromium prototype checks and limitations are documented; Phase 1.9 closure and performance exceptions remain unchanged. On 2026-10-13 the user accepted the design and authorised implementation after explicit Challenge Mode removal, retaining plans/docs for a later rebuild. The active prototype has 51 screens. Unrelated deletion requires review. The exact subsequent four-file cleanup was reviewed, explicitly approved and completed locally on 2026-10-14; the recorded prototype checks remain historical design evidence.",
+      "evidence": [
+        "docs/design/open-drafting-table/README.md",
+        "docs/design/open-drafting-table/SCREENS.md",
+        "docs/design/open-drafting-table/CLEANUP_REVIEW.md",
+        "docs/design/open-drafting-table/index.html",
+        "docs/design/open-drafting-table/prototype.css",
+        "docs/design/open-drafting-table/workspace.js",
+        "docs/design/open-drafting-table/views.js",
+        "docs/design/open-drafting-table/flows.js",
+        "docs/design/open-drafting-table/catalog-data.js",
+        "src/ui/components/componentImages.ts",
+        "src/ui/components/inspector/ComponentPropertiesView.tsx",
+        "src/ui/components/LogPanel.tsx",
+        "src/ui/canvas/MatterLayer.tsx",
+        "docs/design/open-drafting-table/artwork.js",
+        "src/ui/components/inspector/ElectricalReadings.tsx",
+        "src/ui/components/inspector/PhasorReadings.tsx",
+        "docs/design/open-drafting-table/selection.js",
+        "src/ui/components/InlineArrange.tsx",
+        "src/ui/components/contextMenuItems.ts",
+        "src/ui/canvas-actions.ts",
+        "docs/design/open-drafting-table/inspector-quick.js",
+        "src/ui/components/inspector/WireInspectorView.tsx",
+        "docs/plans/OPEN_DRAFTING_TABLE_IMPLEMENTATION_PLAN.md",
+        "docs/audits/challenge-mode-retirement.md"
+      ],
+      "review": {
+        "at": "2026-10-14T06:07:28.528Z",
+        "scope": "Reviewed corrected README status and active 51-screen inventory against completed Phase 1.10 audit and approved cleanup; older 52-screen prototype measurements remain historical. This is the user-authorized GitHub checkpoint, with no new prototype or production implementation.",
+        "fingerprint": "3ef984303fa2d5319ff832686c470a0a0b3afded57785057c1974213f6586e79"
+      }
+    },
+    {
+      "id": "challenge-mode-deferred-by-user",
+      "summary": "On 2026-10-13 the user explicitly requested removing Challenge Mode runtime before the accepted simulator redesign, retaining all plans/docs for its later-stage rebuild. Dedicated modules, sessions and controls are removed. Diagnosis-only generator/replay remains; nine pre/post Diagnosis identities/circuits are unchanged. Browser data is untouched. Local evidence and failure/recovery boundaries are in the audit. This authorises Challenge-owned deletion only, with unrelated cleanup still requiring review; remote actions remain unauthorised.",
+      "evidence": [
+        "docs/audits/challenge-mode-retirement.md",
+        "docs/plans/ElectraSim-Challenge-Mode-Plan.md",
+        "packages/domain/src/challenges/types.ts",
+        "packages/domain/src/challenges/share.test.ts",
+        "src/main.tsx",
+        "src/store/persistence.ts",
+        "e2e/challenge-retirement.spec.ts"
+      ],
+      "review": {
+        "at": "2026-10-13T12:53:48.890Z",
+        "scope": "Reviewed direct user retirement/defer instruction, preserved plans/docs and all deleted/runtime/shared dependency changes. Final full check 2113 tests, build/static checks, 20 local Worker/D1/session groups and 21 browser cases passed; earlier failures/recovery and unchanged timing budgets retained. Nine Diagnosis seed identities/circuits are unchanged; saved data preserved. Built fresh desktop/phone smoke passed. Retirement scope only; redesign starts after this checkpoint.",
+        "fingerprint": "62750ffba7d23930da8a1bf66a66b71728f34e3ed30bd9b4a3df71de3f52114d"
+      }
+    },
+    {
+      "id": "open-drafting-table-production-contracts",
+      "summary": "Accepted production UI uses the existing simulator stores and numerical/grading/access contracts. Physical registry covers 116 types / 60 families on catalogue, placement ghost and canvas; terminal geometry stays canonical. Three Inspector tabs split reference/readings/basic drafts from detailed model windows. Wire label is optional validated display metadata. Glow consumes fresh accepted response. Console Clear leaves faults/history intact. Retained entry/exit, nested focus and manual/OS reduced motion cover shared windows and learning sheets. No framework or solver rewrite. Phone Console hides a task sheet without ending its exercise; Diagnosis uses a shorter scrollable sheet to preserve circuit visibility and guide footers stay outside their scrolling content. Final validation and process-exit boundaries are recorded in the audit. The approved obsolete phone/arrangement/Fault Lab wrappers and previous stylesheet are removed; clean post-deletion acceptance is documented separately.",
+      "evidence": [
+        "docs/audits/open-drafting-table-implementation.md",
+        "src/ui/canvas/openTableArtwork.ts",
+        "src/ui/canvas/ComponentNode.tsx",
+        "src/ui/components/inspector/Inspector.tsx",
+        "src/ui/components/inspector/InspectorQuickSettings.tsx",
+        "src/ui/components/LogPanel.tsx",
+        "src/ui/hooks/useSurfacePresence.ts",
+        "src/ui/hooks/useDialogFocus.ts",
+        "src/ui/components/SurfacePresence.tsx",
+        "src/ui/components/DiagnosisPanel.tsx",
+        "src/ui/components/GuidedCircuitPanel.tsx",
+        "src/store/wireProperties.test.ts",
+        "src/ui/Editor.tsx",
+        "src/ui/open-table.css",
+        "src/ui/components/InlineArrange.tsx"
+      ],
+      "review": {
+        "at": "2026-10-14T06:07:31.184Z",
+        "scope": "Reviewed final cleanup/current implementation evidence and the staged formatter diff, which changes only wire-test layout and no assertions or runtime behavior. The formatted five wire tests pass; prior full 2115 units and source/built/Worker scopes remain recorded separately. No new runtime or performance claim.",
+        "fingerprint": "e0b6c091a9ca5fad761d9d21488de575a1ba93cf7ad4909ff8bdb27eb7b0679a"
+      }
+    },
+    {
+      "id": "open-drafting-table-cleanup-review",
+      "summary": "On 2026-10-14, after inspecting the exact four-file / 718-line patch and named functions/replacements, the user explicitly approved deleting PhoneDock, AlignmentBar, their old FaultLabDialog wrapper and the unimported workspace.css, and completing the phase. The unchanged patch is applied; exact current-file backups and deletion ledger remain local. No source/test/build import references removed modules. Shared simulator actions and replacement UI remain. Post-deletion types/lint/2115 units, build/static checks, 18 affected source cases, six built cases and five graph implementation tests all exit 0. Phase 1.10 is complete locally; no broader deletion or remote operation is authorized.",
+      "evidence": [
+        "docs/design/open-drafting-table/CLEANUP_REVIEW.md",
+        "src/ui/components/Toolbar.tsx",
+        "src/ui/components/InlineArrange.tsx",
+        "src/ui/components/inspector/Inspector.tsx",
+        "src/ui/open-table.css",
+        "src/ui/Editor.tsx",
+        "docs/audits/open-drafting-table-implementation.md"
+      ],
+      "review": {
+        "at": "2026-10-14T05:25:42.696Z",
+        "scope": "Reviewed explicit 2026-10-14 approval after the exact four-file/function table and patch, applied deletion ledger/backups and active replacements. Removed only 718 current-file lines (Git-base diff 710 due to eight backed-up prior local CSS lines). No remaining source/test/build imports. Post-deletion full check 2115 units, build/static, 18 affected source cases, six built cases and five graph implementation tests all exit 0. Phase 1.10 cleanup complete; no wider deletion or remote work.",
+        "fingerprint": "28339469668145d07d125645f6b2b27e20e616a284417255e107d76b44a3e502"
+      }
     }
   ],
   "relations": [
@@ -382,6 +598,1061 @@
       "from": "e2e/admin-membership.spec.ts",
       "relation": "tests",
       "to": "src/admin/style.css"
+    },
+    {
+      "from": "e2e/admin-membership.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/audit-baseline.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/cable-size.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/canvas-base.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/consumer-evidence.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/damage-repair.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/diagnosis-assessment.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/diagnosis-lab.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/dol-guide.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/electrical-editing.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/faults-and-editing.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/guide-schematics.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/guided-circuits.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/matter-effects.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/mna-runtime.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/performance.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/pro-features.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/production.spec.ts",
+      "to": "playwright.production.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/protection.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/relay-switching.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/scroll-lock.spec.ts",
+      "to": "playwright.production.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/smoke.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/supply-profiles.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/three-phase-motor.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/three-phase-source.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/timed-controls.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/timer-dimming.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/toolbox.spec.ts",
+      "to": "playwright.production.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/two-way-staircase.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/wire-properties.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/workbench-ui.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/workspace-design.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/zs-check.spec.ts",
+      "to": "playwright.config.ts",
+      "relation": "configured-by",
+      "note": "Playwright discovery/project/server configuration; configuration changes affect this browser suite."
+    },
+    {
+      "from": "e2e/cable-size.spec.ts",
+      "to": "astro-site/src/components/tools/CableSizePanels.astro",
+      "relation": "tests"
+    },
+    {
+      "from": "e2e/cable-size.spec.ts",
+      "to": "astro-site/src/styles/tool-stage.css",
+      "relation": "tests"
+    },
+    {
+      "from": "e2e/faults-and-editing.spec.ts",
+      "to": "src/ui/components/Toolbar.tsx",
+      "relation": "tests"
+    },
+    {
+      "from": "e2e/pro-features.spec.ts",
+      "to": "src/ui/components/Toolbar.tsx",
+      "relation": "tests"
+    },
+    {
+      "from": "e2e/workbench-ui.spec.ts",
+      "to": "src/ui/components/Toolbar.tsx",
+      "relation": "tests"
+    },
+    {
+      "from": "e2e/zs-check.spec.ts",
+      "to": "src/ui/components/Toolbar.tsx",
+      "relation": "tests"
+    },
+    {
+      "from": "e2e/guided-circuits.spec.ts",
+      "to": "src/ui/components/Toolbar.tsx",
+      "relation": "tests"
+    },
+    {
+      "from": "e2e/damage-repair.spec.ts",
+      "relation": "tests",
+      "to": "src/store/useSimulation.ts"
+    },
+    {
+      "from": "e2e/damage-repair.spec.ts",
+      "relation": "tests",
+      "to": "src/store/uiStore.ts"
+    },
+    {
+      "from": "e2e/damage-repair.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/components/inspector/FaultRepairPanel.tsx"
+    },
+    {
+      "from": "e2e/workbench-ui.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/components/inspector/InspectorFaultLabView.tsx"
+    },
+    {
+      "from": "e2e/two-way-staircase.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/components/GuidedCircuitPanel.tsx"
+    },
+    {
+      "from": "e2e/two-way-staircase.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/canvas/fitView.ts"
+    },
+    {
+      "from": "e2e/canvas-base.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/components/ImportExportModal.tsx"
+    },
+    {
+      "from": "e2e/canvas-base.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/hooks/useKeyboardShortcuts.ts"
+    },
+    {
+      "from": "e2e/production.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/components/MenuOverlay.tsx"
+    },
+    {
+      "from": "e2e/production.spec.ts",
+      "relation": "tests",
+      "to": "scripts/preview-server.mjs"
+    }
+  ],
+  "features": [
+    {
+      "id": "open-drafting-table",
+      "summary": "Accepted full simulator redesign and explicitly approved four-file / 718-line cleanup complete locally on 2026-10-14. After deletion all types/lint and 2115 unit tests, fresh build/static checks, 18 affected source cases across three browser projects, six built desktop/phone cases and five graph implementation tests pass with exit 0. Earlier reporters completed 63 UI and 90 consumer assertions with outer-shell 143; their recovery and 20 local Worker groups remain separately documented. Centered commands, bottom shelf, physical canvas artwork, three Inspector tabs/photos/drafts, shared windows and two-way motion are implemented. Phase 1.9 performance exceptions remain; no remote operation.",
+      "tags": [
+        "simulator",
+        "redesign",
+        "spacious",
+        "dock",
+        "header",
+        "inspector",
+        "appearance",
+        "photos",
+        "animation",
+        "console",
+        "logs"
+      ],
+      "entryPoints": [
+        "docs/design/open-drafting-table/index.html",
+        "docs/design/open-drafting-table/views.js",
+        "docs/design/open-drafting-table/flows.js",
+        "src/ui/Editor.tsx",
+        "src/ui/open-table.css",
+        "src/ui/components/inspector/Inspector.tsx",
+        "src/ui/canvas/openTableArtwork.ts",
+        "src/ui/components/Toolbar.tsx",
+        "src/ui/components/Palette.tsx",
+        "src/ui/components/LogPanel.tsx",
+        "src/ui/components/Modal.tsx",
+        "src/ui/components/SurfacePresence.tsx",
+        "src/ui/components/UndoToast.tsx",
+        "src/ui/components/InlineArrange.tsx",
+        "src/ui/components/inspector/InspectorOverview.tsx",
+        "src/ui/components/inspector/InspectorQuickSettings.tsx",
+        "src/ui/components/inspector/SwitchOperation.tsx",
+        "src/ui/components/GuidedCircuitPanel.tsx",
+        "src/ui/components/DiagnosisPanel.tsx",
+        "src/ui/components/SimulatorAccessBanner.tsx",
+        "src/ui/ErrorBoundary.tsx",
+        "src/ui/canvas/ComponentNode.tsx",
+        "src/ui/canvas/OverlayLayer.tsx",
+        "src/ui/hooks/useSurfacePresence.ts",
+        "src/ui/hooks/useDialogFocus.ts",
+        "src/ui/hooks/useKeyboardShortcuts.ts",
+        "src/store/settingsStore.ts",
+        "src/store/circuitStore.ts",
+        "packages/domain/src/types.ts",
+        "packages/domain/src/core/input.ts"
+      ],
+      "evidence": [
+        "docs/design/open-drafting-table/README.md",
+        "docs/design/open-drafting-table/SCREENS.md",
+        "docs/design/open-drafting-table/CLEANUP_REVIEW.md",
+        "docs/plans/OPEN_DRAFTING_TABLE_IMPLEMENTATION_PLAN.md",
+        "docs/audits/open-drafting-table-implementation.md"
+      ],
+      "facts": [
+        "local-only",
+        "open-drafting-table-design-proposal",
+        "challenge-mode-deferred-by-user",
+        "open-drafting-table-production-contracts",
+        "open-drafting-table-cleanup-review",
+        "phone-fault-lab-single-surface"
+      ],
+      "checks": [
+        {
+          "command": "bun run check",
+          "files": [
+            "src/ui/CircuitCanvas.test.tsx",
+            "src/ui/canvas/componentAppearance.test.tsx",
+            "src/ui/canvas/DeviceArtwork.test.tsx",
+            "src/ui/components/Modal.test.tsx",
+            "src/ui/components/GuidedCircuitPanel.test.tsx",
+            "src/ui/components/LazySurface.test.tsx",
+            "src/store/settingsStore.test.ts",
+            "src/store/wireProperties.test.ts",
+            "src/store/electricalEditing.test.ts"
+          ],
+          "reason": "Full types/lint/2115 units on the final tree; includes current-result glow, canonical terminal geometry, nested focus, persisted appearance/motion, optional wire metadata and atomic history."
+        },
+        {
+          "command": "PLAYWRIGHT_DEV_PORT=3002 bun x playwright test e2e/open-drafting-table.spec.ts e2e/workbench-ui.spec.ts e2e/workspace-design.spec.ts --workers=1",
+          "files": [
+            "e2e/open-drafting-table.spec.ts",
+            "e2e/workbench-ui.spec.ts",
+            "e2e/workspace-design.spec.ts",
+            "e2e/helpers/workbench.ts"
+          ],
+          "reason": "All 63 complete Chrome/phone/Safari cases passed before final sheet/toast polish. Exercises five viewport sizes, actual physical placement, raster photos, basic drafts/reset/Undo, reviewed variants, Console/history, retained motion, keyboard, settings persistence and modeless Fault Lab handoff."
+        },
+        {
+          "command": "PLAYWRIGHT_DEV_PORT=3002 bun x playwright test e2e/electrical-editing.spec.ts e2e/damage-repair.spec.ts e2e/three-phase-source.spec.ts e2e/consumer-evidence.spec.ts e2e/guided-circuits.spec.ts e2e/diagnosis-assessment.spec.ts e2e/challenge-retirement.spec.ts --workers=1",
+          "files": [
+            "e2e/electrical-editing.spec.ts",
+            "e2e/damage-repair.spec.ts",
+            "e2e/three-phase-source.spec.ts",
+            "e2e/consumer-evidence.spec.ts",
+            "e2e/guided-circuits.spec.ts",
+            "e2e/diagnosis-assessment.spec.ts",
+            "e2e/challenge-retirement.spec.ts"
+          ],
+          "reason": "All 90 consumer assertions pass across three engines, including real Comlink/local-Hono, reviews/Undo/persistence, damage/repair, guides and grading. Reporter completed; outer shell 143. Current bounded graded repair/reload and UI recovery exit 0; no electrical or deadline assertions were weakened."
+        },
+        {
+          "command": "bun run build && bun run check:perf && bun run check:links && bun run check:seo && bun run check:csp",
+          "files": [
+            "src/ui/open-table.css",
+            "scripts/check-performance.mjs",
+            "scripts/check-internal-links.mjs",
+            "scripts/check-seo.mjs",
+            "scripts/check-csp.mjs"
+          ],
+          "reason": "Fresh simulator/Astro output, unchanged static budgets, complete local links/SEO/CSP; static asset acceptance is separate from unresolved solver/dense-rendering timing."
+        },
+        {
+          "command": "bun x playwright test --config=playwright.production.config.ts e2e/open-drafting-table.production.spec.ts --workers=1",
+          "files": [
+            "e2e/open-drafting-table.production.spec.ts",
+            "playwright.production.config.ts",
+            "scripts/preview-server.mjs"
+          ],
+          "reason": "Fresh built desktop/phone checks pass with exit 0: actual loaded form chunks/rows, artwork/photo, basic draft/Undo, motion/Console and catalogue placement. Source-module imports are not used."
+        },
+        {
+          "command": "bun run test:simulator",
+          "files": [
+            "scripts/test-membership.ts",
+            "scripts/test-simulator.ts",
+            "scripts/test-simulator-browser.ts"
+          ],
+          "reason": "Final 20 actual local Worker/D1/cookie groups exit 0, including real paid browser revocation, original backup and basic copy. SQLite/bootstrap and off-screen recovery failures are retained in the audit."
+        },
+        {
+          "command": "PLAYWRIGHT_DEV_PORT=3002 bun x playwright test e2e/diagnosis-assessment.spec.ts e2e/open-drafting-table.spec.ts --workers=1 --grep 'versioned diagnosis simulations|correct diagnosis needs|obsolete saved model|Properties preserves|retain exits'",
+          "files": ["e2e/diagnosis-assessment.spec.ts", "e2e/open-drafting-table.spec.ts"],
+          "reason": "Final bounded 15-case clean-exit source recovery across all engines after the shorter phone sheet, keeping real repair/reload/stale-model, atomic drafts and exit-content/manual-motion assertions."
+        },
+        {
+          "command": "PLAYWRIGHT_DEV_PORT=3002 bun x playwright test e2e/diagnosis-lab.spec.ts e2e/open-drafting-table.spec.ts --workers=1 --grep 'frames the circuit clear|Console stays reachable'",
+          "files": ["e2e/diagnosis-lab.spec.ts", "e2e/open-drafting-table.spec.ts"],
+          "reason": "Final six cases exit 0: actual unobstructed hit targets during learning, no circuit overlap, unchanged 25 px legibility, scrollable fixed guide footer and preserved exercise on Console handoff."
+        },
+        {
+          "command": "PLAYWRIGHT_DEV_PORT=3002 bun x playwright test e2e/open-drafting-table.spec.ts e2e/workbench-ui.spec.ts e2e/consumer-evidence.spec.ts e2e/damage-repair.spec.ts --workers=1 --grep 'centered commands and full-width shelf|context arrangement|canvas commands reuse|Fault Lab stays modeless|shared Fault Lab offers a named|damage settings remain usable on a phone'",
+          "files": [
+            "e2e/open-drafting-table.spec.ts",
+            "e2e/workbench-ui.spec.ts",
+            "e2e/consumer-evidence.spec.ts",
+            "e2e/damage-repair.spec.ts",
+            "src/ui/components/InlineArrange.tsx",
+            "src/ui/components/inspector/Inspector.tsx",
+            "src/ui/components/Toolbar.tsx",
+            "src/ui/open-table.css"
+          ],
+          "reason": "Post-deletion affected source coverage across all three browser projects: clear shell/hit targets, original canvas commands, direct arrangement and Undo, shared modeless Fault Lab handoff, actual phone terminal-disconnect injection and phone damage/access/focus controls. Exact outcome is in the cleanup acceptance audit."
+        }
+      ],
+      "decisions": [
+        "Standalone design comparison precedes production changes; requested layout and workflow scope: docs/design/open-drafting-table/README.md.",
+        "On 2026-10-14 the user approved only the exact reviewed PhoneDock, AlignmentBar, FaultLabDialog and workspace.css removal; the unchanged patch is applied, exact backups remain, and all post-cleanup gates exit 0. This completes Phase 1.10 locally, without approving broader deletion or remote work."
+      ],
+      "broaderChecks": [
+        "Production Inspector/task-sheet changes require consumer, damage/repair, diagnosis, guide, access and built-assets browser coverage plus a consolidated local gate. Existing Phase 1.9 performance exceptions remain explicit."
+      ],
+      "review": {
+        "at": "2026-10-14T06:09:38.355Z",
+        "scope": "Reviewed completed Phase 1.10 plan/audit/progress and current README for the explicit user-requested GitHub checkpoint. Pre-commit formatting changes only wire-test layout; five focused tests and all pre-commit types/lint pass. Prior full post-cleanup 2115 units, 18 source and six built passes remain scoped. GitHub authorization is separate from Cloudflare deployment. No Diagnosis retirement or new Fault Lab implementation is included.",
+        "fingerprint": "612e4833acc0ae80cc85c3eef0d6756859bb1b960ad7aa65f1e9990bcf7706e3"
+      }
+    },
+    {
+      "id": "membership-access",
+      "summary": "Membership administration, access checks and plan benefit editing.",
+      "tags": [
+        "membership",
+        "access",
+        "admin",
+        "benefits",
+        "plans",
+        "login",
+        "focus",
+        "clipboard",
+        "paste",
+        "refresh",
+        "session",
+        "admin-focus"
+      ],
+      "entryPoints": [
+        "src/admin/main.tsx",
+        "src/admin/Admin.tsx",
+        "src/admin/Editor.tsx",
+        "src/api/membership.ts"
+      ],
+      "evidence": [
+        "docs/audits/phase-1-membership-ui.md",
+        "scripts/verify-phase18.mjs",
+        "docs/audits/phase-1-full-verification.md"
+      ],
+      "facts": [
+        "membership-not-interface-mode",
+        "membership-admin-independent-entry",
+        "membership-picker-literal-search",
+        "membership-admin-browser-fixtures",
+        "admin-mobile-long-names",
+        "admin-focus-request-generation",
+        "plan-benefits-loading-preservation"
+      ],
+      "checks": [
+        {
+          "command": "bun run test:membership",
+          "files": ["scripts/test-membership.ts"],
+          "reason": "Exercises actual local Worker/D1/cookie authorization and membership lifecycle."
+        },
+        {
+          "command": "bun x playwright test e2e/admin-membership.spec.ts --project=chromium --project=mobile-chrome --workers=1",
+          "files": ["e2e/admin-membership.spec.ts"],
+          "reason": "Exercises administration lifecycle, roles, actual clipboard login across tabs, focus preservation of unsaved drafts, loading races and phone layout."
+        }
+      ],
+      "decisions": [
+        "Independent /admin/pro/ entry avoids booting simulator persistence; rationale and acceptance: docs/audits/phase-1-membership-ui.md."
+      ],
+      "broaderChecks": [
+        "Changes to shared access contracts, Worker configuration or build entrypoints require the broader local gate: bun run verify:phase-1.8. This does not close Phase 1.9."
+      ],
+      "review": {
+        "at": "2026-10-12T07:30:07.059Z",
+        "scope": "Reviewed membership UI audit, Admin focus/access source and public/protected API mapping against current acceptance evidence: 36 real local membership/API groups, 20 simulator groups and broader admin browser flows. Independent entry and no-private-cache boundaries remain. This scoped evidence review is not a deployment or general security certification.",
+        "fingerprint": "9a131765b170ca2c6ec9509e6ab4e38b055a12ed8733fe746bc8bd9a2e535dbb"
+      }
+    },
+    {
+      "id": "component-appearance",
+      "summary": "Component appearance and persisted workspace display settings.",
+      "tags": ["appearance", "symbols", "icons", "settings", "workspace"],
+      "entryPoints": ["src/ui/canvas/ComponentNode.tsx", "src/store/settingsStore.ts"],
+      "evidence": ["docs/audits/phase-1-ui-modes.md"],
+      "facts": [
+        "appearance-terminal-invariance",
+        "appearance-persistence",
+        "phone-fault-lab-single-surface"
+      ],
+      "checks": [
+        {
+          "command": "bun x vitest run src/ui/canvas/componentAppearance.test.tsx src/store/settingsStore.test.ts",
+          "files": [
+            "src/ui/canvas/componentAppearance.test.tsx",
+            "src/store/settingsStore.test.ts"
+          ],
+          "reason": "Checks appearance invariants and persisted settings."
+        },
+        {
+          "command": "bun x playwright test e2e/workspace-design.spec.ts",
+          "files": ["e2e/workspace-design.spec.ts"],
+          "reason": "Checks actual workspace interactions and presentation."
+        }
+      ],
+      "decisions": [
+        "Appearance changes preserve terminal anchors and electrical state; scope: docs/audits/phase-1-ui-modes.md."
+      ],
+      "broaderChecks": [
+        "Inspector or phone overlay changes also need e2e/consumer-evidence.spec.ts and e2e/damage-repair.spec.ts; broader UI gate: bun run verify:phase-1.7."
+      ]
+    },
+    {
+      "id": "repository-knowledge",
+      "summary": "Local repository graph navigation, task briefings and scoped evidence freshness.",
+      "tags": ["graph", "knowledge", "brief", "freshness", "tests"],
+      "entryPoints": ["scripts/code-graph.mjs", "scripts/code-graph-knowledge.mjs"],
+      "evidence": ["docs/knowledge-base.md"],
+      "facts": ["local-only"],
+      "checks": [
+        {
+          "command": "bun run test:graph",
+          "files": ["scripts/code-graph.test.mjs"],
+          "reason": "Checks graph traversal, CLI refresh, retrieval and evidence invalidation."
+        }
+      ],
+      "decisions": [
+        "Keep curated knowledge in Git and generated indexes local. Review fingerprints are explicit and never renewed by index rebuilds. Reconsider storage only after measured retrieval problems."
+      ],
+      "broaderChecks": [
+        "Graph-only changes need graph tests and targeted lint; runtime tests are required when runtime code also changes."
+      ],
+      "review": {
+        "at": "2026-10-10T06:23:23.038Z",
+        "scope": "Reviewed graph CLI, knowledge helper, workflow documentation and feature/check mapping; graph regression tests passed. No application runtime tests rerun.",
+        "fingerprint": "25a6e895b4b5c7bebcd97a55be30b152ce01ebc86dc60114340b21c4a575ccd9"
+      }
+    },
+    {
+      "id": "phase-1.9-verification",
+      "summary": "Full local Phase 1 acceptance: authorization matrix, migration, D1 concurrency, simulator correctness, browser workflows and performance.",
+      "tags": [
+        "verification",
+        "phase",
+        "1.9",
+        "gate",
+        "tests",
+        "migration",
+        "burst",
+        "performance",
+        "acceptance",
+        "offline",
+        "production",
+        "pwa",
+        "service worker",
+        "lazy"
+      ],
+      "entryPoints": [
+        "scripts/verify-phase19.mjs",
+        "playwright.config.ts",
+        "scripts/test-membership.ts",
+        "scripts/test-simulator.ts"
+      ],
+      "evidence": [
+        "docs/audits/phase-1-full-verification.md",
+        "docs/phases/phase-1-simulator-core.md",
+        "docs/PERFORMANCE.md"
+      ],
+      "facts": [
+        "scope-acceptance",
+        "local-only",
+        "tour-offer-exercise-hit-targets",
+        "interface-mode-active-title",
+        "guide-fit-occlusion",
+        "fault-edit-fresh-runtime-result",
+        "phase-1.9-local-closure"
+      ],
+      "checks": [
+        {
+          "command": "PLAYWRIGHT_DEV_PORT=3002 bun run verify:phase-1.9 --keep-going",
+          "files": ["scripts/verify-phase19.mjs", "scripts/phase-gate.mjs", "package.json"],
+          "reason": "Run every unchanged verify-chain stage and supplemental gate; collection preserves nonzero failures and stops on interruption. It does not certify acceptance when any stage fails."
+        },
+        {
+          "command": "bun run test:membership",
+          "files": ["scripts/test-membership.ts", "scripts/test-simulator.ts"],
+          "reason": "Real D1/cookie authorization, concurrent writes, audit atomicity and simulator API coverage."
+        },
+        {
+          "command": "PLAYWRIGHT_DEV_PORT=3002 bun run e2e",
+          "files": [
+            "playwright.config.ts",
+            "e2e/admin-membership.spec.ts",
+            "e2e/supply-profiles.spec.ts",
+            "e2e/workspace-design.spec.ts"
+          ],
+          "reason": "Full desktop/phone/tablet flows with isolated test Worker; includes clipboard and persisted document restoration."
+        },
+        {
+          "command": "bun run test",
+          "files": [
+            "src/store/persistence.test.ts",
+            "packages/domain/src/circuitFormat.test.ts",
+            "packages/domain/src/faults.test.ts"
+          ],
+          "reason": "Legacy schema/wires/fault migration and sanitization, combined with real IndexedDB browser restoration."
+        },
+        {
+          "command": "bun run e2e:production",
+          "files": [
+            "playwright.production.config.ts",
+            "e2e/production.spec.ts",
+            "e2e/toolbox.spec.ts",
+            "e2e/scroll-lock.spec.ts"
+          ],
+          "reason": "Built Astro/app assets, routing, PWA, offline guest dialogs and tool layouts; inspect the actual hashed script and current public menu, not an obsolete entry basename or Guides button. Static preview is not authorization evidence."
+        },
+        {
+          "command": "PLAYWRIGHT_BASE_URL=http://127.0.0.1:8788/app/ bun run benchmark:browser",
+          "files": ["e2e/performance.spec.ts", "scripts/preview-server.mjs"],
+          "reason": "Built-asset dense interaction telemetry and strict handler/idle limits; preview must already be running."
+        },
+        {
+          "command": "bun run benchmark:simulation",
+          "files": ["scripts/benchmark-simulation.ts"],
+          "reason": "Application solve p95 against unchanged 8 ms limit, plus separate serialization measurements."
+        },
+        {
+          "command": "bun run benchmark:mna",
+          "files": ["scripts/benchmark-mna.ts"],
+          "reason": "Independent current/conservation assertions and size-limit numerical timings."
+        },
+        {
+          "command": "bun run test:domain-local",
+          "files": ["scripts/test-domain-local.ts"],
+          "reason": "Exact supported result parity between Bun and real local workerd."
+        },
+        {
+          "command": "bun run test:simulator",
+          "files": ["scripts/test-simulator.ts", "scripts/test-simulator-browser.ts"],
+          "reason": "API access/results, ownership, 50-write/200-read burst, guest offline and paid revocation/recovery browser workflows."
+        },
+        {
+          "command": "bun run stress:generator",
+          "files": ["scripts/stress-challenge-generator.ts"],
+          "reason": "Default full generator, fault/repair and deterministic replay workloads with unchanged timing assertions."
+        },
+        {
+          "command": "bun run stress:diagnosis",
+          "files": ["scripts/stress-diagnosis.ts"],
+          "reason": "Default full diagnosis generation/repair/evaluation/replay workload."
+        },
+        {
+          "command": "bun run test:gates",
+          "files": ["scripts/phase-gate.test.mjs"],
+          "reason": "Full/partial planning, fail-fast and failure collection, preserved nonzero exits and interruption reporting."
+        },
+        {
+          "command": "bun run test:graph",
+          "files": ["scripts/code-graph.test.mjs", "scripts/code-graph-knowledge.mjs"],
+          "reason": "Navigation, configuration impact, incremental refresh and evidence validation."
+        }
+      ],
+      "decisions": [
+        "Existing accepted F.3 exceptions remain failed measurements; partial or resumed runs are not a full green gate."
+      ],
+      "broaderChecks": [
+        "Shared core, auth, runtime or test configuration changes require reviewing the full acceptance matrix."
+      ],
+      "review": {
+        "at": "2026-10-12T07:29:57.520Z",
+        "scope": "Reviewed final 20-stage mappings, closure decision and exact evidence boundaries: 2147 units, 505 development passes plus 20 skips, 53 production passes, 36 membership and 20 simulator groups, 842 parity cases, full stress invariants and static checks. Simulation/generator budgets failed; strict full gate remains not green.",
+        "fingerprint": "8dcc879c04e22a579dc39ade338ca1de9985d4b7bfed5068da0c8aa0e406857d"
+      }
+    },
+    {
+      "id": "workspace-onboarding",
+      "summary": "Dismissible workspace tour invitation and its interaction with guide/challenge controls.",
+      "tags": [
+        "tour",
+        "onboarding",
+        "offer",
+        "challenge",
+        "pause",
+        "overlap",
+        "guide",
+        "workspace"
+      ],
+      "entryPoints": ["src/ui/tour/TourOfferChip.tsx", "src/ui/Editor.tsx"],
+      "evidence": ["docs/audits/phase-1-full-verification.md"],
+      "facts": ["tour-offer-exercise-hit-targets"],
+      "checks": [
+        {
+          "command": "PLAYWRIGHT_DEV_PORT=3002 bun x playwright test e2e/challenge-retirement.spec.ts --workers=1",
+          "files": ["e2e/challenge-retirement.spec.ts"],
+          "reason": "Current retirement coverage; prior Challenge pause/exit cases are historical in the audit."
+        }
+      ],
+      "broaderChecks": [
+        "Workspace overlay placement changes require the broader browser suite and final built-asset checks."
+      ]
+    },
+    {
+      "id": "astro-cable-calculator",
+      "summary": "Built Astro cable calculator sizing, active-control styling, responsive dock hit-testing and explanatory prose.",
+      "tags": ["astro", "cable", "calculator", "docks", "layout", "selection", "controls", "tool"],
+      "entryPoints": [
+        "astro-site/src/components/tools/CableSizePanels.astro",
+        "astro-site/src/styles/tool-stage.css"
+      ],
+      "evidence": ["docs/audits/phase-1-full-verification.md"],
+      "checks": [
+        {
+          "command": "PLAYWRIGHT_DEV_PORT=3002 bun x playwright test e2e/cable-size.spec.ts",
+          "files": ["e2e/cable-size.spec.ts", "playwright.config.ts"],
+          "reason": "Built Astro calculator flow, bounds, layout, actual controls and active-selection contrast. Preview serves built dist; build first after source changes."
+        }
+      ],
+      "decisions": [
+        "Color transitions require polling both live selected and idle states. Hit-testing must return to the stage after scrolling to prose."
+      ]
+    },
+    {
+      "id": "fault-injection-browser",
+      "summary": "Fault Lab/context-menu injection, Basic/Pro presentation and real cookie authorization through browser workflows.",
+      "tags": [
+        "fault",
+        "faults",
+        "injection",
+        "context",
+        "menu",
+        "pro",
+        "basic",
+        "mode",
+        "selectors",
+        "tooltip"
+      ],
+      "entryPoints": ["src/ui/components/contextMenuItems.ts", "src/ui/components/Toolbar.tsx"],
+      "evidence": ["docs/audits/phase-1-full-verification.md"],
+      "facts": ["interface-mode-active-title", "membership-not-interface-mode"],
+      "checks": [
+        {
+          "command": "PLAYWRIGHT_DEV_PORT=3002 bun x playwright test e2e/faults-and-editing.spec.ts e2e/pro-features.spec.ts",
+          "files": [
+            "e2e/faults-and-editing.spec.ts",
+            "e2e/pro-features.spec.ts",
+            "e2e/helpers/paid-test.ts"
+          ],
+          "reason": "Real mode selection, context-menu injection, unsupported coverage, undo and paid/basic authorization. Phone context menus have intentional skips; phone Fault Lab is covered separately."
+        }
+      ],
+      "broaderChecks": [
+        "Menu/mode/access changes require full UI and real membership/API checks; selecting Pro never establishes a membership."
+      ]
+    },
+    {
+      "id": "diagnosis-standard-only",
+      "summary": "Diagnosis Lab is the sole generated learning mode after user-directed Challenge Mode retirement; shared generation, faults, replay and server-owned grading remain.",
+      "tags": [
+        "diagnosis",
+        "cleanup",
+        "removal",
+        "settings",
+        "learning",
+        "modes",
+        "tiers",
+        "seed",
+        "replay"
+      ],
+      "entryPoints": [
+        "packages/domain/src/challenges/diagnosis/scenario.ts",
+        "packages/domain/src/challenges/share.ts",
+        "src/store/diagnosisStore.ts",
+        "src/ui/components/DiagnosisPanel.tsx",
+        "src/api/diagnosis.ts",
+        "packages/domain/src/challenges/faults/verification.ts",
+        "src/store/settingsStore.ts",
+        "src/ui/components/settings/SettingsTabContent.tsx",
+        "astro-site/src/content/pages/landing.json",
+        "astro-site/src/content/updates/electrasim-2-0-release.md",
+        "astro-site/src/components/landing/LandingCoreSections.astro",
+        "astro-site/src/styles/landing.css"
+      ],
+      "evidence": [
+        "docs/audits/diagnosis-mode-cleanup.md",
+        "migrations/0006_diagnosis_benefit_copy.sql",
+        "docs/audits/phase-1-full-verification.md"
+      ],
+      "checks": [
+        {
+          "command": "bun run check",
+          "files": [
+            "packages/domain/src/challenges/diagnosis/scenario.test.ts",
+            "packages/domain/src/challenges/diagnosis/assessment.test.ts",
+            "packages/domain/src/challenges/share.test.ts",
+            "src/store/diagnosisStore.test.ts",
+            "src/store/diagnosisPersistence.test.ts",
+            "src/store/settingsStore.test.ts",
+            "packages/domain/src/challenges/faults/verification.test.ts",
+            "packages/domain/src/challenges/generator/generator.test.ts",
+            "packages/domain/src/challenges/generator/seed.test.ts"
+          ],
+          "reason": "Ordinary scenarios, authored repairs, grading, persisted settings and strict standard seed replay."
+        },
+        {
+          "command": "bun run test:membership",
+          "files": ["scripts/test-membership.ts", "scripts/test-simulator.ts"],
+          "reason": "Real local Worker/D1/cookie auth, advanced diagnosis actions, revocation and preserved content."
+        },
+        {
+          "command": "PLAYWRIGHT_DEV_PORT=3002 bun x playwright test e2e/diagnosis-lab.spec.ts e2e/diagnosis-assessment.spec.ts --grep 'offers three difficulties|requires BOTH|a wrong diagnosis|copies a seed|versioned diagnosis simulations|correct diagnosis needs|obsolete saved' --workers=1",
+          "files": [
+            "e2e/diagnosis-lab.spec.ts",
+            "e2e/diagnosis-assessment.spec.ts",
+            "playwright.config.ts"
+          ],
+          "reason": "Focused standard diagnosis controls, repair/reload, clipboard replay, worker parity and stale-evidence rejection across desktop, phone and tablet; Safari clipboard case is intentionally skipped."
+        },
+        {
+          "command": "bun run build && bun run check:perf && bun run check:links && bun run check:seo && bun run check:csp",
+          "files": [
+            "astro-site/src/content/pages/landing.json",
+            "astro-site/src/components/landing/LandingCoreSections.astro",
+            "astro-site/src/styles/landing.css",
+            "astro-site/src/content/updates/electrasim-2-0-release.md"
+          ],
+          "reason": "Build simulator and Astro output, remove retired marketing copy and validate the two-card desktop/mobile section alongside static site budgets, links, SEO and CSP."
+        }
+      ],
+      "broaderChecks": [
+        "This changes generation/access/replay contracts; earlier Phase 1.9 evidence is historical and must be refreshed before phase acceptance.",
+        "The reserved seed fingerprint slot preserves ordinary identities; changing it would also change replayed circuits. It is not a generation option."
+      ],
+      "review": {
+        "at": "2026-10-12T07:30:09.412Z",
+        "scope": "Reviewed cleanup audit, standard diagnosis schema/API entry points, data-only copy migration and current Phase 1.9 evidence. Ordinary modes retain 2147 unit passes, 842 parity cases, 36 membership and 20 simulator groups, current browser flows and 600 Diagnosis scenarios. Migration is current locally; phase closed by explicit user decision with timing exceptions.",
+        "fingerprint": "769fc0c3804eac8b8bccc964f4c657607290f45b5c913fa8d498cf3827f398ce"
+      },
+      "facts": ["challenge-mode-deferred-by-user"]
+    },
+    {
+      "id": "workspace-control-reachability",
+      "summary": "Run, supply notice actions and phone learning surfaces remain reachable through current desktop/phone/tablet layouts.",
+      "tags": [
+        "workspace",
+        "phone",
+        "mobile",
+        "run",
+        "overlay",
+        "notice",
+        "challenge",
+        "diagnosis",
+        "guide",
+        "inspector",
+        "search"
+      ],
+      "entryPoints": [
+        "src/ui/components/Toolbar.tsx",
+        "src/ui/open-table.css",
+        "src/ui/components/DiagnosisPanel.tsx",
+        "src/ui/components/GuidedCircuitPanel.tsx",
+        "src/ui/components/ElectricalEditDialog.tsx",
+        "e2e/helpers/workbench.ts",
+        "e2e/three-phase-source.spec.ts",
+        "src/ui/components/inspector/Inspector.tsx",
+        "vite.config.ts"
+      ],
+      "evidence": ["docs/audits/phase-1-full-verification.md"],
+      "facts": ["workspace-run-controls-clearance"],
+      "checks": [
+        {
+          "command": "PLAYWRIGHT_DEV_PORT=3002 bun x playwright test e2e/mna-runtime.spec.ts e2e/guided-circuits.spec.ts e2e/diagnosis-lab.spec.ts e2e/three-phase-source.spec.ts e2e/workbench-ui.spec.ts --workers=1",
+          "files": [
+            "e2e/mna-runtime.spec.ts",
+            "e2e/guided-circuits.spec.ts",
+            "e2e/diagnosis-lab.spec.ts",
+            "e2e/three-phase-source.spec.ts",
+            "e2e/workbench-ui.spec.ts",
+            "e2e/helpers/workbench.ts"
+          ],
+          "reason": "Real hit targets, phone Inspector measurements, supply Apply/Run, panel hide/reopen, seed and ordinary diagnosis/guide workflows."
+        }
+      ],
+      "broaderChecks": [
+        "Toolbar clearance and Inspector helper changes affect the wider browser matrix; run the full Phase 1.9 suite before acceptance. Optimizer isolation does not waive assertions or time budgets."
+      ],
+      "review": {
+        "at": "2026-10-12T07:30:02.342Z",
+        "scope": "Reviewed final source/test mappings for measured Run clearance, supply notices, current Inspector/search and phone learning surfaces. All 525 development cases are accounted for as 505 passes and 20 skips; guide surfaces were rerun after occluder markers. No solver or dense-rendering performance improvement is claimed.",
+        "fingerprint": "09a711001422ab1b0757bb54edf7c35e8bee05a05b109c1f9b0d523913fa9c1a"
+      }
+    },
+    {
+      "id": "browser-recovery-controls",
+      "summary": "Canvas export, fault repair, guide Fit and Zs validation use current public controls and fresh runtime evidence. Recovery preserves electrical assertions, export contents, traveller states and UK Zs limits.",
+      "tags": [
+        "browser",
+        "recovery",
+        "canvas",
+        "export",
+        "artwork",
+        "keyboard",
+        "fault",
+        "repair",
+        "trip",
+        "clear",
+        "reset",
+        "guide",
+        "fit",
+        "zs",
+        "validation",
+        "safari",
+        "headless"
+      ],
+      "entryPoints": [
+        "src/ui/components/GuidedCircuitPanel.tsx",
+        "src/ui/canvas/fitView.ts",
+        "src/ui/components/Toolbar.tsx",
+        "src/store/useSimulation.ts",
+        "src/ui/components/ImportExportModal.tsx",
+        "src/ui/hooks/useKeyboardShortcuts.ts",
+        "src/ui/components/inspector/InspectorFaultLabView.tsx"
+      ],
+      "evidence": ["docs/audits/phase-1-full-verification.md"],
+      "facts": ["guide-fit-occlusion", "fault-edit-fresh-runtime-result"],
+      "checks": [
+        {
+          "command": "PLAYWRIGHT_DEV_PORT=3002 bun x playwright test e2e/canvas-base.spec.ts --workers=1",
+          "files": ["e2e/canvas-base.spec.ts"],
+          "reason": "Real file-dialog setup, export shortcut, SVG artwork/PNG bytes, fitting and appearance across browser projects."
+        },
+        {
+          "command": "PLAYWRIGHT_DEV_PORT=3002 bun x playwright test e2e/damage-repair.spec.ts e2e/workbench-ui.spec.ts --grep \"timed short|fault lab injects\" --workers=1",
+          "files": ["e2e/damage-repair.spec.ts", "e2e/workbench-ui.spec.ts"],
+          "reason": "Real injection, named keyboard clear/reset, fresh trip state and restored load without destruction. Lifecycle outer envelope is 60 seconds; electrical polls retain 20 seconds."
+        },
+        {
+          "command": "PLAYWRIGHT_DEV_PORT=3002 bun x playwright test e2e/guided-circuits.spec.ts e2e/dol-guide.spec.ts e2e/guide-schematics.spec.ts e2e/two-way-staircase.spec.ts --workers=1",
+          "files": [
+            "e2e/guided-circuits.spec.ts",
+            "e2e/dol-guide.spec.ts",
+            "e2e/guide-schematics.spec.ts",
+            "e2e/two-way-staircase.spec.ts"
+          ],
+          "reason": "Guide surfaces and hand-off, supported DOL operation, schematic CSP and all traveller combinations after actual Fit."
+        },
+        {
+          "command": "PLAYWRIGHT_DEV_PORT=3002 bun x playwright test e2e/zs-check.spec.ts --workers=1",
+          "files": ["e2e/zs-check.spec.ts"],
+          "reason": "Stable validation control on desktop/tablet; actual UK rating/Ze limits and withheld unsupported arrangements."
+        }
+      ],
+      "broaderChecks": [
+        "Guide occluder markers affect Fit only while guide surfaces are present; rerun affected guide files across all projects and rebuild static output. Recovery logs reconcile exact case keys; passing fingerprints do not certify tests or an uninterrupted full gate."
+      ],
+      "review": {
+        "at": "2026-10-12T07:29:59.858Z",
+        "scope": "Reviewed actual public control source, guide occlusion and fresh runtime result contracts against full case reconciliation and final recovery logs. Keyboard clear/reset, Zs title and actual production script/menu selectors preserve assertions; aggregate recovery and the 60-second lifecycle envelope remain explicit.",
+        "fingerprint": "14eedf7a4eb4ffecf0e43e83230532390e7b7b4ad1b88d152c9d06d406a6fbd0"
+      }
+    },
+    {
+      "id": "challenge-mode-retirement",
+      "summary": "Challenge Mode runtime removed and deferred by user decision; plans/docs preserved. Scoped retirement validation complete locally: full check, build/static, 20 local API/session groups and 21 desktop/phone/Safari cases; failure/recovery boundaries documented.",
+      "tags": ["challenge", "retirement", "deferred", "redesign", "diagnosis", "autosave"],
+      "entryPoints": [
+        "src/main.tsx",
+        "src/ui/Editor.tsx",
+        "src/store/uiStore.ts",
+        "packages/domain/src/challenges/types.ts"
+      ],
+      "evidence": [
+        "docs/audits/challenge-mode-retirement.md",
+        "docs/plans/OPEN_DRAFTING_TABLE_IMPLEMENTATION_PLAN.md"
+      ],
+      "facts": ["local-only", "challenge-mode-deferred-by-user"],
+      "checks": [
+        {
+          "command": "bun run check",
+          "files": [
+            "packages/domain/src/challenges/generator/generator.test.ts",
+            "packages/domain/src/challenges/share.test.ts",
+            "src/store/electricalEditing.test.ts",
+            "src/ui/components/MenuOverlay.test.tsx",
+            "src/ui/components/WelcomeModal.test.tsx"
+          ],
+          "reason": "All compiler/lint/unit gates; retired mode rejection, shared generation, editor operations and absent entry points."
+        },
+        {
+          "command": "PLAYWRIGHT_DEV_PORT=3002 bun x playwright test e2e/challenge-retirement.spec.ts e2e/diagnosis-lab.spec.ts e2e/diagnosis-assessment.spec.ts e2e/guided-circuits.spec.ts --grep 'retired Challenge|Diagnosis remains|offers three difficulties|versioned diagnosis simulations|correct diagnosis needs|loads the Push-Button Doorbell|visible close control' --workers=1",
+          "files": [
+            "e2e/challenge-retirement.spec.ts",
+            "e2e/diagnosis-assessment.spec.ts",
+            "e2e/diagnosis-lab.spec.ts",
+            "e2e/guided-circuits.spec.ts"
+          ],
+          "reason": "Real desktop/phone/tablet absence, old-IDB-session non-resume, normal circuit preservation, Diagnosis repair/replay/reload and guides. Safari uses the existing keyboard activation helper for unstable menu spans."
+        },
+        {
+          "command": "bun run test:simulator",
+          "files": ["scripts/test-simulator.ts", "scripts/test-membership.ts"],
+          "reason": "Real local Worker/D1/cookie acceptance of grading, repair, revocation, original content and electrical contracts."
+        },
+        {
+          "command": "bun run build && bun run check:perf && bun run check:links && bun run check:seo && bun run check:csp",
+          "files": ["scripts/check-performance.mjs", "e2e/production.spec.ts"],
+          "reason": "Built delivery and static budgets; does not renew historical numerical/dense-render performance acceptance."
+        }
+      ],
+      "decisions": [
+        "Challenge Mode plan remains for later rebuilding; its dedicated code deletion is explicitly authorised.",
+        "Full redesign is authorised and separately tracked; unrelated unused-code/theme deletions require a concrete user review."
+      ],
+      "review": {
+        "at": "2026-10-14T05:25:50.522Z",
+        "scope": "Reviewed preserved Challenge retirement/defer audit and updated implementation/phase plan after approved shell cleanup. Original retirement evidence remains scoped; current full 2115-test cleanup check preserves shared Diagnosis contracts. Earlier 20 Worker groups and absence/non-resume browser evidence are retained, not claimed rerun after deletion. No plans/docs removed or remote action.",
+        "fingerprint": "4349c2592de29058fb295113e9fbccf37503fcdbe471a8efa84705dc84c7e07e"
+      }
     }
   ]
 }

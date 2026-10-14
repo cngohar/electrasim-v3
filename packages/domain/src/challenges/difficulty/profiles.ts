@@ -1,19 +1,3 @@
-/**
- * Shared difficulty profiles (plan §9).
- *
- * Difficulty must control more than component count, so a profile carries the
- * generator-facing shape knobs (component budget, branch count, switching
- * complexity, run lengths) alongside the *declarative* learning knobs the
- * later phases consume (hint budget, diagnostic choice-set size, fault
- * distance).
- *
- * The learning knobs are plain numbers with no behaviour attached — the
- * generator never reads them. They live here so Challenge Mode, the Diagnosis
- * Lab and Ohmageddon all agree on what "intermediate" means instead of each
- * re-deriving it (plan §57 still holds: no fault or mode logic in the
- * generator itself).
- */
-
 import type { ChallengeDifficulty } from '../types';
 
 export interface DifficultyProfile {

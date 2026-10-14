@@ -76,6 +76,7 @@ describe('settingsStore — Phase 6.1', () => {
       colorScheme: 'dark',
       routingStyle: 'bezier',
       reducedEffects: true,
+      interfaceMotion: 'subtle',
       customWiringMode: true,
       showGrid: false,
       snapToGrid: true,
@@ -84,7 +85,7 @@ describe('settingsStore — Phase 6.1', () => {
       showRecentComponents: true,
       appMode: 'basic',
       canvasPreset: 'high-contrast',
-      componentAppearance: 'icons',
+      componentAppearance: 'both',
       wireColorStandard: 'uk_eu',
       automaticComponentLabels: true,
       diagnosticOverlayMode: 'off',
@@ -92,8 +93,6 @@ describe('settingsStore — Phase 6.1', () => {
       manualFaultInjection: true,
       autoWireJoints: false,
       plugSystem: 'bs1363',
-      // A stored blob that predates Ohmageddon must hydrate it OFF (plan §23).
-      ohmageddonMode: false,
       paletteOpen: true,
       inspectorCollapsed: true,
       logOpen: false,
@@ -267,7 +266,7 @@ it('validates appearance independently of circuit data and round-trips the prefe
     );
   }
   expect(sanitizeSettingsPayload({ componentAppearance: 'invalid' })?.componentAppearance).toBe(
-    'icons',
+    'both',
   );
   useSettingsStore.getState().setSetting('componentAppearance', 'icons');
 });

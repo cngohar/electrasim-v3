@@ -136,7 +136,6 @@ Reading is comprehension. Being tested is retention. Everything below runs on th
 1. **[In the App](/guide/templates/)** — all 20 guided templates, mapped to the walkthrough that explains each one. Use it when you want to build without being taught.
 2. **Challenge Mode** — you get a goal and outcome requirements, deliberately *without* a construction recipe. Rules are checked on topology, not coordinates, so any electrically equivalent wiring passes.
 3. **Diagnosis Lab** — the generator breaks a working circuit on purpose and hands it to you with a vague symptom: *"the hallway light is dead."* You investigate, diagnose, repair, and get scored. Every exercise is deterministic from a seed, so the same seed always gives the identical circuit — which is also what makes it usable in a classroom.
-4. **Ohmageddon** — compound faults that genuinely mask each other, a misleading-symptom modifier, limited hints and a timer. Electrically honest, and never unfair.
 5. **The Fault Lab** — inject open circuits, shorts, reversed polarity, earth faults and arc faults by hand, and watch which protective device responds, or pointedly fails to.
 6. **Compliance and reporting** — check a circuit against the active standard and export the result.
 
@@ -151,7 +150,6 @@ If you teach, the seed is the feature that matters: hand out a seed, and every s
 | **Beginner** | [Protected lamp](/guide/circuits/protected-lamp/) | Glossary as you go | Build all five beginner circuits, then break each one | You can predict what Run will do |
 | **Intermediate** | [Two-way switching](/guide/circuits/two-way-switching/) | [MCB](/guide/components/mcb/), [RCD](/guide/components/rcd/), the four instruments | Build the six intermediate circuits | You can say which device trips, and why |
 | **Advanced** | [Consumer unit](/guide/circuits/consumer-unit-panel/) | Both [calculators](/tools/) | Build the nine advanced circuits; inject faults | You can justify a cable size and a device choice |
-| **Pro** | [In the App](/guide/templates/) | Challenge → Diagnosis → Ohmageddon | Take a diagnosis seed and find the fault unaided | You can find a seeded fault without hints |
 
 ---
 
@@ -173,4 +171,3 @@ Everything in the guide is educational. It is written to make you a better-infor
 - Open [component pages](/guide/components/) when you want the *why*. Sixteen have a cutaway view showing the mechanism, and one click on a marker fills the side rail.
 - Learn the [instruments](/guide/tools/) before you need them — proving dead is a sequence, and the tool pages show you the parts that matter.
 - Every walkthrough opens pre-built in the [simulator](/app/). Build it, then break it on purpose; that is where the understanding comes from.
-- When reading stops being enough, let the [app examine you](/guide/templates/): Challenge, Diagnosis Lab, then Ohmageddon — all judged by the real simulation engine.

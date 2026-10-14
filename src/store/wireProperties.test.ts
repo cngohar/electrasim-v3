@@ -9,7 +9,7 @@ import { useUiStore } from './uiStore';
 beforeEach(() => {
   invalidateAccess();
   useSimulatorAccess.setState({ exercise: null, userId: null, capabilities: [], message: null });
-  useUiStore.setState({ simRunning: false, diagnosisActive: false, challengeAttemptId: null });
+  useUiStore.setState({ simRunning: false, diagnosisActive: false });
   const circuit = heaterFixture();
   circuit.components[1]!.state.customCableMm2 = 1;
   circuit.wires[0]!.customCableMm2 = undefined;
@@ -39,6 +39,34 @@ describe('wire physical size across editor boundaries', () => {
     redo();
     expect(selectCircuit(useCircuitStore.getState())).toEqual(after);
     expect(importJSON(exportJSON(after))).toEqual(after);
+  });
+
+  it('applies the conductor label, length, size and material as one undoable portable edit', () => {
+    const before = selectCircuit(useCircuitStore.getState());
+    expect(
+      useCircuitStore.getState().updateWireProperties('feed', {
+        label: '  Lighting feed  ',
+        lengthMeters: 12,
+        customCableMm2: 4,
+        material: 'aluminum',
+      }),
+    ).toBe(true);
+    const after = selectCircuit(useCircuitStore.getState());
+    expect(wire()).toMatchObject({
+      label: 'Lighting feed',
+      lengthMeters: 12,
+      customCableMm2: 4,
+      material: 'aluminum',
+    });
+    expect(after.components).toEqual(before.components);
+    expect(importJSON(exportJSON(after))).toEqual(after);
+    undo();
+    expect(selectCircuit(useCircuitStore.getState())).toEqual(before);
+    redo();
+    expect(selectCircuit(useCircuitStore.getState())).toEqual(after);
+    const invalid = JSON.parse(exportJSON(after));
+    invalid.circuit.wires[0].label = { html: 'invalid' };
+    expect(() => importJSON(JSON.stringify(invalid))).toThrow();
   });
 
   it('writes the physical equivalent when choosing AWG and does not keep contradictory pairs', () => {

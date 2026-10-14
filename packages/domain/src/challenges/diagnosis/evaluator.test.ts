@@ -228,19 +228,17 @@ describe('evaluateDiagnosis — feedback', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Multi-fault grading (plan §26/§27)
+// Grading an authored scenario with multiple faults
 // ---------------------------------------------------------------------------
 
 /**
  * Hand-assemble a genuine two-fault scenario.
  *
- * No tier ships two faults yet — that is F2 — so these cases cannot go through
- * `buildDiagnosisScenario`. Rather than fake a scenario object, this takes a
- * real one and injects a *second* real candidate fault next to the first,
+ * The standard builder generates a single fault. This fixture takes a real
+ * scenario and injects a second real candidate fault next to the first,
  * applying the same §12 gate the builder applies: each fault must be
  * observable on its own, and the pair must be observable together. That keeps
- * the fixture honest — if the grader passes here it will pass on whatever F2
- * generates.
+ * the fixture honest while exercising the grader's authored-scenario contract.
  *
  * Returns `null` when a seed offers no compatible second candidate, so the
  * caller can move on to the next seed instead of asserting on a fixture that

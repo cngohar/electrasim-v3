@@ -1,5 +1,8 @@
 # ElectraSim v2 — Circuit Generator Foundation Test Plan
 
+> **User decision — 2026-10-13:** Challenge Mode runtime was explicitly removed before the accepted simulator redesign and deferred for a later-stage rebuild. This plan is preserved. Shared generation, fault and replay code still supports Diagnosis Lab. See [retirement scope and evidence](../audits/challenge-mode-retirement.md).
+
+
 ## Purpose
 
 The Circuit Generator is implemented but not yet tested.
@@ -8,7 +11,6 @@ This plan verifies whether it is stable enough to become the foundation for:
 
 1. Challenge Mode
 2. Diagnosis Lab
-3. Ohmageddon Mode
 
 **Do not build those consumers until the Foundation Lock passes.**
 
@@ -41,7 +43,6 @@ Before functional testing, inspect the generator for:
 - generator logic mixed with UI/rendering
 - generator logic mixed with simulation
 - fault/diagnosis logic inside the generator
-- Ohmageddon logic inside the generator
 - duplicated generation/validation logic
 - hidden mutable global state
 - uncontrolled randomness
@@ -711,9 +712,6 @@ Then:
                  │
                  ▼
         🔧 DIAGNOSIS LAB
-                 │
-                 ▼
-          😈 OHMAGEDDON
 ```
 
 **Do not close the case before the Foundation Lock passes.**

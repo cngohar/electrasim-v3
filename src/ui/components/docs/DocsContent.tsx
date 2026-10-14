@@ -485,11 +485,9 @@ function LearningModesSection() {
       </SectionHeading>
       <div className="space-y-3">
         <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-400">
-          Beyond the free-form canvas, ElectraSim offers structured learning. Challenge Mode gives
-          you hand-authored build tasks; the Diagnosis Lab generates faults for you to find. Both
-          use the same circuit model and simulator as the rest of the app, so every circuit they
-          involve is an ordinary ElectraSim circuit — you can inspect, rewire and export it exactly
-          as usual.
+          Guided Circuits and Diagnosis Lab use the same circuit model and simulator as the
+          free-form workspace. Challenge Mode is deferred by the user for a later-stage rebuild; its
+          plans remain available, but its implementation is removed from this build.
         </p>
 
         {LEARNING_MODES.map((mode) => (

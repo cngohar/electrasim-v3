@@ -9,6 +9,9 @@ const FOCUSABLE_SELECTOR = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(',');
 
+const dialogStack: HTMLElement[] = [];
+let originalBodyOverflow = '';
+
 /** Keep keyboard focus inside an open dialog and restore it on close. */
 export function useDialogFocus(
   open: boolean,
@@ -26,11 +29,13 @@ export function useDialogFocus(
 
     const previouslyFocused =
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const previousOverflow = document.body.style.overflow;
+    if (!dialogStack.length) originalBodyOverflow = document.body.style.overflow;
+    dialogStack.push(panel);
     document.body.style.overflow = 'hidden';
     const focusTimer = window.setTimeout(() => panel.focus(), 0);
 
     const onKeyDown = (event: KeyboardEvent) => {
+      if (dialogStack.at(-1) !== panel) return;
       if (event.key === 'Escape') {
         event.preventDefault();
         event.stopImmediatePropagation();
@@ -64,8 +69,16 @@ export function useDialogFocus(
     return () => {
       window.removeEventListener('keydown', onKeyDown);
       window.clearTimeout(focusTimer);
-      document.body.style.overflow = previousOverflow;
-      previouslyFocused?.focus();
+      const wasTop = dialogStack.at(-1) === panel;
+      const index = dialogStack.lastIndexOf(panel);
+      if (index >= 0) dialogStack.splice(index, 1);
+      if (!dialogStack.length) document.body.style.overflow = originalBodyOverflow;
+      if (wasTop) {
+        const top = dialogStack.at(-1);
+        if (previouslyFocused?.isConnected && (!top || top.contains(previouslyFocused)))
+          previouslyFocused.focus();
+        else top?.focus();
+      }
     };
   }, [open, panelRef]);
 }

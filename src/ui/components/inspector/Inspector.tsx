@@ -12,25 +12,18 @@ import {
 } from '@electrasim/domain';
 import { getSimulationLimitations } from '@electrasim/domain/simulationCoverage';
 import { isCurrentSimulation } from '@electrasim/domain/simulationEvidence';
-import {
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  FlaskConical,
-  Layers,
-  Route,
-  ShieldCheck,
-  Sliders,
-  Sparkles,
-  Terminal,
-  Zap,
-} from 'lucide-react';
-import { Suspense, lazy } from 'react';
+import { ShieldCheck, X } from 'lucide-react';
+import { Suspense, lazy, useRef, useState } from 'react';
 import { useCircuitStore, useSettingsStore, useUiStore } from '../../../store';
-import { ComponentPreview } from '../ComponentPreview';
+import { useSurfacePresence } from '../../hooks/useSurfacePresence';
+import { Modal } from '../Modal';
+import { InspectorOverview } from './InspectorOverview';
 import { useInspectorSelectionState } from './useInspectorSelectionState';
 
 // Heavy Inspector tabs code-split with dynamic import (perf & initial bundle optimization)
+const InspectorQuickSettings = lazy(() =>
+  import('./InspectorQuickSettings').then((m) => ({ default: m.InspectorQuickSettings })),
+);
 const InspectorPropertiesContent = lazy(() =>
   import('./InspectorPropertiesContent').then((m) => ({ default: m.InspectorPropertiesContent })),
 );
@@ -77,7 +70,7 @@ interface Props {
 }
 
 /* =========================================================================
-   INSPECTOR MAIN COMPONENT (Vertical Tab Sidebar Drawer)
+   INSPECTOR: three-tab drawer with shared detail and tool windows
    ========================================================================= */
 
 export function Inspector({
@@ -96,12 +89,9 @@ export function Inspector({
   const activeInspectorTab = useUiStore((s) => s.activeInspectorTab);
   const setActiveInspectorTab = useUiStore((s) => s.setActiveInspectorTab);
   const activeGuideId = useUiStore((s) => s.activeGuideId);
-  const eventHistory = useUiStore((s) => s.eventHistory);
   const faultLabOpen = useUiStore((s) => s.faultLabOpen);
-  const appMode = useSettingsStore((s) => s.appMode);
-  const isPro = appMode === 'pro';
-  // Any injected fault shows as an amber dot on the Fault Lab tab button.
-  const injectedFaultCount = useCircuitStore((s) => s.faults.length);
+  const isPro = useSettingsStore((s) => s.appMode === 'pro');
+  const [modelOpen, setModelOpen] = useState(false);
   const modelBlocked = useCircuitStore((s) =>
     getSimulationLimitations({ components: s.components, wires: [] }).some((l) => l.blocking),
   );
@@ -112,333 +102,103 @@ export function Inspector({
   const isCollapsed = useUiStore((s) => s.inspectorCollapsed);
   const setIsCollapsed = (c: boolean) => useUiStore.getState().setInspectorCollapsed(c);
 
-  if (isPhone && (isCollapsed || faultLabOpen)) return null;
-
-  // Collapsed State View
-  if (isCollapsed) {
-    return (
+  const presence = useSurfacePresence(!isCollapsed);
+  const secondary = !['properties', 'simulation', 'configure'].includes(activeInspectorTab);
+  const tab = secondary ? 'properties' : activeInspectorTab;
+  const title =
+    selectionState.kind === 'component'
+      ? (COMPONENT_DEFS[selectionState.component.type]?.label ?? selectionState.component.type)
+      : selectionState.kind === 'wire'
+        ? `Wire ${selectionState.wire.label || selectionState.wire.id.slice(0, 8)}`
+        : selectionState.kind === 'multi-component'
+          ? `${selectionState.count} components selected`
+          : 'Your circuit';
+  // Keep the visible title and content throughout the retained exit.
+  const detailRef = useRef({
+    modelOpen,
+    tab: activeInspectorTab,
+    selectionState,
+    title,
+    isPro,
+    faultLabOpen,
+  });
+  if (modelOpen || secondary)
+    detailRef.current = {
+      modelOpen,
+      tab: activeInspectorTab,
+      selectionState,
+      title,
+      isPro,
+      faultLabOpen,
+    };
+  const detail = detailRef.current;
+  if (!presence.mounted) return null;
+  return (
+    <>
       <aside
+        style={activeInspectorTab === 'faultlab' ? { display: 'none' } : undefined}
+        className="table-inspector table-surface"
+        aria-label="Inspector"
         data-tour="inspector"
-        className="fixed right-0 top-[84px] bottom-0 z-20 flex w-12 flex-col items-center justify-between border-l border-slate-200/80 bg-white/90 p-2 shadow-xl backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/90 select-none"
-        title="Inspector (Collapsed)"
+        data-phone-inspector={isPhone}
+        data-canvas-occluder
+        data-surface-state={presence.exiting ? 'closing' : 'open'}
+        inert={presence.exiting || undefined}
       >
-        <div className="flex flex-col items-center gap-3 pt-3">
+        <div className="table-surface-heading">
+          <div>
+            <small>Inspector</small>
+            <h2>{title}</h2>
+          </div>
           <button
             type="button"
-            onClick={() => setIsCollapsed(false)}
-            className="flex size-8 items-center justify-center rounded-xl bg-blue-50 text-blue-600 shadow-xs hover:bg-blue-100 dark:bg-blue-950/80 dark:text-blue-400 dark:hover:bg-blue-900 transition"
-            title="Expand Inspector Panel"
-            aria-label="Expand Inspector Panel"
+            aria-label="Collapse Inspector"
+            title="Collapse Inspector"
+            onClick={() => setIsCollapsed(true)}
           >
-            <ChevronLeft className="size-4" />
+            <X size={17} />
           </button>
-
-          <div className="flex flex-col items-center gap-2.5 pt-3">
-            <button
-              type="button"
-              onClick={() => {
-                setIsCollapsed(false);
-                setActiveInspectorTab('properties');
-              }}
-              className={`p-2 rounded-xl transition ${
-                activeInspectorTab === 'properties'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-              }`}
-              title="Properties & Settings"
-            >
-              <Sliders className="size-4" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setIsCollapsed(false);
-                setActiveInspectorTab('connections');
-              }}
-              className={`p-2 rounded-xl transition ${
-                activeInspectorTab === 'connections'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-              }`}
-              title="Connections & Topology"
-            >
-              <Route className="size-4" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setIsCollapsed(false);
-                setActiveInspectorTab('simulation');
-              }}
-              className={`p-2 rounded-xl transition ${
-                activeInspectorTab === 'simulation'
-                  ? 'bg-amber-500 text-white shadow-xs'
-                  : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-              }`}
-              title="Simulation Telemetry & Faults"
-            >
-              <Zap className="size-4" />
-            </button>
-
-            {isPro && (
-              <button
-                type="button"
-                onClick={() => {
-                  // Opening fault mode expands the drawer and snaps to the
-                  // Fault Lab tab in one store action.
-                  useUiStore.getState().setFaultLabOpen(true);
-                }}
-                className={`relative p-2 rounded-xl transition ${
-                  activeInspectorTab === 'faultlab' && faultLabOpen
-                    ? 'bg-amber-600 text-white shadow-xs'
-                    : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-                }`}
-                aria-label="Fault Lab (manual fault injection)"
-                title="Fault Lab (manual fault injection)"
-              >
-                <FlaskConical className="size-4" />
-                {injectedFaultCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex size-3.5 items-center justify-center rounded-full bg-amber-500 text-[8px] font-bold text-white">
-                    {injectedFaultCount > 9 ? '9+' : injectedFaultCount}
-                  </span>
-                )}
-              </button>
-            )}
-
-            <div className="my-1 h-px w-6 bg-slate-200 dark:bg-slate-800" />
-
-            <button
-              type="button"
-              onClick={() => {
-                setIsCollapsed(false);
-                setActiveInspectorTab('analytics');
-              }}
-              className={`p-2 rounded-xl transition ${
-                activeInspectorTab === 'analytics'
-                  ? 'bg-purple-600 text-white shadow-xs'
-                  : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-              }`}
-              title="Current calculated readings"
-            >
-              <Sparkles className="size-4" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setIsCollapsed(false);
-                setActiveInspectorTab('validation');
-              }}
-              className={`p-2 rounded-xl transition relative ${
-                activeInspectorTab === 'validation'
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-              }`}
-              title="Circuit Safety & Validation"
-            >
-              <ShieldCheck className="size-4" />
-              {(validationReport?.summary.errorsCount ?? 0) > 0 && (
-                <span className="absolute -top-1 -right-1 flex size-3.5 items-center justify-center rounded-full bg-red-500 text-[8px] font-bold text-white">
-                  {validationReport?.summary.errorsCount}
-                </span>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setIsCollapsed(false);
-                setActiveInspectorTab('logs');
-              }}
-              className={`p-2 rounded-xl transition ${
-                activeInspectorTab === 'logs'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-              }`}
-              title="Console Logs & CLI"
-            >
-              <Terminal className="size-4" />
-            </button>
-
-            {isPro && (
-              <button
-                type="button"
-                onClick={() => {
-                  setIsCollapsed(false);
-                  setActiveInspectorTab('history');
-                }}
-                className={`relative p-2 rounded-xl transition ${
-                  activeInspectorTab === 'history'
-                    ? 'bg-indigo-600 text-white shadow-xs'
-                    : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-                }`}
-                aria-label="Simulation History (audit log)"
-                title="Simulation History (audit log)"
-              >
-                <Clock className="size-4" />
-                {eventHistory.length > 0 && (
-                  <span className="absolute -top-1 -right-1 flex size-3.5 items-center justify-center rounded-full bg-indigo-500 text-[8px] font-bold text-white">
-                    {eventHistory.length > 9 ? '9+' : eventHistory.length}
-                  </span>
-                )}
-              </button>
-            )}
-          </div>
         </div>
-      </aside>
-    );
-  }
-
-  // Expanded Inspector Layout with Vertical Navigation Tab Bar on Right.
-  // Inset below the floating header toolbar (top-4 pill ≈ 64 px tall) so it
-  // can never cover — and swallow clicks for — the Menu / theme controls.
-  return (
-    <aside
-      data-tour="inspector"
-      data-phone-inspector={isPhone}
-      className="fixed right-0 top-[84px] bottom-0 z-20 flex shadow-2xl border-l border-t rounded-tl-2xl border-slate-200/80 bg-white/95 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/95"
-    >
-      {/* Main Drawer Body Area */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden w-64 md:w-72 lg:w-80">
-        {/* Header Bar */}
-        <div className="flex items-center justify-between border-b border-slate-200/80 bg-slate-50/80 px-3.5 py-2.5 select-none dark:border-slate-800 dark:bg-slate-950/80 flex-shrink-0">
-          <div className="flex items-center gap-2 min-w-0">
-            {selectionState.kind === 'wire' ? (
-              <Route className="size-4 flex-shrink-0 text-blue-600 dark:text-blue-400" />
-            ) : selectionState.kind === 'component' ? (
-              <ComponentPreview
-                type={selectionState.component.type}
-                label={
-                  COMPONENT_DEFS[selectionState.component.type]?.label ??
-                  selectionState.component.type
-                }
-              />
-            ) : (
-              <Layers className="size-4 flex-shrink-0 text-slate-500 dark:text-slate-400" />
-            )}
-            <div className="min-w-0">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                {activeInspectorTab === 'faultlab' ? 'FAULT LAB' : activeInspectorTab.toUpperCase()}{' '}
-                PANEL
-              </div>
-              <div className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
-                {selectionState.kind === 'wire'
-                  ? `Wire #${selectionState.wire.id.slice(0, 8)}`
-                  : selectionState.kind === 'component'
-                    ? (COMPONENT_DEFS[selectionState.component.type]?.label ??
-                      selectionState.component.type)
-                    : selectionState.kind === 'multi-component'
-                      ? `${selectionState.count} Items Selected`
-                      : 'Circuit Canvas'}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span
-              className={`rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
-                isPro
-                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-950/80 dark:text-blue-300'
-                  : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300'
-              }`}
-            >
-              {isPro ? 'Pro' : 'Student'}
-            </span>
-            <button
-              type="button"
-              onClick={() => setIsCollapsed(true)}
-              className="rounded p-1 text-slate-400 hover:bg-slate-200/60 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-              title="Collapse Inspector"
-            >
-              <ChevronRight className="size-4" />
-            </button>
-          </div>
-        </div>
-
-        {/* Return-to-guide strip: while a Guided Circuit is active, selecting a
-            component pauses its steps — surface the way back inside the drawer
-            (the floating chip only covers the collapsed-rail state). */}
-        {activeGuideId && selectionState.kind === 'component' && (
-          <div className="flex items-center justify-between gap-2 border-b border-indigo-100 bg-indigo-50/80 px-3.5 py-2 flex-shrink-0 dark:border-indigo-900/60 dark:bg-indigo-950/40">
-            <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-300">
-                Guide paused
-              </p>
-              <p className="truncate text-[11px] text-indigo-800 dark:text-indigo-200">
-                Challenge steps hidden while inspecting
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                useCircuitStore.getState().clearSelection();
-                useUiStore.getState().setInspectorCollapsed(true);
-              }}
-              className="flex-shrink-0 rounded-lg bg-blue-600 px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-blue-700"
-            >
-              Close inspector and return to guide
-            </button>
-          </div>
-        )}
-
-        {/* Dynamic Tab Body View */}
-        <nav className="workspace-inspector-tabs" aria-label="Inspector sections">
+        <nav className="table-inspector-tabs" aria-label="Inspector sections">
           {(
             [
-              ['properties', 'Properties', 'Properties & Specs'],
-              ['simulation', 'Readings', 'Simulation Telemetry & Faults'],
-              ['connections', 'Netlist', 'Connections & Topology'],
-              ['analytics', 'Analysis', 'Current calculated readings'],
-              ['validation', 'Checks', 'Circuit Safety & Compliance'],
-              ['logs', 'Logs', 'Console Logs & CLI'],
-              ...(isPro
-                ? [
-                    ['faultlab', 'Fault Lab', 'Fault Lab — manual fault injection'],
-                    ['history', 'History', 'Simulation History (audit log)'],
-                  ]
-                : []),
+              ['properties', 'Properties'],
+              ['simulation', 'Readings'],
+              ['configure', 'Configure'],
             ] as const
-          ).map(([tab, label, title]) => (
+          ).map(([id, label]) => (
             <button
               type="button"
-              key={tab}
-              title={title}
-              aria-label={
-                tab === 'faultlab'
-                  ? 'Fault Lab (manual fault injection)'
-                  : tab === 'history'
-                    ? 'Simulation History (audit log)'
-                    : undefined
-              }
-              aria-current={activeInspectorTab === tab ? 'page' : undefined}
-              onClick={() => {
-                if (tab === 'faultlab') useUiStore.getState().setFaultLabOpen(true);
-                else setActiveInspectorTab(tab as Parameters<typeof setActiveInspectorTab>[0]);
-              }}
+              key={id}
+              aria-current={tab === id ? 'page' : undefined}
+              onClick={() => setActiveInspectorTab(id)}
             >
               {label}
             </button>
           ))}
         </nav>
-        <div className="flex-1 overflow-y-auto">
-          {activeInspectorTab === 'properties' && (
-            <Suspense fallback={<TabLoadingFallback />}>
-              <InspectorPropertiesContent
-                selectionState={selectionState}
-                simResult={simResult}
-                runCircuitValidation={runCircuitValidation}
-              />
-            </Suspense>
+        {activeGuideId && selectionState.kind === 'component' && (
+          <div className="table-guide-return">
+            <span>Guide paused while inspecting.</span>
+            <button
+              type="button"
+              onClick={() => {
+                useCircuitStore.getState().clearSelection();
+                setIsCollapsed(true);
+              }}
+            >
+              Close inspector and return to guide
+            </button>
+          </div>
+        )}
+        <div className="table-inspector-body">
+          {tab === 'properties' && (
+            <InspectorOverview
+              selection={selectionState}
+              result={simResult}
+              onAdvanced={() => setModelOpen(true)}
+            />
           )}
-
-          {activeInspectorTab === 'connections' && (
-            <Suspense fallback={<TabLoadingFallback />}>
-              <InspectorConnectionsContent selectionState={selectionState} />
-            </Suspense>
-          )}
-
           {modelBlocked && activeInspectorTab === 'simulation' && (
             <output className="block p-4 text-sm text-amber-800 dark:text-amber-200">
               Electrical measurements are not assessed because this drawing contains an unsupported
@@ -451,30 +211,115 @@ export function Inspector({
             </Suspense>
           )}
 
+          {tab === 'configure' && (
+            <Suspense fallback={<TabLoadingFallback />}>
+              <InspectorQuickSettings
+                selection={selectionState}
+                onAdvanced={() => setModelOpen(true)}
+              />
+            </Suspense>
+          )}
+        </div>
+        {tab !== 'configure' && (
+          <div className="table-inspector-links">
+            <button type="button" onClick={() => setActiveInspectorTab('connections')}>
+              Connections
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                runCircuitValidation();
+              }}
+            >
+              Validation
+            </button>
+            <button type="button" onClick={() => setActiveInspectorTab('analytics')}>
+              Analysis
+            </button>
+            {isPro && (
+              <>
+                <button type="button" onClick={() => useUiStore.getState().setFaultLabOpen(true)}>
+                  Fault Lab
+                </button>
+                <button type="button" onClick={() => setActiveInspectorTab('history')}>
+                  History
+                </button>
+              </>
+            )}
+          </div>
+        )}
+      </aside>
+      <Modal
+        open={modelOpen || secondary}
+        interactiveCanvas={detail.tab === 'faultlab'}
+        onClose={() => {
+          setModelOpen(false);
+          if (activeInspectorTab === 'faultlab') useUiStore.getState().setFaultLabOpen(false);
+          setActiveInspectorTab('properties');
+        }}
+        title={
+          detail.modelOpen
+            ? `${detail.title} · detailed settings`
+            : (
+                {
+                  connections: 'Connections and netlist',
+                  analytics: 'Circuit analysis',
+                  validation: 'Validation and Zs',
+                  logs: 'Console logs',
+                  history: 'Simulation history',
+                  faultlab: 'Fault Lab',
+                } as Record<string, string>
+              )[detail.tab]
+        }
+        widthClass="max-w-3xl"
+      >
+        <div className={detail.modelOpen ? 'table-model-content' : 'table-detail-content'}>
+          {detail.modelOpen && (
+            <Suspense fallback={<TabLoadingFallback />}>
+              <InspectorPropertiesContent
+                selectionState={detail.selectionState}
+                simResult={simResult}
+                runCircuitValidation={runCircuitValidation}
+              />
+            </Suspense>
+          )}
+          {detail.tab === 'connections' && (
+            <Suspense fallback={<TabLoadingFallback />}>
+              <InspectorConnectionsContent selectionState={detail.selectionState} />
+            </Suspense>
+          )}
+
           {/* Fault Lab tab — Pro fault mode. Falls back to Properties when
               the tab is somehow active without fault mode armed. */}
-          {activeInspectorTab === 'faultlab' &&
-            (isPro && faultLabOpen ? (
+          {detail.tab === 'faultlab' &&
+            (detail.isPro && detail.faultLabOpen ? (
               <Suspense fallback={<TabLoadingFallback />}>
                 <InspectorFaultLabView />
               </Suspense>
             ) : (
               <Suspense fallback={<TabLoadingFallback />}>
                 <InspectorPropertiesContent
-                  selectionState={selectionState}
+                  selectionState={detail.selectionState}
                   simResult={simResult}
                   runCircuitValidation={runCircuitValidation}
                 />
               </Suspense>
             ))}
 
-          {activeInspectorTab === 'analytics' && (
+          {detail.tab === 'analytics' && (
             <Suspense fallback={<TabLoadingFallback />}>
-              <InspectorAnalyticsView simResult={simResult} selectedComp={initialSelectedComp} />
+              <InspectorAnalyticsView
+                simResult={simResult}
+                selectedComp={
+                  detail.selectionState.kind === 'component'
+                    ? detail.selectionState.component
+                    : null
+                }
+              />
             </Suspense>
           )}
 
-          {activeInspectorTab === 'validation' && (
+          {detail.tab === 'validation' && (
             <Suspense fallback={<TabLoadingFallback />}>
               <div className="h-full overflow-y-auto">
                 <div className="border-b border-slate-200/70 p-3 dark:border-slate-800/70">
@@ -507,19 +352,19 @@ export function Inspector({
             </Suspense>
           )}
 
-          {activeInspectorTab === 'logs' && (
+          {detail.tab === 'logs' && (
             <Suspense fallback={<TabLoadingFallback />}>
               <InspectorLogsView />
             </Suspense>
           )}
 
-          {activeInspectorTab === 'history' && isPro && (
+          {detail.tab === 'history' && isPro && (
             <Suspense fallback={<TabLoadingFallback />}>
               <InspectorHistoryView />
             </Suspense>
           )}
         </div>
-      </div>
-    </aside>
+      </Modal>
+    </>
   );
 }

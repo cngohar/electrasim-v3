@@ -72,4 +72,32 @@ describe('Modal', () => {
     expect(firstClose).not.toHaveBeenCalled();
     expect(secondClose).toHaveBeenCalledOnce();
   });
+  it('dismisses only the top dialog and keeps the parent focus and scroll lock', async () => {
+    function Nested() {
+      const [child, setChild] = useState(false);
+      return (
+        <Modal open onClose={() => undefined} title="Parent">
+          <button type="button" onClick={() => setChild(true)}>
+            Edit source
+          </button>
+          <Modal open={child} onClose={() => setChild(false)} title="Source review">
+            <input aria-label="Draft voltage" />
+          </Modal>
+        </Modal>
+      );
+    }
+    const view = render(<Nested />);
+    const trigger = screen.getByRole('button', { name: 'Edit source' });
+    trigger.focus();
+    fireEvent.click(trigger);
+    const child = screen.getByRole('dialog', { name: 'Source review' });
+    await waitFor(() => expect(child.querySelector('[tabindex="-1"]')).toHaveFocus());
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.queryByRole('dialog', { name: 'Source review' })).not.toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Parent' })).toBeVisible();
+    expect(document.body.style.overflow).toBe('hidden');
+    expect(trigger).toHaveFocus();
+    view.unmount();
+    expect(document.body.style.overflow).toBe('');
+  });
 });

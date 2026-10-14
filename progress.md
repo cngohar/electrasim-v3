@@ -178,7 +178,7 @@ Evidence and contracts: [Phase 1.5B record](docs/audits/phase-1-electrical-contr
 
 Finished the existing MNA/behavior-planning work against V3 `6e2736c`. Added the [current behavior audit](docs/audits/phase-1-behavior-review.md), completed the [behavior requirements and delivery plan](docs/plans/SIMULATOR_BEHAVIOR_PLAN.md), and linked [ADR 0009](docs/decisions/0009-mna-solver.md) as the selected Modified Nodal Analysis formulation. The Phase 1 plan now defines **1.5C.0–5**: extend accepted contracts and persist typed supply settings; implement the MNA slice; correct load ranges/branch current/wire losses; add isolated transformers and PE semantics; deliver shared compatibility, confirmed supply changes/Undo, safe variants and readiness; integrate supported results through direct domain, Comlink and local Hono.
 
-Mapped Fault Lab capability/readout work to 1.5C and timed trip/damage/repair to 1.5D; supported three-phase models remain 1.5E. Full Fault Lab, basic/advanced Diagnosis Lab and Ohmageddon migration belongs to **1.5F**, including intended operating results, authored supply/edit constraints, honest fault observability, partial/full recovery and replay/model/profile versions. Later 1.7 refines the interface, while Phases 3–6 expand scoring/generation/content/LMS. Updated the rebuild plan, master roadmap, `PLAN.md`, documentation index, ADR 0008 follow-up, probe README and changelog.
+Mapped Fault Lab capability/readout work to 1.5C and timed trip/damage/repair to 1.5D; supported three-phase models remain 1.5E. Full Fault Lab, basic/advanced Diagnosis Lab migration belongs to **1.5F**, including intended operating results, authored supply/edit constraints, honest fault observability, partial/full recovery and replay/model/profile versions. Later 1.7 refines the interface, while Phases 3–6 expand scoring/generation/content/LMS. Updated the rebuild plan, master roadmap, `PLAN.md`, documentation index, ADR 0008 follow-up, probe README and changelog.
 
 Local evidence: `bun scripts/probes/phase15c-behavior.ts` collected **42 observations**, including the incorrect 2 kW heater response at 12 V, component-order-dependent independent supplies, shared current on separate/open branches, ineffective cable losses, branch-protection errors and wire editor/validator inconsistencies. Preserved findings that already work: unsupported battery guard, bounded input rejection, resolved wire sizes/material/derating, variant wattage differences and isolator/RCCB roles. Raw results are ignored under `.wrangler/phase15c-behavior-review-2026-10-01/`; the durable probe and audit retain fixtures and independent expectations.
 
@@ -406,7 +406,7 @@ Added `verify:phase-1.5f1`, six consumer-evidence regressions, an export regress
 
 Final assets: **251,292 B gzip initial JavaScript / 300,000 B**, **26,004 B CSS / 30,000 B**; 193 HTML link checks and 191 SEO page checks passed. Series/isolated-transformer/cascade median/p95: **1.19/2.84 ms**, **0.82/1.35 ms**, **1.13/1.84 ms**. Dense fixtures remain **52.94–78.09 ms median / 68.61–132.74 ms p95**, with dense solver and renderer targets open. Evidence is recorded in [the consumer audit](docs/audits/phase-1-consumer-integration.md), `.wrangler/phase15f1-*.log`, `.wrangler/domain-tests-a3WmEH/` and `.wrangler/membership-tests-X84DgF/`. Local listeners/Chromium required sandbox escalation; no remote Cloudflare access was involved.
 
-**Next: 1.5F.2 — basic/advanced Diagnosis Lab and Ohmageddon operating-point grading, supported generation, authorized attempts and versioned replay.** F.3 legacy retirement and full `verify`/stress suites remain before effects. Changes are local and uncommitted; no database migration, deployment or Git push occurred.
+**Next: 1.5F.2 — basic/advanced Diagnosis Lab operating-point grading, supported generation, authorized attempts and versioned replay.** F.3 legacy retirement and full `verify`/stress suites remain before effects. Changes are local and uncommitted; no database migration, deployment or Git push occurred.
 
 
 ## 2026-10-07 — Phase 1.5F.1 GitHub publication requested
@@ -414,7 +414,7 @@ Final assets: **251,292 B gzip initial JavaScript / 300,000 B**, **26,004 B CSS 
 The user requested committing and pushing the accepted current phase. Reviewed the 50-file F.1 change and its recorded local checks. A fresh `git fetch origin main` confirmed the local branch also contains the unpublished E.3 dependency, `34afaaa`; publication includes that commit followed by the F.1 commit. Normal commit hooks will run formatting/lint and all project typechecks. GitHub synchronization is verified after the push separately from the local acceptance evidence; this request performs no Cloudflare operation.
 
 
-## 2026-10-07 — Phase 1.5F.2 Diagnosis Lab and Ohmageddon accepted locally
+## 2026-10-07 — Phase 1.5F.2 Diagnosis Lab accepted locally
 
 Continued from the clean F.1 baseline. Added `challenges/diagnosis/assessment.ts`
 and replay fixtures; new generator/access version 3 selects six modeled
@@ -460,7 +460,7 @@ Final assets: **251,339 B gzip initial JS / 300,000 B**, **26,004 B CSS / 30,000
 
 Updated the active phase/master/rebuild/behavior plans, API/development docs,
 documentation index and changelog. **Next is F.3 legacy retirement, full `verify`
-and all three stress suites before effects.** The scoped local commit runs the
+and the then-current stress suites before effects.** The scoped local commit runs the
 normal format/type hooks. No dependency/lockfile, database migration, Cloudflare
 account/credentials/resources, live-site test, deployment or Git push changed.
 
@@ -482,11 +482,10 @@ The final renderer review removed the remaining nameplate-based temperature
 prediction and added real-heater/obsolete-temperature regressions. Default
 version-3 generator stress now tests six supported recipes, rejected historical
 recipes, physical fault applicability, inactive travellers, numerical recovery
-and false repair by deletion. The full Ohmageddon sweep found rejection notes
 that exposed future fault-target IDs; those notes and regressions are corrected.
 
 Added `verify:phase-1.5f3` with the existing full `verify`, numerical benchmark,
-real local parity/simulator acceptance and all three default stress commands.
+real local parity/simulator acceptance and the then-current default stress commands.
 Browser helpers use actual phone inspection controls and explicitly scoped
 desktop surfaces on all engines, preserve authored phone cases and electrical
 assertions, and handle WebKit actionability through native keyboard activation
@@ -498,7 +497,6 @@ Evidence so far: all project types, 156 domain modules, lint; 2,200 comprehensiv
 unit passes with one unchanged 50 ms smoke failure under load, then 37 isolated
 simulation passes; 6 final renderer checks; final build/assets/link/SEO/CSP;
 858 exact Bun/workerd cases; 20 simulator and 36 full membership D1/cookie groups;
-600 diagnosis and 1,800 Ohmageddon scenarios; 3,006 generator scenarios with all
 functional invariants passing but time budgets failing; 759 stronger final
 harness scenarios with the same result; renderer fallback gate and 53 production
 browser cases. [Detailed results and limits](docs/audits/phase-1-legacy-retirement.md)
@@ -547,7 +545,6 @@ missed 8 ms at 28.86 ms p95. The required Bun runtime and budget are unchanged.
 
 The rebuilt site passed all 53 production browser cases, and real local
 membership/D1/cookie acceptance passed all 36 groups. Diagnosis passed 600
-scenarios / 10,916 evaluations (build/evaluation p95 15.4/7.0 ms); Ohmageddon
 passed 1,800 scenarios / 6,818 evaluations (build p95 39.89 ms). The complete
 default generator sweep passed all functional invariants for 3,006 circuits,
 174,048 faults and 310,476 repair checks, plus 60,000 identity samples with zero
@@ -578,7 +575,6 @@ fixed or passed performance tests.
 
 Fresh passing evidence remains 2,207 unit tests, 858 exact runtime-parity cases,
 36 local API groups, 53 production browser cases, build/assets/link/SEO/CSP,
-600 Diagnosis and 1,800 Ohmageddon scenarios. Generator correctness passed all
 3,006 circuits / 174,048 faults / 310,476 repair checks and 60,000 identity samples.
 Active plans, documentation index, development notes and changelog now point to
 this closure and its exceptions. A separate requested memory note records this
@@ -607,7 +603,7 @@ change was needed for these failures. Typecheck/lint, build/assets/links/SEO/CSP
 858 exact Bun/local-workerd cases, 20 local Hono/D1/session groups and all 24
 Chromium browser cases passed. The browser set includes four new effects cases,
 phone preference persistence, reduced motion, stop/toggle/offscreen behavior,
-dense suppression, and existing repair/consumer/Diagnosis/Ohmageddon regression.
+dense suppression, and existing repair/consumer/Diagnosis regression.
 
 Maximum 48-body effects physics/path p95 is 0.260 ms; Chromium update/write p95 is
 0.900 ms (4 ms budget). Dense 200-component/400-wire idle frame p95 is 16.7 ms
@@ -697,3 +693,143 @@ The user explicitly requested a local commit followed by GitHub push on
 Cloudflare account, credential, resource, remote test or deployment operation
 was performed. The scoped local commit and GitHub synchronization follow these
 local acceptance results.
+
+## 2026-10-10 — Phase 1.9 full local verification started
+
+User authorized continuous local verification and repair, with knowledge-graph
+updates. Added the Phase 1.9 gate/matrix, isolated browser frontend port, explicit
+50-write/200-read D1 burst and schema-1 IndexedDB migration coverage. Existing
+admin repairs and uncommitted graph-tooling work are preserved. Performance
+budgets and F.3 exceptions remain unchanged; no remote actions are authorized.
+See `docs/audits/phase-1-full-verification.md` for evolving evidence and status.
+
+## 2026-10-10 — User paused Phase 1.9 for standard learning-mode cleanup
+
+Removed the optional modifier-driven diagnosis mode across the application,
+domain, access/API contracts, seeds, settings, tests, marketing and documentation.
+Standard Challenge Mode and Diagnosis Lab remain. Current-tree verification is
+recorded in `docs/audits/diagnosis-mode-cleanup.md`; prior Phase 1.9 evidence is
+partial/historical and does not close the changed phase. All work remains local.
+
+## 2026-10-10 — Phase 1.9 resumed after learning-mode cleanup
+
+User authorized completion of Phase 1.9. Resume the current reduced learning-mode
+matrix, repair the documented overlay/control failures, refresh all required
+local evidence and keep performance failures explicit. No remote actions.
+
+
+## 2026-10-12 — Phase 1.9 complete locally with documented exceptions
+
+Completed the required functional matrix across current and focused recovery:
+2,147 unit tests in 142 files; 505 development browser passes and 20 intentional
+skips covering all 525 cases; all 53 built simulator/Astro cases; 36 real local
+membership/API groups, 20 dedicated simulator groups and 842 Bun/workerd parity
+cases. Types, lint, build/assets, links, SEO, CSP, graph/gate tests and independent
+MNA checks passed. Generator invariants held across 3,006 circuits, 174,048 faults
+and 310,476 repairs; Diagnosis passed 600 scenarios and 10,916 evaluations.
+
+Repaired Run/supply/learning-sheet clearance, current Inspector/search helpers,
+phone challenge placement, guide Fit occlusion and obsolete production selectors.
+Browser recovery retains real input, electrical/export assertions and explicit
+failed/partial boundaries; its final exact-case ledger is linked from the audit.
+
+The user explicitly selected “Close locally with documented exceptions” after
+reviewing the remaining failures. Simulation p95 is 56.65 ms versus 8 ms; generator
+timing and dense 60 fps remain unmet. The strict full gate is not green. All
+workloads, numerical timing assertions and failed results remain documented in
+`docs/audits/phase-1-full-verification.md`. Worker-to-D1-only/remote latency is not
+certified by the functional HTTP burst.
+
+The knowledge graph records current findings, checks, test relationships and this
+explicit closure. No new phase was started and no GitHub/Cloudflare publication,
+deployment, account operation or remote test was performed.
+
+## 2026-10-13 — user-directed Challenge Mode retirement, then accepted redesign
+
+The user explicitly requested removing Challenge Mode runtime before the accepted
+simulator redesign, preserving plans/docs for rebuilding it in a later stage.
+Removed 27 dedicated files plus runtime entry points/session hooks and mode-only
+styles. Shared generation/fault/replay code remains for Diagnosis; nine existing
+Diagnosis seeds retain exact identities/circuits. Browser data is untouched.
+
+The final removal gate passed all typechecks/lint, 139 unit files / 2,113 tests,
+build/static checks, 20 local Worker/D1/cookie groups and 21 focused desktop/
+phone/Safari cases. Earlier unit/browser failures and recovery are recorded in
+docs/audits/challenge-mode-retirement.md; budgets were not weakened. Built fresh
+desktop/phone menu smoke checks also passed. No commit, push or remote operation.
+
+The knowledge graph now tracks Phase 1.10, Challenge retirement and the accepted
+Open Drafting Table implementation plan. Redesign implementation starts after
+this checkpoint; its final acceptance is still pending. Unrelated unused theme/
+function deletions require concrete user review. Phase 1.9 exceptions remain.
+
+Open Drafting Table production implementation is now connected locally to the
+existing stores: centered commands, bottom shelf/catalogue, three Inspector tabs,
+quick drafts/Undo, shared dialogs, Console filters, inline arrangement and the
+accepted artwork registry. Initial browser checks pass layout, variants, Console
+and preferences/file navigation; recovery and final cross-browser/built acceptance
+are still pending. See `docs/audits/open-drafting-table-implementation.md`.
+
+
+## 2026-10-14 — Open Drafting Table production migration complete locally
+
+Completed the accepted simulator redesign after the already-validated, explicit
+user-directed Challenge Mode retirement. The Astro/React boundary and existing
+numerical, grading, access, repair and persistence contracts remain. Centered
+commands, full-width shelf/catalogue, three Inspector tabs, raster photos, actual
+116-type/60-family canvas artwork, quick drafts/Undo, direct arrangement, Console
+severity selections and shared responsive windows are connected to real stores.
+Two-way motion retains content; manual/OS reduced motion is respected. Phone
+learning sheets reserve Console controls and readable circuit space.
+
+Final source types/lint and 139 unit files / 2,115 tests pass. The two long browser
+reporters completed 63 UI and 90 consumer assertions, but their outer shells
+reported 143 after completion; this is explicitly separated from process-exit
+proof. Final bounded 15-case repair/Properties/motion and six-case frame/Console
+runs exit 0, as do six built cases plus strengthened loaded-row checks and 20
+actual Worker/D1/cookie groups. Fresh assets/links/SEO/CSP pass unchanged budgets.
+The audit is docs/audits/open-drafting-table-implementation.md.
+
+The four-file / 718-line unused shell proposal has exact backups and a checked
+patch, but is not applied; the user requested review first. Knowledge records
+track implementation, retained Challenge plans and this pending optional cleanup.
+Phase 1.9 timing/dense-rendering exceptions remain; no full performance-green
+claim, commit, push, deployment or remote/account operation is made.
+
+## 2026-10-14 — Phase 1.10 closed locally after approved cleanup
+
+After the exact four-file/function table and patch were shown, the user explicitly
+approved their deletion and instructed completing the phase. Applied only the
+reviewed 718-line cleanup: PhoneDock, AlignmentBar, their old FaultLabDialog
+wrapper and the unimported workspace.css. Exact current-file backups, including
+earlier local CSS edits, and a hashed deletion ledger remain local. Shared
+simulator delete/arrangement/history/fault/repair actions remain active.
+
+All post-deletion commands exited 0: full types/lint and 139 files / 2,115 unit
+tests; fresh simulator/Astro build and unchanged asset/link/SEO/CSP checks; 18
+affected source browser cases across Chrome, phone Chrome and Safari; six fresh
+built desktop/phone cases; and five graph implementation tests. Initial assets
+are 255,105 B gzip JS / 300,000 and 28,538 B CSS / 30,000. The source cases preserve
+clear hit targets, direct arrangement/Undo, modeless Fault Lab handoff, actual
+phone terminal-disconnect injection and phone damage/access/focus controls.
+The built cases preserve actual loaded model rows, artwork/photo, drafts/Undo,
+motion/Console and catalogue placement.
+
+Phase 1.10 is complete locally, including Challenge runtime deferral, the accepted
+full simulator redesign and approved cleanup. Phase/audit/plan and scoped knowledge
+records are updated; cleanup evidence is under .wrangler/open-drafting-table/.
+The earlier long source reporters' outer-shell 143 remains documented, separate
+from these clean post-cleanup exits. Historical Phase 1.9 performance exceptions
+remain unmet; no commit, push, deployment, remote test or account operation occurred.
+
+## 2026-10-14 — user-authorized GitHub checkpoint before Fault Lab planning
+
+The user explicitly requested committing the current repository and pushing to
+GitHub before preparing the next Fault Lab plan/design for review in a new chat.
+This checkpoint includes the completed Phase 1.9 work with retained performance
+exceptions, explicit Challenge Mode retirement, accepted Phase 1.10 simulator
+redesign and approved four-file cleanup. Current post-cleanup acceptance is linked
+above. GitHub synchronization is verified separately from local test results;
+this authorization does not include Cloudflare deployment/account operations.
+Diagnosis retirement and new Fault Lab production work await the requested
+plan/design review; they are not part of this completed runtime checkpoint.

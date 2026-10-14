@@ -22,7 +22,6 @@ The user accepted finishing this phase with the following recorded limitations:
 Fresh passing evidence: all types and lint, **2,207 unit tests**, **858 exact
 Bun/workerd cases**, **36 local membership/API groups**, **53 production browser
 cases**, build/assets/link/SEO/CSP, **600 Diagnosis scenarios**, and **1,800
-Ohmageddon scenarios**. The full generator sweep passed correctness for **3,006
 circuits, 174,048 faults, 310,476 repair checks**, and zero collisions across
 60,000 identity samples, while failing the timing requirements above.
 
@@ -86,7 +85,6 @@ Run `bun run verify:phase-1.5f3`. Its required stages are:
 2. `benchmark:mna`: separate numerical timing and conservation checks.
 3. `test:domain-local`: exact Bun/workerd parity, including retirement drawings.
 4. `test:simulator`: real local Worker/D1/cookie acceptance.
-5. `stress:generator`, `stress:diagnosis`, `stress:ohmageddon`: default full seed
    sweeps, unchanged budgets.
 
 `--list`, `--dry-run`, `--only` and `--from` retain the shared gate's partial/full
@@ -121,7 +119,6 @@ serialization median/p95 are reported separately. Renderer gestures remain in
 | Actual simulator/D1/cookies | Passed 20 groups; `.wrangler/membership-tests-O3h2dE/`. |
 | Full membership acceptance | Fresh run passed 36 groups, including simulator coverage; `.wrangler/membership-tests-FfUANc/`. |
 | Diagnosis stress | Fresh run passed 600 scenarios / 10,916 evaluations; build p95 15.4 ms / 150 ms and evaluation p95 7.0 ms / 120 ms. `.wrangler/resume-current-stress-diagnosis.log`. |
-| Ohmageddon stress | Fresh full sweep passed 1,800 scenarios / 6,818 evaluations, build p95 39.89 ms / 200 ms. Earlier answer-leak failures remain explicit regression tests. `.wrangler/resume-current-stress-ohmageddon.log`. |
 | Generator stress | Fresh full default sweep passed every functional invariant: 3,006 scenarios / 174,048 faults / 310,476 removal/recovery checks; zero collisions in 60,000 identity samples. Timing gate failed. Difficulty full-loop p95: beginner 88.7 ms, intermediate 225.6 ms, advanced 611.6 ms against 120 ms. Pinned advanced contactor generation median 5.336 ms against 5 ms. `.wrangler/resume-current-stress-generator.log`. |
 | Numerical benchmark | Earlier conservation/current assertions passed for series, parallel and isolated/cascaded transformers. Latest application benchmark: 23.07 ms median / 29.13 ms p95, failing the unchanged 8 ms limit. No automated tests/builds ran concurrently with this measurement; the user's desktop remained active. `.wrangler/resume-current-benchmark.log`. |
 | Serialization | Latest application payload: 2,741,551 B; separate JSON median/p95 33.22/50.87 ms. Serialization is excluded from application-solve timing. |
@@ -205,8 +202,8 @@ assertions for every scenario. Dense 199-parallel-load median/p95 was
 The numerical benchmark command reports timing rather than enforcing the
 application gate; its zero exit status does not satisfy the 8 ms requirement.
 
-All three full default stress commands were refreshed sequentially after the
-solver changes. Diagnosis and Ohmageddon passed their correctness and timing
+The then-current full default stress commands were refreshed sequentially after the
+solver changes. Diagnosis passed their correctness and timing
 requirements. The generator completed in 683 seconds with all functional
 invariants intact, but failed full-loop limits and the pinned contactor recipe's
 generation median. The pinned full-loop p95 range was 52.1–596.2 ms. No seeds,

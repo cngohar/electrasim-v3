@@ -74,6 +74,7 @@ export function SubHeaderBar() {
     <>
       <button
         type="button"
+        aria-label="Supply"
         onClick={() => requestSupplyEdit()}
         disabled={!!supplyLocked}
         className="flex items-center gap-1.5 rounded-full px-2 py-0.5 font-medium hover:bg-slate-100 disabled:opacity-60 dark:hover:bg-slate-800"
@@ -257,11 +258,7 @@ export function SubHeaderBar() {
   );
 
   return (
-    <div
-      data-workspace-context
-      data-canvas-occluder
-      className="absolute inset-x-0 top-12 z-40 border-b border-slate-200/80 bg-white/95 shadow-sm ring-1 ring-slate-900/5 backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-900/95 dark:ring-slate-700/50"
-    >
+    <div data-workspace-context data-canvas-occluder className="table-project-context">
       {/* Scroll layer: when the content fits, the centered row sits dead
           center; when it overflows it scrolls from the left edge. */}
       <div className="overflow-x-auto">

@@ -7,9 +7,6 @@ export function diagnosisAcceptanceScenarios() {
     ...(['beginner', 'intermediate', 'advanced'] as const).map((difficulty) =>
       buildDiagnosisScenario({ seed: 5, difficulty }),
     ),
-    ...(['rage-1', 'rage-2', 'rage-3', 'rage-4'] as const).map((rageTier) =>
-      buildDiagnosisScenario({ seed: 3, difficulty: 'intermediate', rageTier }),
-    ),
   ];
 }
 
@@ -26,7 +23,7 @@ export function diagnosisEvidenceFixture() {
       altered: { ...scenario.healthyCircuit, wires: scenario.healthyCircuit.wires.slice(1) },
     };
     return Object.entries(circuits).map(([step, circuit]) => ({
-      diagnosisCase: `${scenario.difficulty}:${scenario.rage?.tier ?? 'normal'}:${step}`,
+      diagnosisCase: `${scenario.difficulty}:${step}`,
       scenario,
       circuit,
       evaluation: evaluateDiagnosis(scenario, circuit, answer, {

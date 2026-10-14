@@ -10,7 +10,7 @@ import type { Circuit, SimulationResult } from '../../types';
 import { GENERATOR_VERSION } from '../generator/seed';
 import type { DiagnosisScenario } from './scenario';
 
-/** Bump when difficulty, rage presentation or scoring policy changes. */
+/** Bump when difficulty or scoring policy changes. */
 export const DIAGNOSIS_PROFILE_VERSION = 'diagnosis-profile-score-1';
 
 export interface DiagnosisAssessment {
@@ -26,7 +26,8 @@ export interface DiagnosisAssessment {
  * Earlier work is retained for inspection; it cannot silently earn new points. */
 export function diagnosisAssessmentIssue(scenario: DiagnosisScenario): string | null {
   const a = scenario.assessment;
-  return scenario.generatorVersion !== GENERATOR_VERSION ||
+  return !/^ES-DIAG-\d{6}$/.test(scenario.challengeId) ||
+    scenario.generatorVersion !== GENERATOR_VERSION ||
     !a ||
     a.version !== 1 ||
     a.modelVersion !== ELECTRICAL_MODEL_VERSION ||

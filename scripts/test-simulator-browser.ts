@@ -274,6 +274,10 @@ export async function runSimulatorBrowser(options: {
       }),
       { blocked: true, document: before },
     );
+    const recovery = paidPage.getByRole('complementary', { name: 'Membership and recovery' });
+    const recoveryBounds = await recovery.boundingBox();
+    assert(recoveryBounds && recoveryBounds.x >= 0 && recoveryBounds.y >= 0);
+    assert(recoveryBounds.x + recoveryBounds.width <= paidPage.viewportSize()!.width);
     const download = paidPage.waitForEvent('download');
     await paidPage.getByRole('button', { name: 'Export original', exact: true }).click();
     await (await download).saveAs(`${options.persist}/premium-backup.electrasim.json`);

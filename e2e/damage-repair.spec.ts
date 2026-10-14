@@ -4,6 +4,7 @@ import { ELECTRICAL_MODEL_VERSION } from '@electrasim/domain/core/contracts';
 import { type Page, expect, test } from '@playwright/test';
 import { damageCircuit } from '../packages/domain/src/core/damageFixtures';
 import { protectionCircuit } from '../packages/domain/src/core/protectionFixtures';
+import { openCircuitTools } from './helpers/workbench';
 
 test.use({ reducedMotion: 'reduce' });
 
@@ -31,6 +32,7 @@ async function openCircuit(page: Page, circuit: Circuit) {
   );
   await page.keyboard.press('Escape');
   await expect(dialog).not.toBeVisible();
+  await openCircuitTools(page);
   await page
     .getByTitle('Basic Student Mode active — click to switch to Pro Electrician Mode')
     .click();
@@ -40,11 +42,8 @@ async function openCircuit(page: Page, circuit: Circuit) {
 async function faultPanel(page: Page) {
   const panel = page.getByLabel('Fault Lab panel');
   if (!(await panel.isVisible())) {
-    const name =
-      (page.viewportSize()?.width ?? 1280) < 640
-        ? 'Fault Lab'
-        : 'Fault Lab (manual fault injection)';
-    await page.getByRole('button', { name, exact: true }).click();
+    await openCircuitTools(page);
+    await page.getByTitle(/^Toggle the Fault Lab/).click();
   }
   await expect(panel.getByLabel('Fault repair and reset')).toBeVisible();
   return panel;
@@ -212,6 +211,9 @@ test('guest edits a voltage damage budget and sees one measured event through Co
 test('a timed short trips without destruction; clearing and resetting restores operation', async ({
   page,
 }) => {
+  // Import, run, trip, clear, reset and restore comprise multiple worker/UI
+  // cycles. Match the multi-cycle fixture above, retaining each 20 s poll.
+  test.setTimeout(60_000);
   await openCircuit(page, protectionCircuit('mcb', 16));
   await page.locator('[data-component-id="lamp"] [data-component-hitbox]').click();
   await run(page);
@@ -219,14 +221,22 @@ test('a timed short trips without destruction; clearing and resetting restores o
   let panel = await faultPanel(page);
   await panel.getByRole('button', { name: /^Short Circuit/ }).click();
   await expect.poll(async () => (await runtime(page)).tripped, { timeout: 20000 }).toBe(true);
-  await panel.getByTitle('Clear all injected faults', { exact: true }).click();
+  await panel
+    .getByRole('button', { name: 'Clear all injected faults from the active list', exact: true })
+    .press('Enter');
   await expect.poll(async () => (await runtime(page)).faults.length).toBe(0);
-  expect((await runtime(page)).tripped).toBe(true);
-  await panel.getByRole('button', { name: /^Reset .* to OFF$/ }).click();
+  // Clearing the fault invalidates the old result. The active run carries its
+  // trip latch into the fresh worker result; wait for that result.
+  await expect.poll(async () => (await runtime(page)).tripped, { timeout: 20000 }).toBe(true);
+  await panel.getByRole('button', { name: /^Reset .* to OFF$/ }).press('Enter');
   await expect.poll(async () => (await runtime(page)).tripped, { timeout: 20000 }).toBe(false);
   await page.locator('[data-component-id="control"] [data-component-hitbox]').click();
-  await page.getByTitle(/^Properties & (Settings|Specs)$/).click();
-  await page.getByRole('button', { name: 'OPEN (OFF)', exact: true }).click();
+  if (!(await page.getByRole('complementary', { name: 'Inspector', exact: true }).isVisible()))
+    await page.getByRole('button', { name: 'Inspect', exact: true }).click();
+  await page
+    .getByRole('complementary', { name: 'Inspector', exact: true })
+    .getByRole('button', { name: 'OPEN (OFF)', exact: true })
+    .click();
   await expect
     .poll(async () => (await runtime(page)).watts, { timeout: 20000 })
     .toBeGreaterThan(990);
@@ -265,7 +275,10 @@ test('damage settings remain usable on a phone', async ({ page }) => {
     .getByRole('dialog', { name: 'Fault Lab', exact: true })
     .getByRole('button', { name: 'Close dialog', exact: true })
     .click();
-  await expect(page.getByRole('button', { name: 'Fault Lab', exact: true })).toBeFocused();
+  await expect(
+    page.getByRole('button', { name: 'Labs and circuit tools', exact: true }),
+  ).toBeFocused();
+  await openCircuitTools(page);
   await page
     .getByTitle('Pro Electrician Mode active — click to switch to Basic Student Mode')
     .click();

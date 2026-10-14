@@ -24,7 +24,7 @@ import { assessFaultTarget } from '../../faultApplicability';
 import { getFaultDefinition } from '../../faults';
 import { simulate } from '../../simulation/simulate';
 import { circuitRevision, hasOperationEvidence } from '../../simulationEvidence';
-import type { Circuit, FaultTarget, FaultType, InjectedFault, SimulationResult } from '../../types';
+import type { Circuit, FaultTarget, FaultType, InjectedFault } from '../../types';
 import { getDifficultyProfile } from '../difficulty/profiles';
 import {
   type FaultCandidate,
@@ -38,24 +38,9 @@ import {
   withScenarioFaults,
 } from '../faults/injection';
 import { labelById } from '../faults/labels';
-import {
-  type FaultSymptom,
-  describeSymptom,
-  diffSymptom,
-  isMisleadingPlacement,
-  sameObservableWorld,
-} from '../faults/verification';
+import { type FaultSymptom, describeSymptom, diffSymptom } from '../faults/verification';
 import { generateChallenge } from '../generator/generator';
 import { GENERATOR_VERSION, createSeededRng, normalizeSeed } from '../generator/seed';
-import {
-  applyCandidateStage,
-  applyCircuitStage,
-  applyPresentationStage,
-  applySelectionStage,
-  buildRageSummary,
-} from '../rage/runner';
-import { getRageTier, rageProfileKey } from '../rage/tiers';
-import type { RageApplication, RageSummary, RageTierId } from '../rage/types';
 import type { ChallengeDifficulty, ChallengeIdentity } from '../types';
 import {
   DIAGNOSIS_PROFILE_VERSION,
@@ -77,19 +62,6 @@ export interface FaultTypeChoice {
   description: string;
 }
 
-/**
- * One injected fault, with everything the grader needs to judge it on its own.
- *
- * A scenario carries a *list* of these (plan §26 allows "multiple faults", §27
- * Rage 3/4 require them). Even a normal exercise uses the list — with exactly
- * one entry — so there is a single code path rather than a singular case and a
- * plural case that drift apart.
- *
- * The fault itself is an ordinary `InjectedFault` (§13: no parallel fault
- * representation). What is added here is scenario-level knowledge: where the
- * learner has to point (`locationKey`) and what this fault does **by itself**
- * (`symptom`), which is what makes each fault independently gradeable.
- */
 export interface ScenarioFault {
   fault: InjectedFault;
   /** Correct answer to §15B for this fault, as a `locationChoices` key. */
@@ -143,22 +115,13 @@ export interface DiagnosisScenario {
   /** The healthy circuit, kept as the recovery reference. Never shown. */
   healthyCircuit: Circuit;
 
-  /**
-   * The answer: every fault that was injected, in a deterministic order.
-   *
-   * Always at least one entry. An ordinary exercise has exactly one; §26/§27
-   * allow an Ohmageddon scenario to carry more. Consumers must not assume the
-   * length — use {@link primaryScenarioFault} when a single representative is
-   * genuinely wanted (a stats bucket, a log line), and iterate otherwise.
-   */
   faults: ScenarioFault[];
   /**
    * How the installation misbehaves with **all** the injected faults present —
    * the state the learner actually observes (§12).
    *
-   * With one fault this equals `faults[0].symptom`. With several it may differ
-   * from any individual fault's symptom, which is the whole point of a
-   * compound scenario (§26 "compound diagnostic scenarios").
+   * With one fault this equals `faults[0].symptom`. Authored scenarios may
+   * carry several faults with a combined symptom.
    */
   symptom: FaultSymptom;
 
@@ -175,17 +138,6 @@ export interface DiagnosisScenario {
   loadComponentIds: string[];
   /** Labels of the loads that went dead — used in the complaint text. */
   deadLoadLabels: string[];
-
-  /**
-   * Ohmageddon summary, or `null` for an ordinary exercise (plan §24).
-   *
-   * This field IS the §24 safety guarantee in data form: a normal scenario
-   * carries `rage: null`, and the only way it becomes non-null is an explicit
-   * `rageTier` on the build request. `buildDiagnosisScenario` never invents
-   * one, so "normal mode never receives Ohmageddon modifiers" is a property of
-   * the type, not of a code path someone has to remember to check.
-   */
-  rage: RageSummary | null;
 }
 
 export interface BuildDiagnosisScenarioRequest {
@@ -201,14 +153,6 @@ export interface BuildDiagnosisScenarioRequest {
    * patched.
    */
   maxAttempts?: number;
-  /**
-   * Ohmageddon tier (plan §23–§27). **Omit for normal exercises.**
-   *
-   * The caller must have checked `settings.ohmageddonMode` before setting
-   * this; the domain deliberately does not read settings, so this parameter is
-   * the single, explicit boundary between the normal and rage worlds (§24).
-   */
-  rageTier?: RageTierId;
 }
 
 export const MAX_SCENARIO_ATTEMPTS = 10;
@@ -241,9 +185,6 @@ export function buildDiagnosisScenario(request: BuildDiagnosisScenarioRequest): 
       ...request,
       seed,
       generatorVersion,
-      // Explicit rather than relying on the spread, so the §24 boundary is
-      // visible at the one place rage can enter the pipeline.
-      ...(request.rageTier ? { rageTier: request.rageTier } : {}),
     });
     if (built.ok) return built.scenario;
     rejections.push(`seed ${seed}: ${built.reason}`);
@@ -262,589 +203,98 @@ function tryBuildScenario(request: {
   difficulty: ChallengeDifficulty;
   generatorVersion: number;
   recipeId?: string;
-  /** Explicit generation policy; omitted by legacy version 1 callers. */
   allowedFaultTypes?: readonly FaultType[];
-  rageTier?: RageTierId;
 }): BuildOutcome {
-  const { seed, difficulty, generatorVersion, recipeId, rageTier } = request;
-
-  // §25: the SAME generator. Rage changes the identity inputs (so a rage
-  // exercise gets its own `ES-RAGE-######`) but never the pipeline.
-  const mode = rageTier ? 'rage' : 'diagnosis';
-  const rageProfile = rageTier ? rageProfileKey(rageTier) : undefined;
-
+  const { seed, difficulty, generatorVersion, recipeId } = request;
   const generated = generateChallenge({
     seed,
     difficulty,
-    mode,
     generatorVersion,
     recipeId,
-    ...(rageProfile ? { rageProfile } : {}),
+    mode: 'diagnosis',
   });
-
-  let healthyCircuit = generated.circuit;
-  let scenarioInfo = generated.scenario;
-  const baseline0 = simulate(healthyCircuit, { appMode: 'pro' });
-
-  // A scenario is only meaningful if the healthy circuit actually works —
-  // the learner must have a "correct" state to restore.
-  if (baseline0.errors.length > 0) {
-    return { ok: false, reason: 'baseline circuit is not clean' };
-  }
-
-  const rng = createSeededRng({
-    generatorVersion,
-    seed,
-    difficulty,
-    mode,
-    ...(rageProfile ? { rageProfile } : {}),
-  }).fork('diagnosis-fault');
-
-  // ── Ohmageddon stage ① — reshape the circuit (plan §25) ──────────────────
-  // Skipped entirely when `rageTier` is absent, which is the §24 guarantee.
-  const rageApplications: RageApplication[] = [];
-  let decoyComponentIds: string[] = [];
-  if (rageTier) {
-    const staged = applyCircuitStage({
-      circuit: healthyCircuit,
-      scenario: scenarioInfo,
-      difficulty,
-      tier: rageTier,
-      rng: rng.fork('rage-circuit'),
-      expectedEnergisedLoadIds: generated.metadata.baseline.expectedEnergisedLoadIds,
-    });
-    healthyCircuit = staged.circuit;
-    scenarioInfo = { ...scenarioInfo, faultCandidateWireIds: staged.faultCandidateWireIds };
-    decoyComponentIds = staged.decoyComponentIds;
-    rageApplications.push(...staged.applications);
-  }
-
-  // Re-measured after the transform: everything downstream (symptom, recovery,
-  // structural diff) must be judged against the circuit the learner actually
-  // sees, not the pre-modifier one.
-  const baseline = rageTier ? simulate(healthyCircuit, { appMode: 'pro' }) : baseline0;
+  const healthyCircuit = generated.circuit;
+  const scenarioInfo = generated.scenario;
+  const baseline = simulate(healthyCircuit, { appMode: 'pro' });
   if (
     baseline.errors.length > 0 ||
     (generatorVersion >= 3 && !hasDiagnosisEvidence(healthyCircuit, baseline))
-  ) {
-    return { ok: false, reason: 'rage-modified baseline is not clean' };
-  }
-
-  const allCandidates = collectFaultCandidates(healthyCircuit, scenarioInfo).filter(
+  )
+    return { ok: false, reason: 'baseline circuit is not clean' };
+  const rng = createSeededRng({ seed, difficulty, generatorVersion, mode: 'diagnosis' }).fork(
+    'diagnosis-fault',
+  );
+  const candidates = collectFaultCandidates(healthyCircuit, scenarioInfo).filter(
     (candidate) =>
       (!request.allowedFaultTypes || request.allowedFaultTypes.includes(candidate.type)) &&
       (generatorVersion < 3 ||
         assessFaultTarget(healthyCircuit, candidate.type, candidate.target).coverage ===
           'supported'),
   );
-  let candidates = allCandidates;
-  // The unranked-but-decoy-filtered pool a second fault may fall back to.
-  // Starts as the full list and is replaced by the candidate stage, which is
-  // the thing that knows which candidates touch a decoy.
-  let selectionPool: readonly FaultCandidate[] = allCandidates;
-  if (candidates.length === 0) {
-    return { ok: false, reason: 'no eligible fault candidates' };
-  }
-
-  // ── Ohmageddon stage ② — re-rank the candidates ──────────────────────────
-  if (rageTier) {
-    const ranked = applyCandidateStage({
-      circuit: healthyCircuit,
-      candidates,
-      loadComponentIds: scenarioInfo.loadComponentIds,
-      difficulty,
-      tier: rageTier,
-      rng: rng.fork('rage-candidates'),
-      decoyComponentIds,
-    });
-    candidates = ranked.candidates;
-    selectionPool = ranked.pool;
-    rageApplications.push(...ranked.applications);
-  }
-
-  // Kept so a later proof (misleadingSymptom) can swap the primary without
-  // reaching past the ranking that just ran.
-  const rankedPool: readonly FaultCandidate[] = candidates;
-
   const candidate = selectFaultCandidate(candidates, rng);
-  if (!candidate) return { ok: false, reason: 'fault selection produced nothing' };
-
-  // The selected candidates, in the order they were chosen. A normal scenario
-  // has exactly one; §27's Rage 3/4 add a second through the selection stage
-  // below, which proposes and never replaces.
-  let selected: FaultCandidate[] = [candidate];
-  // Standby proposals, best first, used when one fails the §12 gate below.
-  let alternatives: FaultCandidate[] = [];
-
-  // ── Ohmageddon stage ②b — add further faults ─────────────────────────────
-  if (rageTier) {
-    const chosen = applySelectionStage({
-      circuit: healthyCircuit,
-      candidates,
-      pool: selectionPool,
-      selected,
-      loadComponentIds: scenarioInfo.loadComponentIds,
-      difficulty,
-      tier: rageTier,
-      rng: rng.fork('rage-selection'),
-    });
-    selected = chosen.selected;
-    alternatives = chosen.alternatives;
-    rageApplications.push(...chosen.applications);
-  }
-
-  const challengeId = generated.metadata.identity.displayId;
-  const loadIds = scenarioInfo.loadComponentIds;
-
-  // ── Plan §12: the mandatory gate, applied **per fault**. ─────────────────
-  // Each fault must be observable *on its own*, otherwise it cannot be asked
-  // about: a fault whose entire effect is masked by a sibling is not a puzzle,
-  // it is a trick, and §26 forbids "claiming a fault exists when it does not"
-  // in spirit as well as in letter.
-  //
-  // The *first* fault is mandatory: if it is unobservable the seed is simply a
-  // bad one and the caller retries with the next. A fault added by a modifier
-  // is different — it has standbys, so a masked proposal is swapped out rather
-  // than costing the whole scenario. That is the only asymmetry here.
-  const scenarioFaults: ScenarioFault[] = [];
-  const queue: FaultCandidate[] = [...selected];
-  const standby: FaultCandidate[] = [...alternatives];
-  const usedLocations = new Set<string>();
-
-  while (queue.length > 0) {
-    // Non-empty by the loop condition.
-    const chosen = queue.shift()!;
-    const primary = scenarioFaults.length === 0;
-
-    const locationKey = locationKeyFor(chosen);
-    if (usedLocations.has(locationKey)) continue;
-
-    const fault = createScenarioFault(challengeId, chosen);
-    const soloCircuit = withScenarioFaults(healthyCircuit, [fault]);
-    const solo = simulate(soloCircuit, { appMode: 'pro' });
-    const soloSymptom = diffSymptom(baseline, solo, loadIds);
-
-    if (
-      !soloSymptom.observable ||
-      (generatorVersion >= 3 &&
-        (!hasOperationEvidence(soloCircuit, solo) || soloSymptom.deEnergisedLoadIds.length === 0))
-    ) {
-      if (primary) {
-        return { ok: false, reason: `${chosen.type} produced no observable symptom` };
-      }
-      // Swap in the next standby and try again.
-      const replacement = standby.shift();
-      if (replacement) queue.push(replacement);
-      continue;
-    }
-
-    usedLocations.add(locationKey);
-    scenarioFaults.push({ fault, locationKey, symptom: soloSymptom });
-  }
-
-  // ── Ohmageddon: prove the compound property (plan §26, §53.6) ────────────
-  //
-  // `compoundFault` can only *propose* a partner — proving that one fault
-  // masks another needs the simulator, and `rage/modifiers.ts` deliberately
-  // has no access to it. The proof therefore lives here, where the solo runs
-  // above have already established that each fault is observable on its own.
-  //
-  // What has to be true for the pair to be a genuine compound scenario:
-  //
-  //   1. **A masks B.** The world with both faults present looks exactly like
-  //      the world with only A. B contributes nothing the learner can see yet.
-  //   2. **Repairing A reveals B, differently.** B's own world-state differs
-  //      from the combined one, so clearing A does not clear the complaint —
-  //      it *changes* it. That change is the entire pedagogical point.
-  //
-  // "World" here means de-energised loads, tripped and blown — the three
-  // signals a person standing in front of the installation can actually
-  // observe. It deliberately excludes `newErrorWires` / `newErrorComponents` /
-  // `newErrors`, because the simulator flags a faulted wire as being in error
-  // *by virtue of carrying the fault* (`simulate.ts:464`; measured at 1,176 of
-  // 1,176 wire faults). Judging masking on those sets asks "is the fault
-  // present?", to which the answer is always yes, and an earlier probe using
-  // `symptom.observable` accordingly found 0 compound pairs in 67,476 — a
-  // fault in the metric, not in the world.
-  //
-  // A pair that fails the proof is not shipped as a compound scenario. The
-  // faults are separable and individually observable, so the scenario is still
-  // sound — it is simply an ordinary multi-fault exercise, and the summary
-  // says so rather than claiming a compound that is not there.
-  let compoundProven = false;
-  const wantsCompound =
-    rageTier !== undefined && getRageTier(rageTier).modifiers.includes('compoundFault');
-
-  if (wantsCompound && scenarioFaults.length >= 2) {
-    // Non-empty by the length check.
-    const primaryEntry = scenarioFaults[0]!;
-
-    /** Does `partner` sit behind the primary, unseen until the primary clears? */
-    const masks = (partner: ScenarioFault): boolean => {
-      const combined = diffSymptom(
-        baseline,
-        simulate(withScenarioFaults(healthyCircuit, [primaryEntry.fault, partner.fault]), {
-          appMode: 'pro',
-        }),
-        loadIds,
-      );
-      return (
-        sameObservableWorld(combined, primaryEntry.symptom) &&
-        !sameObservableWorld(combined, partner.symptom)
-      );
+  if (!candidate) return { ok: false, reason: 'no eligible fault candidates' };
+  const fault = createScenarioFault(generated.metadata.identity.displayId, candidate);
+  const faultedCircuit = withScenarioFaults(healthyCircuit, [fault]);
+  const result = simulate(faultedCircuit, { appMode: 'pro' });
+  const symptom = diffSymptom(baseline, result, scenarioInfo.loadComponentIds);
+  if (
+    !symptom.observable ||
+    (generatorVersion >= 3 &&
+      (!hasOperationEvidence(faultedCircuit, result) || symptom.deEnergisedLoadIds.length === 0))
+  )
+    return {
+      ok: false,
+      reason: `${candidate.type}: fault has no supported observable load consequence`,
     };
-
-    if (masks(scenarioFaults[1]!)) {
-      compoundProven = true;
-    } else {
-      // The runner accepted the first partner that was *observable*, which is
-      // the §12 gate every scenario needs — but compound additionally needs
-      // the partner to be *masked*, and those are different properties. The
-      // standbys are candidates the runner already set aside for exactly this
-      // kind of retry, so rather than abandon the tier, search them for one
-      // that satisfies both.
-      //
-      // Bounded deliberately: each attempt costs two simulator runs, and the
-      // scenario builder is on the interactive path when a learner presses
-      // "New exercise". Measured over 120 scenarios, this lifts the honest
-      // compound rate from 35.0% to 56.7%; the seeds it cannot satisfy fall
-      // back to a plain multi-fault rather than stalling.
-      const MAX_PARTNER_ATTEMPTS = 12;
-      let attempts = 0;
-
-      for (const replacement of standby) {
-        if (attempts >= MAX_PARTNER_ATTEMPTS) break;
-        const locationKey = locationKeyFor(replacement);
-        if (usedLocations.has(locationKey)) continue;
-        attempts += 1;
-
-        const fault = createScenarioFault(challengeId, replacement);
-        const solo = simulate(withScenarioFaults(healthyCircuit, [fault]), { appMode: 'pro' });
-        const soloSymptom = diffSymptom(baseline, solo, loadIds);
-        // §12 still applies to the substitute: no unobservable fault ships,
-        // compound or not.
-        if (
-          !soloSymptom.observable ||
-          (generatorVersion >= 3 &&
-            (soloSymptom.deEnergisedLoadIds.length === 0 ||
-              !hasOperationEvidence(withScenarioFaults(healthyCircuit, [fault]), solo)))
-        )
-          continue;
-
-        const entry: ScenarioFault = { fault, locationKey, symptom: soloSymptom };
-        if (!masks(entry)) continue;
-
-        // Swap the partner out. The primary is untouched — it is the fault the
-        // seed chose, and §26's ordering guarantees depend on it staying put.
-        usedLocations.delete(scenarioFaults[1]!.locationKey);
-        usedLocations.add(locationKey);
-        scenarioFaults[1] = entry;
-        compoundProven = true;
-        break;
-      }
-    }
-  }
-
-  if (wantsCompound) {
-    // **Replace**, never append.
-    //
-    // The selection stage already recorded `compoundFault` as applied, meaning
-    // "I proposed partners and one was accepted". That is true of the proposal
-    // but says nothing about whether masking was achieved, and
-    // `buildRageSummary` merges same-id entries with "applied anywhere wins" —
-    // so appending a failed proof would be swallowed by the successful
-    // proposal and the summary would claim a compound that does not exist.
-    // (Measured before this was fixed: 71 of 120 Rage 4 scenarios.)
-    //
-    // This proof is the authoritative word on the modifier, so it takes the
-    // slot outright. The proposal's note is preserved for diagnostics.
-    const proposalIndex = rageApplications.findIndex((a) => a.id === 'compoundFault');
-    const proposalNote =
-      proposalIndex >= 0 ? rageApplications[proposalIndex]!.note : 'no proposal recorded';
-    if (proposalIndex >= 0) rageApplications.splice(proposalIndex, 1);
-
-    rageApplications.push({
-      id: 'compoundFault',
-      label: 'Compound fault',
-      applied: compoundProven,
-      note: compoundProven
-        ? `${proposalNote}; masking proven — repairing the first fault changes the symptom`
-        : scenarioFaults.length < 2
-          ? `${proposalNote}; no separable partner survived the observability gate`
-          : `${proposalNote}; both faults independently visible — shipped as a plain multi-fault`,
-    });
-  }
-
-  // ── Ohmageddon: prove the misleading-symptom property (plan §26, §53) ──
-  //
-  // Same replace-don't-append rule as compoundFault. The ranking stage
-  // records `misleadingSymptom: applied` meaning only "I dropped the
-  // load-touching candidates". That is a heuristic, not a proof: the
-  // complaint is written from the *measured* symptom, and a candidate that
-  // does not sit on a declared load can still be the obvious place to look
-  // (a trip with no dead load, a blown device). The summary is only allowed
-  // to claim the modifier once the measured symptom actually points
-  // somewhere other than the fault.
-  const wantsMisleading =
-    rageTier !== undefined && getRageTier(rageTier).modifiers.includes('misleadingSymptom');
-
-  if (wantsMisleading && scenarioFaults.length >= 1) {
-    const isMisleading = (entry: ScenarioFault): boolean =>
-      isMisleadingPlacement(healthyCircuit, entry.fault.target, entry.symptom);
-
-    let misleadingProven = isMisleading(scenarioFaults[0]!);
-
-    // Only swap the primary on a single-fault run. A second fault was
-    // chosen *relative* to the first; replacing the first afterwards
-    // would silently break a multi/compound pairing that is not this
-    // modifier's job.
-    if (!misleadingProven && scenarioFaults.length === 1) {
-      const used = new Set(scenarioFaults.map((entry) => entry.locationKey));
-      const MAX_ATTEMPTS = 16;
-      let attempts = 0;
-      for (const replacement of rankedPool) {
-        if (attempts >= MAX_ATTEMPTS) break;
-        const locationKey = locationKeyFor(replacement);
-        if (used.has(locationKey)) continue;
-        attempts += 1;
-
-        const fault = createScenarioFault(challengeId, replacement);
-        const solo = simulate(withScenarioFaults(healthyCircuit, [fault]), { appMode: 'pro' });
-        const soloSymptom = diffSymptom(baseline, solo, loadIds);
-        if (
-          !soloSymptom.observable ||
-          (generatorVersion >= 3 &&
-            (soloSymptom.deEnergisedLoadIds.length === 0 ||
-              !hasOperationEvidence(withScenarioFaults(healthyCircuit, [fault]), solo)))
-        )
-          continue;
-        const entry: ScenarioFault = { fault, locationKey, symptom: soloSymptom };
-        if (!isMisleading(entry)) continue;
-
-        used.delete(scenarioFaults[0]!.locationKey);
-        used.add(locationKey);
-        scenarioFaults[0] = entry;
-        misleadingProven = true;
-        break;
-      }
-    }
-
-    const proposalIndex = rageApplications.findIndex((a) => a.id === 'misleadingSymptom');
-    const proposalNote =
-      proposalIndex >= 0 ? rageApplications[proposalIndex]!.note : 'no proposal recorded';
-    if (proposalIndex >= 0) rageApplications.splice(proposalIndex, 1);
-
-    rageApplications.push({
-      id: 'misleadingSymptom',
-      label: 'Misleading symptom',
-      applied: misleadingProven,
-      note: misleadingProven
-        ? `${proposalNote}; proven — the complaint points at the load, the fault is elsewhere`
-        : `${proposalNote}; every candidate sat on the obvious symptom — shipped without the claim`,
-    });
-  }
-
-  // Recorded so the summary reflects what actually shipped rather than what
-  // was proposed — a multiFault run whose second fault was masked away is a
-  // single-fault run, and §24 says the mode must not misrepresent itself.
-  selected = scenarioFaults.map((entry) => {
-    // rankedPool is included because the misleading-symptom proof may
-    // swap the primary for a candidate that was never selected or put
-    // on standby — only ranked. A miss here is a builder bug.
-    const match = [...selected, ...alternatives, ...rankedPool].find(
-      (c) => locationKeyFor(c) === entry.locationKey && c.type === entry.fault.type,
-    );
-    if (!match) {
-      throw new Error(
-        `scenario fault ${entry.fault.type} @ ${entry.locationKey} has no matching candidate`,
-      );
-    }
-    return match;
-  });
-
-  const faults = scenarioFaults.map((entry) => entry.fault);
-  const faultedCircuit = withScenarioFaults(healthyCircuit, faults);
-  // Single-fault fast path: the combined circuit is the solo circuit, so the
-  // simulator is not asked the same question twice.
-  const combinedSymptom =
-    scenarioFaults.length === 1
-      ? // Length checked immediately above.
-        scenarioFaults[0]!.symptom
-      : diffSymptom(baseline, simulate(faultedCircuit, { appMode: 'pro' }), loadIds);
-
-  // The *combined* state must also be observable. With one fault this is
-  // already proven above; with several, faults can in principle cancel out
-  // (a forced-open breaker upstream of a short), and an installation that
-  // looks healthy is not a diagnosis exercise.
-  if (!combinedSymptom.observable) {
-    return { ok: false, reason: 'combined faults produced no observable symptom' };
-  }
-
+  const profile = getDifficultyProfile(difficulty);
+  const deadLoadLabels = symptom.deEnergisedLoadIds.map((id) =>
+    labelById(healthyCircuit, id, 'load'),
+  );
   return {
     ok: true,
-    scenario: assembleScenario({
-      generated,
-      scenarioInfo,
-      healthyCircuit,
-      faultedCircuit,
-      baseline,
-      scenarioFaults,
-      candidates: selected,
-      symptom: combinedSymptom,
-      difficulty,
+    scenario: {
+      challengeId: generated.metadata.identity.displayId,
+      ...(generatorVersion >= 3
+        ? {
+            assessment: {
+              version: 1 as const,
+              modelVersion: ELECTRICAL_MODEL_VERSION,
+              profileVersion: DIAGNOSIS_PROFILE_VERSION,
+              engineVersion: baseline.electricalContract!.engineVersion,
+              healthyRevision: circuitRevision(healthyCircuit),
+              faultedRevision: circuitRevision(faultedCircuit),
+            },
+          }
+        : {}),
+      identity: generated.metadata.identity,
       seed,
       generatorVersion,
-      rng,
-      rageTier,
-      rageApplications,
-      decoyComponentIds,
-    }),
-  };
-}
-
-// ---------------------------------------------------------------------------
-// Assembly
-// ---------------------------------------------------------------------------
-
-function assembleScenario(args: {
-  generated: ReturnType<typeof generateChallenge>;
-  /** Recipe info, rewritten by the rage circuit stage when one ran. */
-  scenarioInfo: ReturnType<typeof generateChallenge>['scenario'];
-  healthyCircuit: Circuit;
-  faultedCircuit: Circuit;
-  baseline: SimulationResult;
-  /** Every injected fault, with its solo symptom and location key. */
-  scenarioFaults: ScenarioFault[];
-  /** The candidates those faults came from, same order. */
-  candidates: FaultCandidate[];
-  /** Symptom of the circuit with all faults present. */
-  symptom: FaultSymptom;
-  difficulty: ChallengeDifficulty;
-  seed: number;
-  generatorVersion: number;
-  rng: ReturnType<typeof createSeededRng>;
-  rageTier?: RageTierId;
-  rageApplications: RageApplication[];
-  decoyComponentIds: string[];
-}): DiagnosisScenario {
-  const {
-    generated,
-    scenarioInfo,
-    healthyCircuit,
-    faultedCircuit,
-    baseline,
-    scenarioFaults,
-    candidates,
-    symptom,
-    difficulty,
-    seed,
-    generatorVersion,
-    rng,
-    rageTier,
-    rageApplications,
-    decoyComponentIds,
-  } = args;
-
-  const profile = getDifficultyProfile(difficulty);
-  const labelOf = (id: string): string => labelById(healthyCircuit, id, 'load');
-
-  const deadLoadLabels = symptom.deEnergisedLoadIds.map(labelOf);
-  const complaint = describeSymptom(symptom, deadLoadLabels);
-
-  // `scenarioInfo`, not `generated.scenario`: after a red-herring splice the
-  // original wire no longer exists, and offering the learner a location option
-  // that points at a deleted wire would be both confusing and a tell.
-  const locationChoices = buildLocationChoices(healthyCircuit, scenarioInfo);
-  const faultTypeChoices = buildFaultTypeChoices(
-    healthyCircuit,
-    scenarioInfo,
-    candidates.map((c) => c.type),
-    profile.diagnosticChoiceCount,
-    rng.fork('choices'),
-  );
-
-  // ── Ohmageddon stage ③ — ration the help (plan §27) ─────────────────────
-  const baseHints = buildHints(healthyCircuit, candidates, symptom, deadLoadLabels);
-  let hints = baseHints;
-  let hintBudget = profile.hintBudget;
-  let parTimeSeconds = profile.parTimeSeconds;
-  let timeLimitSeconds: number | null = null;
-
-  if (rageTier) {
-    const staged = applyPresentationStage({
-      hints: baseHints,
+      difficulty,
+      recipeId: generated.scenario.recipeId,
+      title: scenarioInfo.recipeTitle,
+      complaint: describeSymptom(symptom, deadLoadLabels),
+      brief:
+        'This installation was working. It is not working now. Investigate the circuit, work out what has gone wrong and where, then put it right.',
+      teaches: scenarioInfo.teaches,
+      expectedBehaviour: scenarioInfo.expectedBehaviour,
+      healthyCircuit: deepCopy(healthyCircuit),
+      faultedCircuit: deepCopy(faultedCircuit),
+      faults: [{ fault, locationKey: locationKeyFor(candidate), symptom }],
+      symptom,
+      faultTypeChoices: buildFaultTypeChoices(
+        healthyCircuit,
+        scenarioInfo,
+        [candidate.type],
+        profile.diagnosticChoiceCount,
+        rng.fork('choices'),
+      ),
+      locationChoices: buildLocationChoices(healthyCircuit, scenarioInfo),
+      hints: buildHints(healthyCircuit, candidate, symptom, deadLoadLabels),
       hintBudget: profile.hintBudget,
       parTimeSeconds: profile.parTimeSeconds,
-      timeLimitSeconds: null,
-      difficulty,
-      tier: rageTier,
-      rng: rng.fork('rage-presentation'),
-    });
-    hints = staged.presentation.hints as DiagnosisHint[];
-    hintBudget = staged.presentation.hintBudget;
-    parTimeSeconds = staged.presentation.parTimeSeconds;
-    timeLimitSeconds = staged.presentation.timeLimitSeconds;
-    rageApplications.push(...staged.applications);
-  }
-
-  const rage: RageSummary | null = rageTier
-    ? buildRageSummary({
-        tier: rageTier,
-        applications: rageApplications,
-        decoyComponentIds,
-        timeLimitSeconds,
-      })
-    : null;
-
-  return {
-    challengeId: generated.metadata.identity.displayId,
-    ...(generatorVersion >= 3
-      ? {
-          assessment: {
-            version: 1 as const,
-            modelVersion: ELECTRICAL_MODEL_VERSION,
-            profileVersion: DIAGNOSIS_PROFILE_VERSION,
-            engineVersion: baseline.electricalContract!.engineVersion,
-            healthyRevision: circuitRevision(healthyCircuit),
-            faultedRevision: circuitRevision(faultedCircuit),
-          },
-        }
-      : {}),
-    identity: generated.metadata.identity,
-    seed,
-    generatorVersion,
-    difficulty,
-    recipeId: generated.scenario.recipeId,
-
-    title: rageTier
-      ? `${getRageTier(rageTier).label}: ${scenarioInfo.recipeTitle}`
-      : scenarioInfo.recipeTitle,
-    complaint,
-    brief: rageTier
-      ? 'This installation was working. It is not working now — and it is not going to be ' +
-        'obvious. Everything you see is electrically honest; the difficulty is in the ' +
-        'looking, not in the physics.'
-      : 'This installation was working. It is not working now. Investigate the circuit, ' +
-        'work out what has gone wrong and where, then put it right.',
-    teaches: scenarioInfo.teaches,
-    expectedBehaviour: scenarioInfo.expectedBehaviour,
-
-    faultedCircuit: deepCopy(faultedCircuit),
-    healthyCircuit: deepCopy(healthyCircuit),
-
-    faults: scenarioFaults,
-    symptom,
-
-    faultTypeChoices,
-    locationChoices,
-
-    hints,
-    hintBudget,
-    parTimeSeconds,
-
-    loadComponentIds: [...scenarioInfo.loadComponentIds],
-    deadLoadLabels,
-    rage,
+      loadComponentIds: [...scenarioInfo.loadComponentIds],
+      deadLoadLabels,
+    },
   };
 }
 
@@ -1063,17 +513,11 @@ function buildFaultTypeChoices(
  */
 function buildHints(
   circuit: Circuit,
-  candidates: readonly FaultCandidate[],
+  candidate: FaultCandidate,
   symptom: FaultSymptom,
   deadLoadLabels: readonly string[],
 ): DiagnosisHint[] {
-  // Hints are written from the first fault outward. On a multi-fault scenario
-  // levels 2 and 3 additionally warn that clearing one thing will not be
-  // enough — see below. They still never pair a *type* with a *location*.
-  // Callers always pass at least one candidate.
-  const candidate = candidates[0]!;
   const def = getFaultDefinition(candidate.type);
-  const extra = candidates.length - 1;
 
   const baseObservation =
     symptom.primary === 'load-dead'
@@ -1084,33 +528,14 @@ function buildHints(
           ? 'A component has been destroyed, so the energy went somewhere it should not have.'
           : 'The installation is reporting a condition the regulations do not permit.';
 
-  // With more than one fault the learner is told *that* there is more than
-  // one, but not what or where. Withholding the count would not make the
-  // exercise harder in an honest way — it would make a complete repair look
-  // like a failed one, which §26 rules out.
-  //
-  // The count rides on the level-1 *observation*, not only on the later hints,
-  // because `limitedHints` truncates the ladder to a single hint at rage-3 —
-  // exactly the tier that ships two faults. Carrying the disclosure only at
-  // level 2 meant the harshest tier silently withheld it. The count reveals
-  // neither a type nor a location, so it is safe at level 1 under §17.
-  const plural =
-    extra > 0
-      ? ` This installation has more than one thing wrong with it — ${extra + 1} in total.`
-      : '';
-
-  const observation = `${baseObservation}${plural}`;
-
-  const direction = `${directionHint(candidate.type, def.category)}${plural}`;
-
-  const location = `Inspect ${describeFaultTarget(circuit, candidate.target)}.${
-    extra > 0 ? ' That is not the only fault.' : ''
-  }`;
-
   return [
-    { level: 1, kind: 'observation', text: observation },
-    { level: 2, kind: 'direction', text: direction },
-    { level: 3, kind: 'location', text: location },
+    { level: 1, kind: 'observation', text: baseObservation },
+    { level: 2, kind: 'direction', text: directionHint(candidate.type, def.category) },
+    {
+      level: 3,
+      kind: 'location',
+      text: `Inspect ${describeFaultTarget(circuit, candidate.target)}.`,
+    },
   ];
 }
 

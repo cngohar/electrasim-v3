@@ -35,14 +35,13 @@ let nextRequest = 0;
 export function configurationLockReason(): string | null {
   const ui = useUiStore.getState();
   if (ui.simRunning) return 'Stop the simulation to change electrical configuration.';
-  if (ui.challengeAttemptId || ui.diagnosisActive || useSimulatorAccess.getState().exercise)
+  if (ui.diagnosisActive || useSimulatorAccess.getState().exercise)
     return 'Supply and device configuration are locked during this exercise. End the attempt to edit in the sandbox.';
   return null;
 }
 
 export function useConfigurationLockReason(): string | null {
   useUiStore((s) => s.simRunning);
-  useUiStore((s) => s.challengeAttemptId);
   useUiStore((s) => s.diagnosisActive);
   useSimulatorAccess((s) => s.exercise);
   return configurationLockReason();

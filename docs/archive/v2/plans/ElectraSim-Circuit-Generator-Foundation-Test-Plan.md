@@ -8,7 +8,6 @@ This plan verifies whether it is stable enough to become the foundation for:
 
 1. Challenge Mode
 2. Diagnosis Lab
-3. Ohmageddon Mode
 
 **Do not build those consumers until the Foundation Lock passes.**
 
@@ -41,7 +40,6 @@ Before functional testing, inspect the generator for:
 - generator logic mixed with UI/rendering
 - generator logic mixed with simulation
 - fault/diagnosis logic inside the generator
-- Ohmageddon logic inside the generator
 - duplicated generation/validation logic
 - hidden mutable global state
 - uncontrolled randomness
@@ -711,9 +709,6 @@ Then:
                  │
                  ▼
         🔧 DIAGNOSIS LAB
-                 │
-                 ▼
-          😈 OHMAGEDDON
 ```
 
 **Do not close the case before the Foundation Lock passes.**

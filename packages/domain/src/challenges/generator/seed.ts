@@ -1,20 +1,3 @@
-/**
- * Deterministic seed handling for the challenge generator (plan §5, §6, §29, §31).
- *
- * Two primitives live here:
- *
- *   1. `mulberry32` — a tiny, fast, well-distributed 32-bit PRNG. Given the
- *      same 32-bit state it always emits the same sequence, on every engine,
- *      forever. `Math.random()` is BANNED in `src/domain/challenges/**`
- *      (plan §58) and `seed.test.ts` asserts that.
- *
- *   2. `fnv1a32` — a stable string hash used to fold the whole generation
- *      request (version + seed + difficulty + mode + rage profile) into the
- *      PRNG state and into the human-facing challenge id.
- *
- * Nothing here touches `Date`, storage, or any store. The module is pure.
- */
-
 import type { ChallengeDifficulty, ChallengeIdentity, ChallengeMode } from '../types';
 
 /**
@@ -152,7 +135,6 @@ export interface SeedComponents {
   seed: number;
   difficulty: ChallengeDifficulty;
   mode: ChallengeMode;
-  rageProfile?: string;
 }
 
 /**
@@ -162,13 +144,13 @@ export interface SeedComponents {
  * a single reproducible line.
  */
 export function seedFingerprint(components: SeedComponents): string {
-  const { generatorVersion, seed, difficulty, mode, rageProfile } = components;
+  const { generatorVersion, seed, difficulty, mode } = components;
   return [
     `v${generatorVersion}`,
     `s${normalizeSeed(seed)}`,
     `d${difficulty}`,
     `m${mode}`,
-    `r${rageProfile ?? 'none'}`,
+    'rnone', // Reserved identity slot preserves existing ordinary seeds.
   ].join('|');
 }
 
@@ -182,16 +164,9 @@ export function createSeededRng(components: SeedComponents): Rng {
 }
 
 const MODE_PREFIX: Record<ChallengeMode, string> = {
-  challenge: 'CHAL',
   diagnosis: 'DIAG',
-  rage: 'RAGE',
 };
 
-/**
- * Stable, human-friendly challenge identity (plan §29).
- *
- *   ES-DIAG-482917 / ES-RAGE-482917 / ES-CHAL-482917
- */
 export function computeChallengeIdentity(components: SeedComponents): ChallengeIdentity {
   const hash = fnv1a32(`id:${seedFingerprint(components)}`);
   const shortCode = String(hash % 1_000_000).padStart(6, '0');
@@ -200,19 +175,4 @@ export function computeChallengeIdentity(components: SeedComponents): ChallengeI
     shortCode,
     displayId: `ES-${MODE_PREFIX[components.mode]}-${shortCode}`,
   };
-}
-
-/**
- * Daily-challenge hook (plan §31).
- *
- *   dailySeed = hash(date + generatorVersion)
- *
- * Nothing consumes this in Phase A. It exists so a future daily challenge can
- * be added without touching seed derivation — and explicitly without a backend.
- *
- * @param isoDate calendar date as `YYYY-MM-DD` (caller supplies it; this
- *   module never reads the clock, which keeps it pure and testable).
- */
-export function dailyChallengeSeed(isoDate: string, generatorVersion = GENERATOR_VERSION): number {
-  return fnv1a32(`daily:${isoDate}:v${generatorVersion}`);
 }

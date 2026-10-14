@@ -14,7 +14,7 @@ Two constraints shape the answer:
 - **§3 / §48 — no backend, no accounts, works offline.** There is nowhere to
   store a shared exercise and no id server to mint short links.
 - **§6 — generator versioning is explicit.** A challenge's identity is
-  `seed + difficulty + mode + generatorVersion` (+ rage tier). The same seed
+  `seed + difficulty + mode + generatorVersion` . The same seed
   under a different generator version is not guaranteed to be the same circuit.
 
 The tempting shortcut is to serialise the generated circuit itself. That would
@@ -30,7 +30,7 @@ circuit — inside a string learners are encouraged to paste around.
 The ticket carries exactly the values the generator treats as canonical:
 
 ```
-ES{generatorVersion}:{seed}:{difficulty}:{mode}[:{rageTier}]
+ES{generatorVersion}:{seed}:{difficulty}:{mode}
 ```
 
 The circuit is a pure function of those inputs, so replay re-runs the generator
@@ -65,7 +65,6 @@ substitution and not a dead end.
 
 ### 5. Mode-agnostic by construction
 
-`mode` is part of the ticket, so one codec serves Diagnosis, Challenge and rage
 exercises. Both panels share a single `useCopyToClipboard` hook so the
 affordance behaves identically. (The first implementation pass shipped Diagnosis
 only; §30 is mode-agnostic and Challenge Mode had no seed affordance at all.

@@ -3,11 +3,19 @@ import { type Locator, type Page, expect } from '@playwright/test';
 export const isPhone = (page: Page) => (page.viewportSize()?.width ?? 1280) < 640;
 
 export async function closePhoneProperties(page: Page) {
-  if (!isPhone(page)) return;
-  const dialog = page.getByRole('dialog', { name: 'Component properties', exact: true });
+  const dialog = page.getByRole('dialog', { name: /Component properties|· detailed settings$/ });
   if (await dialog.isVisible()) {
     await page.keyboard.press('Escape');
     await expect(dialog).not.toBeVisible();
+  }
+  if (!isPhone(page)) return;
+  const inspector = page.locator('[data-tour="inspector"][data-phone-inspector="true"]');
+  if (await inspector.isVisible()) {
+    await activateControl(
+      page,
+      inspector.getByRole('button', { name: 'Collapse Inspector', exact: true }),
+    );
+    await expect(inspector).not.toBeVisible();
   }
 }
 
@@ -52,20 +60,33 @@ export function supplyTrigger(page: Page) {
     : page.getByTitle('Click to change Global Supply Voltage');
 }
 
-export async function inspectComponent(page: Page, id: string) {
+export async function openInspector(page: Page, id: string) {
   await fitCanvas(page);
   await activateControl(
     page,
     page.locator(`[data-component-id="${id}"] [data-component-hitbox]`),
     true,
   );
+  const inspector = page.getByRole('complementary', { name: 'Inspector', exact: true });
+  if (!(await inspector.isVisible()))
+    await activateControl(page, page.getByRole('button', { name: 'Inspect', exact: true }));
+  await activateControl(page, inspector.getByRole('button', { name: 'Properties', exact: true }));
+  return inspector;
+}
+
+/** Existing model/repair suites exercise the detailed editor, now a separate window. */
+export async function inspectComponent(page: Page, id: string) {
+  const inspector = await openInspector(page, id);
   await activateControl(
     page,
-    isPhone(page)
-      ? page.getByRole('button', { name: 'Inspect', exact: true })
-      : page.getByTitle(/^Properties & (Settings|Specs)$/),
+    inspector.getByRole('button', { name: 'Detailed model settings', exact: true }),
   );
-  return isPhone(page)
-    ? page.getByRole('dialog', { name: 'Component properties', exact: true })
-    : page.locator('[data-tour="inspector"]');
+  return page.getByRole('dialog', { name: /· detailed settings$/ });
+}
+
+export async function openCircuitTools(page: Page) {
+  const trigger = page.getByRole('button', { name: 'Labs and circuit tools', exact: true });
+  if ((await trigger.getAttribute('aria-expanded')) !== 'true')
+    await activateControl(page, trigger);
+  return page.getByRole('region', { name: 'Circuit tools', exact: true });
 }

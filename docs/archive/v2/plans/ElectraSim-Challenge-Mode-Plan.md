@@ -1251,7 +1251,6 @@ Keep Challenge Mode focused.
                │                           │
        Functional Check              Repair + Verify
                │                           │
-             Hints                     Rage Bait
                │
          Local Progress
                │

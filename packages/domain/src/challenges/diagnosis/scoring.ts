@@ -35,7 +35,7 @@ export interface DiagnosisScoreInput {
   /** Hints revealed (§17). */
   hintsUsed: number;
   /**
-   * How many faults the scenario carried (§26 "multiple faults"). Defaults to
+   * How many faults the scenario carried. Defaults to
    * 1, which is every ordinary exercise.
    *
    * Finding two faults is strictly more work than finding one, so a two-fault
@@ -107,13 +107,6 @@ const INCOMPLETE_COST = 0.18;
  */
 const PAR_PER_EXTRA_FAULT = 0.6;
 
-/**
- * Credit for the extra work an additional fault represents.
- *
- * Deliberately small. It is a recognition that a two-fault exercise is harder,
- * not a reason to grind Ohmageddon for points — and it is capped by the 0..1
- * clamp, so it can never manufacture a score above 1000.
- */
 const MULTI_FAULT_BONUS = 0.08;
 
 function clamp01(value: number): number {

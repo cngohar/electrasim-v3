@@ -61,6 +61,48 @@ function heaterCircuit(): Circuit {
   };
 }
 
+test('schema-1 IndexedDB autosave migrates without losing legacy wires or voltage', async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('electrasim:welcomed', '1');
+    localStorage.setItem('electrasim:mobile-suitability:v1', '1');
+  });
+  await page.goto('/');
+  await expect(page.getByRole('button', { name: /^Run Simulation$/ })).toBeVisible();
+  const legacy = {
+    globalVoltage: 120,
+    components: [C('legacy-live', 'live-terminal'), C('legacy-bulb', 'bulb')],
+    wires: [
+      {
+        id: 'legacy-wire',
+        fromComponentId: 'legacy-live',
+        fromPortIndex: 0,
+        toComponentId: 'legacy-bulb',
+        toPortIndex: 0,
+      },
+    ],
+  };
+  await page.evaluate(async (circuit) => {
+    const idb = '/node_modules/.vite/deps/idb-keyval.js';
+    const { set } = await import(idb);
+    await set('electrasim:circuit:v1', { version: 1, savedAt: 0, circuit });
+  }, legacy);
+  await page.reload();
+  await expect(page.locator('[data-component-id="legacy-bulb"]')).toBeVisible();
+  const download = page.waitForEvent('download');
+  await page.keyboard.press('Control+s');
+  const path = await (await download).path();
+  expect(path).not.toBeNull();
+  const exported = JSON.parse(await readFile(path!, 'utf8'));
+  expect(exported.version).toBe(2);
+  expect(exported.circuit.supply.model).toMatchObject({ kind: 'ac-single-phase', voltage: 120 });
+  expect(exported.circuit.components.map((c: { id: string }) => c.id)).toEqual(
+    legacy.components.map((c) => c.id),
+  );
+  expect(exported.circuit.wires).toEqual([{ ...legacy.wires[0], controlPoints: [] }]);
+});
+
 test('supply profiles survive real import, voltage edit, undo/redo, download and IndexedDB reload', async ({
   page,
 }) => {

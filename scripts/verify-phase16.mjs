@@ -18,7 +18,6 @@ const steps = [
     'e2e/damage-repair.spec.ts',
     'e2e/consumer-evidence.spec.ts',
     'e2e/diagnosis-assessment.spec.ts',
-    'e2e/ohmageddon.spec.ts',
     '--project=chromium',
     '--workers=2',
   ],

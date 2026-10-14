@@ -14,7 +14,6 @@ import type {
   PortRef,
   SimulationResult,
 } from '@electrasim/domain';
-import type { RuleTarget } from '@electrasim/domain/challenges/declarative/rules';
 import type {
   QuickFixAction,
   ValidationIssue,
@@ -26,14 +25,6 @@ export interface RerouteState {
   end: 'from' | 'to';
   /** `'drag'` = pointer is held; `'armed'` = waiting for next port click. */
   source: 'drag' | 'armed';
-}
-
-/** Focus request created when a learner clicks a failing challenge rule. */
-export interface ChallengeRuleFocus {
-  ruleId: string;
-  label: string;
-  targets: RuleTarget[];
-  paletteTypes: string[];
 }
 
 /**
@@ -184,20 +175,6 @@ export interface UiState {
   templatesOpen: boolean;
   /** Loaded guided circuit whose checklist is currently shown. */
   activeGuideId: string | null;
-  /** Challenge Mode panel mounted (plan §32). Session state lives in challengeStore. */
-  challengeOpen: boolean;
-  /** Intro explainer shown the first time Challenge Mode is selected. */
-  challengeIntroOpen: boolean;
-  /** True while an active or completed Challenge Mode session should be visible. */
-  challengeModeActive: boolean;
-  /** True while Challenge Mode is paused and the editor is temporarily locked. */
-  challengePaused: boolean;
-  /** Allowed palette types for the active challenge; null when unrestricted/normal. */
-  challengeAllowedComponents: string[] | null;
-  /** Attempt id used by autosave to keep challenge edits out of the normal key. */
-  challengeAttemptId: string | null;
-  /** Selected failing rule and its concrete canvas targets. */
-  challengeRuleFocus: ChallengeRuleFocus | null;
   /** Diagnosis Lab panel mounted (plan §32). Session state lives in diagnosisStore. */
   diagnosisOpen: boolean;
   /**
@@ -258,6 +235,7 @@ export interface UiState {
   /** Active tab in Inspector panel ('properties' | 'connections' | 'simulation' | 'analytics' | 'validation' | 'logs' | 'history' | 'faultlab'). */
   activeInspectorTab:
     | 'properties'
+    | 'configure'
     | 'connections'
     | 'simulation'
     | 'analytics'
@@ -335,6 +313,7 @@ export interface UiState {
   setActiveInspectorTab: (
     tab:
       | 'properties'
+      | 'configure'
       | 'connections'
       | 'simulation'
       | 'analytics'
@@ -392,18 +371,6 @@ export interface UiState {
   setDocsOpen: (open: boolean, scrollTo?: string | null) => void;
   setContactOpen: (open: boolean) => void;
   setTemplatesOpen: (open: boolean) => void;
-  setChallengeOpen: (open: boolean) => void;
-  /** Open Challenge Mode from the menu and show its explainer first. */
-  openChallengeMode: () => void;
-  setChallengeIntroOpen: (open: boolean) => void;
-  /** Mirrored by declarativeChallengeStore so hidden sessions stay identifiable. */
-  setChallengeModeActive: (active: boolean) => void;
-  /** Mirrored by declarativeChallengeStore so the eager editor can lock itself. */
-  setChallengePaused: (paused: boolean) => void;
-  /** Mirrored by declarativeChallengeStore so the eager palette can stay lean. */
-  setChallengeAllowedComponents: (types: readonly string[] | null) => void;
-  setChallengeAttemptId: (attemptId: string | null) => void;
-  setChallengeRuleFocus: (focus: ChallengeRuleFocus | null) => void;
   setDiagnosisOpen: (open: boolean) => void;
   /** Set by `diagnosisStore` only — see {@link UiState.diagnosisActive}. */
   setDiagnosisActive: (active: boolean) => void;

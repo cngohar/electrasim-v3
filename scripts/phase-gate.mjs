@@ -25,11 +25,13 @@ export function planPhaseGate(steps, argv) {
     });
   const ids = stages.map((stage) => stage.id);
   if (new Set(ids).size !== ids.length) throw new Error('Gate stage names must be unique.');
-  const options = { list: false, dryRun: false, help: false };
+  const options = { list: false, dryRun: false, help: false, keepGoing: false };
   for (let i = 0; i < argv.length; i++) {
     const flag = argv[i];
     if (['--list', '--dry-run', '--help'].includes(flag)) {
       options[flag === '--dry-run' ? 'dryRun' : flag.slice(2)] = true;
+    } else if (flag === '--keep-going') {
+      options.keepGoing = true;
     } else if (flag === '--from' || flag === '--only') {
       if (options.from !== undefined || options.only !== undefined)
         throw new Error('Use one selector: --from STAGE or --only STAGE[,STAGE].');
@@ -62,8 +64,11 @@ export function runPhaseGate(
     return 1;
   }
   if (plan.help) {
-    log('Gate options: --list, --dry-run, --from STAGE, --only STAGE[,STAGE].');
+    log('Gate options: --list, --dry-run, --from STAGE, --only STAGE[,STAGE], --keep-going.');
     log('Default: run the full local gate. Selected stages do not certify full acceptance.');
+    log(
+      '--keep-going collects later checks after ordinary failures; the gate still fails. Interruptions stop it.',
+    );
     return 0;
   }
   if (plan.list || plan.dryRun) {
@@ -73,14 +78,26 @@ export function runPhaseGate(
   }
   if (!plan.full)
     log(`${label}: partial run (${plan.stages.map((stage) => stage.id).join(', ')}).`);
+  const failures = [];
   for (const stage of plan.stages) {
     log(`${label} local gate [${stage.id}]: bun ${stage.args.join(' ')}`);
     const result = run(process.execPath, stage.args, { stdio: 'inherit', env: process.env });
     if (result.error || result.status !== 0) {
       log(`${label}: stage ${stage.id} failed${result.error ? `: ${result.error.message}` : ''}.`);
-      log(`After fixing and reviewing affected checks, resume with --from ${stage.id}.`);
-      return result.status || 1;
+      failures.push({ id: stage.id, status: result.status || 1 });
+      if (!plan.keepGoing || result.error || result.signal || result.status === null) {
+        log(`After fixing and reviewing affected checks, resume with --from ${stage.id}.`);
+        return result.status || 1;
+      }
+    } else {
+      log(`${label}: stage ${stage.id} passed.`);
     }
+  }
+  if (failures.length) {
+    log(
+      `${label}: failed stages: ${failures.map(({ id }) => id).join(', ')}. Full acceptance did not pass.`,
+    );
+    return failures[0].status;
   }
   log(
     plan.full

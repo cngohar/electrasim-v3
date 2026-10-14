@@ -70,7 +70,6 @@ The runtime registry contains **115 components: 74 basic and 41 Pro**. Previous 
 |-------------|--------------|-----------------------|
 | Basic vs Pro components | `components/*`, `Palette`, `Toolbar`, `circuitStore.pasteComponents`, imports/templates | 1.3 resolver + 1.5 actions/API + 1.7 UI; canonical IDs and import/paste/restore tests |
 | Basic vs advanced faults | 14 `FaultType` values, `faults.ts`, `circuitStore.faultActions.ts`, Fault Lab | All IDs classified in the membership plan; normalize legacy and modern fields; test single/basic, multi/advanced and natural safety findings |
-| Diagnosis / Ohmageddon | `diagnosisStore.start/resume`, `challenges/diagnosis/scenario.ts`, `challenges/rage/{tiers,modifiers}` | 1.5/1.7 gate difficulty, actual components/faults and all four rage tiers; preserve versioned seeds |
 | Manual memberships | `packages/db/{auth,auth-schema,schema}.ts`, `src/worker.ts` | 1.3 trusted global role + D1 resolver/API; 1.8 super-admin CRUD; local cookie/D1/browser tests |
 | Circuit persistence/imports | `store/persistence.ts`, `ImportExportModal.loadCircuit`, `lib/export/circuitFormat.ts`, store setters | 1.5 normalize and authorize; preserve premium documents read-only on expiry; raw backup and explicit basic copy |
 | Standards | `standards.ts`, `compliance.ts`, `zsCheck.ts`, Inspector, EIC export, Astro calculators | 1.1 reviewed metadata, honest applicability, independent fixtures and local projection migration |

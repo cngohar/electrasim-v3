@@ -539,7 +539,6 @@ function runSeed(
     seed: challenge.metadata.seed,
     difficulty: challenge.metadata.difficulty,
     mode: challenge.metadata.mode,
-    ...(challenge.metadata.rageProfile ? { rageProfile: challenge.metadata.rageProfile } : {}),
   });
   if (identity.displayId !== challenge.metadata.challengeId)
     fail(
@@ -701,7 +700,7 @@ for (let seed = 1; seed <= IDENTITY_SAMPLES; seed += 1) {
       generatorVersion: GENERATOR_VERSION,
       seed,
       difficulty,
-      mode: 'challenge',
+      mode: 'diagnosis',
     });
     const key = `${difficulty}:${seed}`;
     const previous = seenHashes.get(identity.hash);

@@ -7,8 +7,10 @@ async function loadCanvas(page: Page) {
     localStorage.setItem('electrasim:mobile-suitability:v1', '1');
   });
   await page.goto('/?e2e=canvas-base');
-  await expect(page.getByRole('button', { name: /^Run Simulation$/ })).toBeVisible();
-  await page.keyboard.press('Control+e');
+  // Use an interactive control for setup instead of dispatching a shortcut
+  // while the freshly mounted editor may still be registering its effects.
+  await page.getByRole('button', { name: 'Menu', exact: true }).click();
+  await page.getByRole('button', { name: /^Import \/ Export/ }).click();
   const modal = page.getByRole('dialog');
   await modal.getByRole('button', { name: /^Import$/ }).click();
   await modal.locator('textarea').fill(

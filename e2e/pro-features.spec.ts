@@ -78,10 +78,8 @@ test.use({ viewport: { width: 1680, height: 1000 } });
 const faultLabToggle = (page: Page) => page.getByTitle(/^Toggle the Fault Lab/);
 
 async function ensureProMode(page: Page) {
-  // The mode toggle always renders either "Student" (basic, emerald) or
-  // "Pro" (pro, purple). If the button currently shows "Student", click it
-  // to switch into Pro Electrician Mode.
-  const studentToggle = page.getByRole('button', { name: /^student$/i });
+  // Both labels remain visible; the title identifies the active interface mode.
+  const studentToggle = page.getByTitle(/^Basic Student Mode active/);
   if (await studentToggle.isVisible().catch(() => false)) {
     await studentToggle.click({ force: true });
   }
@@ -161,11 +159,11 @@ test.describe('Dual standard & pro features', () => {
   test('student mode hides Fault Lab and shows its active standard read-only', async ({ page }) => {
     // Switch to Student mode (a visible Pro toggle means persisted settings
     // started this test in Pro).
-    const proToggle = page.getByRole('button', { name: /^pro$/i });
+    const proToggle = page.getByTitle(/^Pro Electrician Mode active/);
     if (await proToggle.isVisible().catch(() => false)) {
       await proToggle.click({ force: true });
     }
-    await expect(page.getByRole('button', { name: /^student$/i })).toBeVisible();
+    await expect(page.getByTitle(/^Basic Student Mode active/)).toBeVisible();
     await expect(page.getByRole('button', { name: /Fault Lab/ })).toHaveCount(0);
 
     const standard = page.locator('[data-standard-selector][data-standard-readonly]');

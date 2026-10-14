@@ -1,3 +1,4 @@
+import { isCurrentSimulation } from '@electrasim/domain/simulationEvidence';
 /** Accessible SVG renderer and interaction controller for the circuit editor. */
 
 import {
@@ -66,7 +67,7 @@ interface Props {
 
 export function CircuitCanvas({
   circuit,
-  simResult,
+  simResult: providedResult,
   selectedId,
   onSelect,
   onToggleSwitch,
@@ -75,6 +76,10 @@ export function CircuitCanvas({
   className,
   externalSvgRef,
 }: Props) {
+  const simResult = useMemo(
+    () => (isCurrentSimulation(circuit, providedResult) ? providedResult : null),
+    [circuit, providedResult],
+  );
   const gridPatternId = useId().replace(/:/g, '');
   const canvasDescriptionId = useId().replace(/:/g, '');
   const gridSize = theme.gridSize ?? 24;
@@ -121,6 +126,7 @@ export function CircuitCanvas({
   const showTooltips = useSettingsStore((s) => s.showTooltips);
   const currentFlowAnim = useSettingsStore((s) => s.currentFlowAnimation);
   const activeLoadEffectsSetting = useSettingsStore((s) => s.activeLoadEffects);
+  const interfaceMotion = useSettingsStore((s) => s.interfaceMotion);
   const physicsEffects = useSettingsStore((s) => s.physicsEffects);
   const simRunning = useUiStore((s) => s.simRunning);
   const diagnosisActive = useUiStore((s) => s.diagnosisActive);
@@ -128,7 +134,6 @@ export function CircuitCanvas({
   const customWiringMode = useSettingsStore((s) => s.customWiringMode);
   const autoWireJoints = useSettingsStore((s) => s.autoWireJoints);
   const tracePathMode = useUiStore((s) => s.tracePathMode);
-  const challengePaused = useUiStore((s) => s.challengePaused);
 
   // The custom-path cursor uses a ref + rAF so we
   // don't trigger a React re-render on every pointermove — only a lightweight
@@ -377,9 +382,7 @@ export function CircuitCanvas({
         ref={svgRef}
         viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
         preserveAspectRatio="xMidYMid meet"
-        className={['block h-full w-full', challengePaused ? 'pointer-events-none' : ''].join(' ')}
-        data-challenge-paused={challengePaused ? 'true' : undefined}
-        aria-disabled={challengePaused}
+        className="block h-full w-full"
         style={
           {
             '--canvas-bg': theme.bg,
@@ -583,8 +586,8 @@ export function CircuitCanvas({
             paths={orthogonalPathD}
             pan={pan}
             zoom={zoom}
-            enabled={physicsEffects && !diagnosisActive}
-            animate={simRunning && !challengePaused && !reducedEffects}
+            enabled={physicsEffects && interfaceMotion !== 'off' && !diagnosisActive}
+            animate={simRunning && !reducedEffects}
           />
 
           {/* Pro-only heatmap overlay. Sits above wires and components so
@@ -634,6 +637,8 @@ function hoverCanvasComponent(id: string | null) {
   useUiStore.getState().setHoveredComponentId(id);
 }
 function openComponentMenu(id: string, event: MouseEvent<SVGGElement>) {
+  const selection = useCircuitStore.getState();
+  if (!selection.selectedComponentIds.includes(id)) selection.selectComponent(id);
   event.preventDefault();
   event.stopPropagation();
   useUiStore

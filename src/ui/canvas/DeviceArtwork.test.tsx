@@ -3,9 +3,12 @@ import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { DeviceArtwork } from './DeviceArtwork';
 import { DEVICE_FAMILIES, deviceImage, deviceMarking } from './deviceVectors';
+import { OPEN_TABLE_ARTWORK } from './openTableArtwork';
 
 describe('physical device artwork', () => {
   it('covers the complete catalogue with valid self-contained vectors', () => {
+    expect(Object.keys(OPEN_TABLE_ARTWORK).sort()).toEqual(Object.keys(COMPONENT_DEFS).sort());
+    expect(new Set(Object.values(OPEN_TABLE_ARTWORK).map((art) => art.family)).size).toBe(60);
     expect(Object.keys(DEVICE_FAMILIES).sort()).toEqual(Object.keys(COMPONENT_DEFS).sort());
     for (const type of Object.keys(COMPONENT_DEFS)) {
       const image = deviceImage(type);

@@ -14,7 +14,6 @@ import {
   computeChallengeIdentity,
   createRng,
   createSeededRng,
-  dailyChallengeSeed,
   fnv1a32,
   normalizeSeed,
   seedFingerprint,
@@ -188,9 +187,6 @@ describe('seedFingerprint / createSeededRng', () => {
     expect(seedFingerprint(BASE)).toBe(
       `v${GENERATOR_VERSION}|s482917|dintermediate|mdiagnosis|rnone`,
     );
-    expect(seedFingerprint({ ...BASE, rageProfile: 'chaos' })).toBe(
-      `v${GENERATOR_VERSION}|s482917|dintermediate|mdiagnosis|rchaos`,
-    );
   });
 
   it('gives the same seed a different stream per difficulty', () => {
@@ -204,24 +200,12 @@ describe('seedFingerprint / createSeededRng', () => {
     const v2 = createSeededRng({ ...BASE, generatorVersion: 2 }).next();
     expect(v1).not.toBe(v2);
   });
-
-  it('gives the same seed a different stream per mode', () => {
-    const challenge = createSeededRng({ ...BASE, mode: 'challenge' }).next();
-    const rage = createSeededRng({ ...BASE, mode: 'rage' }).next();
-    expect(challenge).not.toBe(rage);
-  });
 });
 
 describe('computeChallengeIdentity (plan §29)', () => {
   it('renders the documented ES-<MODE>-<6 digits> shape', () => {
     expect(computeChallengeIdentity({ ...BASE, mode: 'diagnosis' }).displayId).toMatch(
       /^ES-DIAG-\d{6}$/,
-    );
-    expect(computeChallengeIdentity({ ...BASE, mode: 'rage' }).displayId).toMatch(
-      /^ES-RAGE-\d{6}$/,
-    );
-    expect(computeChallengeIdentity({ ...BASE, mode: 'challenge' }).displayId).toMatch(
-      /^ES-CHAL-\d{6}$/,
     );
   });
 
@@ -234,31 +218,12 @@ describe('computeChallengeIdentity (plan §29)', () => {
     expect(computeChallengeIdentity({ ...BASE, seed: BASE.seed + 1 }).displayId).not.toBe(base);
     expect(computeChallengeIdentity({ ...BASE, difficulty: 'advanced' }).displayId).not.toBe(base);
     expect(computeChallengeIdentity({ ...BASE, generatorVersion: 2 }).displayId).not.toBe(base);
-    expect(computeChallengeIdentity({ ...BASE, rageProfile: 'chaos' }).displayId).not.toBe(base);
   });
 
   it('always zero-pads the short code to six digits', () => {
     for (let seed = 0; seed < 3_000; seed++) {
       expect(computeChallengeIdentity({ ...BASE, seed }).shortCode).toHaveLength(6);
     }
-  });
-});
-
-describe('dailyChallengeSeed (plan §31 hook)', () => {
-  it('derives a stable seed from a calendar date', () => {
-    expect(dailyChallengeSeed('2026-08-18')).toBe(dailyChallengeSeed('2026-08-18'));
-    expect(dailyChallengeSeed('2026-08-18')).not.toBe(dailyChallengeSeed('2026-08-19'));
-  });
-
-  it('changes with the generator version', () => {
-    expect(dailyChallengeSeed('2026-08-18', 1)).not.toBe(dailyChallengeSeed('2026-08-18', 2));
-  });
-
-  it('never reads the clock — the caller supplies the date', () => {
-    // Guards against a future refactor sneaking `new Date()` in, which would
-    // make the generator impure.
-    const source = readFileSync(path.join(CHALLENGES_ROOT, 'generator/seed.ts'), 'utf8');
-    expect(source).not.toMatch(/new Date\(|Date\.now\(/);
   });
 });
 

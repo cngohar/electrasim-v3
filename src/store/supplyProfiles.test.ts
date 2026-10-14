@@ -40,7 +40,6 @@ beforeEach(() => {
   useUiStore.setState({
     simRunning: false,
     diagnosisActive: false,
-    challengeAttemptId: null,
     validationReport: null,
   });
   useCircuitStore.getState().setCircuit(fixture());
@@ -101,7 +100,7 @@ describe('supply profiles across editor boundaries', () => {
     );
   });
 
-  it.each([{ challengeAttemptId: 'attempt' }, { diagnosisActive: true }])(
+  it.each([{ diagnosisActive: true }])(
     'locks authored source edits during an exercise: %j',
     (mode) => {
       useUiStore.setState(mode);

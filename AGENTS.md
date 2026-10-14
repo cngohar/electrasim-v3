@@ -15,3 +15,9 @@
 - Keep verified findings, evidence paths, explicit phase status and non-obvious test relationships in `docs/code-graph.json` as work progresses. Update the active phase only when the phase plan/evidence supports advancing. Keep accepted exceptions and partial/full acceptance distinctions explicit.
 - Read the identified source and phase/audit evidence before acting. Import relationships are a navigation aid, not proof of complete runtime coverage or passing tests. Use `bun run graph:build -- --semantic` only when compiler call resolution would materially help.
 - Generated `.code-graph/` files stay local and ignored. Do not store credentials, tokens, circuit/user content or private account data in the graph. No graph operation authorizes remote work.
+
+## Task briefings and evidence reviews
+
+- Start scoped tasks with `bun run graph:brief -- "QUERY"`; use phase/find/impact for follow-up navigation. Read the linked source and evidence before changes.
+- Maintain feature/check mappings in `docs/code-graph.json`; instructions and acceptance remain authoritative in their linked documents. See `docs/knowledge-base.md` for the schema and workflow.
+- `bun run graph:check` distinguishes unreviewed and changed evidence from current fingerprints. After an actual review, use `bun run graph:review -- ID --scope "WHAT WAS REVIEWED"`. Never renew baselines automatically or describe a matching fingerprint as a passing test.

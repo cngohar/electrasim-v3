@@ -30,7 +30,7 @@ function LazySurfaceFailure({ error, label, onClose }: FailureProps) {
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
-        className="w-full max-w-sm rounded-lg border border-red-100 bg-white p-5 shadow-2xl outline-none animate-dialog-fade-in dark:border-red-900/50 dark:bg-slate-900"
+        className="table-surface table-load-failure w-full max-w-sm rounded-lg border border-red-100 bg-white p-5 shadow-2xl outline-none animate-dialog-fade-in dark:border-red-900/50 dark:bg-slate-900"
       >
         <h2 id={titleId} className="text-sm font-semibold text-slate-900 dark:text-slate-100">
           {label} could not load
@@ -73,7 +73,7 @@ export function LazySurface({ children, label, onClose }: Props) {
       <Suspense
         fallback={
           <output className="fixed inset-0 z-[100] grid place-items-center bg-slate-900/20 backdrop-blur-sm">
-            <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-lg dark:bg-slate-900 dark:text-slate-200">
+            <span className="table-surface table-load-state inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-lg dark:bg-slate-900 dark:text-slate-200">
               <LoaderCircle className="size-4 animate-spin" />
               Loading {label}
             </span>

@@ -7,16 +7,15 @@
 
 ## Context
 
-The ElectraSim v2 plan (§1–§12, §29–§39, §51, §57) introduces three learning
-modes — Challenge Mode, Diagnosis Lab and Ohmageddon — that all need the *same*
+The ElectraSim v2 plan (§1–§12, §29–§39, §51, §57) introduces two learning
+modes — Challenge Mode, Diagnosis Lab — that all need the *same*
 thing first: a **deterministic generator that emits electrically valid
 ElectraSim circuits**.
 
 The plan is explicit that the generator is a foundation, not a feature:
 
 - §7 — the core generator *stops* after producing a valid circuit. Fault
-  selection, injection, diagnosis and Ohmageddon modifiers are **not** part of
-  it.
+  selection and injection are **not** part of it.
 - §51 — Phase A ends at "generator unit tests", with a hard **STOP** before
   Challenge Mode.
 - §57 — a Generator Foundation Gate must pass before any learning mode is
@@ -76,14 +75,13 @@ src/domain/challenges/
 Specific decisions:
 
 1. **PRNG.** `mulberry32` seeded through an FNV-1a-derived 32-bit hash of
-   `(generatorVersion, seed, difficulty, mode, rageProfile)`. `Math.random` is
+   `(generatorVersion, seed, difficulty, mode)`. `Math.random` is
    banned inside `src/domain/challenges/**` and a unit test asserts its absence.
 2. **Generator version.** `GENERATOR_VERSION = 1`, part of both the RNG seed
    derivation and the challenge identity hash, so a future algorithm change
    cannot silently re-use an old seed's identity (§6).
 3. **Challenge identity.** `computeChallengeIdentity()` returns a 32-bit hash, a
    6-digit numeric form and a display string `ES-<PREFIX>-<6 digits>`
-   (`ES-DIAG-482917`, `ES-RAGE-482917`) (§29). `dailyChallengeSeed(isoDate,
    version)` exists as the §31 hook only — nothing consumes it yet and no
    backend is introduced.
 4. **Recipes, not random wiring.** Circuits are produced from 12 curated
@@ -154,7 +152,6 @@ Specific decisions:
   immersion heater) because the simulator's single circuit-wide current model
   would trip smaller breakers on unrelated branches. Revisit if the engine gains
   per-branch current.
-- `rageProfile` appears as an *opaque identity input* in Phase A so the §29 hash
   shape is stable. It carries no behaviour until Phase E.
 
 **Follow-ups**

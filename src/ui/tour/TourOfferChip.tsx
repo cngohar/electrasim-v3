@@ -15,10 +15,21 @@ import { dismissTourOffer, isTourDone, isTourOfferDismissed } from './storage';
 export function TourOfferChip({ isPhone }: { isPhone: boolean }) {
   const welcomeOpen = useUiStore((s) => s.welcomeOpen);
   const mobileSuitabilityOpen = useUiStore((s) => s.mobileSuitabilityOpen);
+  const inspectorOpen = useUiStore((s) => !s.inspectorCollapsed);
   const tourId = useUiStore((s) => s.tourId);
+  const exerciseOpen = useUiStore((s) => s.diagnosisOpen || s.activeGuideId !== null);
   const [dismissed, setDismissed] = useState(() => isTourOfferDismissed() || isTourDone('student'));
 
-  if (isPhone || dismissed || welcomeOpen || mobileSuitabilityOpen || tourId) return null;
+  if (
+    isPhone ||
+    inspectorOpen ||
+    dismissed ||
+    welcomeOpen ||
+    mobileSuitabilityOpen ||
+    tourId ||
+    exerciseOpen
+  )
+    return null;
 
   const dismiss = () => {
     dismissTourOffer();

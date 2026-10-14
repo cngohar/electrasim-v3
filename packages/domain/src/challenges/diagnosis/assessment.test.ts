@@ -19,24 +19,23 @@ const grade = (s: DiagnosisScenario, c: Circuit) =>
   });
 
 describe('current diagnosis assessment', () => {
-  it('generates supported, observable, recoverable exercises at every difficulty and rage tier', () => {
+  it('generates supported, observable, recoverable exercises at every difficulty', () => {
     for (const difficulty of ['beginner', 'intermediate', 'advanced'] as const)
-      for (const rageTier of [undefined, 'rage-1', 'rage-2', 'rage-3', 'rage-4'] as const)
-        for (const seed of [5, 17, 91]) {
-          const s = buildDiagnosisScenario({ seed, difficulty, rageTier });
-          expect(diagnosisAssessmentIssue(s)).toBeNull();
-          expect(hasDiagnosisEvidence(s.healthyCircuit, simulate(s.healthyCircuit))).toBe(true);
-          for (const f of s.faults) {
-            expect(assessFaultTarget(s.healthyCircuit, f.fault.type, f.fault.target).coverage).toBe(
-              'supported',
-            );
-            const solo = { ...s.healthyCircuit, faults: [f.fault] };
-            expect(hasOperationEvidence(solo, simulate(solo))).toBe(true);
-            expect(f.symptom.deEnergisedLoadIds.length).toBeGreaterThan(0);
-          }
-          expect(grade(s, s.healthyCircuit).verdict).toBe('success');
-          expect(grade(s, s.faultedCircuit).verdict).toBe('incomplete');
+      for (const seed of [5, 17, 91]) {
+        const s = buildDiagnosisScenario({ seed, difficulty });
+        expect(diagnosisAssessmentIssue(s)).toBeNull();
+        expect(hasDiagnosisEvidence(s.healthyCircuit, simulate(s.healthyCircuit))).toBe(true);
+        for (const f of s.faults) {
+          expect(assessFaultTarget(s.healthyCircuit, f.fault.type, f.fault.target).coverage).toBe(
+            'supported',
+          );
+          const solo = { ...s.healthyCircuit, faults: [f.fault] };
+          expect(hasOperationEvidence(solo, simulate(solo))).toBe(true);
+          expect(f.symptom.deEnergisedLoadIds.length).toBeGreaterThan(0);
         }
+        expect(grade(s, s.healthyCircuit).verdict).toBe('success');
+        expect(grade(s, s.faultedCircuit).verdict).toBe('incomplete');
+      }
   });
 
   it('rejects device deletion, substitution, changed ratings/models and compensated source edits', () => {
@@ -98,24 +97,6 @@ describe('current diagnosis assessment', () => {
     expect(grade(s, c).success).toBe(false);
   });
 
-  it('keeps identification, partial repair and full recovery separate on a masked pair', () => {
-    const s = buildDiagnosisScenario({ seed: 3, difficulty: 'intermediate', rageTier: 'rage-4' });
-    expect(s.faults).toHaveLength(2);
-    expect(s.rage?.applications.find((a) => a.id === 'compoundFault')?.applied).toBe(true);
-    const partial = { ...s.faultedCircuit, faults: [s.faults[1]!.fault] };
-    const first = evaluateDiagnosis(s, partial, answer(s));
-    expect(first.progressed).toBe(true);
-    expect(first.recovered).toBe(false);
-    expect(first.verdict).toBe('incomplete');
-    const healthy = evaluateDiagnosis(s, s.healthyCircuit, answer(s));
-    expect(healthy.recovered).toBe(true);
-    expect(healthy.verdict).toBe('incomplete');
-    const final = evaluateDiagnosis(s, s.healthyCircuit, answer(s, 1), {
-      identifiedFaultIds: first.identifiedFaultIds,
-    });
-    expect(final.verdict).toBe('success');
-  });
-
   it('rejects obsolete/tampered baseline evidence, even with the right diagnosis and clear faults', () => {
     const s = buildDiagnosisScenario({ seed: 5, difficulty: 'beginner' });
     for (const change of [
@@ -158,10 +139,9 @@ describe('current diagnosis assessment', () => {
       difficulty: s.difficulty,
       mode: 'diagnosis',
       generatorVersion: s.generatorVersion,
-      rageTier: null,
       assessment: s.assessment,
     });
-    const parsed = parseShareText(code, { difficulty: 'advanced', mode: 'rage' })!;
+    const parsed = parseShareText(code, { difficulty: 'advanced', mode: 'diagnosis' })!;
     expect(parsed.assessment?.engineVersion).toBe(s.assessment?.engineVersion);
     expect(parsed.assessmentMismatch).toBe(false);
     expect(
@@ -174,7 +154,7 @@ describe('current diagnosis assessment', () => {
         mode: 'diagnosis',
       }),
     ).toBeNull();
-    const replay = buildDiagnosisScenario({ ...parsed, rageTier: parsed.rageTier ?? undefined });
+    const replay = buildDiagnosisScenario(parsed);
     expect(circuitRevision(replay.faultedCircuit)).toBe(s.assessment?.faultedRevision);
     expect(
       parseShareText(code.replace(s.assessment!.modelVersion, 'obsolete'), {

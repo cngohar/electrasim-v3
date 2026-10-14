@@ -1,12 +1,3 @@
-/**
- * share.test.ts — the §30 copy/replay ticket.
- *
- * The contract that matters is the round trip: whatever we put in front of the
- * user must come back as the *same* identity inputs, because the generator
- * turns those inputs into the circuit. A codec that loses the rage tier or the
- * difficulty would silently hand someone a different exercise.
- */
-
 import { describe, expect, it } from 'vitest';
 import { buildDiagnosisScenario } from './diagnosis/scenario';
 import { GENERATOR_VERSION } from './generator/seed';
@@ -24,7 +15,6 @@ const TICKET: ShareTicket = {
   difficulty: 'advanced',
   mode: 'diagnosis',
   generatorVersion: GENERATOR_VERSION,
-  rageTier: null,
 };
 
 describe('formatShareText (plan §30)', () => {
@@ -35,31 +25,25 @@ describe('formatShareText (plan §30)', () => {
     expect(text).toContain('Mode: Diagnosis');
   });
 
-  it('names the Ohmageddon tier only when one is set (§24)', () => {
-    expect(formatShareText(TICKET)).not.toMatch(/Ohmageddon/);
-    expect(formatShareText({ ...TICKET, rageTier: 'rage-3' })).toContain('Ohmageddon: rage-3');
-  });
-
   it('embeds a machine-readable code alongside the prose', () => {
     expect(formatShareText(TICKET)).toContain(`Code: ${formatShareCode(TICKET)}`);
   });
 });
 
 describe('parseShareText (plan §30)', () => {
-  it('round-trips every difficulty and tier', () => {
-    const tiers = [null, 'rage-1', 'rage-2', 'rage-3', 'rage-4'] as const;
+  it('round-trips each standard difficulty and learning mode', () => {
     for (const difficulty of CHALLENGE_DIFFICULTIES) {
-      for (const rageTier of tiers) {
-        const ticket: ShareTicket = { ...TICKET, difficulty, rageTier };
-        const parsed = parseShareText(formatShareText(ticket), FALLBACK);
-        expect(parsed).toMatchObject({
-          seed: ticket.seed,
-          difficulty,
-          mode: 'diagnosis',
-          rageTier,
-        });
+      for (const mode of ['diagnosis'] as const) {
+        const ticket: ShareTicket = { ...TICKET, difficulty, mode };
+        expect(parseShareText(formatShareText(ticket), FALLBACK)).toMatchObject(ticket);
       }
     }
+  });
+
+  it('rejects unsupported modes and extra generation fields', () => {
+    expect(parseShareText('ES3:12:beginner:unsupported', FALLBACK)).toBeNull();
+    expect(parseShareText('ES3:12:beginner:challenge', FALLBACK)).toBeNull();
+    expect(parseShareText('ES3:12:beginner:diagnosis:unsupported', FALLBACK)).toBeNull();
   });
 
   it('accepts a bare code without the surrounding prose', () => {
@@ -118,7 +102,6 @@ describe('replay (plan §5, §30)', () => {
         difficulty: original.difficulty,
         mode: 'diagnosis',
         generatorVersion: original.generatorVersion,
-        rageTier: null,
       }),
       FALLBACK,
     );
@@ -133,32 +116,5 @@ describe('replay (plan §5, §30)', () => {
     expect(replayed.faults.map((f) => f.fault.type)).toEqual(
       original.faults.map((f) => f.fault.type),
     );
-  });
-
-  it('a rage ticket replays the same rage exercise', () => {
-    const original = buildDiagnosisScenario({
-      seed: 77_001,
-      difficulty: 'intermediate',
-      rageTier: 'rage-3',
-    });
-    const parsed = parseShareText(
-      formatShareText({
-        seed: original.seed,
-        difficulty: original.difficulty,
-        mode: 'rage',
-        generatorVersion: original.generatorVersion,
-        rageTier: 'rage-3',
-      }),
-      FALLBACK,
-    );
-    expect(parsed?.rageTier).toBe('rage-3');
-
-    const replayed = buildDiagnosisScenario({
-      seed: parsed!.seed,
-      difficulty: parsed!.difficulty,
-      rageTier: parsed!.rageTier ?? undefined,
-    });
-    expect(replayed.challengeId).toBe(original.challengeId);
-    expect(replayed.faultedCircuit).toEqual(original.faultedCircuit);
   });
 });

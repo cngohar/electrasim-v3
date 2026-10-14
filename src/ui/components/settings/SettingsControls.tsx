@@ -8,16 +8,11 @@ import { EmojiGlyph } from '../EmojiGlyph';
 
 type CanvasPreset = UserSettings['canvasPreset'];
 
-export function TabIntro({ icon, title, desc }: { icon: string; title: string; desc: string }) {
+export function TabIntro({ title, desc }: { icon: string; title: string; desc: string }) {
   return (
-    <div className="flex items-start gap-3 rounded-xl border border-blue-100 bg-blue-50/60 px-3.5 py-3 dark:border-blue-900/50 dark:bg-blue-950/40">
-      <EmojiGlyph emoji={icon} size={20} className="mt-0.5 shrink-0" />
-      <div>
-        <div className="text-xs font-bold text-blue-800 dark:text-blue-300">{title}</div>
-        <div className="mt-0.5 text-[11px] leading-relaxed text-blue-600/80 dark:text-blue-400/80">
-          {desc}
-        </div>
-      </div>
+    <div className="table-settings-intro">
+      <h3>{title}</h3>
+      <p>{desc}</p>
     </div>
   );
 }
@@ -39,73 +34,26 @@ export function ElectricToggle({
 }: ElectricToggleProps) {
   const toggleId = `toggle-${label.replace(/\s+/g, '-').toLowerCase()}`;
   return (
-    <div className="group rounded-xl border border-slate-200 bg-white/80 p-3 transition hover:border-blue-200 hover:bg-blue-50/30 dark:border-slate-700 dark:bg-slate-800/60 dark:hover:border-blue-700 dark:hover:bg-blue-950/30">
-      <div className="flex items-start gap-3">
-        <button
-          type="button"
-          role="switch"
-          id={toggleId}
-          aria-checked={checked}
-          onClick={() => onChange(!checked)}
-          className={[
-            'relative mt-0.5 h-6 w-11 flex-shrink-0 rounded-full border-2 transition-all duration-200',
-            checked
-              ? 'border-blue-600 bg-blue-600 shadow-[0_0_8px_2px_rgba(37,99,235,0.3)]'
-              : 'border-slate-300 bg-slate-200',
-          ].join(' ')}
-        >
-          {checked && (
-            <>
-              <span className="absolute left-1.5 top-1/2 h-px w-2 -translate-y-1/2 bg-white/40" />
-              <span className="absolute right-1.5 top-1/2 h-px w-2 -translate-y-1/2 bg-white/40" />
-            </>
-          )}
-          <span
-            className={[
-              'absolute top-0.5 size-4 rounded-full shadow-md transition-all duration-200',
-              checked ? 'left-[calc(100%-1.25rem)] bg-white' : 'left-0.5 bg-white',
-            ].join(' ')}
-          >
-            <span
-              className={[
-                'absolute left-1/2 top-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors',
-                checked ? 'bg-blue-500' : 'bg-slate-400',
-              ].join(' ')}
-            />
-          </span>
-        </button>
-
-        <label htmlFor={toggleId} className="flex-1 cursor-pointer">
-          <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
-            {label}
-            <span
-              className={[
-                'rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide',
-                checked
-                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-400'
-                  : 'bg-slate-100 text-slate-400 dark:bg-slate-700 dark:text-slate-500',
-              ].join(' ')}
-            >
-              {checked ? 'ON' : 'OFF'}
-            </span>
-          </span>
-          <span className="mt-0.5 block text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
-            {description}
-          </span>
-        </label>
+    <div className="table-setting-row">
+      <div>
+        <label htmlFor={toggleId}>{label}</label>
+        <p>{description}</p>
+        <details>
+          <summary>How this works</summary>
+          <p>{preview}</p>
+        </details>
       </div>
-
-      <div
-        className={[
-          'mt-2.5 flex items-start gap-2 rounded-lg border px-2.5 py-2 text-[10px] leading-relaxed transition-all',
-          checked
-            ? 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-400'
-            : 'border-slate-100 bg-slate-50/60 text-slate-500 dark:border-slate-700/60 dark:bg-slate-800/40 dark:text-slate-400',
-        ].join(' ')}
+      <button
+        type="button"
+        role="switch"
+        id={toggleId}
+        aria-label={label}
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        className="table-toggle"
       >
-        <span className="mt-px text-[11px] leading-none">→</span>
-        <span>{preview}</span>
-      </div>
+        <span />
+      </button>
     </div>
   );
 }

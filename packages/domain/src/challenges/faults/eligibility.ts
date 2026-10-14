@@ -91,7 +91,6 @@ export function collectFaultCandidates(
   circuit: Circuit,
   // Only the three nomination lists are read. Taking the narrow shape rather
   // than a whole `GeneratedScenario` lets callers that legitimately have just
-  // these lists — the rage candidate stage, tests assembling a fixture — pass
   // them without inventing prose fields that would never be used.
   scenario: Pick<
     GeneratedScenario,

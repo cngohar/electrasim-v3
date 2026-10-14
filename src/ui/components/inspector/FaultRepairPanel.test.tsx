@@ -28,7 +28,6 @@ beforeEach(() => {
     simRunning: false,
     simResult: null,
     diagnosisActive: false,
-    challengeAttemptId: null,
   });
   useCircuitStore.getState().setCircuit(damageCircuit());
 });

@@ -36,11 +36,13 @@ import {
   Undo2,
   Zap,
 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { isMacPlatform, remapShortcutLabel } from '../../lib/platform';
 import { redo, undo, useCircuitStore, useUiStore } from '../../store';
 import { useSettingsStore } from '../../store/settingsStore';
 import { preloadSettings } from '../deferredSurfacePreloads';
 import { useResolvedTheme } from '../hooks/useResolvedTheme';
+import { CanvasToolbar } from './CanvasToolbar';
 import { IconBtn } from './IconBtn';
 import { SimulationClock } from './SimulationClock';
 import { StandardSelector } from './StandardSelector';
@@ -53,8 +55,38 @@ interface Props {
 }
 
 export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard }: Props) {
+  const [toolsOpen, setToolsOpen] = useState(false);
+  const toolsRef = useRef<HTMLElement>(null);
+  const toolsTriggerRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!toolsOpen) return;
+    const outside = (event: MouseEvent) => {
+      if (
+        event.target instanceof Node &&
+        !toolsRef.current?.contains(event.target) &&
+        !toolsTriggerRef.current?.contains(event.target)
+      )
+        setToolsOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (
+        event.key === 'Escape' &&
+        !document.querySelector('.table-dialog[aria-modal="true"]:not([aria-hidden="true"])')
+      ) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        setToolsOpen(false);
+        toolsTriggerRef.current?.focus();
+      }
+    };
+    document.addEventListener('mousedown', outside, true);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('mousedown', outside, true);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [toolsOpen]);
   const readiness = useCircuitReadiness();
-  const paletteOpen = useUiStore((s) => s.paletteOpen);
   const inspectorCollapsed = useUiStore((s) => s.inspectorCollapsed);
   const diagnosisActive = useUiStore((s) => s.diagnosisActive);
   const runDisabled = !simRunning && ordinaryRunBlocked(readiness);
@@ -91,15 +123,15 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
   };
 
   const toggleFaultLab = () => {
-    // Toggling fault mode arms manual fault injection and snaps the
-    // Inspector onto the dedicated Fault Lab tab (no more floating window).
+    // The modeless Fault Lab leaves canvas selection available for injection.
     useUiStore.getState().toggleFaultLab();
+    setToolsOpen(false);
     const nowOpen = useUiStore.getState().faultLabOpen;
     useUiStore
       .getState()
       .addLog(
         nowOpen
-          ? 'Fault Lab opened in the Inspector — select a component, then inject.'
+          ? 'Fault Lab opened — select a component on the canvas, then inject.'
           : 'Fault Lab closed — manual fault controls disarmed.',
         'info',
       );
@@ -315,15 +347,15 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
       </button>
     ) : null;
 
-  // FAULT LAB — Pro-only manual fault mode; owns an Inspector tab, so
-  // it is hidden on phones where the Inspector never renders.
+  // Pro-only manual fault controls, available on desktop and phones.
   const faultLabBtn =
-    appMode === 'pro' && !isPhone ? (
+    appMode === 'pro' ? (
       <button
         type="button"
         onClick={toggleFaultLab}
         title="Toggle the Fault Lab — manual fault controls"
         data-tour="fault-lab"
+        aria-label="Fault Lab"
         aria-pressed={faultLabOpen}
         className={[
           'flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold shadow-sm transition',
@@ -333,7 +365,7 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
         ].join(' ')}
       >
         <FlaskConical className="size-3.5" />
-        {!isPhone && <span className="hidden md:inline">Fault Lab</span>}
+        <span>Fault Lab</span>
         {faultLabOpen && (
           <span className="hidden text-[9px] font-bold uppercase tracking-wider opacity-90 lg:inline">
             Active
@@ -392,91 +424,114 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
 
   return (
     <>
-      <header className="workspace-header" data-canvas-occluder>
+      <div className="table-project table-surface" data-canvas-occluder>
         {brand}
-        {!isPhone && (
-          <div className="workspace-history">
-            {undoRedo}
-            <StandardSelector compact />
-          </div>
-        )}
-        <div className="workspace-header-actions">
-          <div className="workspace-mode" aria-label="Interface mode">
-            {modeBtn}
-            <span>Interface</span>
-          </div>
-          {commandHint}
-          {themeBtn}
-          {!isPhone && (
-            <button
-              type="button"
-              aria-label="Open file import and export"
-              className="workspace-export"
-              onClick={() => useUiStore.getState().setImportExportOpen(true)}
-            >
-              <FileUp size={15} /> Files
-            </button>
-          )}
-          {isPhone && settingsBtn}
-          {menuBtn}
-        </div>
-      </header>
-      {!isPhone && (
-        <nav className="workspace-rail" aria-label="Workspace navigation" data-canvas-occluder>
-          <button
-            type="button"
-            aria-label="Build: component library"
-            aria-pressed={paletteOpen}
-            onClick={() => useUiStore.getState().setPaletteOpen(!paletteOpen)}
-          >
-            <Layers size={21} />
-            <span>Build</span>
-          </button>
-          <div className="workspace-rail-item">
-            {guidesBtn}
-            <span>Learn</span>
-          </div>
-          <button
-            type="button"
-            aria-label="Labs and activities"
-            onClick={() => useUiStore.getState().setMenuOpen(true)}
-          >
-            <FlaskConical size={21} />
-            <span>Labs</span>
-          </button>
-          <button
-            type="button"
-            aria-label="Circuit netlist"
-            onClick={() => {
-              useUiStore.getState().setInspectorCollapsed(false);
-              useUiStore.getState().setActiveInspectorTab('connections');
-            }}
-          >
-            <Route size={21} />
-            <span>Netlist</span>
-          </button>
-          <div className="workspace-rail-settings">
-            {settingsBtn}
-            <span>Settings</span>
-          </div>
-        </nav>
-      )}
-      <section
-        className="workspace-simulation"
+        <button
+          type="button"
+          aria-label="Open file import and export"
+          title="Files"
+          onClick={() => useUiStore.getState().setImportExportOpen(true)}
+        >
+          <FileUp size={17} />
+        </button>
+        {menuBtn}
+      </div>
+      <header
+        className="table-command-bar table-surface"
         aria-label="Simulation controls"
         data-canvas-occluder
-        data-palette-open={paletteOpen}
-        data-inspector-open={!inspectorCollapsed}
       >
+        <CanvasToolbar />
+        <span className="table-command-divider" />
+        <div className="table-undo">{undoRedo}</div>
+        <button
+          type="button"
+          className="table-command-action"
+          aria-expanded={toolsOpen}
+          ref={toolsTriggerRef}
+          aria-label="Labs and circuit tools"
+          onClick={() => setToolsOpen(!toolsOpen)}
+        >
+          <FlaskConical size={17} />
+          <span>Labs</span>
+        </button>
         {runBtn}
-        <SimulationClock />
-        <div className="workspace-simulation-actions">
-          {validateBtn}
-          {analyzeBtn}
-          {diagnosticsBtn}
-          {faultLabBtn}
-        </div>
-      </section>
+      </header>
+      <div className="table-top-right table-surface" data-canvas-occluder>
+        <button
+          type="button"
+          className="table-command-action"
+          aria-label="Inspect"
+          aria-pressed={!inspectorCollapsed && !faultLabOpen}
+          onClick={() => {
+            const ui = useUiStore.getState();
+            if (isPhone && (faultLabOpen || inspectorCollapsed)) ui.setDiagnosisOpen(false);
+            if (faultLabOpen) {
+              ui.setFaultLabOpen(false);
+              ui.setInspectorCollapsed(false);
+            } else ui.setInspectorCollapsed(!inspectorCollapsed);
+            if (isPhone) useUiStore.getState().setLogOpen(false);
+          }}
+        >
+          <Layers size={17} />
+          <span>Inspect</span>
+        </button>
+        {settingsBtn}
+      </div>
+      {toolsOpen && (
+        <section
+          ref={toolsRef}
+          className="table-tools-menu table-surface"
+          aria-label="Circuit tools"
+          data-canvas-occluder
+        >
+          <div className="table-surface-heading">
+            <h2>Circuit tools</h2>
+            <button
+              type="button"
+              aria-label="Close circuit tools"
+              onClick={() => setToolsOpen(false)}
+            >
+              ×
+            </button>
+          </div>
+          <div className="table-tool-actions">
+            {guidesBtn}
+            {validateBtn}
+            {analyzeBtn}
+            {diagnosticsBtn}
+            {faultLabBtn}
+            <button
+              type="button"
+              className="table-command-action"
+              onClick={() => {
+                useUiStore.getState().setInspectorCollapsed(false);
+                useUiStore.getState().setActiveInspectorTab('connections');
+              }}
+            >
+              <Route size={17} />
+              Netlist
+            </button>
+            <button
+              type="button"
+              className="table-command-action"
+              onClick={() => useUiStore.getState().setDiagnosisOpen(true)}
+            >
+              <FlaskConical size={17} />
+              Diagnosis Lab
+            </button>
+          </div>
+          <div className="table-tool-preferences">
+            <StandardSelector compact />
+            {modeBtn}
+            {themeBtn}
+            {commandHint}
+          </div>
+          <div className="table-tool-clock">
+            <SimulationClock />
+          </div>
+        </section>
+      )}
     </>
   );
 }

@@ -25,8 +25,6 @@ import type { Circuit } from '@electrasim/domain';
 import { get, set } from 'idb-keyval';
 import { CIRCUIT_SCHEMA_VERSION, normalizeCircuit, validateCircuitJSON } from '../lib/exportImport';
 import { useCircuitStore } from './circuitStore';
-import { saveChallengeCircuit } from './declarativeChallengePersistence';
-import { useUiStore } from './uiStore';
 
 // Bump when the persisted shape changes incompatibly.
 const SCHEMA_VERSION = CIRCUIT_SCHEMA_VERSION;
@@ -116,15 +114,6 @@ export function startAutosave(): () => void {
     if (!pending) return;
     const circuit = pending;
     pending = null;
-    // Plan §12: during an active challenge, autosave routes to the challenge
-    // workspace — the normal circuit (already snapshotted) stays untouched.
-    // This eager UI mirror keeps persistence synchronous on pagehide without
-    // importing the entire Challenge Mode store into the first-paint bundle.
-    const ui = useUiStore.getState();
-    if (ui.challengeAttemptId) {
-      void saveChallengeCircuit(ui.challengeAttemptId, circuit);
-      return;
-    }
     void persistCircuit(circuit);
   };
 

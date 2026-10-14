@@ -13,7 +13,7 @@ import { emojiDataUri, emojiTextSymbol } from '../../lib/emoji/emojiSvg';
 import { type PendingCustomPath, useSettingsStore, useUiStore } from '../../store';
 import { useEmojiGlyphsReady } from '../hooks/useEmojiGlyphsReady';
 import { WireEndpointHandles } from './WireLayer';
-import { getDefaultArt } from './componentArt';
+import { deviceImage as getDefaultArt } from './deviceVectors';
 import { buildBezierPath, pointsToLinePath } from './geometry';
 import type { CanvasTheme, PortLoc } from './types';
 

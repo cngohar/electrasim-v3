@@ -1,3 +1,4 @@
+import { InlineArrange } from './InlineArrange';
 /**
  * ContextMenu — Phase 6.5.2 right-click context menu.
  *
@@ -69,14 +70,19 @@ export function ContextMenu() {
 
   if (!contextMenu) return null;
 
-  const items = buildItems(contextMenu.target);
+  const items = buildItems(contextMenu.target).filter(
+    (entry) => isSeparator(entry) || !entry.label.startsWith('Rotate'),
+  );
 
   return (
     <div
       ref={ref}
-      className="fixed z-[60] min-w-[180px] max-h-[calc(100dvh-16px)] overflow-y-auto rounded-xl border border-slate-200 bg-white/95 py-1 shadow-xl shadow-slate-900/10 backdrop-blur-xl dark:border-slate-700 dark:bg-slate-900/95 dark:shadow-black/30"
+      className="table-context-menu fixed z-[60] min-w-[180px] max-h-[calc(100dvh-16px)] overflow-y-auto rounded-xl border border-slate-200 bg-white/95 py-1 shadow-xl shadow-slate-900/10 backdrop-blur-xl dark:border-slate-700 dark:bg-slate-900/95 dark:shadow-black/30"
       style={{ left: contextMenu.x, top: contextMenu.y }}
     >
+      {contextMenu.target.kind === 'component' && (
+        <InlineArrange componentId={contextMenu.target.id} />
+      )}
       {items.map((entry, i) => {
         if (isSeparator(entry)) {
           return <div key={`sep-${i}`} className="my-1 h-px bg-slate-100 dark:bg-slate-700" />;
@@ -154,7 +160,7 @@ export function ContextMenu() {
             />
             <span className="flex-1 font-medium">{entry.label}</span>
             {entry.shortcut && (
-              <kbd className="rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-mono text-[9px] text-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-500">
+              <kbd className="table-menu-shortcut rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-mono text-[9px] text-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-500">
                 {entry.shortcut}
               </kbd>
             )}

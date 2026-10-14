@@ -82,7 +82,7 @@ reader-facing summary; see the session log in `progress.md` for how it was built
   wiring path, steps, key insight, safety band), when to open a component page instead, and how to tell
   when you are ready for the next level. Four levels — beginner, intermediate, advanced and pro — each
   with a reading order, the pages to open, and the thing to build in the app before moving on, ending at
-  Challenge Mode, the Diagnosis Lab and Ohmageddon. A progression table summarises the route, and the
+  Challenge Mode, the Diagnosis Lab. A progression table summarises the route, and the
   closing section is explicit that the guide is educational and not a substitute for a qualified
   electrician or a notifiable installation under Part P.
 - **Glossary.** `/glossary/` defines the 36 terms the walkthroughs use — Zs, Ze, R1 + R2, CPC, RCD
@@ -284,12 +284,11 @@ reader-facing summary; see the session log in `progress.md` for how it was built
 
 **ElectraSim 2.0** — the learning release. Everything below that was previously listed under
 _Unreleased_ ships in this version: the structured learning modes (Challenge, Diagnosis Lab,
-Ohmageddon), the deterministic challenge/fault generator underneath them, Guided Circuits,
 the Fault Lab, the multi-standard Electrical Toolbox (BS 7671 / IEC 60364 / US NEC) with the
 source→cable→load Cable Size Calculator, interactive onboarding tours, the redesigned workbench
 shell (command palette, command-hub menu, settings + portable backups), international default
 standard, cross-platform SVG icons, and a long list of correctness fixes — conductor-bypass
-validation, withheld fault narration, live symptom evidence, compound-fault verification, and
+validation, withheld fault narration, live symptom evidence, authored-repair verification, and
 the honest-cable temperature correction. Full release notes: [`/updates/electrasim-2-0-release/`](https://electrasim.com/updates/electrasim-2-0-release/).
 
 ### Replaced — Session 2026-08-29: Cable Size Calculator v2 (source → cable → load)
@@ -821,7 +820,6 @@ viewBox is `y 200 h 380`, so art above y≈200 is off-screen. A bird placed at y
   - `npm run typecheck` passes with 0 errors.
   - `npm run lint` (`biome lint .`) passes with 0 errors across 440 files.
   - All 990 unit tests pass in Vitest across 79 test files.
-  - All stress tests and benchmarks (`benchmark:simulation`, `stress:generator`, `stress:diagnosis`, `stress:ohmageddon`) pass with 0 failures.
   - Both Vite production build and Astro static site build succeed, and `check:perf` and `check:links` pass.
 
 ### Changed — Session 2026-08-26 (part 7): Tutorial overhaul — save/restore, empty start, mode matching, spotlight fix
@@ -1067,9 +1065,7 @@ Replaced the generator-based "build a random circuit against the clock" mode wit
 
 Closed out the two §55 gates that had never been executed, and fixed the first real cross-browser defect they exposed.
 
-- **Challenge/Diagnosis header collapsed to zero width on iPad Safari.** The panel header laid the title column out as `flex-1 min-w-0` beside intrinsically-sized badges (Rage Bait, timer, copy seed). At the ~224px panel width used below `lg`, the badges consumed the whole line and WebKit resolved the title column to a literal **0px** box: the heading and the `ES-RAGE-…` / `ES-CHAL-…` challenge id were still in the DOM but rendered one character wide, effectively invisible to sighted users and reported as hidden by both assistive tech and Playwright. The header now wraps and the title column carries a real minimum basis, so every element keeps its natural size at every viewport. Chromium never showed this — it took running the WebKit project to surface it.
 - **`tablet-safari` Playwright project now runs and passes.** It had never been executable here (missing WebKit browser + system libraries); with those installed it reported 8 failures. One was the layout defect above; the rest were harness bugs, now fixed: the component palette is a *fixed overlay* over the canvas below `lg` and was intercepting component clicks (guided-circuits, faults-and-editing), `pro-features` selected a component by hardcoded viewport coordinates that fall outside an 834px-wide tablet, and `smoke` asserted a "Components" **button** that has never existed in any viewport — the palette is an `<aside>`, and the collapsed rail renders the same label vertically.
-- **Flaky Ohmageddon/diagnosis e2e stabilised.** The intermittent "unexpected navigation" failures were dev-server HMR full-reloads firing mid-test, triggered by build artefacts landing inside the watched tree. Vite now ignores `.vite/`, `node_modules/.vite/` and `stats.html`, and the Playwright dev server runs with `DISABLE_HMR=true`. Three consecutive full Chromium runs are clean.
 
 **Verification (all on Node 22.12):** Vitest **910/910 across 62 files**; typecheck (app + e2e) and `npm run lint` clean across 356 files; Playwright **chromium 66 passed** (×3 consecutive runs), **mobile-chrome + chromium 122 passed**, **tablet-safari 64 passed**, **production 11 passed**; `npm run build`, `check:links` (138 files), `benchmark:simulation` and `benchmark:browser` all pass. The previously-unrun `e2e:production` and browser-benchmark gates are now green. `check:perf` still fails and is a **budget** question, not a regression — see below.
 
@@ -1077,12 +1073,10 @@ Closed out the two §55 gates that had never been executed, and fixed the first 
 
 ### Added — Session 2026-08-19: seed sharing/replay (§30) and Learning Modes documentation (§49)
 
-Audited the v2 plan against the implementation. The generator foundation, Challenge Mode, Diagnosis Lab, Ohmageddon and persistence were all present and passing; two plan items had no implementation, and both now ship.
+Audited the v2 plan against the implementation. The generator foundation, Challenge Mode, Diagnosis Lab and persistence were all present and passing; two plan items had no implementation, and both now ship.
 
-- **Copy Seed / Replay (§30).** New pure domain module `domain/challenges/share.ts` formats and parses a replay ticket over the identity inputs the generator already treats as canonical — `seed + difficulty + mode + rage tier` — plus the generator version. The circuit is never serialised: it is a function of those inputs, so a ticket stays a handful of bytes and rebuilds the exercise exactly. The Diagnosis Lab header gained a **Copy seed** control (emitting the `Seed: / Difficulty: / Mode:` block §30 specifies, with a machine-readable `Code:` line), and the idle picker gained a **Replay a seed** field that accepts the whole pasted block, a bare code, or a bare seed number. Both controls ship in **Challenge Mode and the Diagnosis Lab**, sharing one `useCopyToClipboard` hook so the affordance behaves identically in both. A ticket from a different generator version is still replayed, but the mismatch is stated rather than hidden (§6). Entirely local — no backend, no share endpoint (§3, §48).
-- **Learning Modes documentation (§49).** The in-app docs had no page describing the v2 features. Added a seventh docs section covering Challenge Mode, the Diagnosis Lab and Ohmageddon Mode, the three difficulty profiles, the seed/replay system and deterministic generation, and the fact that statistics and the active exercise live in IndexedDB and never leave the device. README highlights updated to match.
+- **Learning Modes documentation (§49).** The in-app docs had no page describing the v2 features. Added a seventh docs section covering Challenge Mode, the Diagnosis Lab Mode, the three difficulty profiles, the seed/replay system and deterministic generation, and the fact that statistics and the active exercise live in IndexedDB and never leave the device. README highlights updated to match.
 
-**Verification:** typecheck, `npm run lint`, and **910/910 Vitest tests across 62 files** passed (12 new, including a replay test that rebuilds a real scenario from a round-tripped ticket and asserts the faulted circuit is identical). All four stress gates re-run green: 3,726 generated challenges / 223,656 faults / 414,574 repairs verified, 750 Challenge Mode scenarios, 600 diagnosis scenarios, 1,800 Ohmageddon scenarios. Playwright Chromium **67 passed / 2 intentional skips**, including three new §30 specs — one copies a seed and replays it in a *fresh browser context* (separate IndexedDB) to prove the seed alone reproduces the exercise, one covers unparseable input (§47).
 
 
 ### Added — Session 2026-08-19: Pro standards, audited compliance, and routed diagnostics
@@ -1102,32 +1096,13 @@ Audited the v2 plan against the implementation. The generator foundation, Challe
 - The opt-in dense browser benchmark now imports a deterministic 202-component/300-wire circuit instead of relying on the removed development Stress button.
 - Production Settings tests use the control's exact accessible name, avoiding strict-locator collisions.
 
-### Added — Session 2026-08-19 (v2 Phase F4–F6): misleading symptom, Rage 2 swap, Rage 4 timer
-
-Phase F is complete. The last two modifiers that were still `implemented: false` now ship honestly, Rage 2 stops pretending `remoteFault` is a misleading symptom, and Rage 4 finally has the optional clock §27 listed for it.
-
-- **`misleadingSymptom` (F4).** The modifier never rewrites the complaint (§26). It *selects* a fault whose true measured symptom points somewhere unhelpful — typically an upstream open that kills a downstream load, so the briefing says the lamp is dead and the lamp is not where the fault is. Ranking drops candidates that sit on a declared load; `tryBuildScenario` then *proves* the claim with `isMisleadingPlacement` against the measured symptom (dead load → the load, its terminals, its incident wires) and **replaces** the proposal row, same honesty pattern as `compoundFault`.
-- **Rage 2 retires the `remoteFault` stand-in (F5).** §27 asked for "1 fault + misleading symptom + reduced hints". A jammed MCB one hop from the lamp is misleading without being remote, which is the beginner-safe case the stand-in was hiding. Rage 3 still uses `remoteFault`.
-- **`timeLimit` on Rage 4 (F6).** 1.5× par (floor 30 s) so the hard stop sits above the medal cutoff. The Diagnosis Lab swaps the elapsed clock for remaining time, and hitting zero settles the run as `timed-out` — whatever the learner has already found is scored, the circuit is not rewritten, and a reload cannot resurrect a clock that already hit zero.
-
-### Added — Session 2026-08-19 (v2 Phase F3): a fault that hides another fault 😈😈😈
-
-`compoundFault` (§25, §26, §27, §53.6) is now implemented, and **Rage 4** ships with it. A compound scenario is one where the first fault *masks* the second: while it is present the installation looks exactly as it would with that fault alone, and only when the learner repairs it does the real second complaint appear. This is the diagnostic habit the tier exists to teach — *re-test after every repair*.
-
-- **The claim is proved by simulation before it is made.** The builder simulates the pair, and requires that the combined picture matches the primary fault's picture and *does not* match the partner's. Both faults must also be independently observable (§12), so the second one is a real fault the learner can find, not a passenger in the answer list.
-- **Masking is judged on what the learner can see.** A new `sameObservableWorld` compares dead loads, tripped protection and blown components — and deliberately ignores the simulator's internal error flags. An earlier attempt that included them found **0 masking pairs out of 67,476**, because every wire fault flags its own wire and so no two faults ever "look the same". The gate was measuring the wrong thing, not reporting an absent phenomenon.
-- **An honesty bug was found and fixed by the probe that measured it.** The selection stage records `compoundFault: applied` meaning only "a partner was proposed and accepted"; the later masking verdict was *appended* beside it, and `buildRageSummary` merges duplicate rows with "applied anywhere wins" — so **71 of 120 rage-4 scenarios claimed a compound that did not exist**. The verdict now *replaces* the proposal's row. A regression test pins it, and a second test re-proves every `applied` claim against the simulator rather than trusting the flag.
-- **Graceful degradation, never a rejected seed.** The primary fault is fixed before the compound search begins, so not every circuit can host one. When no masking partner is found the exercise ships as an honest plain multi-fault and says so in its note. A bounded retry over reserve candidates lifted the honest compound rate from **35.0 % to 56.7 %** (52.5 % across the full 360-scenario stress sweep).
-- **Rage 4 drops `remoteFault` on purpose.** Compound masking already forces the partner deep into the branch the first fault de-energises; also demanding the most-distant band leaves the two constraints with an empty intersection — the same way `remoteFault` + `multiFault` once made Rage 3 ship a single fault. Fewer modifiers, strictly harder exercise, so the tier escalation test now asserts the learner's actual burden instead of counting list entries.
-
-### Fixed — Session 2026-08-19: the Diagnosis panel described a circuit that no longer existed (§14, §26)
+### Fixed — Session 2026-08-19: the Diagnosis panel described a circuit that no longer existed (§14)
 
 **The evidence block was a snapshot, not a reading.** `scenario.complaint` is written once when the exercise is built, and the panel rendered it unchanged for the whole session — so after a learner correctly repaired something, the panel still reported the original symptom.
 
-- For compound scenarios this defeated the entire tier: the payoff for repairing the masking fault is that *the complaint changes*, and a frozen briefing told the learner their correct repair had achieved nothing.
 - The panel now re-derives the symptom from the learner's live circuit after every change, via a new pure `observeSymptom` in the domain layer — the panel still owns no electrical logic. It uses the same deliberately-vague phrasing as the original briefing, so **§14 holds**: it reports what is *seen*, never what is wrong or where. A test asserts the live text never contains a fault's id, type or location across many seeds.
 - When everything measures healthy the block says so plainly and asks for the diagnosis, rather than showing a complaint the learner has already fixed. Verified end-to-end in a real browser by walking the answer grid until the repairs land.
-- Costs ~0.3 ms per change and is memoised. Mutation-checked: freezing the complaint back to `scenario.complaint` fails the compound test.
+- Costs ~0.3 ms per change and is memoised. Mutation-checked against live repair feedback.
 
 ### Fixed — Session 2026-08-19: the console was printing the answer (§14)
 
@@ -1139,28 +1114,13 @@ Phase F is complete. The last two modifiers that were still `implemented: false`
 - **Nothing is deleted outside Diagnosis mode.** In the ordinary Fault Lab workflow every message and modal still names the fault exactly as before — verified by a negative control, since a fix that quietly disabled the simulator's reporting would be a worse bug than the one being fixed.
 - **The old §14 test only read the panel's own briefing**, which is why this survived four phases of green suites. The regression test now sweeps four seeds and asserts that no fault name appears anywhere on screen outside the answer list, at every viewport. Both the unit and e2e tests were mutation-checked: reverting the fix makes them fail.
 
-### Added — Session 2026-08-18 (v2 Phase F2): two faults at once 😈😈
-
-`multiFault` (§25, §26, §27, §53.3) is now implemented, so Rage 3 ships the two faults §27 always specified for it — on 120/120 seeds at every difficulty. Both faults are ordinary eligible candidates, really injected and really simulated: the difficulty is in the search, not in a lie.
-
-- **A new selection stage** (`selectFaults`), between candidate ranking and presentation. None of the three existing hooks could express "and another one" — `rankCandidates` re-orders a pool that exactly one fault is then drawn from — so multi-fault gets its own hook that *proposes* additions after the first fault is chosen.
-- **The runner owns the invariants, not the modifier.** Nothing already selected is ever removed; no duplicate fault and no duplicate `locationKey` (two faults sharing a location would collapse into one answer in §15's grader); a hard ceiling of three faults. Proposals arrive in preference order, and `tryBuildScenario` drives each one through §12's solo-observability gate, swapping in a standby when a proposal turns out to be masked rather than discarding the whole scenario.
-- **Two faults never share a device.** Two faults on the same wire — or on a wire and the terminal it lands on — read as a single defect, so a learner who correctly repaired "that connection" would be told they were wrong for a distinction they cannot see. A *different fault type* is preferred for the same reason: two open-circuits read as one repeated mistake.
-- **Falls back to the full (decoy-filtered) pool** when the ranked band offers nothing separable. `remoteFault` narrows to a single distance band, which on a typical circuit is a cluster of wires around one node; without the fallback the two modifiers cancelled each other out and Rage 3 quietly shipped one fault (measured: 0 of 8 seeds). The ranked pool is still tried first, so the second fault tends to be remote too.
-- **Rage 4 still does not ship.** §27 defines it as two faults *plus a compound symptom*, and `compoundFault` — faults that interact, so clearing one changes what the other looks like — remains honestly unimplementable. Labelling a tier "compound" that is not would be exactly the §24 misrepresentation the mode is supposed to avoid.
-
 ### Fixed — Session 2026-08-18 (v2 Phase F2)
 
 - **Duplicate location options made some exercises unanswerable (§15).** Two different wires could render as an identical option row — a socket's live and neutral drops both read "Wire: RCBO (20 A) → Single 3-Pin Socket (13A)" — as could two identical bulbs on separate branches, and their terminals. The answer form takes one location, so the learner could be graded wrong for a distinction the UI never showed them. Colliding rows are now qualified by the terminal names the wire lands on ("L-out → N"), falling back to the canvas id; labels that were already unique are left exactly as they were. **Pre-existing, not introduced by F2**, and caught on screen at 390×844 rather than by any test — now locked by both stress harnesses and a seed sweep.
-- **The multi-fault disclosure was withheld from the one tier that needed it.** The "more than one thing is wrong" line rode on hints 2–3, but `limitedHints` truncates Rage 3 to a single hint — so the only tier with two faults was the only one that never said so, making a complete repair look like a failed one (§26). Moved onto the level-1 observation, which reveals neither a type nor a location.
-- **The rage-summary leak check produced a false positive.** `notes.includes(targetId)` reported a leak of `…-w-1` whenever a note legitimately named `…-w-10`. Now matched on whole tokens — a weak check is worse than none, because it trains you to ignore it.
-- **`remoteFault`'s stress metric had stopped measuring `remoteFault`.** Mean fault distance is taken over the *nearest* fault, which on a two-fault tier reports the second one; it read 0.00 at beginner/rage-3 while the primary fault was as remote as ever. Distance is now reported for both roles (`meanDist` and `meanPrim`) and the escalation gate asserts on the primary, so a working modifier is not weakened to satisfy a stale metric.
 
-**Gates:** 861 unit tests (was 844) across 60 files; e2e **112 passed / 14 skipped** including a real two-fault Rage 3 walkthrough driven entirely through clicks; all four stress harnesses green at full seed counts (Rage 3: 2.00 mean faults, 120/120 multi-fault, 2.89 mean primary hops at intermediate); typecheck clean; `vite build` clean.
 
 ### Changed — Session 2026-08-18 (v2 Phase F1): plural-fault scenario shape
 
-Phase F's first slice (§53). Phase E had to register `multiFault` and `compoundFault` as `implemented: false` for one structural reason: a `DiagnosisScenario` carried exactly one `fault`. F1 removes that ceiling everywhere *before* any modifier tries to use it, so the two-fault work that follows is a modifier change rather than a rewrite.
 
 - **`DiagnosisScenario.faults: ScenarioFault[]`** (always ≥ 1) replaces the singular `scenario.fault` / `scenario.faultLocationKey`. Each `ScenarioFault` carries its own `fault`, `locationKey` and solo `symptom`; the scenario's own `symptom` is the *combined* observation. `primaryScenarioFault(scenario)` is the one-fault accessor. Single-fault scenarios are unchanged in behaviour — the array simply has length 1.
 - **The evaluator now grades a hunt, not a guess.** `DiagnosisEvaluation` gains `faults[]`, `matchedFaultId`, `progressed`, `identifiedFaultIds`, `outstandingCount` and `faultCount`. Naming a genuine fault while others remain outstanding is **`incomplete`, never `failure`** — the learner was right, just not finished. Re-naming a fault already found is `incomplete` with `progressed: false`, and the matcher prefers an un-named fault so a duplicate answer can't be laundered into progress.
@@ -1169,23 +1129,6 @@ Phase F's first slice (§53). Phase E had to register `multiFault` and `compound
 - **The panel shows the hunt** — a "Faults found: N of M" card, shown only when a scenario actually has more than one fault, plus a pluralised completion screen.
 - **Fixed: a partial success was billed as a failure.** `diagnosisStore` incremented `incompleteRepairs` and cleared the learner's selections on *every* non-final verdict, including the one where they had just correctly identified a second fault. Now guarded on `huntAdvanced` (`progressed && outstandingCount > 0`), which is also the only condition that resets the pickers. Caught by three failing store tests, not by review.
 
-**Tests:** 844 unit tests pass (up from 815) across 60 files, with new multi-fault blocks in `evaluator.test.ts` (21), `scoring.test.ts` (18) and `diagnosisPersistence.test.ts` (26). Both `stress-diagnosis` and `stress-ohmageddon` were migrated to the plural shape and now walk a scenario **fault by fault**, asserting every fault is independently observable and completable. Full e2e green: 110 passed across chromium + mobile-chrome.
-
-### Added — Session 2026-08-18 (v2 Phase E): Ohmageddon Foundation 😈
-
-Phase E of the v2 plan (§23–§28, §42, §52, §57). Ohmageddon is the opt-in "deliberately difficult" diagnostic mode. Its whole design problem is that §25 forbids a separate generator while §26 forbids a dishonest simulation — so the difficulty has to come from the *diagnosis*, never from the physics. **"Rage against the circuit, not against physics."**
-
-- **New `src/domain/challenges/rage/`** — a composable **modifier interface** (§25), not a rage generator. `generateChallenge()` is untouched and still locked by §57; modifiers hook three points of the existing diagnosis pipeline: `transformCircuit` (reshape the installation), `rankCandidates` (choose which fault), `adjustPresentation` (ration hints). Nothing in `generator/**` imports from `rage/**`.
-- **Honesty is enforced, not promised (§26).** Any circuit a modifier produces is pushed back through the **same** `validateCandidate()` the generator uses — structure, connection rules, BS 7671, both simulation modes — plus a before/after comparison of every declared load. A modifier whose output fails is **discarded** and the original circuit kept. There is no relaxed rage-only validator.
-- **Three modifiers ship (§52).** `redHerring` splices a real Wago / terminal strip / junction box into a live run — all `isPassThrough`, so the simulator sees one straight-through conductor, and the run length is halved across the two segments so voltage drop and Zs are unchanged. `remoteFault` picks the eligible fault furthest (in graph hops) from the symptom, and is the first consumer of `maxFaultDistanceFromSymptom`, which Phase A declared and left unread. `limitedHints` drops the later hints, location hint first, never below one.
-- **Four modifiers are declared but refuse to run.** `multiFault`, `compoundFault`, `misleadingSymptom` and `timeLimit` are registered with `implemented: false` and the runner will not apply them, so a tier table cannot ship a stub. Each is blocked on a real constraint (a singular `scenario.fault`, or §26's ban on fabricated symptoms) — recorded in ADR 0005.
-- **Three tiers (§27), labelled for what they actually do.** Rage 1 = red herring. Rage 2 = remote fault + reduced hints (§27 asks for `misleadingSymptom`; `remoteFault` achieves the same intent truthfully). Rage 3 = all three. Rage 4 is not shipped because it needs the deferred modifiers.
-- **`ohmageddonMode: false` in Settings → Simulation (§23),** persisted through the existing IndexedDB settings store, with §23's own warning copy. **`DiagnosisScenario.rage` is `null` unless a tier was explicitly passed**, and the *only* place a tier can be granted is `diagnosisStore.start()`, gated on the setting — so a stale UI or a resumed record cannot conjure a rage exercise while the mode is off (§24). A saved rage run is discarded rather than downgraded on resume.
-- **The mode is never hidden (§24):** a `😈 RAGE BAIT` badge, an "Ohmageddon Challenge" header, a per-modifier summary strip, and a `ES-RAGE-######` identity. Completion reuses the Diagnose → Repair → Verify → Success pipeline with §28's playful "😈 YOU ACTUALLY FOUND IT".
-- **A decoy is never the fault.** Every decoy-touching candidate is filtered out before selection — a red herring that might be the culprit is not a herring.
-- **Fixed: the red herring announced itself on the canvas.** Decoys were named `<wireId>-decoy`, and `ComponentNode.tsx` renders `component.id` beneath every device, so the answer was on screen in plain text. Decoys now use the generator's own `<prefix>-jN` convention. Found by reading a screenshot — the third time this session that screenshot review caught a defect the unit suite missed; now locked by both a unit and an e2e test.
-
-**Tests:** `rage/modifiers.test.ts` (30 tests), `e2e/ohmageddon.spec.ts` (7 × chromium + mobile-chrome), and `scripts/stress-ohmageddon.ts` (`npm run stress:ohmageddon`) — 1,440 scenarios / 4,320 evaluations asserting clean baselines under the full validator stack, observability, the three verdicts, decoy innocence, determinism, no answer leak, and **measured** tier escalation (mean fault distance 0.95 → 2.89 hops on intermediate; hints 3 → 2 → 1). Four negative controls were run; two initially failed to fail and exposed genuinely weak tests, both since replaced (see ADR 0005).
 
 ### Added — Session 2026-08-18 (v2 Phase D): Diagnosis Lab
 
@@ -1243,7 +1186,6 @@ Phase B of the v2 plan (§56 generator stress test, §57 foundation gate). No ne
 
 ### Added — Session 2026-08-18 (v2 Phase A): Deterministic challenge circuit generator
 
-Foundation for the ElectraSim v2 learning modes (Circuit Generator → Challenge Mode → Diagnosis Lab → Ohmageddon). **Phase A only** — the generator stops at a valid circuit; no faults, no challenge scoring, no Ohmageddon (v2 plan §7, §51).
 
 - **New domain area `src/domain/challenges/`**, exported through the `src/domain` barrel:
   - `generator/seed.ts` — mulberry32 PRNG + FNV-1a hashing. `Math.random()` is banned in this tree and a unit test enforces it. `GENERATOR_VERSION = 1`.
@@ -1253,8 +1195,7 @@ Foundation for the ElectraSim v2 learning modes (Circuit Generator → Challenge
   - `generator/layout.ts` — deterministic grid-snapped layout using the editor's own `GRID_SIZE` / `COMP_W` / `COMP_H`.
   - `generator/validator.ts` — four baseline gates composing the **existing** engines: structure → `validateCircuitRules()` → `simulate()` (basic *and* pro) → `validateCircuit()` → expected-behaviour check.
   - `generator/generator.ts` — the §7 pipeline with **bounded retries** (max 12, no infinite loop) and a structured failure carrying every rejection reason.
-- **API:** `generateChallenge({ seed, difficulty, mode, generatorVersion, rageProfile }) → { circuit, scenario, metadata }`. Pure — no clock, no storage, no store, no React; safe to call from the existing sim worker (no second worker added).
-- **Challenge identity (§29):** `hash(generatorVersion, seed, difficulty, mode, rageProfile)` rendered as `ES-CHAL-482917` / `ES-DIAG-482917` / `ES-RAGE-482917`. `dailyChallengeSeed(isoDate)` exists as the §31 hook only; nothing consumes it and no backend is introduced.
+- **API:** `generateChallenge({ seed, difficulty, mode, generatorVersion }) → { circuit, scenario, metadata }`. Pure — no clock, no storage, no store, no React; safe to call from the existing sim worker (no second worker added).
 - **Generator-safe electrical envelope** (documented in ADR 0002): every generated circuit carries explicit `customCableMm2` and short `lengthMeters` on all wires, caps protective devices at 20 A, and declares diversified socket loads — so the conservative assumptions in `circuitValidation.ts` and `compliance.ts` are satisfied without weakening any existing rule.
 - **Tests: +160** (43 files / 487 tests total, up from 36/327). Includes 100 seeds per difficulty run end-to-end through generate → validate → baseline-simulate, determinism and generator-versioning replay, bounded-retry failure, and purity guards.
 - **ADR:** `docs/decisions/0002-challenge-generator-foundation.md`.

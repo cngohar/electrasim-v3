@@ -19,9 +19,9 @@ import {
   X,
   Zap,
 } from 'lucide-react';
-import { type FC, useEffect, useRef, useState } from 'react';
+import { type FC, useEffect, useState } from 'react';
 import { useUiStore } from '../../store/uiStore';
-import { useDialogFocus } from '../hooks/useDialogFocus';
+import { Modal } from './Modal';
 import { getComponentImage } from './componentImages';
 
 export const ComponentInfoModal: FC = () => {
@@ -29,36 +29,12 @@ export const ComponentInfoModal: FC = () => {
   const setActiveType = useUiStore((s) => s.setActiveComponentInfoType);
 
   const [currentType, setCurrentType] = useState<string | null>(activeType);
-  const [isClosing, setIsClosing] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'wiring' | 'standards'>('overview');
   const [copied, setCopied] = useState(false);
-  const panelRef = useRef<HTMLDivElement | null>(null);
-
-  // Single owner of the open/close animation. The store's `activeType` is
-  // the only trigger: set → mount + entrance; cleared → one 200 ms exit,
-  // then unmount.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: single-trigger animation owner
   useEffect(() => {
-    if (activeType) {
-      setCurrentType(activeType);
-      setIsClosing(false);
-      return;
-    }
-    if (!currentType) return;
-    setIsClosing(true);
-    const timer = window.setTimeout(() => {
-      setCurrentType(null);
-      setIsClosing(false);
-    }, 200);
-    return () => window.clearTimeout(timer);
+    if (activeType) setCurrentType(activeType);
   }, [activeType]);
-
-  const handleClose = () => {
-    setActiveType(null);
-  };
-
-  useDialogFocus(Boolean(currentType) && !isClosing, handleClose, panelRef);
-
+  const handleClose = () => setActiveType(null);
   if (!currentType) return null;
 
   const data = getComponentHelp(currentType);
@@ -123,33 +99,13 @@ export const ComponentInfoModal: FC = () => {
   };
 
   return (
-    <dialog
-      open
-      id="component-info-modal-dialog"
-      aria-modal="true"
-      aria-labelledby="component-info-modal-title"
-      className="fixed inset-0 z-50 m-0 flex h-dvh w-screen max-h-none max-w-none items-center justify-center overflow-y-auto border-0 bg-transparent p-4"
+    <Modal
+      open={!!activeType}
+      onClose={handleClose}
+      ariaLabel="Component specifications"
+      widthClass="max-w-3xl"
     >
-      {/* Backdrop */}
-      <button
-        type="button"
-        id="component-info-modal-backdrop"
-        aria-label="Close modal backdrop"
-        className={`absolute inset-0 cursor-default bg-slate-950/75 backdrop-blur-md transition-all ${
-          isClosing ? 'animate-backdrop-fade-out' : 'animate-backdrop-fade-in'
-        }`}
-        onClick={handleClose}
-      />
-
-      {/* Modal Container */}
-      <div
-        ref={panelRef}
-        tabIndex={-1}
-        id="component-info-modal-container"
-        className={`relative w-full max-w-2xl max-h-[90vh] flex flex-col bg-white border border-slate-200 rounded-2xl shadow-2xl shadow-slate-950/40 overflow-hidden text-slate-900 outline-none dark:bg-slate-900 dark:border-slate-700/80 dark:shadow-slate-950/80 dark:text-slate-100 ${
-          isClosing ? 'animate-dialog-fade-out' : 'animate-dialog-fade-in'
-        }`}
-      >
+      <div className="table-custom-content ComponentInfoModal">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
           <div className="flex items-center gap-3">
@@ -631,6 +587,6 @@ export const ComponentInfoModal: FC = () => {
           </button>
         </div>
       </div>
-    </dialog>
+    </Modal>
   );
 };

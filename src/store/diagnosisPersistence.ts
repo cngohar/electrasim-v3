@@ -23,8 +23,7 @@ import type { Circuit } from '@electrasim/domain/types';
  * Every function is non-throwing: storage failure must never break the editor.
  */
 
-import type { ChallengeDifficulty, RageTierId } from '@electrasim/domain/challenges';
-import { isRageTierId } from '@electrasim/domain/challenges';
+import type { ChallengeDifficulty } from '@electrasim/domain/challenges';
 import type { FaultType } from '@electrasim/domain/types';
 import { get, set } from 'idb-keyval';
 
@@ -39,7 +38,6 @@ export type DiagnosisStatus =
   | 'active'
   | 'evaluating'
   | 'completed'
-  | 'timed-out'
   | 'abandoned';
 
 /** The resumable slice of a diagnosis run (plan §21). */
@@ -52,14 +50,6 @@ export interface ActiveDiagnosisRecord {
   generatorVersion: number;
   difficulty: ChallengeDifficulty;
   mode: 'diagnosis';
-  /**
-   * Ohmageddon tier, when the run is a rage exercise (plan §23).
-   *
-   * Stored alongside the seed because it is a *generation input*: the same
-   * seed with a different tier is a different scenario, so resuming without it
-   * would silently hand the learner a different puzzle.
-   */
-  rageTier?: RageTierId;
   challengeId: string;
   status: Extract<DiagnosisStatus, 'active' | 'evaluating'>;
   /**
@@ -159,6 +149,7 @@ function isActiveRecord(value: unknown): value is ActiveDiagnosisRecord {
     Number.isFinite(record.seed) &&
     typeof record.generatorVersion === 'number' &&
     typeof record.challengeId === 'string' &&
+    /^ES-DIAG-\d{6}$/.test(record.challengeId) &&
     typeof record.misdiagnoses === 'number' &&
     typeof record.incompleteRepairs === 'number' &&
     typeof record.hintsUsed === 'number' &&
@@ -166,8 +157,6 @@ function isActiveRecord(value: unknown): value is ActiveDiagnosisRecord {
     typeof record.elapsedMs === 'number' &&
     typeof record.difficulty === 'string' &&
     DIFFICULTIES.includes(record.difficulty as ChallengeDifficulty) &&
-    // Absent is valid (a normal exercise); present-but-unrecognised is not.
-    (record.rageTier === undefined || isRageTierId(record.rageTier)) &&
     // Absent is valid (pre-multi-fault record, or no progress yet).
     (record.identifiedFaultIds === undefined ||
       (Array.isArray(record.identifiedFaultIds) &&

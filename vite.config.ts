@@ -32,6 +32,9 @@ export default defineConfig(({ command }) => {
   const withStats = process.env.BUILD_STATS === '1';
   return {
     base: isProd ? '/app/' : '/',
+    // Isolate Playwright optimizer updates from the user-facing development
+    // server. Both servers still load the same application source and plugins.
+    cacheDir: process.env.DISABLE_HMR === 'true' ? 'node_modules/.vite-browser-tests' : undefined,
     optimizeDeps: { include: ['immer'] },
     build: {
       outDir: 'dist',
@@ -159,12 +162,15 @@ export default defineConfig(({ command }) => {
           '**/coverage/**',
           '**/playwright-report/**',
           '**/test-results/**',
+          '**/.wrangler/**',
+          '**/.code-graph/**',
           // Vite's own dep-optimizer cache and the opt-in bundle report.
           // A write in either used to reach the watcher and trigger a
           // full-page reload, which surfaced as a random mid-test navigation
           // during Playwright runs.
           '**/.vite/**',
           '**/node_modules/.vite/**',
+          '**/.vite-browser-tests/**',
           '**/stats.html',
         ],
       },

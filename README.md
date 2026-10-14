@@ -6,7 +6,7 @@
 
 A browser-based interactive electrical wiring simulator and structured learning laboratory. Drag, drop, and wire real-world domestic and light-industrial electrical components — switches, MCBs, RCDs, RCBOs, fuses, sockets, lamps, fans, motors, EV chargers, and solar storage — and observe real-time circuit behavior and protection trips. Built to be rigorous enough for an electrical apprentice and engaging enough for a curious hobbyist.
 
-> **Current release:** **v2.0.4** (2026-09-17), live at [electrasim.com](https://electrasim.com/) — includes Challenge Mode, Diagnosis Lab, Ohmageddon, 20 guided circuit walkthroughs, 22 component anatomy cutaways, multi-standard Electrical Toolbox (BS 7671 / IEC 60364 / NEC), and a 36-term cross-referenced glossary. Release notes: [/updates/](https://electrasim.com/updates/). The accessible SVG editor and Astro marketing/guide site build together as one Cloudflare Pages artifact; see [`PLAN.md`](./PLAN.md) for roadmap phases and [`progress.md`](./progress.md) for the development session log.
+> **Current release:** **v2.0.4** (2026-09-17), live at [electrasim.com](https://electrasim.com/) — includes Challenge Mode, Diagnosis Lab, 20 guided circuit walkthroughs, 22 component anatomy cutaways, multi-standard Electrical Toolbox (BS 7671 / IEC 60364 / NEC), and a 36-term cross-referenced glossary. Release notes: [/updates/](https://electrasim.com/updates/). The accessible SVG editor and Astro marketing/guide site build together as one Cloudflare Pages artifact; see [`PLAN.md`](./PLAN.md) for roadmap phases and [`progress.md`](./progress.md) for the development session log.
 
 ---
 
@@ -15,7 +15,6 @@ A browser-based interactive electrical wiring simulator and structured learning 
 - **Structured Learning Modes (v2):**
   - **Challenge Mode:** Goal-oriented build missions (e.g. protected lamps, momentary doorbell circuits, contactor motor starters, RCBO-protected sockets). Each challenge defines a mission objective and outcome requirements without giving away a rigid step-by-step recipe, allowing learners to experiment freely. Judged in real time by the simulation engine with three progressive hints and a safe practice workspace that restores your canvas on exit.
   - **Diagnosis Lab:** Generates realistic, intentional circuit faults (open neutral, missing earth, loose connections, swapped conductors) for learners to trace and repair. Every scenario is reproducible via a shareable seed string.
-  - **Ohmageddon Mode:** An opt-in high-difficulty diagnostic track featuring complex multi-fault topologies and subtle electrical anomalies.
 - **20 Guided Circuit Walkthroughs & In-App Templates:**
   - 20 complete circuits spanning single-phase AC, DC, and three-phase systems — from basic switches and two-way lighting to contactors, EV chargers, heat pumps, SPD consumer units, AFDD protection, and solar PV with battery storage.
   - Interactive in-app templates cross-link directly to comprehensive written walkthroughs featuring hand-authored SVG schematics with animated current flow.
@@ -110,7 +109,6 @@ electrasim/
 ├── scripts/                # Build orchestration, quality gates, stress tests & benchmarks
 │   ├── probes/             # Standalone Playwright UI inspection & diagnostic probe scripts
 │   ├── check-*.mjs         # Production gates (performance, links, SEO, CSP)
-│   ├── stress-*.ts         # Stress suites for challenge generator, diagnosis & Ohmageddon
 │   └── benchmark-*.ts      # Simulation performance benchmark suites
 │
 ├── e2e/                    # Playwright end-to-end and production verification tests
@@ -250,7 +248,6 @@ npm run verify
 | `npm run benchmark:browser` | Run browser frame rate benchmark on dense circuits |
 | `npm run stress:generator` | Stress test challenge generator algorithms for determinism |
 | `npm run stress:diagnosis` | Stress test Diagnosis Lab scenario generation |
-| `npm run stress:ohmageddon` | Stress test high-difficulty Ohmageddon scenario generation |
 
 ---
 
@@ -282,7 +279,6 @@ Architecture Decision Records (ADRs) document key design tradeoffs and principle
 - **ADR 0002: Challenge Generator Foundation** — Deterministic seeded pseudo-random generation for reproducible scenarios.
 - **ADR 0003: Challenge Mode Comparison** — Declarative validation vs. imperative step-by-step guidance.
 - **ADR 0004: Diagnosis Lab Architecture** — Non-destructive fault injection and learner inspection flow.
-- **ADR 0005: Ohmageddon Mode Foundation** — High-difficulty electrical fault simulations and multi-variable failures.
 - **ADR 0006: Seed & Share Format** — URL-safe, compact base64-encoded state serialization.
 
 ---

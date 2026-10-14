@@ -138,7 +138,6 @@ for (const difficulty of DIFFICULTIES) {
       fail(`${tag}: two location choices share the label "${duplicate}"`);
     }
 
-    // A plain (non-rage) exercise is single-fault by definition (§14).
     if (scenario.faults.length !== 1) {
       fail(`${tag}: expected exactly one fault, got ${scenario.faults.length}`);
     }

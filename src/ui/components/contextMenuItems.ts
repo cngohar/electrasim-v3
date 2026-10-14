@@ -107,6 +107,16 @@ export function buildItems(target: ContextMenuState['target']): MenuEntry[] {
       },
     });
 
+    items.push({
+      icon: Sliders,
+      label: 'Inspect component',
+      action: () => {
+        useCircuitStore.getState().selectComponent(target.id);
+        useUiStore.getState().setActiveInspectorTab('properties');
+        useUiStore.getState().setInspectorCollapsed(false);
+        close();
+      },
+    });
     if (def?.isSwitch) {
       const isOn = comp?.state.on === true;
       const nextChangeoverPort = def.changeover

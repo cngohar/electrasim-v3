@@ -330,6 +330,8 @@ export type InstallationMethod = 'C' | 'B1' | 'A';
 
 export interface WireInstance {
   id: string;
+  /** Optional human-readable conductor label; display metadata only. */
+  label?: string;
   fromComponentId: string;
   fromPortIndex: number;
   toComponentId: string;

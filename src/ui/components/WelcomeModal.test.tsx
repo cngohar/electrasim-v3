@@ -48,7 +48,7 @@ describe('WelcomeModal', () => {
     // Feature grid — one entry per major surface (name starts with the label).
     expect(screen.getByRole('button', { name: /^Guided Circuits/ })).toBeVisible();
     expect(screen.getByRole('button', { name: /^Component Library/ })).toBeVisible();
-    expect(screen.getByRole('button', { name: /^Challenge Mode/ })).toBeVisible();
+    expect(screen.queryByRole('button', { name: /^Challenge Mode/ })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^Diagnosis Lab/ })).toBeVisible();
     expect(screen.getByRole('button', { name: /^Fault Lab/ })).toBeVisible();
     expect(screen.getByRole('button', { name: /^Validation & Diagnostics/ })).toBeVisible();

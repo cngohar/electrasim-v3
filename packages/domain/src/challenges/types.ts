@@ -19,25 +19,14 @@ export const CHALLENGE_DIFFICULTIES: readonly ChallengeDifficulty[] = [
   'advanced',
 ] as const;
 
-/**
- * Learning mode the circuit is being generated for.
- *
- * The core generator treats this as an *identity* input only — it never
- * branches on it (plan §7, §57: "generator contains no Challenge Mode /
- * diagnosis / Ohmageddon specific logic").
- */
-export type ChallengeMode = 'challenge' | 'diagnosis' | 'rage';
+export type ChallengeMode = 'diagnosis';
 
-export const CHALLENGE_MODES: readonly ChallengeMode[] = [
-  'challenge',
-  'diagnosis',
-  'rage',
-] as const;
+export const CHALLENGE_MODES: readonly ChallengeMode[] = ['diagnosis'] as const;
 
 /**
  * Stable identity for a generated challenge (plan §29).
  *
- *   ChallengeId = hash(generatorVersion, seed, difficulty, mode, rageProfile)
+ *   ChallengeId = hash(generatorVersion, seed, difficulty, mode)
  */
 export interface ChallengeIdentity {
   /** 32-bit unsigned hash of every identity input. */
@@ -53,15 +42,11 @@ export interface GenerateChallengeRequest {
   /** Any finite number; normalised to a 32-bit unsigned integer internally. */
   seed: number;
   difficulty: ChallengeDifficulty;
-  /** Defaults to `'challenge'`. */
+  /** Defaults to `'diagnosis'`. */
   mode?: ChallengeMode;
   /** Defaults to {@link GENERATOR_VERSION}. */
   generatorVersion?: number;
-  /**
-   * Opaque Ohmageddon profile key. Phase A hashes it into the challenge
-   * identity so the §29 shape is stable; it carries no behaviour yet.
-   */
-  rageProfile?: string;
+
   /**
    * Restrict generation to a single recipe id — used by tests and by the
    * Phase B stress script. Never set by product code.
@@ -76,13 +61,6 @@ export interface RecipeParameterSnapshot {
   [key: string]: string | number | boolean;
 }
 
-/**
- * The non-electrical description of what the generated circuit *is*.
- *
- * Consumers (Challenge Mode, Diagnosis Lab, Ohmageddon) attach their own
- * scenario data on top of this; the generator never models faults, objectives
- * or scoring (plan §7).
- */
 export interface GeneratedScenario {
   recipeId: string;
   recipeTitle: string;
@@ -110,7 +88,6 @@ export interface GeneratedChallengeMetadata {
   seed: number;
   difficulty: ChallengeDifficulty;
   mode: ChallengeMode;
-  rageProfile?: string;
   challengeId: string;
   identity: ChallengeIdentity;
   recipeId: string;

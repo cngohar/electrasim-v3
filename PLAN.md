@@ -8,7 +8,7 @@
 | **Active plan (locked)** | [`docs/REWRITE_PLAN_V3_FULL.md`](./docs/REWRITE_PLAN_V3_FULL.md) — Bun + 100% Workers (D1/R2/KV/DO/Queues), Better Auth, electrical-native UI |
 | **Phase 1 — current detailed sequence** | [`docs/phases/phase-1-simulator-core.md`](./docs/phases/phase-1-simulator-core.md) — 1.5C.0–5 and 1.5D.0–3 complete locally; 1.5E.0 phasor foundation complete locally; E.1–3 and lab migration 1.5F precede effects |
 | **Deep-scan reconciliation and core rebuild** | [`docs/plans/SIMULATOR_CORE_REBUILD_PLAN.md`](./docs/plans/SIMULATOR_CORE_REBUILD_PLAN.md) — current findings, independent fixtures, replacement stages and later-phase requirements |
-| **Simulator behavior and lab integration** | [`docs/plans/SIMULATOR_BEHAVIOR_PLAN.md`](./docs/plans/SIMULATOR_BEHAVIOR_PLAN.md) — shared compatibility, confirmed supply edits, readiness, cable/current semantics and Fault Lab/Diagnosis Lab/Ohmageddon phase ownership |
+| **Simulator behavior and lab integration** | [`docs/plans/SIMULATOR_BEHAVIOR_PLAN.md`](./docs/plans/SIMULATOR_BEHAVIOR_PLAN.md) — shared compatibility, confirmed supply edits, readiness, cable/current semantics and Fault Lab/Diagnosis Lab phase ownership |
 | **Current behavior audit** | [`docs/audits/phase-1-behavior-review.md`](./docs/audits/phase-1-behavior-review.md) — 42 local observations, source-inspected UI findings, existing safeguards and remaining requirements |
 | **MNA numerical decision** | [`docs/decisions/0009-mna-solver.md`](./docs/decisions/0009-mna-solver.md) — selected formulation; bounded linear slice, operating points, isolated transformer/PE equations and application runtime implemented |
 | **Phase 1.5D.3 damage and repair** | [`docs/audits/phase-1-damage-repair.md`](./docs/audits/phase-1-damage-repair.md) — declared damage, saved failures and separate clear/reset/replace controls; complete local acceptance |
@@ -45,7 +45,7 @@
 3 Gamification → 4 Procedural engine → 5 Wiring Games + Content Studio →
 6 LMS → 7 Online checkout + Pro polish → 8 Hardening & live cutover
 
-**Membership decisions (2026-09-26):** basic faults/diagnosis remain free to guests; existing Pro components, advanced faults/multi-fault exercises and advanced diagnosis/Ohmageddon require membership. Super admins manage plans, benefits and assignments in Phase 1; checkout remains Phase 7. Additional benefits remain configurable but uncommitted. The revised Phase 1 sequence is 1.0–1.9, with local gates throughout.
+**Membership decisions (2026-09-26):** basic faults/diagnosis remain free to guests; existing Pro components, advanced faults/multi-fault exercises and advanced diagnosis require membership. Super admins manage plans, benefits and assignments in Phase 1; checkout remains Phase 7. Additional benefits remain configurable but uncommitted. The revised Phase 1 sequence is 1.0–1.9, with local gates throughout.
 
 **Audit revision (2026-09-30):** preserve completed 1.0–1.5 foundations; insert **1.5A–1.5F before 1.6 Matter effects**. Replace the electrical core through a stable domain boundary, covering real branch currents, voltage/source domains, isolation, time/protection and supported three-phase models. Retain the useful canvas/persistence/access work. The [supplied audit](./v3-audit.md) targets V2; the linked reconciliation distinguishes current defects, fixed/partial findings and unverified claims. Later phases inherit model-version and supported-coverage requirements. Re-estimate the schedule after the first solver slice.
 

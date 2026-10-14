@@ -71,10 +71,10 @@ isolated local persistence. These faster commands do not change the local-only r
 authorization gates or final Phase 1 acceptance requirements. See [AGENTS.md](../AGENTS.md),
 [Phase 1](phases/phase-1-simulator-core.md) and [performance guidance](PERFORMANCE.md).
 
-`bun run verify:phase-1.5f2` checks Diagnosis Lab/Ohmageddon generation, authored
+`bun run verify:phase-1.5f2` checks Diagnosis Lab generation, authored
 repair grading, versioned replay/resume and real local Worker/D1/browser flows.
 Its browser stage includes desktop recovery/reload and phone compound repair.
-`bun run verify:phase-1.5f3` runs the full `verify`, domain parity, simulator acceptance and three default stress commands. [F.3 evidence](audits/phase-1-legacy-retirement.md) records the user-directed closure with performance exceptions and aggregate browser evidence; budgets remain unchanged and the full gate is not green;
+`bun run verify:phase-1.5f3` runs the full `verify`, domain parity, simulator acceptance and two default stress commands. [F.3 evidence](audits/phase-1-legacy-retirement.md) records the user-directed closure with performance exceptions and aggregate browser evidence; budgets remain unchanged and the full gate is not green;
 the F.2 gate cannot close those checks. Earlier exercise snapshots remain
 inspectable, with new grading withheld when their assessment is obsolete.
 
@@ -82,7 +82,7 @@ Phase 1.6 uses a continuous implementation cycle with one consolidated final
 `bun run verify:phase-1.6` gate. Use builds/typechecks during implementation;
 do not run complete acceptance after every work item. The final command covers
 quality/build/assets, exact local domain parity, local simulator API acceptance,
-and effects/repair/consumer/diagnosis/Ohmageddon browser cases. Its effects browser
+and effects/repair/consumer/diagnosis browser cases. Its effects browser
 case records 30 Hz update/DOM-write p95 (4 ms budget) separately from a dense
 200-component/400-wire idle frame sample. The latter records evidence, not a
 60 fps interaction pass. Existing F.3 solver/generator and dense renderer
@@ -111,3 +111,9 @@ has noindex metadata and private API responses use no-store. Shared eager JS
 chunks must be counted in simulator asset budgets, even when extracted by a
 multi-entry build. Use the graph's reviewed configuration and test edges to
 inspect these relationships before changing routing or bundling.
+
+Phase gate `--keep-going` collects later checks after ordinary failures and
+still returns a failing status with every failed stage listed. The default
+remains fail-fast, and interruptions/spawn errors stop even a collecting run.
+Stage selection remains explicit partial acceptance. Phase 1.9 uses collection
+to obtain the full current matrix without hiding existing performance failures.

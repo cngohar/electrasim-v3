@@ -44,7 +44,7 @@ Exact Bun/local-workerd parity passed all 858 cases; evidence directory
 `.wrangler/domain-tests-ub3tOn`. All 20 local Hono/D1/cookie groups passed
 (`.wrangler/membership-tests-cdb6us`). All 24 Chromium browser cases passed in
 2.6 minutes, including four new effects cases, explicit phone coverage, existing
-damage/repair, consumer evidence, Diagnosis Lab and Ohmageddon regressions.
+damage/repair, consumer evidence, Diagnosis Lab regressions.
 
 Browser effects update plus SVG-write measurements over 45 displayed frames:
 mean 0.300 ms, p95 0.900 ms against 4 ms. The dense 200-component/400-wire idle

@@ -27,6 +27,7 @@ export function SettingsTabContent({ activeTab }: { activeTab: SettingsTab }) {
 }
 
 function EditingSettings() {
+  const snapToGrid = useSettingsStore((state) => state.snapToGrid);
   const confirmDelete = useSettingsStore((state) => state.confirmDelete);
   const customWiringMode = useSettingsStore((state) => state.customWiringMode);
   const routingStyle = useSettingsStore((state) => state.routingStyle);
@@ -41,6 +42,17 @@ function EditingSettings() {
         icon="plug"
         title="Editing Behaviour"
         desc="Controls how the canvas responds to your interactions — wire routing, confirmations, and placement."
+      />
+      <ElectricToggle
+        label="Snap to grid"
+        description="Keep placed and dragged components on the canvas grid."
+        preview={
+          snapToGrid
+            ? 'Component positions snap to the configured grid spacing.'
+            : 'Components can be positioned freely.'
+        }
+        checked={snapToGrid}
+        onChange={(value) => setSetting('snapToGrid', value)}
       />
       <ElectricToggle
         label="Confirm before deleting"
@@ -92,10 +104,10 @@ function EditingSettings() {
       />
       <ElectricToggle
         label="Recent components in palette"
-        description="Show a quick-access row of your six most recently placed components at the top of the palette. Disable for a cleaner, category-only palette."
+        description="Keep your six most recently placed components in the shelf’s Recent category. Disable for a cleaner, category-only palette."
         preview={
           showRecentComponents
-            ? 'The palette opens with your recently placed components on top.'
+            ? 'The component shelf includes a Recent category.'
             : 'The palette shows regional essentials and categories only.'
         }
         checked={showRecentComponents}
@@ -113,6 +125,7 @@ function DisplaySettings() {
   const componentAppearance = useSettingsStore((state) => state.componentAppearance);
   const canvasPreset = useSettingsStore((state) => state.canvasPreset);
   const wireColorStandard = useSettingsStore((state) => state.wireColorStandard);
+  const interfaceMotion = useSettingsStore((state) => state.interfaceMotion);
   const setSetting = useSettingsStore((state) => state.setSetting);
 
   return (
@@ -161,6 +174,24 @@ function DisplaySettings() {
         onChange={(value) => setSetting('showMiniMap', value)}
       />
       <fieldset className="rounded-xl border border-slate-200 p-4 dark:border-slate-700">
+        <legend className="px-1 text-sm font-semibold">Interface motion</legend>
+        <fieldset className="table-segments" aria-label="Interface motion">
+          {(['subtle', 'off'] as const).map((value) => (
+            <button
+              type="button"
+              key={value}
+              aria-pressed={interfaceMotion === value}
+              onClick={() => setSetting('interfaceMotion', value)}
+            >
+              {value === 'subtle' ? 'Subtle transitions' : 'No animation'}
+            </button>
+          ))}
+        </fieldset>
+        <p className="mt-3 text-xs text-slate-500">
+          System reduced-motion preferences are respected.
+        </p>
+      </fieldset>
+      <fieldset className="rounded-xl border border-slate-200 p-4 dark:border-slate-700">
         <legend className="px-1 text-sm font-semibold">Component appearance</legend>
         <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
           Display only. Terminals, wiring and electrical behavior stay unchanged.
@@ -200,7 +231,6 @@ function SimulationSettings() {
   const activeLoadEffects = useSettingsStore((state) => state.activeLoadEffects);
   const reducedEffects = useSettingsStore((state) => state.reducedEffects);
   const physicsEffects = useSettingsStore((state) => state.physicsEffects);
-  const ohmageddonMode = useSettingsStore((state) => state.ohmageddonMode);
   const setSetting = useSettingsStore((state) => state.setSetting);
 
   return (
@@ -253,32 +283,6 @@ function SimulationSettings() {
         }
         checked={reducedEffects}
         onChange={(value) => setSetting('reducedEffects', value)}
-      />
-      {/*
-       * Ohmageddon Mode (plan §23, §24).
-       *
-       * The label and description are the plan's own words. §23 shows the
-       * control as `Ohmageddon Mode / [ OFF ]` with the line "Deliberately
-       * difficult diagnostic challenges. Enable only if you want the challenge
-       * to fight back." — reproduced rather than paraphrased, because the
-       * warning is the point: §24 requires that a normal user can never
-       * *accidentally* end up in this mode.
-       *
-       * The preview line states plainly what changes, and deliberately
-       * reassures on the one thing that does not (§26: the simulation stays
-       * honest), so nobody switches it off believing their circuits were lying
-       * to them.
-       */}
-      <ElectricToggle
-        label="Ohmageddon Mode"
-        description="Deliberately difficult diagnostic challenges. Enable only if you want the challenge to fight back. Adds red herrings, faults placed far from the symptom, and fewer hints to the Diagnosis Lab. The electrical simulation stays completely honest — only the diagnosis gets harder."
-        preview={
-          ohmageddonMode
-            ? 'Rage tiers are selectable in the Diagnosis Lab. Expect decoys, remote faults and rationed hints.'
-            : 'Normal educational challenges only — no red herrings, no chaos, full hints.'
-        }
-        checked={ohmageddonMode}
-        onChange={(value) => setSetting('ohmageddonMode', value)}
       />
     </>
   );

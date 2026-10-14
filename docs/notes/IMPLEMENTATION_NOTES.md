@@ -248,7 +248,6 @@ Completed in this checkout:
 - `npm run stress:generator` — 3,726 challenges, 223,656 injected faults, and
   414,574 verified repairs pass.
 - `npm run stress:diagnosis` — 600 scenarios / 10,973 evaluations pass.
-- `npm run stress:ohmageddon` — 1,800 scenarios / 6,816 evaluations pass.
 - `npm run benchmark:simulation` — passes serially at 1.15 ms median and
   1.69 ms p95 for 200 components / 396 wires (8 ms p95 budget).
 

@@ -1,31 +1,6 @@
-/**
- * Share / replay a generated exercise (plan §30).
- *
- * §30 asks for one thing and explicitly limits the scope:
- *
- *   > Initial implementation can simply provide: `Copy Seed`
- *   > Do not add a backend just for this feature.
- *
- * So this module is a pure, offline, two-way text codec over the identity
- * inputs the generator already treats as canonical (§5, §6, §29):
- *
- *   seed + difficulty + mode (+ rage tier)
- *
- * It deliberately does NOT serialise the circuit. The circuit is a *function*
- * of those inputs, so a ticket that carries them reproduces the exercise
- * exactly — which is the whole point of the deterministic generator, and the
- * reason a shared ticket stays a handful of bytes instead of a whole graph.
- *
- * Nothing here reads the clock, storage, `navigator` or `window`: the
- * clipboard call belongs to the UI layer, so this stays unit-testable and
- * obeys the "domain logic is pure TypeScript" rule (§2, §58).
- */
-
 import { ELECTRICAL_MODEL_VERSION } from '../core/contracts';
 import { DIAGNOSIS_PROFILE_VERSION, type DiagnosisAssessment } from './diagnosis/assessment';
 import { GENERATOR_VERSION, normalizeSeed } from './generator/seed';
-import { isRageTierId } from './rage/tiers';
-import type { RageTierId } from './rage/types';
 import type { ChallengeDifficulty, ChallengeMode } from './types';
 import { CHALLENGE_DIFFICULTIES, CHALLENGE_MODES } from './types';
 
@@ -46,11 +21,9 @@ export interface ShareTicket {
    * permanently stable across incompatible generator versions."
    */
   generatorVersion: number;
-  /** Ohmageddon tier, or `null` for an ordinary exercise (§23, §24). */
-  rageTier: RageTierId | null;
 }
 
-/** Human-facing labels, kept out of the UI so both panels read the same. */
+/** Human-facing labels, kept out of the UI for the diagnosis panel. */
 const DIFFICULTY_LABEL: Record<ChallengeDifficulty, string> = {
   beginner: 'Beginner',
   intermediate: 'Intermediate',
@@ -58,18 +31,9 @@ const DIFFICULTY_LABEL: Record<ChallengeDifficulty, string> = {
 };
 
 const MODE_LABEL: Record<ChallengeMode, string> = {
-  challenge: 'Challenge',
   diagnosis: 'Diagnosis',
-  rage: 'Ohmageddon',
 };
 
-/**
- * The compact machine-readable form, e.g. `ES1:482917:advanced:diagnosis:rage-3`.
- *
- * Prefixed and versioned so a future format change is detectable instead of
- * being mis-parsed, and lower-cased on parse so a seed copied out of a chat
- * client that capitalised it still works.
- */
 export const SHARE_PREFIX = 'ES';
 
 export function formatShareCode(ticket: ShareTicket): string {
@@ -79,7 +43,6 @@ export function formatShareCode(ticket: ShareTicket): string {
     ticket.difficulty,
     ticket.mode,
   ];
-  if (ticket.rageTier) parts.push(ticket.rageTier);
   return (
     parts.join(':') +
     (ticket.assessment
@@ -106,7 +69,6 @@ export function formatShareText(ticket: ShareTicket): string {
     `Difficulty: ${DIFFICULTY_LABEL[ticket.difficulty]}`,
     `Mode: ${MODE_LABEL[ticket.mode]}`,
   ];
-  if (ticket.rageTier) lines.push(`Ohmageddon: ${ticket.rageTier}`);
   lines.push(`Code: ${formatShareCode(ticket)}`);
   return lines.join('\n');
 }
@@ -136,10 +98,10 @@ export function parseShareText(
   const text = input.trim();
   if (!text) return null;
 
-  // Preferred path: a `ES<version>:seed:difficulty:mode[:tier]` code anywhere
+  // Preferred path: a `ES<version>:seed:difficulty:mode` code anywhere
   // in the pasted text.
   const codeMatch = text.match(
-    /ES(\d+):(\d+):([a-z]+):([a-z]+)(?::([a-z0-9-]+))?(?:@(\d+),([a-z0-9.-]+),([a-z0-9.-]+)(?:,([a-z0-9.-]+))?)?/i,
+    /ES(\d+):(\d+):([a-z]+):([a-z]+)(?:@(\d+),([a-z0-9.-]+),([a-z0-9.-]+)(?:,([a-z0-9.-]+))?)?/i,
   );
   if (codeMatch) {
     const [
@@ -148,7 +110,6 @@ export function parseShareText(
       rawSeed,
       rawDifficulty,
       rawMode,
-      rawTier,
       assessmentVersion,
       rawModelVersion,
       rawEngineVersion,
@@ -158,13 +119,16 @@ export function parseShareText(
     const engineVersion = rawEngineVersion?.toLowerCase();
     const profileVersion = rawProfileVersion?.toLowerCase();
     const suffix = text.slice((codeMatch.index ?? 0) + codeMatch[0].length);
-    if (suffix.startsWith('@') || (assessmentVersion && suffix.startsWith(','))) return null;
+    if (
+      suffix.startsWith(':') ||
+      suffix.startsWith('@') ||
+      (assessmentVersion && suffix.startsWith(','))
+    )
+      return null;
     const difficulty = rawDifficulty?.toLowerCase() as ChallengeDifficulty;
     const mode = rawMode?.toLowerCase() as ChallengeMode;
     if (!CHALLENGE_DIFFICULTIES.includes(difficulty)) return null;
     if (!CHALLENGE_MODES.includes(mode)) return null;
-    const tier = rawTier?.toLowerCase();
-    if (tier && !isRageTierId(tier)) return null;
     const generatorVersion = Number(rawVersion);
     return {
       ...(assessmentVersion && modelVersion && engineVersion
@@ -185,7 +149,6 @@ export function parseShareText(
       difficulty,
       mode,
       generatorVersion,
-      rageTier: tier && isRageTierId(tier) ? tier : null,
       versionMismatch: generatorVersion !== GENERATOR_VERSION,
     };
   }
@@ -209,7 +172,6 @@ export function parseShareText(
     difficulty,
     mode: fallback.mode,
     generatorVersion: GENERATOR_VERSION,
-    rageTier: null,
     versionMismatch: false,
   };
 }

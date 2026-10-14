@@ -5,7 +5,7 @@ import { create } from 'zustand';
 
 export class AccessError extends Error {}
 interface AccessState {
-  exercise: { circuit: Circuit; mode: 'basic' | 'advanced' | 'ohmageddon' } | null;
+  exercise: { circuit: Circuit; mode: 'basic' | 'advanced' } | null;
   userId: string | null;
   capabilities: Capability[];
   nextChangeAt: number | null;

@@ -78,10 +78,10 @@ export function CircuitLibrary() {
     setMessage('Circuit saved.');
   };
   return (
-    <div className="space-y-3 text-sm">
+    <div className="table-account space-y-3 text-sm">
       <p>Account circuits are stored by the local development server.</p>
       {message && <output className="block">{message}</output>}
-      <fieldset disabled={busy} className="space-y-2 disabled:opacity-60">
+      <fieldset disabled={busy} className="table-account-fields space-y-2 disabled:opacity-60">
         {!userId ? (
           <>
             <label className="block">

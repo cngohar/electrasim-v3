@@ -31,9 +31,12 @@ export function Admin() {
   const [conflict, setConflict] = useState(false);
   const [revision, setRevision] = useState(0);
   const epoch = useRef(0);
+  const accessEpoch = useRef(0);
+  const revalidating = useRef(false);
   const fail = useCallback((cause: unknown) => {
     setError(cause instanceof Error ? cause.message : 'Service unavailable. Try again.');
     if (cause instanceof ApiError && [401, 403].includes(cause.status)) {
+      accessEpoch.current++;
       epoch.current++;
       setBusy(false);
       setPage({ items: [], total: 0 });
@@ -44,6 +47,7 @@ export function Admin() {
     if (cause instanceof ApiError && cause.status === 409) setConflict(true);
   }, []);
   const check = useCallback(async () => {
+    accessEpoch.current++;
     const token = ++epoch.current;
     setAccess('checking');
     setBusy(false);
@@ -63,17 +67,33 @@ export function Admin() {
   }, [fail]);
   useEffect(() => {
     void check();
-    const focus = () => {
-      void check();
+    return () => {
+      epoch.current++;
+      accessEpoch.current++;
+    };
+  }, [check]);
+  useEffect(() => {
+    const focus = async () => {
+      // Revalidate private access without unmounting forms or resetting lists.
+      // Signed-out forms contain no private data, and duplicate events coalesce.
+      if (access !== 'allowed' || revalidating.current) return;
+      const token = ++accessEpoch.current;
+      revalidating.current = true;
+      try {
+        await request('admin/ping');
+      } catch (cause) {
+        if (token === accessEpoch.current) fail(cause);
+      } finally {
+        revalidating.current = false;
+      }
     };
     window.addEventListener('focus', focus);
     window.addEventListener('online', focus);
     return () => {
-      epoch.current++;
       window.removeEventListener('focus', focus);
       window.removeEventListener('online', focus);
     };
-  }, [check]);
+  }, [access, fail]);
   useEffect(() => {
     if (access !== 'allowed') return;
     void revision;

@@ -25,7 +25,7 @@ export function buildAccessibleDiagnosis(
     throw new Error(
       'Unsupported diagnosis version; saved work is preserved. Start a current exercise to earn a result.',
     );
-  const basic = request.difficulty !== 'advanced' && !request.rageTier;
+  const basic = request.difficulty !== 'advanced';
   const recipes = basic ? basicRecipes[request.difficulty as keyof typeof basicRecipes] : null;
   const scenario = buildDiagnosisScenario({
     ...request,
@@ -44,6 +44,6 @@ export function buildAccessibleDiagnosis(
 export function scenarioRequirements(scenario: DiagnosisScenario) {
   return circuitRequirements(
     scenario.faultedCircuit,
-    scenario.rage ? 'ohmageddon' : scenario.difficulty === 'advanced' ? 'advanced' : 'basic',
+    scenario.difficulty === 'advanced' ? 'advanced' : 'basic',
   );
 }

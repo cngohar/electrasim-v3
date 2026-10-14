@@ -278,7 +278,7 @@ test.describe('Diagnosis Lab', () => {
 
     await startExercise(page, 'Beginner');
     const originalId = await panel(page)
-      .locator('p', { hasText: /ES-(DIAG|RAGE)-\d+/ })
+      .locator('p', { hasText: /ES-DIAG-\d+/ })
       .first()
       .innerText();
 
@@ -296,7 +296,7 @@ test.describe('Diagnosis Lab', () => {
     await panel(page).getByRole('button', { name: 'New diagnosis exercise' }).click();
     await expect(panel(page).getByText(/Something isn.t working correctly/i)).toBeVisible();
     const otherId = await panel(page)
-      .locator('p', { hasText: /ES-(DIAG|RAGE)-\d+/ })
+      .locator('p', { hasText: /ES-DIAG-\d+/ })
       .first()
       .innerText();
     expect(otherId).not.toBe(originalId);
@@ -316,7 +316,7 @@ test.describe('Diagnosis Lab', () => {
 
     await expect(panel(replayPage).getByText(/Something isn.t working correctly/i)).toBeVisible();
     const replayedId = await panel(replayPage)
-      .locator('p', { hasText: /ES-(DIAG|RAGE)-\d+/ })
+      .locator('p', { hasText: /ES-DIAG-\d+/ })
       .first()
       .innerText();
     expect(replayedId).toBe(originalId);

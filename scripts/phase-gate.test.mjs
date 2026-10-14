@@ -63,6 +63,29 @@ test('the first failure stops later stages and preserves its exit status', () =>
   assert.doesNotMatch(result.output, /FULL ACCEPTANCE PASSED|selected stages passed/);
 });
 
+test('explicit collection runs every stage and preserves failed stages and exit status', () => {
+  const result = execute(['--keep-going'], (args) => ({
+    status: args[1] === 'build' ? 7 : args[0] === 'x' ? 3 : 0,
+  }));
+  assert.equal(result.commands.length, 6);
+  assert.equal(result.status, 7);
+  assert.match(result.output, /failed stages: build, browser/);
+  assert.match(result.output, /Full acceptance did not pass/);
+  assert.doesNotMatch(result.output, /FULL ACCEPTANCE PASSED|selected stages passed/);
+});
+
+test('collection stops on interruption or spawn failure instead of starting more checks', () => {
+  for (const failure of [
+    { status: null, signal: 'SIGINT' },
+    { status: null, error: new Error('Cannot start Bun') },
+  ]) {
+    const result = execute(['--keep-going'], () => failure);
+    assert.equal(result.commands.length, 1);
+    assert.equal(result.status, 1);
+    assert.doesNotMatch(result.output, /FULL ACCEPTANCE PASSED|selected stages passed/);
+  }
+});
+
 test('spawn failures and interrupted commands fail instead of claiming a pass', () => {
   for (const failure of [{ error: new Error('Cannot start Bun') }, { status: null }]) {
     const result = execute(['--only', 'browser'], () => failure);

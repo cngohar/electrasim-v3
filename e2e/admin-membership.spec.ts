@@ -3,13 +3,13 @@ import { type Page, expect, test } from '@playwright/test';
 async function account(page: Page, role: string) {
   const email = `${randomUUID()}@admin-browser.test`;
   const response = await page.request.post('/api/auth/sign-up/email', {
-    headers: { Origin: 'http://127.0.0.1:3000' },
+    headers: { Origin: new URL(test.info().project.use.baseURL as string).origin },
     data: { name: 'Admin browser test', email, password: 'Local-password-123!' },
   });
   expect(response.ok()).toBe(true);
   const { user } = await response.json();
   const promoted = await page.request.post('/api/__test/role', {
-    headers: { Origin: 'http://127.0.0.1:3000' },
+    headers: { Origin: new URL(test.info().project.use.baseURL as string).origin },
     data: { role },
   });
   expect(promoted.ok()).toBe(true);
@@ -107,13 +107,49 @@ test('guest sign-in and expired session clear administration data', async ({ pag
   await page.context().clearCookies();
   await page.goto('/admin/pro/');
   await page.getByLabel('Email', { exact: true }).fill(member.email);
+  await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+  await expect(page.getByLabel('Email', { exact: true })).toHaveValue(member.email);
   await page.getByLabel('Password', { exact: true }).fill('Local-password-123!');
+  await page.evaluate(() => {
+    window.dispatchEvent(new Event('focus'));
+    window.dispatchEvent(new Event('online'));
+  });
+  await expect(page.getByLabel('Email', { exact: true })).toHaveValue(member.email);
+  await expect(page.getByLabel('Password', { exact: true })).toHaveValue('Local-password-123!');
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Create plan', exact: true })).toBeVisible();
   await page.context().clearCookies();
   await page.getByRole('button', { name: 'Refresh', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Sign in', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Create plan', exact: true })).toHaveCount(0);
+});
+test('clipboard login survives switching windows between email and password', async ({ page }) => {
+  const member = await account(page, 'super_admin');
+  await page.context().clearCookies();
+  await page.context().grantPermissions(['clipboard-read']);
+  await page.goto('/admin/pro/');
+  await expect(page.getByLabel('Email', { exact: true })).toBeVisible();
+  const source = await page.context().newPage();
+  await source.goto('/admin/pro/');
+  await source.setContent('<textarea aria-label="Copy source"></textarea>');
+  for (const [field, value] of [
+    ['Email', member.email],
+    ['Password', 'Local-password-123!'],
+  ]) {
+    await source.bringToFront();
+    await source.getByLabel('Copy source').fill(value);
+    await source.getByLabel('Copy source').selectText();
+    await source.keyboard.press('Control+C');
+    await page.bringToFront();
+    await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await page.getByLabel(field, { exact: true }).click();
+    await page.keyboard.press('Control+V');
+    await expect(page.getByLabel(field, { exact: true })).toHaveValue(value);
+  }
+  await expect(page.getByLabel('Email', { exact: true })).toHaveValue(member.email);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Create plan', exact: true })).toBeVisible();
+  await source.close();
 });
 test('stale plan edit requires reload without overwriting the winner', async ({ page }) => {
   await account(page, 'super_admin');
@@ -123,7 +159,7 @@ test('stale plan edit requires reload without overwriting the winner', async ({ 
   const plans = await (await page.request.get('/api/admin/pro/plans?limit=100')).json();
   const row = plans.items.find((item: { name: string }) => item.name === name);
   const changed = await page.request.patch(`/api/admin/pro/plans/${row.id}`, {
-    headers: { Origin: 'http://127.0.0.1:3000' },
+    headers: { Origin: new URL(test.info().project.use.baseURL as string).origin },
     data: { version: row.version, reason: 'Concurrent update', name: `${name} winner` },
   });
   expect(changed.ok()).toBe(true);
@@ -175,7 +211,7 @@ test('role removal clears an open admin screen', async ({ page }) => {
   await page.goto('/admin/pro/');
   await expect(page.getByRole('button', { name: 'Create plan', exact: true })).toBeVisible();
   const response = await page.request.post('/api/__test/role', {
-    headers: { Origin: 'http://127.0.0.1:3000' },
+    headers: { Origin: new URL(test.info().project.use.baseURL as string).origin },
     data: { role: 'admin' },
   });
   expect(response.ok()).toBe(true);
@@ -190,13 +226,15 @@ test('focus revalidation finishes for a valid session and denies a changed role'
   await account(page, 'super_admin');
   await page.goto('/admin/pro/');
   await expect(page.getByRole('button', { name: 'Create plan', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Create plan', exact: true }).click();
+  await page.getByLabel('Plan name', { exact: true }).fill('Unsaved focus draft');
   await Promise.all([
     page.waitForResponse((response) => response.url().endsWith('/api/admin/ping')),
     page.evaluate(() => window.dispatchEvent(new Event('focus'))),
   ]);
-  await expect(page.getByRole('button', { name: 'Create plan', exact: true })).toBeVisible();
+  await expect(page.getByLabel('Plan name', { exact: true })).toHaveValue('Unsaved focus draft');
   const response = await page.request.post('/api/__test/role', {
-    headers: { Origin: 'http://127.0.0.1:3000' },
+    headers: { Origin: new URL(test.info().project.use.baseURL as string).origin },
     data: { role: 'admin' },
   });
   expect(response.ok()).toBe(true);

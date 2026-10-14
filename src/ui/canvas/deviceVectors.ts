@@ -4,6 +4,7 @@
 import { COMPONENT_DEFS } from '@electrasim/domain/components';
 import type { ComponentInstance } from '@electrasim/domain/types';
 import { getDefaultArt } from './componentArt';
+import { openTableDeviceImage } from './openTableArtwork';
 
 export type DeviceFamily =
   | 'breaker'
@@ -423,6 +424,8 @@ function socketBody(type: string): string | undefined {
 
 const images = new Map<string, string>();
 export function deviceImage(type: string): string | undefined {
+  const accepted = openTableDeviceImage(type);
+  if (accepted) return accepted;
   const family = DEVICE_FAMILIES[type];
   if (!family) return undefined;
   if (images.has(type)) return images.get(type);

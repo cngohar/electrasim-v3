@@ -1,4 +1,5 @@
 import type { ComponentInstance, SimulationResult, WireInstance } from '@electrasim/domain';
+import { simulate } from '@electrasim/domain/simulation';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
@@ -166,39 +167,59 @@ describe('CircuitCanvas keyboard and screen-reader interaction', () => {
     ).toBe(false);
   });
 
-  it('pulses an energised bell only while active load effects are enabled', () => {
+  it('shows local light only for fresh accepted lamp results while effects are enabled', () => {
     const bell: ComponentInstance = {
       id: 'doorbell',
-      type: 'bell',
+      type: 'bulb-incandescent',
       x: 320,
       y: 240,
       state: {},
     };
-    useCircuitStore.setState({ components: [bell], wires: [] });
-    const energised: SimulationResult = {
-      energizedComponents: new Set([bell.id]),
-      energizedWires: new Set(),
-      errorComponents: new Set(),
-      errorWires: new Set(),
-      errors: [],
-      warnings: [],
-    };
+    const sceneComponents: ComponentInstance[] = [
+      bell,
+      { id: 'l', type: 'live-terminal', x: 100, y: 100, state: {} },
+      { id: 'n', type: 'neutral-terminal', x: 100, y: 300, state: {} },
+    ];
+    const sceneWires: WireInstance[] = [
+      {
+        id: 'feed',
+        fromComponentId: 'l',
+        fromPortIndex: 0,
+        toComponentId: bell.id,
+        toPortIndex: 0,
+        controlPoints: [],
+      },
+      {
+        id: 'return',
+        fromComponentId: bell.id,
+        fromPortIndex: 1,
+        toComponentId: 'n',
+        toPortIndex: 0,
+        controlPoints: [],
+      },
+    ];
+    useCircuitStore.setState({ components: sceneComponents, wires: sceneWires });
+    const energised = simulate({ components: sceneComponents, wires: sceneWires });
+    expect(energised.energizedComponents.has(bell.id)).toBe(true);
 
     const { container, rerender } = render(<TestCanvas simResult={energised} />);
     expect(
-      container.querySelector('[data-component-id="doorbell"] .electrasim-bell-pulse'),
+      container.querySelector('[data-component-id="doorbell"] .table-lamp-emission'),
     ).toBeInTheDocument();
 
+    rerender(<TestCanvas simResult={{ ...energised, inputRevision: 'stale' }} />);
+    expect(container.querySelector('.table-lamp-emission')).not.toBeInTheDocument();
+    rerender(<TestCanvas simResult={energised} />);
     act(() => useSettingsStore.setState({ activeLoadEffects: false }));
     rerender(<TestCanvas simResult={energised} />);
     expect(
-      container.querySelector('[data-component-id="doorbell"] .electrasim-bell-pulse'),
+      container.querySelector('[data-component-id="doorbell"] .table-lamp-emission'),
     ).not.toBeInTheDocument();
 
     act(() => useSettingsStore.setState({ activeLoadEffects: true }));
     rerender(<TestCanvas simResult={{ ...energised, energizedComponents: new Set<string>() }} />);
     expect(
-      container.querySelector('[data-component-id="doorbell"] .electrasim-bell-pulse'),
+      container.querySelector('[data-component-id="doorbell"] .table-lamp-emission'),
     ).not.toBeInTheDocument();
   });
 });

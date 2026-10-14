@@ -18,10 +18,17 @@ test('guest palette placement has five canonical phase terminals and independent
   page,
 }) => {
   await openCircuit(page, { components: [], wires: [] });
-  const palette = page.locator('[data-tour="palette"]');
-  await palette.getByPlaceholder('Search…', { exact: true }).fill('Three-phase AC');
-  await palette.locator('[data-palette-type="ac-three-phase-supply"]').first().click();
-  await page.locator('svg[data-circuit-canvas]').click({ position: { x: 350, y: 250 } });
+  await activateControl(page, page.getByRole('button', { name: 'Browse all components' }));
+  const palette = page.getByRole('dialog', { name: 'Component library' });
+  await palette
+    .getByRole('textbox', { name: 'Search components', exact: true })
+    .fill('Three-phase AC');
+  await activateControl(
+    page,
+    palette.locator('[data-palette-type="ac-three-phase-supply"]').first(),
+  );
+  await expect(palette).not.toBeVisible();
+  await page.locator('svg[data-circuit-canvas]').click({ position: { x: 600, y: 300 } });
   const circuit = await documentAt(page);
   expect(circuit.components).toHaveLength(1);
   const source = circuit.components[0]!;
@@ -72,6 +79,8 @@ test('confirmed L-L and sequence edits cancel, apply and Undo without rewriting 
   await expect(
     page.locator('[data-device-art="ac-three-phase-supply"] [data-device-rating]'),
   ).toContainText('ACB');
+  await page.keyboard.press('Escape');
+  await expect(inspector).not.toBeVisible();
   const notice = page.locator('output').filter({ hasText: 'Supply changed from' });
   await activateControl(page, notice.getByRole('button', { name: 'Undo', exact: true }));
   expect(await documentAt(page)).toEqual(before);
@@ -124,13 +133,21 @@ test('real Comlink run displays L-N, L-L, neutral cancellation and finite wire l
   await expect(inspector.getByRole('button', { name: 'Edit supply…' })).toBeDisabled();
   await inspect(page, 'r1');
   await expect(inspector.locator('[data-reading="current"]')).toHaveText('9.9395 A');
+  await page.keyboard.press('Escape');
+  await expect(inspector).not.toBeVisible();
   await page.evaluate(async () => {
     const cs = '/src/store/circuitStore.ts';
     const ui = '/src/store/uiStore.ts';
     (await import(cs)).useCircuitStore.getState().selectComponent(null);
     (await import(cs)).useCircuitStore.getState().selectWire('feed1');
-    (await import(ui)).useUiStore.getState().setActiveInspectorTab('simulation');
+    (await import(ui)).useUiStore.getState().setInspectorOpen(true);
   });
+  await activateControl(
+    page,
+    page
+      .getByRole('complementary', { name: 'Inspector' })
+      .getByRole('button', { name: 'Readings', exact: true }),
+  );
   await expect(page.locator('[data-phasor-wire="feed1"] [data-reading="power"]')).toHaveText(
     '6.9156 W',
   );

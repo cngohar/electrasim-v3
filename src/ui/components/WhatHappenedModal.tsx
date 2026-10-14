@@ -8,10 +8,9 @@ import {
   X,
   Zap,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
 import { useCircuitStore, useUiStore } from '../../store';
 import { useSettingsStore } from '../../store/settingsStore';
-import { useDialogFocus } from '../hooks/useDialogFocus';
+import { Modal } from './Modal';
 import { MECHANISM_LABEL, formatClearingTime } from './faultAlertFormat';
 
 export function WhatHappenedModal() {
@@ -25,38 +24,7 @@ export function WhatHappenedModal() {
   const appMode = useSettingsStore((s) => s.appMode);
   const running = useUiStore((s) => s.simRunning);
 
-  const [mounted, setMounted] = useState(whatHappenedOpen);
-  const [isClosing, setIsClosing] = useState(false);
-  const panelRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (whatHappenedOpen) {
-      setMounted(true);
-      setIsClosing(false);
-    } else if (mounted && !isClosing) {
-      setIsClosing(true);
-      const timer = window.setTimeout(() => {
-        setMounted(false);
-        setIsClosing(false);
-      }, 200);
-      return () => window.clearTimeout(timer);
-    }
-  }, [whatHappenedOpen, mounted, isClosing]);
-
-  const handleClose = () => {
-    if (isClosing) return;
-    setIsClosing(true);
-    window.setTimeout(() => {
-      setWhatHappenedOpen(false);
-      setMounted(false);
-      setIsClosing(false);
-    }, 200);
-  };
-
-  useDialogFocus(mounted && !isClosing, handleClose, panelRef);
-
-  if (!mounted) return null;
-
+  const handleClose = () => setWhatHappenedOpen(false);
   const activeAlert = faultAlert ?? lastFaultAlert;
   const hasBlownComponents = components.some((c) => c.state?.isBlown);
   const hasBustedWires = wires.some((w) => w.isBusted);
@@ -82,27 +50,13 @@ export function WhatHappenedModal() {
   const isMelt = activeAlert?.kind === 'melt' || activeAlert?.title?.toLowerCase().includes('melt');
 
   return (
-    <dialog
-      open
-      aria-modal="true"
-      aria-labelledby="what-happened-title"
-      className="fixed inset-0 z-110 m-0 flex h-dvh w-screen max-h-none max-w-none items-center justify-center overflow-y-auto border-0 bg-transparent p-4"
+    <Modal
+      open={whatHappenedOpen}
+      onClose={handleClose}
+      ariaLabel="What Happened? Electrical Fault Analysis"
+      widthClass="max-w-4xl"
     >
-      <button
-        type="button"
-        aria-label="Close"
-        className={`absolute inset-0 cursor-default bg-slate-950/75 backdrop-blur-md transition-all ${
-          isClosing ? 'animate-backdrop-fade-out' : 'animate-backdrop-fade-in'
-        }`}
-        onClick={handleClose}
-      />
-      <div
-        ref={panelRef}
-        tabIndex={-1}
-        className={`relative w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl transition-all dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 outline-none ${
-          isClosing ? 'animate-dialog-fade-out' : 'animate-dialog-fade-in'
-        }`}
-      >
+      <div className="table-custom-content WhatHappenedModal">
         {/* Header */}
         <div className="flex items-start justify-between border-b border-slate-200 pb-4 dark:border-slate-800">
           <div className="flex items-center gap-3">
@@ -132,7 +86,7 @@ export function WhatHappenedModal() {
         </div>
 
         {/* Content Body */}
-        <div className="mt-4 space-y-4 text-sm max-h-[70vh] overflow-y-auto pr-1">
+        <div className="table-fault-summary mt-4 text-sm max-h-[70vh] overflow-y-auto">
           {/* Active Fault Status Card */}
           {activeAlert ? (
             <div
@@ -310,6 +264,6 @@ export function WhatHappenedModal() {
           </button>
         </div>
       </div>
-    </dialog>
+    </Modal>
   );
 }

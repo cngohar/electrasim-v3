@@ -62,6 +62,8 @@ test.describe('Two-Way Staircase guide', () => {
       await expect(page.getByText('Inspector', { exact: true })).toBeVisible();
       await page.getByRole('button', { name: 'Close inspector and return to guide' }).click();
       await expect(guideHeading).toBeVisible();
+      // Reopening the guide changes the unobscured canvas region on tablets.
+      await page.getByRole('button', { name: 'Fit', exact: true }).click();
     }
 
     // L2/L2: operating the other switch restores the path on the second traveller.
