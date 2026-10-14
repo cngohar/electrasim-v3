@@ -133,3 +133,14 @@ Final accepted asset measurements are initial JS **254,563 B gzip / 300,000 B bu
 Curated feature/check mappings and actual scoped review are updated separately from generated index freshness. The reviewed records include `fault-lab-redesign-proposal`, `diagnosis-retirement-proposal`, `fault-lab-captured-presentation`, `fault-lab-application-preview`, `phone-fault-lab-single-surface` and `fault-edit-fresh-runtime-result`. Stable IDs retain their earlier names for navigation; current summaries distinguish approved completion from the historical proposal. Tests have explicit edges to the display adapter/store, actual tool/CSS/Console, retired route boundary and new parity fixture.
 
 The overall `graph:check` remains nonzero for historical unreviewed/changed records; those records are not automatically rebaselined. A current fingerprint for this reviewed scope is evidence freshness, not test proof. Phase 1.11 closes locally within the approved scope; broader Phase 1.9 performance acceptance remains unchanged. No local acceptance authorizes GitHub publication, deployment, old-account access or stored-data deletion.
+
+## Subsequent authorized publication
+
+On 2026-10-14 the user requested committing and pushing the current repository.
+Implementation checkpoint `ac6c1d9cc889506d04c2a89f372c9db1c241dfe8` includes Phase 1.11,
+application/clearing repairs and the catalogue feedback audit/repair. Its commit
+hooks passed staged formatting/lint (98 files) and full typecheck; GitHub `main`,
+local HEAD and `origin/main` matched with `0 0` divergence after the push. Earlier
+local-only/no-publication statements describe their historical acceptance time.
+This GitHub publication is separate from deployment; no Cloudflare operation occurred.
+The next planned scope is [Phase 1.12](../plans/MISSING_COMPONENT_CALCULATION_PLAN.md).

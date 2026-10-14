@@ -1,5 +1,5 @@
 {
-  "activePhase": "1.11",
+  "activePhase": "1.12",
   "phases": [
     {
       "id": "0",
@@ -217,7 +217,7 @@
     },
     {
       "id": "1.11",
-      "status": "complete locally (2026-10-14) after explicit design approval; aggregate functional acceptance with focused recovery; Diagnosis runtime retired with records and shared contracts preserved; historical performance exceptions remain",
+      "status": "complete within documented local functional scope; implementation checkpoint ac6c1d9 published to GitHub on 2026-10-14 under explicit authorization; no deployment; historical performance exceptions remain",
       "evidence": [
         "docs/phases/phase-1-simulator-core.md",
         "docs/plans/FAULT_LAB_REDESIGN_PLAN.md",
@@ -227,6 +227,17 @@
         "docs/handoffs/fault-lab-next-chat.md",
         "progress.md",
         "docs/audits/phase-1-fault-lab-redesign.md"
+      ]
+    },
+    {
+      "id": "1.12",
+      "status": "planned (2026-10-14): Missing component calculation; user-requested plan after published checkpoint ac6c1d9; milestones 1.12.0-7 not started",
+      "evidence": [
+        "docs/phases/phase-1-simulator-core.md",
+        "docs/plans/MISSING_COMPONENT_CALCULATION_PLAN.md",
+        "docs/handoffs/missing-component-calculation-next-chat.md",
+        "docs/audits/catalogue-simulation-gaps.md",
+        "progress.md"
       ]
     }
   ],
@@ -645,6 +656,21 @@
         "at": "2026-10-14T16:06:12.688Z",
         "scope": "Reviewed the current implementation, audit and evidence, including final formatting-only normalization of the tested browser helper. The 116 default entries include 31 unassessed models, of which one motor is configurable and 30 need behaviour code. Feedback and nominal mismatch diagnostics passed 465 affected units, 842 local parity cases, three native source flows, three Comlink regressions and two built native flows. Missing component calculations remain unimplemented; no whole-catalogue runtime acceptance is claimed.",
         "fingerprint": "c699620f653c0311dc4ce281198da95b63e4b99ee28157ae74702c0c3c66a631"
+      }
+    },
+    {
+      "id": "missing-component-calculation-phase-plan",
+      "summary": "Phase 1.12 is planned after authorized GitHub publication of implementation checkpoint ac6c1d9. The scope assigns 30 missing default behaviours plus configured three-phase motor setup, and audits conditional controls among the other catalogue entries. Milestones define profiles/provenance and shared numerical support first, then lamps and the voltage-edit reproduction, fans/motors, appliances/alarms, sources/special devices, conditional controls and complete integration. Acceptance requires independent numerical/state fixtures, preserved/versioned circuit profiles, current-result guards, actual domain/Comlink/local Worker parity and native source/built browser evidence. A visible warning or matching graph fingerprint is not model implementation; all milestones are not started. Historical performance exceptions and local-only development remain.",
+      "evidence": [
+        "docs/plans/MISSING_COMPONENT_CALCULATION_PLAN.md",
+        "docs/handoffs/missing-component-calculation-next-chat.md",
+        "docs/audits/catalogue-simulation-gaps.md",
+        "docs/phases/phase-1-simulator-core.md"
+      ],
+      "review": {
+        "at": "2026-10-14T16:26:21.394Z",
+        "scope": "Reviewed Phase 1.12 plan, new-session handoff, catalogue audit and roadmap. Checked that all 31 audited default types are assigned exactly once and relative links resolve. Plan and milestones remain not started; published baseline is ac6c1d9. Numerical/runtime/browser acceptance is proposed, not executed by this planning review.",
+        "fingerprint": "1fecef823e41ebc10f6872e987a7ce54a5e0cb922a83da3e5b3ee20b4cfc0c69"
       }
     }
   ],
@@ -2028,7 +2054,7 @@
     },
     {
       "id": "catalogue-simulation-coverage",
-      "summary": "Placement-default model audit and visible unsupported-calculation feedback. Missing model code is an explicit product gap, distinct from unknown rating checks and from the completed Fault Lab editing/visual workflow. The catalogue completion plan is proposed, not implemented.",
+      "summary": "Placement-default model audit and visible unsupported-calculation feedback. Missing model code is an explicit product gap, distinct from unknown rating checks and from the completed Fault Lab editing/visual workflow. The authoritative completion plan is Phase 1.12, planned with implementation not started.",
       "tags": [
         "catalogue",
         "simulation",
@@ -2124,6 +2150,92 @@
         "at": "2026-10-14T16:06:14.919Z",
         "scope": "Reviewed the final current catalogue audit, proposed model-completion slices, implementation and local evidence. Final browser-helper whitespace normalization changes no assertions or runtime behaviour. Supported-source numerical regressions and unavailable LED feedback passed; the inventory is source/model review, not 116-circuit runtime validation. Actual missing lamp/fan/appliance models still require implementation.",
         "fingerprint": "83a81667932239e6cba977804ed55c196da60eed3a50e6b469d3e77f6ba44647"
+      }
+    },
+    {
+      "id": "missing-component-calculation",
+      "summary": "User-requested Phase 1.12 plan for ordinary catalogue numerical behaviour. All 31 default unassessed entries have milestone assignments; missing code and required settings remain distinct. Planning is complete, implementation has not started. Begin 1.12.0 profile/data/coverage specification and prepare concrete model decisions before new numerical laws.",
+      "tags": [
+        "phase-1.12",
+        "missing-component-calculation",
+        "catalogue",
+        "LED",
+        "lamps",
+        "fans",
+        "appliances",
+        "models",
+        "plan",
+        "local-only"
+      ],
+      "entryPoints": [
+        "docs/plans/MISSING_COMPONENT_CALCULATION_PLAN.md",
+        "docs/handoffs/missing-component-calculation-next-chat.md",
+        "packages/domain/src/core/models.ts",
+        "packages/domain/src/core/contracts.ts",
+        "packages/domain/src/core/capabilities.ts",
+        "packages/domain/src/core/compile.ts",
+        "packages/domain/src/core/mna.ts",
+        "packages/domain/src/simulation/simulate.ts"
+      ],
+      "evidence": [
+        "docs/plans/MISSING_COMPONENT_CALCULATION_PLAN.md",
+        "docs/handoffs/missing-component-calculation-next-chat.md",
+        "docs/audits/catalogue-simulation-gaps.md",
+        "docs/phases/phase-1-simulator-core.md",
+        "docs/plans/CATALOGUE_MODEL_COMPLETION_PLAN.md"
+      ],
+      "facts": [
+        "missing-component-calculation-phase-plan",
+        "catalogue-model-coverage-and-feedback",
+        "local-only",
+        "scope-acceptance"
+      ],
+      "checks": [
+        {
+          "command": "bun run typecheck",
+          "files": [
+            "packages/domain/src/core/contracts.ts",
+            "packages/domain/src/core/models.ts",
+            "packages/domain/src/types.ts"
+          ],
+          "reason": "Required during implementation of model/profile/state contracts. The planning commit does not execute new model acceptance."
+        },
+        {
+          "command": "bun x vitest run packages/domain/src/core",
+          "files": [
+            "packages/domain/src/core/readiness.test.ts",
+            "packages/domain/src/core/mna.test.ts",
+            "packages/domain/src/core/operatingPoint.test.ts",
+            "packages/domain/src/core/phasor.test.ts"
+          ],
+          "reason": "Extend with independent model fixtures during implementation; preserve existing numerical/source/transformer/control results. New milestone checks are planned, not passed."
+        },
+        {
+          "command": "bun run test:domain-local",
+          "files": [
+            "scripts/domain-parity-fixture.ts",
+            "scripts/test-domain-local.ts",
+            "packages/domain/src/simulation/simulate.ts"
+          ],
+          "reason": "Expand parity with each accepted new model family; require the same authored drawing and real local runtime. Existing baseline is separate from Phase 1.12 acceptance."
+        }
+      ],
+      "decisions": [
+        "The authoritative plan is MISSING_COMPONENT_CALCULATION_PLAN.md; the earlier generic catalogue proposal is superseded.",
+        "Ordinary lamp behaviour is the first visible numerical deliverable after profile and infrastructure milestones.",
+        "All 31 default gap entries have explicit milestone assignments; any calculation-scope deferral requires a user decision.",
+        "Declare data provenance and editable teaching assumptions; wattage labels alone do not define an electronic, motor or appliance load law.",
+        "Implementation has not started; advancing the graph to a planned phase is not a solver acceptance claim."
+      ],
+      "broaderChecks": [
+        "Shared numerical/model/default changes require independently expected values plus affected full functional/static, real local runtime and source/built browser evidence.",
+        "Preserve circuit profiles/custom ratings/ports/routes, separate fault/reset/replacement, membership-independent physics and current input/model revision guards.",
+        "Record existing and new performance measurements using unchanged thresholds; no automatic exception or rebaseline can close failed acceptance."
+      ],
+      "review": {
+        "at": "2026-10-14T16:26:28.820Z",
+        "scope": "Reviewed authoritative plan and handoff plus existing model/runtime entry-point mappings. Verified 31-type milestone assignments, baseline-versus-new-acceptance boundaries, local-only constraints and conditional control scope. Suggested checks and all implementation milestones remain planned; no new model tests or numerical code were executed by this review.",
+        "fingerprint": "391d964b651f39c7ca8149f1bc0cb761a073821da615c556c47217c0b2b2ddf4"
       }
     }
   ]

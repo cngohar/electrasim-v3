@@ -1,4 +1,4 @@
-# Next chat handoff · Phase 1.11 completed locally
+# Phase 1.11 handoff · implementation checkpoint published
 
 ## Where the work stands
 
@@ -8,15 +8,15 @@ local functional acceptance are complete. Do not restart the design approval gat
 Read [the audit](../audits/phase-1-fault-lab-redesign.md) for exact evidence,
 preservation boundaries and failure recovery.
 
-The last Git checkpoint predates all Phase 1.11 work:
+The user authorized publication after the local acceptance and follow-up repairs:
 
-- Commit: `fa74721694d57f9266c1988be51eea55b65cb92b`
-- Subject: `feat: complete simulator redesign and defer Challenge Mode`
-- Branch: `main`
-- The historical Phase 1.10 push was verified at that checkpoint; no new fetch/push/deployment was performed in Phase 1.11.
+- Implementation commit: `ac6c1d9cc889506d04c2a89f372c9db1c241dfe8`
+- Subject: `feat: complete Fault Lab and expose missing calculation models`
+- Branch: `main`; GitHub `main` equality and `0 0` divergence verified on 2026-10-14.
+- Next-session entry is [Phase 1.12 — Missing component calculation](missing-component-calculation-next-chat.md). No deployment occurred.
 
-All Phase 1.11 design, implementation and evidence changes remain local and
-uncommitted. Fault Lab now has real target selection, a reviewed 14-entry fault
+Phase 1.11 design, implementation and evidence changes are in the published
+implementation checkpoint. Fault Lab now has real target selection, a reviewed 14-entry fault
 library, detached fresh response explanation, Explain/Readings/Repair, bounded
 visual-only motion, history/Undo/original restore and independent Console
 navigation. Cause clearing, reset OFF, explicit ON and damage replacement stay
@@ -48,7 +48,7 @@ and several appliance calculations are unavailable. The default inventory has 31
 unassessed models among 116 entries; one is the configurable three-phase motor,
 while 30 need missing behaviour code. Fault Lab workflow acceptance never proved
 whole-catalogue numerical operation. See [the gap audit](../audits/catalogue-simulation-gaps.md)
-and [proposed model completion slices](../plans/CATALOGUE_MODEL_COMPLETION_PLAN.md).
+and [Phase 1.12 model completion plan](../plans/MISSING_COMPONENT_CALCULATION_PLAN.md).
 
 The local repair adds visible unavailable-result feedback, distinct Model unavailable
 and Ratings unknown badges and a shared design-voltage mismatch warning. It keeps
@@ -74,7 +74,7 @@ To preview from the repository root, run `node scripts/preview-fault-lab.mjs` an
 - Rendered screenshots were visually reviewed. New two-body decorative engine update measured **0.9 ms p95**, with disposal on pause; this is not whole-frame or solver performance.
 - Follow-up application lifecycle: **14 / 14 fault types applied and cleared**, 42 screenshots, **57 focused cases** across six files, rebuilt desktop/phone **2 / 2**, full types/final E2E types, repository lint and delivery budgets passed. Final initial JS is **255,327 B gzip**, CSS **27,986 B gzip**. The original full-suite **2,004 / 2,004** closure result predates this follow-up. See the audit for exact logs and scope.
 - Phase 1.9 performance exceptions remain: simulation **56.65 ms p95 vs 8 ms**, generator timings and dense **60 fps** unmet.
-- No commit/push, stored-data deletion, remote test, deployment, credentials or old Cloudflare account/resource operation is authorized by this work.
+- The subsequent GitHub commit/push was explicitly authorized and verified. Stored-data deletion, remote tests, deployment, credentials and old Cloudflare account/resource operations remain outside this work.
 
 ## Resume commands
 

@@ -57,7 +57,7 @@ The reproducible inventory and 12/230 V LED, incandescent, halogen and ceiling-f
 - A directly connected supply different from a known device design voltage now has a shared nominal-voltage-mismatch warning. With no declared operating range, this remains unassessed and does not fabricate a trip, damage threshold or driver response. Series paths are not compared against global source voltage.
 - Stale results cannot keep the visible message after electrical inputs change. Stop clears it; View findings opens the existing readiness/result details.
 
-This repair improves reporting and diagnostics. It does not implement the missing LED/fan/appliance calculations. A scoped completion proposal is in [the catalogue model plan](../plans/CATALOGUE_MODEL_COMPLETION_PLAN.md).
+This repair improves reporting and diagnostics. It does not implement the missing LED/fan/appliance calculations. A scoped completion proposal is in [Phase 1.12 — Missing component calculation](../plans/MISSING_COMPONENT_CALCULATION_PLAN.md).
 
 ## Verification
 
@@ -76,4 +76,4 @@ Source and built screenshots `.wrangler/simulation-feedback-{chromium,mobile-chr
 
 The initial feedback unit fixture simulated the raw drawing rather than the normalized stored document, so the required input-revision freshness guard correctly rejected it. The fixture now solves `selectCircuit` after loading and includes stale-input rejection; the final 465-case affected run is green. The initial phone browser selector matched both the supply editor and the shelf Supply category. It now scopes the editor to the context bar; the recovered phone and both built workflows passed with the same substantive assertions.
 
-The earlier **2,004-case** Phase 1.11 closure suite was not rerun here and does not establish whole-catalogue simulation support. This scope changes diagnostic metadata and reporting, not source magnitude, branch laws or missing-load physics. Historical numerical/frame performance exceptions remain. All work remains local and uncommitted; no remote operation.
+The earlier **2,004-case** Phase 1.11 closure suite was not rerun here and does not establish whole-catalogue simulation support. This scope changes diagnostic metadata and reporting, not source magnitude, branch laws or missing-load physics. Historical numerical/frame performance exceptions remain. At that verification checkpoint the work remained local and uncommitted; no remote operation had occurred. The user subsequently authorized GitHub publication; the implementation checkpoint `ac6c1d9cc889506d04c2a89f372c9db1c241dfe8` was pushed and remotely verified on 2026-10-14. No deployment occurred.

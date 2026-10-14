@@ -1,5 +1,7 @@
 > **V3 local development:** Phase 1.11 replaces the Fault Lab and retires the Diagnosis runtime. Saved records and shared electrical models are preserved. Local validation is tracked in [the phase audit](docs/audits/phase-1-fault-lab-redesign.md). The V2 feature list below is historical; development and verification follow [AGENTS.md](AGENTS.md).
 
+> **Next phase — 1.12: Missing component calculation:** [Plan and acceptance](docs/plans/MISSING_COMPONENT_CALCULATION_PLAN.md) · [Catalogue gap inventory](docs/audits/catalogue-simulation-gaps.md) · [New-session handoff](docs/handoffs/missing-component-calculation-next-chat.md). Planning is complete; new model implementation has not started.
+
 # ElectraSim — Interactive Wiring Lab
 
 > **V3 workspace:** development and testing are local-only under [AGENTS.md](./AGENTS.md); the live V2 site/account below is separate. Follow [Phase 1](./docs/phases/phase-1-simulator-core.md). `bun run verify:phase-1.5b` checks the [electrical contracts and terminal graph](./docs/audits/phase-1-electrical-contracts.md), including isolated local Worker/D1 and browser acceptance. Deployment remains disabled.

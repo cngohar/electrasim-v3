@@ -9,6 +9,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 
 ### Added
 
+- Phase 1.12 — Missing component calculation: planned milestones 1.12.0–7,
+  assignment of all 31 default gaps, explicit model/profile decisions, lamp-first
+  delivery, numerical/runtime/native-browser acceptance and a new-session handoff.
+  Implementation has not started. [Plan](docs/plans/MISSING_COMPONENT_CALCULATION_PLAN.md).
 - Fault Lab application follow-up: actual target symbols, terminal geometry and
   wire routes; canonical terminal fault markers, stable Circuit/Inside transitions,
   positioned SVG badges and modeled protection bypass poles. All 14 fault types
