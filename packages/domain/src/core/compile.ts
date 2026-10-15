@@ -1,6 +1,12 @@
 import { COMPONENT_DEFS } from '../components';
 import { normalizeCircuitFaults } from '../faults';
 import type { ComponentDef } from '../types';
+import {
+  PROFILE_LIMITATION,
+  isCatalogueProfile,
+  isElectronicLoadProfile,
+  profileBranchLaw,
+} from './catalogueProfiles';
 import { COIL_APPROXIMATION, isCoilModel } from './coilModel';
 import {
   type CompileOptions,
@@ -13,7 +19,7 @@ import {
   type ModelCoverage,
   type TerminalGraph,
 } from './contracts';
-import { DAMAGE_APPROXIMATION, copyDamageModel } from './damageModel';
+import { DAMAGE_APPROXIMATION, copyDamageModel, hasDamageSettings } from './damageModel';
 import { DIMMER_APPROXIMATION } from './dimmerModel';
 import { applyGraphFaults, compareIds, terminalId } from './faultTopology';
 import { validateCircuitInput } from './input';
@@ -107,7 +113,9 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
     const model = resolveDeviceModel(component, def, circuit);
     const indices = modelPortIndices(model);
     const invalidModel =
-      (component.state.damageModel !== undefined && model.kind !== 'resistive-load') ||
+      (model.kind === 'profile-device' &&
+        !(isCatalogueProfile(model.profile) || isElectronicLoadProfile(model.profile))) ||
+      (component.state.damageModel !== undefined && !hasDamageSettings(component.type, def)) ||
       indices.some((i) => !Number.isInteger(i) || !def.ports[i]) ||
       ((model.kind === 'source' || model.kind === 'source-alias') &&
         !isSupplyModel(model.supply)) ||
@@ -185,7 +193,7 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
           model.primaryVoltage / model.secondaryVoltage <= 0 ||
           model.primaryVoltage <= 0 ||
           model.secondaryVoltage <= 0 ||
-          model.isolation !== 'isolated' ||
+          !['isolated', 'shared-common'].includes(model.isolation) ||
           new Set(indices).size !== 4));
     if (invalidModel) {
       diagnostics.push({
@@ -316,6 +324,45 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
       continue;
     }
     switch (model.kind) {
+      case 'profile-device': {
+        const law = profileBranchLaw(model.profile);
+        if (!law) break;
+        const pairs: readonly (readonly [number, number])[] =
+          law.kind === 'spd'
+            ? [
+                [0, 2],
+                [1, 2],
+              ]
+            : [[model.ports[0]!, model.ports[1]!]];
+        pairs.forEach(([a, b], i) => {
+          internal(
+            law.kind === 'pv' ? 'source' : 'load',
+            a,
+            b,
+            operable,
+            law.kind === 'pv' ? 'pv-source' : `profile:${i}`,
+            false,
+          );
+          graph.branches[graph.branches.length - 1]!.profileLaw = law;
+        });
+        if (law.kind === 'pv')
+          graph.sources.push({
+            id: JSON.stringify(['source', component.id]),
+            componentIds: [component.id],
+            positive: t(model.ports[0]!),
+            negative: t(model.ports[1]!),
+            model: { kind: 'dc', voltage: law.profile.maximumPowerVoltage },
+            reference: 'floating',
+            law: 'photovoltaic',
+          });
+        coverage.push({
+          subjectId: component.id,
+          aspect: law.kind === 'pv' ? 'source' : 'load',
+          status: 'estimated',
+          reason: PROFILE_LIMITATION,
+        });
+        break;
+      }
       case 'source': {
         const sourceId = JSON.stringify(['source', component.id]);
         if (model.supply.kind === 'ac-three-phase' && model.phasePorts) {
@@ -500,6 +547,8 @@ export function compileCircuit(raw: unknown, options: CompileOptions = {}): Comp
         groups(model.groups);
         break;
       case 'transformer':
+        if (model.isolation === 'shared-common')
+          internal('link', model.primary[1], model.secondary[1], true, 'shared-common');
         internal('winding', model.primary[0], model.primary[1], operable, 'primary', false);
         internal('winding', model.secondary[0], model.secondary[1], operable, 'secondary', false);
         graph.transformers.push({

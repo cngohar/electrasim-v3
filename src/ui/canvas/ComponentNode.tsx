@@ -195,6 +195,7 @@ export function ComponentNode({
     <g
       data-component-id={component.id}
       data-component-appearance={appearance}
+      data-component-energized={energized}
       data-render-detail={reducedDetails ? 'reduced' : 'full'}
       data-compatibility={compatibilityReview}
       transform={`translate(${x} ${y}) rotate(${rotation} ${COMP_W / 2} ${COMP_H / 2})`}

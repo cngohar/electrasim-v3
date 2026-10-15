@@ -50,7 +50,7 @@ export function adaptPhasorResult(
     errorWires: new Set(),
     errors: [],
     warnings: [
-      'Complex RMS readings with declared motor-equivalent and coil models. Reactive motor behavior, automatic protective clearing, damage and repair assessment are unassessed.',
+      'Complex RMS readings of declared teaching equivalents and coils. Shaft output, startup, automatic protective clearing, damage and repair assessment are unassessed.',
     ],
     faultsCleared: false,
     faultNarrationErrors: [],
@@ -196,7 +196,9 @@ export function adaptPhasorResult(
         if (
           branch.kind === 'load' &&
           model.kind !== 'three-phase-motor' &&
-          Math.abs(phasor.branchActivePowersWatts[branch.id] ?? 0) > threshold
+          Math.abs(phasor.branchActivePowersWatts[branch.id] ?? 0) > threshold &&
+          (!phasor.profileStates?.[device.componentId] ||
+            ['on', 'running-equivalent'].includes(phasor.profileStates[device.componentId]!))
         )
           result.energizedComponents.add(device.componentId);
       }

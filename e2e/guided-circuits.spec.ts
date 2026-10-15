@@ -10,7 +10,7 @@ test.describe('new Guided Circuits', () => {
     page.on('dialog', (dialog) => dialog.accept());
   });
 
-  test('loads the Push-Button Doorbell with momentary control and unassessed sounder operation', async ({
+  test('loads the Push-Button Doorbell with momentary control and declared electrical sounder input', async ({
     page,
   }) => {
     await loadGuide(page, 'push-button-doorbell', 'Push-Button Doorbell');
@@ -29,7 +29,7 @@ test.describe('new Guided Circuits', () => {
     await button.focus();
     await page.keyboard.down('Enter');
     await expect(button).toHaveAttribute('aria-pressed', 'true');
-    await expect(bell.locator('.electrasim-bell-pulse')).toHaveCount(0);
+    await expect(bell.locator('.electrasim-bell-pulse')).toHaveCount(1);
     await expect
       .poll(() =>
         page.evaluate(async () => {
@@ -38,11 +38,21 @@ test.describe('new Guided Circuits', () => {
           return {
             status: result?.electrical?.status,
             energized: result?.energizedComponents.size,
-            cleared: result?.faultsCleared,
+            assessment: result?.electrical?.assessment,
           };
         }),
       )
-      .toEqual({ status: 'unsupported', energized: 0, cleared: false });
+      .toEqual({ status: 'converged', energized: 1, assessment: 'not-assessed' });
+    await expect
+      .poll(() =>
+        page.evaluate(async () => {
+          const path = '/src/store/uiStore.ts';
+          return (await import(path)).useUiStore.getState().simResult?.componentCalculations?.[
+            'push-button-doorbell-bell'
+          ]?.powerWatts;
+        }),
+      )
+      .toBeCloseTo(15, 8);
 
     await page.keyboard.up('Enter');
     await expect(button).toHaveAttribute('aria-pressed', 'false');

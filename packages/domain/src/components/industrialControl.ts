@@ -111,16 +111,16 @@ export const INDUSTRIAL_CONTROL_DEFS: Record<string, ComponentDef> = {
   'step-up-down-transformer': {
     label: 'Step-Up / Step-Down Transformer (110V <-> 230V)',
     description:
-      'Bi-directional auto-transformer converting between 110V US and 230V UK/EU voltage levels.',
+      'Editable 110/230 V teaching autotransformer. LOW and HIGH taps share COM; it provides no galvanic isolation. Tap voltages are declared in Electrical profile settings.',
     category: 'transformer',
     isPassThrough: true,
     tier: 'pro',
     powerWatts: 1500,
     ports: [
-      { type: 'live', relX: 0, relY: 0.35, label: 'In-L' },
-      { type: 'neutral', relX: 0, relY: 0.65, label: 'In-N' },
-      { type: 'live', relX: 1, relY: 0.35, label: 'Out-L' },
-      { type: 'neutral', relX: 1, relY: 0.65, label: 'Out-N' },
+      { type: 'live', relX: 0, relY: 0.35, label: 'LOW' },
+      { type: 'neutral', relX: 0, relY: 0.65, label: 'COM' },
+      { type: 'live', relX: 1, relY: 0.35, label: 'HIGH' },
+      { type: 'neutral', relX: 1, relY: 0.65, label: 'COM' },
     ],
     icon: 'bolt',
   },

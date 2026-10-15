@@ -1,4 +1,4 @@
-# Simulator and account circuits — Phase 1.11
+# Simulator and account circuits — Phase 1.12
 
 Diagnosis runtime and API routes are retired after local Fault Lab replacement acceptance. Old `/api/diagnosis/attempts*` routes return 404, and `/api/simulator/authorize` accepts only `{ circuit }`. Historical browser records, the `diagnosis_attempts` table/migrations and stored `advanced_diagnostics` grants remain untouched. Fault Lab applies one reviewed edit, captures fresh accepted results, and plays a detached explanation without changing the simulation clock. See [Phase 1.11 evidence](../audits/phase-1-fault-lab-redesign.md).
 
@@ -6,6 +6,15 @@ Development is local only. Start `bun run dev:worker` (127.0.0.1:8791) and `bun 
 
 
 Phase 1.5F.1 calculation consumers require `inputRevision` plus the current electrical model version. The identity canonicalizes normalized electrical inputs while excluding canvas geometry/selection; it is freshness metadata, not authorization. Scalar/complex readings retain their named terminal pairs and independent references. Missing, stale, obsolete or unassessed evidence cannot earn a validator/guide pass. Exports recalculate their snapshot, and version-2 guide history preserves earlier records as historical checklist progress. Tagged legacy observation flags cannot certify repair, protection or safety. [Consumer acceptance](../audits/phase-1-consumer-integration.md).
+
+
+Phase 1.12 adds shared model/capability version `1.12.1.0`, version-1 catalogue
+profiles and a bounded complex MNA path (`mna-regulated-1` / `phasor-regulated-1`).
+The existing endpoints and authorization rules are retained. Direct, Comlink and
+local Hono consume the same declared laws and current-result identity. Apparent,
+reactive and real power remain separate. The [implementation audit](../audits/phase-1-missing-component-calculation.md)
+records current acceptance and teaching limits; older version sections below are
+historical milestone contracts, not the current model version.
 
 ## Authorization
 
@@ -29,7 +38,7 @@ All mutation bodies are JSON, require a matching Origin, and reject unknown fiel
 
 ## Persistence and recovery
 
-Circuit-file and portable-backup writers emit schema 2 and accept schemas 1 and 2 on import. The raw `Circuit` in API bodies retains component configuration, typed document/independent source profiles, structured faults and legacy fields. Schema-1 documents migrate with their IDs and explicit ratings intact; omitted frequency remains the documented 50 Hz assumption. Autosaves upgrade under the existing IndexedDB key. Import, share, autosave, account loads and saved premium documents may open read-only. Editing, undo/redo, pasting and simulation check the original document and any newly required capabilities, including supply-only changes. A denied or stale asynchronous edit does not consume undo history.
+Circuit-file and portable-backup writers emit schema 3 and accept schemas 1, 2 and 3 on import. Declared catalogue profiles require schema 3; raw API circuits use strict domain validation without a file-version envelope. The raw `Circuit` in API bodies retains component configuration, typed document/independent source profiles, structured faults and legacy fields. Schema-1 documents migrate with their IDs and explicit ratings intact; omitted frequency remains the documented 50 Hz assumption. Autosaves upgrade under the existing IndexedDB key. Import, share, autosave, account loads and saved premium documents may open read-only. Editing, undo/redo, pasting and simulation check the original document and any newly required capabilities, including supply-only changes. A denied or stale asynchronous edit does not consume undo history.
 
 “Create basic copy” lists removal choices explicitly, validates that the result requires no premium capabilities, writes the original to IndexedDB recovery storage, and only then opens a separate copy. Saved originals can be downloaded under Saved circuits. Raw JSON export remains available. Failed backup storage cancels replacement.
 

@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lamp driver profile review · ElectraSim</title>
+    <link rel="stylesheet" href="preview.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="eyebrow">ElectraSim / Phase 1.12.0 / Design preview</p>
+        <h1>A lamp with a declared driver model</h1>
+        <p>Review the proposed Inspector settings and the 12 V → 230 V example.</p>
+        <p class="boundary">This standalone reference uses a closed-form single-lamp calculation. The application’s lamp solver is still to be implemented.</p>
+      </header>
+      <div class="layout">
+        <section class="circuit card" aria-labelledby="circuit-heading">
+          <div class="section-title"><h2 id="circuit-heading">Reference circuit</h2><span class="tag">50 Hz AC</span></div>
+          <svg viewBox="0 0 600 290" role="img" aria-labelledby="diagram-title">
+            <title id="diagram-title">AC source, finite outgoing and return wires, and one lamp</title>
+            <path class="wire" d="M100 115V55H465V115M465 175V235H100V175" />
+            <path id="return-break" class="break" d="M250 235H310" />
+            <path id="return-switch" class="switch" d="M250 235L310 218" />
+            <circle class="source" cx="100" cy="145" r="30" />
+            <path class="sine" d="M80 145Q90 120 100 145T120 145" />
+            <circle id="lamp-halo" cx="465" cy="145" r="56" />
+            <circle class="lamp" cx="465" cy="145" r="30" />
+            <path class="lamp" d="M444 124L486 166M444 166L486 124" />
+            <text id="diagram-source" x="100" y="285" text-anchor="middle">230 V AC</text>
+            <text id="diagram-lamp" x="465" y="285" text-anchor="middle">9 W · 230 V nominal</text>
+            <text x="280" y="40" text-anchor="middle">Finite feeder + return</text>
+          </svg>
+          <div class="supply-control">
+            <label for="supply-volts">Source voltage <output id="supply-value" for="supply-volts">230 V</output></label>
+            <input id="supply-volts" type="range" min="0" max="300" value="230" step="1" />
+            <div class="presets" aria-label="Source voltage presets">
+              <button type="button" data-volts="12">12 V</button>
+              <button type="button" data-volts="230">230 V</button>
+              <button type="button" data-volts="280">280 V</button>
+            </div>
+            <label class="checkbox"><input id="connected" type="checkbox" checked /> Return connected</label>
+          </div>
+          <div id="result" class="result" role="status" aria-live="polite">
+            <div><span class="eyebrow">Declared operating state</span><h3 id="state">On</h3></div>
+            <p id="reason"></p>
+            <dl class="readings">
+              <div><dt>Terminal RMS voltage</dt><dd id="terminal-volts"></dd></div>
+              <div><dt>Input RMS current</dt><dd id="current"></dd></div>
+              <div><dt>Input real power</dt><dd id="power"></dd></div>
+              <div><dt>Feeder loss</dt><dd id="loss"></dd></div>
+            </dl>
+          </div>
+        </section>
+        <section class="settings card" aria-labelledby="settings-heading">
+          <div class="section-title"><h2 id="settings-heading">Proposed Inspector settings</h2></div>
+          <label for="lamp-type">Lamp</label>
+          <select id="lamp-type">
+            <option value="bulb">LED bulb · 9 W</option>
+            <option value="bulb-cfl">CFL lamp · 15 W</option>
+            <option value="bulb-smart-rgb">Smart RGB LED · 10 W</option>
+            <option value="led-downlight">LED downlight · 12 W</option>
+            <option value="tube-light">Fluorescent tube · 36 W</option>
+          </select>
+          <p class="model-title">Regulated input power</p>
+          <p class="muted">Generic teaching profile · version 1. No manufacturer identity.</p>
+          <form id="profile-form">
+            <div class="fields">
+              <label>Nominal voltage (V)<input id="nominal-volts" type="number" min="0.001" max="100000" step="any" value="230" required /></label>
+              <label>Input power (W)<input id="input-watts" type="number" min="0.001" max="100000" step="any" value="9" required /></label>
+              <label>Minimum operating (V)<input id="minimum-volts" type="number" min="0.001" max="100000" step="any" value="207" required /></label>
+              <label>Maximum operating (V)<input id="maximum-volts" type="number" min="0.001" max="100000" step="any" value="253" required /></label>
+            </div>
+            <p class="hint">Limits follow nominal voltage until you edit a limit. These editable teaching values do not predict damage.</p>
+            <dl class="model-facts">
+              <div><dt>Supply</dt><dd>Sinusoidal AC · 50/60 Hz</dd></div>
+              <div><dt>Input approximation</dt><dd>Unity PF · no harmonics</dd></div>
+              <div><dt>Outside operating band</dt><dd>Off · zero consumption</dd></div>
+              <div><dt>Dimmer compatibility</dt><dd>Unassessed</dd></div>
+            </dl>
+            <label for="loop-ohms">Reference circuit loop resistance (Ω)</label>
+            <input id="loop-ohms" type="number" min="0" max="1000000" step="any" value="0.14" required />
+            <p class="hint">A circuit input for this preview; the app will use each wire’s declared resistance.</p>
+            <button class="primary" type="submit">Review profile values</button>
+            <p id="validation" role="alert"></p>
+          </form>
+          <details id="profile-detail"><summary>Proposed saved profile</summary><pre id="profile-json"></pre></details>
+        </section>
+      </div>
+      <footer>Scope: regulated input electrical power. Startup, harmonic current, thermal failure, CFL warm-up, RGB networking and ballast transients require separate models. A visual appearance never supplies missing measurements.</footer>
+    </main>
+    <script type="module" src="preview.mjs"></script>
+  </body>
+</html>

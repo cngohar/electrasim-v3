@@ -13,6 +13,13 @@
  */
 
 import { COMPONENT_DEFS, type ComponentInstance, type WireInstance } from '@electrasim/domain';
+import {
+  editProfileNameplate,
+  isCatalogueProfile,
+  isElectronicLoadProfile,
+  isLampType,
+  profileFitsType,
+} from '@electrasim/domain/core/catalogueProfiles';
 import { coilPortsFor, isCoilModel } from '@electrasim/domain/core/coilModel';
 import { hasDamageSettings, isDamageModel } from '@electrasim/domain/core/damageModel';
 import { dimmerMaximumLevel } from '@electrasim/domain/core/dimmerModel';
@@ -277,7 +284,7 @@ export const useCircuitStore = create<CircuitState>()(
                       sourceProfile: resolveSourceProfile(comp.type, comp.state, s),
                     },
                   }
-                : comp,
+                : { ...comp, state: resolveComponentState(comp.state, COMPONENT_DEFS[comp.type]) },
             );
           }),
 
@@ -669,9 +676,24 @@ export const useCircuitStore = create<CircuitState>()(
 
         ...createFaultActions(set),
 
-        updateComponentState: (id, updates) => {
+        updateComponentState: (id, requestedUpdates) => {
           const component = get().components.find((c) => c.id === id);
           if (!component) return;
+          const updates = editProfileNameplate(
+            resolveComponentState(component.state, COMPONENT_DEFS[component.type]),
+            requestedUpdates,
+          );
+          if (
+            updates.electronicLoadProfile !== undefined &&
+            (!isLampType(component.type) || !isElectronicLoadProfile(updates.electronicLoadProfile))
+          )
+            return;
+          if (
+            updates.catalogueProfile !== undefined &&
+            (!isCatalogueProfile(updates.catalogueProfile) ||
+              !profileFitsType(component.type, updates.catalogueProfile))
+          )
+            return;
           const source = sourceInterface(component.type);
           if (
             Object.hasOwn(updates, 'sourceProfile') ||

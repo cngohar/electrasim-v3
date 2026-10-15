@@ -1,0 +1,4791 @@
+{
+  "schemaVersion": 1,
+  "specificationVersion": "1.12.0-draft-1",
+  "specificationSha256": "6948e9a950a405c35c3d6bf7fc644c37feb0259ba7a17b61eebf9b34b2f45b6a",
+  "electricalModelVersion": "1.5e.2.1",
+  "capabilityCatalogueVersion": "1.5e.2.1",
+  "basis": "UK empty document and normalized empty instance state; source/model inventory, not 116 tested circuits",
+  "summary": {
+    "entries": 116,
+    "unassessedDefaults": 31,
+    "missingBehaviours": 30,
+    "existingModelsNeedingSetup": 1,
+    "declaredModelsWithConditions": 52,
+    "otherDeclaredModels": 33
+  },
+  "entries": [
+    {
+      "type": "ac-mains-supply",
+      "label": "230V AC Mains Supply Block",
+      "category": "supply",
+      "capabilityFamily": "source",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        },
+        {
+          "index": 2,
+          "role": "earth",
+          "label": "PE"
+        }
+      ],
+      "modelKind": "source",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "output.maximumVoltage",
+        "output.currentCapacityAmps",
+        "output.operatingVoltageRange",
+        "output.frequencyHz"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "ac-three-phase-supply",
+      "label": "Three-phase AC Supply (L1/L2/L3/N/PE)",
+      "category": "supply",
+      "capabilityFamily": "source",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L1"
+        },
+        {
+          "index": 1,
+          "role": "live",
+          "label": "L2"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "L3"
+        },
+        {
+          "index": 3,
+          "role": "neutral",
+          "label": "N"
+        },
+        {
+          "index": 4,
+          "role": "earth",
+          "label": "PE"
+        }
+      ],
+      "modelKind": "source",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "output.maximumVoltage",
+        "output.currentCapacityAmps",
+        "output.operatingVoltageRange",
+        "output.frequencyHz"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "afdd",
+      "label": "AFDD-RCBO (32A 30mA Type A)",
+      "category": "protection",
+      "capabilityFamily": "protection",
+      "defaultState": {
+        "on": true
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N-in"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "L-out"
+        },
+        {
+          "index": 3,
+          "role": "neutral",
+          "label": "N-out"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": ["Automatic protection requires a type-appropriate protectionModel."],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz",
+        "contact:1.maximumVoltage",
+        "contact:1.supplyKinds",
+        "contact:1.operatingVoltageRange",
+        "contact:1.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "air-conditioner",
+      "label": "Inverter Air Conditioner (1.5kW)",
+      "category": "load",
+      "capabilityFamily": "unknown-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 1500,
+      "modelKind": "unassessed-load",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.supplyKinds",
+        "load.operatingVoltageRange",
+        "load.frequencyHz"
+      ],
+      "gapReason": "No supported voltage/current law is declared for this load; nameplate power is not resistance.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.4",
+      "targetFamily": "electronic-appliance",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.electronic-appliance"
+    },
+    {
+      "type": "alarm-siren",
+      "label": "High-Output Security Alarm Siren",
+      "category": "sounder",
+      "capabilityFamily": "unknown-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 25,
+      "modelKind": "unassessed-load",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.supplyKinds",
+        "load.operatingVoltageRange",
+        "load.frequencyHz"
+      ],
+      "gapReason": "No supported voltage/current law is declared for this load; nameplate power is not resistance.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.4",
+      "targetFamily": "sounder",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.sounder"
+    },
+    {
+      "type": "bell",
+      "label": "Doorbell / Buzzer (15W)",
+      "category": "load",
+      "capabilityFamily": "unknown-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 15,
+      "modelKind": "unassessed-load",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.supplyKinds",
+        "load.operatingVoltageRange",
+        "load.frequencyHz"
+      ],
+      "gapReason": "No supported voltage/current law is declared for this load; nameplate power is not resistance.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.4",
+      "targetFamily": "sounder",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.sounder"
+    },
+    {
+      "type": "bulb",
+      "label": "LED Bulb (9W)",
+      "category": "lighting",
+      "capabilityFamily": "mains-electronic-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 9,
+      "modelKind": "unassessed-load",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.operatingVoltageRange",
+        "load.frequencyHz"
+      ],
+      "gapReason": "No supported voltage/current law is declared for this load; nameplate power is not resistance.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.2",
+      "targetFamily": "electronic-lamp",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.electronic-lamp"
+    },
+    {
+      "type": "bulb-cfl",
+      "label": "CFL Lamp (15W)",
+      "category": "lighting",
+      "capabilityFamily": "mains-electronic-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 15,
+      "modelKind": "unassessed-load",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.operatingVoltageRange",
+        "load.frequencyHz"
+      ],
+      "gapReason": "No supported voltage/current law is declared for this load; nameplate power is not resistance.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.2",
+      "targetFamily": "electronic-lamp",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.electronic-lamp"
+    },
+    {
+      "type": "bulb-halogen",
+      "label": "Halogen Lamp (42W)",
+      "category": "lighting",
+      "capabilityFamily": "resistive-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 42,
+      "modelKind": "resistive-load",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.operatingVoltageRange"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "bulb-incandescent",
+      "label": "Incandescent Bulb (60W)",
+      "category": "lighting",
+      "capabilityFamily": "resistive-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 60,
+      "modelKind": "resistive-load",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.operatingVoltageRange"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "bulb-smart-rgb",
+      "label": "Smart RGB LED Bulb (10W)",
+      "category": "lighting",
+      "capabilityFamily": "mains-electronic-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 10,
+      "modelKind": "unassessed-load",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.operatingVoltageRange",
+        "load.frequencyHz"
+      ],
+      "gapReason": "No supported voltage/current law is declared for this load; nameplate power is not resistance.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.2",
+      "targetFamily": "electronic-lamp",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.electronic-lamp"
+    },
+    {
+      "type": "burglar-alarm",
+      "label": "Burglar Alarm Panel",
+      "category": "sounder",
+      "capabilityFamily": "unknown-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 20,
+      "modelKind": "unassessed-load",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.supplyKinds",
+        "load.operatingVoltageRange",
+        "load.frequencyHz"
+      ],
+      "gapReason": "No supported voltage/current law is declared for this load; nameplate power is not resistance.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.4",
+      "targetFamily": "alarm-electronics",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.alarm-electronics"
+    },
+    {
+      "type": "ceiling-fan",
+      "label": "Ceiling Fan (65W)",
+      "category": "fan",
+      "capabilityFamily": "motor-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 65,
+      "modelKind": "unassessed-load",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.supplyKinds",
+        "load.operatingVoltageRange",
+        "load.frequencyHz"
+      ],
+      "gapReason": "No supported voltage/current law is declared for this load; nameplate power is not resistance.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.3",
+      "targetFamily": "single-phase-motor",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.single-phase-motor"
+    },
+    {
+      "type": "contactor",
+      "label": "Power Contactor (25A)",
+      "category": "switch",
+      "capabilityFamily": "manual-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N-in"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "L-out"
+        },
+        {
+          "index": 3,
+          "role": "neutral",
+          "label": "N-out"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.currentCapacityAmps",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz",
+        "contact:1.maximumVoltage",
+        "contact:1.currentCapacityAmps",
+        "contact:1.supplyKinds",
+        "contact:1.operatingVoltageRange",
+        "contact:1.frequencyHz"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "contactor-1p",
+      "label": "Single-Pole Contactor (1P 25A)",
+      "category": "contactor",
+      "capabilityFamily": "coil-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "live",
+          "label": "L-out"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "A1"
+        },
+        {
+          "index": 3,
+          "role": "neutral",
+          "label": "A2"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Coil voltage, consumption and timing await the device model; only supplied contact state is compiled.",
+        "Coil consumption/pickup/timing require an explicit coilModel."
+      ],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz",
+        "coil.maximumVoltage",
+        "coil.currentCapacityAmps",
+        "coil.supplyKinds",
+        "coil.operatingVoltageRange",
+        "coil.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "contactor-2p",
+      "label": "Double-Pole Contactor (2P 25A)",
+      "category": "contactor",
+      "capabilityFamily": "manual-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N-in"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "L-out"
+        },
+        {
+          "index": 3,
+          "role": "neutral",
+          "label": "N-out"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz",
+        "contact:1.maximumVoltage",
+        "contact:1.supplyKinds",
+        "contact:1.operatingVoltageRange",
+        "contact:1.frequencyHz"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "contactor-3p",
+      "label": "Three-Pole Contactor (3P 40A)",
+      "category": "contactor",
+      "capabilityFamily": "manual-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L1"
+        },
+        {
+          "index": 1,
+          "role": "live",
+          "label": "L2"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "L3"
+        },
+        {
+          "index": 3,
+          "role": "live",
+          "label": "T1"
+        },
+        {
+          "index": 4,
+          "role": "live",
+          "label": "T2"
+        },
+        {
+          "index": 5,
+          "role": "live",
+          "label": "T3"
+        },
+        {
+          "index": 6,
+          "role": "live",
+          "label": "A1"
+        },
+        {
+          "index": 7,
+          "role": "neutral",
+          "label": "A2"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Coil voltage, consumption and timing await the device model; only supplied contact state is compiled.",
+        "Coil consumption/pickup/timing require an explicit coilModel."
+      ],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz",
+        "contact:1.maximumVoltage",
+        "contact:1.supplyKinds",
+        "contact:1.operatingVoltageRange",
+        "contact:1.frequencyHz",
+        "contact:2.maximumVoltage",
+        "contact:2.supplyKinds",
+        "contact:2.operatingVoltageRange",
+        "contact:2.frequencyHz",
+        "coil.maximumVoltage",
+        "coil.currentCapacityAmps",
+        "coil.supplyKinds",
+        "coil.operatingVoltageRange",
+        "coil.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "contactor-4p",
+      "label": "Four-Pole Contactor (4P 63A)",
+      "category": "contactor",
+      "capabilityFamily": "manual-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L1"
+        },
+        {
+          "index": 1,
+          "role": "live",
+          "label": "L2"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "L3"
+        },
+        {
+          "index": 3,
+          "role": "neutral",
+          "label": "N-in"
+        },
+        {
+          "index": 4,
+          "role": "live",
+          "label": "T1"
+        },
+        {
+          "index": 5,
+          "role": "live",
+          "label": "T2"
+        },
+        {
+          "index": 6,
+          "role": "live",
+          "label": "T3"
+        },
+        {
+          "index": 7,
+          "role": "neutral",
+          "label": "N-out"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz",
+        "contact:1.maximumVoltage",
+        "contact:1.supplyKinds",
+        "contact:1.operatingVoltageRange",
+        "contact:1.frequencyHz",
+        "contact:2.maximumVoltage",
+        "contact:2.supplyKinds",
+        "contact:2.operatingVoltageRange",
+        "contact:2.frequencyHz",
+        "contact:3.maximumVoltage",
+        "contact:3.supplyKinds",
+        "contact:3.operatingVoltageRange",
+        "contact:3.frequencyHz"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "control-relay",
+      "label": "Industrial 8-Pin Control Relay",
+      "category": "relay",
+      "capabilityFamily": "coil-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "A1"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "A2"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "11-COM"
+        },
+        {
+          "index": 3,
+          "role": "live",
+          "label": "14-NO"
+        },
+        {
+          "index": 4,
+          "role": "live",
+          "label": "12-NC"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Coil voltage, consumption and timing await the device model; only supplied contact state is compiled.",
+        "Coil consumption/pickup/timing require an explicit coilModel."
+      ],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.currentCapacityAmps",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz",
+        "coil.maximumVoltage",
+        "coil.currentCapacityAmps",
+        "coil.supplyKinds",
+        "coil.operatingVoltageRange",
+        "coil.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "cooker-unit",
+      "label": "Cooker Control Unit (45A)",
+      "category": "switch",
+      "capabilityFamily": "manual-contact",
+      "defaultState": {
+        "on": true
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N-in"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "L-out"
+        },
+        {
+          "index": 3,
+          "role": "neutral",
+          "label": "N-out"
+        }
+      ],
+      "catalogueWatts": 7200,
+      "modelKind": "contacts",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.currentCapacityAmps",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz",
+        "contact:1.maximumVoltage",
+        "contact:1.currentCapacityAmps",
+        "contact:1.supplyKinds",
+        "contact:1.operatingVoltageRange",
+        "contact:1.frequencyHz"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "countdown-timer",
+      "label": "Digital Countdown Timer Switch",
+      "category": "timer",
+      "capabilityFamily": "controlled-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N-in"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "L-out"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Only the saved shared manual contact state is represented; independent controls, dimming and time behavior are not assessed.",
+        "Timed behaviour requires explicit timer/coil settings."
+      ],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.currentCapacityAmps",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz",
+        "control.maximumVoltage",
+        "control.currentCapacityAmps",
+        "control.supplyKinds",
+        "control.operatingVoltageRange",
+        "control.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "dc-battery-12v",
+      "label": "12V DC Deep Cycle Battery",
+      "category": "supply",
+      "capabilityFamily": "source",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "+12V"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "0V"
+        }
+      ],
+      "modelKind": "source",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "output.maximumVoltage",
+        "output.currentCapacityAmps",
+        "output.operatingVoltageRange",
+        "output.frequencyHz"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "delay-timer",
+      "label": "Time Delay Relay (On/Off Delay)",
+      "category": "timer",
+      "capabilityFamily": "coil-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "A1"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "A2"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "15-COM"
+        },
+        {
+          "index": 3,
+          "role": "live",
+          "label": "18-NO"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Delay timing and coil consumption are not assessed.",
+        "Coil consumption/pickup/timing require an explicit coilModel.",
+        "Timed behaviour requires explicit timer/coil settings."
+      ],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.currentCapacityAmps",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz",
+        "coil.maximumVoltage",
+        "coil.currentCapacityAmps",
+        "coil.supplyKinds",
+        "coil.operatingVoltageRange",
+        "coil.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "diesel-generator",
+      "label": "Standby Diesel Generator (5kVA)",
+      "category": "supply",
+      "capabilityFamily": "source",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        },
+        {
+          "index": 2,
+          "role": "earth",
+          "label": "PE"
+        }
+      ],
+      "modelKind": "source",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "output.maximumVoltage",
+        "output.currentCapacityAmps",
+        "output.operatingVoltageRange",
+        "output.frequencyHz"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "digital-weekly-timer",
+      "label": "Digital 7-Day Programmable Timer",
+      "category": "timer",
+      "capabilityFamily": "controlled-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "live",
+          "label": "L-out"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Only the saved shared manual contact state is represented; independent controls, dimming and time behavior are not assessed.",
+        "Timed behaviour requires explicit timer/coil settings."
+      ],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.currentCapacityAmps",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz",
+        "control.maximumVoltage",
+        "control.currentCapacityAmps",
+        "control.supplyKinds",
+        "control.operatingVoltageRange",
+        "control.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "dimmer-switch",
+      "label": "Light Dimmer Switch (400W)",
+      "category": "control",
+      "capabilityFamily": "controlled-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "live",
+          "label": "L-out"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Ideal synchronous AC resistive dimming only; electronic/motor loads excluded."
+      ],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.currentCapacityAmps",
+        "contact:0.operatingVoltageRange"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "dishwasher",
+      "label": "Dishwasher (2.2kW)",
+      "category": "load",
+      "capabilityFamily": "unknown-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 2200,
+      "modelKind": "unassessed-load",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.supplyKinds",
+        "load.operatingVoltageRange",
+        "load.frequencyHz"
+      ],
+      "gapReason": "No supported voltage/current law is declared for this load; nameplate power is not resistance.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.4",
+      "targetFamily": "composite-appliance",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.composite-appliance"
+    },
+    {
+      "type": "distribution-board",
+      "label": "Distribution Board (Consumer Unit)",
+      "category": "protection",
+      "capabilityFamily": "connection",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N-in"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "L1"
+        },
+        {
+          "index": 3,
+          "role": "live",
+          "label": "L2"
+        },
+        {
+          "index": 4,
+          "role": "live",
+          "label": "L3"
+        },
+        {
+          "index": 5,
+          "role": "neutral",
+          "label": "N1"
+        },
+        {
+          "index": 6,
+          "role": "neutral",
+          "label": "N2"
+        }
+      ],
+      "modelKind": "connections",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "connection:0.maximumVoltage",
+        "connection:0.currentCapacityAmps",
+        "connection:0.supplyKinds",
+        "connection:0.operatingVoltageRange",
+        "connection:0.frequencyHz",
+        "connection:1.maximumVoltage",
+        "connection:1.currentCapacityAmps",
+        "connection:1.supplyKinds",
+        "connection:1.operatingVoltageRange",
+        "connection:1.frequencyHz",
+        "connection:2.maximumVoltage",
+        "connection:2.currentCapacityAmps",
+        "connection:2.supplyKinds",
+        "connection:2.operatingVoltageRange",
+        "connection:2.frequencyHz"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "distribution-board-3phase",
+      "label": "3-Phase TPN Distribution Board",
+      "category": "distribution",
+      "capabilityFamily": "connection",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L1-in"
+        },
+        {
+          "index": 1,
+          "role": "live",
+          "label": "L2-in"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "L3-in"
+        },
+        {
+          "index": 3,
+          "role": "neutral",
+          "label": "N-in"
+        },
+        {
+          "index": 4,
+          "role": "live",
+          "label": "L1-out"
+        },
+        {
+          "index": 5,
+          "role": "live",
+          "label": "L2-out"
+        },
+        {
+          "index": 6,
+          "role": "live",
+          "label": "L3-out"
+        }
+      ],
+      "modelKind": "connections",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "connection:0.maximumVoltage",
+        "connection:0.currentCapacityAmps",
+        "connection:0.supplyKinds",
+        "connection:0.operatingVoltageRange",
+        "connection:0.frequencyHz",
+        "connection:1.maximumVoltage",
+        "connection:1.currentCapacityAmps",
+        "connection:1.supplyKinds",
+        "connection:1.operatingVoltageRange",
+        "connection:1.frequencyHz",
+        "connection:2.maximumVoltage",
+        "connection:2.currentCapacityAmps",
+        "connection:2.supplyKinds",
+        "connection:2.operatingVoltageRange",
+        "connection:2.frequencyHz"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "distribution-box",
+      "label": "1-Phase Sub-Distribution Box (8-Way)",
+      "category": "distribution",
+      "capabilityFamily": "connection",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N-in"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "L1"
+        },
+        {
+          "index": 3,
+          "role": "live",
+          "label": "L2"
+        },
+        {
+          "index": 4,
+          "role": "neutral",
+          "label": "N1"
+        }
+      ],
+      "modelKind": "connections",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "connection:0.maximumVoltage",
+        "connection:0.currentCapacityAmps",
+        "connection:0.supplyKinds",
+        "connection:0.operatingVoltageRange",
+        "connection:0.frequencyHz",
+        "connection:1.maximumVoltage",
+        "connection:1.currentCapacityAmps",
+        "connection:1.supplyKinds",
+        "connection:1.operatingVoltageRange",
+        "connection:1.frequencyHz",
+        "connection:2.maximumVoltage",
+        "connection:2.currentCapacityAmps",
+        "connection:2.supplyKinds",
+        "connection:2.operatingVoltageRange",
+        "connection:2.frequencyHz"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "door-sensor",
+      "label": "Magnetic Door / Window Contact",
+      "category": "sensor",
+      "capabilityFamily": "manual-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "C1"
+        },
+        {
+          "index": 1,
+          "role": "live",
+          "label": "C2"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": ["Saved contact only; no physical door/reed environment input."],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.currentCapacityAmps",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "double-gang-switch",
+      "label": "2-Gang 1-Way Switch",
+      "category": "switch",
+      "capabilityFamily": "manual-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "live",
+          "label": "L1-out"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "L2-out"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Only the saved shared manual contact state is represented; independent controls, dimming and time behavior are not assessed.",
+        "One saved contact state; independent gang states are not represented."
+      ],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.currentCapacityAmps",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz",
+        "contact:1.maximumVoltage",
+        "contact:1.currentCapacityAmps",
+        "contact:1.supplyKinds",
+        "contact:1.operatingVoltageRange",
+        "contact:1.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "double-pole-switch",
+      "label": "Double-Pole Switch (20A)",
+      "category": "switch",
+      "capabilityFamily": "manual-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N-in"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "L-out"
+        },
+        {
+          "index": 3,
+          "role": "neutral",
+          "label": "N-out"
+        }
+      ],
+      "catalogueWatts": 4600,
+      "modelKind": "contacts",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.currentCapacityAmps",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz",
+        "contact:1.maximumVoltage",
+        "contact:1.currentCapacityAmps",
+        "contact:1.supplyKinds",
+        "contact:1.operatingVoltageRange",
+        "contact:1.frequencyHz"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "double-socket",
+      "label": "Double 3-Pin Socket (13A Twin)",
+      "category": "socket",
+      "capabilityFamily": "outlet",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        },
+        {
+          "index": 2,
+          "role": "earth",
+          "label": "E"
+        }
+      ],
+      "catalogueWatts": 3120,
+      "modelKind": "outlet",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Outlet connections/capacity only; no internal appliance, USB converter or GFCI electronics."
+      ],
+      "unknownRatings": [
+        "outlet.maximumVoltage",
+        "outlet.currentCapacityAmps",
+        "outlet.supplyKinds",
+        "outlet.operatingVoltageRange",
+        "outlet.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "double-socket-us",
+      "label": "NEMA 5-15R Duplex (15A)",
+      "category": "socket",
+      "capabilityFamily": "outlet",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        },
+        {
+          "index": 2,
+          "role": "earth",
+          "label": "E"
+        }
+      ],
+      "catalogueWatts": 3600,
+      "modelKind": "outlet",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Outlet connections/capacity only; no internal appliance, USB converter or GFCI electronics."
+      ],
+      "unknownRatings": [
+        "outlet.maximumVoltage",
+        "outlet.currentCapacityAmps",
+        "outlet.supplyKinds",
+        "outlet.operatingVoltageRange",
+        "outlet.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "earth-rod",
+      "label": "Earth Rod / Electrode",
+      "category": "supply",
+      "capabilityFamily": "pe-reference",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "earth",
+          "label": "PE"
+        }
+      ],
+      "modelKind": "earth-reference",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "reference.maximumVoltage",
+        "reference.currentCapacityAmps",
+        "reference.supplyKinds",
+        "reference.operatingVoltageRange",
+        "reference.frequencyHz"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "earth-terminal",
+      "label": "Earth Ground (PE)",
+      "category": "supply",
+      "capabilityFamily": "pe-reference",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "earth",
+          "label": "PE-out"
+        }
+      ],
+      "modelKind": "earth-reference",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "reference.maximumVoltage",
+        "reference.currentCapacityAmps",
+        "reference.supplyKinds",
+        "reference.operatingVoltageRange",
+        "reference.frequencyHz"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "electric-buzzer",
+      "label": "Panel Electric Buzzer (90dB)",
+      "category": "sounder",
+      "capabilityFamily": "unknown-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 5,
+      "modelKind": "unassessed-load",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.supplyKinds",
+        "load.operatingVoltageRange",
+        "load.frequencyHz"
+      ],
+      "gapReason": "No supported voltage/current law is declared for this load; nameplate power is not resistance.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.4",
+      "targetFamily": "sounder",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.sounder"
+    },
+    {
+      "type": "electric-shower",
+      "label": "Electric Shower Unit (8.5kW)",
+      "category": "load",
+      "capabilityFamily": "resistive-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        },
+        {
+          "index": 2,
+          "role": "earth",
+          "label": "E"
+        }
+      ],
+      "catalogueWatts": 8500,
+      "modelKind": "resistive-load",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.operatingVoltageRange"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "ev-charger",
+      "label": "EV Charger Point (7.4kW)",
+      "category": "load",
+      "capabilityFamily": "unknown-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        },
+        {
+          "index": 2,
+          "role": "earth",
+          "label": "E"
+        }
+      ],
+      "catalogueWatts": 7400,
+      "modelKind": "unassessed-load",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.supplyKinds",
+        "load.operatingVoltageRange",
+        "load.frequencyHz"
+      ],
+      "gapReason": "No supported voltage/current law is declared for this load; nameplate power is not resistance.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.4",
+      "targetFamily": "electronic-appliance",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.electronic-appliance"
+    },
+    {
+      "type": "extractor-fan",
+      "label": "Bathroom Extractor Fan (25W)",
+      "category": "fan",
+      "capabilityFamily": "motor-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 25,
+      "modelKind": "unassessed-load",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.supplyKinds",
+        "load.operatingVoltageRange",
+        "load.frequencyHz"
+      ],
+      "gapReason": "No supported voltage/current law is declared for this load; nameplate power is not resistance.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.3",
+      "targetFamily": "single-phase-motor",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.single-phase-motor"
+    },
+    {
+      "type": "extractor-hood",
+      "label": "Kitchen Extractor Hood (300W)",
+      "category": "load",
+      "capabilityFamily": "unknown-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 300,
+      "modelKind": "unassessed-load",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.supplyKinds",
+        "load.operatingVoltageRange",
+        "load.frequencyHz"
+      ],
+      "gapReason": "No supported voltage/current law is declared for this load; nameplate power is not resistance.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.4",
+      "targetFamily": "single-phase-motor",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.single-phase-motor"
+    },
+    {
+      "type": "fan-dimmer",
+      "label": "Rotary Fan Speed Regulator",
+      "category": "control",
+      "capabilityFamily": "controlled-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "live",
+          "label": "L-out"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Ideal synchronous AC resistive dimming only; electronic/motor loads excluded."
+      ],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.currentCapacityAmps",
+        "contact:0.operatingVoltageRange"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "fridge-freezer",
+      "label": "Fridge Freezer (200W)",
+      "category": "load",
+      "capabilityFamily": "unknown-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 200,
+      "modelKind": "unassessed-load",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.supplyKinds",
+        "load.operatingVoltageRange",
+        "load.frequencyHz"
+      ],
+      "gapReason": "No supported voltage/current law is declared for this load; nameplate power is not resistance.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.4",
+      "targetFamily": "single-phase-motor",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.single-phase-motor"
+    },
+    {
+      "type": "fuse",
+      "label": "Cartridge Fuse (13A)",
+      "category": "protection",
+      "capabilityFamily": "protection",
+      "defaultState": {
+        "on": true
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "live",
+          "label": "L-out"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": ["Automatic protection requires a type-appropriate protectionModel."],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "fused-spur",
+      "label": "Fused Connection Unit (FCU 13A)",
+      "category": "protection",
+      "capabilityFamily": "protection",
+      "defaultState": {
+        "on": true
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N-in"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "L-out"
+        },
+        {
+          "index": 3,
+          "role": "neutral",
+          "label": "N-out"
+        }
+      ],
+      "catalogueWatts": 3000,
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": ["Automatic protection requires a type-appropriate protectionModel."],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.currentCapacityAmps",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz",
+        "contact:1.maximumVoltage",
+        "contact:1.currentCapacityAmps",
+        "contact:1.supplyKinds",
+        "contact:1.operatingVoltageRange",
+        "contact:1.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "heat-pump",
+      "label": "Air-Source Heat Pump (3.0kW)",
+      "category": "load",
+      "capabilityFamily": "unknown-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        },
+        {
+          "index": 2,
+          "role": "earth",
+          "label": "E"
+        }
+      ],
+      "catalogueWatts": 3000,
+      "modelKind": "unassessed-load",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.supplyKinds",
+        "load.operatingVoltageRange",
+        "load.frequencyHz"
+      ],
+      "gapReason": "No supported voltage/current law is declared for this load; nameplate power is not resistance.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.4",
+      "targetFamily": "electronic-appliance",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.electronic-appliance"
+    },
+    {
+      "type": "heating-element",
+      "label": "Tubular Resistance Heating Element (1.5kW)",
+      "category": "heater",
+      "capabilityFamily": "resistive-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 1500,
+      "modelKind": "resistive-load",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.operatingVoltageRange"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "heating-thermostat",
+      "label": "Underfloor Heating Thermostat",
+      "category": "thermostat",
+      "capabilityFamily": "controlled-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N-in"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "Load-L"
+        },
+        {
+          "index": 3,
+          "role": "neutral",
+          "label": "Load-N"
+        }
+      ],
+      "catalogueWatts": 3000,
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": ["No floor temperature input, program or declared electronics consumption."],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.currentCapacityAmps",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz",
+        "contact:1.maximumVoltage",
+        "contact:1.currentCapacityAmps",
+        "contact:1.supplyKinds",
+        "contact:1.operatingVoltageRange",
+        "contact:1.frequencyHz",
+        "control.maximumVoltage",
+        "control.currentCapacityAmps",
+        "control.supplyKinds",
+        "control.operatingVoltageRange",
+        "control.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "immersion-heater",
+      "label": "Immersion Heater (3.0kW)",
+      "category": "load",
+      "capabilityFamily": "resistive-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 3000,
+      "modelKind": "resistive-load",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.operatingVoltageRange"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "induction-hob",
+      "label": "Induction Cooktop (3.5kW)",
+      "category": "load",
+      "capabilityFamily": "unknown-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 3500,
+      "modelKind": "unassessed-load",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.supplyKinds",
+        "load.operatingVoltageRange",
+        "load.frequencyHz"
+      ],
+      "gapReason": "No supported voltage/current law is declared for this load; nameplate power is not resistance.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.4",
+      "targetFamily": "electronic-appliance",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.electronic-appliance"
+    },
+    {
+      "type": "industrial-exhaust-fan",
+      "label": "Industrial Exhaust Fan (250W)",
+      "category": "fan",
+      "capabilityFamily": "motor-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 250,
+      "modelKind": "unassessed-load",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.supplyKinds",
+        "load.operatingVoltageRange",
+        "load.frequencyHz"
+      ],
+      "gapReason": "No supported voltage/current law is declared for this load; nameplate power is not resistance.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.3",
+      "targetFamily": "single-phase-motor",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.single-phase-motor"
+    },
+    {
+      "type": "intermediate-switch",
+      "label": "Intermediate Switch",
+      "category": "switch",
+      "capabilityFamily": "manual-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L1-in"
+        },
+        {
+          "index": 1,
+          "role": "live",
+          "label": "L2-in"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "L1-out"
+        },
+        {
+          "index": 3,
+          "role": "live",
+          "label": "L2-out"
+        }
+      ],
+      "modelKind": "selector",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "selector.maximumVoltage",
+        "selector.currentCapacityAmps",
+        "selector.supplyKinds",
+        "selector.operatingVoltageRange",
+        "selector.frequencyHz"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "isolator-switch",
+      "label": "Rotary Isolator Switch (100A)",
+      "category": "protection",
+      "capabilityFamily": "protection",
+      "defaultState": {
+        "on": true
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N-in"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "L-out"
+        },
+        {
+          "index": 3,
+          "role": "neutral",
+          "label": "N-out"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": ["Automatic protection requires a type-appropriate protectionModel."],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz",
+        "contact:1.maximumVoltage",
+        "contact:1.supplyKinds",
+        "contact:1.operatingVoltageRange",
+        "contact:1.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "junction-box",
+      "label": "Junction Box (4-Way)",
+      "category": "junction",
+      "capabilityFamily": "connection",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "live",
+          "label": "L-out1"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "L-out2"
+        },
+        {
+          "index": 3,
+          "role": "live",
+          "label": "L-out3"
+        }
+      ],
+      "modelKind": "connections",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "connection:0.maximumVoltage",
+        "connection:0.currentCapacityAmps",
+        "connection:0.supplyKinds",
+        "connection:0.operatingVoltageRange",
+        "connection:0.frequencyHz",
+        "connection:1.maximumVoltage",
+        "connection:1.currentCapacityAmps",
+        "connection:1.supplyKinds",
+        "connection:1.operatingVoltageRange",
+        "connection:1.frequencyHz",
+        "connection:2.maximumVoltage",
+        "connection:2.currentCapacityAmps",
+        "connection:2.supplyKinds",
+        "connection:2.operatingVoltageRange",
+        "connection:2.frequencyHz"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "kwh-meter",
+      "label": "Electricity Meter (kWh)",
+      "category": "supply",
+      "capabilityFamily": "connection",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N-in"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "L-out"
+        },
+        {
+          "index": 3,
+          "role": "neutral",
+          "label": "N-out"
+        }
+      ],
+      "modelKind": "connections",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "connection:0.maximumVoltage",
+        "connection:0.currentCapacityAmps",
+        "connection:0.supplyKinds",
+        "connection:0.operatingVoltageRange",
+        "connection:0.frequencyHz",
+        "connection:1.maximumVoltage",
+        "connection:1.currentCapacityAmps",
+        "connection:1.supplyKinds",
+        "connection:1.operatingVoltageRange",
+        "connection:1.frequencyHz",
+        "connection:2.maximumVoltage",
+        "connection:2.currentCapacityAmps",
+        "connection:2.supplyKinds",
+        "connection:2.operatingVoltageRange",
+        "connection:2.frequencyHz"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "led-downlight",
+      "label": "LED Downlight (12W)",
+      "category": "lighting",
+      "capabilityFamily": "mains-electronic-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 12,
+      "modelKind": "unassessed-load",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.operatingVoltageRange",
+        "load.frequencyHz"
+      ],
+      "gapReason": "No supported voltage/current law is declared for this load; nameplate power is not resistance.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.2",
+      "targetFamily": "electronic-lamp",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.electronic-lamp"
+    },
+    {
+      "type": "live-terminal",
+      "label": "Live Terminal (L)",
+      "category": "supply",
+      "capabilityFamily": "source-alias",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-out"
+        }
+      ],
+      "modelKind": "source-alias",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "output.maximumVoltage",
+        "output.currentCapacityAmps",
+        "output.operatingVoltageRange",
+        "output.frequencyHz"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "main-switch",
+      "label": "Main Switch (100A)",
+      "category": "protection",
+      "capabilityFamily": "protection",
+      "defaultState": {
+        "on": true
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N-in"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "L-out"
+        },
+        {
+          "index": 3,
+          "role": "neutral",
+          "label": "N-out"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": ["Automatic protection requires a type-appropriate protectionModel."],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz",
+        "contact:1.maximumVoltage",
+        "contact:1.supplyKinds",
+        "contact:1.operatingVoltageRange",
+        "contact:1.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "mcb",
+      "label": "MCB Type B (16A)",
+      "category": "protection",
+      "capabilityFamily": "protection",
+      "defaultState": {
+        "on": true
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "live",
+          "label": "L-out"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": ["Automatic protection requires a type-appropriate protectionModel."],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "mcb-type-c",
+      "label": "MCB Type C (32A)",
+      "category": "protection",
+      "capabilityFamily": "protection",
+      "defaultState": {
+        "on": true
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "live",
+          "label": "L-out"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": ["Automatic protection requires a type-appropriate protectionModel."],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "mcb-type-d",
+      "label": "MCB Type D (63A)",
+      "category": "protection",
+      "capabilityFamily": "protection",
+      "defaultState": {
+        "on": true
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "live",
+          "label": "L-out"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": ["Automatic protection requires a type-appropriate protectionModel."],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "mccb",
+      "label": "MCCB Breaker (100A)",
+      "category": "protection",
+      "capabilityFamily": "protection",
+      "defaultState": {
+        "on": true
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "live",
+          "label": "L-out"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": ["Automatic protection requires a type-appropriate protectionModel."],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "motor",
+      "label": "Electric Motor (750W / 1HP)",
+      "category": "load",
+      "capabilityFamily": "motor-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 750,
+      "modelKind": "unassessed-load",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.supplyKinds",
+        "load.operatingVoltageRange",
+        "load.frequencyHz"
+      ],
+      "gapReason": "No supported voltage/current law is declared for this load; nameplate power is not resistance.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.3",
+      "targetFamily": "single-phase-motor",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.single-phase-motor"
+    },
+    {
+      "type": "motor-3phase",
+      "label": "3-Phase AC Induction Motor (3kW / 4HP)",
+      "category": "motor",
+      "capabilityFamily": "three-phase-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "U"
+        },
+        {
+          "index": 1,
+          "role": "live",
+          "label": "V"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "W"
+        },
+        {
+          "index": 3,
+          "role": "earth",
+          "label": "PE"
+        }
+      ],
+      "catalogueWatts": 3000,
+      "modelKind": "unassessed-load",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.currentCapacityAmps",
+        "load.operatingVoltageRange",
+        "load.frequencyHz"
+      ],
+      "gapReason": "No supported voltage/current law is declared for this load; nameplate power is not resistance.",
+      "outcome": "existing-model-needs-setup",
+      "owner": "1.12.6",
+      "targetFamily": "configured-three-phase",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.configured-three-phase"
+    },
+    {
+      "type": "neutral-terminal",
+      "label": "Neutral Terminal (N)",
+      "category": "supply",
+      "capabilityFamily": "source-alias",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "neutral",
+          "label": "N-out"
+        }
+      ],
+      "modelKind": "source-alias",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "output.maximumVoltage",
+        "output.currentCapacityAmps",
+        "output.operatingVoltageRange",
+        "output.frequencyHz"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "photocell-sensor",
+      "label": "Dusk-to-Dawn Photocell",
+      "category": "control",
+      "capabilityFamily": "controlled-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N-in"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "L-out"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": ["No illuminance input, thresholds or declared electronics consumption."],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.currentCapacityAmps",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz",
+        "control.maximumVoltage",
+        "control.currentCapacityAmps",
+        "control.supplyKinds",
+        "control.operatingVoltageRange",
+        "control.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "pir-sensor",
+      "label": "PIR Motion Sensor",
+      "category": "control",
+      "capabilityFamily": "controlled-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N-in"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "L-out"
+        }
+      ],
+      "catalogueWatts": 5,
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": ["No motion input, sensor timing or declared electronics consumption."],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.currentCapacityAmps",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz",
+        "control.maximumVoltage",
+        "control.currentCapacityAmps",
+        "control.supplyKinds",
+        "control.operatingVoltageRange",
+        "control.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "push-button",
+      "label": "Push Button",
+      "category": "switch",
+      "capabilityFamily": "manual-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "live",
+          "label": "L-out"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.currentCapacityAmps",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "rcbo",
+      "label": "RCBO (32A 30mA)",
+      "category": "protection",
+      "capabilityFamily": "protection",
+      "defaultState": {
+        "on": true
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N-in"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "L-out"
+        },
+        {
+          "index": 3,
+          "role": "neutral",
+          "label": "N-out"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": ["Automatic protection requires a type-appropriate protectionModel."],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz",
+        "contact:1.maximumVoltage",
+        "contact:1.supplyKinds",
+        "contact:1.operatingVoltageRange",
+        "contact:1.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "rcd",
+      "label": "RCD / RCCB (80A 30mA)",
+      "category": "protection",
+      "capabilityFamily": "protection",
+      "defaultState": {
+        "on": true
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N-in"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "L-out"
+        },
+        {
+          "index": 3,
+          "role": "neutral",
+          "label": "N-out"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": ["Automatic protection requires a type-appropriate protectionModel."],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz",
+        "contact:1.maximumVoltage",
+        "contact:1.supplyKinds",
+        "contact:1.operatingVoltageRange",
+        "contact:1.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "relay-dpdt",
+      "label": "DPDT Power Relay",
+      "category": "relay",
+      "capabilityFamily": "coil-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "Coil+"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "Coil-"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "C1"
+        },
+        {
+          "index": 3,
+          "role": "live",
+          "label": "NO1"
+        },
+        {
+          "index": 4,
+          "role": "live",
+          "label": "C2"
+        },
+        {
+          "index": 5,
+          "role": "live",
+          "label": "NO2"
+        },
+        {
+          "index": 6,
+          "role": "live",
+          "label": "NC1"
+        },
+        {
+          "index": 7,
+          "role": "live",
+          "label": "NC2"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Coil voltage, consumption and timing await the device model; only supplied contact state is compiled.",
+        "Coil consumption/pickup/timing require an explicit coilModel."
+      ],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.currentCapacityAmps",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz",
+        "contact:1.maximumVoltage",
+        "contact:1.currentCapacityAmps",
+        "contact:1.supplyKinds",
+        "contact:1.operatingVoltageRange",
+        "contact:1.frequencyHz",
+        "coil.maximumVoltage",
+        "coil.currentCapacityAmps",
+        "coil.supplyKinds",
+        "coil.operatingVoltageRange",
+        "coil.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "relay-spdt",
+      "label": "SPDT Changeover Relay",
+      "category": "relay",
+      "capabilityFamily": "coil-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "Coil+"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "Coil-"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "COM"
+        },
+        {
+          "index": 3,
+          "role": "live",
+          "label": "NO"
+        },
+        {
+          "index": 4,
+          "role": "live",
+          "label": "NC"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Coil voltage, consumption and timing await the device model; only supplied contact state is compiled.",
+        "Coil consumption/pickup/timing require an explicit coilModel."
+      ],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.currentCapacityAmps",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz",
+        "coil.maximumVoltage",
+        "coil.currentCapacityAmps",
+        "coil.supplyKinds",
+        "coil.operatingVoltageRange",
+        "coil.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "relay-spst",
+      "label": "SPST Power Relay",
+      "category": "relay",
+      "capabilityFamily": "coil-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "Coil+"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "Coil-"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "COM"
+        },
+        {
+          "index": 3,
+          "role": "live",
+          "label": "NO"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Coil voltage, consumption and timing await the device model; only supplied contact state is compiled.",
+        "Coil consumption/pickup/timing require an explicit coilModel."
+      ],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.currentCapacityAmps",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz",
+        "coil.maximumVoltage",
+        "coil.currentCapacityAmps",
+        "coil.supplyKinds",
+        "coil.operatingVoltageRange",
+        "coil.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "room-thermostat",
+      "label": "Mechanical Room Thermostat",
+      "category": "thermostat",
+      "capabilityFamily": "manual-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "live",
+          "label": "L-out"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": ["Saved contact only; no temperature input or thermal controller."],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.currentCapacityAmps",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "rotary-selector-switch",
+      "label": "Rotary Selector Switch",
+      "category": "switch",
+      "capabilityFamily": "manual-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "COM"
+        },
+        {
+          "index": 1,
+          "role": "live",
+          "label": "AUTO"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "MAN"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "The saved boolean selects AUTO or MAN; separate automatic control is not modeled.",
+        "Saved boolean selects AUTO/MAN; no separate automatic input."
+      ],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.currentCapacityAmps",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "shaver-socket",
+      "label": "Shaver Socket (Bathroom)",
+      "category": "socket",
+      "capabilityFamily": "outlet",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        },
+        {
+          "index": 2,
+          "role": "earth",
+          "label": "E"
+        }
+      ],
+      "catalogueWatts": 20,
+      "modelKind": "outlet",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Outlet connections/capacity only; no internal appliance, USB converter or GFCI electronics."
+      ],
+      "unknownRatings": [
+        "outlet.maximumVoltage",
+        "outlet.currentCapacityAmps",
+        "outlet.supplyKinds",
+        "outlet.operatingVoltageRange",
+        "outlet.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "single-way-switch",
+      "label": "Single-way Switch",
+      "category": "switch",
+      "capabilityFamily": "manual-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "live",
+          "label": "L-out"
+        }
+      ],
+      "catalogueWatts": 0,
+      "modelKind": "contacts",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.currentCapacityAmps",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "smart-relay",
+      "label": "Smart WiFi Relay Module",
+      "category": "control",
+      "capabilityFamily": "controlled-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N-in"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "L-out"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": ["No WiFi/app protocol or declared electronics consumption."],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.currentCapacityAmps",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz",
+        "control.maximumVoltage",
+        "control.currentCapacityAmps",
+        "control.supplyKinds",
+        "control.operatingVoltageRange",
+        "control.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "smoke-alarm",
+      "label": "Smoke / Heat / CO Alarm",
+      "category": "sounder",
+      "capabilityFamily": "unknown-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 2,
+      "modelKind": "unassessed-load",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.supplyKinds",
+        "load.operatingVoltageRange",
+        "load.frequencyHz"
+      ],
+      "gapReason": "No supported voltage/current law is declared for this load; nameplate power is not resistance.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.4",
+      "targetFamily": "alarm-electronics",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.alarm-electronics"
+    },
+    {
+      "type": "socket-2pin",
+      "label": "2-Pin Un-earthed Socket",
+      "category": "socket",
+      "capabilityFamily": "outlet",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "modelKind": "outlet",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Outlet connections/capacity only; no internal appliance, USB converter or GFCI electronics."
+      ],
+      "unknownRatings": [
+        "outlet.maximumVoltage",
+        "outlet.currentCapacityAmps",
+        "outlet.supplyKinds",
+        "outlet.operatingVoltageRange",
+        "outlet.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "socket-3pin",
+      "label": "Single 3-Pin Socket (13A)",
+      "category": "socket",
+      "capabilityFamily": "outlet",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        },
+        {
+          "index": 2,
+          "role": "earth",
+          "label": "E"
+        }
+      ],
+      "catalogueWatts": 2990,
+      "modelKind": "outlet",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Outlet connections/capacity only; no internal appliance, USB converter or GFCI electronics."
+      ],
+      "unknownRatings": [
+        "outlet.maximumVoltage",
+        "outlet.currentCapacityAmps",
+        "outlet.supplyKinds",
+        "outlet.operatingVoltageRange",
+        "outlet.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "socket-as3112",
+      "label": "AS/NZS 3112 Socket (10A)",
+      "category": "socket",
+      "capabilityFamily": "outlet",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        },
+        {
+          "index": 2,
+          "role": "earth",
+          "label": "E"
+        }
+      ],
+      "catalogueWatts": 2400,
+      "modelKind": "outlet",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Outlet connections/capacity only; no internal appliance, USB converter or GFCI electronics."
+      ],
+      "unknownRatings": [
+        "outlet.maximumVoltage",
+        "outlet.currentCapacityAmps",
+        "outlet.supplyKinds",
+        "outlet.operatingVoltageRange",
+        "outlet.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "socket-as3112-double",
+      "label": "AS/NZS 3112 Twin Socket",
+      "category": "socket",
+      "capabilityFamily": "outlet",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        },
+        {
+          "index": 2,
+          "role": "earth",
+          "label": "E"
+        }
+      ],
+      "catalogueWatts": 4800,
+      "modelKind": "outlet",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Outlet connections/capacity only; no internal appliance, USB converter or GFCI electronics."
+      ],
+      "unknownRatings": [
+        "outlet.maximumVoltage",
+        "outlet.currentCapacityAmps",
+        "outlet.supplyKinds",
+        "outlet.operatingVoltageRange",
+        "outlet.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "socket-bs546",
+      "label": "BS 546 Socket (15A / 5A)",
+      "category": "socket",
+      "capabilityFamily": "outlet",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        },
+        {
+          "index": 2,
+          "role": "earth",
+          "label": "E"
+        }
+      ],
+      "catalogueWatts": 3450,
+      "modelKind": "outlet",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Outlet connections/capacity only; no internal appliance, USB converter or GFCI electronics."
+      ],
+      "unknownRatings": [
+        "outlet.maximumVoltage",
+        "outlet.currentCapacityAmps",
+        "outlet.supplyKinds",
+        "outlet.operatingVoltageRange",
+        "outlet.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "socket-bs546-double",
+      "label": "BS 546 Twin Socket",
+      "category": "socket",
+      "capabilityFamily": "outlet",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        },
+        {
+          "index": 2,
+          "role": "earth",
+          "label": "E"
+        }
+      ],
+      "catalogueWatts": 6900,
+      "modelKind": "outlet",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Outlet connections/capacity only; no internal appliance, USB converter or GFCI electronics."
+      ],
+      "unknownRatings": [
+        "outlet.maximumVoltage",
+        "outlet.currentCapacityAmps",
+        "outlet.supplyKinds",
+        "outlet.operatingVoltageRange",
+        "outlet.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "socket-gfci",
+      "label": "GFCI / RCD Safety Outlet (20A)",
+      "category": "socket",
+      "capabilityFamily": "outlet",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        },
+        {
+          "index": 2,
+          "role": "earth",
+          "label": "E"
+        }
+      ],
+      "catalogueWatts": 2400,
+      "modelKind": "outlet",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Outlet connections/capacity only; no internal appliance, USB converter or GFCI electronics."
+      ],
+      "unknownRatings": [
+        "outlet.maximumVoltage",
+        "outlet.currentCapacityAmps",
+        "outlet.supplyKinds",
+        "outlet.operatingVoltageRange",
+        "outlet.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "socket-industrial",
+      "label": "Industrial CEE Socket (32A)",
+      "category": "socket",
+      "capabilityFamily": "outlet",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        },
+        {
+          "index": 2,
+          "role": "earth",
+          "label": "E"
+        }
+      ],
+      "catalogueWatts": 7360,
+      "modelKind": "outlet",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Outlet connections/capacity only; no internal appliance, USB converter or GFCI electronics."
+      ],
+      "unknownRatings": [
+        "outlet.maximumVoltage",
+        "outlet.currentCapacityAmps",
+        "outlet.supplyKinds",
+        "outlet.operatingVoltageRange",
+        "outlet.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "socket-schuko",
+      "label": "Schuko Socket (CEE 7/3) 16A",
+      "category": "socket",
+      "capabilityFamily": "outlet",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        },
+        {
+          "index": 2,
+          "role": "earth",
+          "label": "E"
+        }
+      ],
+      "catalogueWatts": 3680,
+      "modelKind": "outlet",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Outlet connections/capacity only; no internal appliance, USB converter or GFCI electronics."
+      ],
+      "unknownRatings": [
+        "outlet.maximumVoltage",
+        "outlet.currentCapacityAmps",
+        "outlet.supplyKinds",
+        "outlet.operatingVoltageRange",
+        "outlet.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "socket-schuko-double",
+      "label": "Schuko Double Socket (CEE 7/3) 16A",
+      "category": "socket",
+      "capabilityFamily": "outlet",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        },
+        {
+          "index": 2,
+          "role": "earth",
+          "label": "E"
+        }
+      ],
+      "catalogueWatts": 7360,
+      "modelKind": "outlet",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Outlet connections/capacity only; no internal appliance, USB converter or GFCI electronics."
+      ],
+      "unknownRatings": [
+        "outlet.maximumVoltage",
+        "outlet.currentCapacityAmps",
+        "outlet.supplyKinds",
+        "outlet.operatingVoltageRange",
+        "outlet.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "socket-us",
+      "label": "NEMA 5-15R Receptacle (15A)",
+      "category": "socket",
+      "capabilityFamily": "outlet",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        },
+        {
+          "index": 2,
+          "role": "earth",
+          "label": "E"
+        }
+      ],
+      "catalogueWatts": 1800,
+      "modelKind": "outlet",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Outlet connections/capacity only; no internal appliance, USB converter or GFCI electronics."
+      ],
+      "unknownRatings": [
+        "outlet.maximumVoltage",
+        "outlet.currentCapacityAmps",
+        "outlet.supplyKinds",
+        "outlet.operatingVoltageRange",
+        "outlet.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "socket-usb",
+      "label": "3-Pin Socket + Dual USB",
+      "category": "socket",
+      "capabilityFamily": "outlet",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        },
+        {
+          "index": 2,
+          "role": "earth",
+          "label": "E"
+        }
+      ],
+      "catalogueWatts": 3000,
+      "modelKind": "outlet",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Outlet connections/capacity only; no internal appliance, USB converter or GFCI electronics."
+      ],
+      "unknownRatings": [
+        "outlet.maximumVoltage",
+        "outlet.currentCapacityAmps",
+        "outlet.supplyKinds",
+        "outlet.operatingVoltageRange",
+        "outlet.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "solar-pv-panel",
+      "label": "Solar PV Array (400W DC)",
+      "category": "supply",
+      "capabilityFamily": "source",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "DC+"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "DC-"
+        }
+      ],
+      "modelKind": "unassessed",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "unassessed.maximumVoltage",
+        "unassessed.currentCapacityAmps",
+        "unassessed.supplyKinds",
+        "unassessed.operatingVoltageRange",
+        "unassessed.frequencyHz"
+      ],
+      "gapReason": "PV voltage/current and irradiance are unspecified; a power label is not a voltage source.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.5",
+      "targetFamily": "pv-source",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.pv-source"
+    },
+    {
+      "type": "space-heater",
+      "label": "Convector Space Heater (2.0kW)",
+      "category": "load",
+      "capabilityFamily": "resistive-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 2000,
+      "modelKind": "resistive-load",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.operatingVoltageRange"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "spd",
+      "label": "Surge Protector (SPD Type 2)",
+      "category": "protection",
+      "capabilityFamily": "unassessed",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N-in"
+        },
+        {
+          "index": 2,
+          "role": "earth",
+          "label": "PE"
+        }
+      ],
+      "modelKind": "unassessed",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "unassessed.maximumVoltage",
+        "unassessed.currentCapacityAmps",
+        "unassessed.supplyKinds",
+        "unassessed.operatingVoltageRange",
+        "unassessed.frequencyHz"
+      ],
+      "gapReason": "This device has no declared conduction/control model.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.5",
+      "targetFamily": "spd-shunt",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.spd-shunt"
+    },
+    {
+      "type": "staircase-timer",
+      "label": "Staircase Delay Timer (30s-10m)",
+      "category": "timer",
+      "capabilityFamily": "controlled-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "live",
+          "label": "L-out"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Only the saved shared manual contact state is represented; independent controls, dimming and time behavior are not assessed.",
+        "Timed behaviour requires explicit timer/coil settings."
+      ],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.currentCapacityAmps",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz",
+        "control.maximumVoltage",
+        "control.currentCapacityAmps",
+        "control.supplyKinds",
+        "control.operatingVoltageRange",
+        "control.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "step-up-down-transformer",
+      "label": "Step-Up / Step-Down Transformer (110V <-> 230V)",
+      "category": "transformer",
+      "capabilityFamily": "transformer",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "In-L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "In-N"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "Out-L"
+        },
+        {
+          "index": 3,
+          "role": "neutral",
+          "label": "Out-N"
+        }
+      ],
+      "catalogueWatts": 1500,
+      "modelKind": "unassessed",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "unassessed.maximumVoltage",
+        "unassessed.currentCapacityAmps",
+        "unassessed.supplyKinds",
+        "unassessed.operatingVoltageRange",
+        "unassessed.frequencyHz"
+      ],
+      "gapReason": "The autotransformer has shared windings; an isolated-transformer approximation is not applicable.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.5",
+      "targetFamily": "autotransformer",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.autotransformer"
+    },
+    {
+      "type": "storage-heater",
+      "label": "Storage Heater (2.5kW)",
+      "category": "load",
+      "capabilityFamily": "resistive-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 2500,
+      "modelKind": "resistive-load",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.operatingVoltageRange"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "switched-socket",
+      "label": "Single Switched Socket (13A)",
+      "category": "socket",
+      "capabilityFamily": "outlet",
+      "defaultState": {
+        "on": true
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        },
+        {
+          "index": 2,
+          "role": "earth",
+          "label": "E"
+        }
+      ],
+      "catalogueWatts": 2990,
+      "modelKind": "outlet",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Outlet connections/capacity only; no internal appliance, USB converter or GFCI electronics."
+      ],
+      "unknownRatings": [
+        "outlet.maximumVoltage",
+        "outlet.currentCapacityAmps",
+        "outlet.supplyKinds",
+        "outlet.operatingVoltageRange",
+        "outlet.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "table-fan",
+      "label": "Portable Desk Fan (45W)",
+      "category": "fan",
+      "capabilityFamily": "motor-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 45,
+      "modelKind": "unassessed-load",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.supplyKinds",
+        "load.operatingVoltageRange",
+        "load.frequencyHz"
+      ],
+      "gapReason": "No supported voltage/current law is declared for this load; nameplate power is not resistance.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.3",
+      "targetFamily": "single-phase-motor",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.single-phase-motor"
+    },
+    {
+      "type": "temperature-sensor",
+      "label": "NTC Temperature Sensor Probe",
+      "category": "sensor",
+      "capabilityFamily": "unassessed",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "T1"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "T2"
+        }
+      ],
+      "modelKind": "unassessed",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "unassessed.maximumVoltage",
+        "unassessed.currentCapacityAmps",
+        "unassessed.supplyKinds",
+        "unassessed.operatingVoltageRange",
+        "unassessed.frequencyHz"
+      ],
+      "gapReason": "This device has no declared conduction/control model.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.5",
+      "targetFamily": "ntc-resistance",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.ntc-resistance"
+    },
+    {
+      "type": "terminal-strip",
+      "label": "Terminal Strip Block",
+      "category": "junction",
+      "capabilityFamily": "connection",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "In1"
+        },
+        {
+          "index": 1,
+          "role": "live",
+          "label": "In2"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "Out1"
+        },
+        {
+          "index": 3,
+          "role": "live",
+          "label": "Out2"
+        }
+      ],
+      "modelKind": "connections",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "connection:0.maximumVoltage",
+        "connection:0.currentCapacityAmps",
+        "connection:0.supplyKinds",
+        "connection:0.operatingVoltageRange",
+        "connection:0.frequencyHz",
+        "connection:1.maximumVoltage",
+        "connection:1.currentCapacityAmps",
+        "connection:1.supplyKinds",
+        "connection:1.operatingVoltageRange",
+        "connection:1.frequencyHz"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "thermostat",
+      "label": "Digital Room Thermostat",
+      "category": "control",
+      "capabilityFamily": "manual-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "live",
+          "label": "L-out"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": ["Saved contact only; no temperature input or thermal controller."],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.currentCapacityAmps",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "timer-switch",
+      "label": "Mechanical 24h Pin Timer",
+      "category": "timer",
+      "capabilityFamily": "controlled-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-in"
+        },
+        {
+          "index": 1,
+          "role": "live",
+          "label": "L-out"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Only the saved shared manual contact state is represented; independent controls, dimming and time behavior are not assessed.",
+        "Timed behaviour requires explicit timer/coil settings."
+      ],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.currentCapacityAmps",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz",
+        "control.maximumVoltage",
+        "control.currentCapacityAmps",
+        "control.supplyKinds",
+        "control.operatingVoltageRange",
+        "control.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "transformer-12v",
+      "label": "Low Voltage Transformer (230V -> 12V)",
+      "category": "transformer",
+      "capabilityFamily": "transformer",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-230V"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N-230V"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "12V+"
+        },
+        {
+          "index": 3,
+          "role": "neutral",
+          "label": "12V-"
+        }
+      ],
+      "catalogueWatts": 60,
+      "modelKind": "transformer",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Ideal isolated AC windings with fixed turns ratio and lossless power transfer. No rectifier, magnetizing current, winding impedance, saturation or thermal model is declared."
+      ],
+      "unknownRatings": [
+        "primary.maximumVoltage",
+        "primary.currentCapacityAmps",
+        "primary.operatingVoltageRange",
+        "primary.frequencyHz",
+        "secondary.maximumVoltage",
+        "secondary.currentCapacityAmps",
+        "secondary.operatingVoltageRange",
+        "secondary.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "transformer-24v",
+      "label": "Industrial Control Transformer (230V -> 24V)",
+      "category": "transformer",
+      "capabilityFamily": "transformer",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-230V"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N-230V"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "24V+"
+        },
+        {
+          "index": 3,
+          "role": "neutral",
+          "label": "24V-"
+        }
+      ],
+      "catalogueWatts": 100,
+      "modelKind": "transformer",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Ideal isolated AC windings with fixed turns ratio and lossless power transfer. No rectifier, magnetizing current, winding impedance, saturation or thermal model is declared."
+      ],
+      "unknownRatings": [
+        "primary.maximumVoltage",
+        "primary.currentCapacityAmps",
+        "primary.operatingVoltageRange",
+        "primary.frequencyHz",
+        "secondary.maximumVoltage",
+        "secondary.currentCapacityAmps",
+        "secondary.operatingVoltageRange",
+        "secondary.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "transformer-8v",
+      "label": "Doorbell Transformer (230V -> 8V AC)",
+      "category": "transformer",
+      "capabilityFamily": "transformer",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L-230V"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N-230V"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "8V-A"
+        },
+        {
+          "index": 3,
+          "role": "neutral",
+          "label": "8V-B"
+        }
+      ],
+      "catalogueWatts": 15,
+      "modelKind": "transformer",
+      "status": "declared-model-with-conditions",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [
+        "Ideal isolated AC windings with fixed turns ratio and lossless power transfer. No rectifier, magnetizing current, winding impedance, saturation or thermal model is declared."
+      ],
+      "unknownRatings": [
+        "primary.maximumVoltage",
+        "primary.currentCapacityAmps",
+        "primary.operatingVoltageRange",
+        "primary.frequencyHz",
+        "secondary.maximumVoltage",
+        "secondary.currentCapacityAmps",
+        "secondary.operatingVoltageRange",
+        "secondary.frequencyHz"
+      ],
+      "owner": "1.12.6",
+      "outcome": "conditional-model-review"
+    },
+    {
+      "type": "tube-light",
+      "label": "Fluorescent Tube (36W)",
+      "category": "lighting",
+      "capabilityFamily": "mains-electronic-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 36,
+      "modelKind": "unassessed-load",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.operatingVoltageRange",
+        "load.frequencyHz"
+      ],
+      "gapReason": "No supported voltage/current law is declared for this load; nameplate power is not resistance.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.2",
+      "targetFamily": "electronic-lamp",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.electronic-lamp"
+    },
+    {
+      "type": "tumble-dryer",
+      "label": "Tumble Dryer (2.5kW)",
+      "category": "load",
+      "capabilityFamily": "unknown-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 2500,
+      "modelKind": "unassessed-load",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.supplyKinds",
+        "load.operatingVoltageRange",
+        "load.frequencyHz"
+      ],
+      "gapReason": "No supported voltage/current law is declared for this load; nameplate power is not resistance.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.4",
+      "targetFamily": "composite-appliance",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.composite-appliance"
+    },
+    {
+      "type": "two-way-switch",
+      "label": "Two-way Switch",
+      "category": "switch",
+      "capabilityFamily": "manual-contact",
+      "defaultState": {
+        "on": false
+      },
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "COM"
+        },
+        {
+          "index": 1,
+          "role": "live",
+          "label": "L1"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "L2"
+        }
+      ],
+      "modelKind": "contacts",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "contact:0.maximumVoltage",
+        "contact:0.currentCapacityAmps",
+        "contact:0.supplyKinds",
+        "contact:0.operatingVoltageRange",
+        "contact:0.frequencyHz"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "underfloor-heating",
+      "label": "Underfloor Heating (2.0kW)",
+      "category": "load",
+      "capabilityFamily": "resistive-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 2000,
+      "modelKind": "resistive-load",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.operatingVoltageRange"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "wago-connector",
+      "label": "Wago 221 Lever Connector (3-Way)",
+      "category": "junction",
+      "capabilityFamily": "connection",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "In"
+        },
+        {
+          "index": 1,
+          "role": "live",
+          "label": "Out1"
+        },
+        {
+          "index": 2,
+          "role": "live",
+          "label": "Out2"
+        }
+      ],
+      "modelKind": "connections",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "connection:0.maximumVoltage",
+        "connection:0.currentCapacityAmps",
+        "connection:0.supplyKinds",
+        "connection:0.operatingVoltageRange",
+        "connection:0.frequencyHz",
+        "connection:1.maximumVoltage",
+        "connection:1.currentCapacityAmps",
+        "connection:1.supplyKinds",
+        "connection:1.operatingVoltageRange",
+        "connection:1.frequencyHz",
+        "connection:2.maximumVoltage",
+        "connection:2.currentCapacityAmps",
+        "connection:2.supplyKinds",
+        "connection:2.operatingVoltageRange",
+        "connection:2.frequencyHz"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "washing-machine",
+      "label": "Washing Machine (2.2kW)",
+      "category": "load",
+      "capabilityFamily": "unknown-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 2200,
+      "modelKind": "unassessed-load",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.supplyKinds",
+        "load.operatingVoltageRange",
+        "load.frequencyHz"
+      ],
+      "gapReason": "No supported voltage/current law is declared for this load; nameplate power is not resistance.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.4",
+      "targetFamily": "composite-appliance",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.composite-appliance"
+    },
+    {
+      "type": "water-heater",
+      "label": "Electric Water Heater (2.0kW)",
+      "category": "load",
+      "capabilityFamily": "resistive-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 2000,
+      "modelKind": "resistive-load",
+      "status": "declared-model",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.operatingVoltageRange"
+      ],
+      "owner": "1.12.7",
+      "outcome": "retain-and-regress"
+    },
+    {
+      "type": "water-pump",
+      "label": "Electric Water Pump (1.1kW / 1.5HP)",
+      "category": "motor",
+      "capabilityFamily": "motor-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        },
+        {
+          "index": 2,
+          "role": "earth",
+          "label": "PE"
+        }
+      ],
+      "catalogueWatts": 1100,
+      "modelKind": "unassessed-load",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.supplyKinds",
+        "load.operatingVoltageRange",
+        "load.frequencyHz"
+      ],
+      "gapReason": "No supported voltage/current law is declared for this load; nameplate power is not resistance.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.3",
+      "targetFamily": "single-phase-motor",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.single-phase-motor"
+    },
+    {
+      "type": "wireless-doorbell",
+      "label": "Wireless Doorbell Chime Receiver",
+      "category": "sounder",
+      "capabilityFamily": "unknown-load",
+      "defaultState": {},
+      "ports": [
+        {
+          "index": 0,
+          "role": "live",
+          "label": "L"
+        },
+        {
+          "index": 1,
+          "role": "neutral",
+          "label": "N"
+        }
+      ],
+      "catalogueWatts": 8,
+      "modelKind": "unassessed-load",
+      "status": "unassessed-default",
+      "runtimeAcceptance": "not-established-by-inventory",
+      "conditions": [],
+      "unknownRatings": [
+        "load.maximumVoltage",
+        "load.currentCapacityAmps",
+        "load.supplyKinds",
+        "load.operatingVoltageRange",
+        "load.frequencyHz"
+      ],
+      "gapReason": "No supported voltage/current law is declared for this load; nameplate power is not resistance.",
+      "outcome": "missing-behaviour",
+      "owner": "1.12.4",
+      "targetFamily": "sounder",
+      "specification": "docs/specs/phase-1.12-model-families.json#families.sounder"
+    }
+  ]
+}

@@ -18,6 +18,7 @@ import {
   type PhasorDeviceCurrent,
   derivePhasorMeasurements,
 } from './phasorMeasurements';
+import { solveProfileCircuit } from './profileSolver';
 import { type CircuitReadiness, assessCompiledCircuitReadiness } from './readiness';
 import { assessWireCapacity } from './wireCapacity';
 
@@ -30,7 +31,8 @@ export interface Phasor {
 export interface PhasorSimulationResult {
   contractVersion: typeof ELECTRICAL_CONTRACT_VERSION;
   modelVersion: typeof ELECTRICAL_MODEL_VERSION;
-  engineVersion: 'mna-phasor-resistive-1' | 'mna-phasor-controls-1';
+  engineVersion: 'mna-phasor-resistive-1' | 'mna-phasor-controls-1' | 'phasor-regulated-1';
+  profileStates?: ElectricalSimulationResult['profileStates'];
   motors: MotorOperatingPoint[];
   deviceCurrents: PhasorDeviceCurrent[];
   controls: PhasorControlReading[];
@@ -176,6 +178,35 @@ export function solveCompiledPhasorCircuit(
   });
   if (compiled.status === 'invalid') return empty('invalid', compiled.diagnostics);
   const { graph } = compiled;
+  if (graph.branches.some((b) => b.profileLaw)) {
+    const numerical = solveProfileCircuit(compiled, options);
+    const result = empty(numerical.status, numerical.diagnostics);
+    result.engineVersion = 'phasor-regulated-1';
+    result.coverage = numerical.coverage;
+    result.readiness = numerical.readiness;
+    result.profileStates = numerical.profileStates;
+    if (numerical.phasors) {
+      result.terminalVoltages = numerical.phasors.terminalVoltages;
+      result.terminalDomains = numerical.terminalDomains;
+      result.branchVoltages = numerical.phasors.branchVoltages;
+      result.branchCurrents = numerical.phasors.branchCurrents;
+      result.branchActivePowersWatts = numerical.branchPowers;
+      result.wireLossesWatts = numerical.wireLosses;
+      result.sourceBranches = numerical.sourceBranches;
+      result.unavailableBranchVoltages = numerical.unavailableBranchVoltages;
+      result.references = numerical.references.map((r) => ({
+        domainId: r.domainId,
+        terminalId: r.terminalId,
+        sourceIds: r.sourceIds,
+        frequencyHz: r.frequencyHz ?? null,
+        voltageConvention: 'complex-rms',
+        kind: 'mathematical-gauge',
+      }));
+      result.checks = numerical.checks;
+      derivePhasorMeasurements(compiled, result);
+    }
+    return result;
+  }
   const reject = (code: string, message: string, componentId?: string) =>
     empty('unsupported', [
       ...compiled.diagnostics,

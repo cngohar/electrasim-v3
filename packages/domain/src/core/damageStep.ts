@@ -31,7 +31,9 @@ export function damageSubjects(compiled: Compiled): DamageSubject[] {
             {
               target: { type: 'component', id: device.componentId },
               model: device.damageModel,
-              branchId: JSON.stringify(['device', device.componentId, 'load']),
+              branchId: compiled.graph.branches.find(
+                (b) => b.componentId === device.componentId && b.kind === 'load',
+              )!.id,
               alreadyDamaged: !!compiled.circuit.components.find((c) => c.id === device.componentId)
                 ?.state.isBlown,
             },

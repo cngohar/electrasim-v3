@@ -233,6 +233,8 @@ export interface FaultDiagnostic {
 }
 
 export interface ComponentState {
+  electronicLoadProfile?: import('./core/catalogueProfiles').ElectronicLoadProfile;
+  catalogueProfile?: import('./core/catalogueProfiles').CatalogueProfile;
   /** Explicit electrical input equivalent; mechanical nameplate power is separate. */
   motorModel?: import('./core/motorModel').MotorModel;
   /** Explicit versioned coil teaching model; contact ratings remain independent. */

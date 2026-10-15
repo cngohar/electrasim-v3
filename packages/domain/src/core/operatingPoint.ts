@@ -31,7 +31,10 @@ export interface LoadOperatingPoint {
   componentId: string;
   branchId: string;
   sourceIds: string[];
-  model: 'fixed-resistance' | 'not-assessed';
+  model: 'fixed-resistance' | 'declared-profile' | 'not-assessed';
+  apparentPowerVoltAmps?: number | null;
+  reactivePowerVars?: number | null;
+  profileState?: NonNullable<ElectricalSimulationResult['profileStates']>[string];
   /** Physical element response, separate from suitability and damage. */
   response: 'not-assessed' | 'idle' | 'below-nominal' | 'nominal' | 'above-nominal';
   compatibility: CompatibilityResult;
@@ -191,7 +194,26 @@ export function deriveOperatingPoints(
         componentId: component.id,
         branchId: branch.id,
         sourceIds,
-        model: group.loadLaw.kind === 'fixed-resistance' ? 'fixed-resistance' : 'not-assessed',
+        model:
+          group.loadLaw.kind === 'fixed-resistance'
+            ? 'fixed-resistance'
+            : group.loadLaw.kind === 'profile'
+              ? 'declared-profile'
+              : 'not-assessed',
+        ...(result.phasors
+          ? {
+              apparentPowerVoltAmps:
+                voltage !== null && current !== null ? Math.abs(voltage * current) : null,
+              reactivePowerVars:
+                result.phasors.branchVoltages[branch.id] && result.phasors.branchCurrents[branch.id]
+                  ? result.phasors.branchVoltages[branch.id]!.imaginary *
+                      result.phasors.branchCurrents[branch.id]!.real -
+                    result.phasors.branchVoltages[branch.id]!.real *
+                      result.phasors.branchCurrents[branch.id]!.imaginary
+                  : null,
+              profileState: result.profileStates?.[component.id],
+            }
+          : {}),
         response: loadResponse(power, ratio),
         compatibility,
         terminalVoltageVolts: voltage,

@@ -1,5 +1,6 @@
 import { type Capability, missingCapabilities } from '@electrasim/access';
-import { normalizeCircuit, validateCircuitJSON } from '@electrasim/domain/circuitFormat';
+import { normalizeCircuit } from '@electrasim/domain/circuitFormat';
+import { validateCircuitInput } from '@electrasim/domain/core/input';
 import type { Circuit } from '@electrasim/domain/types';
 import type { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
@@ -7,9 +8,12 @@ import { type ApiEnv, requireSession } from './context';
 import { ownMembership } from './membership-store';
 
 export function readCircuit(value: unknown, preserveMomentary = false): Circuit {
-  const error = validateCircuitJSON({ version: 1, circuit: value });
-  if (error) throw new HTTPException(400, { message: error });
-  return normalizeCircuit(value as Circuit, !preserveMomentary);
+  // This endpoint accepts a circuit, not a versioned file envelope. Apply the
+  // shared strict validator directly; schema-1 wrapping would reject new laws.
+  const result = validateCircuitInput(value);
+  if (!result.valid)
+    throw new HTTPException(400, { message: result.diagnostics[0]?.message ?? 'Invalid circuit.' });
+  return normalizeCircuit(result.circuit, !preserveMomentary);
 }
 export async function authorize(c: Context<ApiEnv>, required: readonly Capability[]) {
   if (!required.length)

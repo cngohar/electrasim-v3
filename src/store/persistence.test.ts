@@ -22,6 +22,7 @@ vi.mock('idb-keyval', () => ({
 }));
 
 import type { Circuit } from '@electrasim/domain';
+import { normalizeCircuitDocument } from '@electrasim/domain/core/normalize';
 import { explicitSupplyProfile } from '@electrasim/domain/core/supplies';
 import { useCircuitStore } from './circuitStore';
 import {
@@ -162,7 +163,7 @@ describe('persistence — Phase 6 IndexedDB autosave', () => {
 
     const saved = mem.get(__STORAGE_KEY) as { version: number; circuit: Circuit } | undefined;
     expect(saved).toBeDefined();
-    expect(saved?.version).toBe(2);
+    expect(saved?.version).toBe(3);
     const moved = saved?.circuit.components.find((c) => c.id === 'B1');
     expect(moved?.x).toBe(250);
     expect(moved?.y).toBe(150);
@@ -175,7 +176,7 @@ describe('persistence — Phase 6 IndexedDB autosave', () => {
 
     const saved = mem.get(__STORAGE_KEY) as { circuit: Circuit } | undefined;
     expect(saved?.circuit).toEqual({
-      ...tinyCircuit,
+      ...normalizeCircuitDocument(tinyCircuit),
       supply: expect.objectContaining({
         model: { kind: 'ac-single-phase', voltage: 230, frequencyHz: 50 },
       }),
@@ -221,7 +222,7 @@ describe('persistence — Phase 6 IndexedDB autosave', () => {
     await wait(350);
     const saved = mem.get(__STORAGE_KEY) as { version: number; circuit: Circuit };
     expect(__STORAGE_KEY).toBe('electrasim:circuit:v1');
-    expect(saved.version).toBe(2);
+    expect(saved.version).toBe(3);
     expect(saved.circuit.supply).toEqual(supply);
     stop();
     useCircuitStore.getState().setCircuit({ components: [], wires: [] });

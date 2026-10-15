@@ -7,6 +7,13 @@ import type {
   InjectedFault,
   WireInstance,
 } from '../types';
+import {
+  catalogueProfileKind,
+  isCatalogueProfile,
+  isElectronicLoadProfile,
+  isLampType,
+  profileFitsType,
+} from './catalogueProfiles';
 import { coilPortsFor, isCoilModel } from './coilModel';
 import type { ElectricalDiagnostic } from './contracts';
 import { hasDamageSettings, isDamageModel } from './damageModel';
@@ -43,7 +50,11 @@ function isComponentState(value: unknown): boolean {
     if (field === undefined) continue;
     // These keys are discarded during normalization before hydration.
     if (key === '__proto__' || key === 'constructor' || key === 'prototype') continue;
-    if (key === 'motorModel') {
+    if (key === 'electronicLoadProfile') {
+      if (!isElectronicLoadProfile(field)) return false;
+    } else if (key === 'catalogueProfile') {
+      if (!isCatalogueProfile(field)) return false;
+    } else if (key === 'motorModel') {
       if (!isMotorModel(field)) return false;
     } else if (key === 'coilModel') {
       if (!isCoilModel(field)) return false;
@@ -277,6 +288,44 @@ export function validateCircuitInput(
         `components[${index}].id`,
         { componentId: value.id },
       );
+    if (
+      (value.state.electronicLoadProfile && !isLampType(value.type)) ||
+      (value.state.catalogueProfile && !profileFitsType(value.type, value.state.catalogueProfile))
+    )
+      return invalid(
+        'invalid-catalogue-profile-target',
+        'The declared profile does not match this component family.',
+        `components[${index}].state`,
+        { componentId: value.id },
+      );
+    const loadProfile =
+      value.state.electronicLoadProfile ??
+      (value.state.catalogueProfile?.kind === 'appliance'
+        ? value.state.catalogueProfile
+        : undefined);
+    if (
+      loadProfile &&
+      ((value.state.customVoltage !== undefined &&
+        value.state.customVoltage !== loadProfile.nominalVoltage) ||
+        (value.state.customPowerWatts !== undefined &&
+          value.state.customPowerWatts !== loadProfile.inputPowerWatts))
+    )
+      return invalid(
+        'conflicting-load-profile',
+        'The saved profile and legacy nameplate disagree. Choose the intended values before importing; neither input was overwritten.',
+        `components[${index}].state`,
+        { componentId: value.id },
+      );
+    if (
+      (isLampType(value.type) || catalogueProfileKind(value.type) === 'appliance') &&
+      value.state.customPowerWatts === 0
+    )
+      return invalid(
+        'invalid-load-profile-power',
+        'A positive electrical input power is required. Use the declared off mode to disable a consuming device.',
+        `components[${index}].state.customPowerWatts`,
+        { componentId: value.id },
+      );
     if (value.state.motorModel && value.type !== 'motor-3phase')
       return invalid(
         'invalid-motor-model-target',
@@ -294,7 +343,7 @@ export function validateCircuitInput(
     if (value.state.damageModel && !hasDamageSettings(value.type, defs[value.type]!))
       return invalid(
         'invalid-damage-model-target',
-        'Device damage requires a supported resistive load. Other device failure laws are unassessed.',
+        'Device stress damage requires a supported resistive or declared consuming profile load. Other device failure laws are unassessed.',
         `components[${index}].state.damageModel`,
         { componentId: value.id },
       );

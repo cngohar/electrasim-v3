@@ -14,13 +14,15 @@ it('solves the Student incandescent branch and the unloaded outlet without inven
   expect(result.componentCalculations?.[socket.id].currentAmps).toBeUndefined();
 });
 
-it('preserves the Pro motor drawing while withholding unassessed operation', () => {
+it('calculates the Pro motor drawing with the declared electrical equivalent', () => {
   const seed = buildProSeedCircuit();
   expect(seed.components.some((c) => c.type === 'motor')).toBe(true);
   const result = simulate(seed);
-  expect(result.electrical?.status).toBe('unsupported');
+  expect(result.electrical?.status).toBe('converged');
   expect(result.legacyObservation).toBeUndefined();
-  expect(result.energizedComponents.size).toBe(0);
-  expect(result.componentCalculations).toBeUndefined();
-  expect(result.faultsCleared).toBe(false);
+  const motor = seed.components.find((c) => c.type === 'motor')!;
+  expect(result.componentCalculations?.[motor.id].currentAmps).toBeGreaterThan(0);
+  expect(
+    result.electrical?.loads.find((l) => l.componentId === motor.id)?.reactivePowerVars,
+  ).toBeGreaterThan(0);
 });

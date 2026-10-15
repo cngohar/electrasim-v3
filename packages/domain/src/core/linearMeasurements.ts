@@ -15,6 +15,25 @@ export function voltageBetween(
   from: string,
   to: string,
 ): number | undefined {
+  if (result.phasors) {
+    const a = result.phasors.terminalVoltages[from];
+    const b = result.phasors.terminalVoltages[to];
+    if (
+      result.status !== 'converged' ||
+      !a ||
+      !b ||
+      result.terminalDomains[from] !== result.terminalDomains[to]
+    )
+      return undefined;
+    const real = a.real - b.real;
+    const imaginary = a.imaginary - b.imaginary;
+    const largest = Math.max(Math.abs(real), Math.abs(imaginary));
+    return largest === 0
+      ? 0
+      : (Math.sign(Math.abs(real) > 1e-12 ? real : imaginary) || 1) *
+          largest *
+          Math.sqrt((real / largest) ** 2 + (imaginary / largest) ** 2);
+  }
   if (result.status === 'converged' && result.dimming) {
     const samples = result.dimming.samples.map((sample) => {
       const a = sample.terminalVoltages[from];

@@ -139,7 +139,6 @@ describe('Phase 1.5A independent audit regressions', () => {
     'transformer-12v',
     'transformer-24v',
     'step-up-down-transformer',
-    'solar-pv-panel',
     'motor-3phase',
     'distribution-board-3phase',
   ])('2.4/N11/N12/N27: %s cannot produce false measurements or destructive effects', (type) => {

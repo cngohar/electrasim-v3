@@ -1,5 +1,12 @@
 import type { Circuit, ComponentDef, ComponentInstance } from '../types';
 import { DEVICE_CAPABILITY_FAMILIES, RESISTIVE_NOMINAL_VOLTS } from './capabilityCatalogue';
+import {
+  PROFILE_LIMITATION,
+  copyProfile,
+  defaultCatalogueProfile,
+  defaultLampProfile,
+  isLampType,
+} from './catalogueProfiles';
 import { copyCoilModel } from './coilModel';
 import type { ElectricalDeviceModel, PortPair } from './contracts';
 import { copyMotorModel } from './motorModel';
@@ -15,6 +22,35 @@ export function resolveDeviceModel(
 ): ElectricalDeviceModel {
   if (def.electricalModel) return def.electricalModel;
   const { type, state } = component;
+  const lampProfile =
+    state.electronicLoadProfile ?? (isLampType(type) ? defaultLampProfile(def, state) : undefined);
+  const catalogueProfile = state.catalogueProfile ?? defaultCatalogueProfile(type, def, state);
+  if (lampProfile)
+    return {
+      kind: 'profile-device',
+      ports: def.ports.flatMap((p, i) => (p.type === 'earth' ? [] : [i])),
+      profile: copyProfile(lampProfile),
+    };
+  if (catalogueProfile) {
+    if (catalogueProfile.kind === 'autotransformer')
+      return {
+        kind: 'transformer',
+        primary: [0, 1],
+        secondary: [2, 3],
+        primaryVoltage: catalogueProfile.lowTapVoltage,
+        secondaryVoltage: catalogueProfile.highTapVoltage,
+        isolation: 'shared-common',
+        approximation: `Ideal shared-common tap constraint with lossless transfer; the two common terminals are galvanically connected. ${PROFILE_LIMITATION}`,
+      };
+    return {
+      kind: 'profile-device',
+      ports:
+        catalogueProfile.kind === 'spd'
+          ? [0, 1, 2]
+          : def.ports.flatMap((p, i) => (p.type === 'earth' ? [] : [i])),
+      profile: copyProfile(catalogueProfile),
+    };
+  }
   const source = resolveSourceProfile(type, state, circuit);
   const voltageOrigin =
     source?.provenance.voltage === 'explicit' || source?.provenance.voltage === 'legacy-instance'
@@ -240,6 +276,7 @@ export function modelPortIndices(model: ElectricalDeviceModel): readonly number[
     case 'source':
       return [...model.ports, ...(model.phasePorts ?? [])];
     case 'resistive-load':
+    case 'profile-device':
     case 'three-phase-motor':
     case 'unassessed-load':
       return model.ports;

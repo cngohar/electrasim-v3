@@ -1,0 +1,153 @@
+{
+  "version": "1.12.1.0",
+  "status": "implemented teaching profiles; local functional acceptance complete through combined full-attempt and focused recovery evidence; historical performance exceptions remain; see phase audit",
+  "families": {
+    "electronic-lamp": {
+      "milestone": "1.12.2",
+      "law": "regulated input real power inside an explicit RMS operating band; zero-current off state outside it",
+      "parameterBasis": "editable teaching assumptions; catalogue watts are electrical input; no manufacturer identity",
+      "parameters": "230 V nominal, 207-253 V operating band, 50/60 Hz AC terminal pair, ideal unity power factor, zero off/standby watts, non-dimmable",
+      "states": "on, undervoltage-off, overvoltage-off, disconnected; unassessed waveform/dimming and nonconverged remain unavailable",
+      "example": "single-phase source -> switch -> lamp L; lamp N -> source return; finite outgoing/return wires",
+      "acceptance": "lamp-voltage-band, lamp-feeder-loss, lamp-series-parallel, lamp-invalid-supply, lamp-persistence, lamp-native-browser",
+      "missingData": "manufacturer V-I curve, true/displacement PF and harmonics, startup/inrush, thermal/damage and dimmer compatibility are not supplied by catalogue labels"
+    },
+    "single-phase-motor": {
+      "milestone": "1.12.3",
+      "law": "declared running R+jX equivalent at nominal voltage; I=V/Z, P=Re(V*conj(I)); no shaft-output conversion",
+      "parameterBasis": "editable teaching assumptions; displayed watts require explicit electrical-input versus mechanical-nameplate provenance",
+      "parameters": "230 V, 50 Hz; proposed generic running displacement PF 0.8 lagging, 207-253 V operating band; no startup equivalent by default",
+      "states": "running-equivalent inside band, outside-running-band with declared impedance current still calculated, switched-off; no shaft speed or startup inference",
+      "example": "AC source -> switch -> motor L/N; PE remains a separate protective connection",
+      "acceptance": "motor-complex-power, motor-open-return, motor-band, motor-control, motor-native-browser",
+      "missingData": "actual winding/capacitor data, input/shaft power identity, efficiency, starting/stall current, torque/speed and regulator response require device data; no assumed efficiency"
+    },
+    "electronic-appliance": {
+      "milestone": "1.12.4",
+      "law": "mode-selected regulated input-power branch; explicit standby and active demand",
+      "parameterBasis": "editable teaching mode values; catalogue wattage is proposed active electrical demand, not a measured duty cycle",
+      "parameters": "230 V, 50/60 Hz, 207-253 V band; ideal unity PF teaching input; standby 1 W, off 0 W; active uses the recorded catalogue watts",
+      "states": "off, standby, active; no automatic weather, user, protocol or sensor event",
+      "example": "AC source -> protective contact -> appliance L/N/PE; explicit mode input",
+      "acceptance": "appliance-mode-current, appliance-band, appliance-feeder-power, appliance-native-browser",
+      "missingData": "manufacturer mode consumption, displacement/distortion, external controller events, thermal cycles and protocol negotiations"
+    },
+    "composite-appliance": {
+      "milestone": "1.12.4",
+      "law": "parallel internal branches selected by a declared mode: fixed heating resistance, running R+jX motor and regulated electronics; sum terminal complex currents",
+      "parameterBasis": "editable teaching allocation of the existing total watts; not a real appliance cycle or efficiency estimate",
+      "parameters": "230 V, 50 Hz, 207-253 V running band; off 0 W, standby 1 W; heat uses total active watts as fixed R; motor mode uses total watts as electrical input at PF 0.8; combined mode allocates 80% heat and 20% motor",
+      "states": "off, standby, heating, motor, combined; user selects mode; no invented schedule",
+      "example": "AC source -> contact -> common appliance L/N; separate internal mode branches share terminal voltage",
+      "acceptance": "composite-branch-sum, composite-mode-change, composite-open-return, composite-native-browser",
+      "missingData": "actual branch allocation and sequence, motor input versus output, thermostat/cycle/environment inputs and temperature dependence"
+    },
+    "sounder": {
+      "milestone": "1.12.4",
+      "law": "explicit silent/active mode with regulated active input power inside operating band",
+      "parameterBasis": "generic 230 V AC teaching device because the existing catalogue has L/N terminals; not a claim that all bells/sirens are mains devices",
+      "parameters": "230 V, 50/60 Hz, 207-253 V, ideal unity PF; silent 0 W, active catalogue watts; default active for direct-wired bell/buzzer/siren",
+      "states": "silent, active; wireless receiver defaults silent standby 1 W, test/chime selects active",
+      "example": "AC source -> push button -> bell L; bell N -> return; receiver uses explicit test input",
+      "acceptance": "sounder-state-power, sounder-band, sounder-open-return, sounder-native-browser",
+      "missingData": "actual AC/DC/voltage suitability, coil/electronic input data, acoustic output and wireless events"
+    },
+    "alarm-electronics": {
+      "milestone": "1.12.4",
+      "law": "regulated power per explicitly selected standby/alarm state",
+      "parameterBasis": "editable teaching modes; not fire/security detection or certified alarm operation",
+      "parameters": "230 V, 50/60 Hz, 207-253 V, ideal unity PF; standby catalogue watts; alarm 2x catalogue watts; off 0 W; default standby",
+      "states": "off, standby, test-alarm; no smoke/CO/intrusion event inferred from voltage",
+      "example": "AC source -> alarm L/N with explicit Test alarm input; no invented backup battery",
+      "acceptance": "alarm-standby-test-power, alarm-band, alarm-no-automatic-detection, alarm-native-browser",
+      "missingData": "actual standby/alarm consumption, battery/charging model, interlink and sensor protocol"
+    },
+    "pv-source": {
+      "milestone": "1.12.5",
+      "law": "piecewise-linear DC I-V source through (0,Isc), (Vmp,Imp), (Voc,0); solve network intersection, not fixed delivered watts",
+      "parameterBasis": "editable generic reference-condition teaching curve; 400 W = Vmp*Imp at reference conditions only",
+      "parameters": "reference 1000 W/m2 and 25 C; Voc 40 V, Isc 14 A, Vmp 32 V, Imp 12.5 A; explicit irradiance scales current; temperature coefficients default zero and labeled unmodeled",
+      "states": "illuminated, dark at zero irradiance, out-of-curve/reverse-bias unavailable until explicit extension",
+      "example": "PV DC+/DC- -> variable known resistor; test short, knee, open and darkness",
+      "acceptance": "pv-iv-intersection, pv-knee-400w, pv-open-short-dark, pv-native-browser",
+      "missingData": "measured I-V curve, temperature coefficients, shading/bypass diodes, MPPT and inverter behaviour"
+    },
+    "autotransformer": {
+      "milestone": "1.12.5",
+      "law": "ideal shared-common winding constraint V230/V110=230/110 with balanced input/output power; join both common terminals galvanically",
+      "parameterBasis": "catalogue 110/230 V ratio and 1500 W capacity; ideal lossless winding is a teaching assumption",
+      "parameters": "ports 0/2 are 110 V and 230 V taps, ports 1/3 share common; bidirectional AC; UI must label tap voltages before implementation",
+      "states": "connected, open, conflicting tap/source or unsupported DC",
+      "example": "230 V across 230 tap/common -> 110 V tap/common resistive load; repeat reverse",
+      "acceptance": "auto-ratio-reverse, auto-power, auto-shared-reference, auto-conflicting-source, auto-native-browser",
+      "missingData": "winding impedance, magnetizing current, frequency band, thermal limit, saturation and protective operation"
+    },
+    "spd-shunt": {
+      "milestone": "1.12.5",
+      "law": "declared piecewise shunt I(V)=V/Rleak + sign(V)*max(abs(V)-Vclamp,0)/Rdynamic; AC uses an explicitly labeled RMS envelope approximation",
+      "parameterBasis": "generic quasi-static teaching network; never infer clamping from Uc/Up or a Type 2 badge",
+      "parameters": "separate L-PE and N-PE branches; Rleak 1 Mohm, RMS-envelope Vclamp 300 V, Rdynamic 10 ohm; DC thresholds separately declared rather than converted from RMS",
+      "states": "leakage, conducting envelope, no PE return; no transient energy or destruction claim",
+      "example": "finite-impedance source L/N with explicit N-PE bond and SPD PE return; sweep terminal voltage",
+      "acceptance": "spd-leakage, spd-envelope-current, spd-pe-return, spd-conservation, spd-native-browser",
+      "missingData": "actual SPD circuit topology, voltage/current curve, impulse waveform, charge/energy budget, disconnector and failure mode"
+    },
+    "ntc-resistance": {
+      "milestone": "1.12.5",
+      "law": "R(T)=R25*exp(B*(1/(T+273.15)-1/298.15)); explicit temperature input; no self-heating inference",
+      "parameterBasis": "editable generic beta-model teaching assumptions",
+      "parameters": "R25=10000 ohm, B=3950 K, temperature 25 C, declared temperature domain -40 to 125 C",
+      "states": "valid temperature, out-of-domain/unconfigured; no ambient thermal dynamics",
+      "example": "12 V DC -> known resistor divider -> NTC; independently calculate divider voltage at 0/25/50 C",
+      "acceptance": "ntc-beta-reference, ntc-divider, ntc-input-validation, ntc-native-browser",
+      "missingData": "measured R-T curve, tolerance, dissipative/self-heating constant and response time"
+    },
+    "configured-three-phase": {
+      "milestone": "1.12.6",
+      "law": "existing explicit balanced-resistive delta model; retain current independently accepted semantics",
+      "parameterBasis": "existing state.motorModel teaching profile; catalogue 3000 W mechanical identity is not assumed to be input watts",
+      "parameters": "setup offers editable 400 V line-line, explicit 3000 W electrical input teaching value, 50 Hz, ABC, 360-440 V band and existing unbalance setting",
+      "states": "setup-required, configured running equivalent, phase/sequence/band blocked; retain existing guards",
+      "example": "three-phase source -> existing DOL contactor -> configured U/V/W motor",
+      "acceptance": "three-phase-setup, three-phase-sequence-loss, three-phase-save-undo, three-phase-native-browser",
+      "missingData": "actual motor input power, reactive current, efficiency, shaft output, torque/speed, starting/stall and thermal data"
+    }
+  },
+  "assignments": {
+    "bulb": "electronic-lamp",
+    "bulb-cfl": "electronic-lamp",
+    "bulb-smart-rgb": "electronic-lamp",
+    "led-downlight": "electronic-lamp",
+    "tube-light": "electronic-lamp",
+    "ceiling-fan": "single-phase-motor",
+    "extractor-fan": "single-phase-motor",
+    "industrial-exhaust-fan": "single-phase-motor",
+    "table-fan": "single-phase-motor",
+    "motor": "single-phase-motor",
+    "water-pump": "single-phase-motor",
+    "air-conditioner": "electronic-appliance",
+    "induction-hob": "electronic-appliance",
+    "ev-charger": "electronic-appliance",
+    "extractor-hood": "single-phase-motor",
+    "heat-pump": "electronic-appliance",
+    "dishwasher": "composite-appliance",
+    "washing-machine": "composite-appliance",
+    "tumble-dryer": "composite-appliance",
+    "fridge-freezer": "single-phase-motor",
+    "bell": "sounder",
+    "electric-buzzer": "sounder",
+    "wireless-doorbell": "sounder",
+    "alarm-siren": "sounder",
+    "smoke-alarm": "alarm-electronics",
+    "burglar-alarm": "alarm-electronics",
+    "solar-pv-panel": "pv-source",
+    "step-up-down-transformer": "autotransformer",
+    "spd": "spd-shunt",
+    "temperature-sensor": "ntc-resistance",
+    "motor-3phase": "configured-three-phase"
+  },
+  "milestoneOverrides": {
+    "extractor-hood": "1.12.4",
+    "fridge-freezer": "1.12.4"
+  }
+}

@@ -5,6 +5,7 @@ import {
   type CapabilityFamily,
   DEVICE_CAPABILITY_FAMILIES,
 } from './capabilityCatalogue';
+import { PROFILE_LIMITATION, ntcResistance, profileBranchLaw } from './catalogueProfiles';
 import { COIL_APPROXIMATION } from './coilModel';
 import type { ElectricalDeviceModel, SupplyModel } from './contracts';
 import { DIMMER_APPROXIMATION } from './dimmerModel';
@@ -47,6 +48,7 @@ export interface TerminalCapability {
   operatingVoltageRange: ElectricalRating<{ min: number; max: number }>;
   frequencyHz: ElectricalRating<readonly number[]> | { status: 'independent'; basis: string };
   loadLaw:
+    | { kind: 'profile'; approximation: string }
     | { kind: 'fixed-resistance'; resistanceOhms: number; approximation: string }
     | { kind: 'balanced-motor-equivalent'; approximation: string }
     | { kind: 'ideal-transformer'; turnsRatio: number; approximation: string }
@@ -154,6 +156,77 @@ export function resolveDeviceCapabilities(
     return group;
   };
   switch (electrical.kind) {
+    case 'profile-device': {
+      const profile = electrical.profile;
+      const law = profileBranchLaw(profile);
+      const g = make(
+        profile.kind === 'photovoltaic' ? 'output' : 'load',
+        profile.kind === 'photovoltaic' ? 'source' : 'load',
+        electrical.ports,
+      );
+      g.loadLaw = { kind: 'profile', approximation: PROFILE_LIMITATION };
+      if (profile.kind === 'regulated-input-power' || profile.kind === 'appliance') {
+        g.supplyKinds = known(
+          ['ac-single-phase', 'ac-three-phase'],
+          'teaching-assumption',
+          'Sinusoidal AC terminal-pair teaching input, including L-N on a declared three-phase system.',
+        );
+        g.nominalVoltage = known(
+          profile.nominalVoltage,
+          'instance',
+          'Profile design voltage, independent of the source.',
+        );
+        g.nominalPowerWatts = known(
+          profile.inputPowerWatts,
+          'instance',
+          'Declared electrical input at nominal operating conditions; never mechanical output.',
+        );
+        g.operatingVoltageRange = known(
+          profile.operatingVoltageRange,
+          'instance',
+          'Declared teaching operating band; not a damage threshold.',
+        );
+        g.frequencyHz = known(
+          profile.kind === 'appliance' ? profile.frequencyHz : profile.supply.frequencyHz,
+          'instance',
+          'Explicit profile frequencies.',
+        );
+      } else if (profile.kind === 'photovoltaic') {
+        result.sourceControl = 'independent';
+        g.supplyKinds = known(
+          ['dc'],
+          'teaching-assumption',
+          'Piecewise DC current/voltage curve at explicit environmental inputs, not an ideal voltage source.',
+        );
+      } else if (profile.kind === 'ntc') {
+        g.supplyKinds = known(
+          ['dc', 'ac-single-phase', 'ac-three-phase'],
+          'teaching-assumption',
+          'Passive beta-model resistance at explicit temperature.',
+        );
+        g.frequencyHz = {
+          status: 'independent',
+          basis: 'No reactance or self-heating is declared.',
+        };
+        g.loadLaw = {
+          kind: 'fixed-resistance',
+          resistanceOhms: ntcResistance(profile),
+          approximation: PROFILE_LIMITATION,
+        };
+      } else if (profile.kind === 'spd' && law) {
+        g.supplyKinds = known(
+          ['dc', 'ac-single-phase', 'ac-three-phase'],
+          'teaching-assumption',
+          'Explicit quasi-static DC law or AC RMS-envelope shunt approximation; no surge certification.',
+        );
+        g.frequencyHz = known(
+          [50, 60],
+          'teaching-assumption',
+          'Declared RMS-envelope teaching scope.',
+        );
+      }
+      break;
+    }
     case 'source':
     case 'source-alias': {
       const g = make(
@@ -418,8 +491,10 @@ export function resolveDeviceCapabilities(
         const g = make(role, role, ports);
         g.nominalVoltage = known(
           volts,
-          'catalogue',
-          'Separate isolated winding rating; secondary remains AC without a rectifier.',
+          electrical.isolation === 'shared-common' ? 'instance' : 'catalogue',
+          electrical.isolation === 'shared-common'
+            ? 'Declared tap voltage; both common terminals share a galvanic connection.'
+            : 'Separate isolated winding rating; secondary remains AC without a rectifier.',
         );
         g.supplyKinds = known(['ac-single-phase'], 'catalogue', 'Isolated AC winding.');
         g.loadLaw = {

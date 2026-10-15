@@ -128,7 +128,7 @@ export function mnaAcceptanceCircuits(): Record<string, Circuit> {
     ],
   };
   const unsupported = seriesFixture();
-  unsupported.components[1]!.type = 'bulb';
+  unsupported.components[1]!.type = 'motor-3phase';
   const numericalRange = seriesFixture();
   // Valid saved ratings, but an extreme 1e-11-ohm element beside finite leads.
   // Recovering its tiny voltage drop must meet the same conservation tolerance.

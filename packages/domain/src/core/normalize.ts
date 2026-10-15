@@ -1,6 +1,12 @@
 import { COMPONENT_DEFS } from '../components';
 import { type StandardId, getStandard } from '../standards';
 import type { Circuit, ComponentDef, ComponentState, InjectedFault } from '../types';
+import {
+  copyProfile,
+  defaultCatalogueProfile,
+  defaultLampProfile,
+  isLampType,
+} from './catalogueProfiles';
 import { copyCoilModel } from './coilModel';
 import { copyDamageModel } from './damageModel';
 import { copyMotorModel } from './motorModel';
@@ -14,6 +20,7 @@ import {
 } from './supplies';
 import { copyTimerModel } from './timerModel';
 export { LEGACY_SUPPLY_DEFAULTS } from './supplies';
+const typeByDefinition = new Map(Object.entries(COMPONENT_DEFS).map(([type, def]) => [def, type]));
 
 export function createEmptyCircuit(standard: StandardId = 'uk'): Circuit {
   const preset = getStandard(standard);
@@ -44,6 +51,16 @@ export function resolveComponentState(
   releaseMomentary = false,
 ): ComponentState {
   const result = copySafeRecord(state);
+  const type = definition && typeByDefinition.get(definition);
+  if (result.electronicLoadProfile)
+    result.electronicLoadProfile = copyProfile(result.electronicLoadProfile);
+  else if (type && definition && !definition.electricalModel && isLampType(type))
+    result.electronicLoadProfile = defaultLampProfile(definition, result);
+  if (result.catalogueProfile) result.catalogueProfile = copyProfile(result.catalogueProfile);
+  else if (type && definition && !definition.electricalModel) {
+    const profile = defaultCatalogueProfile(type, definition, result);
+    if (profile) result.catalogueProfile = profile;
+  }
   if (result.motorModel) result.motorModel = copyMotorModel(result.motorModel);
   if (result.coilModel) result.coilModel = copyCoilModel(result.coilModel);
   if (result.damageModel) result.damageModel = copyDamageModel(result.damageModel);

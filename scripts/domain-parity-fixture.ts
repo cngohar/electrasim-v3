@@ -13,7 +13,9 @@ import {
 /** Shared test workload for local Bun / workerd parity; never served by the app. */
 import { simulate } from '@electrasim/domain/simulation';
 import { GUIDED_CIRCUIT_TEMPLATES } from '@electrasim/domain/templates';
+import { catalogueProfileAcceptanceCircuits } from '../packages/domain/src/core/catalogueProfileFixtures';
 import { controlCircuit, setControlSwitch } from '../packages/domain/src/core/controlFixtures';
+import { damageCircuit } from '../packages/domain/src/core/damageFixtures';
 import { damageAcceptanceCircuits } from '../packages/domain/src/core/damageFixtures';
 import { earthingAcceptanceCircuits } from '../packages/domain/src/core/earthingFixtures';
 import { editingCircuit, variantCircuit } from '../packages/domain/src/core/editingFixtures';
@@ -37,6 +39,8 @@ import { runtimeAcceptanceCircuits } from '../packages/domain/src/simulation/run
 
 export function domainParityFixture(): string {
   const results: unknown[] = [...consumerEvidenceFixture(), ...faultLabEvidenceFixture()];
+  for (const [name, circuit] of Object.entries(catalogueProfileAcceptanceCircuits()))
+    results.push({ catalogueProfile: name, result: simulate(circuit) });
   for (const [name, circuit] of Object.entries({
     ...motorAcceptanceCircuits(),
     ...dolAcceptanceCircuits(),
@@ -53,7 +57,15 @@ export function domainParityFixture(): string {
       phasorCase: name,
       result: solvePhasorCircuit(fixture.circuit, { defs: fixture.defs }),
     });
-  for (const [name, circuit] of Object.entries(damageAcceptanceCircuits())) {
+  for (const [name, circuit] of Object.entries({
+    ...damageAcceptanceCircuits(),
+    'led-voltage': (() => {
+      const c = damageCircuit('device-voltage');
+      c.components[2]!.type = 'bulb';
+      c.components[2]!.state.customPowerWatts = 9;
+      return c;
+    })(),
+  })) {
     let previous = simulate(circuit);
     results.push({ damageCase: name, step: 'reset', result: previous });
     for (const deltaSeconds of [0.1, 0.5, 1, 2]) {

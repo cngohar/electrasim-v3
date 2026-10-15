@@ -96,9 +96,9 @@ function GuideCard({
       <p className="mt-1.5 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
         {template.teaches}
       </p>
-      {limitations.length > 0 && (
+      {(limitations.length > 0 || template.expected.startsWith('Drawing only:')) && (
         <p className="mt-2 text-xs text-amber-800 dark:text-amber-200">
-          {limitations.some((l) => l.blocking)
+          {limitations.some((l) => l.blocking) || template.expected.startsWith('Drawing only:')
             ? 'Drawing only: electrical simulation is not assessed for this guide. You can load, edit and export it.'
             : limitations.map((limitation) => limitation.message).join(' ')}
         </p>

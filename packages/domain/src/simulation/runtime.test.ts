@@ -109,9 +109,9 @@ describe('1.5C.5 application MNA adapter', () => {
     expect(result.blownComponents).toBeUndefined();
   });
 
-  it('withholds operation and numeric readings for an unknown LED', () => {
+  it('withholds operation and numeric readings for an unconfigured three-phase motor', () => {
     const circuit = heaterFixture();
-    circuit.components[1] = C('heater', 'bulb');
+    circuit.components[1] = C('heater', 'motor-3phase');
     const result = simulate(circuit);
     expect(result.legacyObservation).toBeUndefined();
     expect(result.electrical?.status).toBe('unsupported');
@@ -139,7 +139,7 @@ describe('1.5C.5 application MNA adapter', () => {
 
   it('keeps a missing model from yielding computed readings for other loads on the same circuit', () => {
     const circuit = heaterFixture();
-    circuit.components.push(C('unknown', 'bulb'));
+    circuit.components.push(C('unknown', 'motor-3phase'));
     circuit.wires.push(W('led-feed', 's', 0, 'unknown', 0), W('led-return', 'unknown', 1, 's', 1));
     const result = simulate(circuit);
     expect(result.electrical?.operation).toBe('not-assessed');

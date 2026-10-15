@@ -1,5 +1,6 @@
 import type { ComponentDef } from '../types';
 import { DEVICE_CAPABILITY_FAMILIES } from './capabilityCatalogue';
+import { catalogueProfileKind, isLampType } from './catalogueProfiles';
 
 /** Explicit cumulative stress budgets, not inferred temperatures or fire predictions. */
 export type DamageModel =
@@ -44,7 +45,9 @@ export function isDamageModel(value: unknown): value is DamageModel {
 export function hasDamageSettings(type: string, def?: ComponentDef): boolean {
   return def?.electricalModel
     ? def.electricalModel.kind === 'resistive-load'
-    : DEVICE_CAPABILITY_FAMILIES[type] === 'resistive-load';
+    : DEVICE_CAPABILITY_FAMILIES[type] === 'resistive-load' ||
+        isLampType(type) ||
+        catalogueProfileKind(type) === 'appliance';
 }
 
 export function copyDamageModel(model: DamageModel): DamageModel {

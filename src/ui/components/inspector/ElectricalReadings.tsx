@@ -171,6 +171,19 @@ export function ElectricalReadings({
           to nameplate: {reading(load.powerRatio === null ? null : load.powerRatio * 100, '%')}.
         </p>
       )}
+      {calculated && load?.profileState && (
+        <p data-profile-operating-state={load.profileState}>
+          Profile state: {load.profileState.replaceAll('-', ' ')}.
+        </p>
+      )}
+      {calculated && load?.apparentPowerVoltAmps != null && (
+        <p>
+          Apparent power:{' '}
+          <output data-reading="apparent-power">{reading(load.apparentPowerVoltAmps, 'VA')}</output>{' '}
+          · Reactive power:{' '}
+          <output data-reading="reactive-power">{reading(load.reactivePowerVars, 'var')}</output>.
+        </p>
+      )}
       {poles.map((pole) => (
         <div
           key={pole.branchId}

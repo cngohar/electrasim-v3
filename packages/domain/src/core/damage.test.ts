@@ -219,7 +219,7 @@ describe('declared cumulative damage and repair', () => {
   });
 
   it('rejects malformed or unsupported damage declarations on direct and imported input', () => {
-    for (const type of ['mcb', 'bulb', 'ac-mains-supply']) {
+    for (const type of ['mcb', 'solar-pv-panel', 'ac-mains-supply']) {
       const circuit = damageCircuit('device-current');
       circuit.components[2]!.type = type;
       expect(simulate(circuit).electrical?.status).toBe('invalid');

@@ -160,7 +160,7 @@ it('recalculates changed export snapshots and withholds a pass for model gaps, f
   expect(buildEicReportData(healthy).calculation.assessment).toBe('modeled');
   for (const mutate of [
     (c: Circuit) => {
-      c.components[3]!.type = 'bulb';
+      c.components[3]!.type = 'motor-3phase';
     },
     (c: Circuit) => {
       c.components[3]!.state.fault = 'arc-fault';

@@ -15,6 +15,7 @@ import {
   supplyDescription,
   supplyTargetForComponent,
 } from '@electrasim/domain/core/supplyEditing';
+import { teachingSetup } from '@electrasim/domain/core/teachingSetup';
 import { hasTimerSettings } from '@electrasim/domain/core/timerModel';
 import { previewVariantChange } from '@electrasim/domain/core/variantEditing';
 import { HelpCircle, Lock, RotateCcw, RotateCw, Trash2 } from 'lucide-react';
@@ -38,6 +39,7 @@ const CoilModelEditor = lazy(() => import('./CoilModelEditor'));
 const MotorModelEditor = lazy(() => import('./MotorModelEditor'));
 const TimerModelEditor = lazy(() => import('./TimerModelEditor'));
 const ProtectionModelEditor = lazy(() => import('./ProtectionModelEditor'));
+const CatalogueModelEditor = lazy(() => import('./CatalogueModelEditor'));
 
 export function ComponentPropertiesView({
   selectedComp,
@@ -76,6 +78,19 @@ export function ComponentPropertiesView({
     load?.nominalVoltage.status === 'known' ? load.nominalVoltage.value : undefined;
   const nominalWatts =
     load?.nominalPowerWatts.status === 'known' ? load.nominalPowerWatts.value : undefined;
+  const setup = teachingSetup(selectedComp.type, def, selectedComp.state);
+  const manualOnlyAdvice: Record<string, string> = {
+    'double-gang-switch':
+      'Independent gang inputs are unavailable. Use two single-way switches for independently controlled branches.',
+    'rotary-selector-switch':
+      'The saved input selects AUTO or MAN contacts; an automatic controller is not included. Use a declared timer for scheduled control.',
+    thermostat:
+      'Only the selected manual contact state is modeled; no ambient temperature input or automatic thermostat is declared.',
+    'room-thermostat':
+      'Only the selected manual contact state is modeled; no room temperature input or automatic thermostat is declared.',
+    'door-sensor':
+      'The selected contact state is explicit. No physical door or magnetic environment is inferred.',
+  };
 
   return (
     <div className="space-y-3.5 p-3.5 text-xs text-slate-700 dark:text-slate-200">
@@ -147,6 +162,41 @@ export function ComponentPropertiesView({
         </p>
       )}
 
+      {setup && (
+        <section className={box} data-teaching-setup={selectedComp.type}>
+          <h3 className="font-semibold">Electrical setup required</h3>
+          <p>{setup.description}</p>
+          <button
+            type="button"
+            className={button}
+            disabled={!!locked}
+            onClick={() => update(selectedComp.id, setup.updates)}
+          >
+            Use editable teaching setup
+          </button>
+        </section>
+      )}
+      {manualOnlyAdvice[selectedComp.type] && (
+        <p className={box} data-conditional-control>
+          {manualOnlyAdvice[selectedComp.type]}
+        </p>
+      )}
+      {capability.groups.some(
+        (g) => g.role === 'unassessed' && g.loadLaw.kind === 'not-assessed',
+      ) && (
+        <section className={box} data-conditional-control>
+          <h3 className="font-semibold">Automatic control unavailable</h3>
+          <p>
+            This device has no declared sensor or communication input and no electronics consumption
+            model. A saved contact position does not implement its automatic controller.
+          </p>
+          <p>
+            For a manual switching exercise, place a single-way or double-pole switch instead. For
+            timed control, use a timer and declare its program in this Inspector. No motion, light,
+            network or temperature event is invented from a supply voltage.
+          </p>
+        </section>
+      )}
       {variants.length > 1 && (
         <section className={box}>
           <h3 className="font-semibold">Available Family Variants ({variants.length})</h3>
@@ -198,55 +248,70 @@ export function ComponentPropertiesView({
           </Suspense>
         </section>
       )}
-      {load && selectedComp.type !== 'motor-3phase' && (
+      {(resolveComponentState(selectedComp.state, def).electronicLoadProfile ||
+        resolveComponentState(selectedComp.state, def).catalogueProfile) && (
         <section className={box}>
-          <h3 className="font-semibold">Load design / nameplate</h3>
-          <p>
-            {load.loadLaw.kind === 'fixed-resistance'
-              ? `Fixed resistance: ${Number(load.loadLaw.resistanceOhms.toFixed(4))} Ω. Power changes with terminal voltage.`
-              : 'Operating load law is unassessed.'}
-          </p>
-          <fieldset disabled={!!locked} className="grid grid-cols-2 gap-2">
-            <label>
-              Power (W)
-              <input
-                className={input}
-                type="number"
-                min="0.001"
-                step="any"
-                aria-label="Power rating in watts"
-                placeholder="Not declared"
-                value={selectedComp.state.customPowerWatts ?? nominalWatts ?? ''}
-                onChange={(e) =>
-                  update(selectedComp.id, {
-                    customPowerWatts: e.target.value === '' ? undefined : Number(e.target.value),
-                  })
-                }
-              />
-            </label>
-            <label>
-              Design voltage (V)
-              <input
-                className={input}
-                type="number"
-                min="0.001"
-                step="any"
-                aria-label="Operating voltage in volts"
-                placeholder="Not declared"
-                value={selectedComp.state.customVoltage ?? nominalVolts ?? ''}
-                onChange={(e) =>
-                  update(selectedComp.id, {
-                    customVoltage: e.target.value === '' ? undefined : Number(e.target.value),
-                  })
-                }
-              />
-            </label>
-          </fieldset>
-          <p className="text-[10px]">
-            These are equipment ratings, independent of the supply setting.
-          </p>
+          <Suspense fallback={<p>Loading electrical profile…</p>}>
+            <CatalogueModelEditor
+              key={`${selectedComp.id}:${JSON.stringify(selectedComp.state)}`}
+              component={selectedComp}
+              locked={locked}
+            />
+          </Suspense>
         </section>
       )}
+      {load &&
+        selectedComp.type !== 'motor-3phase' &&
+        !resolveComponentState(selectedComp.state, def).electronicLoadProfile &&
+        !resolveComponentState(selectedComp.state, def).catalogueProfile && (
+          <section className={box}>
+            <h3 className="font-semibold">Load design / nameplate</h3>
+            <p>
+              {load.loadLaw.kind === 'fixed-resistance'
+                ? `Fixed resistance: ${Number(load.loadLaw.resistanceOhms.toFixed(4))} Ω. Power changes with terminal voltage.`
+                : 'Operating load law is unassessed.'}
+            </p>
+            <fieldset disabled={!!locked} className="grid grid-cols-2 gap-2">
+              <label>
+                Power (W)
+                <input
+                  className={input}
+                  type="number"
+                  min="0.001"
+                  step="any"
+                  aria-label="Power rating in watts"
+                  placeholder="Not declared"
+                  value={selectedComp.state.customPowerWatts ?? nominalWatts ?? ''}
+                  onChange={(e) =>
+                    update(selectedComp.id, {
+                      customPowerWatts: e.target.value === '' ? undefined : Number(e.target.value),
+                    })
+                  }
+                />
+              </label>
+              <label>
+                Design voltage (V)
+                <input
+                  className={input}
+                  type="number"
+                  min="0.001"
+                  step="any"
+                  aria-label="Operating voltage in volts"
+                  placeholder="Not declared"
+                  value={selectedComp.state.customVoltage ?? nominalVolts ?? ''}
+                  onChange={(e) =>
+                    update(selectedComp.id, {
+                      customVoltage: e.target.value === '' ? undefined : Number(e.target.value),
+                    })
+                  }
+                />
+              </label>
+            </fieldset>
+            <p className="text-[10px]">
+              These are equipment ratings, independent of the supply setting.
+            </p>
+          </section>
+        )}
       {def.isDimmer && (
         <section className={box}>
           <h3 className="font-semibold">Dimming</h3>
@@ -554,6 +619,8 @@ export function ComponentPropertiesView({
             update(selectedComp.id, {
               ...resolveComponentState({}, def),
               coilModel: undefined,
+              electronicLoadProfile: undefined,
+              catalogueProfile: undefined,
               motorModel: undefined,
               timerModel: undefined,
               customPowerWatts: undefined,

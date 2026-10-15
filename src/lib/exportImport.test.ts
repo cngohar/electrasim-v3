@@ -1,6 +1,7 @@
 /** Circuit file-format validation and round-trip regression tests. */
 
 import type { Circuit } from '@electrasim/domain';
+import { normalizeCircuitDocument } from '@electrasim/domain/core/normalize';
 import { describe, expect, it } from 'vitest';
 import { exportJSON, importJSON, validateCircuitJSON } from './exportImport';
 
@@ -45,7 +46,7 @@ describe('circuit import and export', () => {
   it('produces valid JSON with schema version 2 and a migrated supply profile', () => {
     const json = exportJSON(SEED);
     const parsed = JSON.parse(json);
-    expect(parsed.version).toBe(2);
+    expect(parsed.version).toBe(3);
     expect(parsed.circuit.supply.model).toEqual({
       kind: 'ac-single-phase',
       voltage: 230,
@@ -67,7 +68,7 @@ describe('circuit import and export', () => {
   it('round-trips the circuit identically', () => {
     const json = exportJSON(SEED);
     const imported = importJSON(json);
-    expect(imported.components).toEqual(SEED.components);
+    expect(imported.components).toEqual(normalizeCircuitDocument(SEED).components);
     expect(imported.wires).toEqual(SEED.wires);
   });
 

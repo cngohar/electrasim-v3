@@ -20,33 +20,37 @@ function circuitFor(type: string, voltage = 12) {
   return circuit;
 }
 
-it('names the missing LED simulation and the 12 V versus 230 V difference with the Console closed', () => {
+it('shows the declared LED undervoltage off state and calculated values with the Console closed', () => {
   const circuit = circuitFor('bulb');
   useCircuitStore.getState().setCircuit(circuit);
   const result = simulate(selectCircuit(useCircuitStore.getState()));
   useUiStore.setState({ simResult: result, simRunning: true, logOpen: false });
   render(<SimulationFeedback />);
-  expect(screen.getByRole('status')).toHaveTextContent('Simulation unavailable');
+  expect(screen.getByRole('status')).toHaveTextContent('Outside operating voltage');
   expect(screen.getByRole('status')).toHaveTextContent('LED Bulb (9W)');
   expect(screen.getByRole('status')).toHaveTextContent(
-    '12 V differs from the device design voltage 230 V',
+    '12 V is outside the declared 207–253 V range',
   );
-  expect(result.electrical?.status).toBe('unsupported');
-  expect(result.componentCalculations).toBeUndefined();
+  expect(result.electrical?.status).toBe('converged');
+  expect(result.componentCalculations!.heater).toMatchObject({
+    voltage: 12,
+    currentAmps: 0,
+    powerWatts: 0,
+  });
   expect(result.energizedComponents.size).toBe(0);
   fireEvent.click(screen.getByRole('button', { name: 'View findings' }));
   expect(useElectricalEditing.getState().reviewOpen).toBe(true);
 });
 
 it('reports other missing component models and hides feedback immediately for changed electrical inputs', () => {
-  const circuit = circuitFor('ceiling-fan', 230);
+  const circuit = circuitFor('motor-3phase', 230);
   useCircuitStore.getState().setCircuit(circuit);
   useUiStore.setState({
     simResult: simulate(selectCircuit(useCircuitStore.getState())),
     simRunning: true,
   });
   render(<SimulationFeedback />);
-  expect(screen.getByRole('status')).toHaveTextContent('Ceiling Fan');
+  expect(screen.getByRole('status')).toHaveTextContent('3-Phase');
   act(() => useCircuitStore.setState({ globalVoltage: 24 }));
   expect(screen.queryByRole('status')).toBeNull();
 });

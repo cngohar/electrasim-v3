@@ -9,20 +9,28 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 
 ### Added
 
-- Phase 1.12 — Missing component calculation: planned milestones 1.12.0–7,
-  assignment of all 31 default gaps, explicit model/profile decisions, lamp-first
-  delivery, numerical/runtime/native-browser acceptance and a new-session handoff.
-  Implementation has not started. [Plan](docs/plans/MISSING_COMPONENT_CALCULATION_PLAN.md).
+- Phase 1.12 implements all 30 missing catalogue teaching models: regulated lamps,
+  complex motor equivalents, appliance/sounder/alarm modes, PV I-V, shared-common
+  autotransformer, SPD shunts and explicit-temperature NTC. Adds strict versioned
+  profiles, schema-3 persistence/API validation, coherent Inspector editing,
+  explicit motor/control setup and calculated visual states. Generic assumptions
+  and physics limits remain visible. Local functional acceptance: 2,197 units,
+  897 exact runtime cases, 34 API groups, 207 unique source and 22 unique built
+  cases through combined recovery evidence; two intentional built parity skips.
+  Historical performance limits remain open; this GitHub checkpoint was separately
+  authorized after local acceptance. No deployment is included. [Evidence](docs/audits/phase-1-missing-component-calculation.md).
+
 - Fault Lab application follow-up: actual target symbols, terminal geometry and
   wire routes; canonical terminal fault markers, stable Circuit/Inside transitions,
   positioned SVG badges and modeled protection bypass poles. All 14 fault types
   passed Apply/Clear with 42 local captures and 57 focused cases.
 - Catalogue simulation gap audit and visible unavailable-calculation feedback:
-  31 of 116 placement defaults are unassessed, including one configurable motor
+  At that earlier checkpoint, 31 of 116 placement defaults were unassessed, including one configurable motor
   and 30 missing behaviour implementations. Distinct model/rating badges and a
   nominal design-voltage mismatch warning clarify the result. Affected acceptance:
   465 units, 842 local runtime parity cases, six source browser cases and two built
-  desktop/phone cases. Missing LED/fan/appliance calculations remain unimplemented.
+  desktop/phone cases. Missing calculations at that checkpoint are implemented
+  by the subsequent Phase 1.12 entry above.
   [Gap inventory and evidence](docs/audits/catalogue-simulation-gaps.md).
 - Phase 1.11: implemented the approved Fault Lab investigation workspace with
   real targets, a 14-type reviewed fault library, fresh captured explanation,

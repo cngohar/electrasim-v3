@@ -900,3 +900,95 @@ Committed the approved current repository as **`ac6c1d9cc889506d04c2a89f372c9db1
 Created [Phase 1.12 — Missing component calculation](docs/plans/MISSING_COMPONENT_CALCULATION_PLAN.md) after that verified push, with a [new-session handoff](docs/handoffs/missing-component-calculation-next-chat.md). It assigns all 31 default unassessed entries (30 missing behaviours plus the configurable three-phase motor), covers conditional controls, starts with profile/coverage specification and shared numerical support, then delivers lamps, fans/motors, appliances/alarms, special sources/devices and final integration. Independent numerical, real runtime and native source/built browser acceptance are explicit. The earlier generic catalogue proposal now points to this authoritative phase plan. Active graph phase is **1.12, planned**; no new model code is implemented in this documentation checkpoint. The user authorized GitHub publication of this task; the planning changes are being published as a separate docs commit.
 
 Planning metadata review confirmed all 31 audited types are assigned exactly once and 142 relative document links resolve. Graph plan/feature records have scoped current-evidence reviews; global `graph:check` remains nonzero for historical unreviewed/changed records. JSON formatting and diff whitespace checks passed. These are planning checks, not new-model acceptance tests.
+
+## 2026-10-15 — Phase 1.12 started: driver/lamp specification and reference preview
+
+The user confirmed **Phase 1.12 LED/lamp models** after initially recalling Phase
+1.11, which is the completed Fault Lab phase. Started with graph phase/brief,
+targeted model impact, the authoritative plan, current handoff and source review.
+The checkout started clean at `ab164ca`; no GitHub or Cloudflare work is authorized
+by this new start.
+
+Prepared **1.12.0's concrete specification package for review**: a reproducible
+116-entry inventory file (31 unassessed, 30 missing behaviours, one existing
+model needing setup; 52 other declared models with conditions and 33 remaining
+declared contracts), complete family/owner/parameter/fixture assignments, and
+[ADR 0016](docs/decisions/0016-regulated-load-profiles.md) for an explicit regulated
+input-power profile, bounded nonlinear method, migration and stale-result rules.
+Generic 230 V/207–253 V/unity-PF/zero-off assumptions are labeled teaching values;
+manufacturer examples do not validate them as real product behaviour.
+
+The [standalone settings/reference preview](docs/design/lamp-driver/README.md)
+passes eight independent Node reference tests and three native browser workflows
+(desktop Chrome, phone Chrome, tablet Safari). Desktop 230 V and phone 12 V
+captures were visually inspected. Actual application lamps remain unsupported
+at both 12/230 V across all five types; no production model, persisted drawing
+or file schema has changed. Shared runtime/profile integration is **1.12.1**;
+integrated lamps and actual runtime/source/built acceptance are **1.12.2**.
+
+Fresh unchanged solver baseline: median **32.11 ms**, p95 **68.23 ms**, still
+failing the unchanged **8 ms** budget. This is baseline evidence, not a measured
+model regression. Historical generator/dense-frame exceptions remain. The
+[milestone audit](docs/audits/phase-1-missing-component-calculation.md) keeps
+specification checks, preview evidence, application acceptance, performance,
+graph review and publication separate. Work remains local and uncommitted.
+
+The specification-only phase gate exited 0, followed by an affected final
+inventory/reference/preview/lint rerun after editing/validation refinements.
+All current specification stages have retained evidence, including full types
+and five graph-tool tests. This is aggregate specification evidence; the full
+Phase 1.12 model/runtime/application gate has not run. See the audit for paths.
+
+
+## 2026-10-15 — Phase 1.12.0–7 complete within local functional scope
+
+The user authorized all steps in one workflow and asked to continue. Implemented
+all **30** missing catalogue teaching laws plus discoverable editable setup for
+the existing three-phase motor and conditional controls. Added strict versioned
+profiles, bounded complex MNA, schema-3 migration/raw API validation, coherent
+nameplate/profile/mode editing, current-result visual states and optional declared
+stress budgets. The 116-entry matrix now records 30 implemented original gaps,
+one setup requirement, 82 conditional declared models and 33 other contracts.
+Generic parameters and unmodeled physics stay explicit; catalogue accounting is
+not proof of 116 complete appliance models. See the [acceptance audit](docs/audits/phase-1-missing-component-calculation.md).
+
+Valid evidence: **2,197 units / 141 files**, **897 exact Bun/workerd cases**,
+**34 local API/D1/cookie groups**, full/final types/lint and build/static checks.
+**207 unique source cases** combine 192 original passes, 20 focused passes and
+one isolated traced phone countdown pass. The original 15 workflow failures and
+one recovery Vite module-fetch failure are retained; the fetch failure did not
+reproduce and its root cause is unestablished. Built delivery: **22 unique cases**
+(four native LED/Fault Lab plus 18 catalogue cases), with **two intentional built
+source-module parity skips**. Both built motor flows recovered after the native
+keyboard test waited for each real wire commit. Dedicated emitted Worker use,
+each new entry's actual readings, modes/Undo/reload, motor setup, fault repair,
+source controls, guides and stale responses are covered. No original failed
+invocation is relabeled green. Initial JS **260,582 B gzip**, CSS **28,085 B gzip**.
+
+Unchanged dense solver measured **24.36 ms median / 45.07 ms p95**, failing 8 ms.
+New 1/10/25-profile p95: **4.03 / 12.45 / 22.81 ms**, not before/after deltas.
+The browser benchmark passes its existing assertions, while pan/drag/zoom p95
+**33.4 / 66.6 / 199.9 ms** still misses dense gesture 60 fps. Historical generator
+timing is not rerun or closed. No budget is relaxed; the strict repository-wide
+gate remains non-green. The plan, audit, handoff, changelog and phase graph now
+separate local functional completion, combined recovery, physics limits and
+performance. Work remains local and uncommitted; no remote operation occurred.
+
+
+## 2026-10-15 — Authorized Phase 1.12 GitHub checkpoint
+
+After local functional closure, the user explicitly requested committing locally
+and pushing to GitHub. The reviewed scope is the completed Phase 1.12 teaching
+models, shared numerical/schema/API integration, Inspector/setup, examples/tests,
+acceptance artifacts and graph checkpoints. Existing full and focused evidence
+remains scoped exactly as recorded; historical performance exceptions stay open.
+The normal staged formatting/lint and full typecheck commit hooks apply. Git
+history and matching HEAD/upstream/actual remote refs establish the publication
+result; publication is reported only after that verification. This authorization
+is for the current GitHub checkpoint, with no Cloudflare account operation,
+deployment or live-site test.
+
+Publication preparation normalized formatting/import order in nine staged files;
+**86 focused tests / six files** passed afterward. No electrical behaviour or
+acceptance assertion changed. Full existing phase evidence and performance limits
+are retained; normal commit hooks run without bypasses.

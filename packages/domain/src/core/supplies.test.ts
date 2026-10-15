@@ -61,7 +61,7 @@ describe('1.5C.0 persisted supply migration', () => {
       migrated.components.find((c) => c.id === 'generator')?.state.sourceProfile?.model,
     ).toEqual({ kind: 'ac-single-phase', voltage: 240, frequencyHz: 50 });
     const exported = exportJSON(migrated);
-    expect(JSON.parse(exported).version).toBe(2);
+    expect(JSON.parse(exported).version).toBe(3);
     expect(importJSON(exported)).toEqual(migrated);
     expect(normalizeCircuit(migrated)).toEqual(migrated);
     expect(JSON.stringify({ version: 1, circuit: mixed })).toBe(old);

@@ -1,7 +1,7 @@
 /** Reviewed, explicit catalogue inventory. New variants must be classified here.
  * Neither a type substring nor a power label defines a source or load law.
  */
-export const CAPABILITY_CATALOGUE_VERSION = '1.5e.2.1' as const;
+export const CAPABILITY_CATALOGUE_VERSION = '1.12.1.0' as const;
 
 const FAMILIES = {
   'resistive-load': [
@@ -24,7 +24,7 @@ const FAMILIES = {
     'motor',
     'water-pump',
   ],
-  'unknown-load': [
+  'profile-appliance': [
     'bell',
     'air-conditioner',
     'induction-hob',
@@ -129,7 +129,9 @@ const FAMILIES = {
     'distribution-board-3phase',
   ],
   transformer: ['transformer-8v', 'transformer-12v', 'transformer-24v', 'step-up-down-transformer'],
-  unassessed: ['spd', 'temperature-sensor'],
+  'protection-shunt': ['spd'],
+  'temperature-resistance': ['temperature-sensor'],
+  unassessed: [],
 } as const;
 
 export type CapabilityFamily = keyof typeof FAMILIES;

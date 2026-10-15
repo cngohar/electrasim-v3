@@ -8,14 +8,14 @@ import type { Circuit } from '../types';
 
 export function retirementAcceptanceCircuits(): Record<string, Circuit> {
   const cases: Record<string, Circuit> = {};
-  for (const type of ['bulb', 'ceiling-fan', 'bell', 'motor']) {
+  for (const type of ['motor-3phase']) {
     const circuit = heaterFixture();
     circuit.components[1]!.type = type;
     circuit.components[1]!.state = {};
     cases[type] = circuit;
   }
   const mixed = heaterFixture();
-  mixed.components.push({ ...mixed.components[1]!, id: 'led', type: 'bulb', state: {} });
+  mixed.components.push({ ...mixed.components[1]!, id: 'led', type: 'motor-3phase', state: {} });
   mixed.wires.push(
     { ...mixed.wires[0]!, id: 'led-feed', toComponentId: 'led' },
     { ...mixed.wires[1]!, id: 'led-return', fromComponentId: 'led' },
@@ -52,18 +52,18 @@ export const TEMPLATE_CALCULATION_STATUS = {
   'two-way-staircase-light': 'converged',
   'dimmable-lighting': 'converged',
   'rcd-earth-fault-demo': 'converged',
-  'contactor-motor': 'unsupported',
-  'timer-bell': 'unsupported',
-  'push-button-doorbell': 'unsupported',
+  'contactor-motor': 'converged',
+  'timer-bell': 'converged',
+  'push-button-doorbell': 'converged',
   'rcbo-protected-socket': 'converged',
   'pro-3phase-dol-starter': 'converged',
-  'pro-ev-charger-circuit': 'unsupported',
+  'pro-ev-charger-circuit': 'converged',
   'pro-solar-dc-system': 'unsupported',
   'pro-underfloor-heating': 'converged',
-  'pro-staircase-timer': 'unsupported',
+  'pro-staircase-timer': 'converged',
   'pro-pir-floodlight': 'converged',
-  'pro-cooker-induction': 'unsupported',
-  'pro-spd-consumer-unit': 'unsupported',
-  'pro-generator-backup': 'unsupported',
-  'pro-afdd-bedroom': 'unsupported',
+  'pro-cooker-induction': 'converged',
+  'pro-spd-consumer-unit': 'converged',
+  'pro-generator-backup': 'converged',
+  'pro-afdd-bedroom': 'converged',
 } as const;

@@ -548,13 +548,14 @@ describe('1.5B sources, loads and graph isolation', () => {
       wires: [],
     });
     expect(result.graph.devices.map((d) => [d.componentId, d.model.kind])).toEqual([
-      ['auto', 'unassessed'],
-      ['led', 'unassessed-load'],
-      ['pv', 'unassessed'],
+      ['auto', 'transformer'],
+      ['led', 'profile-device'],
+      ['pv', 'profile-device'],
       ['socket', 'outlet'],
     ]);
     expect(result.graph.branches.some((b) => b.componentId === 'socket')).toBe(false);
-    expect(result.graph.sources).toEqual([]);
+    expect(result.graph.sources).toMatchObject([{ law: 'photovoltaic' }]);
+    expect(result.graph.branches.find((b) => b.componentId === 'pv')?.profileLaw?.kind).toBe('pv');
   });
 
   it('rejects model overrides with unknown terminals or nonfinite electrical values', () => {

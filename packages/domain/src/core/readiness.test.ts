@@ -37,13 +37,7 @@ describe('1.5C.0 explicit capability inventory', () => {
   });
 
   it('does not infer a battery or supply control from labels, isSource or substrings', () => {
-    for (const type of [
-      'earth-terminal',
-      'earth-rod',
-      'photocell-sensor',
-      'space-heater',
-      'solar-pv-panel',
-    ]) {
+    for (const type of ['earth-terminal', 'earth-rod', 'photocell-sensor', 'space-heater']) {
       const c = C('x', type);
       const capability = resolveDeviceCapabilities(c, { components: [c], wires: [] });
       expect(capability.sourceControl).toBe('none');
@@ -55,7 +49,7 @@ describe('1.5C.0 explicit capability inventory', () => {
     );
   });
 
-  it('keeps fixed resistance, unknown LED law, and outlet capacity separate', () => {
+  it('keeps fixed resistance, regulated driver profiles and outlet capacity separate', () => {
     const heater = C('heater', 'space-heater', { customVoltage: 230, customPowerWatts: 2000 });
     const circuit = { components: [heater], wires: [], globalVoltage: 12 };
     const g = resolveDeviceCapabilities(heater, circuit).groups[0];
@@ -63,8 +57,11 @@ describe('1.5C.0 explicit capability inventory', () => {
     expect(g.loadLaw).toMatchObject({ kind: 'fixed-resistance', resistanceOhms: 26.45 });
     expect(g.maximumVoltage.status).toBe('unknown');
     const led = resolveDeviceCapabilities(C('led', 'bulb'), circuit).groups[0];
-    expect(led.loadLaw.kind).toBe('not-assessed');
-    expect(led.operatingVoltageRange.status).toBe('unknown');
+    expect(led.loadLaw.kind).toBe('profile');
+    expect(led.operatingVoltageRange).toMatchObject({
+      status: 'known',
+      value: { min: 207, max: 253 },
+    });
     const outlet = resolveDeviceCapabilities(C('socket', 'socket-3pin'), circuit).groups[0];
     expect(outlet.loadLaw.kind).toBe('none');
     expect(outlet.nominalPowerWatts.status).toBe('unknown');
@@ -99,7 +96,7 @@ describe('1.5C.0 explicit capability inventory', () => {
       assessTerminalCompatibility(group, {
         supply: { kind: 'ac-three-phase', voltage: 230, frequencyHz: 50, sequence: 'abc' },
       }).reasons.map((r) => r.code),
-    ).toContain('phase-mismatch');
+    ).not.toContain('phase-mismatch');
     const rated = {
       ...group,
       frequencyHz: {
@@ -121,7 +118,7 @@ describe('1.5C.0 explicit capability inventory', () => {
     });
     expect(result.status).toBe('incompatible');
     expect(result.reasons.map((r) => r.code)).toEqual(
-      expect.arrayContaining(['frequency-mismatch', 'undervoltage', 'unsupported-model']),
+      expect.arrayContaining(['frequency-mismatch', 'undervoltage']),
     );
     expect(result.reasons.find((r) => r.code === 'undervoltage')?.basis).toBe('solved-terminal');
   });
@@ -151,7 +148,7 @@ describe('1.5C.0 explicit capability inventory', () => {
     ).toBe('unassessed');
   });
 
-  it('reports a directly wired LED design-voltage mismatch without inventing its operating range', () => {
+  it('reports the explicit lamp operating band without treating preflight as a solve', () => {
     const circuit = resistive();
     circuit.components[2]!.type = 'bulb';
     circuit.globalVoltage = 12;
@@ -161,16 +158,16 @@ describe('1.5C.0 explicit capability inventory', () => {
     expect(result.status).toBe('unassessed');
     expect(result.reasons).toContainEqual(
       expect.objectContaining({
-        code: 'nominal-voltage-mismatch',
+        code: 'undervoltage',
         basis: 'nominal-supply',
         severity: 'warning',
       }),
     );
     expect(
-      readiness.diagnostics.find((diagnostic) => diagnostic.code === 'nominal-voltage-mismatch'),
+      readiness.diagnostics.find((diagnostic) => diagnostic.code === 'undervoltage'),
     ).toMatchObject({
       componentId: 'load',
-      message: expect.stringContaining('12 V differs from the device design voltage 230 V'),
+      message: expect.stringContaining('12 V is outside the declared 207–253 V range'),
     });
     const group = readiness.capabilities.find((capability) => capability.componentId === 'load')!
       .groups[0]!;

@@ -1,7 +1,14 @@
 # Phase 1.12 — Missing component calculation
 
-Status: **planned, 2026-10-14; implementation has not started**. The user requested
-this new phase after the current repository checkpoint was committed and pushed.
+Status: **1.12.0–7 complete locally within declared functional scope, 2026-10-15**. The user authorized
+all milestones in one continuous workflow. All 30 missing behaviours now have
+versioned teaching profiles; the existing three-phase motor has an explicit setup
+action. Shared numerical, persistence and Inspector integration is implemented;
+functional/static/runtime/source and built acceptance is recorded through combined
+full-attempt and focused recovery evidence. Historical performance exceptions
+remain open; the strict repository-wide gate is not green. See the
+[current implementation record](../audits/phase-1-missing-component-calculation.md).
+The user requested this new phase after the repository checkpoint was committed and pushed.
 The implementation baseline is GitHub `main` at
 `ac6c1d9cc889506d04c2a89f372c9db1c241dfe8`.
 
@@ -20,7 +27,7 @@ current and power with the matching lamp appearance.
 ## Baseline and scope
 
 The [catalogue audit](../audits/catalogue-simulation-gaps.md) reviewed all **116**
-placement defaults. **31** currently resolve to an unassessed model: **30** need
+placement defaults. The original **31** unassessed defaults comprised **30** needing
 missing electrical behaviour code; the three-phase motor already has a supported
 teaching model after explicit settings are configured. The other **85** are not a
 claim of complete appliance simulation: several controls have conditional or
@@ -81,12 +88,16 @@ proof that its coil, timer or protective mechanism works.
 
 ## Milestones
 
-All milestones are **not started**. Finish the first lamp workflow before moving
-on to the broader appliance catalogue.
+**1.12.0–7 are complete locally within the declared teaching-model scope.**
+The native 12 V/230 V LED workflow and every new family pass actual source/built
+workflows. The audit retains 2,197 units, 897 exact runtime cases, 34 local API
+groups, 207 unique source cases and 22 unique built cases plus two intentional
+built parity skips. Original failed attempts and focused recovery remain explicit.
+Performance measurements do not close the historical 8 ms / dense 60 fps limits.
 
 | Milestone | Deliverable | Acceptance needed to advance |
 | --- | --- | --- |
-| **1.12.0 — Profile and coverage specification** | Commit a reproducible 116-entry inventory, identify conditional models, define per-family laws/defaults/limits, reference data and migration. Record numerical-method and parameter decisions in an ADR. Prepare the lamp profile and configuration controls for review. | Every default gap has an owner, model family, explicit parameter source/assumption, example circuit and acceptance case. Missing input data is identified. Model decisions are concrete before implementation. |
+| **1.12.0 — Profile and coverage specification** | Record a reproducible 116-entry inventory, identify conditional models, define per-family laws/defaults/limits, reference data and migration. Record numerical-method and parameter decisions in an ADR. Prepare the lamp profile and configuration controls for review. These artifacts are now prepared locally; publication is separate. | Every default gap has an owner, model family, explicit parameter source/assumption, example circuit and acceptance case. Missing input data is identified. Model decisions are concrete before implementation. Specification/reference evidence does not accept integrated models. |
 | **1.12.1 — Shared model infrastructure** | Add typed, validated profiles/state, branch compilation, operating-point derivation, file persistence/default handling and numerical support for the selected electronic/motor laws. Implement convergence/state selection limits and readable failure results. | Independent expected-value fixtures, conservation and convergence checks; invalid profile rejection; import/export/Undo preservation; existing fixed-resistance/source/transformer/control behaviour remains correct. |
 | **1.12.2 — Common lamps first** | Implement the five electronic lamp types with accepted operating bands and power laws. Bind on/off/brightness and readings to the solved state. Validate electronic-lamp/dimmer compatibility explicitly. | The native 12 V versus 230 V LED workflow passes through all runtimes and built/source desktop/phone. Test low/valid/high voltage, off/open state, reversed supply where applicable, series/parallel loads and failure to converge. Every lamp type has numerical and rendered evidence. |
 | **1.12.3 — Fans and single-phase motors** | Implement the six motor/fan/pump entries using the accepted electrical equivalent and explicitly declared running/startup/control assumptions. Keep input power separate from shaft output and visual speed. | Independent voltage/current/power and operating-band cases; switching, speed setting where supported, open return and multiple loads; no unmodeled mechanical or startup claim. |
@@ -193,20 +204,20 @@ Do not relabel existing or new failed measurements as green functional evidence.
 
 ## Closure checklist
 
-- [ ] All 31 default gap entries have a verified accepted model/setup outcome;
+- [x] All 31 default gap entries have a verified accepted model/setup outcome;
       any deferral is explicitly approved and listed.
-- [ ] Conditional behaviour within the other 85 entries has an explicit current
+- [x] Conditional behaviour within the other 85 entries has an explicit current
       status in the 116-entry matrix.
-- [ ] The 12 V/230 V LED reproduction passes with real calculated states, and all
+- [x] The 12 V/230 V LED reproduction passes with real calculated states, and all
       five lamp variants have matching numerical and visual evidence.
-- [ ] Every implemented family has independent fixtures plus real runtime and
+- [x] Every implemented family has independent fixtures plus real runtime and
       native source/built browser evidence.
-- [ ] Saved drawings, canonical ports, authored ratings, membership boundaries,
+- [x] Saved drawings, canonical ports, authored ratings, membership boundaries,
       faults, damage and current-result protections are preserved or migrated
       through the documented versioned contract.
-- [ ] Full required functional/static stages have valid evidence; performance
+- [x] Full required functional/static stages have valid evidence; performance
       findings and physics limits remain separately reported.
-- [ ] The audit, phase status, handoff, changelog, progress and graph accurately
+- [x] The audit, phase status, handoff, changelog, progress and graph accurately
       describe implemented coverage. A matching graph fingerprint is not a test.
 
 ## Resume in a new session
@@ -218,8 +229,9 @@ bun run graph:find -- resolveDeviceModel
 bun run graph:impact -- packages/domain/src/core/models.ts
 ```
 
-Read this plan, the [catalogue gap audit](../audits/catalogue-simulation-gaps.md),
-the [handoff](../handoffs/missing-component-calculation-next-chat.md), current Git
-state and linked source. Start **1.12.0**. No Phase 1.12 model code is implemented
-by the planning commit. Development/verification remain local under `AGENTS.md`;
-GitHub publication and Cloudflare deployment are separate authorizations.
+Read this plan, the historical [catalogue gap audit](../audits/catalogue-simulation-gaps.md),
+current [implementation audit](../audits/phase-1-missing-component-calculation.md),
+[handoff](../handoffs/missing-component-calculation-next-chat.md), Git state and
+linked source. Follow the final gate evidence; do not repeat or discard accepted
+implementation. Development/verification remain local under `AGENTS.md`.
+Publication and deployment require separate authorization.

@@ -21,6 +21,7 @@ import {
 } from './linearMeasurements';
 import { LINEAR_SYSTEM_LIMITS, solveLinearSystem } from './linearSystem';
 import { deriveOperatingPoints } from './operatingPoint';
+import { solveProfileCircuit } from './profileSolver';
 import { type CircuitReadiness, assessCompiledCircuitReadiness } from './readiness';
 import { reduceSeriesPaths } from './seriesReduction';
 import { inspectVoltageConstraints } from './voltageConstraints';
@@ -119,6 +120,8 @@ export function solveCompiledCircuit(
   compiled: CompileResult,
   options: CompileOptions = {},
 ): ElectricalSimulationResult {
+  if (compiled.status === 'compiled' && compiled.graph.branches.some((b) => b.profileLaw))
+    return solveProfileCircuit(compiled, options);
   const readiness = assessCompiledCircuitReadiness(compiled, options);
   if (compiled.status === 'invalid')
     return emptyResult('invalid', compiled.diagnostics, [], readiness);
@@ -607,6 +610,12 @@ export function solveCompiledCircuit(
       result.wireLosses[branch.wireId] = current * current * branch.wire.resistanceOhms;
   }
   for (const transformer of coupling.active) {
+    const declaredTransformer = graph.devices.find(
+      (d) => d.componentId === transformer.componentId,
+    )?.model;
+    const sharedCommon =
+      declaredTransformer?.kind === 'transformer' &&
+      declaredTransformer.isolation === 'shared-common';
     const primaryDomainId = domainByTerminal.get(transformer.primary[0])!;
     const secondaryDomainId = domainByTerminal.get(transformer.secondary[0])!;
     const plan = planByDomain.get(primaryDomainId)!;
@@ -618,8 +627,11 @@ export function solveCompiledCircuit(
       secondaryBranchId: transformer.secondaryBranchId,
       primaryDomainId,
       secondaryDomainId,
-      connection:
-        primaryDomainId === secondaryDomainId ? 'externally-connected' : 'galvanically-isolated',
+      connection: sharedCommon
+        ? 'shared-common'
+        : primaryDomainId === secondaryDomainId
+          ? 'externally-connected'
+          : 'galvanically-isolated',
       primaryVoltageVolts: result.branchVoltages[transformer.primaryBranchId]!,
       secondaryVoltageVolts: result.branchVoltages[transformer.secondaryBranchId]!,
       primaryCurrentAmps: result.branchCurrents[transformer.primaryBranchId]!,
@@ -628,7 +640,7 @@ export function solveCompiledCircuit(
       secondaryPowerWatts: result.branchPowers[transformer.secondaryBranchId]!,
       sourceIds: plan.sources.map(({ source }) => source.id),
       frequencyHz: model?.kind === 'ac-single-phase' ? model.frequencyHz : null,
-      model: 'ideal-isolated-ac',
+      model: sharedCommon ? 'ideal-shared-common-ac' : 'ideal-isolated-ac',
       lossesAndSaturation: 'not-assessed',
     });
   }

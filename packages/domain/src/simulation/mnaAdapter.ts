@@ -315,7 +315,11 @@ export function adaptMnaResult(
       ...(present(load.currentAmps) ? { currentAmps: load.currentAmps } : {}),
       ...(present(load.powerWatts) ? { powerWatts: load.powerWatts } : {}),
     };
-    if (present(load.powerWatts) && Math.abs(load.powerWatts) > threshold)
+    if (
+      present(load.powerWatts) &&
+      Math.abs(load.powerWatts) > threshold &&
+      (!load.profileState || ['on', 'running-equivalent'].includes(load.profileState))
+    )
       result.energizedComponents.add(load.componentId);
   }
   for (const device of graph.devices) {
@@ -342,7 +346,11 @@ export function adaptMnaResult(
     // An L or N alias alone is not a device terminal-pair measurement.
     if (source.componentIds.length !== 1) continue;
     const device = graph.devices.find((item) => item.componentId === source.componentIds[0]);
-    if (device?.model.kind !== 'source') continue;
+    if (
+      device?.model.kind !== 'source' &&
+      !(device?.model.kind === 'profile-device' && device.model.profile.kind === 'photovoltaic')
+    )
+      continue;
     result.componentCalculations[source.componentIds[0]!] = {
       voltage: electrical.branchVoltages[branch],
       currentAmps: electrical.branchCurrents[branch],

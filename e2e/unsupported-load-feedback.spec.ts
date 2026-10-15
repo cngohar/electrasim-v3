@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 import { exerciseUnsupportedLoadFeedback } from './helpers/unsupported-load-feedback';
 
-test('native L/N placement, 12 V supply edit and 9 W LED wiring report unavailable simulation', async ({
+test('native L/N placement, 12 V off and 230 V regulated LED operation use calculated results', async ({
   page,
 }, info) => {
   test.setTimeout(120_000);

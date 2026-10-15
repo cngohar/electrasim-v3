@@ -178,9 +178,10 @@ test('an open return has live potential, zero current and no current-flow animat
   await expect(wire.locator('.electrasim-wire-flow')).toHaveCount(0);
   if (!isPhone(page)) {
     await wire.press('Enter');
-    const telemetry = page.getByTitle('Simulation Telemetry & Faults', { exact: true });
-    if (page.context().browser()?.browserType().name() === 'webkit') await telemetry.press('Enter');
-    else await telemetry.click();
+    const inspector = page.getByRole('complementary', { name: 'Inspector', exact: true });
+    if (!(await inspector.isVisible()))
+      await activateControl(page, page.getByRole('button', { name: 'Inspect', exact: true }));
+    await activateControl(page, inspector.getByRole('button', { name: 'Readings', exact: true }));
     await expect(page.locator('[data-tour="inspector"]')).toContainText('LIVE · ZERO CURRENT');
     await expect(page.locator('[data-wire-readings="feed"]')).toContainText(
       'From potential: 230.0000 V',
@@ -211,18 +212,20 @@ test('branch protection shows its own current and leaves timed operation unasses
   expect(state.trips).toEqual([]);
 });
 
-test('unsupported LED measurements and operation remain unavailable', async ({ page }) => {
+test('the LED driver supplies accepted terminal voltage, current and regulated input power', async ({
+  page,
+}) => {
   const circuit = heaterFixture();
   circuit.components[1]!.type = 'bulb';
   circuit.components[1]!.state = {};
   await openCircuit(page, circuit);
   await page.getByRole('button', { name: 'Run Simulation', exact: true }).click();
   const readings = await inspect(page, 'heater');
-  await expect(readings).toContainText('Calculation unassessed');
+  await expect(readings).toContainText('Profile state: on');
   await expect(readings).not.toContainText('legacy observations');
-  await expect(readings.locator('[data-reading="voltage"]')).toHaveText('Unavailable');
-  await expect(readings.locator('[data-reading="current"]')).toHaveText('Unavailable');
-  await expect(readings.locator('[data-reading="power"]')).toHaveText('Unavailable');
+  await expect(readings.locator('[data-reading="voltage"]')).toHaveText('229.9945 V');
+  await expect(readings.locator('[data-reading="current"]')).toHaveText('0.0391 A');
+  await expect(readings.locator('[data-reading="power"]')).toHaveText('9 W');
 });
 
 test('all acceptance circuits agree across direct domain, real Comlink and local Hono', async ({

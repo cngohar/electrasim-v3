@@ -72,6 +72,10 @@
     "verify:phase-1.5f2": "bun scripts/verify-phase15f2.mjs",
     "verify:phase-1.9": "bun scripts/verify-phase19.mjs",
     "verify:phase-1.11": "bun scripts/verify-phase111.mjs",
+    "catalogue:inventory": "bun scripts/catalogue-model-inventory.ts",
+    "test:lamp-reference": "node --test scripts/lamp-reference.test.mjs",
+    "test:lamp-preview": "node scripts/verify-lamp-preview.mjs",
+    "verify:phase-1.12.0": "bun scripts/verify-phase1120.mjs",
     "verify:phase-1.8": "bun scripts/verify-phase18.mjs",
     "verify:phase-1.7": "bun scripts/verify-phase17.mjs",
     "verify:phase-1.6": "bun scripts/verify-phase16.mjs",
@@ -85,7 +89,9 @@
     "graph:impact": "bun scripts/code-graph.mjs impact",
     "graph:brief": "bun scripts/code-graph.mjs brief",
     "graph:check": "bun scripts/code-graph.mjs check",
-    "graph:review": "bun scripts/code-graph.mjs review"
+    "graph:review": "bun scripts/code-graph.mjs review",
+    "verify:phase-1.12": "bun scripts/verify-phase112.mjs",
+    "benchmark:catalogue-profiles": "bun scripts/benchmark-catalogue-profiles.ts"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "^1.7.6",

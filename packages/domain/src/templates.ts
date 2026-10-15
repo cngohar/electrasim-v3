@@ -375,7 +375,16 @@ function timerBellTemplate(): GuidedCircuitTemplate {
   const live = component(id, 'live', 'live-terminal', 110, 230);
   const neutral = component(id, 'neutral', 'neutral-terminal', 110, 400);
   const mcb = component(id, 'mcb', 'mcb', 290, 230, { on: true });
-  const timer = component(id, 'timer', 'timer-switch', 500, 230, { on: true });
+  const timer = component(id, 'timer', 'timer-switch', 500, 230, {
+    on: true,
+    timerModel: {
+      version: 1,
+      kind: 'schedule',
+      periodSeconds: 86400,
+      offsetSeconds: 0,
+      windows: [{ startSeconds: 0, endSeconds: 5 }],
+    },
+  });
   const bell = component(id, 'bell', 'bell', 720, 230);
 
   return {
@@ -386,12 +395,13 @@ function timerBellTemplate(): GuidedCircuitTemplate {
     topic: 'Timed switching',
     summary: 'A simple timed control path feeding a bell or buzzer load.',
     teaches:
-      'Timer switches behave like controlled switches in the live path. Select the timer in the Inspector to preview its family variants (weekly, staircase and countdown timers).',
-    expected: 'Run the simulation: the bell energises while the timer switch is closed.',
+      'The editable daily program closes for the first five simulated seconds. Its two-terminal clock is external; clock consumption and wall-clock scheduling are unassessed.',
+    expected:
+      'Run: the declared bell load sounds for five simulated seconds, then the timer opens.',
     steps: [
       'Trace Live through the MCB and timer switch.',
       'Trace Neutral directly back to the bell.',
-      'Toggle the timer switch to simulate the timed contact opening and closing.',
+      'Run for five simulated seconds to observe expiry; edit the program in Detailed model settings.',
     ],
     circuit: {
       globalVoltage: 230,
@@ -633,8 +643,8 @@ function solarDcSystemTemplate(): GuidedCircuitTemplate {
   const panel = component(id, 'panel', 'solar-pv-panel', 130, 200);
   const battery = component(id, 'battery', 'dc-battery-12v', 400, 420);
   const combiner = component(id, 'combiner', 'wago-connector', 430, 150);
-  // A 12 V DC-rated LED so the low-voltage bus does not trip the
-  // voltage-mismatch check.
+  // Preserved illustrative drawing: a 12 V label does not declare DC-driver
+  // suitability. The complete charging/LED system remains drawing-only.
   const led = component(id, 'led', 'led-downlight', 760, 150, {
     customMaxVolts: 12,
     customVoltage: 12,
@@ -651,7 +661,7 @@ function solarDcSystemTemplate(): GuidedCircuitTemplate {
     teaches:
       'Identify the positive and negative connections in this illustrative layout. A real PV/battery system needs suitable charge control and protection; a connector alone does not provide those functions.',
     expected:
-      'Drawing only: source voltage, charging and AC/DC compatibility are not assessed. You can inspect, edit and export the layout; electrical simulation is unavailable.',
+      'Drawing only: this layout has no charge controller, battery state-of-charge or declared DC lamp driver. The individual PV curve is implemented; this complete battery/LED system is not an accepted simulation.',
     steps: [
       'Follow DC+ from the PV panel into the Wago combiner, then out to the LED and the battery positive.',
       'Trace DC- from the panel to the battery negative and on to the LED negative.',
@@ -719,7 +729,10 @@ function staircaseTimerTemplate(): GuidedCircuitTemplate {
   const live = component(id, 'live', 'live-terminal', 110, 220);
   const neutral = component(id, 'neutral', 'neutral-terminal', 110, 400);
   const mcb = component(id, 'mcb', 'mcb', 290, 220, { on: true });
-  const timer = component(id, 'timer', 'staircase-timer', 500, 220, { on: true });
+  const timer = component(id, 'timer', 'staircase-timer', 500, 220, {
+    on: true,
+    timerModel: { version: 1, kind: 'interval', durationSeconds: 3, retrigger: 'restart' },
+  });
   const light = component(id, 'light', 'led-downlight', 730, 220);
 
   return {
@@ -733,11 +746,11 @@ function staircaseTimerTemplate(): GuidedCircuitTemplate {
     teaches:
       'Time-lag (staircase) timers are the energy-saving alternative to leaving landing lights on: one pulse of the button and the contact holds for the preset time.',
     expected:
-      'Run the simulation: the light energises while the staircase timer contact is closed. Toggle the timer to see the timed contact open and close.',
+      'Run: the initial trigger closes the light for three simulated seconds. Toggle OFF then ON to trigger again. The two-terminal clock is external.',
     steps: [
       'Trace Live through the MCB into the staircase timer L-in.',
       'Follow L-out from the timer to the LED light, and Neutral directly back to the light.',
-      'Run the simulation and toggle the timer contact to compare the timed on and off states.',
+      'Run for three simulated seconds to observe expiry, then toggle the trigger OFF and ON.',
     ],
     faultPrompt:
       'Fault check: inject an open circuit on the timer output. The light stays off no matter how many times the timer is pulsed.',
@@ -905,7 +918,7 @@ function generatorBackupTemplate(): GuidedCircuitTemplate {
     teaches:
       'Backup generation supplies a local distribution system of its own. The generator frame is earthed to a rod (a TT-style local earth), and the emergency loads are protected by their own MCB.',
     expected:
-      'The generator drawing stays editable; emergency-light and siren load laws are unassessed, so Run provides no accepted operating measurements.',
+      'Generator, lamp and siren teaching profiles calculate their declared steady-state electrical behaviour. Keep independent AC sources isolated; automatic transfer, emergency battery supply and real alarm detection are not modeled.',
     steps: [
       'Trace the generator Live through the MCB, then out to the light and the siren.',
       'Follow the Neutral return from both loads back to the generator N terminal.',

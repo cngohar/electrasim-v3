@@ -82,11 +82,24 @@ export function evaluateProtection(
     const currentMultiple =
       maxAbs !== null && ratedCurrentAmps !== null ? maxAbs / ratedCurrentAmps : null;
     const isResidualDevice = protection.kind === 'rcd' || protection.kind === 'rcbo';
-    const residualMilliamps = isResidualDevice
-      ? present.length
-        ? Math.abs(present.reduce((sum, v) => sum + v, 0)) * 1000
-        : null
-      : null;
+    const complexPoles = model.poles.map(
+      (_, index) => electrical.phasors?.branchCurrents[contactBranchId(componentId, index)],
+    );
+    const complexResidual =
+      electrical.phasors && complexPoles.every((p) => p !== undefined)
+        ? Math.sqrt(
+            complexPoles.reduce((sum, p) => sum + p!.real, 0) ** 2 +
+              complexPoles.reduce((sum, p) => sum + p!.imaginary, 0) ** 2,
+          ) * 1000
+        : null;
+    const residualMilliamps =
+      isResidualDevice && electrical.phasors
+        ? complexResidual
+        : isResidualDevice
+          ? present.length
+            ? Math.abs(present.reduce((sum, v) => sum + v, 0)) * 1000
+            : null
+          : null;
     // A smooth-DC residual component is invisible to AC/A/F devices (Type B
     // requirement); the raw measurement is still surfaced in readings.
     const residualDetectable =

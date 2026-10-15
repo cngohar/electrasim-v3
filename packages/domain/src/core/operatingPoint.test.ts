@@ -195,24 +195,20 @@ describe('1.5C.2 fixed-rating operating response', () => {
     expect(result.operation).toBe('incompatible');
   });
 
-  it('keeps a mains LED at 12 V unassessed without inventing 0.75 A or a driver range', () => {
+  it('uses the declared lamp off law at 12 V without inventing 0.75 A', () => {
     const result = solveCircuit(operatingPointAcceptanceCircuits()['unknown-led']);
-    expect(result.status).toBe('unsupported');
+    expect(result.status).toBe('converged');
     expect(result.loads[0]).toMatchObject({
-      response: 'not-assessed',
-      currentAmps: null,
-      powerWatts: null,
-      terminalVoltageVolts: null,
+      response: 'idle',
+      currentAmps: 0,
+      powerWatts: 0,
+      terminalVoltageVolts: 12,
       nominalPowerWatts: { status: 'known', value: 9 },
-      compatibility: { status: 'unassessed' },
+      compatibility: { status: 'incompatible' },
     });
-    expect(result.loads[0]!.compatibility.reasons.map((r) => r.code)).toContain(
-      'unsupported-model',
-    );
-    expect(result.loads[0]!.compatibility.reasons.map((r) => r.code)).toContain('unknown-rating');
-    expect(result.wires.every((wire) => wire.currentAmps === null && wire.lossWatts === null)).toBe(
-      true,
-    );
+    expect(result.loads[0]!.compatibility.reasons.map((r) => r.code)).toContain('undervoltage');
+    expect(result.loads[0]!.profileState).toBe('undervoltage-off');
+    expect(result.wires.every((wire) => wire.currentAmps === 0 && wire.lossWatts === 0)).toBe(true);
   });
 
   it('reports a declared LED range provisionally while its driver law is unavailable', () => {

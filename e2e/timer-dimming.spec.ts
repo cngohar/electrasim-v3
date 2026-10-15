@@ -37,6 +37,25 @@ async function inspect(page: Page, id = 'control') {
   await inspectComponent(page, id);
 }
 
+async function runAndInspect(page: Page) {
+  await page.keyboard.press('Escape');
+  await activateControl(page, page.getByRole('button', { name: 'Run Simulation', exact: true }));
+  const review = page.getByRole('dialog', { name: 'Circuit readiness' });
+  if (await review.isVisible())
+    await activateControl(
+      page,
+      review.getByRole('button', { name: /^Run diagnostic$|^Run with findings$/ }),
+    );
+  await expect(page.getByRole('button', { name: 'Stop', exact: true })).toBeVisible();
+  await activateControl(
+    page,
+    page
+      .getByRole('complementary', { name: 'Inspector', exact: true })
+      .getByRole('button', { name: 'Detailed model settings', exact: true }),
+  );
+  await expect(page.getByRole('dialog', { name: /· detailed settings$/ })).toBeVisible();
+}
+
 async function runtime(page: Page) {
   return page.evaluate(async () => {
     const uiPath = '/src/store/uiStore.ts';
@@ -68,7 +87,7 @@ test('guest dimmer slider changes the running Comlink circuit and exposes RMS re
   page.on('pageerror', (error) => errors.push(error.message));
   await openCircuit(page, dimmingCircuit());
   await inspect(page);
-  await activateControl(page, page.getByRole('button', { name: 'Run Simulation', exact: true }));
+  await runAndInspect(page);
   await expect
     .poll(async () => (await runtime(page)).current)
     .toBeCloseTo((230 / 230.0525) * 0.5, 8);
@@ -135,7 +154,7 @@ test('daily timer settings persist through Undo/Redo and reload, then drive exac
     .toMatchObject({ windows: [{ startSeconds: 1, endSeconds: 3 }] });
   expect((await runtime(page)).time).toBeUndefined();
   await inspect(page);
-  await activateControl(page, page.getByRole('button', { name: 'Run Simulation', exact: true }));
+  await runAndInspect(page);
   await expect(page.getByRole('button', { name: 'Apply timer program' })).toBeDisabled();
   await expect.poll(async () => (await runtime(page)).timer, { timeout: 20000 }).toBe(true);
   expect((await runtime(page)).deadline).toBe(3);
@@ -146,6 +165,7 @@ test('daily timer settings persist through Undo/Redo and reload, then drive exac
       line.includes('timer opened (schedule) at 3 s'),
     ),
   ).toBe(true);
+  await page.keyboard.press('Escape');
   await activateControl(page, page.getByRole('button', { name: 'Stop', exact: true }));
   expect((await runtime(page)).time).toBeUndefined();
 });
@@ -157,17 +177,22 @@ test('countdown Trigger and Release run an interval without saving derived progr
   circuit.components[1]!.state.on = false;
   await openCircuit(page, circuit);
   await inspect(page);
-  await activateControl(page, page.getByRole('button', { name: 'Run Simulation', exact: true }));
+  await runAndInspect(page);
+  const settings = page.getByRole('dialog', { name: /· detailed settings$/ });
   await expect.poll(async () => (await runtime(page)).timer, { timeout: 20000 }).toBe(false);
-  await activateControl(page, page.getByRole('button', { name: 'Trigger timer', exact: true }));
+  await activateControl(page, settings.getByRole('button', { name: 'Trigger timer', exact: true }));
   await expect.poll(async () => (await runtime(page)).timer, { timeout: 20000 }).toBe(true);
   const deadline = (await runtime(page)).deadline;
-  await activateControl(page, page.getByRole('button', { name: 'Release trigger', exact: true }));
+  await activateControl(
+    page,
+    settings.getByRole('button', { name: 'Release trigger', exact: true }),
+  );
   await expect.poll(async () => (await runtime(page)).trigger, { timeout: 20000 }).toBe(false);
   expect((await runtime(page)).deadline).toBe(deadline);
   await expect.poll(async () => (await runtime(page)).timer, { timeout: 20000 }).toBe(false);
-  await activateControl(page, page.getByRole('button', { name: 'Trigger timer', exact: true }));
+  await activateControl(page, settings.getByRole('button', { name: 'Trigger timer', exact: true }));
   await expect.poll(async () => (await runtime(page)).timer, { timeout: 20000 }).toBe(true);
+  await page.keyboard.press('Escape');
   await activateControl(page, page.getByRole('button', { name: 'Stop', exact: true }));
   await activateControl(page, page.getByRole('button', { name: 'Run Simulation', exact: true }));
   await expect.poll(async () => (await runtime(page)).deadline, { timeout: 20000 }).toBe(2);

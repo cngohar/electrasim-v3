@@ -170,50 +170,57 @@ test('guest cable damage persists through fault clearing and replacement preserv
   expect(errors).toEqual([]);
 });
 
-test('guest edits a voltage damage budget and sees one measured event through Comlink', async ({
-  page,
-}) => {
-  await openCircuit(page, damageCircuit('device-voltage'));
-  await page.locator('[data-component-id="lamp"] [data-component-hitbox]').click();
-  let panel = await faultPanel(page);
-  await panel.getByLabel('Damage stress budget', { exact: true }).fill('3000');
-  await panel.getByRole('button', { name: 'Apply damage model' }).click();
-  await run(page);
-  await expect
-    .poll(
-      async () =>
-        (await runtime(page)).components.find((c: { id: string }) => c.id === 'lamp')?.state
-          .isBlown,
-      { timeout: 20000 },
-    )
-    .toBe(true);
-  panel = await faultPanel(page);
-  await expect(panel.getByLabel('Damage model and readings')).toContainText(
-    'Open — replacement required.',
-  );
-  const state = await runtime(page);
-  const history = state.history.filter(
-    (e: { eventType: string }) => e.eventType === 'component_blown',
-  );
-  expect(history).toHaveLength(1);
-  expect(history[0].details.voltage).toBeGreaterThan(229);
-  expect(history[0].details.voltage).toBeLessThan(230);
-  expect(history[0].details.modelVersion).toBe(ELECTRICAL_MODEL_VERSION);
-  expect(state.worker).toBe(true);
-  await page.getByRole('button', { name: 'Stop', exact: true }).click();
-  await panel.getByRole('button', { name: 'Replace all damaged items' }).click();
-  await expect
-    .poll(
-      async () =>
-        (await runtime(page)).components.find((c: { id: string }) => c.id === 'lamp')?.state
-          .isBlown,
-    )
-    .toBe(false);
-  expect(
-    (await runtime(page)).components.find((c: { id: string }) => c.id === 'lamp')?.state.damageModel
-      .withstandVoltSquaredSeconds,
-  ).toBe(3000);
-});
+for (const loadType of ['space-heater', 'bulb'])
+  test(`guest ${loadType} voltage damage uses one measured event and explicit replacement`, async ({
+    page,
+  }) => {
+    // Import, Fault Lab editing, Run and replacement are separate native flows.
+    // Keep the damage-event polling deadline unchanged on slower WebKit hosts.
+    test.setTimeout(60_000);
+    const circuit = damageCircuit('device-voltage');
+    circuit.components[2]!.type = loadType;
+    if (loadType === 'bulb') circuit.components[2]!.state.customPowerWatts = 9;
+    await openCircuit(page, circuit);
+    await page.locator('[data-component-id="lamp"] [data-component-hitbox]').click();
+    let panel = await faultPanel(page);
+    await panel.getByLabel('Damage stress budget', { exact: true }).fill('3000');
+    await panel.getByRole('button', { name: 'Apply damage model' }).click();
+    await run(page);
+    await expect
+      .poll(
+        async () =>
+          (await runtime(page)).components.find((c: { id: string }) => c.id === 'lamp')?.state
+            .isBlown,
+        { timeout: 20000 },
+      )
+      .toBe(true);
+    panel = await faultPanel(page);
+    await expect(panel.getByLabel('Damage model and readings')).toContainText(
+      'Open — replacement required.',
+    );
+    const state = await runtime(page);
+    const history = state.history.filter(
+      (e: { eventType: string }) => e.eventType === 'component_blown',
+    );
+    expect(history).toHaveLength(1);
+    expect(history[0].details.voltage).toBeGreaterThan(229);
+    expect(history[0].details.voltage).toBeLessThan(230);
+    expect(history[0].details.modelVersion).toBe(ELECTRICAL_MODEL_VERSION);
+    expect(state.worker).toBe(true);
+    await page.getByRole('button', { name: 'Stop', exact: true }).click();
+    await panel.getByRole('button', { name: 'Replace all damaged items' }).click();
+    await expect
+      .poll(
+        async () =>
+          (await runtime(page)).components.find((c: { id: string }) => c.id === 'lamp')?.state
+            .isBlown,
+      )
+      .toBe(false);
+    expect(
+      (await runtime(page)).components.find((c: { id: string }) => c.id === 'lamp')?.state
+        .damageModel.withstandVoltSquaredSeconds,
+    ).toBe(3000);
+  });
 
 test('a timed short trips without destruction; clearing and resetting restores operation', async ({
   page,

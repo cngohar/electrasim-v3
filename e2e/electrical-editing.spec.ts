@@ -219,14 +219,16 @@ test('palette, command suggestions and placed components share compatibility wit
   await openCircuit(page, circuit);
   await activateControl(page, page.getByRole('button', { name: 'Browse all components' }));
   const palette = page.getByRole('dialog', { name: 'Component library' });
-  await expect(palette.locator('[data-palette-type="bulb"]')).toHaveCount(0);
+  await expect(
+    palette.locator('[data-palette-type="bulb"][data-compatibility="compatible"]').first(),
+  ).toBeVisible();
   await expect(palette.locator('[data-palette-type="dc-battery-12v"]')).toBeVisible();
   await expect(
     page.locator('[data-component-id="led"][data-compatibility="unassessed"]'),
   ).toBeVisible();
   await palette.getByLabel('Show all / fault exercise').check();
   await expect(
-    palette.locator('[data-palette-type="bulb"][data-compatibility="unassessed"]').first(),
+    palette.locator('[data-palette-type="bulb"][data-compatibility="compatible"]').first(),
   ).toBeVisible();
   await palette.getByLabel('Placement supply', { exact: true }).selectOption('independent');
   await expect(palette).toContainText('12 V AC 60 Hz');

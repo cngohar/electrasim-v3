@@ -263,7 +263,8 @@ export function assessCompiledCircuitReadiness(
         result,
       });
       for (const reason of result.reasons) {
-        if (reason.code !== 'nominal-voltage-mismatch') continue;
+        if (!['nominal-voltage-mismatch', 'undervoltage', 'overvoltage'].includes(reason.code))
+          continue;
         base.diagnostics.push({
           code: reason.code,
           severity: reason.severity,
@@ -289,7 +290,7 @@ export function assessCompiledCircuitReadiness(
   );
   const constraints = inspectVoltageConstraints(
     graph.sources
-      .filter((s) => activeSourceIds.has(s.id))
+      .filter((s) => activeSourceIds.has(s.id) && s.law !== 'photovoltaic')
       .map((s) => ({
         id: s.id,
         positive: netByTerminal.get(s.positive)!,

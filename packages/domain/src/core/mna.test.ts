@@ -272,7 +272,7 @@ describe('1.5C.1 unavailable results stay distinct from measurements', () => {
     expect(voltageBetween(result, 'missing', 'missing')).toBeUndefined();
   });
 
-  it.each(['relay-spst', 'solar-pv-panel', 'motor-3phase'])(
+  it.each(['relay-spst', 'motor-3phase'])(
     'never drops an unknown %s branch or substitutes resistance',
     (type) => {
       const circuit = seriesFixture();

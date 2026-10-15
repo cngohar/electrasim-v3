@@ -75,6 +75,15 @@ export function solveControlledOperatingPoint(
       .flatMap((d) => d.terminals),
   );
   if (
+    full.graph.branches.some(
+      (b) => b.profileLaw && (influenced.has(b.from) || influenced.has(b.to)),
+    )
+  )
+    return fail(
+      'dimmer-profile-unassessed',
+      'Electronic drivers, motor equivalents and nonlinear special profiles have no declared phase-cut dimmer compatibility. Use a switch or a separately accepted resistive dimming circuit.',
+    );
+  if (
     full.graph.sources.some(
       (source) =>
         source.model.kind !== 'ac-single-phase' &&

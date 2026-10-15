@@ -15,7 +15,7 @@ const angle = (value: Phasor | null | undefined) =>
 const box =
   'rounded-xl border border-slate-200 bg-slate-50/80 p-3 space-y-2 dark:border-slate-800 dark:bg-slate-950/60';
 const basis =
-  'Complex RMS readings; angles use this source system’s reference. Motor readings use the declared unity-PF equivalent. Reactive behavior, automatic trips, damage and repair assessment are unassessed.';
+  'Complex RMS readings; angles use this source system’s reference. Three-phase motors use their declared unity-PF equivalent; other loads use their saved profile. Shaft output, startup, automatic trips, damage and repair assessment are unassessed.';
 
 export function PhasorReadings({
   componentId,
@@ -32,6 +32,11 @@ export function PhasorReadings({
       data-phasor-readings={componentId}
     >
       <h3 className="font-semibold">Three-phase / phasor readings</h3>
+      {result.phasor?.status === 'converged' && result.phasor.profileStates?.[componentId] && (
+        <p data-profile-operating-state={result.phasor.profileStates[componentId]}>
+          Profile state: {result.phasor.profileStates[componentId]!.replaceAll('-', ' ')}.
+        </p>
+      )}
       <p>
         {result.phasor?.status === 'converged'
           ? 'Calculated · complex RMS'

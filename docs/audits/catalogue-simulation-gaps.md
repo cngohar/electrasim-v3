@@ -2,6 +2,12 @@
 
 Date: 2026-10-14. Local investigation of the reported 12 V L/N → 230 V, 9 W LED drawing. This audit separates missing calculation code from unknown ratings and from Fault Lab presentation.
 
+> Historical baseline and reporting-repair evidence. Phase 1.12 now implements
+> the 30 missing teaching laws and explicit motor setup; see the
+> [current implementation audit](phase-1-missing-component-calculation.md) and
+> [current 116-entry matrix](data/phase-1.12-catalogue.json). The observations below
+> describe the earlier checkpoint and are retained for comparison.
+
 ## Reproduction
 
 The reported drawing has a live terminal, a neutral terminal, a connected LED bulb and a 12 V AC document supply. Direct simulation returns `unsupported`, an empty error list, warnings about the missing load model, no load measurements and no energized lamp. At 230 V the same LED still returns `unsupported`. The source magnitude is applied correctly; the missing LED calculation is the cause of the unavailable response.

@@ -54,9 +54,9 @@ describe('guide progress (guided circuits, not challenges)', () => {
     expect(progress.currentObjectiveId).toBe('simulation');
   });
 
-  it('withholds completion when the legacy LED model remains unassessed', () => {
+  it('withholds completion when a three-phase motor still requires configuration', () => {
     const template = structuredClone(requireTemplate('simple-lamp'));
-    template.circuit.components.find((c) => c.type === 'bulb-incandescent')!.type = 'bulb';
+    template.circuit.components.find((c) => c.type === 'bulb-incandescent')!.type = 'motor-3phase';
     const circuit = cloneTemplateCircuit(template);
     const result = simulate(circuit);
 

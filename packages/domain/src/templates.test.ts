@@ -86,16 +86,19 @@ describe('guided circuit templates', () => {
     ]);
   });
 
-  it('preserves the doorbell drawing without inventing a sounder load law', () => {
+  it('calculates the declared doorbell load only when its momentary contact closes', () => {
     const circuit = cloneTemplateCircuit(requireTemplate('push-button-doorbell'));
     const button = requireComponent(circuit, 'push-button-doorbell-button');
     for (const on of [false, true]) {
       button.state.on = on;
       const result = simulate(circuit);
-      expect(result.electrical?.status).toBe('unsupported');
-      expect(result.energizedComponents.size).toBe(0);
-      expect(result.componentCalculations).toBeUndefined();
-      expect(result.faultsCleared).toBe(false);
+      expect(result.electrical?.status).toBe('converged');
+      expect(result.energizedComponents.has('push-button-doorbell-bell')).toBe(on);
+      expect(result.componentCalculations!['push-button-doorbell-bell']!.powerWatts).toBeCloseTo(
+        on ? 15 : 0,
+        8,
+      );
+      expect(result.electrical?.assessment).toBe('not-assessed');
     }
   });
 
@@ -321,21 +324,20 @@ describe('guided circuit templates', () => {
     const result = simulate(circuit);
 
     expect(result.energizedComponents.has('pro-solar-dc-system-led')).toBe(false);
-    expect(result.modelLimitations?.some((l) => l.code === 'device-model' && l.blocking)).toBe(
-      true,
-    );
+    expect(result.modelLimitations?.some((l) => l.blocking)).toBe(true);
     expect(result.electrical?.status).toBe('unsupported');
     expect(result.componentCalculations).toBeUndefined();
     expect(circuit.globalVoltage).toBe(12);
   });
 
-  it('withholds generator-backup operation for undeclared emergency-light and siren models', () => {
+  it('calculates generator-backup emergency-light and siren electrical input without asserting safety', () => {
     const circuit = cloneTemplateCircuit(requireTemplate('pro-generator-backup'));
     const result = simulate(circuit);
-    expect(result.electrical?.status).toBe('unsupported');
-    expect(result.energizedComponents.size).toBe(0);
-    expect(result.componentCalculations).toBeUndefined();
-    expect(result.faultsCleared).toBe(false);
+    expect(result.electrical?.status).toBe('converged');
+    expect(
+      Object.values(result.componentCalculations ?? {}).some((p) => (p.powerWatts ?? 0) > 0),
+    ).toBe(true);
+    expect(result.electrical?.assessment).toBe('not-assessed');
   });
 
   it('assesses supported Pro guides and explicitly guards the unsupported solar drawing', () => {

@@ -7,6 +7,7 @@ import type {
   InstallationMethod,
   PortRef,
 } from '../types';
+import type { DeviceProfile, ProfileBranchLaw } from './catalogueProfiles';
 import type { CoilModel } from './coilModel';
 import type { DamageModel, DamageTarget } from './damageModel';
 import type { FaultCurrentMeasurement, ProtectiveCurrentMeasurement } from './earthing';
@@ -21,7 +22,7 @@ import type { CircuitReadiness } from './readiness';
 import type { TimerModel } from './timerModel';
 
 export const ELECTRICAL_CONTRACT_VERSION = 1 as const;
-export const ELECTRICAL_MODEL_VERSION = '1.5e.2.1' as const;
+export const ELECTRICAL_MODEL_VERSION = '1.12.1.0' as const;
 export type CoverageStatus = 'supported' | 'estimated' | 'not-assessed';
 
 export interface ElectricalDiagnostic {
@@ -67,6 +68,7 @@ export interface ContactPole {
 
 /** Catalogue contracts. They are not persisted fields or measured values. */
 export type ElectricalDeviceModel =
+  | { kind: 'profile-device'; ports: readonly number[]; profile: DeviceProfile }
   | {
       kind: 'source';
       ports: PortPair;
@@ -134,7 +136,7 @@ export type ElectricalDeviceModel =
       secondary: PortPair;
       primaryVoltage: number;
       secondaryVoltage: number;
-      isolation: 'isolated';
+      isolation: 'isolated' | 'shared-common';
       approximation: string;
     }
   | { kind: 'unassessed'; reason: string };
@@ -165,6 +167,7 @@ export interface ElectricalTerminal {
 }
 
 export interface ElectricalBranch {
+  profileLaw?: ProfileBranchLaw;
   id: string;
   kind:
     | 'wire'
@@ -189,6 +192,7 @@ export interface ElectricalBranch {
 }
 
 export interface CompiledSource {
+  law?: 'photovoltaic';
   id: string;
   componentIds: string[];
   positive: string;
@@ -414,6 +418,24 @@ export interface ControlOperatingPoint {
 }
 
 export interface ElectricalSimulationResult {
+  /** Accepted complex RMS quantities for profile circuits. Scalar magnitudes
+   * are for display and must not be summed to evaluate KCL or residual current. */
+  phasors?: {
+    terminalVoltages: Record<string, { real: number; imaginary: number }>;
+    branchVoltages: Record<string, { real: number; imaginary: number }>;
+    branchCurrents: Record<string, { real: number; imaginary: number }>;
+  };
+  profileStates?: Record<
+    string,
+    | 'on'
+    | 'undervoltage-off'
+    | 'overvoltage-off'
+    | 'outside-running-band'
+    | 'standby'
+    | 'off'
+    | 'disconnected'
+    | 'running-equivalent'
+  >;
   controls?: ControlOperatingPoint[];
   timers?: TimerOperatingPoint[];
   protection?: ProtectionOperatingPoint[];
@@ -463,7 +485,7 @@ export interface ElectricalReference {
   /** Shared equations do not make these galvanic domains share a voltage gauge. */
   couplingGroupId: string;
   sourceIds: string[];
-  voltageConvention: 'dc' | 'signed-rms' | 'passive-relative';
+  voltageConvention: 'dc' | 'signed-rms' | 'passive-relative' | 'complex-rms';
   frequencyHz?: number;
 }
 
@@ -474,7 +496,7 @@ export interface TransformerMeasurement {
   secondaryBranchId: string;
   primaryDomainId: string;
   secondaryDomainId: string;
-  connection: 'galvanically-isolated' | 'externally-connected';
+  connection: 'galvanically-isolated' | 'externally-connected' | 'shared-common';
   /** Signed into the first terminal of each winding; passive power convention. */
   primaryVoltageVolts: number;
   secondaryVoltageVolts: number;
@@ -484,7 +506,7 @@ export interface TransformerMeasurement {
   secondaryPowerWatts: number;
   sourceIds: string[];
   frequencyHz: number | null;
-  model: 'ideal-isolated-ac';
+  model: 'ideal-isolated-ac' | 'ideal-shared-common-ac';
   lossesAndSaturation: 'not-assessed';
 }
 
