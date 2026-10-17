@@ -20,6 +20,7 @@ import type {
   ValidationIssue,
   ValidationReport,
 } from '@electrasim/domain/circuitValidation';
+import type { NotificationInput, NotificationState } from './notifications';
 
 export interface RerouteState {
   wireId: string;
@@ -128,7 +129,7 @@ export interface EventHistoryEntry {
   };
 }
 
-export interface UiState {
+export interface UiState extends NotificationState {
   simRunning: boolean;
   diagnosticRun: boolean;
   startDiagnosticRun: () => void;
@@ -290,6 +291,9 @@ export interface UiState {
   setWhatHappenedOpen: (open: boolean) => void;
   clearFaultAlert: () => void;
   addLog: (message: string, type: LogLevel, target?: FaultTarget) => void;
+  notify: (event: NotificationInput) => number;
+  dismissNotification: (id: number) => void;
+  pauseNotification: (id: number, reason: 'hover' | 'focus', paused: boolean) => void;
   clearLogs: () => void;
   /** Add an event to the event history */
   addEventHistory: (entry: Omit<EventHistoryEntry, 'id' | 'timestamp'>) => void;

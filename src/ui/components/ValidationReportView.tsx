@@ -17,6 +17,39 @@ import { useState } from 'react';
 import { useCircuitStore, useSettingsStore } from '../../store';
 import { useUiStore } from '../../store/uiStore';
 
+import { validationSections } from './validationPresentation';
+
+function CircuitCheckSummary({ report }: { report: ValidationReport }) {
+  return (
+    <section className="circuit-check-summary" aria-label="Circuit checks assessment">
+      <h3>Circuit checks</h3>
+      <p>Counts describe recorded checks and findings. Pending items need further assessment.</p>
+      <div>
+        {validationSections(report).map((section) => (
+          <section key={section.id} data-check-section={section.id}>
+            <h4>{section.label}</h4>
+            <p>{section.note}</p>
+            <dl>
+              <div>
+                <dt>Checked</dt>
+                <dd>{section.checked}</dd>
+              </div>
+              <div>
+                <dt>Pending</dt>
+                <dd>{section.pending}</dd>
+              </div>
+              <div>
+                <dt>Needs attention</dt>
+                <dd>{section.attention}</dd>
+              </div>
+            </dl>
+          </section>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 interface Props {
   report: ValidationReport | null;
   onRunValidation: () => void;
@@ -81,6 +114,7 @@ export function ValidationReportView({ report, onRunValidation }: Props) {
   if (report.isEmpty) {
     return (
       <div className="flex flex-col items-center justify-center p-6 text-center my-auto">
+        <CircuitCheckSummary report={report} />
         <div className="mb-3 flex size-12 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 shadow-inner">
           <ShieldCheck className="size-6" />
         </div>
@@ -98,6 +132,7 @@ export function ValidationReportView({ report, onRunValidation }: Props) {
     const mainIssue = report.issues[0];
     return (
       <div className="flex flex-col gap-3 p-3.5 text-xs">
+        <CircuitCheckSummary report={report} />
         <div className="rounded-xl border border-amber-200 bg-amber-50/70 dark:border-amber-900/60 dark:bg-amber-950/40 p-4 text-amber-900 dark:text-amber-200 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -162,21 +197,21 @@ export function ValidationReportView({ report, onRunValidation }: Props) {
   }
 
   // CASE 4: Complete Circuit - Show Full Compliance Report
-  const { score, status, summary, issues, passedChecks } = report;
+  const { status, summary, issues, passedChecks } = report;
 
   const scoreColor =
-    score >= 90
+    status === 'pass'
       ? 'text-emerald-600 dark:text-emerald-400 border-emerald-200 bg-emerald-50 dark:bg-emerald-950/40 dark:border-emerald-800'
-      : score >= 60
+      : status === 'warning'
         ? 'text-amber-600 dark:text-amber-400 border-amber-200 bg-amber-50 dark:bg-amber-950/40 dark:border-amber-800'
         : 'text-red-600 dark:text-red-400 border-red-200 bg-red-50 dark:bg-red-950/40 dark:border-red-800';
 
   const statusText =
     status === 'pass'
-      ? 'Circuit Compliant & Safe'
+      ? 'No findings in the checks performed'
       : status === 'warning'
-        ? 'Minor Design Warnings'
-        : 'Critical Design Flaws';
+        ? 'Review recorded findings and limitations'
+        : 'Recorded checks need attention';
 
   const filteredIssues =
     selectedCategory === 'all' ? issues : issues.filter((i) => i.severity === selectedCategory);
@@ -287,10 +322,9 @@ export function ValidationReportView({ report, onRunValidation }: Props) {
       <div className={`rounded-xl border p-3.5 shadow-sm transition ${scoreColor}`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="text-2xl font-black tracking-tight">{score}%</div>
             <div>
               <div className="text-[10px] font-bold uppercase tracking-wider opacity-80">
-                Compliance Score
+                Limited assessment
               </div>
               <div className="text-xs font-bold leading-tight">{statusText}</div>
             </div>
@@ -341,6 +375,7 @@ export function ValidationReportView({ report, onRunValidation }: Props) {
         </div>
       </div>
 
+      <CircuitCheckSummary report={report} />
       {/* Issues Section */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between text-[11px] font-bold text-slate-700 dark:text-slate-300">
@@ -372,7 +407,7 @@ export function ValidationReportView({ report, onRunValidation }: Props) {
 
         {filteredIssues.length === 0 ? (
           <div className="rounded-xl border border-dashed border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/50 dark:bg-emerald-950/20 p-4 text-center text-emerald-700 dark:text-emerald-400 font-semibold">
-            ✓ No design issues found! Circuit is compliant.
+            No findings in this view. Installation compliance and physical safety remain unassessed.
           </div>
         ) : (
           filteredIssues.map((issue, idx) => {

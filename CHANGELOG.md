@@ -9,6 +9,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 
 ### Added
 
+- Phase 1.13 completes UI clarity and Fault Lab reliability: all 14 fault markers
+  follow movement and rotation, wire cuts follow displayed paths, and fault
+  application, capture, repair and duplicate feedback remain explicit. Adds shared
+  notifications/Console, truthful validation and readiness, Circuit controls,
+  resolved wire settings, instance-aware Specs and 116 reference dispositions.
+  Local functional evidence: 2,224 units, 897 runtime cases, 34 API groups,
+  246 unique source, 76 built and 10 built-shell cases with documented recovery.
+  Dense zoom and historical solver/generator limitations remain open. The user
+  separately authorized this GitHub checkpoint after local acceptance; deployment
+  is excluded. [Evidence](docs/audits/phase-1-ui-fault-lab.md).
+
 - Phase 1.12 implements all 30 missing catalogue teaching models: regulated lamps,
   complex motor equivalents, appliance/sounder/alarm modes, PV I-V, shared-common
   autotransformer, SPD shunts and explicit-temperature NTC. Adds strict versioned

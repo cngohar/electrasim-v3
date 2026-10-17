@@ -84,6 +84,7 @@ const ValidationDetailsModal = lazy(() =>
 import type { PendingDeletion } from '../store/uiStore';
 import { cancelPendingDeletion, confirmPendingDeletion } from './canvas-actions';
 import { ZoomControls } from './components/CanvasToolbar';
+import { CircuitControls } from './components/CircuitControls';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import { ContextMenu } from './components/ContextMenu';
 import { Inspector } from './components/Inspector';
@@ -93,7 +94,6 @@ import { MenuOverlay } from './components/MenuOverlay';
 import { MiniMap } from './components/MiniMap';
 import { Palette } from './components/Palette';
 import { StatusPill } from './components/StatusPill';
-import { SubHeaderBar } from './components/SubHeaderBar';
 import { Toolbar } from './components/Toolbar';
 import { UndoToast } from './components/UndoToast';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
@@ -335,7 +335,7 @@ export function Editor() {
         dashboardOpen={dashboardOpen}
         onToggleDashboard={() => setDashboardOpen(!dashboardOpen)}
       />
-      <SubHeaderBar />
+      <CircuitControls />
       <ZoomControls />
       <Palette open={paletteOpen} isPhone={isPhone} />
       <Inspector

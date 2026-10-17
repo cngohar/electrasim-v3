@@ -81,15 +81,16 @@ describe('faultFx model', () => {
     ).toEqual([]);
   });
 
-  it('open-circuit on a component severs every attached wire', () => {
+  it('open-circuit on a component opens its internal path without severing cables', () => {
     const f = buildFixture();
     f.bulb.state.fault = 'open-circuit';
     const items = collectFaultFx({ components: f.components, wires: f.wires }, byId(f.components));
     expect(items).toHaveLength(1);
     expect(items[0]!.indicator).toBe('sever');
     expect(items[0]!.componentId).toBe('b1');
-    expect(new Set(items[0]!.severWireIds)).toEqual(new Set(['w2', 'w3']));
-    expect(severedWireIdSet(items)).toEqual(new Set(['w2', 'w3']));
+    expect(items[0]!.internalOpen).toBe(true);
+    expect(items[0]!.severWireIds).toEqual([]);
+    expect(severedWireIdSet(items).size).toBe(0);
   });
 
   it('open-neutral severs only the neutral run, leaving live connected', () => {

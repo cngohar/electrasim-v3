@@ -108,28 +108,21 @@ export const LOAD_AND_SUPPLY_HELP: Record<string, ComponentHelpData> = {
     ],
   },
   'water-heater': {
-    title: 'Storage Water Heater / Immersion Element (3kW)',
+    title: 'Water Heater · catalogue teaching reference',
     category: 'load',
-    voltage: '230V AC Single-Phase',
-    amperage: '13.0A continuous',
-    powerWatts: 3000,
-    frequency: '50Hz',
-    ipRating: 'IPX4 (Splash-proof immersion head)',
-    cableSize: '2.5mm² heat-resistant flexible cable',
-    poles: 'Live, Neutral, Earth',
-    standards: 'BS EN 60335-2-21 / BS 7671',
+    powerWatts: 2000,
+    standards: 'Product certification and installation suitability are not declared.',
     overview:
-      'Heavy-duty electric immersion heating element sealed inside a domestic or commercial hot water storage cylinder, regulated by an adjustable dual-safety rod thermostat.',
+      'A water-heating resistive load. The catalogue default nominal consumption is 2000 W.',
     circuitBehavior:
-      'Draws continuous 13.0A resistive load (Power Factor = 1.00). High thermal energy transfers directly into water until target temperature (60°C–65°C) is reached.',
+      'Uses the declared resistive teaching law. Water temperature, thermostat cycling and physical thermal cut-outs are not inferred.',
     keySpecs: [
-      'Power: 3,000W (3.0kW)',
-      'Current: 13.0A at 230V AC',
-      'Thermostat: Dual-pole temperature regulator + manual reset safety thermal cut-out (95°C)',
+      'Default nominal consumption: 2000 W. Selected-instance overrides appear in Declared model specifications.',
+      'Contact capacity and consumption are separate declarations.',
     ],
     quickTips: [
-      'Must be wired on a dedicated radial circuit protected by a 16A or 20A MCB.',
-      'Must have a dedicated 20A Double Pole isolator switch with neon indicator located nearby.',
+      'Review supply, conductor and protection findings independently.',
+      'Use actual product documentation for installation and protection selection.',
     ],
   },
 
@@ -162,28 +155,20 @@ export const LOAD_AND_SUPPLY_HELP: Record<string, ComponentHelpData> = {
   },
 
   motor: {
-    title: 'Single-Phase AC Induction Motor (1.5kW / 2HP)',
+    title: 'Motor · catalogue teaching reference',
     category: 'motor',
-    voltage: '230V AC (50Hz)',
-    amperage: '8.5A Full Load Current (FLA) / 45A Starting Inrush',
-    powerWatts: 1500,
-    frequency: '50Hz',
-    ipRating: 'IP55 (Dust & water jet protected)',
-    cableSize: '2.5mm² – 4.0mm²',
-    poles: 'Live, Neutral, Earth + Start Capacitor',
-    standards: 'BS EN 60034-1 / IEC 60034',
-    overview:
-      'Single-phase capacitor-start capacitor-run asynchronous squirrel-cage induction motor engineered for workshops, compressors, conveyor belts, and ventilation machinery.',
+    powerWatts: 750,
+    standards: 'Product certification and installation suitability are not declared.',
+    overview: 'A motor load with a 750 W catalogue nominal consumption reference.',
     circuitBehavior:
-      'Draws 5 to 7 times full-load current upon startup until centrifugal switch disengages the start capacitor. Operates with an inductive lagging power factor (~0.82).',
+      'The motor teaching model and its setup determine the supported operating point. Starting current, torque and speed are not inferred from the catalogue power label.',
     keySpecs: [
-      'Rated Output: 1.5kW (2.0 Horsepower)',
-      'Speed: 2850 RPM (2-Pole) / 1425 RPM (4-Pole)',
-      'Starting Torque: 220% full load torque',
+      'Default nominal consumption: 750 W. Selected-instance overrides appear in Declared model specifications.',
+      'Complete supported motor settings for the required calculation; review model approximation limits.',
     ],
     quickTips: [
-      'Protect with a Type C MCB to absorb motor starting inrush surges without tripping.',
-      'Fit an adjustable thermal overload relay matched to motor nameplate full load current.',
+      'Keep coil, contact and motor ratings separate.',
+      'Use the real motor nameplate for equipment selection.',
     ],
   },
 

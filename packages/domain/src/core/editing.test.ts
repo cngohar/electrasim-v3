@@ -208,6 +208,7 @@ describe('one placement and runtime readiness contract', () => {
       'underpowered',
     );
     expect(assessPlacement('mcb', c, dc).status).toBe('unassessed');
+    expect(placementVisible(assessPlacement('mcb', c, dc), false)).toBe(true);
   });
 
   it('detects contradictory ideal constraints but allows finite-impedance fault experiments', () => {

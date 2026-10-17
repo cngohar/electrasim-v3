@@ -1,3 +1,4 @@
+import { assessmentPresentation } from '@electrasim/domain/core/readinessPresentation';
 import { useElectricalEditing } from '../../store/electricalEditing';
 import { usePlacementGuidance } from '../hooks/usePlacementGuidance';
 import { PlacementSupplyFilter } from './PlacementSupplyFilter';
@@ -338,6 +339,11 @@ export function Palette({ open, isPhone }: Props) {
     >
       <ComponentPreview type={entry.type} label={entry.label} />
       <span>{entry.label}</span>
+      {guidance.results[entry.type]?.status !== 'compatible' && guidance.results[entry.type] && (
+        <small className="table-assessment-label">
+          {assessmentPresentation(guidance.results[entry.type]!).label}
+        </small>
+      )}
       {entry.tier === 'pro' && <small>Pro</small>}
     </button>
   );
@@ -404,7 +410,7 @@ export function Palette({ open, isPhone }: Props) {
                 className="table-hidden-parts"
                 onClick={() => useElectricalEditing.setState({ showAll: true })}
               >
-                Show all parts<small>Review unassessed ratings</small>
+                Show all parts<small>Include supply mismatches</small>
               </button>
             )}
             {!shelfEntries.length && (

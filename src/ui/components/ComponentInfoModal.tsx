@@ -1,5 +1,6 @@
 import { COMPONENT_DEFS } from '@electrasim/domain';
 import { getComponentHelp } from '@electrasim/domain/componentHelp';
+import { componentReference } from '@electrasim/domain/core/componentReference';
 import {
   Activity,
   AlertTriangle,
@@ -9,22 +10,23 @@ import {
   Check,
   CheckCircle2,
   Copy,
-  Cpu,
   FileText,
   Info,
   Layers,
   MapPin,
-  Shield,
   Sparkles,
   X,
   Zap,
 } from 'lucide-react';
 import { type FC, useEffect, useState } from 'react';
+import { useCircuitStore } from '../../store/circuitStore';
 import { useUiStore } from '../../store/uiStore';
+import { ComponentSpecs } from './ComponentSpecs';
 import { Modal } from './Modal';
 import { getComponentImage } from './componentImages';
 
 export const ComponentInfoModal: FC = () => {
+  const circuit = useCircuitStore((s) => s);
   const activeType = useUiStore((s) => s.activeComponentInfoType);
   const setActiveType = useUiStore((s) => s.setActiveComponentInfoType);
 
@@ -41,56 +43,33 @@ export const ComponentInfoModal: FC = () => {
   const def = COMPONENT_DEFS[currentType];
   const imageUrl = getComponentImage(currentType, data.category);
 
-  // Derived or explicit terminal pinouts
+  // Canonical ports own identity; authored notes may describe that same label.
   const terminalPinouts =
-    data.terminalPinout ??
-    def?.ports.map((p, idx) => ({
-      terminal: p.label || `Terminal ${idx + 1}`,
-      role: p.type,
+    def?.ports.map((port, index) => ({
+      terminal: port.label || `Terminal ${index + 1}`,
+      role: port.type,
       description:
-        p.type === 'live'
-          ? 'Phase / Line conductor connection'
-          : p.type === 'neutral'
-            ? 'Neutral return path connection'
-            : p.type === 'earth'
-              ? 'Protective Earth / CPC safety bonding'
-              : 'Switched line / control connection',
-    })) ??
-    [];
+        data.terminalPinout?.find((item) => item.terminal === port.label)?.description ??
+        `${port.type} terminal in the declared catalogue model.`,
+    })) ?? [];
 
-  // Real-world regulation clauses (with generic BS 7671 fallback if not explicitly authored)
-  const regulationClauses = data.regulationClauses ?? [
-    {
-      standard: 'BS 7671:2018+A3:2024 / IEC 60364',
-      clause: 'Chapter 13 & Part 4',
-      title: 'Fundamental Protection Principles',
-      requirement:
-        'All conductors and electrical equipment must be coordinated so that Ib ≤ In ≤ Iz, preventing thermal overload of cables.',
-    },
-    {
-      standard: 'BS 7671 Reg 411.3.2',
-      clause: 'Regulation 411.3.2.2',
-      title: 'Automatic Disconnection of Supply (ADS)',
-      requirement:
-        'Final circuits not exceeding 63A must disconnect automatically within 0.4 seconds on TN systems in the event of an earth fault.',
-    },
-  ];
+  const regulationClauses = data.regulationClauses ?? [];
+  const selected = circuit.components.find(
+    (component) => component.id === circuit.selectedComponentId && component.type === currentType,
+  );
+  const reference = componentReference(currentType, selected, circuit);
 
   const handleCopySpecs = () => {
     const text = [
-      `Component: ${data.title} (${currentType})`,
-      `Category: ${data.category}`,
-      data.voltage ? `Voltage: ${data.voltage}` : null,
-      data.amperage ? `Current: ${data.amperage}` : null,
-      data.powerWatts !== undefined ? `Power: ${data.powerWatts}W` : null,
-      data.breakingCapacity ? `Breaking Capacity: ${data.breakingCapacity}` : null,
-      data.tripCurve ? `Trip Curve: ${data.tripCurve}` : null,
-      data.cableSize ? `Min Cable Size: ${data.cableSize}` : null,
-      data.standards ? `Standards: ${data.standards}` : null,
-      `Overview: ${data.overview}`,
-    ]
-      .filter(Boolean)
-      .join('\n');
+      `Component: ${reference.title} (${currentType})`,
+      `${reference.scope} · ${reference.family}`,
+      ...reference.groups.flatMap((group) => [
+        `${group.role}: ${group.terminals.join(' / ')}`,
+        ...group.rows.map((row) => `${row.label}: ${row.value} [${row.provenance}] ${row.basis}`),
+        `Model: ${group.law}. ${group.limitation}`,
+      ]),
+      reference.missingMetadata,
+    ].join('\n');
 
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
@@ -199,12 +178,16 @@ export const ComponentInfoModal: FC = () => {
             }`}
           >
             <Award className="w-3.5 h-3.5" />
-            Standards & Safety Tips
+            Reference standards & tips
           </button>
         </div>
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6 custom-scrollbar">
+          <p className="text-xs">
+            Reference guidance describes representative equipment. It does not add ratings,
+            automatic behavior or certification to the selected teaching model.
+          </p>
           {activeTab === 'overview' && (
             <>
               {/* Main Visual & Overview */}
@@ -219,7 +202,7 @@ export const ComponentInfoModal: FC = () => {
                   />
                   <span className="mt-2.5 text-[11px] text-slate-500 font-medium flex items-center gap-1.5 dark:text-slate-400">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                    Physical Component Model
+                    Representative photo
                   </span>
                 </div>
 
@@ -236,8 +219,8 @@ export const ComponentInfoModal: FC = () => {
                   {data.circuitBehavior && (
                     <div className="space-y-1.5">
                       <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 flex items-center gap-1.5 dark:text-slate-400">
-                        <Activity className="w-3.5 h-3.5 text-emerald-400" /> Circuit & Simulation
-                        Behavior
+                        <Activity className="w-3.5 h-3.5 text-emerald-400" /> Reference behavior ·
+                        model limits below
                       </h4>
                       <p className="text-xs text-slate-700 leading-relaxed bg-slate-50 p-3.5 rounded-xl border border-slate-200 dark:text-slate-300 dark:bg-slate-800/40 dark:border-slate-800">
                         {data.circuitBehavior}
@@ -247,128 +230,7 @@ export const ComponentInfoModal: FC = () => {
                 </div>
               </div>
 
-              {/* Technical Specifications Matrix */}
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-sky-400 mb-3 flex items-center gap-1.5">
-                  <Activity className="w-4 h-4" /> Technical Electrical Specifications
-                </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
-                  {data.voltage && (
-                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-slate-300 transition-colors dark:bg-slate-800/60 dark:border-slate-700/60 dark:hover:border-slate-600">
-                      <div className="text-[10px] uppercase font-semibold text-slate-500 flex items-center gap-1 dark:text-slate-400">
-                        <Zap className="w-3 h-3 text-amber-400" /> Voltage
-                      </div>
-                      <div className="text-xs font-bold text-slate-900 mt-1 font-mono dark:text-slate-100">
-                        {data.voltage}
-                      </div>
-                    </div>
-                  )}
-
-                  {data.amperage && (
-                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-slate-300 transition-colors dark:bg-slate-800/60 dark:border-slate-700/60 dark:hover:border-slate-600">
-                      <div className="text-[10px] uppercase font-semibold text-slate-500 flex items-center gap-1 dark:text-slate-400">
-                        <Activity className="w-3 h-3 text-sky-400" /> Current / Amps
-                      </div>
-                      <div className="text-xs font-bold text-slate-900 mt-1 font-mono dark:text-slate-100">
-                        {data.amperage}
-                      </div>
-                    </div>
-                  )}
-
-                  {data.powerWatts !== undefined && (
-                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-slate-300 transition-colors dark:bg-slate-800/60 dark:border-slate-700/60 dark:hover:border-slate-600">
-                      <div className="text-[10px] uppercase font-semibold text-slate-500 flex items-center gap-1 dark:text-slate-400">
-                        <Zap className="w-3 h-3 text-emerald-400" /> Power Rating
-                      </div>
-                      <div className="text-xs font-bold text-slate-900 mt-1 font-mono dark:text-slate-100">
-                        {typeof data.powerWatts === 'number'
-                          ? `${data.powerWatts}W`
-                          : data.powerWatts}
-                      </div>
-                    </div>
-                  )}
-
-                  {data.breakingCapacity && (
-                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-slate-300 transition-colors dark:bg-slate-800/60 dark:border-slate-700/60 dark:hover:border-slate-600">
-                      <div className="text-[10px] uppercase font-semibold text-slate-500 flex items-center gap-1 dark:text-slate-400">
-                        <Shield className="w-3 h-3 text-rose-400" /> Breaking Cap.
-                      </div>
-                      <div className="text-xs font-bold text-slate-900 mt-1 font-mono dark:text-slate-100">
-                        {data.breakingCapacity}
-                      </div>
-                    </div>
-                  )}
-
-                  {data.tripCurve && (
-                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-slate-300 transition-colors dark:bg-slate-800/60 dark:border-slate-700/60 dark:hover:border-slate-600">
-                      <div className="text-[10px] uppercase font-semibold text-slate-500 flex items-center gap-1 dark:text-slate-400">
-                        <Layers className="w-3 h-3 text-purple-400" /> Trip Curve
-                      </div>
-                      <div className="text-xs font-bold text-slate-900 mt-1 font-mono dark:text-slate-100">
-                        {data.tripCurve}
-                      </div>
-                    </div>
-                  )}
-
-                  {data.frequency && (
-                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-slate-300 transition-colors dark:bg-slate-800/60 dark:border-slate-700/60 dark:hover:border-slate-600">
-                      <div className="text-[10px] uppercase font-semibold text-slate-500 flex items-center gap-1 dark:text-slate-400">
-                        <Activity className="w-3 h-3 text-indigo-400" /> Frequency
-                      </div>
-                      <div className="text-xs font-bold text-slate-900 mt-1 font-mono dark:text-slate-100">
-                        {data.frequency}
-                      </div>
-                    </div>
-                  )}
-
-                  {data.ipRating && (
-                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-slate-300 transition-colors dark:bg-slate-800/60 dark:border-slate-700/60 dark:hover:border-slate-600">
-                      <div className="text-[10px] uppercase font-semibold text-slate-500 flex items-center gap-1 dark:text-slate-400">
-                        <Shield className="w-3 h-3 text-cyan-400" /> IP Rating
-                      </div>
-                      <div className="text-xs font-bold text-slate-900 mt-1 font-mono dark:text-slate-100">
-                        {data.ipRating}
-                      </div>
-                    </div>
-                  )}
-
-                  {data.cableSize && (
-                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-slate-300 transition-colors dark:bg-slate-800/60 dark:border-slate-700/60 dark:hover:border-slate-600">
-                      <div className="text-[10px] uppercase font-semibold text-slate-500 flex items-center gap-1 dark:text-slate-400">
-                        <Cable className="w-3 h-3 text-orange-400" /> Cable Size
-                      </div>
-                      <div className="text-xs font-bold text-slate-900 mt-1 font-mono dark:text-slate-100">
-                        {data.cableSize}
-                      </div>
-                    </div>
-                  )}
-
-                  {data.poles && (
-                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-slate-300 transition-colors dark:bg-slate-800/60 dark:border-slate-700/60 dark:hover:border-slate-600">
-                      <div className="text-[10px] uppercase font-semibold text-slate-500 flex items-center gap-1 dark:text-slate-400">
-                        <Cpu className="w-3 h-3 text-amber-400" /> Poles / Config
-                      </div>
-                      <div className="text-xs font-bold text-slate-900 mt-1 font-mono dark:text-slate-100">
-                        {data.poles}
-                      </div>
-                    </div>
-                  )}
-
-                  {data.standards && (
-                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-slate-300 transition-colors dark:bg-slate-800/60 dark:border-slate-700/60 dark:hover:border-slate-600">
-                      <div className="text-[10px] uppercase font-semibold text-slate-500 flex items-center gap-1 dark:text-slate-400">
-                        <Award className="w-3 h-3 text-yellow-400" /> Standards
-                      </div>
-                      <div
-                        className="text-xs font-bold text-slate-100 mt-1 font-mono truncate"
-                        title={data.standards}
-                      >
-                        {data.standards}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
+              <ComponentSpecs type={currentType} component={selected} circuit={circuit} />
 
               {/* Real-World Applications */}
               {data.realWorldApplications && data.realWorldApplications.length > 0 && (
@@ -469,7 +331,7 @@ export const ComponentInfoModal: FC = () => {
                       Recommended Conductor
                     </span>
                     <span className="font-mono text-emerald-700 dark:text-emerald-300">
-                      {data.cableSize || '1.5 mm² - 2.5 mm² Copper'}
+                      {data.cableSize || 'Not declared · review actual installation data'}
                     </span>
                   </div>
                   <div className="p-3 bg-white border border-slate-200 rounded-lg dark:bg-slate-900/60 dark:border-slate-800">
@@ -477,7 +339,8 @@ export const ComponentInfoModal: FC = () => {
                       Protection Curve & Poles
                     </span>
                     <span className="font-mono text-sky-700 dark:text-sky-300">
-                      {data.tripCurve || 'Standard'} ({data.poles || '1P / Single'})
+                      {data.tripCurve || 'Curve not declared'} ·{' '}
+                      {data.poles || 'Configuration: see canonical terminals'}
                     </span>
                   </div>
                 </div>
@@ -486,7 +349,7 @@ export const ComponentInfoModal: FC = () => {
               {data.keySpecs && data.keySpecs.length > 0 && (
                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl dark:bg-slate-800/40 dark:border-slate-800">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2.5 flex items-center gap-2 dark:text-slate-300">
-                    <Sparkles className="w-4 h-4 text-sky-400" /> Technical Characteristics
+                    <Sparkles className="w-4 h-4 text-sky-400" /> Reference equipment notes
                   </h4>
                   <ul className="space-y-2">
                     {data.keySpecs.map((spec, idx) => (
@@ -510,8 +373,7 @@ export const ComponentInfoModal: FC = () => {
               {regulationClauses.length > 0 && (
                 <div className="space-y-2.5">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-amber-500" /> Statutory Regulation Clauses &
-                    Code Requirements
+                    <FileText className="w-4 h-4 text-amber-500" /> Authored reference clauses
                   </h4>
                   <div className="space-y-2">
                     {regulationClauses.map((clause, idx) => (
@@ -541,7 +403,7 @@ export const ComponentInfoModal: FC = () => {
 
               <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl dark:bg-emerald-950/20 dark:border-emerald-500/25">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-2 flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-emerald-400" /> Regulatory Compliance Standard
+                  <BookOpen className="w-4 h-4 text-emerald-400" /> Reference standards
                 </h4>
                 <p className="text-xs text-emerald-800 font-mono leading-relaxed bg-emerald-100/70 p-3 rounded-lg border border-emerald-200 dark:text-emerald-200/90 dark:bg-emerald-950/40 dark:border-emerald-500/20">
                   {data.standards}

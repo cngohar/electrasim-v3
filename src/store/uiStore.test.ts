@@ -214,7 +214,7 @@ describe('uiStore — panel layout & undo toast', () => {
     expect(useUiStore.getState().undoToast?.message).toBe('Component deleted');
     expect(useUiStore.getState().undoToast?.id).toBeGreaterThan(0);
 
-    vi.advanceTimersByTime(4500);
+    vi.advanceTimersByTime(5000);
     expect(useUiStore.getState().undoToast).toBeNull();
     vi.useRealTimers();
   });

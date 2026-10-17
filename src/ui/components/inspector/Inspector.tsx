@@ -327,6 +327,15 @@ export function Inspector({
           {detail.tab === 'validation' && (
             <Suspense fallback={<TabLoadingFallback />}>
               <div className="h-full overflow-y-auto">
+                {faultLabOpen && (
+                  <button
+                    type="button"
+                    className="table-return-lab"
+                    onClick={() => useUiStore.getState().setFaultLabOpen(true)}
+                  >
+                    Return to Fault Lab
+                  </button>
+                )}
                 <div className="border-b border-slate-200/70 p-3 dark:border-slate-800/70">
                   <ZsCheckPanel />
                 </div>

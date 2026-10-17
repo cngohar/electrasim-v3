@@ -1,5 +1,6 @@
 import { COMPONENT_DEFS } from '@electrasim/domain';
 import { assessPlacement, placementVisible } from '@electrasim/domain/core/placement';
+import { assessmentPresentation } from '@electrasim/domain/core/readinessPresentation';
 import { resolveDocumentSupply } from '@electrasim/domain/core/supplies';
 import { supplyAtTarget } from '@electrasim/domain/core/supplyEditing';
 import { useMemo } from 'react';
@@ -31,13 +32,10 @@ export function usePlacementGuidance() {
     visible: (type: string) => !!results[type] && placementVisible(results[type]!, showAll),
     hint: (type: string) => {
       const r = results[type];
-      return r?.independent
-        ? 'Independent source / converter'
-        : r?.status === 'compatible'
-          ? 'Nominally compatible'
-          : r?.status === 'incompatible'
-            ? 'Incompatible supply'
-            : 'Unassessed ratings / model';
+      if (r?.independent) return 'Independent source / converter';
+      if (!r) return 'No placement assessment is available.';
+      const finding = assessmentPresentation(r);
+      return `${finding.label}. ${finding.detail} ${finding.action}`;
     },
   };
 }

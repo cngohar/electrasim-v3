@@ -28,7 +28,9 @@ test.describe('Open Drafting Table workbench', () => {
     await expect(header.getByTitle(/Redo \(/)).toBeVisible();
     await expect(page.getByRole('button', { name: 'Settings', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Menu', exact: true })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Inspect', exact: true })).toBeVisible();
+    await expect(
+      page.locator('.table-top-right').getByRole('button', { name: 'Inspect', exact: true }),
+    ).toBeVisible();
     const tools = await openCircuitTools(page);
     await expect(tools.getByTitle('Guided circuits')).toBeVisible();
     await expect(tools.getByTitle(/Validate circuit/)).toBeVisible();
@@ -145,7 +147,10 @@ test.describe('Open Drafting Table workbench', () => {
       'aria-modal',
       'true',
     );
-    await activateControl(page, page.getByRole('button', { name: 'Inspect', exact: true }));
+    await activateControl(
+      page,
+      page.locator('.table-top-right').getByRole('button', { name: 'Inspect', exact: true }),
+    );
     await expect(panel).not.toBeVisible();
     const inspector = page.getByRole('complementary', { name: 'Inspector', exact: true });
     await expect(inspector.getByRole('button', { name: 'Detailed model settings' })).toBeVisible();

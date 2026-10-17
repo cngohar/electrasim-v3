@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ElectraSim · Workspace refinement proposal</title>
+  <link rel="stylesheet" href="review.css">
+</head>
+<body>
+  <main aria-label="Workspace design proposal">
+    <div class="brand"><strong>ϟ</strong><div><b>ElectraSim</b><small>Workspace refinement · design preview</small></div></div>
+    <nav class="commands surface" aria-label="Main tools">
+      <button type="button" aria-label="Undo preview" data-notice="info">↶</button>
+      <button type="button" aria-label="Redo preview" data-notice="info">↷</button>
+      <span class="divider"></span>
+      <button type="button" class="selected" data-tool="Select">↖ <span>Select</span></button>
+      <button type="button" data-tool="Wire">⌁ <span>Wire</span></button>
+      <button type="button" aria-label="Fit preview circuit" data-notice="info">⛶</button>
+      <button type="button" data-open="checks">Checks</button>
+      <button type="button" class="primary" id="run">▶ <span>Run</span></button>
+    </nav>
+    <div class="top-actions">
+      <button type="button" class="circuit-button surface" data-open="readiness"><span>230 V AC · 50 Hz</span><small>Connected · 1 rating to review</small></button>
+      <button type="button" class="surface" id="inspect">Inspect</button>
+    </div>
+
+    <div class="circuit-art" aria-label="Illustrative lighting circuit, no electrical calculation">
+      <svg class="wires" viewBox="0 0 760 300" aria-hidden="true"><path d="M140 100H380V100H620" class="live"/><path d="M140 140V245H620V140" class="neutral"/><path d="M140 175V280H585V175" class="earth"/></svg>
+      <button type="button" class="device supply" data-art="ac-mains-supply" data-select="Supply"><span>Supply</span></button>
+      <button type="button" class="device switch" data-art="single-way-switch" data-select="Switch"><span>Switch</span></button>
+      <button type="button" class="device lamp" data-art="bulb" data-select="LED bulb"><span>LED bulb · 9 W</span></button>
+    </div>
+    <p class="preview-note">Illustrative drawing · use the buttons below to explore the proposed flows</p>
+
+    <aside id="inspector" class="inspector surface" aria-label="Component Inspector" hidden>
+      <header><div><small id="selection-kind">SELECTED COMPONENT</small><h2 id="component-name">LED bulb</h2></div><button type="button" aria-label="Close Inspector" id="close-inspector">×</button></header>
+      <nav class="tabs" aria-label="Inspector views"><button type="button" data-inspector-tab="properties" aria-pressed="true">Properties</button><button type="button" data-inspector-tab="readings" aria-pressed="false">Readings</button><button type="button" data-inspector-tab="configure" aria-pressed="false">Configure</button></nav>
+      <div class="inspector-body" id="inspector-content"></div>
+    </aside>
+
+    <section id="console" class="console surface" aria-label="Console history" hidden>
+      <header><h2>Console</h2><button type="button" id="close-console" aria-label="Close Console">×</button></header>
+      <nav class="tabs" aria-label="Console severity"><button type="button" data-filter="all" aria-pressed="true">All</button><button type="button" data-filter="error" aria-pressed="false">Errors</button><button type="button" data-filter="warning" aria-pressed="false">Warnings</button><button type="button" data-filter="info" aria-pressed="false">Info</button><button type="button" id="clear-console">Clear</button></nav>
+      <div id="console-entries" class="console-entries"></div><footer>Messages stay here after toasts expire. Clear removes messages only.</footer>
+    </section>
+    <div class="notification-lane" aria-label="Recent notifications" aria-live="polite" aria-relevant="additions" id="notifications"></div>
+    <div class="preview-controls"><span>Explore</span><button type="button" data-select="Wire">Wire properties</button><button type="button" data-notice="error">Error</button><button type="button" data-notice="warning">Warning</button><button type="button" data-notice="success">Success</button><button type="button" data-notice="info">Info</button><button type="button" id="theme">Dark theme</button></div>
+    <button type="button" class="console-trigger surface" id="show-console" aria-expanded="false">Console <span id="message-count">0</span></button>
+
+    <section class="shelf" aria-label="Components">
+      <div class="shelf-heading"><b>Components</b><nav class="categories" aria-label="Component categories"><button type="button" aria-pressed="true">Essentials</button><button type="button" aria-pressed="false">Supply</button><button type="button" aria-pressed="false">Switching</button><button type="button" aria-pressed="false">Lighting</button><button type="button" aria-pressed="false">Protection</button><button type="button" aria-pressed="false">Loads</button></nav><button type="button" data-open="catalogue">Browse all</button></div>
+      <div class="parts" id="parts"></div>
+    </section>
+  </main>
+  <dialog id="detail" aria-labelledby="detail-title"><header><div><small id="detail-eyebrow">CIRCUIT</small><h1 id="detail-title">Circuit checks</h1></div><button type="button" id="close-dialog" aria-label="Close dialog">×</button></header><div id="detail-content"></div></dialog>
+  <script src="../open-drafting-table/catalog-data.js"></script>
+  <script src="../open-drafting-table/artwork.js"></script>
+  <script src="review.js"></script>
+</body>
+</html>

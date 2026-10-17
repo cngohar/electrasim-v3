@@ -18,7 +18,7 @@ import {
 } from '@electrasim/domain';
 import type { MouseEvent, PointerEvent } from 'react';
 import { emojiDataUri } from '../../lib/emoji/emojiSvg';
-import { useSettingsStore } from '../../store';
+import { useSettingsStore, useUiStore } from '../../store';
 import { useEmojiGlyphsReady } from '../hooks/useEmojiGlyphsReady';
 import { ComponentSymbol } from './ComponentSymbol';
 import { DeviceArtwork } from './DeviceArtwork';
@@ -54,6 +54,7 @@ export interface ComponentNodeProps {
   forcedOpenCause?: boolean;
   compatibilityReview?: 'incompatible' | 'unassessed';
   compatibilityMissingModel?: boolean;
+  compatibilityLabel?: string;
   compatibilityDetails?: string;
   energized: boolean;
   error: boolean;
@@ -82,6 +83,7 @@ export function ComponentNode({
   forcedOpenCause = false,
   compatibilityReview,
   compatibilityMissingModel = false,
+  compatibilityLabel,
   compatibilityDetails,
   energized,
   error,
@@ -206,8 +208,24 @@ export function ComponentNode({
     >
       {compatibilityReview && (
         <g
-          pointerEvents="none"
-          aria-label={`Electrical compatibility ${compatibilityReview}; inspect this component`}
+          pointerEvents={onSelect ? 'all' : 'none'}
+          role={onSelect ? 'button' : undefined}
+          tabIndex={onSelect ? 0 : undefined}
+          aria-label={`${compatibilityLabel ?? compatibilityReview}. Inspect ${component.state.autoLabel || component.id}`}
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={(event) => {
+            event.stopPropagation();
+            onSelect?.(component.id);
+            useUiStore.getState().setInspectorOpen(true);
+            useUiStore.getState().setInspectorCollapsed(false);
+            useUiStore.getState().setActiveInspectorTab('properties');
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              event.currentTarget.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+            }
+          }}
         >
           <title>
             {compatibilityDetails ??
@@ -222,11 +240,12 @@ export function ComponentNode({
             fill={compatibilityReview === 'incompatible' ? '#b91c1c' : '#92400e'}
           />
           <text x={COMP_W / 2} y={-6} textAnchor="middle" fontSize={8} fill="white">
-            {compatibilityReview === 'incompatible'
-              ? '! Incompatible'
-              : compatibilityMissingModel
-                ? '? Model unavailable'
-                : '? Ratings unknown'}
+            {compatibilityLabel ??
+              (compatibilityReview === 'incompatible'
+                ? '! Incompatible'
+                : compatibilityMissingModel
+                  ? '? Model unavailable'
+                  : '? Ratings unknown')}
           </text>
         </g>
       )}

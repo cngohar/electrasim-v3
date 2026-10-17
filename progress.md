@@ -992,3 +992,86 @@ Publication preparation normalized formatting/import order in nine staged files;
 **86 focused tests / six files** passed afterward. No electrical behaviour or
 acceptance assertion changed. Full existing phase evidence and performance limits
 are retained; normal commit hooks run without bypasses.
+
+
+## 2026-10-16 — Combined UI and Fault Lab next-phase plan
+
+At the user's request, consolidated both completed investigations into
+[Phase 1.13 — UI clarity and Fault Lab reliability](docs/plans/PHASE_1_13_UI_FAULT_LAB_PLAN.md).
+The authoritative roadmap and graph now identify **1.13 as planned**; production
+implementation and milestone acceptance have not started. The
+[resume handoff](docs/handoffs/ui-fault-lab-next-chat.md) starts from current
+reviews/previews without restarting them, and the
+[acceptance tracker](docs/audits/phase-1-ui-fault-lab.md) records pending gates.
+
+Nine ordered milestones cover baseline/visual decisions, shared notifications,
+all-14 applied/duplicate/multi-cause and Run/return behavior, truthful validation
+and readiness, exact-path/internal fault cues and six-row Help, header/shelf and
+Circuit controls, component/wire/Specs presentation, all-116 metadata/ratings
+dispositions and integrated local acceptance. The UI-only proposal now points
+to this combined execution authority. Existing uncommitted investigations and
+previews are preserved.
+
+Planning checks: five graph-tool tests pass; 59 relative document/code references,
+14 issue IDs and ten planned phase records were checked locally. These are
+planning evidence, not passing UI/fault implementation gates. Final graph
+navigation/freshness and formatting results belong in the acceptance tracker;
+historical unreviewed/changed records are not automatically renewed.
+
+Keep valid zero-current CFL diagnostics, the four unassessed fault effects,
+genuine missing ratings, saved wire-resolution behavior and distinct
+cause/reset/ON/replacement semantics. Phase 1.12 functional closure and historical
+solver/rendering/generator exceptions remain unchanged. No application code,
+commit, push, deployment or remote operation is part of this planning pass.
+
+
+## 2026-10-16 — Phase 1.13 started; marker movement priority
+
+Started from graph/plan/handoff, preserving all prior uncommitted work. Added the
+phase runner, recorded design decisions and mapped all 14 issues. Native source
+and fresh built desktop/phone baselines reproduce seven defects; the CFL
+zero-current diagnostic positive control passes after fixing the test's tab choice.
+The user's movement question exposed live-drag lag in all 14 fault badges. A
+visual-only route/drag fix passes the first three source checks and 27 focused
+geometry/gesture units; expanded/built/full checks are pending. See the
+[execution ledger](docs/audits/phase-1-ui-fault-lab.md). No full phase acceptance,
+commit, push or deployment.
+
+
+## 2026-10-17 — Phase 1.13 implementation; integrated gate underway
+
+Continued the user-authorized phase from the graph and preserved the existing worktree. Implemented shared notifications/Console, all-type exact-target fault lifecycle/navigation/capture, truthful source/validation summaries, numbered Help, shell/Circuit controls, model sections and resolved wire summaries. Shared instance-aware Specs and all-116 content/reference dispositions now replace generic manufactured ratings; four mismatched references match the existing model defaults.
+
+Focused evidence: 24 native Chromium lifecycle/UI cases pass, including all 14 fault types; 53 focused UI/fault/validation tests and 31 reference/editing tests pass. Seven source geometry cases and 16 unique built geometry cases pass with documented focused recovery. Five-width shell hit checks pass. Final-tree full checks and remaining source/built/local runtime/access/performance acceptance are underway, not complete. Exact paths, failed attempts, recovery and remaining work are in `docs/audits/phase-1-ui-fault-lab.md`; continuation instructions updated. Historical performance exceptions remain; no remote publication or commit/push.
+
+
+## 2026-10-17 — Phase 1.13 locally functionally complete
+
+Finished the graph-led UI/Fault Lab scope, including all 14 moving fault anchors, exact displayed wire cuts, explicit lifecycle/Run states, truthful validation, shared notifications/Console, six-step Help, approved shell proportions,17-family model surfaces, durable resolved wire settings and116 reference dispositions. Final review also fixed actual Lab/tools overlap and retained full warning counts in a bounded phone Console column. Source/current-result/repair/access/electrical contracts are preserved.
+
+Final reconciled evidence: **246 unique source**, **76 built**, **10 built-shell** passing cases with documented split/focused recovery, **2224 units/145 files** plus types/lint, **897 real local Workerd cases**, **34 real local D1/cookie groups**, both catalogue snapshots, fresh build/static. Latest assets **266412 B JS / 29447 B CSS gzip** within 300000/30000 B budgets; 194 links, 191 SEO pages and CSP pass. [Acceptance/failed attempts/limitations](docs/audits/phase-1-ui-fault-lab.md) and [sanitized case manifest](docs/audits/data/phase113-acceptance.json).
+
+Dense zoom 150–249.9ms p95 samples and failed60fps goal remain explicit; the paired profiled HEAD/current sample is166.7ms both, with limited inference. Historical solver 45.07ms/8ms and generator limits remain open. Local functional completion is not an uninterrupted full-green or production-speed/owner acceptance claim. Active checkpoint stays1.13; all work remains local and uncommitted, with no push/deployment/account operation.
+
+
+## 2026-10-17 — Authorized Phase 1.13 GitHub checkpoint
+
+After local functional closure, the user explicitly requested committing and
+pushing the completed work to GitHub. The checkpoint includes Phase 1.13
+implementation, tests, prior review/previews, acceptance evidence and graph
+mappings. Existing failed/interrupted runs, focused recovery and performance
+limitations remain recorded without changing their acceptance scope.
+
+The required changelog/progress entries and normal formatting/lint/typecheck
+commit hooks apply. Publication is established by matching local HEAD, upstream
+and the actual GitHub branch, plus a clean worktree; it is reported only after
+that verification. This authorization excludes Cloudflare operations, deployment
+and live-site tests. The active functional checkpoint remains Phase 1.13.
+
+Publication preparation normalized six files. Parsed TypeScript/CSS structure and
+JSON data match their accepted versions; 16 focused notification/repair tests
+pass. The reference-inventory generator now uses the same canonical formatter
+as the existing model inventory, preventing commit formatting from making an
+unchanged snapshot appear stale. Its complete 116-entry check passes. The
+acceptance manifest retains original runs and updates current file fingerprints;
+normal commit hooks still apply without bypasses.

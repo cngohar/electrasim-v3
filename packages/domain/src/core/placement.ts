@@ -36,5 +36,5 @@ export function placementVisible(
   result: ReturnType<typeof assessPlacement>,
   showAll: boolean,
 ): boolean {
-  return showAll || result.independent || result.status === 'compatible';
+  return showAll || result.independent || result.status !== 'incompatible';
 }

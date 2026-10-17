@@ -28,9 +28,12 @@ import { castDraft } from 'immer';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { prefersReducedMotionNow } from '../lib/reducedMotion';
+import { captureFaultResponse } from '../ui/components/inspector/faultLabEvidence';
 import { isDemoSeedCircuit, useCircuitStore } from './circuitStore';
 import { useElectricalEditing } from './electricalEditing';
 import { circuitReadiness } from './electricalReadiness';
+import { rememberFaultResponse, useFaultLabStore } from './faultLabStore';
+import { publishNotification } from './notifications';
 import { useSettingsStore } from './settingsStore';
 import {
   createComponent,
@@ -56,14 +59,14 @@ export {
   shouldShowMobileSuitability,
 } from './uiStore.helpers';
 
-const MAX_LOGS = 100;
-let nextLogId = 0;
-let nextToastId = 0;
-let toastTimer: ReturnType<typeof setTimeout> | null = null;
 let validationTimer: ReturnType<typeof setTimeout> | null = null;
 let validationRevision = 0;
 let faultInjectionTimer: ReturnType<typeof setTimeout> | null = null;
 let faultInjectionNonce = 0;
+const notificationUndoBoundaries = new Map<number, object>();
+export function notificationUndoAvailable(id: number): boolean {
+  return notificationUndoBoundaries.get(id) === useCircuitStore.temporal.getState().pastStates;
+}
 
 /**
  * Pre-commit animation lead time (ms) per fault kind — the "sparks fly
@@ -223,6 +226,8 @@ export const useUiStore = create<UiState>()(
     lastFaultAlert: null,
     whatHappenedOpen: false,
     logs: [],
+    notifications: [],
+    notificationHistory: [],
     eventHistory: [],
     eventHistoryOpen: false,
     mode: 'idle',
@@ -358,21 +363,27 @@ export const useUiStore = create<UiState>()(
           },
         });
         if (s.eventHistory.length > 100) s.eventHistory.length = 100;
-        s.logs.unshift({
-          id: `log-${++nextLogId}`,
+        publishNotification(s, {
           type: 'warning',
           message: `Compliance override recorded: simulation started with ${blockingCount} blocking issue${blockingCount === 1 ? '' : 's'}.`,
         });
-        if (s.logs.length > MAX_LOGS) s.logs.length = MAX_LOGS;
         s.validationReport = report;
         s.validationStale = false;
         s.complianceGateBlocked = false;
         s.simRunning = true;
       }),
-    setSimResult: (r) =>
+    setSimResult: (r) => {
       set((s) => {
         s.simResult = castDraft(r);
-      }),
+      });
+      // A Pro validation window may temporarily own the Inspector while a run
+      // finishes. Capture accepted evidence independently of Lab mounting.
+      const lab = useFaultLabStore.getState();
+      if (r && lab.original && lab.target) {
+        const response = captureFaultResponse(useCircuitStore.getState(), r, lab.target);
+        if (response) rememberFaultResponse(response);
+      }
+    },
     setFaultAlert: (alert) =>
       set((s) => {
         s.faultAlert = alert;
@@ -387,10 +398,37 @@ export const useUiStore = create<UiState>()(
         s.faultAlert = null;
       }),
 
-    addLog: (message, type, target) =>
+    addLog: (message, type, target) => {
+      get().notify({ message, type, target });
+    },
+    notify: (event) => {
+      let id = 0;
       set((s) => {
-        s.logs.unshift({ id: `log-${++nextLogId}`, message, type, ...(target ? { target } : {}) });
-        if (s.logs.length > MAX_LOGS) s.logs.length = MAX_LOGS;
+        id = publishNotification(s, event);
+      });
+      if (event.showUndo)
+        notificationUndoBoundaries.set(id, useCircuitStore.temporal.getState().pastStates);
+      return id;
+    },
+    dismissNotification: (id) =>
+      set((s) => {
+        s.notifications = s.notifications.filter((n) => n.id !== id);
+        if (s.undoToast?.id === id) s.undoToast = null;
+      }),
+    pauseNotification: (id, reason, paused) =>
+      set((s) => {
+        const notification = s.notifications.find((n) => n.id === id);
+        if (!notification || notification.progress) return;
+        const hadReason = notification.pauseReasons.includes(reason);
+        if (hadReason === paused) return;
+        if (!notification.pauseReasons.length && notification.expiresAt !== null)
+          notification.remainingMs = Math.max(0, notification.expiresAt - Date.now());
+        notification.pauseReasons = paused
+          ? [...notification.pauseReasons, reason]
+          : notification.pauseReasons.filter((r) => r !== reason);
+        notification.expiresAt = notification.pauseReasons.length
+          ? null
+          : Date.now() + notification.remainingMs;
       }),
     clearLogs: () =>
       set((s) => {
@@ -450,6 +488,12 @@ export const useUiStore = create<UiState>()(
 
       useUiStore.setState((s) => {
         s.isValidatingCircuit = true;
+        publishNotification(s, {
+          message: 'Checking circuit…',
+          type: 'info',
+          progress: true,
+          key: 'task:validation',
+        });
         s.inspectorOpen = true;
         s.inspectorCollapsed = false;
         s.activeInspectorTab = 'validation';
@@ -483,17 +527,18 @@ export const useUiStore = create<UiState>()(
           s.validationStale = false;
           s.isValidatingCircuit = false;
           if ((report.blockingErrorsCount ?? 0) === 0) s.complianceGateBlocked = false;
-          s.logs.unshift({
-            id: `log-${++nextLogId}`,
+          publishNotification(s, {
+            id: s.notifications.find((n) => n.key === 'task:validation')?.id,
             type:
-              report.status === 'fail'
+              report.status === 'fail' || report.summary.errorsCount > 0
                 ? 'error'
-                : report.status === 'warning'
+                : report.status === 'warning' || report.status === 'incomplete'
                   ? 'warning'
-                  : 'success',
+                  : report.status === 'empty'
+                    ? 'info'
+                    : 'success',
             message: summaryText,
           });
-          if (s.logs.length > MAX_LOGS) s.logs.length = MAX_LOGS;
           // Audit trail: record every blocking compliance violation in the
           // Pro Simulation History log. We only record errors so the log
           // doesn't fill with duplicate warnings on each edit.
@@ -764,7 +809,8 @@ export const useUiStore = create<UiState>()(
         }
       });
     },
-    toggleFaultLab: () => get().setFaultLabOpen(!get().faultLabOpen),
+    toggleFaultLab: () =>
+      get().setFaultLabOpen(!(get().faultLabOpen && get().activeInspectorTab === 'faultlab')),
     beginFaultInjection: (type, target) => {
       // Wire targets accept only conductor-level fault kinds.
       if ('wireId' in target && !isWireFaultType(type)) return;
@@ -937,31 +983,17 @@ export const useUiStore = create<UiState>()(
       set((s) => {
         s.tourStep = step;
       }),
-    showUndoToast: (message) =>
-      set((s) => {
-        s.undoToast = { message, id: ++nextToastId, showUndo: true };
-        if (toastTimer) clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => {
-          useUiStore.setState((st) => {
-            st.undoToast = null;
-          });
-        }, 4000);
-      }),
-    showNoticeToast: (message) =>
-      set((s) => {
-        s.undoToast = { message, id: ++nextToastId, showUndo: false };
-        if (toastTimer) clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => {
-          useUiStore.setState((st) => {
-            st.undoToast = null;
-          });
-        }, 5000);
-      }),
-    clearUndoToast: () =>
-      set((s) => {
-        s.undoToast = null;
-        if (toastTimer) clearTimeout(toastTimer);
-      }),
+    showUndoToast: (message) => {
+      const id = get().notify({ message, type: 'info', showUndo: true });
+      notificationUndoBoundaries.set(id, useCircuitStore.temporal.getState().pastStates);
+    },
+    showNoticeToast: (message) => {
+      get().notify({ message, type: 'info' });
+    },
+    clearUndoToast: () => {
+      const toast = get().undoToast;
+      if (toast) get().dismissNotification(toast.id);
+    },
     setInspectorOpen: (open) =>
       set((s) => {
         s.inspectorOpen = open;
@@ -1111,6 +1143,42 @@ export const useUiStore = create<UiState>()(
       }),
   })),
 );
+
+// Expiry belongs to event state, independent of whether the toast UI is mounted.
+// Reconcile timers after any producer (including recipes that used to write logs
+// directly). Pause reasons compose, so leaving hover cannot cancel keyboard focus.
+const notificationTimers = new Map<number, ReturnType<typeof setTimeout>>();
+useUiStore.subscribe((state, previous) => {
+  if (state.notifications === previous.notifications) return;
+  for (const id of notificationUndoBoundaries.keys())
+    if (!state.notifications.some((n) => n.id === id)) notificationUndoBoundaries.delete(id);
+  for (const [id, timer] of notificationTimers) {
+    if (!state.notifications.some((n) => n.id === id && n.expiresAt !== null)) {
+      clearTimeout(timer);
+      notificationTimers.delete(id);
+    }
+  }
+  for (const notification of state.notifications) {
+    const old = previous.notifications.find((n) => n.id === notification.id);
+    if (
+      notification.expiresAt === null ||
+      (old?.expiresAt === notification.expiresAt && notificationTimers.has(notification.id))
+    )
+      continue;
+    const timer = notificationTimers.get(notification.id);
+    if (timer) clearTimeout(timer);
+    notificationTimers.set(
+      notification.id,
+      setTimeout(
+        () => {
+          notificationTimers.delete(notification.id);
+          useUiStore.getState().dismissNotification(notification.id);
+        },
+        Math.max(0, notification.expiresAt - Date.now()),
+      ),
+    );
+  }
+});
 
 /* ── Stale-report invalidation ────────────────────────────────────────────
  * A validation report describes the circuit AT THE MOMENT it ran. When the

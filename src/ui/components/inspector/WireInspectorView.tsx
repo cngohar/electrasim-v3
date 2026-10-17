@@ -9,6 +9,7 @@ import { WIRE_AWG_MM2, resolveWireProperties } from '@electrasim/domain/core/wir
 import { AlertTriangle, Flame, RefreshCw, Trash2 } from 'lucide-react';
 import { useCircuitStore, useUiStore } from '../../../store';
 import { requestDeleteWire } from '../../canvas-actions';
+import { WirePropertiesSummary } from './WirePropertiesSummary';
 
 export function WireInspectorView({
   wire,
@@ -63,6 +64,7 @@ export function WireInspectorView({
 
   return (
     <div className="p-3.5 space-y-4 text-xs">
+      <WirePropertiesSummary wire={wire} />
       {/* Wire Status Header Card */}
       <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-2xs dark:border-slate-800 dark:bg-slate-900 space-y-2">
         <div className="flex items-center justify-between">

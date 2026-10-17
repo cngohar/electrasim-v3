@@ -1,0 +1,1541 @@
+{
+  "date": "2026-10-15",
+  "scope": "Static catalogue/help and default 230 V AC placement-metadata inventory. An unrelated supply can produce expected incompatibility. Not wired-circuit runtime tests or rating certification. UnknownFields includes inapplicable fields and must not be counted as required rating defects.",
+  "summary": {
+    "entries": 116,
+    "authoredHelp": 34,
+    "genericHelp": 82,
+    "explicitPinout": 2,
+    "explicitRegulationClauses": 2,
+    "placementUnknownRating230Vac": 72,
+    "placementUnsupported230Vac": 16
+  },
+  "helpCataloguePowerDifferences": [
+    {
+      "type": "single-way-switch",
+      "helpPowerWatts": 2300,
+      "cataloguePowerWatts": 0,
+      "note": "Compare meaning and units before correcting; help may describe capacity rather than consumption."
+    },
+    {
+      "type": "cooker-unit",
+      "helpPowerWatts": 10350,
+      "cataloguePowerWatts": 7200,
+      "note": "Compare meaning and units before correcting; help may describe capacity rather than consumption."
+    },
+    {
+      "type": "led-downlight",
+      "helpPowerWatts": 8,
+      "cataloguePowerWatts": 12,
+      "note": "Compare meaning and units before correcting; help may describe capacity rather than consumption."
+    },
+    {
+      "type": "tube-light",
+      "helpPowerWatts": 18,
+      "cataloguePowerWatts": 36,
+      "note": "Compare meaning and units before correcting; help may describe capacity rather than consumption."
+    },
+    {
+      "type": "socket-3pin",
+      "helpPowerWatts": 3000,
+      "cataloguePowerWatts": 2990,
+      "note": "Compare meaning and units before correcting; help may describe capacity rather than consumption."
+    },
+    {
+      "type": "double-socket",
+      "helpPowerWatts": 3680,
+      "cataloguePowerWatts": 3120,
+      "note": "Compare meaning and units before correcting; help may describe capacity rather than consumption."
+    },
+    {
+      "type": "socket-usb",
+      "helpPowerWatts": "3000W AC + 20W–45W USB PD",
+      "cataloguePowerWatts": 3000,
+      "note": "Compare meaning and units before correcting; help may describe capacity rather than consumption."
+    },
+    {
+      "type": "socket-gfci",
+      "helpPowerWatts": 3600,
+      "cataloguePowerWatts": 2400,
+      "note": "Compare meaning and units before correcting; help may describe capacity rather than consumption."
+    },
+    {
+      "type": "motor",
+      "helpPowerWatts": 1500,
+      "cataloguePowerWatts": 750,
+      "note": "Compare meaning and units before correcting; help may describe capacity rather than consumption."
+    },
+    {
+      "type": "water-heater",
+      "helpPowerWatts": 3000,
+      "cataloguePowerWatts": 2000,
+      "note": "Compare meaning and units before correcting; help may describe capacity rather than consumption."
+    },
+    {
+      "type": "ev-charger",
+      "helpPowerWatts": 7360,
+      "cataloguePowerWatts": 7400,
+      "note": "Compare meaning and units before correcting; help may describe capacity rather than consumption."
+    },
+    {
+      "type": "pir-sensor",
+      "helpPowerWatts": 1200,
+      "cataloguePowerWatts": 5,
+      "note": "Compare meaning and units before correcting; help may describe capacity rather than consumption."
+    }
+  ],
+  "probes": {
+    "orphanBulb": [
+      {
+        "status": "unassessed",
+        "reasons": [
+          {
+            "code": "missing-supply",
+            "message": "No unique supply is established for this terminal group.",
+            "basis": "declared-model",
+            "severity": "warning"
+          }
+        ]
+      }
+    ],
+    "terminalStripWithoutSource": {
+      "topology": "no-source",
+      "status": "warning",
+      "isIncomplete": false,
+      "issueIds": ["simulation_evidence_unavailable", "standards_coverage"]
+    }
+  },
+  "visualMetrics": {
+    "actual-1440": {
+      "errors": [],
+      "styles": {
+        ".table-command-bar": {
+          "x": 490.0859375,
+          "y": 20,
+          "width": 459.828125,
+          "height": 54,
+          "fontSize": "16px",
+          "padding": "8px",
+          "borderRadius": "17px",
+          "background": "rgb(255, 255, 255)",
+          "border": "1px solid rgb(203, 213, 226)",
+          "borderBottom": "1px solid rgb(203, 213, 226)"
+        },
+        ".table-command-action": {
+          "x": 733.0859375,
+          "y": 29.5,
+          "width": 66.984375,
+          "height": 35,
+          "fontSize": "11px",
+          "padding": "9px 10px",
+          "borderRadius": "8px",
+          "background": "rgba(0, 0, 0, 0)",
+          "border": "0px solid rgb(36, 50, 74)",
+          "borderBottom": "0px solid rgb(36, 50, 74)"
+        },
+        ".table-shelf": {
+          "x": 0,
+          "y": 746,
+          "width": 1440,
+          "height": 154,
+          "fontSize": "16px",
+          "padding": "0px",
+          "borderRadius": "0px",
+          "background": "rgb(255, 255, 255)",
+          "border": "",
+          "borderBottom": "0px solid rgb(36, 50, 74)"
+        },
+        ".table-shelf-categories button": {
+          "x": 24,
+          "y": 757.75,
+          "width": 71.03125,
+          "height": 34.5,
+          "fontSize": "11px",
+          "padding": "8px 0px",
+          "borderRadius": "0px",
+          "background": "rgba(0, 0, 0, 0)",
+          "border": "",
+          "borderBottom": "2px solid rgb(37, 99, 235)"
+        },
+        ".table-component-tile": {
+          "x": 24,
+          "y": 799,
+          "width": 147,
+          "height": 86,
+          "fontSize": "16px",
+          "padding": "5px 10px",
+          "borderRadius": "11px",
+          "background": "rgba(0, 0, 0, 0)",
+          "border": "1px solid rgba(0, 0, 0, 0)",
+          "borderBottom": "1px solid rgba(0, 0, 0, 0)"
+        },
+        ".table-project-context": {
+          "x": 24,
+          "y": 88,
+          "width": 685.859375,
+          "height": 20,
+          "fontSize": "16px",
+          "padding": "0px",
+          "borderRadius": "0px",
+          "background": "rgba(0, 0, 0, 0)",
+          "border": "0px solid rgb(77, 94, 117)",
+          "borderBottom": "0px solid rgb(77, 94, 117)"
+        }
+      }
+    },
+    "prototype-1440": {
+      "errors": [],
+      "styles": {
+        ".topbar": {
+          "x": 444.5078125,
+          "y": 20,
+          "width": 550.984375,
+          "height": 60,
+          "fontSize": "16px",
+          "padding": "7px",
+          "borderRadius": "16px",
+          "background": "rgb(255, 255, 255)",
+          "border": "1px solid rgb(203, 213, 226)",
+          "borderBottom": "1px solid rgb(203, 213, 226)"
+        },
+        ".topbar button": {
+          "x": 452.5078125,
+          "y": 28,
+          "width": 44,
+          "height": 44,
+          "fontSize": "13px",
+          "padding": "0px",
+          "borderRadius": "10px",
+          "background": "rgba(0, 0, 0, 0)",
+          "border": "0px none rgb(36, 50, 74)",
+          "borderBottom": "0px none rgb(36, 50, 74)"
+        },
+        ".dock": {
+          "x": 0,
+          "y": 734,
+          "width": 1440,
+          "height": 166,
+          "fontSize": "16px",
+          "padding": "13px 24px 10px",
+          "borderRadius": "0px",
+          "background": "rgb(255, 255, 255)",
+          "border": "",
+          "borderBottom": "0px none rgb(36, 50, 74)"
+        },
+        ".categories button": {
+          "x": 130.25,
+          "y": 749,
+          "width": 91.984375,
+          "height": 38,
+          "fontSize": "13px",
+          "padding": "0px 16px",
+          "borderRadius": "9px",
+          "background": "rgb(230, 237, 248)",
+          "border": "0px none rgb(37, 99, 235)",
+          "borderBottom": "0px none rgb(37, 99, 235)"
+        },
+        ".catalog-part": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "fontSize": "12px",
+          "padding": "6px",
+          "borderRadius": "12px",
+          "background": "rgba(0, 0, 0, 0)",
+          "border": "1px solid rgb(203, 213, 226)",
+          "borderBottom": "1px solid rgb(203, 213, 226)"
+        }
+      }
+    },
+    "actual-390": {
+      "errors": [],
+      "styles": {
+        ".table-command-bar": {
+          "x": 40.234375,
+          "y": 67,
+          "width": 309.53125,
+          "height": 48,
+          "fontSize": "16px",
+          "padding": "5px",
+          "borderRadius": "13px",
+          "background": "rgb(255, 255, 255)",
+          "border": "1px solid rgb(203, 213, 226)",
+          "borderBottom": "1px solid rgb(203, 213, 226)"
+        },
+        ".table-command-action": {
+          "x": 200.234375,
+          "y": 75.5,
+          "width": 31,
+          "height": 31,
+          "fontSize": "11px",
+          "padding": "7px",
+          "borderRadius": "8px",
+          "background": "rgba(0, 0, 0, 0)",
+          "border": "0px solid rgb(36, 50, 74)",
+          "borderBottom": "0px solid rgb(36, 50, 74)"
+        },
+        ".table-shelf": {
+          "x": 0,
+          "y": 756,
+          "width": 390,
+          "height": 144,
+          "fontSize": "16px",
+          "padding": "0px",
+          "borderRadius": "0px",
+          "background": "rgb(255, 255, 255)",
+          "border": "",
+          "borderBottom": "0px solid rgb(36, 50, 74)"
+        },
+        ".table-shelf-categories button": {
+          "x": 12,
+          "y": 764.75,
+          "width": 71.03125,
+          "height": 34.5,
+          "fontSize": "11px",
+          "padding": "8px 0px",
+          "borderRadius": "0px",
+          "background": "rgba(0, 0, 0, 0)",
+          "border": "",
+          "borderBottom": "2px solid rgb(37, 99, 235)"
+        },
+        ".table-component-tile": {
+          "x": 12,
+          "y": 804,
+          "width": 137,
+          "height": 83,
+          "fontSize": "16px",
+          "padding": "5px",
+          "borderRadius": "11px",
+          "background": "rgba(0, 0, 0, 0)",
+          "border": "1px solid rgba(0, 0, 0, 0)",
+          "borderBottom": "1px solid rgba(0, 0, 0, 0)"
+        },
+        ".table-project-context": {
+          "x": 12,
+          "y": 126,
+          "width": 366,
+          "height": 20,
+          "fontSize": "16px",
+          "padding": "0px",
+          "borderRadius": "0px",
+          "background": "rgba(0, 0, 0, 0)",
+          "border": "0px solid rgb(77, 94, 117)",
+          "borderBottom": "0px solid rgb(77, 94, 117)"
+        }
+      }
+    },
+    "prototype-390": {
+      "errors": [],
+      "styles": {
+        ".topbar": {
+          "x": 61.6484375,
+          "y": 78,
+          "width": 266.703125,
+          "height": 56,
+          "fontSize": "16px",
+          "padding": "5px",
+          "borderRadius": "14px",
+          "background": "rgb(255, 255, 255)",
+          "border": "1px solid rgb(203, 213, 226)",
+          "borderBottom": "1px solid rgb(203, 213, 226)"
+        },
+        ".topbar button": {
+          "x": 67.6484375,
+          "y": 84,
+          "width": 40,
+          "height": 44,
+          "fontSize": "12px",
+          "padding": "0px",
+          "borderRadius": "10px",
+          "background": "rgba(0, 0, 0, 0)",
+          "border": "0px none rgb(36, 50, 74)",
+          "borderBottom": "0px none rgb(36, 50, 74)"
+        },
+        ".dock": {
+          "x": 0,
+          "y": 749,
+          "width": 390,
+          "height": 151,
+          "fontSize": "16px",
+          "padding": "9px 16px",
+          "borderRadius": "0px",
+          "background": "rgb(255, 255, 255)",
+          "border": "",
+          "borderBottom": "0px none rgb(36, 50, 74)"
+        },
+        ".categories button": {
+          "x": 16,
+          "y": 762,
+          "width": 79.359375,
+          "height": 38,
+          "fontSize": "12px",
+          "padding": "0px 12px",
+          "borderRadius": "9px",
+          "background": "rgb(230, 237, 248)",
+          "border": "0px none rgb(37, 99, 235)",
+          "borderBottom": "0px none rgb(37, 99, 235)"
+        },
+        ".catalog-part": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "fontSize": "11px",
+          "padding": "6px",
+          "borderRadius": "12px",
+          "background": "rgba(0, 0, 0, 0)",
+          "border": "1px solid rgb(203, 213, 226)",
+          "borderBottom": "1px solid rgb(203, 213, 226)"
+        }
+      }
+    }
+  },
+  "rows": [
+    {
+      "type": "single-way-switch",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "two-way-switch",
+      "help": "authored",
+      "explicitPinout": true,
+      "explicitRegulationClauses": true,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "intermediate-switch",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "double-pole-switch",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "push-button",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "rotary-selector-switch",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "contactor",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "cooker-unit",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "bulb",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "bulb-incandescent",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["No valid maximum voltage is declared."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "bulb-halogen",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["No valid maximum voltage is declared."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "bulb-cfl",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "bulb-smart-rgb",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "led-downlight",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "tube-light",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "mcb",
+      "help": "authored",
+      "explicitPinout": true,
+      "explicitRegulationClauses": true,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "mcb-type-c",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "mcb-type-d",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "mccb",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "rcd",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "rcbo",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "afdd",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "fuse",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "spd",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": [
+        "No valid maximum voltage is declared.",
+        "No nominal operating voltage is declared for this terminal group.",
+        "No operating voltage range is declared."
+      ],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "distribution-board",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "main-switch",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "fused-spur",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "socket-2pin",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "socket-3pin",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "double-socket",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "socket-usb",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "socket-gfci",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "socket-industrial",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "socket-us",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "double-socket-us",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "socket-schuko",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "socket-schuko-double",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "socket-as3112",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "socket-as3112-double",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "socket-bs546",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "shaver-socket",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "socket-bs546-double",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "ceiling-fan",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "extractor-fan",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "industrial-exhaust-fan",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "table-fan",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "motor",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "bell",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "water-heater",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["No valid maximum voltage is declared."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "space-heater",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["No valid maximum voltage is declared."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "air-conditioner",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "induction-hob",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "ev-charger",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "electric-shower",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["No valid maximum voltage is declared."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "immersion-heater",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["No valid maximum voltage is declared."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "extractor-hood",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "underfloor-heating",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["No valid maximum voltage is declared."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "storage-heater",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["No valid maximum voltage is declared."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "heat-pump",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "dishwasher",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "washing-machine",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "tumble-dryer",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "fridge-freezer",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "fan-dimmer",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "dimmer-switch",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "pir-sensor",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": [
+        "Control supply consumption and operating behavior are not declared."
+      ]
+    },
+    {
+      "type": "thermostat",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "photocell-sensor",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": [
+        "Control supply consumption and operating behavior are not declared."
+      ]
+    },
+    {
+      "type": "smart-relay",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": [
+        "Control supply consumption and operating behavior are not declared."
+      ]
+    },
+    {
+      "type": "live-terminal",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "neutral-terminal",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "earth-terminal",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "ac-mains-supply",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "ac-three-phase-supply",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "dc-battery-12v",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "solar-pv-panel",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "diesel-generator",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "kwh-meter",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "earth-rod",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "junction-box",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "terminal-strip",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "wago-connector",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "timer-switch",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": [
+        "Only the saved shared manual contact state is represented; independent controls, dimming and time behavior are not assessed."
+      ]
+    },
+    {
+      "type": "digital-weekly-timer",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": [
+        "Only the saved shared manual contact state is represented; independent controls, dimming and time behavior are not assessed."
+      ]
+    },
+    {
+      "type": "staircase-timer",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": [
+        "Only the saved shared manual contact state is represented; independent controls, dimming and time behavior are not assessed."
+      ]
+    },
+    {
+      "type": "countdown-timer",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": [
+        "Only the saved shared manual contact state is represented; independent controls, dimming and time behavior are not assessed."
+      ]
+    },
+    {
+      "type": "delay-timer",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": [
+        "AC/DC and phase suitability are not declared for this terminal group.",
+        "No maximum voltage is declared for this terminal group.",
+        "No nominal operating voltage is declared for this terminal group.",
+        "No operating voltage range is declared.",
+        "No operating frequency range is declared."
+      ],
+      "conditionalLawFindings": [
+        "Coil consumption, pickup/dropout, waveform and nominal voltage are not declared."
+      ]
+    },
+    {
+      "type": "double-gang-switch",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "switched-socket",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "isolator-switch",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "transformer-8v",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": [
+        "No maximum voltage is declared for this terminal group.",
+        "No operating voltage range is declared.",
+        "No operating frequency range is declared."
+      ],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "transformer-12v",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": [
+        "No maximum voltage is declared for this terminal group.",
+        "No operating voltage range is declared.",
+        "No operating frequency range is declared."
+      ],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "transformer-24v",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": [
+        "No maximum voltage is declared for this terminal group.",
+        "No operating voltage range is declared.",
+        "No operating frequency range is declared."
+      ],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "step-up-down-transformer",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": [
+        "No maximum voltage is declared for this terminal group.",
+        "No operating voltage range is declared.",
+        "No operating frequency range is declared."
+      ],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "relay-spst",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": [
+        "AC/DC and phase suitability are not declared for this terminal group.",
+        "No maximum voltage is declared for this terminal group.",
+        "No nominal operating voltage is declared for this terminal group.",
+        "No operating voltage range is declared.",
+        "No operating frequency range is declared."
+      ],
+      "conditionalLawFindings": [
+        "Coil consumption, pickup/dropout, waveform and nominal voltage are not declared."
+      ]
+    },
+    {
+      "type": "relay-spdt",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": [
+        "AC/DC and phase suitability are not declared for this terminal group.",
+        "No maximum voltage is declared for this terminal group.",
+        "No nominal operating voltage is declared for this terminal group.",
+        "No operating voltage range is declared.",
+        "No operating frequency range is declared."
+      ],
+      "conditionalLawFindings": [
+        "Coil consumption, pickup/dropout, waveform and nominal voltage are not declared."
+      ]
+    },
+    {
+      "type": "relay-dpdt",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": [
+        "AC/DC and phase suitability are not declared for this terminal group.",
+        "No maximum voltage is declared for this terminal group.",
+        "No nominal operating voltage is declared for this terminal group.",
+        "No operating voltage range is declared.",
+        "No operating frequency range is declared."
+      ],
+      "conditionalLawFindings": [
+        "Coil consumption, pickup/dropout, waveform and nominal voltage are not declared."
+      ]
+    },
+    {
+      "type": "control-relay",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": [
+        "AC/DC and phase suitability are not declared for this terminal group.",
+        "No maximum voltage is declared for this terminal group.",
+        "No nominal operating voltage is declared for this terminal group.",
+        "No operating voltage range is declared.",
+        "No operating frequency range is declared."
+      ],
+      "conditionalLawFindings": [
+        "Coil consumption, pickup/dropout, waveform and nominal voltage are not declared."
+      ]
+    },
+    {
+      "type": "contactor-1p",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": [
+        "AC/DC and phase suitability are not declared for this terminal group.",
+        "No maximum voltage is declared for this terminal group.",
+        "No nominal operating voltage is declared for this terminal group.",
+        "No operating voltage range is declared.",
+        "No operating frequency range is declared."
+      ],
+      "conditionalLawFindings": [
+        "Coil consumption, pickup/dropout, waveform and nominal voltage are not declared."
+      ]
+    },
+    {
+      "type": "contactor-2p",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "contactor-3p",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": [
+        "AC/DC and phase suitability are not declared for this terminal group.",
+        "No maximum voltage is declared for this terminal group.",
+        "No nominal operating voltage is declared for this terminal group.",
+        "No operating voltage range is declared.",
+        "No operating frequency range is declared."
+      ],
+      "conditionalLawFindings": [
+        "Coil consumption, pickup/dropout, waveform and nominal voltage are not declared."
+      ]
+    },
+    {
+      "type": "contactor-4p",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "room-thermostat",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "heating-thermostat",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": [
+        "Control supply consumption and operating behavior are not declared."
+      ]
+    },
+    {
+      "type": "temperature-sensor",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": [
+        "No valid maximum voltage is declared.",
+        "No nominal operating voltage is declared for this terminal group."
+      ],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "door-sensor",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["AC/DC and phase suitability are not declared for this terminal group."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "electric-buzzer",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "wireless-doorbell",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "alarm-siren",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "smoke-alarm",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "burglar-alarm",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "motor-3phase",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "incompatible",
+      "ratingFindings": [
+        "No nominal operating voltage is declared for this terminal group.",
+        "No operating voltage range is declared.",
+        "No operating frequency range is declared."
+      ],
+      "conditionalLawFindings": [
+        "No supported voltage/current law is declared for this load; nameplate power is not resistance."
+      ]
+    },
+    {
+      "type": "water-pump",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "heating-element",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "unassessed",
+      "ratingFindings": ["No valid maximum voltage is declared."],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "distribution-box",
+      "help": "generic-fallback",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    },
+    {
+      "type": "distribution-board-3phase",
+      "help": "authored",
+      "explicitPinout": false,
+      "explicitRegulationClauses": false,
+      "placement230Vac": "compatible",
+      "ratingFindings": [],
+      "conditionalLawFindings": []
+    }
+  ]
+}

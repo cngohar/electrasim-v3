@@ -109,12 +109,12 @@ describe('FaultFxLayer', () => {
     expect(chip?.querySelector('.electrasim-fx-pop-in')).toBeTruthy();
   });
 
-  it('open-circuit fades + cuts every attached conductor', () => {
+  it('component open marks the internal branch and leaves attached conductors intact', () => {
     const f = fixture();
     f.components[2].state.fault = 'open-circuit';
     const { container } = renderLayer(f.components, f.wires, f.byId);
-    expect(container.querySelectorAll('[data-fault-sever-cut]')).toHaveLength(2);
-    expect(container.querySelector('.electrasim-fx-gap-in')).toBeTruthy();
+    expect(container.querySelectorAll('[data-fault-sever-cut]')).toHaveLength(0);
+    expect(container.querySelector('[data-fault-internal-open]')).toBeTruthy();
   });
 
   it('open-neutral cuts only the neutral run', () => {
@@ -155,9 +155,10 @@ describe('FaultFxLayer', () => {
       container.querySelector('[data-fault-sever-cut]')?.getAttribute('transform') ?? '';
     const numbers = cutTransform.match(/translate\(([-\d.]+) ([-\d.]+)\)/);
     expect(numbers).toBeTruthy();
-    expect(
-      Math.hypot(Number(numbers![1]) - position.x, Number(numbers![2]) - position.y),
-    ).toBeCloseTo(18);
+    // The inset is 18 units of rendered arc length, not 18 units of chord.
+    const distance = Math.hypot(Number(numbers![1]) - position.x, Number(numbers![2]) - position.y);
+    expect(distance).toBeGreaterThan(0);
+    expect(distance).toBeLessThanOrEqual(18);
   });
 
   it('each remaining fault kind renders its own indicator class', () => {

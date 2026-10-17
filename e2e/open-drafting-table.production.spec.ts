@@ -31,7 +31,10 @@ for (const phone of [false, true]) {
       await lamp.locator('[data-component-hitbox]').click();
       const inspector = page.getByRole('complementary', { name: 'Inspector', exact: true });
       if (!(await inspector.isVisible()))
-        await page.getByRole('button', { name: 'Inspect', exact: true }).click();
+        await page
+          .locator('.table-top-right')
+          .getByRole('button', { name: 'Inspect', exact: true })
+          .click();
       await expect(inspector).toBeVisible();
       for (const name of ['Properties', 'Readings', 'Configure'])
         await expect(inspector.getByRole('button', { name, exact: true })).toBeVisible();
@@ -74,7 +77,10 @@ for (const phone of [false, true]) {
       await page.locator('[data-component-id^="bulb-"] [data-component-hitbox]').first().click();
       const inspector = page.getByRole('complementary', { name: 'Inspector', exact: true });
       if (!(await inspector.isVisible()))
-        await page.getByRole('button', { name: 'Inspect', exact: true }).click();
+        await page
+          .locator('.table-top-right')
+          .getByRole('button', { name: 'Inspect', exact: true })
+          .click();
       await inspector.getByRole('button', { name: 'Configure', exact: true }).click();
       const label = inspector.getByLabel('Component label');
       const original = await label.inputValue();

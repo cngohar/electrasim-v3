@@ -34,10 +34,13 @@ import { useUiStore } from './uiStore';
 // Keep continuous drags out of the worker-clone path. A 50 ms quiet period is
 // still effectively instant for toggles and edits, while a gesture becomes one run.
 const DEBOUNCE_MS = 50;
+let nextNotificationSession = 0;
 
 /** Shared empty set — avoids allocating one per simulation run. */
 
 export function useSimulation() {
+  const [notificationSession] = useState(() => ++nextNotificationSession);
+  const notificationRevision = useRef({ value: undefined as string | undefined, epoch: 0 });
   const components = useCircuitStore((s) => s.components);
   const wires = useCircuitStore((s) => s.wires);
   const globalVoltage = useCircuitStore((s) => s.globalVoltage);
@@ -333,7 +336,18 @@ export function useSimulation() {
             });
           }
 
-          const signature = JSON.stringify({ e: result.errors, w: result.warnings });
+          if (notificationRevision.current.value !== result.inputRevision) {
+            notificationRevision.current = {
+              value: result.inputRevision,
+              epoch: notificationRevision.current.epoch + 1,
+            };
+          }
+          const notificationKey = `simulation:${notificationSession}:${notificationRevision.current.epoch}`;
+          const signature = JSON.stringify({
+            revision: notificationRevision.current.epoch,
+            e: result.errors,
+            w: result.warnings,
+          });
           if (signature === lastSignatureRef.current) return;
           lastSignatureRef.current = signature;
 
@@ -349,18 +363,29 @@ export function useSimulation() {
                 : undefined;
           };
           result.errors.forEach((message) =>
-            ui.addLog(message, 'error', navigationTarget(message)),
+            ui.notify({
+              message,
+              type: 'error',
+              target: navigationTarget(message),
+              key: `${notificationKey}:error:${message}`,
+            }),
           );
           result.warnings.forEach((message) =>
-            ui.addLog(message, 'warning', navigationTarget(message)),
+            ui.notify({
+              message,
+              type: 'warning',
+              target: navigationTarget(message),
+              key: `${notificationKey}:warning:${message}`,
+            }),
           );
           if (result.errors.length === 0 && result.energizedComponents.size > 0) {
-            ui.addLog(
-              `Circuit energised — ${result.energizedComponents.size} component${
+            ui.notify({
+              message: `Circuit energised — ${result.energizedComponents.size} component${
                 result.energizedComponents.size === 1 ? '' : 's'
               } active.`,
-              'success',
-            );
+              type: 'success',
+              key: `${notificationKey}:energised`,
+            });
           }
         })
         .catch((err: unknown) => {
@@ -399,5 +424,6 @@ export function useSimulation() {
     accessRevision,
     regulationStandard,
     clockTick,
+    notificationSession,
   ]);
 }

@@ -6,7 +6,7 @@ import {
   assessFaultTarget,
   normalizeCircuitFaults,
 } from '@electrasim/domain';
-import { circuitRevision } from '@electrasim/domain/simulationEvidence';
+import { circuitRevision, isCurrentSimulation } from '@electrasim/domain/simulationEvidence';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { focusFaultTarget, selectCircuit, undo, useCircuitStore, useUiStore } from '../../../store';
 import {
@@ -34,11 +34,44 @@ import './fault-lab.css';
 type Tab = 'explain' | 'readings' | 'repair';
 type Window = 'library' | 'history' | 'photo' | 'leave' | 'help' | null;
 const faultName = (type: FaultType) => FAULT_REGISTRY[type].label;
+const helpSteps = [
+  [
+    'Choose what changes',
+    'Select a component, conductor or named terminal on the circuit.',
+    'm8 5 16 13-9 1-4 8Z',
+  ],
+  [
+    'Review and apply a fault',
+    'Check the highlighted location. Applied cards focus the existing cause.',
+    'M3 16h8m10 0h8M13 9v14m6-14v14',
+  ],
+  [
+    'Run the diagnostic',
+    'An open path can produce zero current. Read the captured outcome or the blocking check.',
+    'm10 6 16 10-16 10Z',
+  ],
+  [
+    'Read the response',
+    'Inspect current, potential and named events. Unsupported effects remain unavailable.',
+    'M4 24V8h24v16ZM8 20l5-7 5 5 6-9',
+  ],
+  [
+    'Clear, reset or replace',
+    'Clear the injected cause. Reset protection to OFF, turn ON deliberately, or replace damaged items separately.',
+    'm9 5 5 5-4 4-5-5v7l6 5 5-1 10 10 4-4-10-10 1-5-5-6Z',
+  ],
+  [
+    'Run again to verify',
+    'Compare fresh results. A cleared marker alone does not prove successful repair.',
+    'M25 12a11 11 0 1 0 0 10M25 4v9h-9',
+  ],
+] as const;
 
 export function InspectorFaultLabView({ onAdvanced }: { onAdvanced?: () => void }) {
   const circuit = useCircuitStore((s) => s);
   const result = useUiStore((s) => s.simResult);
   const running = useUiStore((s) => s.simRunning);
+  const runBlocked = useUiStore((s) => s.complianceGateBlocked);
   const labOpen = useUiStore((s) => s.faultLabOpen);
   const access = useSimulatorAccess();
   const blocked = isCircuitReadOnly(circuit);
@@ -49,7 +82,19 @@ export function InspectorFaultLabView({ onAdvanced }: { onAdvanced?: () => void 
       ? (circuit.wires.find((w) => w.id === circuit.selectedWireIds[0]) ?? null)
       : null;
   const def = component && COMPONENT_DEFS[component.type];
-  const [terminal, setTerminal] = useState<number | null>(null);
+  const rememberedTerminal = useFaultLabStore((s) => s.targetTerminal);
+  const terminal =
+    rememberedTerminal &&
+    component &&
+    rememberedTerminal.componentId === component.id &&
+    def?.ports[rememberedTerminal.portIndex]
+      ? rememberedTerminal.portIndex
+      : null;
+  const setTerminal = (portIndex: number | null) =>
+    useFaultLabStore.setState({
+      targetTerminal:
+        component && portIndex !== null ? { componentId: component.id, portIndex } : null,
+    });
   const [tab, setTab] = useState<Tab>('explain');
   const [window, setWindow] = useState<Window>(null);
   const [search, setSearch] = useState('');
@@ -60,12 +105,14 @@ export function InspectorFaultLabView({ onAdvanced }: { onAdvanced?: () => void 
     revision: string;
   } | null>(null);
   const [applying, setApplying] = useState(false);
+  const [draftError, setDraftError] = useState<string | null>(null);
   const [inside, setInside] = useState(true);
   const [stage, setStage] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [compare, setCompare] = useState(false);
   const [inspectorVisible, setInspectorVisible] = useState(true);
+  const [selectedCause, setSelectedCause] = useState<{ target: string; id: string } | null>(null);
   const [hidden, setHidden] = useState(document.hidden);
   const [picking, setPicking] = useState(!component && !wire);
   const [externalModal, setExternalModal] = useState(false);
@@ -81,6 +128,12 @@ export function InspectorFaultLabView({ onAdvanced }: { onAdvanced?: () => void 
     [component, wire, terminal, def],
   );
   const key = targetKey(target);
+  useEffect(() => {
+    useFaultLabStore.setState({ target });
+  }, [target]);
+  const selectedCauseId = selectedCause?.target === key ? selectedCause.id : null;
+  const setSelectedCauseId = (id: string | null) =>
+    setSelectedCause(id ? { target: key, id } : null);
   const revision = useMemo(() => circuitRevision(circuit), [circuit]);
   const capture = useMemo(
     () => captureFaultResponse(circuit, result, target),
@@ -113,7 +166,26 @@ export function InspectorFaultLabView({ onAdvanced }: { onAdvanced?: () => void 
     return faultComponent === selectedComponent;
   };
   const selectedFaults = faults.filter((f) => sameTargetSubject(f.target, target));
-  const appliedFault = !compare ? (selectedFaults[0] ?? null) : null;
+  const appliedFault = !compare
+    ? (selectedFaults.find((f) => f.id === selectedCauseId) ??
+      (selectedFaults.length === 1 ? selectedFaults[0] : null))
+    : null;
+  const currentResult = isCurrentSimulation(circuit, result);
+  const unavailable =
+    currentResult &&
+    ((result.electrical?.status ?? result.phasor?.status) === 'unsupported' || !!fresh?.unassessed);
+  const runState =
+    runBlocked && !running
+      ? 'blocked'
+      : unavailable
+        ? 'unavailable'
+        : fresh && !fresh.unassessed
+          ? 'captured'
+          : running && !currentResult
+            ? 'running'
+            : saved || (result && !currentResult)
+              ? 'stale'
+              : 'not-run';
   const photo = component ? COMPONENT_IMAGES[component.type] : null;
   const stop = useCallback(() => setPlaying(false), []);
 
@@ -128,7 +200,6 @@ export function InspectorFaultLabView({ onAdvanced }: { onAdvanced?: () => void 
   }, [labOpen, original]);
   // biome-ignore lint/correctness/useExhaustiveDependencies: target identity resets the draft; electrical edits must not change a chosen terminal.
   useEffect(() => {
-    setTerminal(null);
     setDraft(null);
     setCompare(false);
     setStage(0);
@@ -190,7 +261,19 @@ export function InspectorFaultLabView({ onAdvanced }: { onAdvanced?: () => void 
   const choose = (type: FaultType) => {
     if (!target || blocked || !assessFaultTarget(circuit, type, target).applicable) return;
     stop();
+    setDraftError(null);
     setWindow(null);
+    const active = faults.find((f) => f.type === type && targetKey(f.target) === key);
+    if (active) {
+      setSelectedCauseId(active.id);
+      setTab('explain');
+      useUiStore.getState().notify({
+        message: `${faultName(type)} is already applied to ${targetLabel(circuit, target)}. Inspect or clear the existing cause.`,
+        type: 'info',
+        target,
+      });
+      return;
+    }
     setDraft({ type, target: { ...target }, revision });
   };
   const apply = async () => {
@@ -210,6 +293,10 @@ export function InspectorFaultLabView({ onAdvanced }: { onAdvanced?: () => void 
       .getState()
       .injectFault({ type: draft.type, target: draft.target });
     setApplying(false);
+    if (!id)
+      setDraftError(
+        'The edit was not applied. Review existing causes, the target and membership status. The Console records the rejection reason.',
+      );
     if (id) {
       const description = `Applied ${faultName(draft.type)} on ${targetLabel(circuit, draft.target)}.`;
       recordFaultLabEdit(description);
@@ -218,15 +305,22 @@ export function InspectorFaultLabView({ onAdvanced }: { onAdvanced?: () => void 
     }
   };
   const clear = async (id?: string) => {
+    const clearedCause = id ? faults.find((f) => f.id === id) : null;
     const success = id
       ? await useCircuitStore.getState().removeFault(id)
       : await useCircuitStore.getState().clearAllFaults();
-    if (success)
-      recordFaultLabEdit(
-        id
-          ? 'Cleared one injected cause; protection and damage preserved.'
-          : 'Cleared all injected causes; protection and damage preserved.',
-      );
+    if (success) {
+      const description = id
+        ? 'Cleared one injected cause; protection and damage preserved.'
+        : 'Cleared all injected causes; protection and damage preserved.';
+      recordFaultLabEdit(description);
+      useUiStore.getState().notify({
+        message: description,
+        type: 'info',
+        target: clearedCause?.target,
+        showUndo: true,
+      });
+    }
   };
   const focus = (faultTarget: FaultTarget) => {
     if (faultTarget.type === 'wire') {
@@ -345,14 +439,19 @@ export function InspectorFaultLabView({ onAdvanced }: { onAdvanced?: () => void 
           )
           .map((f) => {
             const assessment = target ? assessFaultTarget(circuit, f.id, target) : null;
+            const applied = faults.some(
+              (cause) => cause.type === f.id && targetKey(cause.target) === key,
+            );
             return (
               <button
                 type="button"
                 key={f.id}
+                data-applied={applied || undefined}
                 disabled={!assessment?.applicable || blocked}
                 onClick={() => choose(f.id)}
               >
                 <strong>{f.label}</strong>
+                {applied && <b className="fault-lab-applied-badge">Applied</b>}
                 <small>{assessment?.reason ?? 'Select a component or a wire on the canvas.'}</small>
                 <span>
                   {assessment?.coverage === 'supported'
@@ -446,17 +545,55 @@ export function InspectorFaultLabView({ onAdvanced }: { onAdvanced?: () => void 
             suspended={hidden || externalModal || !!window || !!draft || blocked || !labOpen}
             appliedFault={appliedFault}
           />
-          <output className="fault-lab-response-status">
-            {fresh
-              ? fresh.unassessed
-                ? 'Unassessed fault · consequence playback unavailable'
-                : compare
-                  ? 'Previous captured revision · comparison only'
-                  : 'Fresh captured response'
-              : saved
-                ? 'Stale response · run the current circuit again'
-                : 'No accepted response · run the circuit'}
+          <output className="fault-lab-response-status" data-run-state={runState}>
+            <b>
+              {
+                {
+                  'not-run': 'Not run',
+                  running: 'Running',
+                  captured: 'Captured',
+                  blocked: 'Blocked',
+                  unavailable: 'Unavailable',
+                  stale: 'Stale',
+                }[runState]
+              }
+            </b>{' '}
+            <span>
+              {runState === 'blocked'
+                ? 'Run was blocked by circuit checks. Review the findings, then return here.'
+                : runState === 'unavailable'
+                  ? 'Electrical effect not assessed for the current circuit; no accepted consequence capture is available.'
+                  : runState === 'running'
+                    ? 'Waiting for a current circuit result.'
+                    : fresh
+                      ? fresh.unassessed
+                        ? 'Unassessed fault · consequence playback unavailable'
+                        : compare
+                          ? 'Previous captured revision · comparison only'
+                          : 'Fresh captured response'
+                      : saved
+                        ? 'Stale response · run the current circuit again'
+                        : 'No accepted response · run the circuit'}
+            </span>
+            {running && runState === 'captured' && <small>Continuous simulation running</small>}
           </output>
+          {selectedFaults.length > 1 && (
+            <label className="fault-lab-cause-picker">
+              {selectedFaults.length} causes on this target
+              <select
+                aria-label="Inspect applied cause"
+                value={selectedCauseId ?? ''}
+                onChange={(event) => setSelectedCauseId(event.target.value || null)}
+              >
+                <option value="">Choose a cause to inspect</option>
+                {selectedFaults.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {faultName(f.type)} · {targetLabel(circuit, f.target)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <fieldset className="fault-lab-steps" aria-label="Causal walkthrough stages">
             {['Target', 'Cause', 'Path', 'Response', 'Inspect', 'Repair'].map((name, index) => (
               <button
@@ -723,6 +860,11 @@ export function InspectorFaultLabView({ onAdvanced }: { onAdvanced?: () => void 
       >
         {draft && (
           <>
+            {draftError && (
+              <p role="alert" className="fault-lab-draft-error">
+                {draftError}
+              </p>
+            )}
             <p>
               <b>{faultName(draft.type)}</b> · {targetLabel(circuit, draft.target)}
             </p>
@@ -838,17 +980,19 @@ export function InspectorFaultLabView({ onAdvanced }: { onAdvanced?: () => void 
           </>
         )}
         {window === 'help' && (
-          <ol>
-            <li>Select a real component, named terminal or wire on the main canvas.</li>
-            <li>Review a fault draft, apply, then Run Simulation from the workspace.</li>
-            <li>
-              Read accepted results and use the causal stages. Unassessed consequences remain
-              unavailable.
-            </li>
-            <li>
-              Clear, reset, operate or replace separately. Run again to compare known captured
-              revisions.
-            </li>
+          <ol className="fault-lab-help-steps">
+            {helpSteps.map(([title, detail, path], index) => (
+              <li key={title}>
+                <b>{index + 1}</b>
+                <svg viewBox="0 0 32 32" aria-hidden="true">
+                  <path d={path} />
+                </svg>
+                <div>
+                  <h4>{title}</h4>
+                  <p>{detail}</p>
+                </div>
+              </li>
+            ))}
           </ol>
         )}
       </Modal>

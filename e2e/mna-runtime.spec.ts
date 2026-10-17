@@ -180,7 +180,10 @@ test('an open return has live potential, zero current and no current-flow animat
     await wire.press('Enter');
     const inspector = page.getByRole('complementary', { name: 'Inspector', exact: true });
     if (!(await inspector.isVisible()))
-      await activateControl(page, page.getByRole('button', { name: 'Inspect', exact: true }));
+      await activateControl(
+        page,
+        page.locator('.table-top-right').getByRole('button', { name: 'Inspect', exact: true }),
+      );
     await activateControl(page, inspector.getByRole('button', { name: 'Readings', exact: true }));
     await expect(page.locator('[data-tour="inspector"]')).toContainText('LIVE · ZERO CURRENT');
     await expect(page.locator('[data-wire-readings="feed"]')).toContainText(

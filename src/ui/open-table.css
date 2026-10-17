@@ -321,7 +321,7 @@
   top: 86px;
   transform: translateX(-50%);
   width: min(560px, calc(100% - 24px));
-  z-index: 35;
+  z-index: 46;
 }
 .table-tool-actions,
 .table-tool-preferences {
@@ -1926,36 +1926,123 @@
   backdrop-filter: none;
   box-shadow: 0 8px 30px #24324a0b;
 }
-.table-undo-toast {
-  bottom: calc(var(--table-dock) + 22px);
-  translate: none;
+.table-notification-lane {
+  --notification-bottom: calc(var(--table-dock) + 76px);
+  position: absolute;
+  bottom: var(--notification-bottom);
+  left: 50%;
   transform: translateX(-50%);
-  max-width: calc(100% - 32px);
-  padding: 12px 16px;
+  z-index: 45;
+  display: grid;
+  gap: 8px;
+  width: min(480px, calc(100% - 32px));
+  max-height: min(300px, calc(100dvh - var(--notification-bottom) - 130px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.table-notification-lane[data-console-open="true"] {
+  --notification-bottom: calc(var(--table-dock) + 88px + min(280px, 45vh));
+}
+.table-undo-toast {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 12px;
   border-radius: 12px;
+  border-left: 4px solid var(--table-blue);
   font-size: 12px;
   line-height: 1.5;
 }
-.table-undo-toast > span {
+.table-undo-toast > svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--table-blue);
+}
+.table-notification-copy {
+  flex: 1;
   min-width: 0;
+  overflow-wrap: anywhere;
+}
+.table-notification-copy strong {
+  font-size: 11px;
+}
+.table-notification-copy p {
+  margin: 2px 0 0;
+}
+.table-notification-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: 130px;
 }
 .open-table .table-undo-toast button {
-  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   color: var(--table-blue);
-  border-radius: 8px;
+  border-radius: 6px;
   background: var(--table-soft);
-  padding: 6px 8px;
+  padding: 5px 7px;
+  font-size: 11px;
+}
+.table-undo-toast[data-notification="error"] {
+  border-left-color: #e05b70;
+}
+.table-undo-toast[data-notification="warning"] {
+  border-left-color: #c18a29;
+}
+.table-undo-toast[data-notification="success"] {
+  border-left-color: #28976a;
+}
+.table-undo-toast[data-notification="error"] > svg {
+  color: #e05b70;
+}
+.table-undo-toast[data-notification="warning"] > svg {
+  color: #c18a29;
+}
+.table-undo-toast[data-notification="success"] > svg {
+  color: #28976a;
+}
+@media (min-width: 641px) {
+  .open-table:is([data-inspector-open="true"], [data-learning-open="true"])
+    .table-notification-lane {
+    left: calc((100% - 344px) / 2);
+    max-width: calc(100% - 400px);
+  }
 }
 @media (max-width: 640px) {
-  .open-table[data-inspector-open="true"] .table-undo-toast {
+  .table-notification-lane {
+    width: calc(100% - 24px);
+  }
+  .open-table[data-inspector-open="true"] .table-notification-lane {
+    --notification-bottom: calc(
+      var(--table-dock) +
+      26px +
+      min(47vh, calc(100dvh - var(--table-dock) - 176px))
+    );
+    width: calc(100% - 116px);
     left: 12px;
-    translate: none;
     transform: none;
-    max-width: calc(100% - 156px);
-    bottom: calc(var(--table-dock) + 26px + min(47vh, calc(100dvh - var(--table-dock) - 176px)));
-    gap: 8px;
-    padding: 10px;
+  }
+  .table-undo-toast {
+    display: grid;
+    grid-template-columns: 17px minmax(0, 1fr) 20px;
+    gap: 6px;
+    padding: 7px;
     font-size: 11px;
+  }
+  .table-notification-copy {
+    grid-column: 2;
+  }
+  .table-notification-actions {
+    grid-row: 2;
+    grid-column: 2 / -1;
+    max-width: none;
+  }
+  .table-notification-dismiss {
+    grid-row: 1;
+    grid-column: 3;
   }
 }
 .table-guide-presence {
@@ -1995,5 +2082,397 @@
 @media (max-width: 640px) {
   .open-table .table-diagnosis {
     max-height: min(30vh, calc(100dvh - var(--table-dock) - 340px));
+  }
+}
+
+.circuit-check-summary {
+  width: 100%;
+  text-align: left;
+  font-size: 12px;
+}
+.circuit-check-summary > h3 {
+  font-size: 15px;
+  font-weight: 650;
+  margin-bottom: 6px;
+}
+.circuit-check-summary p {
+  color: var(--table-muted);
+  line-height: 1.5;
+}
+.circuit-check-summary > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+.circuit-check-summary section {
+  border: 1px solid var(--table-line);
+  border-radius: 10px;
+  padding: 12px;
+  background: var(--table-paper);
+}
+.circuit-check-summary h4 {
+  font-weight: 650;
+  color: var(--table-ink);
+  margin-bottom: 5px;
+}
+.circuit-check-summary dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+.circuit-check-summary dl > div {
+  display: grid;
+  gap: 3px;
+}
+.circuit-check-summary dt {
+  font-size: 10px;
+  color: var(--table-muted);
+}
+.circuit-check-summary dd {
+  font-variant-numeric: tabular-nums;
+  color: var(--table-ink);
+  font-weight: 650;
+}
+@media (max-width: 640px) {
+  .circuit-check-summary > div {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Fault identity remains static after its bounded entrance cue. */
+[data-fault-fx-layer] .electrasim-fx-swap-stroke {
+  animation: electrasim-fx-recolor .7s ease-out both;
+}
+[data-fault-fx-layer] .electrasim-fx-earth-ring,
+[data-fault-fx-layer] .electrasim-fx-jam-shake {
+  animation: none;
+}
+[data-fault-fx-layer][data-fault-reduced-motion="true"] * {
+  animation: none !important;
+}
+[data-fault-fx-layer][data-fault-hidden="true"] * {
+  animation-play-state: paused !important;
+}
+
+.wire-properties-summary {
+  display: grid;
+  gap: 12px;
+}
+.wire-properties-summary h4 {
+  font-size: 13px;
+  font-weight: 650;
+}
+.wire-material-summary,
+.wire-method-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--table-line);
+  padding-bottom: 12px;
+}
+.wire-material-summary svg,
+.wire-method-summary svg {
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  color: var(--table-ink);
+}
+.wire-properties-summary p,
+.wire-properties-summary small {
+  color: var(--table-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.wire-properties-summary small {
+  display: block;
+}
+.wire-properties-summary dl {
+  display: grid;
+  gap: 10px;
+}
+.wire-properties-summary dl > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(70px, 1fr);
+  gap: 12px;
+}
+.wire-properties-summary dd {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.wire-properties-summary details {
+  font-size: 11px;
+  border-top: 1px solid var(--table-line);
+  padding-top: 10px;
+}
+.wire-properties-summary summary {
+  cursor: pointer;
+  color: var(--table-blue);
+}
+
+.component-model-section {
+  display: grid;
+  gap: 12px;
+  border-top: 1px solid var(--table-line);
+  padding-top: 14px;
+}
+.component-model-section > h2 {
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--table-ink);
+}
+
+/* Phase 1.13 approved header/shelf proportions and relocated Circuit controls. */
+.open-table {
+  --table-dock: 166px;
+}
+.table-shelf-categories {
+  gap: 4px;
+}
+.table-shelf-categories button {
+  padding: 7px 11px;
+  border: 0;
+  border-radius: 10px;
+  font-size: 13px;
+}
+.table-shelf-categories button[aria-pressed="true"] {
+  background: var(--table-soft);
+}
+.table-circuit-controls {
+  position: absolute;
+  top: 20px;
+  right: 188px;
+  z-index: 25;
+  width: 190px;
+  padding: 5px;
+  border-radius: 12px;
+  display: grid;
+}
+.table-circuit-controls button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+  min-height: 24px;
+  padding: 2px 7px;
+  font-size: 11px;
+  text-align: left;
+  border-radius: 7px;
+}
+.table-circuit-controls button:hover {
+  background: var(--table-soft);
+}
+.table-circuit-controls button:first-child {
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.table-circuit-controls button:last-child {
+  color: var(--table-muted);
+  font-size: 10px;
+}
+.table-circuit-controls small {
+  font-size: 9px;
+  white-space: nowrap;
+  color: var(--table-blue);
+}
+.circuit-readiness-compact {
+  display: none;
+}
+.table-calculation-feedback {
+  position: absolute;
+  top: 86px;
+  left: 24px;
+  max-width: min(680px, calc(100% - 390px));
+  z-index: 25;
+}
+.table-file-project {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 12px 20px;
+  font-size: 12px;
+  color: var(--table-muted);
+}
+.table-file-project input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 9px;
+  border: 1px solid var(--table-line);
+  border-radius: 7px;
+  background: var(--table-paper);
+  color: var(--table-ink);
+}
+@media (min-width: 641px) {
+  .table-command-action {
+    font-size: 13px;
+  }
+}
+@media (max-width: 1279px) and (min-width: 641px) {
+  .table-circuit-controls {
+    top: 82px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+  }
+  .table-calculation-feedback {
+    top: 150px;
+  }
+}
+@media (max-width: 1100px) and (min-width: 641px) {
+  .table-inspector {
+    top: 151px;
+  }
+  .open-table {
+    --workspace-top-clearance: 151px;
+  }
+}
+@media (max-width: 640px) {
+  .open-table {
+    --table-dock: 151px;
+  }
+  .table-circuit-controls {
+    top: 12px;
+    right: 90px;
+    width: min(180px, calc(100% - 264px));
+    padding: 3px;
+  }
+  .table-circuit-controls button {
+    min-height: 22px;
+    padding: 2px 3px;
+    font-size: 9px;
+  }
+  .table-circuit-controls button > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .table-circuit-controls small,
+  .circuit-readiness-full {
+    display: none;
+  }
+  .circuit-readiness-compact {
+    display: inline;
+  }
+  .table-calculation-feedback {
+    top: 125px;
+    left: 12px;
+    max-width: calc(100% - 24px);
+  }
+  .table-shelf-categories button {
+    font-size: 11px;
+    padding: 7px 9px;
+  }
+}
+.table-circuit-controls {
+  margin: 0;
+  min-width: 0;
+}
+.table-circuit-controls button[aria-label="Supply"] {
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.table-circuit-controls button[data-readiness-status] {
+  color: var(--table-muted);
+  font-size: 10px;
+}
+
+.open-table .table-component-specs {
+  margin-block: 14px;
+  font-size: 12px;
+}
+.open-table .table-component-specs details {
+  margin-block: 8px;
+}
+.open-table .table-component-specs summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.open-table .table-component-specs dl > div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding-block: 6px;
+  border-bottom: 1px solid var(--table-line);
+}
+.open-table .table-component-specs dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.open-table .table-component-specs small {
+  display: block;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--table-muted);
+}
+.open-table .table-assessment-label {
+  color: var(--table-muted);
+  font-size: 9px;
+}
+
+/* Keep short model sections packed beside longer sections. */
+.component-model-section {
+  align-content: start;
+}
+.table-model-content > div > div:first-child p {
+  color: var(--table-muted);
+}
+
+.open-table .table-component-tile .table-assessment-label {
+  position: static;
+  display: block;
+  max-width: 125px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.table-component-tile:has(.table-assessment-label) {
+  gap: 4px;
+  padding-block: 4px;
+}
+
+@media (max-width: 640px) {
+  .open-table[data-learning-open="true"]:has(.table-notification-lane) .table-learning-panel {
+    max-height: calc(100dvh - var(--table-dock) - 350px);
+  }
+  .open-table[data-learning-open="true"] .table-notification-lane[data-console-open="false"] {
+    --notification-bottom: calc(100dvh - 262px);
+  }
+}
+
+/* The wider Lab uses the left column for notices on desktop. On phones,
+   reserve the strip between the commands and the scrollable Lab window. */
+@media (min-width: 641px) {
+  .open-table:has(.fault-lab) .table-notification-lane {
+    left: 16px;
+    transform: none;
+    width: 284px;
+    max-width: 284px;
+  }
+  .open-table .table-dialog[data-interactive-canvas="true"] > .table-dialog-panel:has(.fault-lab) {
+    top: var(--workspace-top-clearance);
+  }
+}
+@media (max-width: 640px) {
+  .open-table:has(.fault-lab):has(.table-notification-lane)
+    .table-dialog[data-interactive-canvas="true"]
+    > .table-dialog-panel:has(.fault-lab) {
+    max-height: calc(100dvh - var(--table-dock) - 280px);
+  }
+  .open-table:has(.fault-lab) .table-notification-lane[data-console-open="false"] {
+    --notification-bottom: calc(100dvh - 262px);
+    width: calc(100% - 130px);
+    left: 12px;
+    transform: none;
+  }
+  .open-table[data-phone="true"]:has(.fault-lab) .table-console-trigger {
+    bottom: calc(100dvh - 252px);
+    right: 12px;
+    width: 100px;
+    max-width: 100px;
+    padding: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
   }
 }

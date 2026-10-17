@@ -1,4 +1,4 @@
-import type { Circuit, ComponentGroup } from '@electrasim/domain';
+import type { Circuit, ComponentGroup, FaultTarget } from '@electrasim/domain';
 import { create } from 'zustand';
 import type { FaultResponse } from '../ui/components/inspector/faultLabEvidence';
 
@@ -7,7 +7,9 @@ export const useFaultLabStore = create<{
   original: { circuit: Circuit; groups: ComponentGroup[] } | null;
   responses: Record<string, { before: FaultResponse | null; current: FaultResponse }>;
   edits: { id: number; description: string }[];
-}>(() => ({ original: null, responses: {}, edits: [] }));
+  targetTerminal: { componentId: string; portIndex: number } | null;
+  target: FaultTarget | null;
+}>(() => ({ original: null, responses: {}, edits: [], targetTerminal: null, target: null }));
 
 export function rememberFaultResponse(response: FaultResponse) {
   useFaultLabStore.setState((state) => {

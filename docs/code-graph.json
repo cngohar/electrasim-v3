@@ -1,5 +1,5 @@
 {
-  "activePhase": "1.12",
+  "activePhase": "1.13",
   "phases": [
     {
       "id": "0",
@@ -243,6 +243,99 @@
         "docs/audits/data/phase-1.12-catalogue.json",
         "docs/specs/phase-1.12-model-families.json",
         "docs/design/lamp-driver/README.md"
+      ]
+    },
+    {
+      "id": "1.13",
+      "status": "locally functionally complete (2026-10-17), milestones 1.13.0-8. Reconciled 246 source/76 built/10 built-shell unique passing cases with explicit split/recovery; 2224 units/types/lint, local parity/access, build/static pass. Dense zoom, historical solver/generator limitations remain; no strict-performance, owner or publication claim. Active checkpoint stays 1.13.",
+      "evidence": [
+        "docs/plans/PHASE_1_13_UI_FAULT_LAB_PLAN.md",
+        "docs/handoffs/ui-fault-lab-next-chat.md",
+        "docs/audits/phase-1-ui-fault-lab.md",
+        "docs/phases/phase-1-simulator-core.md",
+        "progress.md",
+        "docs/audits/data/phase113-acceptance.json"
+      ]
+    },
+    {
+      "id": "1.13.0",
+      "status": "Complete locally: visual decisions, source/built failing baselines, issue map and resumable stage runner recorded; no new human production approval inferred.",
+      "evidence": [
+        "docs/plans/PHASE_1_13_UI_FAULT_LAB_PLAN.md",
+        "docs/audits/phase-1-ui-fault-lab.md",
+        "docs/audits/data/phase113-acceptance.json"
+      ]
+    },
+    {
+      "id": "1.13.1",
+      "status": "Complete locally: severity/Console, progress/dedup, five-second independent hover/focus pause and guarded Undo/Review/Inspect. Repeated native recovery remains explicit.",
+      "evidence": [
+        "docs/plans/PHASE_1_13_UI_FAULT_LAB_PLAN.md",
+        "docs/audits/phase-1-ui-fault-lab.md",
+        "docs/audits/data/phase113-acceptance.json"
+      ]
+    },
+    {
+      "id": "1.13.2",
+      "status": "Complete locally: all 14 exact-target lifecycles across configured source and both built projects, first-click Lab/Run return and fresh/unavailable/stale boundaries.",
+      "evidence": [
+        "docs/plans/PHASE_1_13_UI_FAULT_LAB_PLAN.md",
+        "docs/audits/phase-1-ui-fault-lab.md",
+        "docs/audits/data/phase113-acceptance.json"
+      ]
+    },
+    {
+      "id": "1.13.3",
+      "status": "Complete locally: compile-derived source identity, four truthful assessment groups/severity and preserved current-result/override/repair/access guards.",
+      "evidence": [
+        "docs/plans/PHASE_1_13_UI_FAULT_LAB_PLAN.md",
+        "docs/audits/phase-1-ui-fault-lab.md",
+        "docs/audits/data/phase113-acceptance.json"
+      ]
+    },
+    {
+      "id": "1.13.4",
+      "status": "Complete locally: exact associated-path anchors and all 14 drag/release/rotation, bends/zoom/reroute, ordinary/dense, static/export/reduced motion and six-step Help.",
+      "evidence": [
+        "docs/plans/PHASE_1_13_UI_FAULT_LAB_PLAN.md",
+        "docs/audits/phase-1-ui-fault-lab.md",
+        "docs/audits/data/phase113-acceptance.json"
+      ]
+    },
+    {
+      "id": "1.13.5",
+      "status": "Complete locally: five widths/both themes, centered shell/full shelf/Circuit controls; real Lab/tools/guide/Fit/Console/notice clearance including phone count badges.",
+      "evidence": [
+        "docs/plans/PHASE_1_13_UI_FAULT_LAB_PLAN.md",
+        "docs/audits/phase-1-ui-fault-lab.md",
+        "docs/audits/data/phase113-acceptance.json"
+      ]
+    },
+    {
+      "id": "1.13.6",
+      "status": "Complete locally: all 17 model-family surfaces, existing guarded transactions, shared actual-instance Specs and resolved/durable wire drafts. Existing AWG/area and autosave contracts preserved.",
+      "evidence": [
+        "docs/plans/PHASE_1_13_UI_FAULT_LAB_PLAN.md",
+        "docs/audits/phase-1-ui-fault-lab.md",
+        "docs/audits/data/phase113-acceptance.json"
+      ]
+    },
+    {
+      "id": "1.13.7",
+      "status": "Complete locally: reproducible 116 content/reference dispositions, canonical terminals, actual values/provenance, explicit missing manufacturer data and actionable unknowns.",
+      "evidence": [
+        "docs/plans/PHASE_1_13_UI_FAULT_LAB_PLAN.md",
+        "docs/audits/phase-1-ui-fault-lab.md",
+        "docs/audits/data/phase113-acceptance.json"
+      ]
+    },
+    {
+      "id": "1.13.8",
+      "status": "Local functional acceptance complete: 246/76/10 unique latest passing cases, zero unresolved keys, full 2224-unit/type/lint plus local 897 parity/34 access groups and static gates. Combined recovery is not an uninterrupted full-green or strict-performance gate.",
+      "evidence": [
+        "docs/plans/PHASE_1_13_UI_FAULT_LAB_PLAN.md",
+        "docs/audits/phase-1-ui-fault-lab.md",
+        "docs/audits/data/phase113-acceptance.json"
       ]
     }
   ],
@@ -681,6 +774,217 @@
         "at": "2026-10-15T15:28:14.368Z",
         "scope": "Reviewed completed 1.12.0–7 plan, audit/handoff, 116-entry matrix and explicit 2026-10-15 user authorization for this local commit/GitHub push. Existing combined acceptance remains 2,197 units, 897 runtime cases, 34 API groups, 207 unique source and 22 unique built cases plus two intentional built skips. Publication formatting/import-order normalization only; 86 post-format tests pass. Actual Git refs establish publication. Historical solver/rendering/generator limits remain open; no deployment authorization.",
         "fingerprint": "7227c8bf6f8d21656a7943ba27a6e29dd63dad43e344848f2cc652f8608286d7"
+      }
+    },
+    {
+      "id": "workspace-ui-followup-source-review",
+      "summary": "2026-10-15 verified follow-up review: Console/toasts have separate paths; legacy context row remains; production header/shelf differ from approved HTML. All 116 types have a Specs route but only 34 authored help records, with 82 generic fallbacks. Generic Ratings unknown also labels missing supply. Default 230 V placement has 72 unknown-rating and 16 conditional law findings; not missing-model regression or wired-circuit acceptance. Validation score/safe label, source heuristics and direct log producers need redesign review. No production implementation.",
+      "evidence": [
+        "docs/audits/workspace-ui-followup-review.md",
+        "src/store/uiStore.ts",
+        "src/ui/components/UndoToast.tsx",
+        "src/ui/components/LogPanel.tsx",
+        "src/ui/components/SimulationFeedback.tsx",
+        "src/ui/components/SubHeaderBar.tsx",
+        "src/ui/open-table.css",
+        "docs/audits/data/workspace-ui-followup-inventory.json",
+        "packages/domain/src/core/readiness.ts",
+        "packages/domain/src/core/readinessPresentation.ts",
+        "packages/domain/src/core/capabilities.ts",
+        "packages/domain/src/core/compatibility.ts",
+        "packages/domain/src/core/placement.ts",
+        "packages/domain/src/circuitValidation.ts",
+        "packages/domain/src/componentHelp/index.ts",
+        "src/ui/components/ComponentInfoModal.tsx",
+        "src/ui/components/inspector/InspectorOverview.tsx",
+        "src/ui/components/inspector/ComponentPropertiesView.tsx",
+        "src/ui/components/ValidationReportView.tsx",
+        "src/ui/canvas/ComponentLayer.tsx",
+        "src/ui/canvas/ComponentNode.tsx",
+        "docs/design/open-drafting-table/prototype.css"
+      ],
+      "review": {
+        "at": "2026-10-15T16:07:39.256Z",
+        "scope": "Final review of audit, catalogue/help inventory, source findings and source/prototype measurements. Standalone proposal acceptance is separate: five-width flows, timer/hover/focus/history, final wire layout recovery. Nine existing wire tests and five graph-tool tests passed. No production changes, full app/build acceptance or phase advancement.",
+        "fingerprint": "80b2e539760a88ef91c0e5e42d0538668ce4cf6411d694f4ad8e83716c458900"
+      }
+    },
+    {
+      "id": "wire-properties-visual-gap",
+      "summary": "2026-10-15 source/native-browser review: AWG, copper/aluminum material and installation save and resolve correctly, but ordinary and dense SVG rendering use theme/state width and conductor-role colour rather than physical properties. Native 12 AWG (3.31 mm2), Al and B1 edits left stroke/path unchanged while resistance changed. Inspector Properties shows mm2/material/method code but omits AWG/full method/provenance diagrams. AWG-derived areas have no capacity-table coverage; retain explicit not-assessed. Nine focused wire store/validation tests pass. Proposal only; no production change.",
+      "evidence": [
+        "docs/audits/workspace-ui-followup-review.md",
+        "packages/domain/src/core/wireProperties.ts",
+        "packages/domain/src/core/wireCapacity.ts",
+        "src/store/circuitStore.ts",
+        "src/store/wireProperties.test.ts",
+        "packages/domain/src/circuitValidation.wires.test.ts",
+        "src/ui/canvas/WireLayer.tsx",
+        "src/ui/canvas/DenseWireLayer.tsx",
+        "src/ui/components/inspector/WireInspectorView.tsx",
+        "src/ui/components/inspector/InspectorQuickSettings.tsx",
+        "src/ui/components/inspector/InspectorOverview.tsx"
+      ],
+      "review": {
+        "at": "2026-10-15T16:07:41.280Z",
+        "scope": "Final source/native-browser wire review plus nine focused existing tests. AWG12, Al and B1 changed resolved data/resistance while drawing stayed identical. Reviewed shared resolver, capacity limits and actual Inspector fields. Final proposal adds labelled material/installation/size presentation; no production or built acceptance.",
+        "fingerprint": "ec45a29c30f6302c7936ac82e7faf8e92dee049b9f339823fb262afd47413976"
+      }
+    },
+    {
+      "id": "fault-lab-followup-shared-source-gaps",
+      "summary": "2026-10-16 source and screenshot review confirmed off-route midpoint/chord sever markers and component-internal open rendered as external wire cuts. All-type catalogue has no active indicators, duplicate Apply warns only in developer console and Help is an unstyled four-item list. Direct all-14 representative matrix: ten supported/converged and four intentionally unsupported effects, all exact duplicates rejected. Native completed evidence and design proposal are recorded separately; production unchanged.",
+      "evidence": [
+        "docs/audits/fault-lab-followup-review.md",
+        "src/ui/components/inspector/InspectorFaultLabView.tsx",
+        "src/ui/canvas/FaultFxLayer.tsx",
+        "src/ui/canvas/faultFx.ts",
+        "src/store/circuitStore.faultActions.ts",
+        "packages/domain/src/faults.ts",
+        "packages/domain/src/faultApplicability.ts",
+        "packages/domain/src/core/faultTopology.ts",
+        "src/store/uiStore.ts",
+        "src/ui/components/CircuitReadinessDetails.tsx",
+        "src/ui/components/inspector/faultLabEvidence.ts"
+      ],
+      "review": {
+        "at": "2026-10-16T03:38:55.005Z",
+        "scope": "Final inspected source/screenshot findings plus all-14 direct representative matrix. Corrected current-source CFL diagnostic succeeds; off-route/internal-versus-wire visuals and generic Help/catalogue/duplicate paths are confirmed. Native results and proposals recorded separately; no production fixes or phase acceptance.",
+        "fingerprint": "72c5d4864198836cbc9f7b102e9c048fd837a56ab52a5438f2432f3439eba23e"
+      }
+    },
+    {
+      "id": "fault-lab-followup-native-matrix",
+      "summary": "2026-10-16 representative current-source investigation complete: all 14 registered types plus CFL component open on desktop/phone (16 native scenarios) reproduce missing Applied cards and silent duplicate rejection; Clear removes causes/markers. Eight supported registry fixtures capture fresh runs, four intentionally unsupported effects remain unavailable, reverse polarity/short hit Pro validation and converge after explicit existing teacher/demo override. Redirect keeps faultLabOpen true while hiding Lab; first menu click closes hidden flag, second opens it. CFL diagnostic works at 1440/390 px, current 0 A/0 W capture; Run noop not reproduced. CFL sever drift 68.65 px, open-earth terminal drift 12.47 px. Aggregate/focused recovery retained; 39 existing units pass. Standalone three-target/six-step Help proposal passes at 1440/390/360, not production acceptance.",
+      "evidence": [
+        "docs/audits/fault-lab-followup-review.md",
+        "docs/audits/data/fault-lab-followup-matrix.json",
+        "src/ui/components/inspector/InspectorFaultLabView.tsx",
+        "src/ui/components/inspector/Inspector.tsx",
+        "src/ui/components/Toolbar.tsx",
+        "src/store/uiStore.ts",
+        "src/store/circuitStore.faultActions.ts",
+        "src/ui/components/CircuitReadinessDetails.tsx",
+        "src/ui/canvas/FaultFxLayer.tsx",
+        "src/ui/components/inspector/faultLabEvidence.ts"
+      ],
+      "review": {
+        "at": "2026-10-16T03:38:57.767Z",
+        "scope": "Reviewed sanitized combined/focused native evidence: 14 registry targets plus CFL at 1440/390, real local test cookies, duplicate Run/Clear and two Pro gate recoveries including two-toggle bug. 39 existing units pass. Three responsive visual/Help preview checks, syntax/Biome and links passed; screenshot inspection retained. No built/full acceptance, inferred arc effects or production changes.",
+        "fingerprint": "56d810e31fae93d5dc62e495f2465004d22b58ddd72d28b4937ce99ad3af7a9c"
+      }
+    },
+    {
+      "id": "phase-1.13-combined-plan",
+      "summary": "2026-10-17: Phase 1.13 milestones 0-8 locally functionally complete. Final manifest reconciles 246 source/76 built/10 built-shell unique passing cases with preserved failed/interrupted/split/recovery attempts. Full 2224 units/types/lint,897 local Workerd cases,34 local D1/cookie groups,116 reference dispositions and final build/static gates pass. Four unsupported effects, manufacturer gaps, fresh-result/repair/access boundaries and all measured performance limitations remain explicit. No new human owner/device acceptance, commit/push/deployment or phase advance.",
+      "evidence": [
+        "docs/plans/PHASE_1_13_UI_FAULT_LAB_PLAN.md",
+        "docs/handoffs/ui-fault-lab-next-chat.md",
+        "docs/audits/phase-1-ui-fault-lab.md",
+        "docs/audits/data/phase113-acceptance.json"
+      ],
+      "review": {
+        "at": "2026-10-17T13:20:42.816Z",
+        "scope": "Reviewed the completed 14-issue/nine-milestone checkpoint, unchanged exact-case 246/76/10 acceptance and separately authorized GitHub preparation. Six formatter-only edits preserve parsed TS/CSS/JSON, 16 focused repair/notification tests and canonical 116-entry snapshot pass. Manifest fingerprints refreshed; historical failures/performance/owner limits retained. Git publication remains separately verified; no Cloudflare authorization.",
+        "fingerprint": "d92b752a162160d85fe5fe68dbd3f048215770ac792ce1a23b5150cfd159e5c0"
+      }
+    },
+    {
+      "id": "phase113-preserved-result-contracts",
+      "summary": "Fault response capture is accepted only for the current circuitRevision and converged supported calculation. uiStore.setSimResult also captures against the retained Fault Lab target while the Lab view is unmounted by validation; this preserves timed protection evidence. Ephemeral drag geometry and selected terminal state never alter the saved solver document. Existing AWG edits intentionally persist the physical mm2 equivalent along with the consistent gauge label; the wire resolver still gives explicit area precedence. Supply/variant outcomes use the shared notification path; Review remains explicit and Undo additionally checks the exact circuit/history boundary and configuration lock. New native helpers scope the workspace Inspect separately from notification Inspect actions.",
+      "evidence": [
+        "src/store/uiStore.ts",
+        "src/store/faultLabStore.ts",
+        "src/ui/components/inspector/faultLabEvidence.ts",
+        "src/store/wireProperties.test.ts",
+        "src/ui/components/inspector/InspectorQuickSettings.tsx",
+        "docs/audits/phase-1-ui-fault-lab.md",
+        "src/ui/components/ElectricalEditDialog.tsx",
+        "src/ui/components/UndoToast.tsx",
+        "src/ui/components/UndoToast.test.tsx",
+        "docs/audits/data/phase113-acceptance.json"
+      ],
+      "review": {
+        "at": "2026-10-17T13:20:44.992Z",
+        "scope": "Reviewed publication delta against the accepted source: formatted fault notification chain has identical TS syntax; current-revision/capture/repair/AWG/history/access contracts are unchanged. 16 focused notification/repair checks pass; original 2224-unit and source/built evidence remains scoped in the manifest. Only current fingerprints and preparation evidence changed; no new electrical behavior.",
+        "fingerprint": "4e325be92da98d978fc19ba9cc3903e9c49d04fdb3da21b8d6c1ef2ab396cc6d"
+      }
+    },
+    {
+      "id": "phase113-notification-control-clearance",
+      "summary": "Final native/visual clearance covers notifications against Fit/Console, Inspector, guides, wider modeless Lab and active Circuit tools. Tools menu owns input above notices and below blocking modals; desktop Lab reserves its left column/header clearance; phone Lab uses the strip below commands while notices exist. Phone Console wraps every error/warning label within its reserved column; real post-Run badges, native trigger/Help hits and full lane/window separation are asserted. Hover/focus pause stays intact; native hover explicitly enters after modal closure. CSS runtime relationships require the recorded native checks, beyond import-only graph impact.",
+      "evidence": [
+        "src/ui/open-table.css",
+        "src/ui/components/UndoToast.tsx",
+        "e2e/open-drafting-table.spec.ts",
+        "e2e/inspector-reference.spec.ts",
+        "e2e/fault-marker-movement.spec.ts",
+        "e2e/helpers/catalogue-profiles.ts",
+        "e2e/ui-fault-lab.spec.ts",
+        "docs/audits/phase-1-ui-fault-lab.md",
+        "e2e/fault-lab-redesign.production.spec.ts",
+        "src/ui/components/inspector/faultLabEvidence.ts",
+        "src/ui/components/LogPanel.tsx",
+        "docs/audits/data/phase113-acceptance.json"
+      ],
+      "review": {
+        "at": "2026-10-17T13:20:47.097Z",
+        "scope": "Reviewed post-format CSS rules/selectors/declarations and notification test syntax against the accepted staged versions: structurally equivalent. The original source/built/production five-width real Console/Help hit evidence remains unchanged; 16 notification/repair tests pass. Canonical catalogue generator changes do not affect the UI; no new browser or performance claim.",
+        "fingerprint": "8f85c40572fd51f35e5e325203d5586175f6596f85bf69b52b9b295f18465111"
+      }
+    },
+    {
+      "id": "phase113-fault-marker-movement",
+      "summary": "All14 fault badge anchors follow actual component/terminal positions and displayed ordinary/dense wire paths during live drag, release, rotation, bends/zoom and reroute. Native source/built and static SVG evidence is reconciled in the final manifest. Preview remains separate from document/history/solver input. Dense deferred wires retain their displayed path; terminal cuts wait until commit. Internal opens never cut external conductors.",
+      "evidence": [
+        "src/ui/canvas/FaultFxLayer.tsx",
+        "src/ui/canvas/faultDragPreview.ts",
+        "src/ui/canvas/useCanvasPointerWindow.ts",
+        "src/ui/canvas/renderedPath.ts",
+        "src/ui/canvas/renderedPath.test.ts",
+        "src/ui/canvas/faultFx.ts",
+        "e2e/fault-marker-movement.spec.ts",
+        "e2e/helpers/fault-scenarios.ts",
+        "docs/audits/phase-1-ui-fault-lab.md",
+        "docs/audits/data/phase113-acceptance.json"
+      ],
+      "review": {
+        "at": "2026-10-17T13:20:49.295Z",
+        "scope": "Reviewed the publication delta and preserved geometry sources/checks against current manifest fingerprints. All14 movement/rotation/route and static SVG evidence retains the same case keys/outcomes; formatted shared CSS and lifecycle assertions are structurally equivalent. No marker/solver behavior changed; no new acceptance inferred from fingerprints.",
+        "fingerprint": "626be5c5409eb2a0dcb616ff5859684711fe3ec66000ccd0d0c0a8024e8b3848"
+      }
+    },
+    {
+      "id": "phase113-persistence-acknowledgement",
+      "summary": "Ctrl+S remains JSON export, distinct from 250ms debounced circuit autosave. Corrected native WR-01 waits for the real IndexedDB wire record before reload and checks AWG/area/material/method/derating/length plus Undo/Redo and downloaded JSON reimport in all configured source/built projects. Preserve original failed harness attempts and actual acknowledgement; no persistence implementation changed.",
+      "evidence": [
+        "src/store/persistence.ts",
+        "src/store/persistence.test.ts",
+        "src/ui/hooks/useKeyboardShortcuts.ts",
+        "e2e/inspector-reference.spec.ts",
+        "e2e/three-phase-source.spec.ts",
+        "docs/audits/phase-1-ui-fault-lab.md",
+        "docs/audits/data/phase113-acceptance.json"
+      ],
+      "review": {
+        "at": "2026-10-17T13:20:51.486Z",
+        "scope": "Reviewed publication manifest changes and unchanged durable-wire/IndexedDB acknowledgement sources and exact case evidence. Ctrl+S/export, debounce and AWG/material/method/length round trips remain unchanged. Formatting and inventory-tool normalization add no persistence changes; historical harness/transport failures and recovery are preserved.",
+        "fingerprint": "9d14b6b99fefeee0f6f97fca7d7f94d3791140ff414fc45ee3d52b8a34a0e2a7"
+      }
+    },
+    {
+      "id": "phase113-dense-performance-comparison",
+      "summary": "Six sequential same-host runs of the unchanged 200-component/400-wire source benchmark pass existing assertions: current ordinary zoom mean/p95 194.91/249.9ms then158.75/200.0ms; baseline HEAD884196c ordinary152.82/150.0ms and155.08/150.1ms. Matched CDP-profile runs give current158.75/166.7ms versus HEAD155.93/166.7ms. Preserve every outcome; the limited comparison does not establish persistent new slowdown or production rendering speed. Both trees still have all sampled zoom frames above50ms. Retain dense-zoom, historical solver45.07ms/8ms and generator limitations; no threshold relaxation or60fps claim. No electrical/solver/performance code changed after these measurements. Measurements predate the later Lab-only layout/source-label refinements; the benchmark has no open Lab. Retain this scope and every raw sample rather than claiming new production speed.",
+      "evidence": [
+        "e2e/performance.spec.ts",
+        "docs/audits/phase-1-ui-fault-lab.md",
+        "docs/handoffs/ui-fault-lab-next-chat.md",
+        "docs/audits/data/phase113-acceptance.json"
+      ],
+      "review": {
+        "at": "2026-10-17T13:20:53.692Z",
+        "scope": "Reviewed unchanged six raw performance samples and comparison in the refreshed manifest plus GitHub handoff wording. Formatter-only CSS rules are structurally equivalent; reference generator normalization changes no benchmark or application logic. Preserve all tails, closed-Lab source scope, failed60fps goal and historical solver/generator limits. No new benchmark or production-speed claim.",
+        "fingerprint": "5fc6153a62143a36a1284c6d6ad945999d5fd004458d1a861395afdd808cb654"
       }
     }
   ],
@@ -1145,6 +1449,16 @@
       "from": "e2e/unsupported-load-feedback.production.spec.ts",
       "relation": "tests",
       "to": "src/ui/components/SimulationFeedback.tsx"
+    },
+    {
+      "from": "src/store/wireProperties.test.ts",
+      "relation": "tests",
+      "to": "packages/domain/src/core/wireProperties.ts"
+    },
+    {
+      "from": "packages/domain/src/circuitValidation.wires.test.ts",
+      "relation": "tests",
+      "to": "packages/domain/src/core/wireCapacity.ts"
     }
   ],
   "features": [
@@ -2389,6 +2703,623 @@
         "at": "2026-10-15T15:28:23.142Z",
         "scope": "Reviewed independent lamp reference/preview, current ADR/specification and actual production acceptance audit including publication authorization. Eight analytic reference tests and three unchanged standalone preview workflows are specification evidence; production five-lamp source/built calculations, parity and native 12/230 V wiring are accepted separately. Publication formatting changes no runtime/reference behavior. GitHub authorization does not authorize deployment or establish performance/certification.",
         "fingerprint": "76a45df43fd5cae0a4bd41937b4c74813ebfa8a9b71a599baad56de56163a854"
+      }
+    },
+    {
+      "id": "workspace-ui-followup-review",
+      "summary": "2026-10-15 review and local interactive proposal complete: notifications/Console, styled supply/readiness relocation, approved HTML header/shelf fidelity, validation, reason-specific rating labels, model tabs without rotation, Specs and wire properties. 116-entry review: 34 authored/82 generic help; source/validation/badge issues documented. Preview passed 10 workflow groups at five widths plus timed expiry/hover/focus/history and three final wire layout recoveries. Production unchanged; no phase advancement.",
+      "tags": [
+        "workspace",
+        "UI",
+        "followup",
+        "notifications",
+        "toast",
+        "console",
+        "subheader",
+        "readiness",
+        "validation",
+        "ratings",
+        "unknown",
+        "specs",
+        "model",
+        "drafting",
+        "wire",
+        "AWG",
+        "copper",
+        "aluminum",
+        "installation",
+        "error",
+        "warning",
+        "success",
+        "info",
+        "progress",
+        "task",
+        "duration",
+        "subheader",
+        "specifications"
+      ],
+      "entryPoints": [
+        "src/ui/components/SubHeaderBar.tsx",
+        "src/ui/components/UndoToast.tsx",
+        "src/ui/components/LogPanel.tsx",
+        "src/ui/components/CircuitReadinessDetails.tsx",
+        "src/ui/components/ValidationReportView.tsx",
+        "src/ui/components/inspector/ComponentPropertiesView.tsx",
+        "src/ui/components/ComponentInfoModal.tsx"
+      ],
+      "evidence": [
+        "docs/audits/workspace-ui-followup-review.md",
+        "docs/audits/data/workspace-ui-followup-inventory.json",
+        "docs/plans/WORKSPACE_UI_FOLLOWUP_PLAN.md",
+        "docs/design/workspace-ui-followup/README.md",
+        "docs/design/workspace-ui-followup/index.html",
+        "docs/design/workspace-ui-followup/review.css",
+        "docs/design/workspace-ui-followup/review.js"
+      ],
+      "facts": ["workspace-ui-followup-source-review", "local-only", "wire-properties-visual-gap"],
+      "checks": [
+        {
+          "command": "node --check docs/design/workspace-ui-followup/review.js",
+          "files": ["docs/design/workspace-ui-followup/review.js"],
+          "reason": "Passed preview syntax check; no app runtime or electrical acceptance."
+        },
+        {
+          "command": "bun x biome check docs/design/workspace-ui-followup/review.js docs/design/workspace-ui-followup/review.css docs/code-graph.json docs/audits/data/workspace-ui-followup-inventory.json",
+          "files": [
+            "docs/design/workspace-ui-followup/review.js",
+            "docs/design/workspace-ui-followup/review.css",
+            "docs/audits/data/workspace-ui-followup-inventory.json"
+          ],
+          "reason": "Scoped static/format validation; graph formatting follows explicit reviews. Standalone browser findings and failed/recovery attempts are documented in the audit."
+        }
+      ],
+      "decisions": [
+        "Prepare a concrete local design proposal before broad production UI edits; retain current electrical evidence and access contracts.",
+        "Graph updates record verified review steps and do not certify browser or numerical acceptance."
+      ],
+      "broaderChecks": [
+        "Production implementation will require focused source/built desktop/phone workflows, stale report/readings checks, local numeric/access regression evidence where behavior changes, and source/prototype visual comparison."
+      ],
+      "review": {
+        "at": "2026-10-15T16:08:03.960Z",
+        "scope": "Final reviewed proposal/source findings and five-width plus timed/focused preview evidence. Check mapping covers standalone JS/CSS and inventory without fingerprinting its own mutable graph metadata. Five graph tests, nine wire tests and scoped static checks passed; no production, full built app, new model or phase acceptance.",
+        "fingerprint": "b8a61505518d51592466bbbb08e2fb975d31eebe8ac6506e7fa532f0df503992"
+      }
+    },
+    {
+      "id": "wire-properties-presentation",
+      "summary": "Wire settings AWG/gauge mm2, copper/aluminum Cu/Al material, installation C/B1/A and derating: shared resolution and electrical/capacity inputs work, but physical properties have no canvas styling. Properties omits AWG/full method names. 2026-10-15 native source review and nine focused store/validation tests; proposed labelled Inspector cross-section and installation indicators. No production implementation or built acceptance.",
+      "tags": [
+        "wire",
+        "properties",
+        "settings",
+        "AWG",
+        "gauge",
+        "mm2",
+        "size",
+        "thickness",
+        "visual",
+        "copper",
+        "aluminum",
+        "aluminium",
+        "material",
+        "installation",
+        "method",
+        "conduit",
+        "derating",
+        "capacity",
+        "resistance",
+        "Inspector",
+        "updateWireProperties",
+        "resolveWireProperties",
+        "InspectorOverview",
+        "WireInspectorView",
+        "wire-awg"
+      ],
+      "entryPoints": [
+        "src/ui/components/inspector/InspectorOverview.tsx",
+        "src/ui/components/inspector/InspectorQuickSettings.tsx",
+        "src/ui/components/inspector/WireInspectorView.tsx",
+        "src/ui/canvas/WireLayer.tsx",
+        "src/ui/canvas/DenseWireLayer.tsx",
+        "src/store/circuitStore.ts",
+        "packages/domain/src/core/wireProperties.ts",
+        "packages/domain/src/core/wireCapacity.ts"
+      ],
+      "evidence": [
+        "docs/audits/workspace-ui-followup-review.md",
+        "docs/plans/WORKSPACE_UI_FOLLOWUP_PLAN.md",
+        "docs/design/workspace-ui-followup/README.md",
+        "docs/design/workspace-ui-followup/index.html",
+        "docs/design/workspace-ui-followup/review.js",
+        "docs/design/workspace-ui-followup/review.css"
+      ],
+      "facts": ["wire-properties-visual-gap", "local-only"],
+      "checks": [
+        {
+          "command": "bun x vitest run src/store/wireProperties.test.ts packages/domain/src/circuitValidation.wires.test.ts",
+          "files": [
+            "src/store/wireProperties.test.ts",
+            "packages/domain/src/circuitValidation.wires.test.ts"
+          ],
+          "reason": "Nine passed on 2026-10-15: physical-size precedence, AWG equivalence, atomic edits and Undo/Redo/portable data, explicit capacity limits. Does not test new visuals."
+        }
+      ],
+      "decisions": [
+        "Use one resolved wire-property source for saved values, calculations, Inspector and any future visual indicators.",
+        "Keep conductor-role colour, electrical state and physical material as separate concepts; prefer labelled Cu/Al and installation diagrams.",
+        "AWG-derived non-table areas retain not-assessed capacity; never invent a next-size ampacity.",
+        "Standalone preview demonstrates AWG/mm2 plus Cu/Al cross-section swatch, full installation mini-diagram, resistance and capacity limits. Five-width flows and final phone toast/scroll recovery are design evidence only."
+      ],
+      "broaderChecks": [
+        "Physical width changes need both ordinary/dense rendering, zoom/hit targets, fault/current/selection priority, accessibility and actual source/built performance checks.",
+        "New capacity tables or resistance/temperature laws require independent numerical/model evidence; this review authorizes no such physics change."
+      ],
+      "review": {
+        "at": "2026-10-15T16:07:45.371Z",
+        "scope": "Reviewed wire source/store/resolver/rendering and nine passed wire tests, native source AWG/material/installation reproduction, and standalone wire presentation proposal. Final combined five-width and three focused wire layout workflows pass; labelled Cu/Al, AWG/mm2, installation diagram and capacity basis are preview behavior only. No new capacity table or production visuals implemented.",
+        "fingerprint": "fe115189aeb00d53468cdd1aa19484373d60dac4558acaf2efdd674c54f41b5c"
+      }
+    },
+    {
+      "id": "fault-lab-followup-review",
+      "summary": "Completed 2026-10-16 all-14-fault review and standalone visual proposal. Sixteen native scenarios (14 types plus CFL desktop/phone), complete direct matrix and 39 existing units: shared missing Applied cards/silent duplicates, hidden-Lab Pro validation toggle bug, off-route open/PE cuts, plain Help. CFL diagnostic succeeds with fresh zero-current capture; four effects intentionally unsupported. Proposed numbered Help, specific internal/wire/terminal cues, exact path anchoring and explicit result state. Aggregate/focused recovery; no production changes, built/full-phase acceptance or phase advancement.",
+      "tags": [
+        "Fault Lab",
+        "faults",
+        "all",
+        "14",
+        "followup",
+        "open-circuit",
+        "open-live",
+        "open-neutral",
+        "open-earth",
+        "terminal-disconnect",
+        "reverse-polarity",
+        "switched-neutral",
+        "earth-fault",
+        "live-to-earth",
+        "smooth-dc-residual",
+        "arc-fault",
+        "protection-bypass",
+        "protection-forced-open",
+        "short-circuit",
+        "applied",
+        "duplicate",
+        "catalogue",
+        "library",
+        "help",
+        "steps",
+        "icons",
+        "visual",
+        "animation",
+        "diagnostic",
+        "startDiagnosticRun",
+        "Run",
+        "injectFault",
+        "canStartSimulation",
+        "geometry",
+        "midpoint",
+        "orthogonal",
+        "curve",
+        "coexistence",
+        "coverage",
+        "supported",
+        "unsupported",
+        "Help modal",
+        "numbered",
+        "steps",
+        "return",
+        "toggleFaultLab",
+        "faultLabOpen",
+        "activeInspectorTab",
+        "validation",
+        "readiness",
+        "marker",
+        "route",
+        "prototype"
+      ],
+      "entryPoints": [
+        "src/ui/components/inspector/InspectorFaultLabView.tsx",
+        "src/ui/canvas/FaultFxLayer.tsx",
+        "src/ui/canvas/faultFx.ts",
+        "src/store/circuitStore.faultActions.ts",
+        "src/store/uiStore.ts",
+        "src/ui/components/CircuitReadinessDetails.tsx",
+        "src/ui/components/inspector/faultLabEvidence.ts",
+        "src/ui/components/inspector/Inspector.tsx",
+        "src/ui/components/Toolbar.tsx",
+        "docs/design/fault-lab-followup/index.html"
+      ],
+      "evidence": [
+        "docs/audits/fault-lab-followup-review.md",
+        "e2e/fault-lab-application-review.spec.ts",
+        "e2e/fault-lab-redesign.spec.ts",
+        "packages/domain/src/faultApplicability.ts",
+        "packages/domain/src/core/faultTopology.ts",
+        "packages/domain/src/faults.ts",
+        "src/ui/components/inspector/FaultLabStage.tsx",
+        "docs/audits/data/fault-lab-followup-matrix.json",
+        "docs/design/fault-lab-followup/README.md",
+        "docs/design/fault-lab-followup/index.html",
+        "docs/design/fault-lab-followup/preview.css",
+        "docs/design/fault-lab-followup/preview.js",
+        "src/ui/components/inspector/Inspector.tsx",
+        "src/ui/components/Toolbar.tsx"
+      ],
+      "facts": [
+        "fault-lab-followup-shared-source-gaps",
+        "local-only",
+        "fault-lab-followup-native-matrix"
+      ],
+      "checks": [
+        {
+          "command": "bun x vitest run src/ui/canvas/faultFx.test.ts src/ui/canvas/FaultFxLayer.test.tsx src/ui/components/inspector/InspectorFaultLabView.test.tsx src/ui/components/inspector/faultLabEvidence.test.ts",
+          "files": [
+            "src/ui/canvas/faultFx.test.ts",
+            "src/ui/canvas/FaultFxLayer.test.tsx",
+            "src/ui/components/inspector/InspectorFaultLabView.test.tsx",
+            "src/ui/components/inspector/faultLabEvidence.test.ts"
+          ],
+          "reason": "39 existing tests / four files passed during investigation. They preserve earlier behavior but do not assert the newly found active-card, duplicate-feedback, run-handoff or route-distance gaps."
+        },
+        {
+          "command": "node --check docs/design/fault-lab-followup/preview.js",
+          "files": ["docs/design/fault-lab-followup/preview.js"],
+          "reason": "Standalone design syntax only; three responsive native preview workflows are recorded in the audit/matrix. No solver or application behavior changes."
+        }
+      ],
+      "decisions": [
+        "Expand the reported issue to all 14 registered fault types, preserving supported versus not-assessed consequences.",
+        "Investigate and prepare a concrete visual/interaction proposal; do not change production models or weaken run/access/repair guards.",
+        "The exact CFL diagnostic noop was not reproduced at 1440 or 390 px: current converged 0 A/0 W is valid; distinguish continuous run from unavailable/blocked/captured outcomes.",
+        "Shared Pro validation redirection must restore the intended Lab view instead of toggling stale open state; do not weaken the gate.",
+        "Render a component internal opening differently from a cut conductor or disconnected terminal; sample actual route position and tangent, then optional brief motion."
+      ],
+      "broaderChecks": [
+        "A marker on an attached wire is not proof of the compiler fault target; compare canonical/compiled internal branches, terminals and conductor routes.",
+        "Future fixes need native source/built and current-result/canonical fault tests; visual playback must not invent arcing, damage or trips."
+      ],
+      "review": {
+        "at": "2026-10-16T03:39:00.799Z",
+        "scope": "Completed all-type source/direct/native review, sanitized 16-scenario matrix and concrete three-target/six-step Help proposal. Shared card/duplicate, Pro handoff and route geometry defects confirmed; CFL diagnostic itself works and four effects intentionally unsupported. Reviewed 39 passing existing units and three standalone preview workflows. Failed/partial and focused recovery retained; no production/built/phase acceptance.",
+        "fingerprint": "f7c0f43e28a0d08d8fdfed06dfda43dfc998ec39361e963831718cc1457902c2"
+      }
+    },
+    {
+      "id": "ui-fault-lab-phase-plan",
+      "summary": "locally functionally complete (2026-10-17), milestones 1.13.0-8. Reconciled 246 source/76 built/10 built-shell unique passing cases with explicit split/recovery; 2224 units/types/lint, local parity/access, build/static pass. Dense zoom, historical solver/generator limitations remain; no strict-performance, owner or publication claim. Active checkpoint stays 1.13.",
+      "tags": [
+        "phase-1.13",
+        "1.13",
+        "next",
+        "phase",
+        "plan",
+        "UI",
+        "Fault Lab",
+        "faults",
+        "14",
+        "notifications",
+        "toast",
+        "Console",
+        "header",
+        "subheader",
+        "shelf",
+        "readiness",
+        "validation",
+        "diagnostic",
+        "rotation",
+        "wire",
+        "AWG",
+        "copper",
+        "aluminum",
+        "installation",
+        "ratings",
+        "specs",
+        "help",
+        "icons",
+        "geometry",
+        "handoff",
+        "marker",
+        "movement",
+        "cut off",
+        "drag",
+        "dense",
+        "Bezier"
+      ],
+      "entryPoints": [
+        "docs/plans/PHASE_1_13_UI_FAULT_LAB_PLAN.md",
+        "docs/handoffs/ui-fault-lab-next-chat.md",
+        "docs/audits/phase-1-ui-fault-lab.md",
+        "src/store/uiStore.ts",
+        "src/ui/components/inspector/InspectorFaultLabView.tsx",
+        "src/ui/components/inspector/Inspector.tsx",
+        "src/ui/canvas/FaultFxLayer.tsx",
+        "src/ui/components/inspector/InspectorOverview.tsx",
+        "scripts/verify-phase113.mjs",
+        "e2e/ui-fault-lab.spec.ts",
+        "e2e/fault-marker-movement.spec.ts",
+        "e2e/fault-lifecycle.spec.ts",
+        "e2e/inspector-reference.spec.ts",
+        "src/store/notifications.ts",
+        "src/ui/components/ComponentSpecs.tsx",
+        "packages/domain/src/core/componentReference.ts",
+        "scripts/catalogue-reference-inventory.ts",
+        "src/ui/components/ElectricalEditDialog.tsx",
+        "src/ui/components/UndoToast.test.tsx",
+        "e2e/three-phase-source.spec.ts"
+      ],
+      "evidence": [
+        "docs/plans/PHASE_1_13_UI_FAULT_LAB_PLAN.md",
+        "docs/handoffs/ui-fault-lab-next-chat.md",
+        "docs/audits/phase-1-ui-fault-lab.md",
+        "docs/phases/phase-1-simulator-core.md",
+        "progress.md",
+        "docs/design/phase-1.13-decisions.md",
+        "docs/audits/phase-1.13-issue-checks.md",
+        "docs/audits/data/phase-1.13-catalogue-reference.json",
+        "docs/audits/data/phase113-acceptance.json"
+      ],
+      "facts": [
+        "phase-1.13-combined-plan",
+        "workspace-ui-followup-source-review",
+        "wire-properties-visual-gap",
+        "fault-lab-followup-native-matrix",
+        "local-only",
+        "phase113-preserved-result-contracts",
+        "phase113-notification-control-clearance",
+        "phase113-fault-marker-movement",
+        "phase113-persistence-acknowledgement",
+        "phase113-dense-performance-comparison"
+      ],
+      "checks": [
+        {
+          "command": "bun run test:graph",
+          "files": ["scripts/code-graph.test.mjs"],
+          "reason": "Five graph-tool tests pass for planning navigation/mapping infrastructure. This is not application or Phase 1.13 implementation acceptance."
+        },
+        {
+          "command": "bun run verify:phase-1.13 --list",
+          "files": ["scripts/verify-phase113.mjs", "scripts/phase-gate.mjs"],
+          "reason": "Lists full registered gate; --only and --from preserve partial evidence boundaries. Not application acceptance."
+        },
+        {
+          "command": "bun x playwright test e2e/ui-fault-lab.spec.ts e2e/fault-marker-movement.spec.ts --workers=1",
+          "files": [
+            "e2e/ui-fault-lab.spec.ts",
+            "e2e/fault-marker-movement.spec.ts",
+            "e2e/helpers/fault-scenarios.ts",
+            "playwright.ui-fault-built.config.ts"
+          ],
+          "reason": "Seven defect regressions, positive CFL control and all-14 live drag/release/rotation checks. Source and built baseline/fix results recorded separately in tracker."
+        },
+        {
+          "command": "bun x playwright test e2e/fault-lifecycle.spec.ts e2e/ui-fault-lab.spec.ts --project=chromium --workers=1",
+          "files": [
+            "e2e/fault-lifecycle.spec.ts",
+            "e2e/ui-fault-lab.spec.ts",
+            "e2e/helpers/fault-scenarios.ts"
+          ],
+          "reason": "All14 lifecycle/UI/CFL tests now contribute to reconciled source 246/built 76 coverage. Exact raw runs, failed attempts and recovery are in the final manifest; no uninterrupted full-green claim."
+        },
+        {
+          "command": "bun run catalogue:reference --check",
+          "files": [
+            "scripts/catalogue-reference-inventory.ts",
+            "packages/domain/src/core/componentReference.ts",
+            "packages/domain/src/core/componentReference.test.ts"
+          ],
+          "reason": "116 deterministic content/reference dispositions match canonical terminal/rating snapshots. 30 authored, four reconciled derived,82 family/catalogue. This is metadata consistency, not runtime or product certification."
+        },
+        {
+          "command": "bun x playwright test e2e/inspector-reference.spec.ts --workers=1",
+          "files": [
+            "e2e/inspector-reference.spec.ts",
+            "src/ui/components/ComponentSpecs.tsx",
+            "src/ui/components/inspector/WirePropertiesSummary.tsx"
+          ],
+          "reason": "Native saved/draft AWG/metric/material/method, Undo/Redo/reload/JSON round trip and instance-aware shared Specs. Current source/built recovery passes; exact scopes in the ledger/manifest."
+        },
+        {
+          "command": "bun run check",
+          "files": [
+            "src/ui/components/UndoToast.test.tsx",
+            "src/store/electricalEditing.test.ts",
+            "packages/domain/src/core/componentReference.test.ts"
+          ],
+          "reason": "Final notification/circuit-controls implementation passes full types, lint and 2224 units/145 files. Native source/built and performance evidence is separately tracked; full unit success is not full phase closure."
+        },
+        {
+          "command": "bun run benchmark:browser",
+          "files": ["e2e/performance.spec.ts"],
+          "reason": "Unchanged dense200/400 source benchmark. Three current and three same-host HEAD samples (one matched CPU-profile diagnostic pair) pass registered handler/idle assertions, while dense zoom remains an explicit failed60fps goal. Preserve tail variance and production/source scope; see ledger."
+        }
+      ],
+      "decisions": [
+        "The user authorized local implementation and all-fault marker movement checks, then separately authorized committing the completed Phase 1.13 checkpoint and pushing to GitHub. Verify actual remote equality before reporting publication; Cloudflare operations/deployment remain unauthorized.",
+        "Execution started from the existing reviews/previews and completed baseline/milestones; preserve accepted Phase 1.12 and the completed Phase 1.13 implementation rather than restarting.",
+        "Prioritize user feedback and fault/run correctness before decorative layout polish; retain unsupported/model/ratings distinctions."
+      ],
+      "broaderChecks": [
+        "Production changes require the plan’s focused regressions and final full functional/static/source/built/local-access and affected runtime/performance evidence.",
+        "No new arc/leakage/control model, invented catalogue ratings, capacity table or solver rewrite is part of this UI/fault presentation scope."
+      ],
+      "review": {
+        "at": "2026-10-17T13:20:55.900Z",
+        "scope": "Reviewed final checkpoint publication scope, changelog/progress/handoff and separately explicit user GitHub authorization. Six files normalized with equivalent parsed TS/CSS/JSON; reference generator now follows existing canonical snapshot formatting, full116 check and16 focused tests pass. Manifest retains246/76/10 cases, failed/recovery/performance evidence and refreshed76 fingerprints. Phase stays1.13; verify Git refs separately; no deployment authorization.",
+        "fingerprint": "78ae73862ffd282515185a4c9ede8b4820d2cf5f7c107568ab192ce5a4f9b1c1"
+      }
+    },
+    {
+      "id": "notification-clearance",
+      "summary": "Local functional acceptance complete: Inspector/guide/HUD and wider Lab/tools clearance, including real phone warning counts, verified by current source/built/production recovery. Original failures and split/interrupted attempts remain explicit; five-second hover/focus pause is preserved.",
+      "tags": [
+        "notification",
+        "notifications",
+        "clearance",
+        "guide",
+        "guides",
+        "Console",
+        "Fit",
+        "phone",
+        "hover",
+        "focus",
+        "phase-1.13"
+      ],
+      "entryPoints": [
+        "src/ui/open-table.css",
+        "src/ui/components/UndoToast.tsx",
+        "src/ui/components/ElectricalEditDialog.tsx"
+      ],
+      "evidence": [
+        "docs/audits/phase-1-ui-fault-lab.md",
+        "docs/audits/data/phase113-acceptance.json"
+      ],
+      "facts": [
+        "phase113-notification-control-clearance",
+        "phase113-preserved-result-contracts",
+        "local-only"
+      ],
+      "checks": [
+        {
+          "command": "PLAYWRIGHT_DEV_PORT=3003 bun x playwright test e2e/fault-marker-movement.spec.ts e2e/inspector-reference.spec.ts e2e/open-drafting-table.spec.ts e2e/ui-fault-lab.spec.ts e2e/unsupported-load-feedback.spec.ts --grep 'all fourteen fault anchors|Console stays reachable|FL-05 Help|UI-04/05|UI-01 real import|native L/N' --workers=2",
+          "files": [
+            "e2e/fault-marker-movement.spec.ts",
+            "e2e/inspector-reference.spec.ts",
+            "e2e/open-drafting-table.spec.ts",
+            "e2e/ui-fault-lab.spec.ts",
+            "e2e/unsupported-load-feedback.spec.ts"
+          ],
+          "reason": "21 selected source cases pass across all three configured projects. Native hit targets, associated wire-route/drag geometry, both themes/five widths, Help and real notification timing. Combined with the 246-case full source run; not an uninterrupted full-run claim."
+        },
+        {
+          "command": "PLAYWRIGHT_DEV_PORT=3003 bun x playwright test e2e/ui-fault-lab.spec.ts e2e/inspector-reference.spec.ts e2e/open-drafting-table.spec.ts --grep 'FL-03 CFL|FL-05 Help|Console stays reachable' --workers=2",
+          "files": [
+            "e2e/ui-fault-lab.spec.ts",
+            "e2e/inspector-reference.spec.ts",
+            "e2e/open-drafting-table.spec.ts",
+            "e2e/fault-lab-redesign.production.spec.ts"
+          ],
+          "reason": "Late Lab/tools clearance: fresh CFL current230V/0A/0W plus five-width live notice/window separation and native Help hits; Help/multiple causes and guide/Console. Built CFL/Help and the two actual production Fault Lab flows are separate delivery evidence. Read actual recovery results in the ledger."
+        }
+      ],
+      "decisions": [
+        "Five-second hover/focus pause is preserved. Resolve overlap instead of dismissing every toast or bypassing native hit tests."
+      ],
+      "broaderChecks": [
+        "Full source/built/static/access and performance are separate evidence. Functional clearance does not close the dense-zoom performance limitation or establish owner acceptance."
+      ],
+      "review": {
+        "at": "2026-10-17T13:20:58.127Z",
+        "scope": "Reviewed the formatting-only CSS and notification-test delta against accepted structure, unchanged native clearance/check mappings and16 passing notification/repair tests. Prior source/built/production recovery remains explicit and is not replaced by fresh browser or performance claims. Manifest fingerprints reflect formatted files; no forced-click workaround.",
+        "fingerprint": "13fbdcb84d6d075372a6e51e969dccfbba6f7771f76176dd3c232937fc665830"
+      }
+    },
+    {
+      "id": "fault-marker-following",
+      "summary": "All14 markers follow actual targets/displayed routes in native source and built desktop/phone checks, including live drag/release/rotation, bends/zoom/reroute, internal-open separation, dense deferred routes and static SVG export. Exact coverage/recovery and limits are in the final manifest.",
+      "tags": [
+        "wire",
+        "fault",
+        "marker",
+        "move",
+        "movement",
+        "drag",
+        "cut",
+        "cut off",
+        "rotation",
+        "terminal",
+        "dense",
+        "Bezier",
+        "open-circuit",
+        "all14",
+        "phase-1.13"
+      ],
+      "entryPoints": [
+        "src/ui/canvas/FaultFxLayer.tsx",
+        "src/ui/canvas/faultDragPreview.ts",
+        "src/ui/canvas/useCanvasPointerWindow.ts",
+        "src/ui/canvas/renderedPath.ts"
+      ],
+      "evidence": [
+        "docs/audits/phase-1-ui-fault-lab.md",
+        "e2e/fault-marker-movement.spec.ts",
+        "docs/audits/data/phase113-acceptance.json"
+      ],
+      "facts": [
+        "phase113-fault-marker-movement",
+        "phase113-preserved-result-contracts",
+        "local-only"
+      ],
+      "checks": [
+        {
+          "command": "bun x playwright test e2e/fault-marker-movement.spec.ts --workers=1",
+          "files": ["e2e/fault-marker-movement.spec.ts", "e2e/helpers/fault-scenarios.ts"],
+          "reason": "Each configured source project checks all 14 live anchors and special overlays before/during/release/rotation; four bend/style/density combinations use the associated path oracle; standalone SVG export checks final route geometry and static cues."
+        },
+        {
+          "command": "bun x playwright test --config=playwright.ui-fault-built.config.ts e2e/fault-marker-movement.spec.ts --workers=1",
+          "files": ["playwright.ui-fault-built.config.ts", "e2e/fault-marker-movement.spec.ts"],
+          "reason": "The same native imported-document workflows run on dist assets in built-desktop and built-phone. Current result must be read from the ledger; importing source stores in the page is not test evidence."
+        }
+      ],
+      "decisions": [
+        "Dense deferred wire geometry remains deliberate; do not detach a cut from its displayed wire or show a terminal cut over an unfinished route. No preview coordinates are saved or sent to the solver."
+      ],
+      "broaderChecks": [
+        "Movement proof does not assess unsupported leakage/DC residual/arc fault effects or establish manufacturer ratings."
+      ],
+      "review": {
+        "at": "2026-10-17T13:21:00.446Z",
+        "scope": "Reviewed unchanged geometry/check mappings and all14 source/built movement evidence in the refreshed manifest. CSS/lifecycle formatting preserves structure and assertions; dense terminal commit and internal-open boundaries remain unchanged. GitHub preparation is separately authorized and adds no electrical-model acceptance.",
+        "fingerprint": "183418c6749e9bfd991c5e037d58311c9942c709ff35f91ef7d735af2d20083d"
+      }
+    },
+    {
+      "id": "circuit-autosave-verification",
+      "summary": "Verified native durable wire-save/reload and JSON round trip in all configured source/built projects. Actual IndexedDB acknowledgement is distinct from Ctrl+S export; original harness/transport failures and focused recovery remain explicit.",
+      "tags": [
+        "circuit",
+        "save",
+        "persistence",
+        "autosave",
+        "IndexedDB",
+        "reload",
+        "Ctrl+S",
+        "wire",
+        "AWG",
+        "phase-1.13"
+      ],
+      "entryPoints": ["src/store/persistence.ts", "src/ui/hooks/useKeyboardShortcuts.ts"],
+      "evidence": [
+        "docs/audits/phase-1-ui-fault-lab.md",
+        "e2e/inspector-reference.spec.ts",
+        "e2e/three-phase-source.spec.ts",
+        "docs/audits/data/phase113-acceptance.json"
+      ],
+      "facts": ["phase113-persistence-acknowledgement", "local-only"],
+      "checks": [
+        {
+          "command": "bun x playwright test e2e/inspector-reference.spec.ts --grep 'WR-01 AWG' --workers=1",
+          "files": ["e2e/inspector-reference.spec.ts"],
+          "reason": "Checks AWG/metric/material/method drafts/reset/save, actual durable IndexedDB wire fields, Undo/Redo, reload and native downloaded JSON reimport. All configured source projects; current outcomes in the ledger."
+        },
+        {
+          "command": "bun x playwright test --config=playwright.ui-fault-built.config.ts e2e/inspector-reference.spec.ts --grep 'WR-01 AWG' --workers=1",
+          "files": ["playwright.ui-fault-built.config.ts", "e2e/inspector-reference.spec.ts"],
+          "reason": "Same real-cookie native workflow on built desktop/phone. Source-store imports or fixed sleeps are not substitutes for a durable record."
+        }
+      ],
+      "decisions": [
+        "Preserve the existing keyboard export and autosave contracts; a persistence test must not mistake an export shortcut for a completed write."
+      ],
+      "broaderChecks": [
+        "Persistence contract changes require existing persistence unit and protected-document/access coverage, separate from this harness correction."
+      ],
+      "review": {
+        "at": "2026-10-17T13:21:02.615Z",
+        "scope": "Reviewed unchanged native IndexedDB acknowledgement and WR-01 source/built case evidence with the refreshed publication manifest. Formatting/inventory normalization changes no persistence or protected-document/access behavior. Original failed assumptions/transport and focused recovery remain explicit; Ctrl+S remains export.",
+        "fingerprint": "6ba9acbee6ce4ca6d220e7a41bdb58d02559d9d605aaa101a5af21de871c2252"
       }
     }
   ]

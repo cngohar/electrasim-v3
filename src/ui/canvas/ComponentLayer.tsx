@@ -1,4 +1,6 @@
 import type { ComponentInstance, SimulationResult } from '@electrasim/domain';
+import type { CompatibilityResult } from '@electrasim/domain/core/compatibility';
+import { assessmentPresentation } from '@electrasim/domain/core/readinessPresentation';
 import { memo, useMemo } from 'react';
 import type { MouseEvent, PointerEvent } from 'react';
 import { useCircuitReadiness } from '../../store/electricalReadiness';
@@ -61,16 +63,18 @@ export const ComponentLayer = memo(function ComponentLayer({
     return entries;
   }, [readiness]);
   const reviewDetails = useMemo(() => {
-    const entries = new Map<string, { missingModel: boolean; reasons: string[] }>();
+    const entries = new Map<string, CompatibilityResult>();
     for (const group of readiness.groups) {
-      const entry = entries.get(group.componentId) ?? { missingModel: false, reasons: [] };
-      entry.missingModel ||= group.result.reasons.some(
-        (reason) => reason.code === 'unsupported-model',
-      );
-      entry.reasons.push(...group.result.reasons.map((reason) => reason.message));
+      const entry = entries.get(group.componentId) ?? { status: 'compatible', reasons: [] };
+      if (
+        group.result.status === 'incompatible' ||
+        (entry.status === 'compatible' && group.result.status === 'unassessed')
+      )
+        entry.status = group.result.status;
+      entry.reasons.push(...group.result.reasons);
       entries.set(group.componentId, entry);
     }
-    return entries;
+    return new Map([...entries].map(([id, result]) => [id, assessmentPresentation(result)]));
   }, [readiness]);
   // Render selected component last so it stays on top of other components on canvas
   const orderedComponents = selectedId
@@ -90,8 +94,8 @@ export const ComponentLayer = memo(function ComponentLayer({
           flagged={flaggedIds?.has(component.id)}
           forcedOpenCause={forcedOpenIds?.has(component.id)}
           compatibilityReview={reviews.get(component.id)}
-          compatibilityMissingModel={reviewDetails.get(component.id)?.missingModel}
-          compatibilityDetails={reviewDetails.get(component.id)?.reasons.join(' ')}
+          compatibilityLabel={reviewDetails.get(component.id)?.label}
+          compatibilityDetails={`${reviewDetails.get(component.id)?.detail ?? ''} ${reviewDetails.get(component.id)?.action ?? ''}`}
           energized={simulation?.energizedComponents.has(component.id) ?? false}
           error={simulation?.errorComponents.has(component.id) ?? false}
           wireMode={wireMode}

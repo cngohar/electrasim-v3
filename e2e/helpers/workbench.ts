@@ -69,7 +69,10 @@ export async function openInspector(page: Page, id: string) {
   );
   const inspector = page.getByRole('complementary', { name: 'Inspector', exact: true });
   if (!(await inspector.isVisible()))
-    await activateControl(page, page.getByRole('button', { name: 'Inspect', exact: true }));
+    await activateControl(
+      page,
+      page.locator('.table-top-right').getByRole('button', { name: 'Inspect', exact: true }),
+    );
   await activateControl(page, inspector.getByRole('button', { name: 'Properties', exact: true }));
   return inspector;
 }

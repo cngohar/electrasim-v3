@@ -1,8 +1,9 @@
 import { runComplianceChecks } from './compliance';
 import { COMPONENT_DEFS } from './components';
+import { compileCircuit } from './core/compile';
 import { validateCircuitInput } from './core/input';
 import { normalizeCircuitDocument } from './core/normalize';
-import { assessCircuitReadiness } from './core/readiness';
+import { assessCompiledCircuitReadiness } from './core/readiness';
 import { assessWireCapacity } from './core/wireCapacity';
 import { resolveWireProperties } from './core/wireProperties';
 import { isOvercurrentDevice, isResidualDevice } from './protectionRoles';
@@ -91,6 +92,11 @@ export function validateCircuit(
     };
   }
 
+  // Share source identity and topology with the numerical compiler. A terminal
+  // strip is a connection device; its name cannot establish a supply.
+  const compiled = compileCircuit(circuit);
+  const readiness = simResult?.readiness ?? assessCompiledCircuitReadiness(compiled);
+
   // Index wires by "compId:portIdx"
   const portToWiresMap = new Map<string, WireInstance[]>();
   const compWiresMap = new Map<string, Set<WireInstance>>();
@@ -115,18 +121,7 @@ export function validateCircuit(
   const componentsById = new Map(components.map((c) => [c.id, c]));
 
   // 2. POWER SUPPLY CHECK
-  const supplyComponents = components.filter((c) => {
-    const def = COMPONENT_DEFS[c.type];
-    return (
-      def?.isSource ||
-      c.type.includes('supply') ||
-      c.type.includes('terminal') ||
-      c.type === 'ac-mains-supply' ||
-      c.type === 'distribution-board'
-    );
-  });
-
-  if (supplyComponents.length === 0) {
+  if (compiled.status === 'compiled' && compiled.graph.sources.length === 0) {
     return {
       timestamp: Date.now(),
       score: 0,
@@ -266,7 +261,6 @@ export function validateCircuit(
   // Shared topology/solved findings keep source conflicts, polarity and solver
   // failures out of the old generic "short circuit" bucket. Full design-check
   // and exercise migration remains a separate gate.
-  const readiness = simResult?.readiness ?? assessCircuitReadiness(circuit);
   const seenElectrical = new Set<string>();
   for (const diagnostic of [
     ...readiness.diagnostics,
@@ -1161,6 +1155,10 @@ export function validateCircuit(
   return {
     timestamp: Date.now(),
     score,
+    calculation: {
+      current: resultCurrent,
+      status: simResult?.electrical?.status ?? simResult?.phasor?.status ?? 'not-performed',
+    },
     status,
     summary: {
       errorsCount,

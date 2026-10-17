@@ -12,13 +12,16 @@ import {
   type WireInstance,
   getPortControlOffset,
   getPortPos,
-  sampleWire,
 } from '@electrasim/domain';
+import { useEffect, useState } from 'react';
 import { emojiDataUri } from '../../lib/emoji/emojiSvg';
 import { useUiStore } from '../../store';
 import { useEmojiGlyphsReady } from '../hooks/useEmojiGlyphsReady';
+import { useReducedMotion } from '../hooks/useReducedMotion';
+import { useFaultDragPreview } from './faultDragPreview';
 import { type FaultFxItem, faultFxConfig } from './faultFx';
 import { buildWirePath } from './geometry';
+import { sampleRenderedPath } from './renderedPath';
 import type { CanvasTheme } from './types';
 
 interface Props {
@@ -28,6 +31,7 @@ interface Props {
   theme: CanvasTheme;
   wireWidth: number;
   orthogonalPaths: ReadonlyMap<string, string>;
+  followDrag?: boolean;
 }
 
 interface WireGeom {
@@ -44,15 +48,25 @@ const SPARK_SPOKES = [0, 45, 90, 135, 180, 225, 270, 315];
 export function FaultFxLayer({
   items,
   wires,
-  componentsById,
+  componentsById: savedComponents,
   theme,
   wireWidth,
   orthogonalPaths,
+  followDrag = false,
 }: Props) {
   // Flame/scissors chips use lazily-loaded Twemoji art; re-render once it
   // arrives so fault effects gain their pictographs (no-op after first load).
   useEmojiGlyphsReady();
+  const reduced = useReducedMotion();
+  const [hidden, setHidden] = useState(() => typeof document !== 'undefined' && document.hidden);
+  useEffect(() => {
+    const update = () => setHidden(document.hidden);
+    document.addEventListener('visibilitychange', update);
+    return () => document.removeEventListener('visibilitychange', update);
+  }, []);
   const pendingFx = useUiStore((s) => s.pendingFaultFx);
+  const preview = useFaultDragPreview((s) => (followDrag ? s.preview : null));
+  const componentsById = preview?.components ?? savedComponents;
   const wiresById = new Map(wires.map((w) => [w.id, w]));
 
   const wireGeom = (wireId: string, terminal?: TerminalTarget): WireGeom | null => {
@@ -61,33 +75,29 @@ export function FaultFxLayer({
     const a = componentsById.get(w.fromComponentId);
     const b = componentsById.get(w.toComponentId);
     if (!a || !b) return null;
-    const start = getPortPos(a, w.fromPortIndex, COMPONENT_DEFS);
-    const end = getPortPos(b, w.toPortIndex, COMPONENT_DEFS);
-    let mid = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
-    let angle = (Math.atan2(end.y - start.y, end.x - start.x) * 180) / Math.PI;
-    if (terminal) {
-      const points = sampleWire(w, new Map(componentsById), COMPONENT_DEFS);
-      const fromTarget =
-        terminal.componentId === w.fromComponentId && terminal.portIndex === w.fromPortIndex;
-      const ordered = fromTarget ? points : [...points].reverse();
-      const first = ordered[0];
-      const next =
-        first && ordered.find((point) => Math.hypot(point.x - first.x, point.y - first.y) > 0.1);
-      if (first && next) {
-        const dx = next.x - first.x;
-        const dy = next.y - first.y;
-        const length = Math.hypot(dx, dy);
-        mid = { x: first.x + (dx / length) * 18, y: first.y + (dy / length) * 18 };
-        angle = (Math.atan2(dy, dx) * 180) / Math.PI;
-      }
-    }
-    return {
-      mid,
-      angle,
-      d:
-        orthogonalPaths.get(wireId) ??
-        buildWirePath(w, componentsById as Map<string, ComponentInstance>),
-    };
+    // Dense drag deliberately defers wires. Keep wire markers on that displayed
+    // path; hide terminal cuts until their route catches up on release.
+    if (terminal && preview?.deferredWireIds.has(wireId)) return null;
+    const d =
+      preview?.paths.get(wireId) ??
+      orthogonalPaths.get(wireId) ??
+      buildWirePath(
+        w,
+        (preview?.deferredWireIds.has(wireId) ? savedComponents : componentsById) as Map<
+          string,
+          ComponentInstance
+        >,
+      );
+    return d
+      ? sampleRenderedPath(
+          d,
+          terminal
+            ? terminal.componentId === w.fromComponentId && terminal.portIndex === w.fromPortIndex
+              ? 'from'
+              : 'to'
+            : undefined,
+        )
+      : null;
   };
 
   const anchorOf = (item: FaultFxItem): { x: number; y: number } | null => {
@@ -106,7 +116,12 @@ export function FaultFxLayer({
   };
 
   return (
-    <g data-fault-fx-layer pointerEvents="none">
+    <g
+      data-fault-fx-layer
+      data-fault-reduced-motion={reduced || undefined}
+      data-fault-hidden={hidden || undefined}
+      pointerEvents="none"
+    >
       {items.map((item) => {
         const anchor = anchorOf(item);
         if (!anchor) return null;
@@ -174,11 +189,31 @@ function FaultIndicator({
         </g>
       )}
       {/* Specialized indicator body */}
+      {item.internalOpen && component && (
+        <g
+          data-fault-internal-open
+          transform={`translate(${component.x} ${component.y}) rotate(${component.rotation ?? 0})`}
+        >
+          <title>Internal component path open; external conductors remain connected</title>
+          <rect
+            x={-24}
+            y={-12}
+            width={48}
+            height={24}
+            rx={5}
+            fill={theme.bg === 'transparent' ? 'var(--table-paper, #fff)' : theme.bg}
+          />
+          <path d="M-20 0H-7M7 0H20M-7 0L5 -8" fill="none" stroke={color} strokeWidth={2.5} />
+          <circle cx={-7} cy={0} r={2} fill={color} />
+          <circle cx={7} cy={0} r={2} fill={color} />
+        </g>
+      )}
       {item.indicator === 'sever' && (
         <>
           {/* Wire-level open faults sever their own run at the midpoint. */}
           {onWire && item.wireId && (
             <SeverCut
+              wireId={item.wireId}
               geom={wireGeom(item.wireId)}
               color={color}
               bg={theme.bg === 'transparent' ? 'var(--table-paper, #fff)' : theme.bg}
@@ -188,6 +223,7 @@ function FaultIndicator({
           {item.severWireIds.map((wireId) => (
             <SeverCut
               key={`${item.key}:${wireId}`}
+              wireId={wireId}
               geom={wireGeom(
                 wireId,
                 item.portIndex !== undefined && item.componentId
@@ -329,7 +365,6 @@ function FaultIndicator({
               stroke={color}
               strokeWidth={2.5}
               strokeLinejoin="round"
-              className="electrasim-fx-cut-pulse"
             />
             {/* earth symbol */}
             <g stroke={color} strokeWidth={1.5} strokeLinecap="round">
@@ -448,15 +483,7 @@ function FaultChip({ x, y, item }: { x: number; y: number; item: FaultFxItem }) 
   return (
     <g transform={`translate(${x} ${y})`} data-fault-chip={item.fault}>
       <g className="electrasim-fx-pop-in">
-        <rect
-          x={-15}
-          y={-8}
-          width={30}
-          height={15}
-          rx={4.5}
-          fill={item.config.color}
-          className="electrasim-fx-chip-pulse"
-        />
+        <rect x={-15} y={-8} width={30} height={15} rx={4.5} fill={item.config.color} />
         <text y={4} textAnchor="middle" fontSize={8.5} fontWeight="bold" fill="#ffffff">
           {item.config.code}
         </text>
@@ -465,14 +492,16 @@ function FaultChip({ x, y, item }: { x: number; y: number; item: FaultFxItem }) 
   );
 }
 
-/* ─── Severed conductor: fade-out gap + sparking exposed ends ──────────── */
+/* ─── Structural conductor opening; no inferred arcing or metal ───────── */
 
 function SeverCut({
+  wireId,
   geom,
   color,
   bg,
   wireWidth,
 }: {
+  wireId: string;
   geom: WireGeom | null;
   color: string;
   bg: string;
@@ -484,6 +513,7 @@ function SeverCut({
     <g
       transform={`translate(${geom.mid.x} ${geom.mid.y}) rotate(${geom.angle})`}
       data-fault-sever-cut
+      data-fault-cut-wire={wireId}
     >
       {/* The gap: canvas-background stroke erasing the conductor, fading
           and growing in — reads as the wire disappearing. */}
@@ -496,7 +526,7 @@ function SeverCut({
         fill={bg}
         className="electrasim-fx-gap-in"
       />
-      {/* Cut-zone outline breathing. */}
+      {/* Static cut-zone outline. */}
       <rect
         x={-half - 1.5}
         y={-(wireWidth + 7) / 2 - 1.5}
@@ -507,15 +537,14 @@ function SeverCut({
         stroke={color}
         strokeWidth={0.8}
         strokeDasharray="3 2.5"
-        className="electrasim-fx-cut-pulse"
       />
-      {/* Exposed conductor ends. */}
+      {/* Symbolic ends; colour identifies the fault, not conductor metal. */}
       <line
         x1={-half}
         y1={0}
         x2={-half + 5}
         y2={0}
-        stroke="#b45309"
+        stroke={color}
         strokeWidth={wireWidth + 1}
         strokeLinecap="round"
       />
@@ -524,19 +553,9 @@ function SeverCut({
         y1={0}
         x2={half}
         y2={0}
-        stroke="#b45309"
+        stroke={color}
         strokeWidth={wireWidth + 1}
         strokeLinecap="round"
-      />
-      {/* Sparking tips. */}
-      <circle cx={-half} cy={0} r={2.2} fill={color} className="electrasim-fx-spark-flicker" />
-      <circle
-        cx={half}
-        cy={0}
-        r={2.2}
-        fill={color}
-        className="electrasim-fx-spark-flicker"
-        style={{ animationDelay: '0.25s' }}
       />
     </g>
   );

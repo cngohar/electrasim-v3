@@ -325,3 +325,92 @@
     min-height: 40px;
   }
 }
+
+.fault-lab-library button[data-applied="true"] {
+  border-color: var(--table-blue);
+  background: var(--table-soft);
+}
+.fault-lab-applied-badge {
+  color: var(--table-blue);
+  font-size: 11px;
+}
+.fault-lab-response-status > b {
+  display: inline-block;
+  margin-right: 8px;
+}
+.fault-lab-response-status small {
+  display: block;
+  margin-top: 4px;
+}
+.fault-lab-cause-picker {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  font-size: 12px;
+}
+.fault-lab-cause-picker select {
+  max-width: 100%;
+  padding: 8px;
+  border: 1px solid var(--table-line);
+  border-radius: 8px;
+  background: var(--table-paper);
+  color: var(--table-ink);
+}
+.table-return-lab {
+  margin: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: var(--table-blue);
+  background: var(--table-soft);
+}
+
+.fault-lab-help-steps {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.fault-lab-help-steps li {
+  display: grid;
+  grid-template-columns: 28px 28px minmax(0, 1fr);
+  gap: 10px;
+  border: 1px solid var(--table-line);
+  border-radius: 12px;
+  padding: 12px;
+}
+.fault-lab-help-steps li > b {
+  display: grid;
+  place-items: center;
+  align-self: start;
+  min-height: 28px;
+  border-radius: 50%;
+  color: var(--table-blue);
+  background: var(--table-soft);
+}
+.fault-lab-help-steps svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: var(--table-blue);
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.fault-lab-help-steps h4 {
+  margin: 0 0 5px;
+  font-size: 13px;
+  font-weight: 650;
+}
+.fault-lab-help-steps p {
+  margin: 0;
+  color: var(--table-muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+.fault-lab-draft-error {
+  padding: 12px;
+  color: #b4233b;
+  border: 1px solid #e05b70;
+  border-radius: 10px;
+}

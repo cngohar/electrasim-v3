@@ -2,7 +2,7 @@ import { COMPONENT_DEFS, type ComponentInstance, type WireInstance } from '@elec
 import { resolveDeviceCapabilities } from '@electrasim/domain/core/capabilities';
 import { dimmerMaximumLevel } from '@electrasim/domain/core/dimmerModel';
 import { supplyTargetForComponent } from '@electrasim/domain/core/supplyEditing';
-import { resolveWireProperties } from '@electrasim/domain/core/wireProperties';
+import { WIRE_AWG_MM2, resolveWireProperties } from '@electrasim/domain/core/wireProperties';
 import { Cable, CircleDot } from 'lucide-react';
 import { useState } from 'react';
 import { useCircuitStore, useUiStore } from '../../../store';
@@ -12,6 +12,7 @@ import {
   useConfigurationLockReason,
 } from '../../../store/electricalEditing';
 import { isCircuitReadOnly, useSimulatorAccess } from '../../../store/simulatorAccess';
+import { INSTALLATION_NAMES, WirePropertiesSummary } from './WirePropertiesSummary';
 import type { InspectorSelectionState } from './useInspectorSelectionState';
 import { VALID_VARIANT_FAMILIES } from './variantFamilies';
 
@@ -186,11 +187,38 @@ function WireSettings({ wire, onAdvanced }: { wire: WireInstance; onAdvanced: ()
   const [length, setLength] = useState(String(properties.lengthMeters));
   const [size, setSize] = useState(String(properties.cableMm2));
   const [material, setMaterial] = useState(properties.material);
+  const [sizeUnit, setSizeUnit] = useState(
+    wire.gauge !== undefined && WIRE_AWG_MM2[wire.gauge] === properties.cableMm2 ? 'awg' : 'mm2',
+  );
+  const [awg, setAwg] = useState(String(wire.gauge ?? 12));
+  const [method, setMethod] = useState(properties.installationMethod);
+  const [derating, setDerating] = useState(String(properties.deratingFactor));
+  const draft: WireInstance = {
+    ...wire,
+    label,
+    lengthMeters: Number(length),
+    material,
+    installationMethod: method,
+    deratingFactor: Number(derating),
+    gauge: sizeUnit === 'awg' ? Number(awg) : undefined,
+    customCableMm2: sizeUnit === 'mm2' ? Number(size) : undefined,
+  };
+  const validDraft =
+    Number(length) > 0 &&
+    (sizeUnit === 'awg' ? !!WIRE_AWG_MM2[Number(awg)] : Number(size) > 0) &&
+    Number(derating) > 0 &&
+    Number(derating) <= 1;
   const reset = () => {
     setLabel(wire.label ?? '');
     setLength(String(properties.lengthMeters));
     setSize(String(properties.cableMm2));
     setMaterial(properties.material);
+    setSizeUnit(
+      wire.gauge !== undefined && WIRE_AWG_MM2[wire.gauge] === properties.cableMm2 ? 'awg' : 'mm2',
+    );
+    setAwg(String(wire.gauge ?? 12));
+    setMethod(properties.installationMethod);
+    setDerating(String(properties.deratingFactor));
   };
   return (
     <form
@@ -201,16 +229,19 @@ function WireSettings({ wire, onAdvanced }: { wire: WireInstance; onAdvanced: ()
         setPending(true);
         const applied = await useCircuitStore.getState().updateWireProperties(wire.id, {
           label,
-          lengthMeters: Number(length),
-          customCableMm2: Number(size),
+          lengthMeters: draft.lengthMeters,
+          customCableMm2: draft.customCableMm2,
+          gauge: draft.gauge,
           material,
+          installationMethod: method,
+          deratingFactor: draft.deratingFactor,
         });
         setPending(false);
         if (applied) changed();
       }}
     >
       <div className="table-quick-fields">
-        <p>Conductor details. Installation and derating are in detailed settings.</p>
+        <p>Draft conductor properties. Apply saves them as one edit.</p>
         {locked && <p className="table-warning">{locked}</p>}
         <fieldset disabled={!!locked || pending}>
           <label>
@@ -236,18 +267,73 @@ function WireSettings({ wire, onAdvanced }: { wire: WireInstance; onAdvanced: ()
               />
             </label>
             <label>
-              Size (mm²)
-              <input
-                aria-label="Wire size in mm2"
-                type="number"
-                min="0.001"
-                step="any"
-                required
-                value={size}
-                onChange={(event) => setSize(event.target.value)}
-              />
+              Size units
+              <select
+                aria-label="Conductor size units"
+                value={sizeUnit}
+                onChange={(event) => setSizeUnit(event.target.value)}
+              >
+                <option value="mm2">Metric · mm²</option>
+                <option value="awg">AWG</option>
+              </select>
             </label>
+            {sizeUnit === 'mm2' ? (
+              <label>
+                Size (mm²)
+                <input
+                  aria-label="Wire size in mm2"
+                  type="number"
+                  min="0.001"
+                  step="any"
+                  required
+                  value={size}
+                  onChange={(event) => setSize(event.target.value)}
+                />
+              </label>
+            ) : (
+              <label>
+                AWG size
+                <select
+                  aria-label="Wire size in AWG"
+                  value={awg}
+                  onChange={(event) => setAwg(event.target.value)}
+                >
+                  {Object.keys(WIRE_AWG_MM2).map((value) => (
+                    <option key={value} value={value}>
+                      {value} AWG · {WIRE_AWG_MM2[Number(value)]} mm²
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
           </div>
+          <label>
+            Installation method
+            <select
+              aria-label="Wire draft installation method"
+              value={method}
+              onChange={(event) => setMethod(event.target.value as typeof method)}
+            >
+              {Object.entries(INSTALLATION_NAMES).map(([code, name]) => (
+                <option key={code} value={code}>
+                  {code} · {name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Derating factor
+            <input
+              aria-label="Wire draft derating factor"
+              type="number"
+              min="0.001"
+              max="1"
+              step="any"
+              value={derating}
+              onChange={(event) => setDerating(event.target.value)}
+              required
+            />
+          </label>
           <fieldset className="table-material-choice">
             <legend>Conductor material</legend>
             {(['copper', 'aluminum'] as const).map((value) => (
@@ -264,6 +350,7 @@ function WireSettings({ wire, onAdvanced }: { wire: WireInstance; onAdvanced: ()
             ))}
           </fieldset>
         </fieldset>
+        {validDraft && <WirePropertiesSummary wire={draft} caption="Draft values · not saved" />}
         <button type="button" className="table-text-action" onClick={onAdvanced}>
           <Cable size={14} /> Detailed wire settings →
         </button>

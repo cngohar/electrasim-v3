@@ -38,6 +38,7 @@ const rootInputs = new Set([
   'playwright.config.ts',
   'playwright.production.config.ts',
   'playwright.catalogue-built.config.ts',
+  'playwright.ui-fault-built.config.ts',
   'wrangler.jsonc',
   'wrangler.membership-test.jsonc',
   'index.html',

@@ -1,0 +1,1397 @@
+{
+  "date": "2026-10-16",
+  "scope": "Investigation only. Fourteen representative registry targets plus CFL component open on desktop/phone. Current source and real local Worker/D1 test-cookie authorization; aggregate/focused recovery, not built/full-phase acceptance. No user circuit/account data included.",
+  "summary": {
+    "registeredFaults": 14,
+    "directSupported": 10,
+    "directNotAssessed": 4,
+    "nativeScenarios": 16,
+    "duplicateNoFeedback": 16,
+    "missingAppliedBadges": 16,
+    "cleared": 16,
+    "existingFocusedUnitTests": 39
+  },
+  "direct": [
+    {
+      "fault": "open-circuit",
+      "label": "Open Circuit Break",
+      "target": {
+        "type": "wire",
+        "id": "load-feed"
+      },
+      "applicability": {
+        "applicable": true,
+        "coverage": "supported",
+        "reason": "Opens this conductor; no trip or damage is implied."
+      },
+      "duplicate": {
+        "valid": false,
+        "reason": "Fault \"Open Circuit Break\" is already injected on this target."
+      },
+      "readiness": "open",
+      "status": "converged",
+      "errors": [],
+      "warnings": [
+        "MCB Type B (16A): Declared protection ratings use the deterministic simulation step; static `solveCircuit()` never moves a trip. Damage and coordination are not assessed.",
+        "Open Circuit Break: Open the targeted connection."
+      ],
+      "loadCalculation": {
+        "voltage": 0,
+        "currentAmps": 0,
+        "powerWatts": 0
+      },
+      "indicator": [
+        {
+          "kind": "sever",
+          "severWireIds": [],
+          "swapWires": []
+        }
+      ],
+      "faultCoverage": [
+        {
+          "subjectId": "fault_wire_load-feed_open-circuit_zd4hy",
+          "aspect": "fault",
+          "status": "supported",
+          "reason": "Open the targeted connection."
+        }
+      ]
+    },
+    {
+      "fault": "open-live",
+      "label": "Open Live (Line Break)",
+      "target": {
+        "type": "wire",
+        "id": "feed"
+      },
+      "applicability": {
+        "applicable": true,
+        "coverage": "supported",
+        "reason": "Opens this conductor; no trip or damage is implied."
+      },
+      "duplicate": {
+        "valid": false,
+        "reason": "Fault \"Open Live (Line Break)\" is already injected on this target."
+      },
+      "readiness": "open",
+      "status": "converged",
+      "errors": [],
+      "warnings": [
+        "MCB Type B (16A): Declared protection ratings use the deterministic simulation step; static `solveCircuit()` never moves a trip. Damage and coordination are not assessed.",
+        "Open Live (Line Break): Open the targeted live conductor."
+      ],
+      "loadCalculation": {
+        "voltage": 0,
+        "currentAmps": 0,
+        "powerWatts": 0
+      },
+      "indicator": [
+        {
+          "kind": "sever",
+          "severWireIds": [],
+          "swapWires": []
+        }
+      ],
+      "faultCoverage": [
+        {
+          "subjectId": "fault_wire_feed_open-live_iuswg",
+          "aspect": "fault",
+          "status": "supported",
+          "reason": "Open the targeted live conductor."
+        }
+      ]
+    },
+    {
+      "fault": "open-neutral",
+      "label": "Open Neutral (Floating Return)",
+      "target": {
+        "type": "wire",
+        "id": "return"
+      },
+      "applicability": {
+        "applicable": true,
+        "coverage": "supported",
+        "reason": "Opens this conductor; no trip or damage is implied."
+      },
+      "duplicate": {
+        "valid": false,
+        "reason": "Fault \"Open Neutral (Floating Return)\" is already injected on this target."
+      },
+      "readiness": "open",
+      "status": "converged",
+      "errors": [],
+      "warnings": [
+        "MCB Type B (16A): Declared protection ratings use the deterministic simulation step; static `solveCircuit()` never moves a trip. Damage and coordination are not assessed.",
+        "Open Neutral (Floating Return): Open the targeted neutral conductor."
+      ],
+      "loadCalculation": {
+        "voltage": -2.842170943040401e-14,
+        "currentAmps": -5.372723899887336e-16,
+        "powerWatts": 1.527019975323849e-29
+      },
+      "indicator": [
+        {
+          "kind": "sever",
+          "severWireIds": [],
+          "swapWires": []
+        }
+      ],
+      "faultCoverage": [
+        {
+          "subjectId": "fault_wire_return_open-neutral_bzqdc",
+          "aspect": "fault",
+          "status": "supported",
+          "reason": "Open the targeted neutral conductor."
+        }
+      ]
+    },
+    {
+      "fault": "open-earth",
+      "label": "Open Earth (Broken CPC)",
+      "target": {
+        "type": "port",
+        "componentId": "outlet",
+        "portIndex": 2
+      },
+      "applicability": {
+        "applicable": true,
+        "coverage": "supported",
+        "reason": "Opens the named terminal connection."
+      },
+      "duplicate": {
+        "valid": false,
+        "reason": "Fault \"Open Earth (Broken CPC)\" is already injected on this target."
+      },
+      "readiness": "connected",
+      "status": "converged",
+      "errors": [],
+      "warnings": [
+        "This protective terminal has no intact PE conductor path to a named protective bus, source PE terminal or electrode. Fault-loop impedance and clearing are not assessed.",
+        "MCB Type B (16A): Declared protection ratings use the deterministic simulation step; static `solveCircuit()` never moves a trip. Damage and coordination are not assessed.",
+        "Open Earth (Broken CPC): Open the targeted earth conductor."
+      ],
+      "loadCalculation": {
+        "voltage": 229.62019344184952,
+        "currentAmps": 4.34064637886294,
+        "powerWatts": 996.7000611771718
+      },
+      "indicator": [
+        {
+          "kind": "sever",
+          "severWireIds": ["cpc"],
+          "swapWires": []
+        }
+      ],
+      "faultCoverage": [
+        {
+          "subjectId": "fault_port_outlet_p2_open-earth_drl5j",
+          "aspect": "fault",
+          "status": "supported",
+          "reason": "Open the targeted earth conductor."
+        }
+      ]
+    },
+    {
+      "fault": "terminal-disconnect",
+      "label": "Loose / Disconnected Terminal",
+      "target": {
+        "type": "port",
+        "componentId": "control",
+        "portIndex": 0
+      },
+      "applicability": {
+        "applicable": true,
+        "coverage": "supported",
+        "reason": "Opens the named terminal connection."
+      },
+      "duplicate": {
+        "valid": false,
+        "reason": "Fault \"Loose / Disconnected Terminal\" is already injected on this target."
+      },
+      "readiness": "open",
+      "status": "converged",
+      "errors": [],
+      "warnings": [
+        "MCB Type B (16A): Declared protection ratings use the deterministic simulation step; static `solveCircuit()` never moves a trip. Damage and coordination are not assessed.",
+        "Loose / Disconnected Terminal: Open the targeted connection."
+      ],
+      "loadCalculation": {
+        "voltage": 0,
+        "currentAmps": 0,
+        "powerWatts": 0
+      },
+      "indicator": [
+        {
+          "kind": "sever",
+          "severWireIds": ["feed"],
+          "swapWires": []
+        }
+      ],
+      "faultCoverage": [
+        {
+          "subjectId": "fault_port_control_p0_terminal-disconnect_4cvl3",
+          "aspect": "fault",
+          "status": "supported",
+          "reason": "Open the targeted connection."
+        }
+      ]
+    },
+    {
+      "fault": "reverse-polarity",
+      "label": "Reversed Polarity (L ⇄ N Swap)",
+      "target": {
+        "type": "component",
+        "id": "outlet"
+      },
+      "applicability": {
+        "applicable": true,
+        "coverage": "supported",
+        "reason": "Swaps the component live and neutral connections."
+      },
+      "duplicate": {
+        "valid": false,
+        "reason": "Fault \"Reversed Polarity (L ⇄ N Swap)\" is already injected on this target."
+      },
+      "readiness": "connected",
+      "status": "converged",
+      "errors": [
+        "The device line and return terminals are connected to the opposite named source terminals. The element response does not establish correct polarity."
+      ],
+      "warnings": [
+        "MCB Type B (16A): Declared protection ratings use the deterministic simulation step; static `solveCircuit()` never moves a trip. Damage and coordination are not assessed.",
+        "Reversed Polarity (L ⇄ N Swap): Swap the external connections at the two supply/load terminals; saved port IDs stay unchanged."
+      ],
+      "loadCalculation": {
+        "voltage": 229.62019344184952,
+        "currentAmps": 4.34064637886294,
+        "powerWatts": 996.7000611771718
+      },
+      "indicator": [
+        {
+          "kind": "swap",
+          "severWireIds": [],
+          "swapWires": [
+            {
+              "id": "load-feed",
+              "as": "neutral"
+            },
+            {
+              "id": "return",
+              "as": "live"
+            },
+            {
+              "id": "load-l",
+              "as": "neutral"
+            },
+            {
+              "id": "load-n",
+              "as": "live"
+            }
+          ]
+        }
+      ],
+      "faultCoverage": [
+        {
+          "subjectId": "fault_component_outlet_reverse-polarity_lhu55",
+          "aspect": "fault",
+          "status": "supported",
+          "reason": "Swap the external connections at the two supply/load terminals; saved port IDs stay unchanged."
+        }
+      ]
+    },
+    {
+      "fault": "switched-neutral",
+      "label": "Switched Neutral Hazard",
+      "target": {
+        "type": "component",
+        "id": "control"
+      },
+      "applicability": {
+        "applicable": true,
+        "coverage": "not-assessed",
+        "reason": "This saved fault has no declared neutral conductor mapping; its effect is not assessed."
+      },
+      "duplicate": {
+        "valid": false,
+        "reason": "Fault \"Switched Neutral Hazard\" is already injected on this target."
+      },
+      "readiness": "connected",
+      "status": "unsupported",
+      "errors": [],
+      "warnings": [
+        "switched-neutral: schema 1 does not specify the required conductor pair or dynamic electrical model for this target; no connection/current is invented.",
+        "switched-neutral: schema 1 does not specify the required conductor pair or dynamic electrical model for this target; no connection/current is invented.",
+        "MCB Type B (16A): Declared protection ratings use the deterministic simulation step; static `solveCircuit()` never moves a trip. Damage and coordination are not assessed.",
+        "Switched Neutral Hazard: switched-neutral: schema 1 does not specify the required conductor pair or dynamic electrical model for this target; no connection/current is invented."
+      ],
+      "indicator": [
+        {
+          "kind": "badge",
+          "severWireIds": [],
+          "swapWires": []
+        }
+      ],
+      "faultCoverage": [
+        {
+          "subjectId": "fault_component_control_switched-neutral_s5xcb",
+          "aspect": "fault",
+          "status": "not-assessed",
+          "reason": "switched-neutral: schema 1 does not specify the required conductor pair or dynamic electrical model for this target; no connection/current is invented."
+        }
+      ]
+    },
+    {
+      "fault": "earth-fault",
+      "label": "Earth Fault / Short to Earth",
+      "target": {
+        "type": "component",
+        "id": "outlet"
+      },
+      "applicability": {
+        "applicable": true,
+        "coverage": "supported",
+        "reason": "Bridges live to the component PE terminal. Clearing requires supported protection."
+      },
+      "duplicate": {
+        "valid": false,
+        "reason": "Fault \"Earth Fault / Short to Earth\" is already injected on this target."
+      },
+      "readiness": "connected",
+      "status": "converged",
+      "errors": [],
+      "warnings": [
+        "This is a steady-state estimate using ideal sources and the explicitly modeled conductor path. Source/winding/soil impedances, touch voltage, installation prospective current and clearing are not assessed; zero current on a floating fault does not establish safety.",
+        "MCB Type B (16A): Declared protection ratings use the deterministic simulation step; static `solveCircuit()` never moves a trip. Damage and coordination are not assessed.",
+        "Earth Fault / Short to Earth: Bridge the device live terminal to its own PE terminal; retain CPC continuity."
+      ],
+      "loadCalculation": {
+        "voltage": 229.6201934418495,
+        "currentAmps": 4.34064637886294,
+        "powerWatts": 996.7000611771717
+      },
+      "indicator": [
+        {
+          "kind": "earth",
+          "severWireIds": [],
+          "swapWires": []
+        }
+      ],
+      "faultCoverage": [
+        {
+          "subjectId": "fault_component_outlet_earth-fault_6w4c3",
+          "aspect": "fault",
+          "status": "supported",
+          "reason": "Bridge the device live terminal to its own PE terminal; retain CPC continuity."
+        }
+      ]
+    },
+    {
+      "fault": "live-to-earth",
+      "label": "Insulation Leakage (Live to Earth)",
+      "target": {
+        "type": "component",
+        "id": "outlet"
+      },
+      "applicability": {
+        "applicable": true,
+        "coverage": "not-assessed",
+        "reason": "Leakage impedance is unspecified; residual current and tripping are not assessed."
+      },
+      "duplicate": {
+        "valid": false,
+        "reason": "Fault \"Insulation Leakage (Live to Earth)\" is already injected on this target."
+      },
+      "readiness": "connected",
+      "status": "unsupported",
+      "errors": [],
+      "warnings": [
+        "Leakage path from device live to its own PE terminal; impedance and residual current are unspecified and not assessed.",
+        "Leakage path from device live to its own PE terminal; impedance and residual current are unspecified and not assessed.",
+        "Fault current is unavailable without an accepted solution and a declared path/impedance model. No fixed current or clearing time is substituted.",
+        "MCB Type B (16A): Declared protection ratings use the deterministic simulation step; static `solveCircuit()` never moves a trip. Damage and coordination are not assessed.",
+        "Insulation Leakage (Live to Earth): Leakage path from device live to its own PE terminal; impedance and residual current are unspecified and not assessed."
+      ],
+      "indicator": [
+        {
+          "kind": "badge",
+          "severWireIds": [],
+          "swapWires": []
+        }
+      ],
+      "faultCoverage": [
+        {
+          "subjectId": "fault_component_outlet_live-to-earth_54ygh",
+          "aspect": "fault",
+          "status": "not-assessed",
+          "reason": "Leakage path from device live to its own PE terminal; impedance and residual current are unspecified and not assessed."
+        }
+      ]
+    },
+    {
+      "fault": "smooth-dc-residual",
+      "label": "Smooth DC Residual Leakage (EV/PV/VFD)",
+      "target": {
+        "type": "component",
+        "id": "outlet"
+      },
+      "applicability": {
+        "applicable": true,
+        "coverage": "not-assessed",
+        "reason": "DC residual waveform and device saturation are not modeled; no automatic trip is assessed."
+      },
+      "duplicate": {
+        "valid": false,
+        "reason": "Fault \"Smooth DC Residual Leakage (EV/PV/VFD)\" is already injected on this target."
+      },
+      "readiness": "connected",
+      "status": "unsupported",
+      "errors": [],
+      "warnings": [
+        "smooth-dc-residual: schema 1 does not specify the required conductor pair or dynamic electrical model for this target; no connection/current is invented.",
+        "smooth-dc-residual: schema 1 does not specify the required conductor pair or dynamic electrical model for this target; no connection/current is invented.",
+        "MCB Type B (16A): Declared protection ratings use the deterministic simulation step; static `solveCircuit()` never moves a trip. Damage and coordination are not assessed.",
+        "Smooth DC Residual Leakage (EV/PV/VFD): smooth-dc-residual: schema 1 does not specify the required conductor pair or dynamic electrical model for this target; no connection/current is invented."
+      ],
+      "indicator": [
+        {
+          "kind": "badge",
+          "severWireIds": [],
+          "swapWires": []
+        }
+      ],
+      "faultCoverage": [
+        {
+          "subjectId": "fault_component_outlet_smooth-dc-residual_d1cfp",
+          "aspect": "fault",
+          "status": "not-assessed",
+          "reason": "smooth-dc-residual: schema 1 does not specify the required conductor pair or dynamic electrical model for this target; no connection/current is invented."
+        }
+      ]
+    },
+    {
+      "fault": "arc-fault",
+      "label": "Arc Fault (Series / Parallel Arcing)",
+      "target": {
+        "type": "component",
+        "id": "outlet"
+      },
+      "applicability": {
+        "applicable": true,
+        "coverage": "not-assessed",
+        "reason": "Arc waveform detection and automatic AFDD operation are not modeled."
+      },
+      "duplicate": {
+        "valid": false,
+        "reason": "Fault \"Arc Fault (Series / Parallel Arcing)\" is already injected on this target."
+      },
+      "readiness": "connected",
+      "status": "unsupported",
+      "errors": [],
+      "warnings": [
+        "arc-fault: schema 1 does not specify the required conductor pair or dynamic electrical model for this target; no connection/current is invented.",
+        "arc-fault: schema 1 does not specify the required conductor pair or dynamic electrical model for this target; no connection/current is invented.",
+        "MCB Type B (16A): Declared protection ratings use the deterministic simulation step; static `solveCircuit()` never moves a trip. Damage and coordination are not assessed.",
+        "Arc Fault (Series / Parallel Arcing): arc-fault: schema 1 does not specify the required conductor pair or dynamic electrical model for this target; no connection/current is invented."
+      ],
+      "indicator": [
+        {
+          "kind": "badge",
+          "severWireIds": [],
+          "swapWires": []
+        }
+      ],
+      "faultCoverage": [
+        {
+          "subjectId": "fault_component_outlet_arc-fault_457zt",
+          "aspect": "fault",
+          "status": "not-assessed",
+          "reason": "arc-fault: schema 1 does not specify the required conductor pair or dynamic electrical model for this target; no connection/current is invented."
+        }
+      ]
+    },
+    {
+      "fault": "protection-forced-open",
+      "label": "Breaker Jammed / Forced Open",
+      "target": {
+        "type": "component",
+        "id": "control"
+      },
+      "applicability": {
+        "applicable": true,
+        "coverage": "supported",
+        "reason": "Keeps protective contacts open."
+      },
+      "duplicate": {
+        "valid": false,
+        "reason": "Fault \"Breaker Jammed / Forced Open\" is already injected on this target."
+      },
+      "readiness": "open",
+      "status": "converged",
+      "errors": [],
+      "warnings": [
+        "MCB Type B (16A): Declared protection ratings use the deterministic simulation step; static `solveCircuit()` never moves a trip. Damage and coordination are not assessed.",
+        "Breaker Jammed / Forced Open: Force each protective contact open."
+      ],
+      "loadCalculation": {
+        "voltage": 0,
+        "currentAmps": 0,
+        "powerWatts": 0
+      },
+      "indicator": [
+        {
+          "kind": "jam",
+          "severWireIds": [],
+          "swapWires": []
+        }
+      ],
+      "faultCoverage": [
+        {
+          "subjectId": "fault_component_control_protection-forced-open_3zw38",
+          "aspect": "fault",
+          "status": "supported",
+          "reason": "Force each protective contact open."
+        }
+      ]
+    },
+    {
+      "fault": "protection-bypass",
+      "label": "Protection Bypassed / Shunted",
+      "target": {
+        "type": "component",
+        "id": "control"
+      },
+      "applicability": {
+        "applicable": true,
+        "coverage": "supported",
+        "reason": "Routes current outside the sensed poles; protection is bypassed."
+      },
+      "duplicate": {
+        "valid": false,
+        "reason": "Fault \"Protection Bypassed / Shunted\" is already injected on this target."
+      },
+      "readiness": "connected",
+      "status": "converged",
+      "errors": [],
+      "warnings": [
+        "MCB Type B (16A): Declared protection ratings use the deterministic simulation step; static `solveCircuit()` never moves a trip. Damage and coordination are not assessed.",
+        "Protection Bypassed / Shunted: Ideal teaching bypass: disconnect each sensed pole path and route current through its external shunt, including when the handle is open or tripped."
+      ],
+      "loadCalculation": {
+        "voltage": 229.62019344184952,
+        "currentAmps": 4.34064637886294,
+        "powerWatts": 996.7000611771718
+      },
+      "indicator": [
+        {
+          "kind": "bridge",
+          "severWireIds": [],
+          "swapWires": [],
+          "bridgePortPairs": [
+            {
+              "from": 0,
+              "to": 1
+            }
+          ]
+        }
+      ],
+      "faultCoverage": [
+        {
+          "subjectId": "fault_component_control_protection-bypass_l6tsw",
+          "aspect": "fault",
+          "status": "supported",
+          "reason": "Ideal teaching bypass: disconnect each sensed pole path and route current through its external shunt, including when the handle is open or tripped."
+        }
+      ]
+    },
+    {
+      "fault": "short-circuit",
+      "label": "Dead Short Circuit (L to N)",
+      "target": {
+        "type": "component",
+        "id": "outlet"
+      },
+      "applicability": {
+        "applicable": true,
+        "coverage": "supported",
+        "reason": "Bridges the component live and neutral pair. Fault current and clearing depend on the declared circuit."
+      },
+      "duplicate": {
+        "valid": false,
+        "reason": "Fault \"Dead Short Circuit (L to N)\" is already injected on this target."
+      },
+      "readiness": "short",
+      "status": "converged",
+      "errors": [
+        "The protective device is latched open. Clear the cause, then switch it off to reset before switching on."
+      ],
+      "warnings": [
+        "This is a steady-state estimate using ideal sources and the explicitly modeled conductor path. Source/winding/soil impedances, touch voltage, installation prospective current and clearing are not assessed; zero current on a floating fault does not establish safety.",
+        "MCB Type B (16A): Declared protection ratings use the deterministic simulation step; static `solveCircuit()` never moves a trip. Damage and coordination are not assessed.",
+        "Dead Short Circuit (L to N): Bridge the device live and neutral terminals, keeping PE separate."
+      ],
+      "loadCalculation": {
+        "voltage": 0,
+        "currentAmps": 0,
+        "powerWatts": 0
+      },
+      "indicator": [
+        {
+          "kind": "badge",
+          "severWireIds": [],
+          "swapWires": []
+        }
+      ],
+      "faultCoverage": [
+        {
+          "subjectId": "fault_component_outlet_short-circuit_pglzo",
+          "aspect": "fault",
+          "status": "supported",
+          "reason": "Bridge the device live and neutral terminals, keeping PE separate."
+        }
+      ]
+    }
+  ],
+  "native": [
+    {
+      "case": "cfl-open-circuit",
+      "fault": "open-circuit",
+      "target": {
+        "type": "component",
+        "id": "CFL"
+      },
+      "viewport": 1440,
+      "probeFailure": null,
+      "help": {
+        "items": 4,
+        "listStyle": "none",
+        "icons": 0
+      },
+      "cutDistancesPx": [68.65384340286266, 1.1368683772161603e-13],
+      "catalogueIndicatesApplied": false,
+      "duplicate": {
+        "reviewRemains": true,
+        "faultCount": 1,
+        "priorFaultCount": 1,
+        "browserWarns": true,
+        "visibleAppMessages": 0
+      },
+      "run": {
+        "readinessOpened": true,
+        "diagnosticButton": true,
+        "running": true,
+        "status": "converged",
+        "currentResult": true,
+        "captured": true,
+        "complianceBlocked": false,
+        "readinessRemains": false,
+        "overrideOffered": false,
+        "blockingIssueCodes": []
+      },
+      "afterExplicitTeachingOverride": null,
+      "firstReopen": null,
+      "secondReopen": null,
+      "clear": {
+        "activeRows": 0,
+        "canvasMarkers": 0
+      },
+      "pageErrors": []
+    },
+    {
+      "case": "open-circuit",
+      "fault": "open-circuit",
+      "target": {
+        "type": "wire",
+        "id": "load-feed"
+      },
+      "viewport": 1440,
+      "probeFailure": null,
+      "help": null,
+      "cutDistancesPx": [0.00023218791609626633],
+      "catalogueIndicatesApplied": false,
+      "duplicate": {
+        "reviewRemains": true,
+        "faultCount": 1,
+        "priorFaultCount": 1,
+        "browserWarns": true,
+        "visibleAppMessages": 0
+      },
+      "run": {
+        "readinessOpened": true,
+        "diagnosticButton": true,
+        "running": true,
+        "status": "converged",
+        "currentResult": true,
+        "captured": true,
+        "complianceBlocked": false,
+        "readinessRemains": false,
+        "overrideOffered": false,
+        "blockingIssueCodes": []
+      },
+      "afterExplicitTeachingOverride": null,
+      "firstReopen": null,
+      "secondReopen": null,
+      "clear": {
+        "activeRows": 0,
+        "canvasMarkers": 0
+      },
+      "pageErrors": []
+    },
+    {
+      "case": "open-live",
+      "fault": "open-live",
+      "target": {
+        "type": "wire",
+        "id": "feed"
+      },
+      "viewport": 1440,
+      "probeFailure": null,
+      "help": null,
+      "cutDistancesPx": [0],
+      "catalogueIndicatesApplied": false,
+      "duplicate": {
+        "reviewRemains": true,
+        "faultCount": 1,
+        "priorFaultCount": 1,
+        "browserWarns": true,
+        "visibleAppMessages": 0
+      },
+      "run": {
+        "readinessOpened": true,
+        "diagnosticButton": true,
+        "running": true,
+        "status": "converged",
+        "currentResult": true,
+        "captured": true,
+        "complianceBlocked": false,
+        "readinessRemains": false,
+        "overrideOffered": false,
+        "blockingIssueCodes": []
+      },
+      "afterExplicitTeachingOverride": null,
+      "firstReopen": null,
+      "secondReopen": null,
+      "clear": {
+        "activeRows": 0,
+        "canvasMarkers": 0
+      },
+      "pageErrors": []
+    },
+    {
+      "case": "open-neutral",
+      "fault": "open-neutral",
+      "target": {
+        "type": "wire",
+        "id": "return"
+      },
+      "viewport": 1440,
+      "probeFailure": null,
+      "help": null,
+      "cutDistancesPx": [0.00002525871536793518],
+      "catalogueIndicatesApplied": false,
+      "duplicate": {
+        "reviewRemains": true,
+        "faultCount": 1,
+        "priorFaultCount": 1,
+        "browserWarns": true,
+        "visibleAppMessages": 0
+      },
+      "run": {
+        "readinessOpened": true,
+        "diagnosticButton": true,
+        "running": true,
+        "status": "converged",
+        "currentResult": true,
+        "captured": true,
+        "complianceBlocked": false,
+        "readinessRemains": false,
+        "overrideOffered": false,
+        "blockingIssueCodes": []
+      },
+      "afterExplicitTeachingOverride": null,
+      "firstReopen": null,
+      "secondReopen": null,
+      "clear": {
+        "activeRows": 0,
+        "canvasMarkers": 0
+      },
+      "pageErrors": []
+    },
+    {
+      "case": "open-earth",
+      "fault": "open-earth",
+      "target": {
+        "type": "port",
+        "componentId": "outlet",
+        "portIndex": 2
+      },
+      "viewport": 1440,
+      "probeFailure": null,
+      "help": null,
+      "cutDistancesPx": [12.469529248884388],
+      "catalogueIndicatesApplied": false,
+      "duplicate": {
+        "reviewRemains": true,
+        "faultCount": 1,
+        "priorFaultCount": 1,
+        "browserWarns": true,
+        "visibleAppMessages": 0
+      },
+      "run": {
+        "readinessOpened": false,
+        "diagnosticButton": false,
+        "running": true,
+        "status": "converged",
+        "currentResult": true,
+        "captured": true,
+        "complianceBlocked": false,
+        "readinessRemains": false,
+        "overrideOffered": false,
+        "blockingIssueCodes": []
+      },
+      "afterExplicitTeachingOverride": null,
+      "firstReopen": null,
+      "secondReopen": null,
+      "clear": {
+        "activeRows": 0,
+        "canvasMarkers": 0
+      },
+      "pageErrors": []
+    },
+    {
+      "case": "terminal-disconnect",
+      "fault": "terminal-disconnect",
+      "target": {
+        "type": "port",
+        "componentId": "control",
+        "portIndex": 0
+      },
+      "viewport": 1440,
+      "probeFailure": null,
+      "help": null,
+      "cutDistancesPx": [0.4260612561846175],
+      "catalogueIndicatesApplied": false,
+      "duplicate": {
+        "reviewRemains": true,
+        "faultCount": 1,
+        "priorFaultCount": 1,
+        "browserWarns": true,
+        "visibleAppMessages": 0
+      },
+      "run": {
+        "readinessOpened": true,
+        "diagnosticButton": true,
+        "running": true,
+        "status": "converged",
+        "currentResult": true,
+        "captured": true,
+        "complianceBlocked": false,
+        "readinessRemains": false,
+        "overrideOffered": false,
+        "blockingIssueCodes": []
+      },
+      "afterExplicitTeachingOverride": null,
+      "firstReopen": null,
+      "secondReopen": null,
+      "clear": {
+        "activeRows": 0,
+        "canvasMarkers": 0
+      },
+      "pageErrors": []
+    },
+    {
+      "case": "reverse-polarity",
+      "fault": "reverse-polarity",
+      "target": {
+        "type": "component",
+        "id": "outlet"
+      },
+      "viewport": 1440,
+      "probeFailure": null,
+      "help": null,
+      "cutDistancesPx": [],
+      "catalogueIndicatesApplied": false,
+      "duplicate": {
+        "reviewRemains": true,
+        "faultCount": 1,
+        "priorFaultCount": 1,
+        "browserWarns": true,
+        "visibleAppMessages": 0
+      },
+      "run": {
+        "readinessOpened": false,
+        "diagnosticButton": false,
+        "running": false,
+        "status": null,
+        "currentResult": false,
+        "captured": false,
+        "complianceBlocked": true,
+        "readinessRemains": false,
+        "overrideOffered": true,
+        "blockingIssueCodes": ["electrical_polarity-reversed_1"]
+      },
+      "afterExplicitTeachingOverride": {
+        "running": true,
+        "status": "converged",
+        "protection": {
+          "control": {
+            "heat": 0,
+            "tripped": false,
+            "reason": null,
+            "trippedAtSeconds": null,
+            "residualSinceSeconds": null,
+            "lastEvaluatedSeconds": 0.3
+          }
+        }
+      },
+      "firstReopen": {
+        "visible": false,
+        "flag": false,
+        "tab": "properties"
+      },
+      "secondReopen": {
+        "visible": true,
+        "flag": true,
+        "tab": "faultlab"
+      },
+      "clear": {
+        "activeRows": 0,
+        "canvasMarkers": 0
+      },
+      "pageErrors": []
+    },
+    {
+      "case": "switched-neutral",
+      "fault": "switched-neutral",
+      "target": {
+        "type": "component",
+        "id": "control"
+      },
+      "viewport": 1440,
+      "probeFailure": null,
+      "help": null,
+      "cutDistancesPx": [],
+      "catalogueIndicatesApplied": false,
+      "duplicate": {
+        "reviewRemains": true,
+        "faultCount": 1,
+        "priorFaultCount": 1,
+        "browserWarns": true,
+        "visibleAppMessages": 0
+      },
+      "run": {
+        "readinessOpened": false,
+        "diagnosticButton": false,
+        "running": true,
+        "status": "unsupported",
+        "currentResult": true,
+        "captured": false,
+        "complianceBlocked": false,
+        "readinessRemains": false,
+        "overrideOffered": false,
+        "blockingIssueCodes": []
+      },
+      "afterExplicitTeachingOverride": null,
+      "firstReopen": null,
+      "secondReopen": null,
+      "clear": {
+        "activeRows": 0,
+        "canvasMarkers": 0
+      },
+      "pageErrors": []
+    },
+    {
+      "case": "earth-fault",
+      "fault": "earth-fault",
+      "target": {
+        "type": "component",
+        "id": "outlet"
+      },
+      "viewport": 1440,
+      "probeFailure": null,
+      "help": null,
+      "cutDistancesPx": [],
+      "catalogueIndicatesApplied": false,
+      "duplicate": {
+        "reviewRemains": true,
+        "faultCount": 1,
+        "priorFaultCount": 1,
+        "browserWarns": true,
+        "visibleAppMessages": 0
+      },
+      "run": {
+        "readinessOpened": false,
+        "diagnosticButton": false,
+        "running": true,
+        "status": "converged",
+        "currentResult": true,
+        "captured": true,
+        "complianceBlocked": false,
+        "readinessRemains": false,
+        "overrideOffered": false,
+        "blockingIssueCodes": []
+      },
+      "afterExplicitTeachingOverride": null,
+      "firstReopen": null,
+      "secondReopen": null,
+      "clear": {
+        "activeRows": 0,
+        "canvasMarkers": 0
+      },
+      "pageErrors": []
+    },
+    {
+      "case": "live-to-earth",
+      "fault": "live-to-earth",
+      "target": {
+        "type": "component",
+        "id": "outlet"
+      },
+      "viewport": 1440,
+      "probeFailure": null,
+      "help": null,
+      "cutDistancesPx": [],
+      "catalogueIndicatesApplied": false,
+      "duplicate": {
+        "reviewRemains": true,
+        "faultCount": 1,
+        "priorFaultCount": 1,
+        "browserWarns": true,
+        "visibleAppMessages": 0
+      },
+      "run": {
+        "readinessOpened": false,
+        "diagnosticButton": false,
+        "running": true,
+        "status": "unsupported",
+        "currentResult": true,
+        "captured": false,
+        "complianceBlocked": false,
+        "readinessRemains": false,
+        "overrideOffered": false,
+        "blockingIssueCodes": []
+      },
+      "afterExplicitTeachingOverride": null,
+      "firstReopen": null,
+      "secondReopen": null,
+      "clear": {
+        "activeRows": 0,
+        "canvasMarkers": 0
+      },
+      "pageErrors": []
+    },
+    {
+      "case": "smooth-dc-residual",
+      "fault": "smooth-dc-residual",
+      "target": {
+        "type": "component",
+        "id": "outlet"
+      },
+      "viewport": 1440,
+      "probeFailure": null,
+      "help": null,
+      "cutDistancesPx": [],
+      "catalogueIndicatesApplied": false,
+      "duplicate": {
+        "reviewRemains": true,
+        "faultCount": 1,
+        "priorFaultCount": 1,
+        "browserWarns": true,
+        "visibleAppMessages": 0
+      },
+      "run": {
+        "readinessOpened": false,
+        "diagnosticButton": false,
+        "running": true,
+        "status": "unsupported",
+        "currentResult": true,
+        "captured": false,
+        "complianceBlocked": false,
+        "readinessRemains": false,
+        "overrideOffered": false,
+        "blockingIssueCodes": []
+      },
+      "afterExplicitTeachingOverride": null,
+      "firstReopen": null,
+      "secondReopen": null,
+      "clear": {
+        "activeRows": 0,
+        "canvasMarkers": 0
+      },
+      "pageErrors": []
+    },
+    {
+      "case": "arc-fault",
+      "fault": "arc-fault",
+      "target": {
+        "type": "component",
+        "id": "outlet"
+      },
+      "viewport": 1440,
+      "probeFailure": null,
+      "help": null,
+      "cutDistancesPx": [],
+      "catalogueIndicatesApplied": false,
+      "duplicate": {
+        "reviewRemains": true,
+        "faultCount": 1,
+        "priorFaultCount": 1,
+        "browserWarns": true,
+        "visibleAppMessages": 0
+      },
+      "run": {
+        "readinessOpened": false,
+        "diagnosticButton": false,
+        "running": true,
+        "status": "unsupported",
+        "currentResult": true,
+        "captured": false,
+        "complianceBlocked": false,
+        "readinessRemains": false,
+        "overrideOffered": false,
+        "blockingIssueCodes": []
+      },
+      "afterExplicitTeachingOverride": null,
+      "firstReopen": null,
+      "secondReopen": null,
+      "clear": {
+        "activeRows": 0,
+        "canvasMarkers": 0
+      },
+      "pageErrors": []
+    },
+    {
+      "case": "protection-forced-open",
+      "fault": "protection-forced-open",
+      "target": {
+        "type": "component",
+        "id": "control"
+      },
+      "viewport": 1440,
+      "probeFailure": null,
+      "help": null,
+      "cutDistancesPx": [],
+      "catalogueIndicatesApplied": false,
+      "duplicate": {
+        "reviewRemains": true,
+        "faultCount": 1,
+        "priorFaultCount": 1,
+        "browserWarns": true,
+        "visibleAppMessages": 0
+      },
+      "run": {
+        "readinessOpened": true,
+        "diagnosticButton": true,
+        "running": true,
+        "status": "converged",
+        "currentResult": true,
+        "captured": true,
+        "complianceBlocked": false,
+        "readinessRemains": false,
+        "overrideOffered": false,
+        "blockingIssueCodes": []
+      },
+      "afterExplicitTeachingOverride": null,
+      "firstReopen": null,
+      "secondReopen": null,
+      "clear": {
+        "activeRows": 0,
+        "canvasMarkers": 0
+      },
+      "pageErrors": []
+    },
+    {
+      "case": "protection-bypass",
+      "fault": "protection-bypass",
+      "target": {
+        "type": "component",
+        "id": "control"
+      },
+      "viewport": 1440,
+      "probeFailure": null,
+      "help": null,
+      "cutDistancesPx": [],
+      "catalogueIndicatesApplied": false,
+      "duplicate": {
+        "reviewRemains": true,
+        "faultCount": 1,
+        "priorFaultCount": 1,
+        "browserWarns": true,
+        "visibleAppMessages": 0
+      },
+      "run": {
+        "readinessOpened": false,
+        "diagnosticButton": false,
+        "running": true,
+        "status": "converged",
+        "currentResult": true,
+        "captured": true,
+        "complianceBlocked": false,
+        "readinessRemains": false,
+        "overrideOffered": false,
+        "blockingIssueCodes": []
+      },
+      "afterExplicitTeachingOverride": null,
+      "firstReopen": null,
+      "secondReopen": null,
+      "clear": {
+        "activeRows": 0,
+        "canvasMarkers": 0
+      },
+      "pageErrors": []
+    },
+    {
+      "case": "short-circuit",
+      "fault": "short-circuit",
+      "target": {
+        "type": "component",
+        "id": "outlet"
+      },
+      "viewport": 1440,
+      "probeFailure": null,
+      "help": null,
+      "cutDistancesPx": [],
+      "catalogueIndicatesApplied": false,
+      "duplicate": {
+        "reviewRemains": true,
+        "faultCount": 1,
+        "priorFaultCount": 1,
+        "browserWarns": true,
+        "visibleAppMessages": 0
+      },
+      "run": {
+        "readinessOpened": false,
+        "diagnosticButton": false,
+        "running": false,
+        "status": null,
+        "currentResult": false,
+        "captured": false,
+        "complianceBlocked": true,
+        "readinessRemains": false,
+        "overrideOffered": true,
+        "blockingIssueCodes": ["electrical_readiness-short_1"]
+      },
+      "afterExplicitTeachingOverride": {
+        "running": true,
+        "status": "converged",
+        "protection": {
+          "control": {
+            "heat": 0,
+            "tripped": true,
+            "reason": "short-circuit",
+            "trippedAtSeconds": 0,
+            "residualSinceSeconds": null,
+            "lastEvaluatedSeconds": 0.1
+          }
+        }
+      },
+      "firstReopen": {
+        "visible": false,
+        "flag": false,
+        "tab": "properties"
+      },
+      "secondReopen": {
+        "visible": true,
+        "flag": true,
+        "tab": "faultlab"
+      },
+      "clear": {
+        "activeRows": 0,
+        "canvasMarkers": 0
+      },
+      "pageErrors": []
+    },
+    {
+      "case": "cfl-open-circuit",
+      "fault": "open-circuit",
+      "target": {
+        "type": "component",
+        "id": "CFL"
+      },
+      "viewport": 390,
+      "probeFailure": null,
+      "help": {
+        "items": 4,
+        "listStyle": "none",
+        "icons": 0
+      },
+      "cutDistancesPx": [25.000000447034836, 0],
+      "catalogueIndicatesApplied": false,
+      "duplicate": {
+        "reviewRemains": true,
+        "faultCount": 1,
+        "priorFaultCount": 1,
+        "browserWarns": true,
+        "visibleAppMessages": 0
+      },
+      "run": {
+        "readinessOpened": true,
+        "diagnosticButton": true,
+        "running": true,
+        "status": "converged",
+        "currentResult": true,
+        "captured": true,
+        "complianceBlocked": false,
+        "readinessRemains": false,
+        "overrideOffered": false,
+        "blockingIssueCodes": []
+      },
+      "afterExplicitTeachingOverride": null,
+      "firstReopen": null,
+      "secondReopen": null,
+      "clear": {
+        "activeRows": 0,
+        "canvasMarkers": 0
+      },
+      "pageErrors": []
+    }
+  ],
+  "proposal": [
+    {
+      "width": 1440,
+      "distance": 0,
+      "overflow": false,
+      "animation": "none",
+      "flows": [
+        "three-targets",
+        "duplicate-feedback",
+        "clear-reapply",
+        "diagnostic-state",
+        "six-step-help",
+        "Escape",
+        "light-theme"
+      ],
+      "errors": []
+    },
+    {
+      "width": 390,
+      "distance": 0,
+      "overflow": false,
+      "animation": "none",
+      "flows": [
+        "three-targets",
+        "duplicate-feedback",
+        "clear-reapply",
+        "diagnostic-state",
+        "six-step-help",
+        "Escape",
+        "light-theme"
+      ],
+      "errors": []
+    },
+    {
+      "width": 360,
+      "distance": 0,
+      "overflow": false,
+      "animation": "none",
+      "flows": [
+        "three-targets",
+        "duplicate-feedback",
+        "clear-reapply",
+        "diagnostic-state",
+        "six-step-help",
+        "Escape",
+        "light-theme"
+      ],
+      "errors": []
+    }
+  ]
+}

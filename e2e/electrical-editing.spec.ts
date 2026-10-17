@@ -77,7 +77,7 @@ test('supply dialog stages, cancels, restores focus and applies one coherent Und
       original.components.find((c) => c.id === id),
     );
   expect(after.wires).toEqual(original.wires);
-  const notice = page.locator('output').filter({ hasText: 'Supply changed from' });
+  const notice = page.locator('[data-review-circuit]').filter({ hasText: 'Supply changed from' });
   await expect(notice).toContainText('components need review');
   await activateControl(page, notice.getByRole('button', { name: 'Undo', exact: true }));
   await expect(trigger).toContainText('230 V AC 50 Hz');
@@ -147,7 +147,7 @@ test('preview refreshes on document revision and its notice never undoes a later
     const path = '/src/store/circuitStore.ts';
     (await import(path)).useCircuitStore.getState().moveComponent('heater', 560, 250);
   });
-  const notice = page.locator('output').filter({ hasText: 'Supply changed from' });
+  const notice = page.locator('[data-review-circuit]').filter({ hasText: 'Supply changed from' });
   await expect(notice.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled();
   await activateControl(page, notice.getByRole('button', { name: 'Review' }));
   await expect(page.getByRole('dialog', { name: 'Circuit readiness' })).toContainText(
@@ -254,7 +254,7 @@ test('palette, command suggestions and placed components share compatibility wit
   await expect(command.getByRole('button', { name: /Add LED Bulb/ })).toHaveCount(0);
   await command.getByLabel('Show all / fault exercise').check();
   await expect(command.getByRole('button', { name: /Add LED Bulb/ }).first()).toContainText(
-    'Incompatible supply',
+    'Supply mismatch',
   );
 });
 
@@ -395,7 +395,10 @@ test('a delayed real Comlink response cannot replace results after a confirmed s
   expect(await reading()).toEqual(accepted);
   expect((await documentAt(page)).supply?.model).toEqual({ kind: 'dc', voltage: 12 });
   if (!(await page.getByRole('complementary', { name: 'Inspector' }).isVisible()))
-    await activateControl(page, page.getByRole('button', { name: 'Inspect', exact: true }));
+    await activateControl(
+      page,
+      page.locator('.table-top-right').getByRole('button', { name: 'Inspect', exact: true }),
+    );
   await activateControl(
     page,
     page

@@ -72,6 +72,7 @@
     "verify:phase-1.5f2": "bun scripts/verify-phase15f2.mjs",
     "verify:phase-1.9": "bun scripts/verify-phase19.mjs",
     "verify:phase-1.11": "bun scripts/verify-phase111.mjs",
+    "catalogue:reference": "bun scripts/catalogue-reference-inventory.ts",
     "catalogue:inventory": "bun scripts/catalogue-model-inventory.ts",
     "test:lamp-reference": "node --test scripts/lamp-reference.test.mjs",
     "test:lamp-preview": "node scripts/verify-lamp-preview.mjs",
@@ -91,6 +92,7 @@
     "graph:check": "bun scripts/code-graph.mjs check",
     "graph:review": "bun scripts/code-graph.mjs review",
     "verify:phase-1.12": "bun scripts/verify-phase112.mjs",
+    "verify:phase-1.13": "bun scripts/verify-phase113.mjs",
     "benchmark:catalogue-profiles": "bun scripts/benchmark-catalogue-profiles.ts"
   },
   "dependencies": {

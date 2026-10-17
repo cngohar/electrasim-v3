@@ -81,7 +81,7 @@ test('confirmed L-L and sequence edits cancel, apply and Undo without rewriting 
   ).toContainText('ACB');
   await page.keyboard.press('Escape');
   await expect(inspector).not.toBeVisible();
-  const notice = page.locator('output').filter({ hasText: 'Supply changed from' });
+  const notice = page.locator('[data-review-circuit]').filter({ hasText: 'Supply changed from' });
   await activateControl(page, notice.getByRole('button', { name: 'Undo', exact: true }));
   expect(await documentAt(page)).toEqual(before);
   await page.keyboard.press('Control+y');

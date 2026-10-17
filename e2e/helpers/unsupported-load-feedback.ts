@@ -82,7 +82,7 @@ export async function exerciseUnsupportedLoadFeedback(page: Page, screenshotPref
   await expect(feedback).toContainText('LED Bulb (9W)');
   await expect(feedback).toContainText('12 V is outside the declared 207–253 V range');
   await expect(page.getByLabel('Console messages')).not.toBeVisible();
-  await expect(page.locator('[data-workspace-context]')).toContainText('Running');
+  await expect(page.getByRole('button', { name: 'Stop', exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
   await fitCanvas(page);
   await page.screenshot({ path: `${screenshotPrefix}-12v-led.png`, fullPage: true });

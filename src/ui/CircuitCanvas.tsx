@@ -611,6 +611,7 @@ export function CircuitCanvas({
           {/* Fault Lab effects: per-fault canvas animations + persistent
               indicators; topmost world-space layer, pointer-transparent. */}
           <FaultFxLayer
+            followDrag
             items={faultFxItems}
             wires={circuit.wires}
             componentsById={byId}

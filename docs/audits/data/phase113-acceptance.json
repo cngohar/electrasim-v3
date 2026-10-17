@@ -1,0 +1,3851 @@
+{
+  "schema": 1,
+  "scope": "Phase 1.13 local combined functional evidence. Failed/partial runs remain explicit; selected recoveries do not become a single uninterrupted green run. Performance and owner acceptance remain separate.",
+  "baseCommit": "884196c5149f9024b9cef3f4fa35eace4c6c44a9",
+  "coverage": {
+    "source": {
+      "uniqueCases": 246,
+      "latestPassing": 246,
+      "unresolved": []
+    },
+    "built": {
+      "uniqueCases": 76,
+      "latestPassing": 76,
+      "unresolved": []
+    },
+    "built-shell": {
+      "uniqueCases": 10,
+      "latestPassing": 10,
+      "unresolved": []
+    }
+  },
+  "incompleteAttempts": [
+    {
+      "artifact": ".wrangler/phase113/built-frozen.log",
+      "result": "Managed process ended before JSON reporter finalization after 62/76 case starts. Three failures observed: two WR-01 autosave acknowledgement races, one local ProxyWorker signup connection loss. Partial native observations/screenshots retained; no full-run count inferred. Replaced by four finalized per-file built reports."
+    }
+  ],
+  "runs": [
+    {
+      "name": "source-frozen",
+      "delivery": "source",
+      "artifact": ".wrangler/phase113/source-frozen.json",
+      "stats": {
+        "startTime": "2026-10-17T05:42:46.635Z",
+        "duration": 2833742.2139999997,
+        "expected": 237,
+        "skipped": 0,
+        "unexpected": 9,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "project": "chromium",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "lamps: each catalogue entry renders solved readings and its declared running/standby state",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "motors: each catalogue entry renders solved readings and its declared running/standby state",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "appliances: each catalogue entry renders solved readings and its declared running/standby state",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "pv: ordinary import, Run and detailed profile inspection",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "ntc: ordinary import, Run and detailed profile inspection",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "spd: ordinary import, Run and detailed profile inspection",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "autotransformer: ordinary import, Run and detailed profile inspection",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "profile edits change mode and power, reject invalid values and survive Undo/Redo and reload",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "all catalogue profile cases agree across direct, real Comlink and local Hono",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "an ordinary three-phase motor placement has a discoverable editable setup and runs after wiring",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "lamps: each catalogue entry renders solved readings and its declared running/standby state",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "motors: each catalogue entry renders solved readings and its declared running/standby state",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "appliances: each catalogue entry renders solved readings and its declared running/standby state",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "pv: ordinary import, Run and detailed profile inspection",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "ntc: ordinary import, Run and detailed profile inspection",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "spd: ordinary import, Run and detailed profile inspection",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "autotransformer: ordinary import, Run and detailed profile inspection",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "profile edits change mode and power, reject invalid values and survive Undo/Redo and reload",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "all catalogue profile cases agree across direct, real Comlink and local Hono",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "an ordinary three-phase motor placement has a discoverable editable setup and runs after wiring",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "lamps: each catalogue entry renders solved readings and its declared running/standby state",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "motors: each catalogue entry renders solved readings and its declared running/standby state",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "appliances: each catalogue entry renders solved readings and its declared running/standby state",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "pv: ordinary import, Run and detailed profile inspection",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "ntc: ordinary import, Run and detailed profile inspection",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "spd: ordinary import, Run and detailed profile inspection",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "autotransformer: ordinary import, Run and detailed profile inspection",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "profile edits change mode and power, reject invalid values and survive Undo/Redo and reload",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "all catalogue profile cases agree across direct, real Comlink and local Hono",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "catalogue-profiles.spec.ts",
+          "suite": ["catalogue-profiles.spec.ts"],
+          "title": "an ordinary three-phase motor placement has a discoverable editable setup and runs after wiring",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "damage-repair.spec.ts",
+          "suite": ["damage-repair.spec.ts"],
+          "title": "guest cable damage persists through fault clearing and replacement preserves an injected break",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "damage-repair.spec.ts",
+          "suite": ["damage-repair.spec.ts"],
+          "title": "guest space-heater voltage damage uses one measured event and explicit replacement",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "damage-repair.spec.ts",
+          "suite": ["damage-repair.spec.ts"],
+          "title": "guest bulb voltage damage uses one measured event and explicit replacement",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "damage-repair.spec.ts",
+          "suite": ["damage-repair.spec.ts"],
+          "title": "a timed short trips without destruction; clearing and resetting restores operation",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "damage-repair.spec.ts",
+          "suite": ["damage-repair.spec.ts"],
+          "title": "damage settings remain usable on a phone",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "damage-repair.spec.ts",
+          "suite": ["damage-repair.spec.ts"],
+          "title": "guest cable damage persists through fault clearing and replacement preserves an injected break",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "damage-repair.spec.ts",
+          "suite": ["damage-repair.spec.ts"],
+          "title": "guest space-heater voltage damage uses one measured event and explicit replacement",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "damage-repair.spec.ts",
+          "suite": ["damage-repair.spec.ts"],
+          "title": "guest bulb voltage damage uses one measured event and explicit replacement",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "damage-repair.spec.ts",
+          "suite": ["damage-repair.spec.ts"],
+          "title": "a timed short trips without destruction; clearing and resetting restores operation",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "damage-repair.spec.ts",
+          "suite": ["damage-repair.spec.ts"],
+          "title": "damage settings remain usable on a phone",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "damage-repair.spec.ts",
+          "suite": ["damage-repair.spec.ts"],
+          "title": "guest cable damage persists through fault clearing and replacement preserves an injected break",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "damage-repair.spec.ts",
+          "suite": ["damage-repair.spec.ts"],
+          "title": "guest space-heater voltage damage uses one measured event and explicit replacement",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "damage-repair.spec.ts",
+          "suite": ["damage-repair.spec.ts"],
+          "title": "guest bulb voltage damage uses one measured event and explicit replacement",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "damage-repair.spec.ts",
+          "suite": ["damage-repair.spec.ts"],
+          "title": "a timed short trips without destruction; clearing and resetting restores operation",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "damage-repair.spec.ts",
+          "suite": ["damage-repair.spec.ts"],
+          "title": "damage settings remain usable on a phone",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "electrical-editing.spec.ts",
+          "suite": ["electrical-editing.spec.ts"],
+          "title": "supply dialog stages, cancels, restores focus and applies one coherent Undo/Redo transaction",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "electrical-editing.spec.ts",
+          "suite": ["electrical-editing.spec.ts"],
+          "title": "AC/DC changes preserve independent sources and the inspector edits only its named source",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "electrical-editing.spec.ts",
+          "suite": ["electrical-editing.spec.ts"],
+          "title": "preview refreshes on document revision and its notice never undoes a later edit",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "electrical-editing.spec.ts",
+          "suite": ["electrical-editing.spec.ts"],
+          "title": "Run distinguishes empty, missing supply, no-load, open, partial, short and conflicting sources",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "electrical-editing.spec.ts",
+          "suite": ["electrical-editing.spec.ts"],
+          "title": "palette, command suggestions and placed components share compatibility without removing imported parts",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "electrical-editing.spec.ts",
+          "suite": ["electrical-editing.spec.ts"],
+          "title": "variant confirmation maps MCB output to RCCB L-out and preserves a port fault through undo",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "electrical-editing.spec.ts",
+          "suite": ["electrical-editing.spec.ts"],
+          "title": "running locks configuration while supported runtime switches remain usable",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "electrical-editing.spec.ts",
+          "suite": ["electrical-editing.spec.ts"],
+          "title": "phone supply and readiness controls use the same confirmation flow",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "electrical-editing.spec.ts",
+          "suite": ["electrical-editing.spec.ts"],
+          "title": "a delayed real Comlink response cannot replace results after a confirmed supply change",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "electrical-editing.spec.ts",
+          "suite": ["electrical-editing.spec.ts"],
+          "title": "supply dialog stages, cancels, restores focus and applies one coherent Undo/Redo transaction",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "electrical-editing.spec.ts",
+          "suite": ["electrical-editing.spec.ts"],
+          "title": "AC/DC changes preserve independent sources and the inspector edits only its named source",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "electrical-editing.spec.ts",
+          "suite": ["electrical-editing.spec.ts"],
+          "title": "preview refreshes on document revision and its notice never undoes a later edit",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "electrical-editing.spec.ts",
+          "suite": ["electrical-editing.spec.ts"],
+          "title": "Run distinguishes empty, missing supply, no-load, open, partial, short and conflicting sources",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "electrical-editing.spec.ts",
+          "suite": ["electrical-editing.spec.ts"],
+          "title": "palette, command suggestions and placed components share compatibility without removing imported parts",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "electrical-editing.spec.ts",
+          "suite": ["electrical-editing.spec.ts"],
+          "title": "variant confirmation maps MCB output to RCCB L-out and preserves a port fault through undo",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "electrical-editing.spec.ts",
+          "suite": ["electrical-editing.spec.ts"],
+          "title": "running locks configuration while supported runtime switches remain usable",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "electrical-editing.spec.ts",
+          "suite": ["electrical-editing.spec.ts"],
+          "title": "phone supply and readiness controls use the same confirmation flow",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "electrical-editing.spec.ts",
+          "suite": ["electrical-editing.spec.ts"],
+          "title": "a delayed real Comlink response cannot replace results after a confirmed supply change",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "electrical-editing.spec.ts",
+          "suite": ["electrical-editing.spec.ts"],
+          "title": "supply dialog stages, cancels, restores focus and applies one coherent Undo/Redo transaction",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "electrical-editing.spec.ts",
+          "suite": ["electrical-editing.spec.ts"],
+          "title": "AC/DC changes preserve independent sources and the inspector edits only its named source",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "electrical-editing.spec.ts",
+          "suite": ["electrical-editing.spec.ts"],
+          "title": "preview refreshes on document revision and its notice never undoes a later edit",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "electrical-editing.spec.ts",
+          "suite": ["electrical-editing.spec.ts"],
+          "title": "Run distinguishes empty, missing supply, no-load, open, partial, short and conflicting sources",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "electrical-editing.spec.ts",
+          "suite": ["electrical-editing.spec.ts"],
+          "title": "palette, command suggestions and placed components share compatibility without removing imported parts",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "electrical-editing.spec.ts",
+          "suite": ["electrical-editing.spec.ts"],
+          "title": "variant confirmation maps MCB output to RCCB L-out and preserves a port fault through undo",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "electrical-editing.spec.ts",
+          "suite": ["electrical-editing.spec.ts"],
+          "title": "running locks configuration while supported runtime switches remain usable",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "electrical-editing.spec.ts",
+          "suite": ["electrical-editing.spec.ts"],
+          "title": "phone supply and readiness controls use the same confirmation flow",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "electrical-editing.spec.ts",
+          "suite": ["electrical-editing.spec.ts"],
+          "title": "a delayed real Comlink response cannot replace results after a confirmed supply change",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "fault-lab-application-review.spec.ts",
+          "suite": ["fault-lab-application-review.spec.ts"],
+          "title": "review and apply every registered fault against an applicable real circuit target",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "fault-lab-application-review.spec.ts",
+          "suite": ["fault-lab-application-review.spec.ts"],
+          "title": "review and apply every registered fault against an applicable real circuit target",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "fault-lab-application-review.spec.ts",
+          "suite": ["fault-lab-application-review.spec.ts"],
+          "title": "review and apply every registered fault against an applicable real circuit target",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "fault-lab-redesign.spec.ts",
+          "suite": ["fault-lab-redesign.spec.ts"],
+          "title": "reviewed Apply, fresh capture and playback keep edits and presentation separate",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "fault-lab-redesign.spec.ts",
+          "suite": ["fault-lab-redesign.spec.ts"],
+          "title": "named terminal drafting preserves topology and the no-photo wire reference is honest",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "fault-lab-redesign.spec.ts",
+          "suite": ["fault-lab-redesign.spec.ts"],
+          "title": "protected short presents the recorded trip and keeps cause clearing separate from reset and ON",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "fault-lab-redesign.spec.ts",
+          "suite": ["fault-lab-redesign.spec.ts"],
+          "title": "reviewed Apply, fresh capture and playback keep edits and presentation separate",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "fault-lab-redesign.spec.ts",
+          "suite": ["fault-lab-redesign.spec.ts"],
+          "title": "named terminal drafting preserves topology and the no-photo wire reference is honest",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "fault-lab-redesign.spec.ts",
+          "suite": ["fault-lab-redesign.spec.ts"],
+          "title": "protected short presents the recorded trip and keeps cause clearing separate from reset and ON",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "fault-lab-redesign.spec.ts",
+          "suite": ["fault-lab-redesign.spec.ts"],
+          "title": "reviewed Apply, fresh capture and playback keep edits and presentation separate",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "fault-lab-redesign.spec.ts",
+          "suite": ["fault-lab-redesign.spec.ts"],
+          "title": "named terminal drafting preserves topology and the no-photo wire reference is honest",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "fault-lab-redesign.spec.ts",
+          "suite": ["fault-lab-redesign.spec.ts"],
+          "title": "protected short presents the recorded trip and keeps cause clearing separate from reset and ON",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 open-circuit: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 open-live: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 open-neutral: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 open-earth: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 terminal-disconnect: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 reverse-polarity: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 switched-neutral: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 earth-fault: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 live-to-earth: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 smooth-dc-residual: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 arc-fault: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 protection-forced-open: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 protection-bypass: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 short-circuit: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 open-circuit: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 open-live: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 open-neutral: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 open-earth: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 terminal-disconnect: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 reverse-polarity: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 switched-neutral: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 earth-fault: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 live-to-earth: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 smooth-dc-residual: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 arc-fault: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 protection-forced-open: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 protection-bypass: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 short-circuit: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 open-circuit: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 open-live: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 open-neutral: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 open-earth: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 terminal-disconnect: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 reverse-polarity: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 switched-neutral: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 earth-fault: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 live-to-earth: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 smooth-dc-residual: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 arc-fault: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 protection-forced-open: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 protection-bypass: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 short-circuit: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 all fourteen fault anchors follow live drag, release and rotation",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 bent orthogonal wire and terminal markers survive zoom and reroute (ordinary)",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 bent orthogonal wire and terminal markers survive zoom and reroute (dense)",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 bent bezier wire and terminal markers survive zoom and reroute (ordinary)",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 bent bezier wire and terminal markers survive zoom and reroute (dense)",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 exported SVG retains exact static fault geometry",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 all fourteen fault anchors follow live drag, release and rotation",
+          "status": "unexpected",
+          "outcomes": ["timedOut"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 bent orthogonal wire and terminal markers survive zoom and reroute (ordinary)",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 bent orthogonal wire and terminal markers survive zoom and reroute (dense)",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 bent bezier wire and terminal markers survive zoom and reroute (ordinary)",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 bent bezier wire and terminal markers survive zoom and reroute (dense)",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 exported SVG retains exact static fault geometry",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 all fourteen fault anchors follow live drag, release and rotation",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 bent orthogonal wire and terminal markers survive zoom and reroute (ordinary)",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 bent orthogonal wire and terminal markers survive zoom and reroute (dense)",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 bent bezier wire and terminal markers survive zoom and reroute (ordinary)",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 bent bezier wire and terminal markers survive zoom and reroute (dense)",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 exported SVG retains exact static fault geometry",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "WR-01 AWG/Al/method draft, reset, save, Undo/Redo, reload and JSON round trip",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "WR-01 supported metric C/B1/A summaries keep installation and capacity basis visible",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "CT-02 Properties and Specs share selected-instance ratings and canonical terminals",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "CT-01 missing supply badge opens the target; unassessed palette parts remain discoverable",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "FL-05 Help has six readable steps and multiple causes require explicit inspection",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "UI-06 every declared family retains conditional model sections and existing controls",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "UI-04/05 Light: five-width wire summary, notifications and keyboard clearance",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "UI-04/05 Dark: five-width wire summary, notifications and keyboard clearance",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "WR-01 AWG/Al/method draft, reset, save, Undo/Redo, reload and JSON round trip",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "WR-01 supported metric C/B1/A summaries keep installation and capacity basis visible",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "CT-02 Properties and Specs share selected-instance ratings and canonical terminals",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "CT-01 missing supply badge opens the target; unassessed palette parts remain discoverable",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "FL-05 Help has six readable steps and multiple causes require explicit inspection",
+          "status": "unexpected",
+          "outcomes": ["timedOut"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "UI-06 every declared family retains conditional model sections and existing controls",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "UI-04/05 Light: five-width wire summary, notifications and keyboard clearance",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "UI-04/05 Dark: five-width wire summary, notifications and keyboard clearance",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "WR-01 AWG/Al/method draft, reset, save, Undo/Redo, reload and JSON round trip",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "WR-01 supported metric C/B1/A summaries keep installation and capacity basis visible",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "CT-02 Properties and Specs share selected-instance ratings and canonical terminals",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "CT-01 missing supply badge opens the target; unassessed palette parts remain discoverable",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "FL-05 Help has six readable steps and multiple causes require explicit inspection",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "UI-06 every declared family retains conditional model sections and existing controls",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "UI-04/05 Light: five-width wire summary, notifications and keyboard clearance",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "UI-04/05 Dark: five-width wire summary, notifications and keyboard clearance",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "centered commands and full-width shelf leave an unobstructed canvas across sizes",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "Properties preserves the reference photo and Configure applies a basic draft in one Undo",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "quick variants retain terminal and ratings review, cancel and undo",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "wire draft combines label, length, area and material with atomic Undo",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "Console has visible filters and Clear leaves faults and event history intact",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "Console stays reachable during guides without ending the walkthrough",
+          "status": "unexpected",
+          "outcomes": ["failed"]
+        },
+        {
+          "project": "chromium",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "Inspector and Console retain exits, cancel stale closes and honor manual reduced motion",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "catalogue includes the full artwork registry and placement uses the same canvas body",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "context arrangement preserves multi-selection and uses direct undoable actions",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "all settings sections and file/account windows stay within the viewport",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "centered commands and full-width shelf leave an unobstructed canvas across sizes",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "Properties preserves the reference photo and Configure applies a basic draft in one Undo",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "quick variants retain terminal and ratings review, cancel and undo",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "wire draft combines label, length, area and material with atomic Undo",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "Console has visible filters and Clear leaves faults and event history intact",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "Console stays reachable during guides without ending the walkthrough",
+          "status": "unexpected",
+          "outcomes": ["failed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "Inspector and Console retain exits, cancel stale closes and honor manual reduced motion",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "catalogue includes the full artwork registry and placement uses the same canvas body",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "context arrangement preserves multi-selection and uses direct undoable actions",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "all settings sections and file/account windows stay within the viewport",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "centered commands and full-width shelf leave an unobstructed canvas across sizes",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "Properties preserves the reference photo and Configure applies a basic draft in one Undo",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "quick variants retain terminal and ratings review, cancel and undo",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "wire draft combines label, length, area and material with atomic Undo",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "Console has visible filters and Clear leaves faults and event history intact",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "Console stays reachable during guides without ending the walkthrough",
+          "status": "unexpected",
+          "outcomes": ["failed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "Inspector and Console retain exits, cancel stale closes and honor manual reduced motion",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "catalogue includes the full artwork registry and placement uses the same canvas body",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "context arrangement preserves multi-selection and uses direct undoable actions",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "all settings sections and file/account windows stay within the viewport",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "three-phase-source.spec.ts",
+          "suite": ["three-phase-source.spec.ts"],
+          "title": "guest palette placement has five canonical phase terminals and independent saved defaults",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "three-phase-source.spec.ts",
+          "suite": ["three-phase-source.spec.ts"],
+          "title": "confirmed L-L and sequence edits cancel, apply and Undo without rewriting independent sources or faults",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "three-phase-source.spec.ts",
+          "suite": ["three-phase-source.spec.ts"],
+          "title": "real Comlink run displays L-N, L-L, neutral cancellation and finite wire loss with configuration locked",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "three-phase-source.spec.ts",
+          "suite": ["three-phase-source.spec.ts"],
+          "title": "phone source properties use the same voltage and sequence confirmation",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "three-phase-source.spec.ts",
+          "suite": ["three-phase-source.spec.ts"],
+          "title": "catalogue phasor results match direct domain, real Comlink and localhost Hono including unsupported motor cases",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "three-phase-source.spec.ts",
+          "suite": ["three-phase-source.spec.ts"],
+          "title": "guest palette placement has five canonical phase terminals and independent saved defaults",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "three-phase-source.spec.ts",
+          "suite": ["three-phase-source.spec.ts"],
+          "title": "confirmed L-L and sequence edits cancel, apply and Undo without rewriting independent sources or faults",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "three-phase-source.spec.ts",
+          "suite": ["three-phase-source.spec.ts"],
+          "title": "real Comlink run displays L-N, L-L, neutral cancellation and finite wire loss with configuration locked",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "three-phase-source.spec.ts",
+          "suite": ["three-phase-source.spec.ts"],
+          "title": "phone source properties use the same voltage and sequence confirmation",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "three-phase-source.spec.ts",
+          "suite": ["three-phase-source.spec.ts"],
+          "title": "catalogue phasor results match direct domain, real Comlink and localhost Hono including unsupported motor cases",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "three-phase-source.spec.ts",
+          "suite": ["three-phase-source.spec.ts"],
+          "title": "guest palette placement has five canonical phase terminals and independent saved defaults",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "three-phase-source.spec.ts",
+          "suite": ["three-phase-source.spec.ts"],
+          "title": "confirmed L-L and sequence edits cancel, apply and Undo without rewriting independent sources or faults",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "three-phase-source.spec.ts",
+          "suite": ["three-phase-source.spec.ts"],
+          "title": "real Comlink run displays L-N, L-L, neutral cancellation and finite wire loss with configuration locked",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "three-phase-source.spec.ts",
+          "suite": ["three-phase-source.spec.ts"],
+          "title": "phone source properties use the same voltage and sequence confirmation",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "three-phase-source.spec.ts",
+          "suite": ["three-phase-source.spec.ts"],
+          "title": "catalogue phasor results match direct domain, real Comlink and localhost Hono including unsupported motor cases",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-01 applied card identifies the exact selected target",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-01 duplicate attempt explains rejection and preserves one cause",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-02 first Lab command after blocked Run restores the selected target",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-02 terminal strip alone is never classified as a source",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-02 incomplete validation is never logged as success",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-04 internal open leaves external conductors intact",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-04 wire cut anchors to its associated bent rendered path within one pixel",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-03 CFL open diagnostic retains a fresh zero-current capture",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-01 real import outcome pauses on hover/focus, expires and stays in Console",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-01 import failure and validation completion share visible severity and retained history",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-01 applied card identifies the exact selected target",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-01 duplicate attempt explains rejection and preserves one cause",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-02 first Lab command after blocked Run restores the selected target",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-02 terminal strip alone is never classified as a source",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-02 incomplete validation is never logged as success",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-04 internal open leaves external conductors intact",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-04 wire cut anchors to its associated bent rendered path within one pixel",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-03 CFL open diagnostic retains a fresh zero-current capture",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-01 real import outcome pauses on hover/focus, expires and stays in Console",
+          "status": "unexpected",
+          "outcomes": ["failed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-01 import failure and validation completion share visible severity and retained history",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-01 applied card identifies the exact selected target",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-01 duplicate attempt explains rejection and preserves one cause",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-02 first Lab command after blocked Run restores the selected target",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-02 terminal strip alone is never classified as a source",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-02 incomplete validation is never logged as success",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-04 internal open leaves external conductors intact",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-04 wire cut anchors to its associated bent rendered path within one pixel",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-03 CFL open diagnostic retains a fresh zero-current capture",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-01 real import outcome pauses on hover/focus, expires and stays in Console",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-01 import failure and validation completion share visible severity and retained history",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "unsupported-load-feedback.spec.ts",
+          "suite": ["unsupported-load-feedback.spec.ts"],
+          "title": "native L/N placement, 12 V off and 230 V regulated LED operation use calculated results",
+          "status": "unexpected",
+          "outcomes": ["failed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "unsupported-load-feedback.spec.ts",
+          "suite": ["unsupported-load-feedback.spec.ts"],
+          "title": "native L/N placement, 12 V off and 230 V regulated LED operation use calculated results",
+          "status": "unexpected",
+          "outcomes": ["failed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "unsupported-load-feedback.spec.ts",
+          "suite": ["unsupported-load-feedback.spec.ts"],
+          "title": "native L/N placement, 12 V off and 230 V regulated LED operation use calculated results",
+          "status": "unexpected",
+          "outcomes": ["failed"]
+        }
+      ]
+    },
+    {
+      "name": "source-clearance-recovery",
+      "delivery": "source",
+      "artifact": ".wrangler/phase113/source-clearance-recovery.json",
+      "stats": {
+        "startTime": "2026-10-17T11:21:30.616Z",
+        "duration": 508828.24,
+        "expected": 21,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "project": "chromium",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 all fourteen fault anchors follow live drag, release and rotation",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 all fourteen fault anchors follow live drag, release and rotation",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 all fourteen fault anchors follow live drag, release and rotation",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "FL-05 Help has six readable steps and multiple causes require explicit inspection",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "UI-04/05 Light: five-width wire summary, notifications and keyboard clearance",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "UI-04/05 Dark: five-width wire summary, notifications and keyboard clearance",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "FL-05 Help has six readable steps and multiple causes require explicit inspection",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "UI-04/05 Light: five-width wire summary, notifications and keyboard clearance",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "UI-04/05 Dark: five-width wire summary, notifications and keyboard clearance",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "FL-05 Help has six readable steps and multiple causes require explicit inspection",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "UI-04/05 Light: five-width wire summary, notifications and keyboard clearance",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "UI-04/05 Dark: five-width wire summary, notifications and keyboard clearance",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "Console stays reachable during guides without ending the walkthrough",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "Console stays reachable during guides without ending the walkthrough",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "Console stays reachable during guides without ending the walkthrough",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-01 real import outcome pauses on hover/focus, expires and stays in Console",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-01 real import outcome pauses on hover/focus, expires and stays in Console",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-01 real import outcome pauses on hover/focus, expires and stays in Console",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "unsupported-load-feedback.spec.ts",
+          "suite": ["unsupported-load-feedback.spec.ts"],
+          "title": "native L/N placement, 12 V off and 230 V regulated LED operation use calculated results",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "unsupported-load-feedback.spec.ts",
+          "suite": ["unsupported-load-feedback.spec.ts"],
+          "title": "native L/N placement, 12 V off and 230 V regulated LED operation use calculated results",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "unsupported-load-feedback.spec.ts",
+          "suite": ["unsupported-load-feedback.spec.ts"],
+          "title": "native L/N placement, 12 V off and 230 V regulated LED operation use calculated results",
+          "status": "expected",
+          "outcomes": ["passed"]
+        }
+      ]
+    },
+    {
+      "name": "source-wire-persistence-recovery",
+      "delivery": "source",
+      "artifact": ".wrangler/phase113/source-wire-persistence-recovery.json",
+      "stats": {
+        "startTime": "2026-10-17T12:17:51.242Z",
+        "duration": 96707.273,
+        "expected": 6,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "project": "chromium",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "WR-01 AWG/Al/method draft, reset, save, Undo/Redo, reload and JSON round trip",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "WR-01 AWG/Al/method draft, reset, save, Undo/Redo, reload and JSON round trip",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "WR-01 AWG/Al/method draft, reset, save, Undo/Redo, reload and JSON round trip",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-01 real import outcome pauses on hover/focus, expires and stays in Console",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-01 real import outcome pauses on hover/focus, expires and stays in Console",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-01 real import outcome pauses on hover/focus, expires and stays in Console",
+          "status": "expected",
+          "outcomes": ["passed"]
+        }
+      ]
+    },
+    {
+      "name": "source-lab-clearance-final",
+      "delivery": "source",
+      "artifact": ".wrangler/phase113/source-lab-clearance-final.json",
+      "stats": {
+        "startTime": "2026-10-17T12:36:19.293Z",
+        "duration": 99383.928,
+        "expected": 9,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "project": "chromium",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "FL-05 Help has six readable steps and multiple causes require explicit inspection",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "FL-05 Help has six readable steps and multiple causes require explicit inspection",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "FL-05 Help has six readable steps and multiple causes require explicit inspection",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "Console stays reachable during guides without ending the walkthrough",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "Console stays reachable during guides without ending the walkthrough",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "open-drafting-table.spec.ts",
+          "suite": ["open-drafting-table.spec.ts"],
+          "title": "Console stays reachable during guides without ending the walkthrough",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-03 CFL open diagnostic retains a fresh zero-current capture",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-03 CFL open diagnostic retains a fresh zero-current capture",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-03 CFL open diagnostic retains a fresh zero-current capture",
+          "status": "expected",
+          "outcomes": ["passed"]
+        }
+      ]
+    },
+    {
+      "name": "source-console-clearance-final",
+      "delivery": "source",
+      "artifact": ".wrangler/phase113/source-console-clearance-final.json",
+      "stats": {
+        "startTime": "2026-10-17T12:44:49.799Z",
+        "duration": 55588.63,
+        "expected": 3,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "project": "chromium",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-03 CFL open diagnostic retains a fresh zero-current capture",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "mobile-chrome",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-03 CFL open diagnostic retains a fresh zero-current capture",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "tablet-safari",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-03 CFL open diagnostic retains a fresh zero-current capture",
+          "status": "expected",
+          "outcomes": ["passed"]
+        }
+      ]
+    },
+    {
+      "name": "built-inspector-final",
+      "delivery": "built",
+      "artifact": ".wrangler/phase113/built-inspector-final.json",
+      "stats": {
+        "startTime": "2026-10-17T11:58:44.016Z",
+        "duration": 190221.443,
+        "expected": 16,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "project": "built-desktop",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "WR-01 AWG/Al/method draft, reset, save, Undo/Redo, reload and JSON round trip",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "WR-01 supported metric C/B1/A summaries keep installation and capacity basis visible",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "CT-02 Properties and Specs share selected-instance ratings and canonical terminals",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "CT-01 missing supply badge opens the target; unassessed palette parts remain discoverable",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "FL-05 Help has six readable steps and multiple causes require explicit inspection",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "UI-06 every declared family retains conditional model sections and existing controls",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "UI-04/05 Light: five-width wire summary, notifications and keyboard clearance",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "UI-04/05 Dark: five-width wire summary, notifications and keyboard clearance",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "WR-01 AWG/Al/method draft, reset, save, Undo/Redo, reload and JSON round trip",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "WR-01 supported metric C/B1/A summaries keep installation and capacity basis visible",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "CT-02 Properties and Specs share selected-instance ratings and canonical terminals",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "CT-01 missing supply badge opens the target; unassessed palette parts remain discoverable",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "FL-05 Help has six readable steps and multiple causes require explicit inspection",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "UI-06 every declared family retains conditional model sections and existing controls",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "UI-04/05 Light: five-width wire summary, notifications and keyboard clearance",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "UI-04/05 Dark: five-width wire summary, notifications and keyboard clearance",
+          "status": "expected",
+          "outcomes": ["passed"]
+        }
+      ]
+    },
+    {
+      "name": "built-marker-final",
+      "delivery": "built",
+      "artifact": ".wrangler/phase113/built-marker-final.json",
+      "stats": {
+        "startTime": "2026-10-17T12:02:12.418Z",
+        "duration": 180539.83800000002,
+        "expected": 12,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "project": "built-desktop",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 all fourteen fault anchors follow live drag, release and rotation",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 bent orthogonal wire and terminal markers survive zoom and reroute (ordinary)",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 bent orthogonal wire and terminal markers survive zoom and reroute (dense)",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 bent bezier wire and terminal markers survive zoom and reroute (ordinary)",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 bent bezier wire and terminal markers survive zoom and reroute (dense)",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 exported SVG retains exact static fault geometry",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 all fourteen fault anchors follow live drag, release and rotation",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 bent orthogonal wire and terminal markers survive zoom and reroute (ordinary)",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 bent orthogonal wire and terminal markers survive zoom and reroute (dense)",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 bent bezier wire and terminal markers survive zoom and reroute (ordinary)",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 bent bezier wire and terminal markers survive zoom and reroute (dense)",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "fault-marker-movement.spec.ts",
+          "suite": ["fault-marker-movement.spec.ts"],
+          "title": "FL-04 exported SVG retains exact static fault geometry",
+          "status": "expected",
+          "outcomes": ["passed"]
+        }
+      ]
+    },
+    {
+      "name": "built-lifecycle-final",
+      "delivery": "built",
+      "artifact": ".wrangler/phase113/built-lifecycle-final.json",
+      "stats": {
+        "startTime": "2026-10-17T12:05:14.323Z",
+        "duration": 384469.59,
+        "expected": 28,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "project": "built-desktop",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 open-circuit: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 open-live: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 open-neutral: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 open-earth: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 terminal-disconnect: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 reverse-polarity: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 switched-neutral: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 earth-fault: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 live-to-earth: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 smooth-dc-residual: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 arc-fault: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 protection-forced-open: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 protection-bypass: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 short-circuit: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 open-circuit: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 open-live: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 open-neutral: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 open-earth: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 terminal-disconnect: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 reverse-polarity: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 switched-neutral: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 earth-fault: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 live-to-earth: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 smooth-dc-residual: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 arc-fault: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 protection-forced-open: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 protection-bypass: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "fault-lifecycle.spec.ts",
+          "suite": ["fault-lifecycle.spec.ts"],
+          "title": "FL-01–03 short-circuit: cancel, apply, duplicate, Run, clear, Undo/Redo and reapply",
+          "status": "expected",
+          "outcomes": ["passed"]
+        }
+      ]
+    },
+    {
+      "name": "built-ui-final",
+      "delivery": "built",
+      "artifact": ".wrangler/phase113/built-ui-final.json",
+      "stats": {
+        "startTime": "2026-10-17T12:11:40.697Z",
+        "duration": 138797.839,
+        "expected": 19,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "project": "built-desktop",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-01 applied card identifies the exact selected target",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-01 duplicate attempt explains rejection and preserves one cause",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-02 first Lab command after blocked Run restores the selected target",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-02 terminal strip alone is never classified as a source",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-02 incomplete validation is never logged as success",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-04 internal open leaves external conductors intact",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-04 wire cut anchors to its associated bent rendered path within one pixel",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-03 CFL open diagnostic retains a fresh zero-current capture",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-01 real import outcome pauses on hover/focus, expires and stays in Console",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-01 import failure and validation completion share visible severity and retained history",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-01 applied card identifies the exact selected target",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-01 duplicate attempt explains rejection and preserves one cause",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-02 first Lab command after blocked Run restores the selected target",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-02 terminal strip alone is never classified as a source",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-02 incomplete validation is never logged as success",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-04 internal open leaves external conductors intact",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-04 wire cut anchors to its associated bent rendered path within one pixel",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-03 CFL open diagnostic retains a fresh zero-current capture",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-01 real import outcome pauses on hover/focus, expires and stays in Console",
+          "status": "unexpected",
+          "outcomes": ["failed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-01 import failure and validation completion share visible severity and retained history",
+          "status": "expected",
+          "outcomes": ["passed"]
+        }
+      ]
+    },
+    {
+      "name": "built-recovery-final",
+      "delivery": "built",
+      "artifact": ".wrangler/phase113/built-recovery-final.json",
+      "stats": {
+        "startTime": "2026-10-17T12:16:31.387Z",
+        "duration": 56706.468,
+        "expected": 4,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "project": "built-desktop",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-01 real import outcome pauses on hover/focus, expires and stays in Console",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-01 real import outcome pauses on hover/focus, expires and stays in Console",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-01 real import outcome pauses on hover/focus, expires and stays in Console",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "UI-01 real import outcome pauses on hover/focus, expires and stays in Console",
+          "status": "expected",
+          "outcomes": ["passed"]
+        }
+      ]
+    },
+    {
+      "name": "built-lab-clearance-final",
+      "delivery": "built",
+      "artifact": ".wrangler/phase113/built-lab-clearance-final.json",
+      "stats": {
+        "startTime": "2026-10-17T12:37:59.950Z",
+        "duration": 38787.873,
+        "expected": 4,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "project": "built-desktop",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "FL-05 Help has six readable steps and multiple causes require explicit inspection",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "inspector-reference.spec.ts",
+          "suite": ["inspector-reference.spec.ts"],
+          "title": "FL-05 Help has six readable steps and multiple causes require explicit inspection",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-desktop",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-03 CFL open diagnostic retains a fresh zero-current capture",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-03 CFL open diagnostic retains a fresh zero-current capture",
+          "status": "expected",
+          "outcomes": ["passed"]
+        }
+      ]
+    },
+    {
+      "name": "built-console-clearance-final",
+      "delivery": "built",
+      "artifact": ".wrangler/phase113/built-console-clearance-final.json",
+      "stats": {
+        "startTime": "2026-10-17T12:45:46.434Z",
+        "duration": 24320.962000000003,
+        "expected": 2,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "project": "built-desktop",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-03 CFL open diagnostic retains a fresh zero-current capture",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "built-phone",
+          "file": "ui-fault-lab.spec.ts",
+          "suite": ["ui-fault-lab.spec.ts"],
+          "title": "FL-03 CFL open diagnostic retains a fresh zero-current capture",
+          "status": "expected",
+          "outcomes": ["passed"]
+        }
+      ]
+    },
+    {
+      "name": "production-final",
+      "delivery": "built-shell",
+      "artifact": ".wrangler/phase113/production-final.json",
+      "stats": {
+        "startTime": "2026-10-17T12:19:29.818Z",
+        "duration": 120352.484,
+        "expected": 9,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "project": "chromium",
+          "file": "fault-lab-redesign.production.spec.ts",
+          "suite": ["fault-lab-redesign.production.spec.ts"],
+          "title": "built Fault Lab draft, capture and separate clear work at 1280px",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "fault-lab-redesign.production.spec.ts",
+          "suite": ["fault-lab-redesign.production.spec.ts"],
+          "title": "built Fault Lab draft, capture and separate clear work at 390px",
+          "status": "unexpected",
+          "outcomes": ["timedOut"]
+        },
+        {
+          "project": "chromium",
+          "file": "open-drafting-table.production.spec.ts",
+          "suite": ["open-drafting-table.production.spec.ts", "built desktop redesign"],
+          "title": "delivers the centered shell, physical artwork, photo and advanced window",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "open-drafting-table.production.spec.ts",
+          "suite": ["open-drafting-table.production.spec.ts", "built desktop redesign"],
+          "title": "applies a basic draft with Undo and applies the motion preference",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "open-drafting-table.production.spec.ts",
+          "suite": ["open-drafting-table.production.spec.ts", "built desktop redesign"],
+          "title": "catalogue placement uses the bundled physical image on the actual canvas",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "open-drafting-table.production.spec.ts",
+          "suite": ["open-drafting-table.production.spec.ts", "built phone redesign"],
+          "title": "delivers the centered shell, physical artwork, photo and advanced window",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "open-drafting-table.production.spec.ts",
+          "suite": ["open-drafting-table.production.spec.ts", "built phone redesign"],
+          "title": "applies a basic draft with Undo and applies the motion preference",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "open-drafting-table.production.spec.ts",
+          "suite": ["open-drafting-table.production.spec.ts", "built phone redesign"],
+          "title": "catalogue placement uses the bundled physical image on the actual canvas",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "unsupported-load-feedback.production.spec.ts",
+          "suite": ["unsupported-load-feedback.production.spec.ts"],
+          "title": "built LED model feedback uses actual placement and supply edits at 1280px",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "unsupported-load-feedback.production.spec.ts",
+          "suite": ["unsupported-load-feedback.production.spec.ts"],
+          "title": "built LED model feedback uses actual placement and supply edits at 390px",
+          "status": "expected",
+          "outcomes": ["passed"]
+        }
+      ]
+    },
+    {
+      "name": "production-recovery-final",
+      "delivery": "built-shell",
+      "artifact": ".wrangler/phase113/production-recovery-final.json",
+      "stats": {
+        "startTime": "2026-10-17T12:38:39.856Z",
+        "duration": 19540.913,
+        "expected": 2,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "project": "chromium",
+          "file": "fault-lab-redesign.production.spec.ts",
+          "suite": ["fault-lab-redesign.production.spec.ts"],
+          "title": "built Fault Lab draft, capture and separate clear work at 1280px",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "fault-lab-redesign.production.spec.ts",
+          "suite": ["fault-lab-redesign.production.spec.ts"],
+          "title": "built Fault Lab draft, capture and separate clear work at 390px",
+          "status": "expected",
+          "outcomes": ["passed"]
+        }
+      ]
+    },
+    {
+      "name": "production-console-clearance-final",
+      "delivery": "built-shell",
+      "artifact": ".wrangler/phase113/production-console-clearance-final.json",
+      "stats": {
+        "startTime": "2026-10-17T12:46:11.901Z",
+        "duration": 19998.786,
+        "expected": 2,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "project": "chromium",
+          "file": "fault-lab-redesign.production.spec.ts",
+          "suite": ["fault-lab-redesign.production.spec.ts"],
+          "title": "built Fault Lab draft, capture and separate clear work at 1280px",
+          "status": "expected",
+          "outcomes": ["passed"]
+        },
+        {
+          "project": "chromium",
+          "file": "fault-lab-redesign.production.spec.ts",
+          "suite": ["fault-lab-redesign.production.spec.ts"],
+          "title": "built Fault Lab draft, capture and separate clear work at 390px",
+          "status": "expected",
+          "outcomes": ["passed"]
+        }
+      ]
+    },
+    {
+      "name": "performance-final",
+      "delivery": "performance",
+      "artifact": ".wrangler/phase113/performance-final.json",
+      "stats": {
+        "startTime": "2026-10-17T11:31:08.182Z",
+        "duration": 42838.501,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "project": "chromium",
+          "file": "performance.spec.ts",
+          "suite": ["performance.spec.ts", "dense editor benchmark"],
+          "title": "keeps the SVG editing path responsive at 200 components and 400 wires",
+          "status": "expected",
+          "outcomes": ["passed"]
+        }
+      ]
+    },
+    {
+      "name": "performance-head",
+      "delivery": "performance-baseline",
+      "artifact": ".wrangler/phase113/performance-head.json",
+      "stats": {
+        "startTime": "2026-10-17T11:36:36.707Z",
+        "duration": 39201.374,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "project": "chromium",
+          "file": "performance.spec.ts",
+          "suite": ["performance.spec.ts", "dense editor benchmark"],
+          "title": "keeps the SVG editing path responsive at 200 components and 400 wires",
+          "status": "expected",
+          "outcomes": ["passed"]
+        }
+      ]
+    },
+    {
+      "name": "performance-repeat",
+      "delivery": "performance",
+      "artifact": ".wrangler/phase113/performance-repeat.json",
+      "stats": {
+        "startTime": "2026-10-17T11:37:17.285Z",
+        "duration": 35264.869,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "project": "chromium",
+          "file": "performance.spec.ts",
+          "suite": ["performance.spec.ts", "dense editor benchmark"],
+          "title": "keeps the SVG editing path responsive at 200 components and 400 wires",
+          "status": "expected",
+          "outcomes": ["passed"]
+        }
+      ]
+    },
+    {
+      "name": "performance-head-repeat",
+      "delivery": "performance-baseline",
+      "artifact": ".wrangler/phase113/performance-head-repeat.json",
+      "stats": {
+        "startTime": "2026-10-17T11:38:03.766Z",
+        "duration": 34640.878,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "project": "chromium",
+          "file": "performance.spec.ts",
+          "suite": ["performance.spec.ts", "dense editor benchmark"],
+          "title": "keeps the SVG editing path responsive at 200 components and 400 wires",
+          "status": "expected",
+          "outcomes": ["passed"]
+        }
+      ]
+    },
+    {
+      "name": "performance-profile",
+      "delivery": "performance-profile",
+      "artifact": ".wrangler/phase113/performance-profile.json",
+      "stats": {
+        "startTime": "2026-10-17T11:39:42.547Z",
+        "duration": 35758.616,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "project": "chromium",
+          "file": "../../e2e/performance.spec.ts",
+          "suite": ["performance-profile.spec.ts", "dense editor benchmark"],
+          "title": "keeps the SVG editing path responsive at 200 components and 400 wires",
+          "status": "expected",
+          "outcomes": ["passed"]
+        }
+      ]
+    },
+    {
+      "name": "performance-head-profile",
+      "delivery": "performance-baseline-profile",
+      "artifact": ".wrangler/phase113/performance-head-profile.json",
+      "stats": {
+        "startTime": "2026-10-17T11:40:32.251Z",
+        "duration": 35112.041,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "project": "chromium",
+          "file": "../../e2e/performance.spec.ts",
+          "suite": ["performance-profile.spec.ts", "dense editor benchmark"],
+          "title": "keeps the SVG editing path responsive at 200 components and 400 wires",
+          "status": "expected",
+          "outcomes": ["passed"]
+        }
+      ]
+    }
+  ],
+  "performanceComparison": {
+    "delivery": "Vite development SVG editor, unchanged e2e/performance.spec.ts at 200 components/400 wires. Same host; managed browser/build jobs sequential. React development runtime is included.",
+    "samples": [
+      {
+        "report": "performance-final",
+        "tree": "current",
+        "cdpCpuSampler": false,
+        "artifact": ".wrangler/phase113/performance-final.log",
+        "interaction": {
+          "panFrames": {
+            "count": 59,
+            "average": 24.574576271186434,
+            "p95": 33.399999999999636,
+            "longFrameRatio": 0.03389830508474576,
+            "duration": 1682.6999999999534,
+            "handlerAverage": 0.10999999999379119,
+            "handlerP95": 0.20000000018626451,
+            "commitHandlerDuration": 0.7000000001862645
+          },
+          "dragFrames": {
+            "count": 59,
+            "average": 44.91355932203389,
+            "p95": 66.70000000000073,
+            "longFrameRatio": 0.06779661016949153,
+            "duration": 3324.600000000093,
+            "handlerAverage": 0.13500000000543272,
+            "handlerP95": 0.30000000004656613,
+            "commitHandlerDuration": 4.400000000139698
+          },
+          "zoomFrames": {
+            "count": 59,
+            "average": 194.9067796610169,
+            "p95": 249.89999999999782,
+            "longFrameRatio": 1,
+            "handlerAverage": 3.6750000000116416,
+            "handlerP95": 10.800000000046566
+          }
+        },
+        "idle": {
+          "average": 16.635555555554774,
+          "p95": 16.799999999999272,
+          "longFrameRatio": 0
+        }
+      },
+      {
+        "report": "performance-head",
+        "tree": "HEAD 884196c",
+        "cdpCpuSampler": false,
+        "artifact": ".wrangler/phase113/performance-head.log",
+        "interaction": {
+          "panFrames": {
+            "count": 59,
+            "average": 20.903389830508463,
+            "p95": 33.399999999999636,
+            "longFrameRatio": 0.03389830508474576,
+            "duration": 1418.6999999999534,
+            "handlerAverage": 0.08499999999379118,
+            "handlerP95": 0.19999999995343387,
+            "commitHandlerDuration": 0.19999999995343387
+          },
+          "dragFrames": {
+            "count": 59,
+            "average": 38.69999999999999,
+            "p95": 50,
+            "longFrameRatio": 0.03389830508474576,
+            "duration": 2874.3000000000466,
+            "handlerAverage": 0.05500000001241764,
+            "handlerP95": 0.19999999995343387,
+            "commitHandlerDuration": 2.4000000001396984
+          },
+          "zoomFrames": {
+            "count": 59,
+            "average": 152.81827118644065,
+            "p95": 150,
+            "longFrameRatio": 1,
+            "handlerAverage": 0.9883333333341094,
+            "handlerP95": 2.199999999953434
+          }
+        },
+        "idle": {
+          "average": 17.089444444444435,
+          "p95": 16.799999999999272,
+          "longFrameRatio": 0.005555555555555556
+        }
+      },
+      {
+        "report": "performance-repeat",
+        "tree": "current",
+        "cdpCpuSampler": false,
+        "artifact": ".wrangler/phase113/performance-repeat.log",
+        "interaction": {
+          "panFrames": {
+            "count": 59,
+            "average": 22.598305084745764,
+            "p95": 66.80000000000018,
+            "longFrameRatio": 0.06779661016949153,
+            "duration": 1432.1999999999534,
+            "handlerAverage": 0.07333333334342267,
+            "handlerP95": 0.19999999995343387,
+            "commitHandlerDuration": 0.5
+          },
+          "dragFrames": {
+            "count": 59,
+            "average": 39.83050847457627,
+            "p95": 50,
+            "longFrameRatio": 0.03389830508474576,
+            "duration": 2953.8000000000466,
+            "handlerAverage": 0.0966666666790843,
+            "handlerP95": 0.19999999995343387,
+            "commitHandlerDuration": 3.8999999999068677
+          },
+          "zoomFrames": {
+            "count": 59,
+            "average": 158.74877966101695,
+            "p95": 200,
+            "longFrameRatio": 1,
+            "handlerAverage": 1.1766666666837409,
+            "handlerP95": 6.399999999906868
+          }
+        },
+        "idle": {
+          "average": 16.6083333333341,
+          "p95": 16.700000000000728,
+          "longFrameRatio": 0
+        }
+      },
+      {
+        "report": "performance-head-repeat",
+        "tree": "HEAD 884196c",
+        "cdpCpuSampler": false,
+        "artifact": ".wrangler/phase113/performance-head-repeat.log",
+        "interaction": {
+          "panFrames": {
+            "count": 59,
+            "average": 20.620338983050853,
+            "p95": 33.30000000000018,
+            "longFrameRatio": 0.03389830508474576,
+            "duration": 1431.6999999999534,
+            "handlerAverage": 0.08166666666123396,
+            "handlerP95": 0.20000000018626451,
+            "commitHandlerDuration": 0.2999999998137355
+          },
+          "dragFrames": {
+            "count": 59,
+            "average": 38.981355932203385,
+            "p95": 50,
+            "longFrameRatio": 0.03389830508474576,
+            "duration": 2891.5999999998603,
+            "handlerAverage": 0.07166666666356226,
+            "handlerP95": 0.19999999995343387,
+            "commitHandlerDuration": 2.5
+          },
+          "zoomFrames": {
+            "count": 59,
+            "average": 155.0764745762712,
+            "p95": 150.10000000000218,
+            "longFrameRatio": 1,
+            "handlerAverage": 1.1599999999976718,
+            "handlerP95": 3.7000000001862645
+          }
+        },
+        "idle": {
+          "average": 17.104444444444177,
+          "p95": 16.73399999999674,
+          "longFrameRatio": 0.005555555555555556
+        }
+      },
+      {
+        "report": "performance-profile",
+        "tree": "current",
+        "cdpCpuSampler": true,
+        "artifact": ".wrangler/phase113/performance-profile.log",
+        "interaction": {
+          "panFrames": {
+            "count": 59,
+            "average": 20.620338983050853,
+            "p95": 16.799999999999272,
+            "longFrameRatio": 0.03389830508474576,
+            "duration": 1396.6999999999534,
+            "handlerAverage": 0.0683333333581686,
+            "handlerP95": 0.10000000009313226,
+            "commitHandlerDuration": 0.39999999990686774
+          },
+          "dragFrames": {
+            "count": 59,
+            "average": 41.24237288135592,
+            "p95": 50,
+            "longFrameRatio": 0.03389830508474576,
+            "duration": 3048.100000000093,
+            "handlerAverage": 0.07666666666045785,
+            "handlerP95": 0.19999999995343387,
+            "commitHandlerDuration": 4.2000000001862645
+          },
+          "zoomFrames": {
+            "count": 59,
+            "average": 158.75047457627122,
+            "p95": 166.70000000000073,
+            "longFrameRatio": 1,
+            "handlerAverage": 1.0216666666674428,
+            "handlerP95": 1.9000000001396984
+          }
+        },
+        "idle": {
+          "average": 16.64166666666614,
+          "p95": 16.799999999999272,
+          "longFrameRatio": 0
+        }
+      },
+      {
+        "report": "performance-head-profile",
+        "tree": "HEAD 884196c",
+        "cdpCpuSampler": true,
+        "artifact": ".wrangler/phase113/performance-head-profile.log",
+        "interaction": {
+          "panFrames": {
+            "count": 59,
+            "average": 20.903389830508477,
+            "p95": 33.30000000000109,
+            "longFrameRatio": 0.03389830508474576,
+            "duration": 1331.5,
+            "handlerAverage": 0.07333333333954214,
+            "handlerP95": 0.19999999995343387,
+            "commitHandlerDuration": 0.5999999998603016
+          },
+          "dragFrames": {
+            "count": 59,
+            "average": 39.54745762711866,
+            "p95": 49.900000000001455,
+            "longFrameRatio": 0.03389830508474576,
+            "duration": 2942.8000000000466,
+            "handlerAverage": 0.06000000000155221,
+            "handlerP95": 0.10000000009313226,
+            "commitHandlerDuration": 2.7999999998137355
+          },
+          "zoomFrames": {
+            "count": 59,
+            "average": 155.92542372881357,
+            "p95": 166.6999999999989,
+            "longFrameRatio": 1,
+            "handlerAverage": 1.1483333333434227,
+            "handlerP95": 3.300000000046566
+          }
+        },
+        "idle": {
+          "average": 16.63333333333307,
+          "p95": 16.799999999999272,
+          "longFrameRatio": 0
+        }
+      }
+    ],
+    "decision": "Preserve the existing dense-zoom limitation and every outcome. Initial current p95 249.9ms, ordinary repeat 200.0ms; matched profiled pair 166.7ms both with means 158.75ms current/155.93ms HEAD. Limited samples do not establish persistent new slowdown or production speed. Existing assertions pass; no relaxed threshold or 60fps claim."
+  },
+  "implementationAndCheckFingerprints": {
+    "e2e/electrical-editing.spec.ts": "8ce0dcddf686527a90adf10877a837154729f54923c78e35beabc6433dec6a29",
+    "e2e/fault-lab-application-review.spec.ts": "79093f1cd060e6ac2d3d74bda3c9a93d7bbdc84c4e71a3b3d35dd61ee60cb323",
+    "e2e/fault-lifecycle.spec.ts": "e49b1c0c22860f8c3562a99bae7e28beff396eacb6598ef36d0a7c63e8e8f667",
+    "e2e/fault-marker-movement.spec.ts": "cc1a73af2ff3973da4615a15776d1681915f27b7dd9961ad74125eb0ba25a2fb",
+    "e2e/helpers/catalogue-profiles.ts": "7c8f6f2a08014da22cbe212af9b9502857679e337eb4518ed819e2be2d3e7687",
+    "e2e/helpers/fault-scenarios.ts": "13b76e06dddf91c96f0b989a6a43626eeccee6ffbdbb012e44d8d5e761f9c51b",
+    "e2e/helpers/unsupported-load-feedback.ts": "75bf0761ad82d8ef982e535b80181c323ad30d9e5b0d1617e3d1cd6674ad7947",
+    "e2e/helpers/workbench.ts": "cbdd02e76ec109d3597d339efda612eaf5ada2a4146aaff4548f343c9140000b",
+    "e2e/inspector-reference.spec.ts": "f801b86f3a452c7fce88be31871d7f5918adce979e93c26a6351f3c3e224990a",
+    "e2e/mna-runtime.spec.ts": "743fd1e856c71b960e4a7adc31d4dec1e044485703cec2cccd06fe57d40153aa",
+    "e2e/open-drafting-table.production.spec.ts": "f01ff3557a9c3d6977a5a3e35c57a91026afa09824121ea7635a2e4f41cf0588",
+    "e2e/open-drafting-table.spec.ts": "9fe48c482e2e9566386afab3c9ef122cdc3487fc1716e4b0502436c46548488e",
+    "e2e/three-phase-source.spec.ts": "1dff7547be3f443b5663fe4c47d4bfdf03636f2f8fa134a0cd7eefca8017f385",
+    "e2e/ui-fault-lab.spec.ts": "6a1bc78cd6f647c72bb20f630e33c43245f3d24762b57a5a08eef706f97edae7",
+    "e2e/workbench-ui.spec.ts": "a0ee27e681e8a4312034b7da4adc59d32e9db025a4ada463ca2d31f73c874ff3",
+    "package.json": "2b5fb60eea0cdbcaeb5a512a4aa5ad6d3e0ac582ee5e14958124704be4a908f4",
+    "packages/domain/src/circuitValidation.test.ts": "26dbbb24d6e08ff9061779dcf2647608c2ec8f71d99fb09c59b9f2bf12e24193",
+    "packages/domain/src/circuitValidation.ts": "d7da7e583585b8d37a14df7db08a8b85613f7791e8bca4a547fe075ca892b9c7",
+    "packages/domain/src/circuitValidationTypes.ts": "9ce73bbdd7264559732c7c3bbe37816b7f5a0dfb86de6178c0ad6bf45ab2ebc1",
+    "packages/domain/src/componentHelp/index.ts": "c867a2152affea6159d3e65077ce379daae87783f9c6e606d705d38b9998e213",
+    "packages/domain/src/componentHelp/lighting.ts": "4259ee74f707471178074aac2043447c593fe4cffc92f847712bb87b898444e9",
+    "packages/domain/src/componentHelp/loadsAndSupply.ts": "083562b687768b19a2dae546c73c5cf51f9ceaf79d4e3e8067ea3ce02d585089",
+    "packages/domain/src/core/componentReference.test.ts": "fcf2c5cbb6dc210245c24e115a3ba04d5ed32cc49c7dab1beeaca89655d96da7",
+    "packages/domain/src/core/componentReference.ts": "e6d357448eec3ef55a78049bb1424d7257f687ced62b565b99a31c521827b9ab",
+    "packages/domain/src/core/editing.test.ts": "3a90bb29d821060cf28d707779ae7275238bd2b2227af262054cbd067c212b59",
+    "packages/domain/src/core/placement.ts": "d757746baffe983cedcbd39f18667504ffe48e32b3521e36e917e71acb1c23fb",
+    "packages/domain/src/core/readinessPresentation.ts": "ea413e1cb019af319fda3c0e50f185d80b84c0275f454cc6f6e97160dfd7746a",
+    "playwright.ui-fault-built.config.ts": "ef3e6a575deeac2df546a1bbbcbf0034435361f5a1c1317f4d65e9687cd1ccdd",
+    "scripts/catalogue-reference-inventory.ts": "f54b52d0a0b5c23d6e58c5881340ddcd07c2775e480930dde213e58058177d61",
+    "scripts/code-graph.mjs": "a2e2acd891df2ab00537945e8c0eb2e666d73dae988f5b91deb5eeb0901560e7",
+    "scripts/verify-phase113.mjs": "41f0994d8c18d5972648e726cbdab9ac678b6377e6d3d0112262e336fdf38bae",
+    "src/store/circuitStore.faultActions.ts": "1c08f2ec920c906a42662fbab5a612529e8847a45cbe70f57cbc4fc9c457090b",
+    "src/store/circuitStore.ts": "a9723b92539a53e5a4df1f766788d9d4c94a07930faf17f2e962a269b3fd81b8",
+    "src/store/faultLabStore.ts": "d086eb0422aa83d01061a84ca79c7819e9e783c18ae30b6ba527cd80862f0b10",
+    "src/store/notifications.ts": "6568a647895bef50da4f604245d6a4e9c7ac5c5ddc633590bcf8136a16ebab04",
+    "src/store/uiStore.test.ts": "f3bf9f042b0726fa201706c7b9d856fa01e47c2b97d5007aa6ccf139ef9f4f50",
+    "src/store/uiStore.ts": "1e9380dd22ddd36e8f95f01814fce696ee5601d2f31905fb938fbe743fcaf7a1",
+    "src/store/uiStore.types.ts": "8a0761bb12c1c710a0adbe04ed1f01ed639863c4a0a236ed2758402c2f629a1c",
+    "src/store/useSimulation.ts": "fded5a7967f9ec239aac1e687e9c6e0a8db88ad3098621bb097f24606feb7b01",
+    "src/ui/CircuitCanvas.tsx": "a845fadec9cf6eb928c115083620ce776eb06f9ffa8dae3050939fdbce2375d7",
+    "src/ui/Editor.tsx": "4a7fb52f780e0c2a2f7c5f0dc7f679d45f515fdb993f527e34aed401c6fcc8df",
+    "src/ui/canvas/ComponentLayer.tsx": "ffd51b217a76c9cafb604c147cffb7988f1f1d95c0ef3e2b04142f94b279456a",
+    "src/ui/canvas/ComponentNode.tsx": "3ecc4c0788bc2711dbafdfb090deb453d0e802c8c3e986874536070ae40368ad",
+    "src/ui/canvas/DenseWireLayer.tsx": "8c2d9f3214e249e471de16a7008a562a06cbf1fef9bcc7aad15174b0bcfa8ce3",
+    "src/ui/canvas/FaultFxLayer.test.tsx": "734a62b6cd6371f89d4f260ab5be3b9e5184a736c52cf932084a1d35f0d9a358",
+    "src/ui/canvas/FaultFxLayer.tsx": "a36df9bef6df158f9591e36fa573db8e8141503f958da9f8f65d1f9df091ee89",
+    "src/ui/canvas/WireLayer.tsx": "68470cb067e33652c98ab5b33dd10c3a0643790443525ecdd92c228eca77fbdc",
+    "src/ui/canvas/faultDragPreview.ts": "a4f3ca1d49925bc936a7762a21634ffcbdec0f206ba637f9bb93fde09a724343",
+    "src/ui/canvas/faultFx.test.ts": "8f6da4582cd26a391736fca95c434c1100384231e693c25667e5dd1c0508caa8",
+    "src/ui/canvas/faultFx.ts": "64edf37b4e4c9516a2f27497e6046dd58d4a9b29d38cef5790c61e82a6d0160f",
+    "src/ui/canvas/renderedPath.test.ts": "4555479700197e27c5dd2c50d9ff1a9da3a3d4dace515a2d59794aaad93036af",
+    "src/ui/canvas/renderedPath.ts": "ff7972f95fd1d96b491a8398b11127be8657b715b699689dd17e4f8fda6d4857",
+    "src/ui/canvas/useCanvasPointerWindow.ts": "c5a2c093f53bead570abf7390111d14e07dcd45bdbdfa3237dbd6cc9ef73affe",
+    "src/ui/components/CircuitControls.tsx": "0df54d4220df911ac04bc494e15f88c143b6d76baea79e172772a8cf77d8bd97",
+    "src/ui/components/ComponentInfoModal.tsx": "cb2b9673cb20c198197706dfcc38e2a31a271370157df68f0b1be324b2bc630c",
+    "src/ui/components/ComponentSpecs.tsx": "7c2890df7cf52813698b957484cab6cb154616acc545edda2fa9818c60cb6b94",
+    "src/ui/components/ElectricalEditDialog.tsx": "f7eb9d3cc7c55720612b92efdb86dad1507765420630eb565f8240207d6729d4",
+    "src/ui/components/ImportExportModal.tsx": "159cfd6133331abcfd5a26d7cb15fb686d4d89882f502143dbb592a2e58913db",
+    "src/ui/components/Palette.tsx": "1b1dd2bb5981c1879a9b4a75c6b1fba6bdd6a07658528ebf0eecdc0157048243",
+    "src/ui/components/PlacementSupplyFilter.tsx": "afb26875ba165b5fdfc5b8d3e4ed071318171f24a1dc851de3eaace64114397d",
+    "src/ui/components/UndoToast.test.tsx": "bbe50af7e0f6b06b5ce1911eeedc23a6b98acc07253bec97d50256d104ede0a8",
+    "src/ui/components/UndoToast.tsx": "eb00a1d60d0b146a8857e7db9d3ddfddae179009b2695f6d2fa9c08428f373c7",
+    "src/ui/components/ValidationReportView.tsx": "068a92853372795ecf9b8bb04357e191f04c86b279455dfde218416ddc15c8b0",
+    "src/ui/components/inspector/ComponentPropertiesView.tsx": "0dfd99ff93a78335770c319b9efb14094c6f92e661122cb5f43c44745e2ff8f5",
+    "src/ui/components/inspector/Inspector.tsx": "44751b524c0dbb746b30da25743924d9e4c90ffd30830de8cf6259a26173ee4a",
+    "src/ui/components/inspector/InspectorFaultLabView.tsx": "e2e114a78407449e1755bf309434597104da45fd5faef3e5911f7443c1ae4533",
+    "src/ui/components/inspector/InspectorOverview.tsx": "59d8ddae8009f90e2c6de62fff703b375611ee6bea23e18bc01fdc15e3e77be9",
+    "src/ui/components/inspector/InspectorQuickSettings.tsx": "13813367d70fb4719b277cd8ff90bed8335de59c609d84137edc837733be947d",
+    "src/ui/components/inspector/WireInspectorView.tsx": "51d6b297020f320df378e164b539087725e096f179233f31de6bcbf3aee933b5",
+    "src/ui/components/inspector/WirePropertiesSummary.tsx": "2286e2818bd6fda820c639126facf0bd6d8905825e934b0dc88f11058e833200",
+    "src/ui/components/inspector/fault-lab.css": "78b22784ed6ea0fa5a593f4249fa8892213bd7e9b975243ae7c3cc90993440ed",
+    "src/ui/components/inspector/faultLabEvidence.ts": "0bec15c58214293f6d6c8ade6f5fbf73a602373c2dc59121df846c57084779ef",
+    "src/ui/components/validationPresentation.test.ts": "57c7b447d00d808be7d3aa21ffc8c129d257b281e40a55afdfae55ee121faf7e",
+    "src/ui/components/validationPresentation.ts": "7542efa131c92b4051c1becff5ab24a405a22901813377e126efd825fdcff8cc",
+    "src/ui/hooks/usePlacementGuidance.ts": "5a404e30966dc69691198a8209abc2b2640cadd70603ccd30a32c1132cfbd57a",
+    "src/ui/open-table.css": "b841182bed7b4aa62039c33948f761b34e4f2f740a7caf9b2d278cccdc020f4c"
+  },
+  "otherEvidence": {
+    "baseline": "docs/audits/data/phase113-baseline.json",
+    "earlierFailedAndPartialAttempts": "docs/audits/phase-1-ui-fault-lab.md",
+    "fullCheck": {
+      "artifact": ".wrangler/phase113/check-lab-clearance-final.log",
+      "result": "final application logic and source-alias presentation: types/lint/2224 units across145 files pass; later Lab Console-count CSS and harness have refreshed types/lint and affected source/built/production recovery"
+    },
+    "localParity": {
+      "artifact": ".wrangler/phase113/domain-local.log",
+      "cases": 897,
+      "result": "pass"
+    },
+    "membership": {
+      "artifact": ".wrangler/phase113/membership.log",
+      "groups": 34,
+      "result": "pass"
+    },
+    "catalogueReference": {
+      "artifact": "docs/audits/data/phase-1.13-catalogue-reference.json",
+      "dispositions": 116,
+      "result": "snapshot match; not runtime certification"
+    },
+    "static": [
+      ".wrangler/phase113/console-final-assets.log",
+      ".wrangler/phase113/console-final-links.log",
+      ".wrangler/phase113/console-final-seo.log",
+      ".wrangler/phase113/console-final-csp.log"
+    ],
+    "publicationPreparation": {
+      "authorization": "User separately requested committing and pushing the completed checkpoint to GitHub after local functional closure. No Cloudflare deployment or live-site authorization.",
+      "formatting": {
+        "artifact": ".wrangler/phase113/publication-format-equivalence.log",
+        "result": "Six files normalized by Biome; TypeScript syntax trees, CSS rule/declaration structure and parsed JSON remain equivalent to the accepted staged versions."
+      },
+      "catalogueReference": {
+        "artifact": ".wrangler/phase113/publication-catalogue-reference.log",
+        "result": "116-entry exact snapshot passes after matching generator output to the commit formatter, following the existing model-inventory pattern. Earlier formatter-only byte comparison failure retained in the ledger."
+      },
+      "focusedTests": {
+        "artifact": ".wrangler/phase113/publication-focused.log",
+        "tests": 16,
+        "files": 2,
+        "result": "pass; notification/repair"
+      },
+      "scope": "Formatting and inventory-tool normalization only; prior browser, static and performance evidence is retained with its original scope. Normal commit hooks required; publication is verified separately using Git refs."
+    }
+  },
+  "exceptions": "Retain historical solver p95 45.07ms/8ms and generator timing. Preserve historical zoom199.9ms plus every new current and baseline measurement, including initial249.9ms. Both trees still have all sampled zoom frames above50ms. No threshold relaxation, remote publication or human owner acceptance is implied."
+}

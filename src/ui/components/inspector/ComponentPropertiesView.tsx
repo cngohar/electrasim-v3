@@ -18,7 +18,7 @@ import {
 import { teachingSetup } from '@electrasim/domain/core/teachingSetup';
 import { hasTimerSettings } from '@electrasim/domain/core/timerModel';
 import { previewVariantChange } from '@electrasim/domain/core/variantEditing';
-import { HelpCircle, Lock, RotateCcw, RotateCw, Trash2 } from 'lucide-react';
+import { HelpCircle, Lock, Trash2 } from 'lucide-react';
 import { Suspense, lazy } from 'react';
 import { setMomentarySwitchState, useCircuitStore } from '../../../store/circuitStore';
 import { requestSupplyEdit, useConfigurationLockReason } from '../../../store/electricalEditing';
@@ -113,48 +113,6 @@ export function ComponentPropertiesView({
         <p className="mt-2 text-[10px] text-slate-200">{def.description ?? def.label}</p>
       </div>
 
-      <section className={box} data-component-compatibility={status}>
-        <h3 className="font-semibold">Electrical compatibility: {status}</h3>
-        {findings.map((g) => (
-          <div key={g.groupId}>
-            <p className="font-medium">
-              {g.groupId} · {g.result.status}
-            </p>
-            {g.result.reasons.map((r, i) => (
-              <p key={`${r.code}-${i}`}>{r.message}</p>
-            ))}
-          </div>
-        ))}
-        {!findings.length && <p>Repair invalid topology before assessing this device.</p>}
-        <p className="text-[10px]">
-          Nominal guidance is separate from measured terminal voltage and standards assessment.
-        </p>
-      </section>
-
-      {supplyTarget && profile && (
-        <section className={box}>
-          <h3 className="font-semibold">
-            {supplyTarget.kind === 'document'
-              ? 'Document supply (L/N aliases)'
-              : 'Independent source output'}
-          </h3>
-          <p>{supplyDescription(profile)}</p>
-          <button
-            type="button"
-            className={button}
-            disabled={!!locked}
-            title={locked ?? 'Preview a supply change'}
-            onClick={() => requestSupplyEdit(supplyTarget)}
-          >
-            Edit supply…
-          </button>
-        </section>
-      )}
-      {capability.family === 'pe-reference' && (
-        <p className={box}>
-          Protective earth reference. PE is not a power source or an adjustable supply.
-        </p>
-      )}
       {locked && (
         <p className="flex items-center gap-1 text-amber-700 dark:text-amber-300">
           <Lock className="size-3" />
@@ -162,454 +120,518 @@ export function ComponentPropertiesView({
         </p>
       )}
 
-      {setup && (
-        <section className={box} data-teaching-setup={selectedComp.type}>
-          <h3 className="font-semibold">Electrical setup required</h3>
-          <p>{setup.description}</p>
-          <button
-            type="button"
-            className={button}
-            disabled={!!locked}
-            onClick={() => update(selectedComp.id, setup.updates)}
-          >
-            Use editable teaching setup
-          </button>
-        </section>
-      )}
-      {manualOnlyAdvice[selectedComp.type] && (
-        <p className={box} data-conditional-control>
-          {manualOnlyAdvice[selectedComp.type]}
-        </p>
-      )}
-      {capability.groups.some(
-        (g) => g.role === 'unassessed' && g.loadLaw.kind === 'not-assessed',
-      ) && (
-        <section className={box} data-conditional-control>
-          <h3 className="font-semibold">Automatic control unavailable</h3>
-          <p>
-            This device has no declared sensor or communication input and no electronics consumption
-            model. A saved contact position does not implement its automatic controller.
-          </p>
-          <p>
-            For a manual switching exercise, place a single-way or double-pole switch instead. For
-            timed control, use a timer and declare its program in this Inspector. No motion, light,
-            network or temperature event is invented from a supply voltage.
+      <section
+        className="component-model-section"
+        aria-label="Electrical model section"
+        data-model-section="electrical"
+      >
+        <h2>Electrical</h2>
+        <section className={box} data-component-compatibility={status}>
+          <h3 className="font-semibold">Electrical compatibility: {status}</h3>
+          {findings.map((g) => (
+            <div key={g.groupId}>
+              <p className="font-medium">
+                {g.groupId} · {g.result.status}
+              </p>
+              {g.result.reasons.map((r, i) => (
+                <p key={`${r.code}-${i}`}>{r.message}</p>
+              ))}
+            </div>
+          ))}
+          {!findings.length && <p>Repair invalid topology before assessing this device.</p>}
+          <p className="text-[10px]">
+            Nominal guidance is separate from measured terminal voltage and standards assessment.
           </p>
         </section>
-      )}
-      {variants.length > 1 && (
-        <section className={box}>
-          <h3 className="font-semibold">Available Family Variants ({variants.length})</h3>
-          <p>Preview each replacement’s terminal mapping and new ratings.</p>
-          <div className="grid max-h-44 grid-cols-2 gap-1.5 overflow-y-auto">
-            {variants.map((type) => {
-              const candidate = COMPONENT_DEFS[type]!;
-              const preview = previewVariantChange(circuit, selectedComp.id, type);
-              return (
+
+        {supplyTarget && profile && (
+          <section className={box}>
+            <h3 className="font-semibold">
+              {supplyTarget.kind === 'document'
+                ? 'Document supply (L/N aliases)'
+                : 'Independent source output'}
+            </h3>
+            <p>{supplyDescription(profile)}</p>
+            <button
+              type="button"
+              className={button}
+              disabled={!!locked}
+              title={locked ?? 'Preview a supply change'}
+              onClick={() => requestSupplyEdit(supplyTarget)}
+            >
+              Edit supply…
+            </button>
+          </section>
+        )}
+        {capability.family === 'pe-reference' && (
+          <p className={box}>
+            Protective earth reference. PE is not a power source or an adjustable supply.
+          </p>
+        )}
+        {load &&
+          selectedComp.type !== 'motor-3phase' &&
+          !resolveComponentState(selectedComp.state, def).electronicLoadProfile &&
+          !resolveComponentState(selectedComp.state, def).catalogueProfile && (
+            <section className={box}>
+              <h3 className="font-semibold">Load design / nameplate</h3>
+              <p>
+                {load.loadLaw.kind === 'fixed-resistance'
+                  ? `Fixed resistance: ${Number(load.loadLaw.resistanceOhms.toFixed(4))} Ω. Power changes with terminal voltage.`
+                  : 'Operating load law is unassessed.'}
+              </p>
+              <fieldset disabled={!!locked} className="grid grid-cols-2 gap-2">
+                <label>
+                  Power (W)
+                  <input
+                    className={input}
+                    type="number"
+                    min="0.001"
+                    step="any"
+                    aria-label="Power rating in watts"
+                    placeholder="Not declared"
+                    value={selectedComp.state.customPowerWatts ?? nominalWatts ?? ''}
+                    onChange={(e) =>
+                      update(selectedComp.id, {
+                        customPowerWatts:
+                          e.target.value === '' ? undefined : Number(e.target.value),
+                      })
+                    }
+                  />
+                </label>
+                <label>
+                  Design voltage (V)
+                  <input
+                    className={input}
+                    type="number"
+                    min="0.001"
+                    step="any"
+                    aria-label="Operating voltage in volts"
+                    placeholder="Not declared"
+                    value={selectedComp.state.customVoltage ?? nominalVolts ?? ''}
+                    onChange={(e) =>
+                      update(selectedComp.id, {
+                        customVoltage: e.target.value === '' ? undefined : Number(e.target.value),
+                      })
+                    }
+                  />
+                </label>
+              </fieldset>
+              <p className="text-[10px]">
+                These are equipment ratings, independent of the supply setting.
+              </p>
+            </section>
+          )}
+        {capability.groups
+          .filter((g) => g.role === 'primary' || g.role === 'secondary')
+          .map((g) => (
+            <section key={g.id} className={box}>
+              <h3 className="font-semibold">{g.role} winding</h3>
+              <p>
+                {g.nominalVoltage.status === 'known'
+                  ? `${g.nominalVoltage.value} V AC`
+                  : 'Voltage not declared'}{' '}
+                across {g.ports.map((i) => def.ports[i]?.label).join(' / ')}.
+              </p>
+              <p>Separate isolated winding; no DC rectification is implied.</p>
+            </section>
+          ))}
+        {(poles.length > 0 ||
+          (load &&
+            (def.maxAmps !== undefined || selectedComp.state.customMaxAmps !== undefined))) && (
+          <section className={box}>
+            <h3 className="font-semibold">
+              {def.isProtection ? 'Protective device rating In' : 'Contact / device capacity'}
+            </h3>
+            <label>
+              Current rating (A)
+              <input
+                className={input}
+                type="number"
+                aria-label="Current rating in amps"
+                min="0.001"
+                step="any"
+                disabled={!!locked}
+                placeholder="Not declared"
+                value={selectedComp.state.customMaxAmps ?? def.maxAmps ?? ''}
+                onChange={(e) =>
+                  update(selectedComp.id, {
+                    customMaxAmps: e.target.value === '' ? undefined : Number(e.target.value),
+                  })
+                }
+              />
+            </label>
+            <p className="text-[10px]">
+              Capacity is separate from current flowing in a pole, cable capacity Iz and residual
+              current in mA.
+            </p>
+          </section>
+        )}
+        {isResidualDevice(selectedComp.type) && (
+          <section className={box}>
+            <h3 className="font-semibold">Residual Current Type</h3>
+            <p>
+              Rated residual current:{' '}
+              {def.ratedLeakage_mA === undefined ? 'Not declared' : `${def.ratedLeakage_mA} mA`}.
+            </p>
+            <div className="flex gap-1">
+              {(['AC', 'A', 'F', 'B'] as const).map((type) => (
                 <button
                   key={type}
                   type="button"
                   className={button}
                   disabled={!!locked}
-                  aria-pressed={type === selectedComp.type}
-                  title={preview.reason ?? `Switch to ${candidate.label}`}
-                  onMouseEnter={() => {
-                    if (!locked) setPreviewVariant(type, selectedComp.id);
-                  }}
-                  onMouseLeave={() => setPreviewVariant(null)}
-                  onClick={() => {
-                    useCircuitStore.getState().updateComponentType(selectedComp.id, type);
-                    setPreviewVariant(null);
-                  }}
+                  aria-pressed={(selectedComp.state.rcdType ?? 'A') === type}
+                  onClick={() => update(selectedComp.id, { rcdType: type })}
                 >
-                  {candidate.label}
-                  {candidate.tier === 'pro' && (
-                    <span className="block text-[9px]">Membership required</span>
-                  )}
-                  {preview.status === 'blocked' && (
-                    <span className="block text-[9px]">Mapping unavailable</span>
-                  )}
+                  Type {type}
                 </button>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      {selectedComp.type === 'motor-3phase' && (
-        <section className={box}>
-          <h3 className="font-semibold">Three-phase motor teaching model</h3>
-          <Suspense fallback={<p>Loading motor settings…</p>}>
-            <MotorModelEditor
-              key={`${selectedComp.id}:${JSON.stringify(selectedComp.state.motorModel)}`}
-              component={selectedComp}
-              locked={locked}
-            />
-          </Suspense>
-        </section>
-      )}
-      {(resolveComponentState(selectedComp.state, def).electronicLoadProfile ||
-        resolveComponentState(selectedComp.state, def).catalogueProfile) && (
-        <section className={box}>
-          <Suspense fallback={<p>Loading electrical profile…</p>}>
-            <CatalogueModelEditor
-              key={`${selectedComp.id}:${JSON.stringify(selectedComp.state)}`}
-              component={selectedComp}
-              locked={locked}
-            />
-          </Suspense>
-        </section>
-      )}
-      {load &&
-        selectedComp.type !== 'motor-3phase' &&
-        !resolveComponentState(selectedComp.state, def).electronicLoadProfile &&
-        !resolveComponentState(selectedComp.state, def).catalogueProfile && (
-          <section className={box}>
-            <h3 className="font-semibold">Load design / nameplate</h3>
-            <p>
-              {load.loadLaw.kind === 'fixed-resistance'
-                ? `Fixed resistance: ${Number(load.loadLaw.resistanceOhms.toFixed(4))} Ω. Power changes with terminal voltage.`
-                : 'Operating load law is unassessed.'}
-            </p>
-            <fieldset disabled={!!locked} className="grid grid-cols-2 gap-2">
-              <label>
-                Power (W)
-                <input
-                  className={input}
-                  type="number"
-                  min="0.001"
-                  step="any"
-                  aria-label="Power rating in watts"
-                  placeholder="Not declared"
-                  value={selectedComp.state.customPowerWatts ?? nominalWatts ?? ''}
-                  onChange={(e) =>
-                    update(selectedComp.id, {
-                      customPowerWatts: e.target.value === '' ? undefined : Number(e.target.value),
-                    })
-                  }
-                />
-              </label>
-              <label>
-                Design voltage (V)
-                <input
-                  className={input}
-                  type="number"
-                  min="0.001"
-                  step="any"
-                  aria-label="Operating voltage in volts"
-                  placeholder="Not declared"
-                  value={selectedComp.state.customVoltage ?? nominalVolts ?? ''}
-                  onChange={(e) =>
-                    update(selectedComp.id, {
-                      customVoltage: e.target.value === '' ? undefined : Number(e.target.value),
-                    })
-                  }
-                />
-              </label>
-            </fieldset>
+              ))}
+            </div>
             <p className="text-[10px]">
-              These are equipment ratings, independent of the supply setting.
+              Residual waveform suitability and overcurrent trip curves are separate properties.
             </p>
           </section>
         )}
-      {def.isDimmer && (
-        <section className={box}>
-          <h3 className="font-semibold">Dimming</h3>
-          <label className="block">
-            Power setting:{' '}
-            {Math.round(((selectedComp.state.speed ?? dimmerMaximum) / dimmerMaximum) * 100)}%
-            <input
-              aria-label="Dimmer power setting"
-              className="w-full"
-              type="range"
-              min="0"
-              max={dimmerMaximum}
-              step={dimmerMaximum / 100}
-              value={selectedComp.state.speed ?? dimmerMaximum}
-              onChange={(e) => update(selectedComp.id, { speed: Number(e.target.value) })}
-            />
-          </label>
-          <p>
-            Ideal AC dimming for resistive lamps and elements. RMS voltage/current and real power
-            depend on the wiring. LED drivers and motor speed are unassessed.
-          </p>
-          <p>
-            The ON switch enables output; 0% opens it. Dimming does not establish voltage
-            suitability for a lower-rated load.
-          </p>
-        </section>
-      )}
-      {hasProtectionSettings(selectedComp.type) && (
-        <section className={box}>
-          <h3 className="font-semibold">Protection model</h3>
-          <Suspense fallback={<p>Loading protection settings…</p>}>
-            <ProtectionModelEditor
-              key={`${selectedComp.id}:${JSON.stringify(selectedComp.state.protectionModel)}`}
-              component={selectedComp}
-              locked={locked}
-            />
-          </Suspense>
-        </section>
-      )}
-      {hasTimerSettings(selectedComp.type) && (
-        <section className={box}>
-          <h3 className="font-semibold">Timer program</h3>
-          <Suspense fallback={<p>Loading timer settings…</p>}>
-            <TimerModelEditor
-              key={`${selectedComp.id}:${JSON.stringify(selectedComp.state.timerModel)}`}
-              component={selectedComp}
-              locked={locked}
-            />
-          </Suspense>
-        </section>
-      )}
-      {coil && (
-        <section className={box}>
-          <h3 className="font-semibold">Coil ratings</h3>
-          <p>
-            Nominal voltage:{' '}
-            {coil.nominalVoltage.status === 'known'
-              ? `${coil.nominalVoltage.value} V`
-              : 'Not declared'}
-            .
-          </p>
-          <Suspense fallback={<p>Loading coil settings…</p>}>
-            <CoilModelEditor
-              key={`${selectedComp.id}:${JSON.stringify(selectedComp.state.coilModel)}`}
-              component={selectedComp}
-              locked={locked}
-            />
-          </Suspense>
-        </section>
-      )}
-      {capability.groups
-        .filter((g) => g.role === 'primary' || g.role === 'secondary')
-        .map((g) => (
-          <section key={g.id} className={box}>
-            <h3 className="font-semibold">{g.role} winding</h3>
-            <p>
-              {g.nominalVoltage.status === 'known'
-                ? `${g.nominalVoltage.value} V AC`
-                : 'Voltage not declared'}{' '}
-              across {g.ports.map((i) => def.ports[i]?.label).join(' / ')}.
-            </p>
-            <p>Separate isolated winding; no DC rectification is implied.</p>
-          </section>
-        ))}
-      {(poles.length > 0 ||
-        (load &&
-          (def.maxAmps !== undefined || selectedComp.state.customMaxAmps !== undefined))) && (
-        <section className={box}>
-          <h3 className="font-semibold">
-            {def.isProtection ? 'Protective device rating In' : 'Contact / device capacity'}
-          </h3>
-          <label>
-            Current rating (A)
-            <input
+        {capability.battery && (
+          <section className={box}>
+            <h3 className="font-semibold">Battery chemistry</h3>
+            <select
+              aria-label="Battery chemistry"
               className={input}
-              type="number"
-              aria-label="Current rating in amps"
-              min="0.001"
-              step="any"
               disabled={!!locked}
-              placeholder="Not declared"
-              value={selectedComp.state.customMaxAmps ?? def.maxAmps ?? ''}
+              value={selectedComp.state.batteryChemistry ?? ''}
               onChange={(e) =>
                 update(selectedComp.id, {
-                  customMaxAmps: e.target.value === '' ? undefined : Number(e.target.value),
+                  batteryChemistry: e.target.value
+                    ? (e.target.value as 'alkaline' | 'li-ion' | 'lead-acid')
+                    : undefined,
                 })
               }
-            />
-          </label>
-          <p className="text-[10px]">
-            Capacity is separate from current flowing in a pole, cable capacity Iz and residual
-            current in mA.
-          </p>
-        </section>
-      )}
-      {isResidualDevice(selectedComp.type) && (
-        <section className={box}>
-          <h3 className="font-semibold">Residual Current Type</h3>
-          <p>
-            Rated residual current:{' '}
-            {def.ratedLeakage_mA === undefined ? 'Not declared' : `${def.ratedLeakage_mA} mA`}.
-          </p>
-          <div className="flex gap-1">
-            {(['AC', 'A', 'F', 'B'] as const).map((type) => (
+            >
+              <option value="">Not specified</option>
+              <option value="alkaline">Alkaline</option>
+              <option value="li-ion">Li-ion</option>
+              <option value="lead-acid">Lead-acid</option>
+            </select>
+            <p>
+              Chemistry is a stored label. Discharge, internal resistance and chemistry behavior are
+              not modeled.
+            </p>
+          </section>
+        )}
+
+        <ElectricalReadings componentId={selectedComp.id} result={simResult} />
+      </section>
+      {(!!setup ||
+        !!manualOnlyAdvice[selectedComp.type] ||
+        capability.groups.some(
+          (g) => g.role === 'unassessed' && g.loadLaw.kind === 'not-assessed',
+        ) ||
+        variants.length > 1 ||
+        selectedComp.type === 'motor-3phase' ||
+        !!resolveComponentState(selectedComp.state, def).electronicLoadProfile ||
+        !!resolveComponentState(selectedComp.state, def).catalogueProfile ||
+        !!def.isDimmer ||
+        hasProtectionSettings(selectedComp.type) ||
+        hasTimerSettings(selectedComp.type) ||
+        !!coil ||
+        !!def.isSwitch) && (
+        <section
+          className="component-model-section"
+          aria-label="Behaviour model section"
+          data-model-section="behaviour"
+        >
+          <h2>Behaviour</h2>
+          {setup && (
+            <section className={box} data-teaching-setup={selectedComp.type}>
+              <h3 className="font-semibold">Electrical setup required</h3>
+              <p>{setup.description}</p>
               <button
-                key={type}
                 type="button"
                 className={button}
                 disabled={!!locked}
-                aria-pressed={(selectedComp.state.rcdType ?? 'A') === type}
-                onClick={() => update(selectedComp.id, { rcdType: type })}
+                onClick={() => update(selectedComp.id, setup.updates)}
               >
-                Type {type}
+                Use editable teaching setup
               </button>
-            ))}
-          </div>
-          <p className="text-[10px]">
-            Residual waveform suitability and overcurrent trip curves are separate properties.
-          </p>
+            </section>
+          )}
+          {manualOnlyAdvice[selectedComp.type] && (
+            <p className={box} data-conditional-control>
+              {manualOnlyAdvice[selectedComp.type]}
+            </p>
+          )}
+          {capability.groups.some(
+            (g) => g.role === 'unassessed' && g.loadLaw.kind === 'not-assessed',
+          ) && (
+            <section className={box} data-conditional-control>
+              <h3 className="font-semibold">Automatic control unavailable</h3>
+              <p>
+                This device has no declared sensor or communication input and no electronics
+                consumption model. A saved contact position does not implement its automatic
+                controller.
+              </p>
+              <p>
+                For a manual switching exercise, place a single-way or double-pole switch instead.
+                For timed control, use a timer and declare its program in this Inspector. No motion,
+                light, network or temperature event is invented from a supply voltage.
+              </p>
+            </section>
+          )}
+          {variants.length > 1 && (
+            <section className={box}>
+              <h3 className="font-semibold">Available Family Variants ({variants.length})</h3>
+              <p>Preview each replacement’s terminal mapping and new ratings.</p>
+              <div className="grid max-h-44 grid-cols-2 gap-1.5 overflow-y-auto">
+                {variants.map((type) => {
+                  const candidate = COMPONENT_DEFS[type]!;
+                  const preview = previewVariantChange(circuit, selectedComp.id, type);
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      className={button}
+                      disabled={!!locked}
+                      aria-pressed={type === selectedComp.type}
+                      title={preview.reason ?? `Switch to ${candidate.label}`}
+                      onMouseEnter={() => {
+                        if (!locked) setPreviewVariant(type, selectedComp.id);
+                      }}
+                      onMouseLeave={() => setPreviewVariant(null)}
+                      onClick={() => {
+                        useCircuitStore.getState().updateComponentType(selectedComp.id, type);
+                        setPreviewVariant(null);
+                      }}
+                    >
+                      {candidate.label}
+                      {candidate.tier === 'pro' && (
+                        <span className="block text-[9px]">Membership required</span>
+                      )}
+                      {preview.status === 'blocked' && (
+                        <span className="block text-[9px]">Mapping unavailable</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          {selectedComp.type === 'motor-3phase' && (
+            <section className={box}>
+              <h3 className="font-semibold">Three-phase motor teaching model</h3>
+              <Suspense fallback={<p>Loading motor settings…</p>}>
+                <MotorModelEditor
+                  key={`${selectedComp.id}:${JSON.stringify(selectedComp.state.motorModel)}`}
+                  component={selectedComp}
+                  locked={locked}
+                />
+              </Suspense>
+            </section>
+          )}
+          {(resolveComponentState(selectedComp.state, def).electronicLoadProfile ||
+            resolveComponentState(selectedComp.state, def).catalogueProfile) && (
+            <section className={box}>
+              <Suspense fallback={<p>Loading electrical profile…</p>}>
+                <CatalogueModelEditor
+                  key={`${selectedComp.id}:${JSON.stringify(selectedComp.state)}`}
+                  component={selectedComp}
+                  locked={locked}
+                />
+              </Suspense>
+            </section>
+          )}
+          {def.isDimmer && (
+            <section className={box}>
+              <h3 className="font-semibold">Dimming</h3>
+              <label className="block">
+                Power setting:{' '}
+                {Math.round(((selectedComp.state.speed ?? dimmerMaximum) / dimmerMaximum) * 100)}%
+                <input
+                  aria-label="Dimmer power setting"
+                  className="w-full"
+                  type="range"
+                  min="0"
+                  max={dimmerMaximum}
+                  step={dimmerMaximum / 100}
+                  value={selectedComp.state.speed ?? dimmerMaximum}
+                  onChange={(e) => update(selectedComp.id, { speed: Number(e.target.value) })}
+                />
+              </label>
+              <p>
+                Ideal AC dimming for resistive lamps and elements. RMS voltage/current and real
+                power depend on the wiring. LED drivers and motor speed are unassessed.
+              </p>
+              <p>
+                The ON switch enables output; 0% opens it. Dimming does not establish voltage
+                suitability for a lower-rated load.
+              </p>
+            </section>
+          )}
+          {hasProtectionSettings(selectedComp.type) && (
+            <section className={box}>
+              <h3 className="font-semibold">Protection model</h3>
+              <Suspense fallback={<p>Loading protection settings…</p>}>
+                <ProtectionModelEditor
+                  key={`${selectedComp.id}:${JSON.stringify(selectedComp.state.protectionModel)}`}
+                  component={selectedComp}
+                  locked={locked}
+                />
+              </Suspense>
+            </section>
+          )}
+          {hasTimerSettings(selectedComp.type) && (
+            <section className={box}>
+              <h3 className="font-semibold">Timer program</h3>
+              <Suspense fallback={<p>Loading timer settings…</p>}>
+                <TimerModelEditor
+                  key={`${selectedComp.id}:${JSON.stringify(selectedComp.state.timerModel)}`}
+                  component={selectedComp}
+                  locked={locked}
+                />
+              </Suspense>
+            </section>
+          )}
+          {coil && (
+            <section className={box}>
+              <h3 className="font-semibold">Coil ratings</h3>
+              <p>
+                Nominal voltage:{' '}
+                {coil.nominalVoltage.status === 'known'
+                  ? `${coil.nominalVoltage.value} V`
+                  : 'Not declared'}
+                .
+              </p>
+              <Suspense fallback={<p>Loading coil settings…</p>}>
+                <CoilModelEditor
+                  key={`${selectedComp.id}:${JSON.stringify(selectedComp.state.coilModel)}`}
+                  component={selectedComp}
+                  locked={locked}
+                />
+              </Suspense>
+            </section>
+          )}
+          {def.isSwitch && (
+            <section className={box}>
+              <h3 className="font-semibold">Switch Contact State</h3>
+              {selectedComp.state.timerModel ? (
+                <>
+                  <button
+                    type="button"
+                    className={button}
+                    onClick={() => useCircuitStore.getState().toggleSwitch(selectedComp.id)}
+                  >
+                    {selectedComp.state.timerModel.kind === 'schedule'
+                      ? selectedComp.state.on
+                        ? 'Disable timer program'
+                        : 'Enable timer program'
+                      : selectedComp.state.on
+                        ? 'Release trigger'
+                        : 'Trigger timer'}
+                  </button>
+                  <p>
+                    Timed contact:{' '}
+                    {timerState === undefined
+                      ? 'Run to calculate'
+                      : timerState
+                        ? 'CLOSED (ON)'
+                        : 'OPEN (OFF)'}
+                    .
+                  </p>
+                </>
+              ) : def.isMomentary ? (
+                <button
+                  type="button"
+                  className={button}
+                  aria-label="Press and hold"
+                  aria-pressed={isOn}
+                  onPointerDown={(e) => {
+                    if (e.button > 0) return;
+                    e.currentTarget.setPointerCapture?.(e.pointerId);
+                    setMomentarySwitchState(selectedComp.id, true);
+                  }}
+                  onPointerUp={() => setMomentarySwitchState(selectedComp.id, false)}
+                  onPointerCancel={() => setMomentarySwitchState(selectedComp.id, false)}
+                  onLostPointerCapture={() => setMomentarySwitchState(selectedComp.id, false)}
+                  onKeyDown={(e) => {
+                    if ((e.key === 'Enter' || e.key === ' ') && !e.repeat) {
+                      e.preventDefault();
+                      setMomentarySwitchState(selectedComp.id, true);
+                    }
+                  }}
+                  onKeyUp={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setMomentarySwitchState(selectedComp.id, false);
+                    }
+                  }}
+                  onBlur={() => setMomentarySwitchState(selectedComp.id, false)}
+                >
+                  {isOn ? 'PRESSED' : 'RELEASED'}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className={button}
+                  disabled={coilState !== undefined}
+                  onClick={() => useCircuitStore.getState().toggleSwitch(selectedComp.id)}
+                >
+                  {def.switchContacts?.some((p) => p.nc !== undefined)
+                    ? isOn
+                      ? 'NO selected'
+                      : 'NC selected'
+                    : isOn
+                      ? 'CLOSED (ON)'
+                      : 'OPEN (OFF)'}
+                </button>
+              )}
+              {coilState !== undefined && (
+                <p>
+                  {simResult?.simulationState
+                    ? 'Automatic coil control · declared timed model'
+                    : 'Automatic coil control · ideal rail estimate'}
+                </p>
+              )}
+            </section>
+          )}
         </section>
       )}
       {(def.recommendedCableMm2 !== undefined ||
         selectedComp.state.customCableMm2 !== undefined) && (
-        <section className={box}>
-          <label>
-            Suggested tail size (mm²)
-            <input
-              className={input}
-              type="number"
-              min="0.001"
-              step="any"
-              aria-label="Cable size in mm2"
-              disabled={!!locked}
-              value={selectedComp.state.customCableMm2 ?? def.recommendedCableMm2 ?? ''}
-              onChange={(e) =>
-                update(selectedComp.id, {
-                  customCableMm2: e.target.value === '' ? undefined : Number(e.target.value),
-                })
-              }
-            />
-          </label>
-          <p>
-            Explicit wire settings take precedence. Edit each wire to set its modeled cable size.
-          </p>
-        </section>
-      )}
-
-      {capability.battery && (
-        <section className={box}>
-          <h3 className="font-semibold">Battery chemistry</h3>
-          <select
-            aria-label="Battery chemistry"
-            className={input}
-            disabled={!!locked}
-            value={selectedComp.state.batteryChemistry ?? ''}
-            onChange={(e) =>
-              update(selectedComp.id, {
-                batteryChemistry: e.target.value
-                  ? (e.target.value as 'alkaline' | 'li-ion' | 'lead-acid')
-                  : undefined,
-              })
-            }
-          >
-            <option value="">Not specified</option>
-            <option value="alkaline">Alkaline</option>
-            <option value="li-ion">Li-ion</option>
-            <option value="lead-acid">Lead-acid</option>
-          </select>
-          <p>
-            Chemistry is a stored label. Discharge, internal resistance and chemistry behavior are
-            not modeled.
-          </p>
-        </section>
-      )}
-
-      <ElectricalReadings componentId={selectedComp.id} result={simResult} />
-
-      {def.isSwitch && (
-        <section className={box}>
-          <h3 className="font-semibold">Switch Contact State</h3>
-          {selectedComp.state.timerModel ? (
-            <>
-              <button
-                type="button"
-                className={button}
-                onClick={() => useCircuitStore.getState().toggleSwitch(selectedComp.id)}
-              >
-                {selectedComp.state.timerModel.kind === 'schedule'
-                  ? selectedComp.state.on
-                    ? 'Disable timer program'
-                    : 'Enable timer program'
-                  : selectedComp.state.on
-                    ? 'Release trigger'
-                    : 'Trigger timer'}
-              </button>
+        <section
+          className="component-model-section"
+          aria-label="Installation model section"
+          data-model-section="installation"
+        >
+          <h2>Installation</h2>
+          {(def.recommendedCableMm2 !== undefined ||
+            selectedComp.state.customCableMm2 !== undefined) && (
+            <section className={box}>
+              <label>
+                Suggested tail size (mm²)
+                <input
+                  className={input}
+                  type="number"
+                  min="0.001"
+                  step="any"
+                  aria-label="Cable size in mm2"
+                  disabled={!!locked}
+                  value={selectedComp.state.customCableMm2 ?? def.recommendedCableMm2 ?? ''}
+                  onChange={(e) =>
+                    update(selectedComp.id, {
+                      customCableMm2: e.target.value === '' ? undefined : Number(e.target.value),
+                    })
+                  }
+                />
+              </label>
               <p>
-                Timed contact:{' '}
-                {timerState === undefined
-                  ? 'Run to calculate'
-                  : timerState
-                    ? 'CLOSED (ON)'
-                    : 'OPEN (OFF)'}
-                .
+                Explicit wire settings take precedence. Edit each wire to set its modeled cable
+                size.
               </p>
-            </>
-          ) : def.isMomentary ? (
-            <button
-              type="button"
-              className={button}
-              aria-label="Press and hold"
-              aria-pressed={isOn}
-              onPointerDown={(e) => {
-                if (e.button > 0) return;
-                e.currentTarget.setPointerCapture?.(e.pointerId);
-                setMomentarySwitchState(selectedComp.id, true);
-              }}
-              onPointerUp={() => setMomentarySwitchState(selectedComp.id, false)}
-              onPointerCancel={() => setMomentarySwitchState(selectedComp.id, false)}
-              onLostPointerCapture={() => setMomentarySwitchState(selectedComp.id, false)}
-              onKeyDown={(e) => {
-                if ((e.key === 'Enter' || e.key === ' ') && !e.repeat) {
-                  e.preventDefault();
-                  setMomentarySwitchState(selectedComp.id, true);
-                }
-              }}
-              onKeyUp={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  setMomentarySwitchState(selectedComp.id, false);
-                }
-              }}
-              onBlur={() => setMomentarySwitchState(selectedComp.id, false)}
-            >
-              {isOn ? 'PRESSED' : 'RELEASED'}
-            </button>
-          ) : (
-            <button
-              type="button"
-              className={button}
-              disabled={coilState !== undefined}
-              onClick={() => useCircuitStore.getState().toggleSwitch(selectedComp.id)}
-            >
-              {def.switchContacts?.some((p) => p.nc !== undefined)
-                ? isOn
-                  ? 'NO selected'
-                  : 'NC selected'
-                : isOn
-                  ? 'CLOSED (ON)'
-                  : 'OPEN (OFF)'}
-            </button>
-          )}
-          {coilState !== undefined && (
-            <p>
-              {simResult?.simulationState
-                ? 'Automatic coil control · declared timed model'
-                : 'Automatic coil control · ideal rail estimate'}
-            </p>
+            </section>
           )}
         </section>
       )}
-      <div className="grid grid-cols-2 gap-2">
-        <button
-          type="button"
-          className={button}
-          disabled={running}
-          onClick={() => useCircuitStore.getState().rotateComponent(selectedComp.id, -90)}
-        >
-          <RotateCcw className="inline size-3.5" /> Rotate -90°
-        </button>
-        <button
-          type="button"
-          className={button}
-          disabled={running}
-          onClick={() => useCircuitStore.getState().rotateComponent(selectedComp.id, 90)}
-        >
-          <RotateCw className="inline size-3.5" /> Rotate +90°
-        </button>
-      </div>
       {capability.sourceControl === 'none' && (
         <button
           type="button"

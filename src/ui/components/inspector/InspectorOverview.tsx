@@ -1,17 +1,17 @@
 import { COMPONENT_DEFS, type SimulationResult } from '@electrasim/domain';
-import { resolveDeviceCapabilities } from '@electrasim/domain/core/capabilities';
 import {
   supplyAtTarget,
   supplyDescription,
   supplyTargetForComponent,
 } from '@electrasim/domain/core/supplyEditing';
-import { resolveWireProperties } from '@electrasim/domain/core/wireProperties';
 import { useState } from 'react';
 import { useCircuitStore, useUiStore } from '../../../store';
 import { ComponentPreview } from '../ComponentPreview';
+import { ComponentSpecs } from '../ComponentSpecs';
 import { Modal } from '../Modal';
 import { getComponentImage } from '../componentImages';
 import { SwitchOperation } from './SwitchOperation';
+import { WirePropertiesSummary } from './WirePropertiesSummary';
 import type { InspectorSelectionState } from './useInspectorSelectionState';
 
 export function InspectorOverview({
@@ -50,10 +50,6 @@ export function InspectorOverview({
     );
   if (selection.kind === 'wire') {
     const wire = selection.wire;
-    const properties = resolveWireProperties(
-      wire,
-      new Map(circuit.components.map((c) => [c.id, c])),
-    );
     const endpoint = (id: string, port: number) => {
       const c = circuit.components.find((component) => component.id === id);
       return `${c?.state.autoLabel || COMPONENT_DEFS[c?.type ?? '']?.label || id} · ${COMPONENT_DEFS[c?.type ?? '']?.ports[port]?.label ?? port}`;
@@ -62,24 +58,7 @@ export function InspectorOverview({
       <div className="table-overview">
         <p className="table-kicker">Conductor</p>
         <h3>{wire.label || `Wire ${wire.id.slice(0, 8)}`}</h3>
-        <dl>
-          <div>
-            <dt>Length</dt>
-            <dd>{properties.lengthMeters} m</dd>
-          </div>
-          <div>
-            <dt>Cross-section</dt>
-            <dd>{properties.cableMm2} mm²</dd>
-          </div>
-          <div>
-            <dt>Material</dt>
-            <dd>{properties.material === 'aluminum' ? 'Aluminum' : 'Copper'}</dd>
-          </div>
-          <div>
-            <dt>Installation</dt>
-            <dd>Method {properties.installationMethod}</dd>
-          </div>
-        </dl>
+        <WirePropertiesSummary wire={wire} />
         <section>
           <h4>Connections</h4>
           <p>{endpoint(wire.fromComponentId, wire.fromPortIndex)}</p>
@@ -101,7 +80,6 @@ export function InspectorOverview({
   const component = selection.component;
   const def = COMPONENT_DEFS[component.type];
   if (!def) return null;
-  const capabilities = resolveDeviceCapabilities(component, circuit);
   const sourceTarget = supplyTargetForComponent(circuit, component.id);
   const source = sourceTarget && supplyAtTarget(circuit, sourceTarget);
   const photo = getComponentImage(component.type, def.category);
@@ -135,27 +113,8 @@ export function InspectorOverview({
             <dd>{supplyDescription(source)}</dd>
           </div>
         )}
-        <div>
-          <dt>Family</dt>
-          <dd>{capabilities.family}</dd>
-        </div>
-        <div>
-          <dt>Terminals</dt>
-          <dd>{def.ports.length}</dd>
-        </div>
-        {def.powerWatts !== undefined && (
-          <div>
-            <dt>Nameplate power</dt>
-            <dd>{component.state.customPowerWatts ?? def.powerWatts} W</dd>
-          </div>
-        )}
-        {def.maxAmps !== undefined && (
-          <div>
-            <dt>Contact / device rating</dt>
-            <dd>{component.state.customMaxAmps ?? def.maxAmps} A</dd>
-          </div>
-        )}
       </dl>
+      <ComponentSpecs type={component.type} component={component} circuit={circuit} />
       <section>
         <h4>Terminals</h4>
         <div className="table-terminal-list">

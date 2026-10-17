@@ -156,27 +156,7 @@ export function DenseWireLayer({
               />
             </g>
           )}
-          {broken && (
-            <g pointerEvents="none">
-              <circle
-                cx={midpoint.x}
-                cy={midpoint.y}
-                r={8}
-                fill="#fee2e2"
-                stroke="#ef4444"
-                strokeWidth={1.5}
-              />
-              <path
-                d={`M ${midpoint.x - 4} ${midpoint.y - 4} L ${midpoint.x + 4} ${
-                  midpoint.y + 4
-                } M ${midpoint.x + 4} ${midpoint.y - 4} L ${midpoint.x - 4} ${midpoint.y + 4}`}
-                fill="none"
-                stroke="#ef4444"
-                strokeWidth={2}
-                strokeLinecap="round"
-              />
-            </g>
-          )}
+          {/* FaultFxLayer owns the same injected-open marker in both renderers. */}
           <path
             data-wire-id={wire.id}
             role="button"

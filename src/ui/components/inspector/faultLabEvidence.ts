@@ -34,6 +34,8 @@ function sourceLabel(circuit: Circuit, branchKey: string): string {
   let id = branchKey;
   try {
     const parsed: unknown = JSON.parse(branchKey);
+    if (Array.isArray(parsed) && parsed[0] === 'alias-source' && parsed[1] === 'legacy-mains')
+      return 'Circuit supply';
     if (Array.isArray(parsed) && parsed[0] === 'source' && typeof parsed[1] === 'string')
       id = parsed[1];
   } catch {

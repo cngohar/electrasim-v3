@@ -72,6 +72,8 @@ export interface PassedCheck {
 }
 
 export interface ValidationReport {
+  /** Evidence metadata; a passed design check is not a circuit solve. */
+  calculation?: { current: boolean; status: string };
   timestamp: number;
   score: number; // 0 - 100
   status: 'pass' | 'warning' | 'fail' | 'incomplete' | 'empty';

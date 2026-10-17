@@ -3,7 +3,11 @@ import type { Circuit } from '@electrasim/domain/types';
 import { type Page, expect } from '@playwright/test';
 import { activateControl, fitCanvas, supplyTrigger } from './workbench';
 
-export async function importProfileCircuit(page: Page, circuit: Circuit) {
+export async function importProfileCircuit(
+  page: Page,
+  circuit: Circuit,
+  options: { fit?: boolean } = {},
+) {
   await page.addInitScript(() => {
     localStorage.setItem('electrasim:welcomed', '1');
     localStorage.setItem('electrasim:mobile-suitability:v1', '1');
@@ -19,7 +23,7 @@ export async function importProfileCircuit(page: Page, circuit: Circuit) {
     `Loaded ${circuit.components.length} components, ${circuit.wires.length} wires.`,
   );
   await page.keyboard.press('Escape');
-  await fitCanvas(page);
+  if (options.fit !== false) await fitCanvas(page);
 }
 export async function runProfileCircuit(page: Page) {
   await activateControl(page, page.getByRole('button', { name: 'Run Simulation', exact: true }));
@@ -67,7 +71,10 @@ export async function inspectProfileComponent(page: Page, id: string) {
   await page.locator(`[data-component-id="${id}"] [data-component-hitbox]`).press('Enter');
   const inspector = page.getByRole('complementary', { name: 'Inspector', exact: true });
   if (!(await inspector.isVisible()))
-    await activateControl(page, page.getByRole('button', { name: 'Inspect', exact: true }));
+    await activateControl(
+      page,
+      page.locator('.table-top-right').getByRole('button', { name: 'Inspect', exact: true }),
+    );
   await activateControl(page, inspector.getByRole('button', { name: 'Properties', exact: true }));
   await activateControl(
     page,

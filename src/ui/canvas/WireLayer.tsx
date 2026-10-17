@@ -420,36 +420,7 @@ function WirePath({
             />
           </g>
         )}
-        {broken && !isBusted && (
-          <g pointerEvents="none">
-            <circle
-              cx={midpoint.x}
-              cy={midpoint.y}
-              r={8}
-              fill="#fee2e2"
-              stroke="#ef4444"
-              strokeWidth={1.5}
-            />
-            <line
-              x1={midpoint.x - 4}
-              y1={midpoint.y - 4}
-              x2={midpoint.x + 4}
-              y2={midpoint.y + 4}
-              stroke="#ef4444"
-              strokeWidth={2}
-              strokeLinecap="round"
-            />
-            <line
-              x1={midpoint.x + 4}
-              y1={midpoint.y - 4}
-              x2={midpoint.x - 4}
-              y2={midpoint.y + 4}
-              stroke="#ef4444"
-              strokeWidth={2}
-              strokeLinecap="round"
-            />
-          </g>
-        )}
+        {/* Injected open markers are owned by the route-aware FaultFxLayer. */}
         {/* Selected Wire Live Telemetry Overlay Label */}
         {selected && (
           <g pointerEvents="none" data-selected-wire-telemetry>

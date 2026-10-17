@@ -132,6 +132,8 @@ export interface FaultFxItem {
   wireId?: string;
   /** Wires to visually sever (open faults). */
   severWireIds: string[];
+  /** Component open disables internal branches, not its attached cables. */
+  internalOpen?: boolean;
   /** Wires whose rendered conductor identity swaps for a declared L/N pair. */
   swapWires: { id: string; as: PortType }[];
   /** Declared protective contact poles; never guessed from pin placement. */
@@ -249,8 +251,10 @@ export function collectFaultFx(
       swapWires: [],
     };
     if (item.indicator === 'sever') {
-      item.severWireIds =
-        target.type === 'port'
+      item.internalOpen = target.type === 'component' && fault === 'open-circuit';
+      item.severWireIds = item.internalOpen
+        ? []
+        : target.type === 'port'
           ? targetedTouches.map((touch) => touch.id)
           : severWiresFor(fault, touches);
     } else if (item.indicator === 'swap') {

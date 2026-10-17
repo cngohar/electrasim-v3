@@ -134,7 +134,7 @@ test('quick variants retain terminal and ratings review, cancel and undo', async
         (await documentAt(page)).components.find((c: { id: string }) => c.id === id)?.type,
     )
     .toBe('bulb-halogen');
-  const notice = page.locator('output').filter({ hasText: 'Replaced Incandescent' });
+  const notice = page.locator('[data-review-circuit]').filter({ hasText: 'Replaced Incandescent' });
   await activateControl(page, notice.getByRole('button', { name: 'Undo', exact: true }));
   expect(await documentAt(page)).toEqual(before);
 });
@@ -146,7 +146,10 @@ test('wire draft combines label, length, area and material with atomic Undo', as
   await page.getByRole('button', { name: `Wire ${wire.id}`, exact: true }).press('Enter');
   const inspector = page.getByRole('complementary', { name: 'Inspector', exact: true });
   if (!(await inspector.isVisible()))
-    await activateControl(page, page.getByRole('button', { name: 'Inspect', exact: true }));
+    await activateControl(
+      page,
+      page.locator('.table-top-right').getByRole('button', { name: 'Inspect', exact: true }),
+    );
   await activateControl(page, inspector.getByRole('button', { name: 'Configure', exact: true }));
   await inspector.getByLabel('Wire label').fill('Lighting feed');
   await inspector.getByLabel('Wire length in meters').fill('12');
@@ -247,7 +250,10 @@ test('Console stays reachable during guides without ending the walkthrough', asy
 test('Inspector and Console retain exits, cancel stale closes and honor manual reduced motion', async ({
   page,
 }) => {
-  await activateControl(page, page.getByRole('button', { name: 'Inspect', exact: true }));
+  await activateControl(
+    page,
+    page.locator('.table-top-right').getByRole('button', { name: 'Inspect', exact: true }),
+  );
   const inspector = page.locator('.table-inspector');
   await expect(inspector).toHaveAttribute('data-surface-state', 'open');
   await inspector

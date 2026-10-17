@@ -52,7 +52,7 @@ export function PlacementSupplyFilter() {
       <p>
         {showAll
           ? 'Incompatible and unassessed parts are labeled. Membership requirements still apply.'
-          : 'Nominally compatible parts plus independent sources/converters. Show all includes unknown ratings and models.'}
+          : 'Known supply mismatches are hidden. Unassessed parts remain available with their assessment reason.'}
       </p>
     </div>
   );

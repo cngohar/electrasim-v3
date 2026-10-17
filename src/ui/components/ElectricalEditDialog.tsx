@@ -7,7 +7,7 @@ import {
 } from '@electrasim/domain/core/supplyEditing';
 import { previewVariantChange } from '@electrasim/domain/core/variantEditing';
 import { useEffect, useRef, useState } from 'react';
-import { selectCircuit, undo, useCircuitStore } from '../../store/circuitStore';
+import { selectCircuit, useCircuitStore } from '../../store/circuitStore';
 import {
   type ElectricalEdit,
   closeElectricalEdit,
@@ -95,7 +95,6 @@ function EditForm({ request, open }: { request: Request; open: boolean }) {
     const message = supplyPreview?.previous
       ? `Supply changed from ${supplyDescription(supplyPreview.previous)} to ${supplyDescription(profile)}. ${supplyPreview.reviewComponentIds.length} components need review.`
       : `Replaced ${COMPONENT_DEFS[variantPreview?.fromType ?? '']?.label} with ${COMPONENT_DEFS[variantPreview?.toType ?? '']?.label}. Review the connections and ratings.`;
-    useUiStore.getState().clearUndoToast();
     useElectricalEditing.setState({
       request: null,
       notice: {
@@ -104,6 +103,7 @@ function EditForm({ request, open }: { request: Request; open: boolean }) {
         historyEntry: useCircuitStore.temporal.getState().pastStates.at(-1),
       },
     });
+    useUiStore.getState().notify({ message, type: 'info', showUndo: true, reviewCircuit: true });
   };
   return (
     <Modal
@@ -340,24 +340,10 @@ function EditForm({ request, open }: { request: Request; open: boolean }) {
 export function ElectricalEditDialog() {
   const request = useElectricalEditing((s) => s.request);
   const reviewOpen = useElectricalEditing((s) => s.reviewOpen);
-  const notice = useElectricalEditing((s) => s.notice);
   const inspectComponentId = useElectricalEditing((s) => s.inspectComponentId);
   const simResult = useUiStore((s) => s.simResult);
-  const locked = useConfigurationLockReason();
   const circuit = useCircuitDocument();
-  const [noticeVisible, setNoticeVisible] = useState(true);
-  useEffect(() => {
-    if (!notice) return;
-    setNoticeVisible(true);
-    const timer = setTimeout(() => setNoticeVisible(false), 12_000);
-    return () => clearTimeout(timer);
-  }, [notice]);
   const dismissReview = () => useElectricalEditing.setState({ reviewOpen: false });
-  const canUndo =
-    notice &&
-    sameCircuitRevision(notice.after, circuit) &&
-    notice.historyEntry === useCircuitStore.temporal.getState().pastStates.at(-1) &&
-    !locked;
   const inspected = useClosingValue(circuit.components.find((c) => c.id === inspectComponentId));
   const closingRequest = useClosingValue(request);
   return (
@@ -387,43 +373,6 @@ export function ElectricalEditDialog() {
           <CircuitReadinessDetails />
         </Modal>
       </SurfacePresence>
-      {notice && noticeVisible && !request && !reviewOpen && (
-        <output className="workspace-controls-clear fixed left-1/2 z-[45] flex w-[min(580px,calc(100vw-2rem))] -translate-x-1/2 flex-wrap items-center gap-2 rounded-xl bg-slate-900 p-3 text-xs text-white shadow-xl">
-          <span className="flex-1">{notice.message}</span>
-          <button
-            type="button"
-            className={buttonClass}
-            onClick={() => useElectricalEditing.setState({ reviewOpen: true })}
-          >
-            Review
-          </button>
-          <button
-            type="button"
-            className={buttonClass}
-            disabled={!canUndo}
-            title={
-              canUndo
-                ? 'Undo this change'
-                : 'Later edits exist; use the history controls to undo them first.'
-            }
-            onClick={() => {
-              if (canUndo) {
-                undo();
-                setNoticeVisible(false);
-              }
-            }}
-          >
-            Undo
-          </button>
-          <button
-            type="button"
-            aria-label="Dismiss supply notice"
-            onClick={() => setNoticeVisible(false)}
-          >
-            ×
-          </button>
-        </output>
-      )}
     </>
   );
 }

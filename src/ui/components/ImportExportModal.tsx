@@ -56,6 +56,18 @@ export function ImportExportModal({ open, onClose, svgRef }: Props) {
   const [dragOver, setDragOver] = useState(false);
   const [filenamePrompt, setFilenamePrompt] = useState<FilenamePromptState | null>(null);
   const [customName, setCustomName] = useState('');
+  const [projectName, setProjectName] = useState(() => {
+    try {
+      return localStorage.getItem('electrasim:project-name') ?? 'Untitled circuit';
+    } catch {
+      return 'Untitled circuit';
+    }
+  });
+
+  const reportError = useCallback((message: string, id?: number) => {
+    setError(message);
+    useUiStore.getState().notify({ id, message, type: 'error' });
+  }, []);
 
   const promptFilename = useCallback(
     (defaultName: string, ext: string, onConfirm: (name: string) => void) => {
@@ -99,7 +111,7 @@ export function ImportExportModal({ open, onClose, svgRef }: Props) {
   const handleExportSVG = useCallback(() => {
     clearMessages();
     if (!svgRef.current) {
-      setError('SVG canvas is not available right now.');
+      reportError('SVG canvas is not available right now.');
       return;
     }
     promptFilename('circuit', '.svg', (filename) => {
@@ -108,28 +120,33 @@ export function ImportExportModal({ open, onClose, svgRef }: Props) {
       setSuccess(`SVG exported as "${filename}".`);
       useUiStore.getState().addLog(`Circuit exported as SVG: ${filename}`, 'success');
     });
-  }, [clearMessages, promptFilename, svgRef]);
+  }, [clearMessages, promptFilename, svgRef, reportError]);
 
   const handleExportPNG = useCallback(() => {
     clearMessages();
     if (!svgRef.current) {
-      setError('SVG canvas is not available right now.');
+      reportError('SVG canvas is not available right now.');
       return;
     }
     promptFilename('circuit', '.png', async (filename) => {
       setBusy(true);
+      const task = useUiStore
+        .getState()
+        .notify({ message: 'Exporting PNG…', type: 'info', progress: true });
       try {
         const blob = await exportPNG(svgRef.current as SVGSVGElement);
         downloadBlob(blob, filename);
         setSuccess(`PNG exported as "${filename}".`);
-        useUiStore.getState().addLog(`Circuit exported as PNG: ${filename}`, 'success');
+        useUiStore
+          .getState()
+          .notify({ id: task, message: `Circuit exported as PNG: ${filename}`, type: 'success' });
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'PNG export failed.');
+        reportError(err instanceof Error ? err.message : 'PNG export failed.', task);
       } finally {
         setBusy(false);
       }
     });
-  }, [clearMessages, promptFilename, svgRef]);
+  }, [clearMessages, promptFilename, svgRef, reportError]);
 
   const handleExportEic = useCallback(() => {
     clearMessages();
@@ -151,13 +168,13 @@ export function ImportExportModal({ open, onClose, svgRef }: Props) {
   const handleExportPDF = useCallback(() => {
     clearMessages();
     if (!svgRef.current) {
-      setError('SVG canvas is not available right now.');
+      reportError('SVG canvas is not available right now.');
       return;
     }
     exportPDF(svgRef.current);
     setSuccess('Print dialog opened.');
     useUiStore.getState().addLog('Circuit PDF / print dialog opened.', 'success');
-  }, [clearMessages, svgRef]);
+  }, [clearMessages, svgRef, reportError]);
 
   const handleCopyShareLink = useCallback(async () => {
     clearMessages();
@@ -169,24 +186,23 @@ export function ImportExportModal({ open, onClose, svgRef }: Props) {
       setSuccess('Share link copied to clipboard!');
       useUiStore.getState().addLog('Share link copied.', 'success');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Share link generation failed.');
+      reportError(err instanceof Error ? err.message : 'Share link generation failed.');
     } finally {
       setBusy(false);
     }
-  }, [clearMessages]);
+  }, [clearMessages, reportError]);
 
   // ── Import handlers ─────────────────────────────────────────────────────
 
-  const loadCircuit = useCallback((circuit: Circuit) => {
+  const loadCircuit = useCallback((circuit: Circuit, task?: number) => {
     useUiStore.getState().setSimRunning(false);
     useCircuitStore.getState().setCircuit(circuit);
     useCircuitStore.getState().clearSelection();
-    useUiStore
-      .getState()
-      .addLog(
-        `Imported circuit: ${circuit.components.length} components, ${circuit.wires.length} wires.`,
-        'success',
-      );
+    useUiStore.getState().notify({
+      id: task,
+      message: `Imported circuit: ${circuit.components.length} components, ${circuit.wires.length} wires.`,
+      type: 'success',
+    });
     setSuccess(`Loaded ${circuit.components.length} components, ${circuit.wires.length} wires.`);
   }, []);
 
@@ -194,25 +210,28 @@ export function ImportExportModal({ open, onClose, svgRef }: Props) {
     (file: File) => {
       clearMessages();
       const reader = new FileReader();
+      const task = useUiStore
+        .getState()
+        .notify({ message: 'Reading circuit file…', type: 'info', progress: true });
       reader.onload = () => {
         try {
           const circuit = importJSON(reader.result as string);
-          loadCircuit(circuit);
+          loadCircuit(circuit, task);
         } catch (err) {
-          setError(err instanceof Error ? err.message : 'Import failed.');
+          reportError(err instanceof Error ? err.message : 'Import failed.', task);
         }
       };
-      reader.onerror = () => setError('Could not read file.');
+      reader.onerror = () => reportError('Could not read file.', task);
       reader.readAsText(file);
     },
-    [clearMessages, loadCircuit],
+    [clearMessages, loadCircuit, reportError],
   );
 
   const handlePasteImport = useCallback(() => {
     clearMessages();
     const text = textRef.current?.value?.trim();
     if (!text) {
-      setError('Paste JSON content first.');
+      reportError('Paste JSON content first.');
       return;
     }
     try {
@@ -220,9 +239,9 @@ export function ImportExportModal({ open, onClose, svgRef }: Props) {
       loadCircuit(circuit);
       if (textRef.current) textRef.current.value = '';
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Import failed.');
+      reportError(err instanceof Error ? err.message : 'Import failed.');
     }
-  }, [clearMessages, loadCircuit]);
+  }, [clearMessages, loadCircuit, reportError]);
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
@@ -314,6 +333,22 @@ export function ImportExportModal({ open, onClose, svgRef }: Props) {
         </div>
 
         {/* Tabs */}
+        <label className="table-file-project">
+          Project name
+          <input
+            aria-label="Project name"
+            maxLength={80}
+            value={projectName}
+            onChange={(event) => {
+              setProjectName(event.target.value);
+              try {
+                localStorage.setItem('electrasim:project-name', event.target.value);
+              } catch {
+                /* Browser storage unavailable. */
+              }
+            }}
+          />
+        </label>
         <div className="flex border-b border-slate-100 dark:border-slate-700/60">
           <button
             type="button"

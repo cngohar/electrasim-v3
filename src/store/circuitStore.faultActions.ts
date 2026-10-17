@@ -54,7 +54,11 @@ export const createFaultActions = (
       // Check coexistence
       const validation = validateFaultCoexistence(s.faults, fault);
       if (!validation.valid) {
-        console.warn(`Cannot inject fault: ${validation.reason}`);
+        useUiStore.getState().notify({
+          message: `Cannot inject fault: ${validation.reason}`,
+          type: 'warning',
+          target: fault.target,
+        });
         return;
       }
       s.faults.push(fault);

@@ -175,7 +175,13 @@ export const useCircuitStore = create<CircuitState>()(
           });
           // Loading a drawing begins a new investigation. A restore action
           // uses the separate authorized, undoable snapshot transaction.
-          useFaultLabStore.setState({ original: null, responses: {}, edits: [] });
+          useFaultLabStore.setState({
+            original: null,
+            responses: {},
+            edits: [],
+            targetTerminal: null,
+            target: null,
+          });
         },
 
         swapDemoSocketForPlug: (socketType) =>

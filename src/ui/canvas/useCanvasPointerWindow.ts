@@ -14,6 +14,7 @@ import {
   useUiStore,
   useViewportStore,
 } from '../../store';
+import { useFaultDragPreview } from './faultDragPreview';
 import { buildWirePreviewPath, screenToSvg, svgToWorld } from './geometry';
 import type { PortLoc } from './types';
 
@@ -207,6 +208,24 @@ export function useCanvasPointerWindow({
             for (const { element } of paths) element.setAttribute('d', path);
           }
         }
+        if (svgRef.current?.querySelector('[data-fault-fx]')) {
+          const paths = new Map<string, string>();
+          for (const { wire, paths: rendered } of drag.connectedWires) {
+            const path = drag.liveWirePreview
+              ? buildWirePreviewPath(wire, drag.previewComponents)
+              : rendered[0]?.originalD;
+            if (path) paths.set(wire.id, path);
+          }
+          useFaultDragPreview.setState({
+            preview: {
+              components: new Map(drag.previewComponents),
+              paths,
+              deferredWireIds: new Set(
+                drag.liveWirePreview ? [] : drag.connectedWires.map(({ wire }) => wire.id),
+              ),
+            },
+          });
+        }
         return;
       }
 
@@ -280,6 +299,7 @@ export function useCanvasPointerWindow({
       dragRef.current = null;
       useUiStore.getState().setAlignmentGuides(null);
       if (moved) useCircuitStore.getState().setComponentPositions(updates);
+      useFaultDragPreview.setState({ preview: null });
     };
 
     const finishSelection = (commit: boolean) => {

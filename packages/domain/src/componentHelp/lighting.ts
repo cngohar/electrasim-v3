@@ -115,54 +115,40 @@ export const LIGHTING_HELP: Record<string, ComponentHelpData> = {
   },
 
   'led-downlight': {
-    title: 'Recessed Fire-Rated LED Ceiling Downlight (IP65)',
+    title: 'LED Downlight · catalogue teaching reference',
     category: 'lighting',
-    voltage: '230V AC',
-    amperage: '0.035A (at 8W)',
-    powerWatts: 8,
-    frequency: '50Hz',
-    ipRating: 'IP65 (Front face / Bathroom Zone 1 compliant)',
-    cableSize: '1.0mm² – 1.5mm²',
-    poles: 'Live, Neutral, Earth with Loop-in Terminals',
-    standards: 'BS EN 60598-2-2 / BS 476 Part 21 (30, 60, 90 min fire rating)',
+    powerWatts: 12,
+    standards: 'Product certification and installation suitability are not declared.',
     overview:
-      'Recessed architectural ceiling downlight featuring an integrated constant-current LED driver, intumescent fire-resistant acoustic seal, and IP65 waterproof front bezel.',
+      'A recessed lighting load. The catalogue default is a 12 W electronic-load teaching profile.',
     circuitBehavior:
-      'Provides high lumen output (700 lm) with focused 38°/60° beam angle. Intumescent material expands under high heat to seal ceiling penetrations and prevent fire spread.',
+      'Uses the declared steady electronic-load profile. Driver transients, lumen output, fire resistance and ingress protection are not inferred.',
     keySpecs: [
-      'Power: 8W (700 Lumens)',
-      'Fire Rating: 30, 60, 90 minutes certified (BS 476)',
-      'Waterproof: IP65 suitable for bathroom zones and showers',
+      'Default nominal consumption: 12 W. Selected-instance overrides appear in Declared model specifications.',
+      'Use the canonical terminals shown below.',
     ],
     quickTips: [
-      'Mandatory to use fire-rated fittings in ceilings under inhabited living spaces.',
-      'Loop-in push-fit terminals allow fast daisy-chain wiring from luminaire to luminaire.',
+      'Review the connected supply and fresh Readings.',
+      'Consult the actual fitting documentation for installation and IP ratings.',
     ],
   },
 
   'tube-light': {
-    title: 'LED T8 Batten Luminaire (1200mm / 4ft)',
+    title: 'Tube Light · catalogue teaching reference',
     category: 'lighting',
-    voltage: '220V – 240V AC',
-    amperage: '0.08A (at 18W)',
-    powerWatts: 18,
-    frequency: '50Hz',
-    ipRating: 'IP20 / IP65 weatherproof options',
-    cableSize: '1.0mm² – 1.5mm²',
-    poles: 'Live, Neutral, Earth',
-    standards: 'BS EN 60598-1 / BS EN 62776',
+    powerWatts: 36,
+    standards: 'Product certification and installation suitability are not declared.',
     overview:
-      'High-output linear T8 LED luminaire engineered for workshops, garages, commercial corridors, and utility rooms, replacing traditional fluorescent tubes without ballast hum.',
+      'A tube lighting load. The catalogue default is a 36 W electronic-load teaching profile.',
     circuitBehavior:
-      'Direct mains single-ended or double-ended connection. Delivers instant full brightness with 120 lm/W efficiency and no stroboscopic flicker.',
+      'Uses the declared steady electronic-load profile. Ballast startup, flicker, lumen output and physical tube construction are not represented.',
     keySpecs: [
-      'Power: 18W (Replaces 36W fluorescent tube)',
-      'Lumen Output: 2,160 Lumens (Daylight 6000K)',
-      'Beam Angle: 160° Wide Diffused',
+      'Default nominal consumption: 36 W. Selected-instance overrides appear in Declared model specifications.',
+      'Use the canonical terminals shown below.',
     ],
     quickTips: [
-      'Bypass old magnetic or electronic ballasts when converting older fluorescent fixtures to direct LED T8.',
-      'Ensure the metal chassis is solidly grounded to Earth.',
+      'Review the connected supply and fresh Readings.',
+      'Follow the actual luminaire wiring and installation documentation.',
     ],
   },
 };

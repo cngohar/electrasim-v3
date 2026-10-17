@@ -138,3 +138,29 @@ describe('validation check 10 — conductor bypass', () => {
     expect(bypass?.description).toMatch(/imbalance|trip/i);
   });
 });
+
+describe('compiled source identity', () => {
+  it('does not recognize a terminal strip as a supply', () => {
+    for (const type of ['terminal-strip']) {
+      const report = validateCircuit({ components: [C(type)], wires: [], globalVoltage: 230 });
+      expect(
+        report.issues.some((issue) => issue.id === 'no_supply'),
+        type,
+      ).toBe(true);
+    }
+  });
+  it('recognizes a complete source rail pair through the compiler', () => {
+    const report = validateCircuit({
+      components: [C('live-terminal'), C('neutral-terminal')],
+      wires: [],
+      globalVoltage: 230,
+    });
+    expect(report.issues.some((issue) => issue.id === 'no_supply')).toBe(false);
+    expect(report.issues.some((issue) => issue.id === 'incomplete_no_wires')).toBe(true);
+  });
+  it('retains the identity of an independent source even when its path is opened', () => {
+    const source = C('ac-mains-supply', 0, 0, { fault: 'open-circuit' });
+    const report = validateCircuit({ components: [source], wires: [], globalVoltage: 230 });
+    expect(report.issues.some((issue) => issue.id === 'no_supply')).toBe(false);
+  });
+});

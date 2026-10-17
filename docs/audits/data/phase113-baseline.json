@@ -1,0 +1,320 @@
+{
+  "scope": "Phase 1.13.0 baseline and user-prioritized geometry verification; no phase acceptance",
+  "runs": [
+    {
+      "report": ".wrangler/phase113/source-baseline.json",
+      "stats": {
+        "startTime": "2026-10-16T05:59:54.620Z",
+        "duration": 126515.652,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 8,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "case": "FL-01 applied card identifies the exact selected target",
+          "project": "chromium",
+          "status": "failed"
+        },
+        {
+          "case": "FL-01 duplicate attempt explains rejection and preserves one cause",
+          "project": "chromium",
+          "status": "failed"
+        },
+        {
+          "case": "FL-02 first Lab command after blocked Run restores the selected target",
+          "project": "chromium",
+          "status": "failed"
+        },
+        {
+          "case": "UI-02 terminal strip alone is never classified as a source",
+          "project": "chromium",
+          "status": "failed"
+        },
+        {
+          "case": "UI-02 incomplete validation is never logged as success",
+          "project": "chromium",
+          "status": "failed"
+        },
+        {
+          "case": "FL-04 internal open leaves external conductors intact",
+          "project": "chromium",
+          "status": "failed"
+        },
+        {
+          "case": "FL-04 wire cut anchors to its associated bent rendered path within one pixel",
+          "project": "chromium",
+          "status": "failed"
+        },
+        {
+          "case": "FL-03 CFL open diagnostic retains a fresh zero-current capture",
+          "project": "chromium",
+          "status": "failed"
+        }
+      ]
+    },
+    {
+      "report": ".wrangler/phase113/source-control-final.json",
+      "stats": {
+        "startTime": "2026-10-16T12:22:15.873Z",
+        "duration": 23899.943,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "case": "FL-03 CFL open diagnostic retains a fresh zero-current capture",
+          "project": "chromium",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "report": ".wrangler/phase113/built-recovery.json",
+      "stats": {
+        "startTime": "2026-10-16T12:24:38.584Z",
+        "duration": 213431.038,
+        "expected": 2,
+        "skipped": 0,
+        "unexpected": 14,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "case": "FL-01 applied card identifies the exact selected target",
+          "project": "built-desktop",
+          "status": "failed"
+        },
+        {
+          "case": "FL-01 duplicate attempt explains rejection and preserves one cause",
+          "project": "built-desktop",
+          "status": "failed"
+        },
+        {
+          "case": "FL-02 first Lab command after blocked Run restores the selected target",
+          "project": "built-desktop",
+          "status": "failed"
+        },
+        {
+          "case": "UI-02 terminal strip alone is never classified as a source",
+          "project": "built-desktop",
+          "status": "failed"
+        },
+        {
+          "case": "UI-02 incomplete validation is never logged as success",
+          "project": "built-desktop",
+          "status": "failed"
+        },
+        {
+          "case": "FL-04 internal open leaves external conductors intact",
+          "project": "built-desktop",
+          "status": "failed"
+        },
+        {
+          "case": "FL-04 wire cut anchors to its associated bent rendered path within one pixel",
+          "project": "built-desktop",
+          "status": "failed"
+        },
+        {
+          "case": "FL-03 CFL open diagnostic retains a fresh zero-current capture",
+          "project": "built-desktop",
+          "status": "passed"
+        },
+        {
+          "case": "FL-01 applied card identifies the exact selected target",
+          "project": "built-phone",
+          "status": "failed"
+        },
+        {
+          "case": "FL-01 duplicate attempt explains rejection and preserves one cause",
+          "project": "built-phone",
+          "status": "failed"
+        },
+        {
+          "case": "FL-02 first Lab command after blocked Run restores the selected target",
+          "project": "built-phone",
+          "status": "failed"
+        },
+        {
+          "case": "UI-02 terminal strip alone is never classified as a source",
+          "project": "built-phone",
+          "status": "failed"
+        },
+        {
+          "case": "UI-02 incomplete validation is never logged as success",
+          "project": "built-phone",
+          "status": "failed"
+        },
+        {
+          "case": "FL-04 internal open leaves external conductors intact",
+          "project": "built-phone",
+          "status": "failed"
+        },
+        {
+          "case": "FL-04 wire cut anchors to its associated bent rendered path within one pixel",
+          "project": "built-phone",
+          "status": "failed"
+        },
+        {
+          "case": "FL-03 CFL open diagnostic retains a fresh zero-current capture",
+          "project": "built-phone",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "report": ".wrangler/phase113/movement-baseline.json",
+      "stats": {
+        "startTime": "2026-10-16T12:24:54.105Z",
+        "duration": 78970.558,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "case": "FL-04 all fourteen fault anchors follow live drag, release and rotation",
+          "project": "chromium",
+          "status": "failed"
+        }
+      ]
+    },
+    {
+      "report": ".wrangler/phase113/geometry-source.json",
+      "stats": {
+        "startTime": "2026-10-16T12:28:26.690Z",
+        "duration": 125968.303,
+        "expected": 3,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "case": "FL-04 all fourteen fault anchors follow live drag, release and rotation",
+          "project": "chromium",
+          "status": "passed"
+        },
+        {
+          "case": "FL-04 internal open leaves external conductors intact",
+          "project": "chromium",
+          "status": "passed"
+        },
+        {
+          "case": "FL-04 wire cut anchors to its associated bent rendered path within one pixel",
+          "project": "chromium",
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "movementBaseline": [
+    {
+      "fault": "open-circuit",
+      "beforeErrorPx": 1.1368683772161603e-13,
+      "duringErrorPx": 57.00880252359207,
+      "releasedErrorPx": 1.1368683772161603e-13,
+      "rotatedErrorPx": 1.1368683772161603e-13
+    },
+    {
+      "fault": "open-live",
+      "beforeErrorPx": 0,
+      "duringErrorPx": 57.00877771643269,
+      "releasedErrorPx": 0,
+      "rotatedErrorPx": 0
+    },
+    {
+      "fault": "open-neutral",
+      "beforeErrorPx": 3.142723653581925e-5,
+      "duringErrorPx": 57.008739127533396,
+      "releasedErrorPx": 3.142723642213241e-5,
+      "rotatedErrorPx": 1.1368683772161603e-13
+    },
+    {
+      "fault": "open-earth",
+      "beforeErrorPx": 0,
+      "duringErrorPx": 114.01751684395524,
+      "releasedErrorPx": 0,
+      "rotatedErrorPx": 0
+    },
+    {
+      "fault": "terminal-disconnect",
+      "beforeErrorPx": 0,
+      "duringErrorPx": 114.01755543286538,
+      "releasedErrorPx": 0,
+      "rotatedErrorPx": 0
+    },
+    {
+      "fault": "reverse-polarity",
+      "beforeErrorPx": 0,
+      "duringErrorPx": 114.01751684395524,
+      "releasedErrorPx": 0,
+      "rotatedErrorPx": 0
+    },
+    {
+      "fault": "switched-neutral",
+      "beforeErrorPx": 0,
+      "duringErrorPx": 114.01755543286538,
+      "releasedErrorPx": 0,
+      "rotatedErrorPx": 0
+    },
+    {
+      "fault": "earth-fault",
+      "beforeErrorPx": 0,
+      "duringErrorPx": 114.01751684395524,
+      "releasedErrorPx": 0,
+      "rotatedErrorPx": 0
+    },
+    {
+      "fault": "live-to-earth",
+      "beforeErrorPx": 0,
+      "duringErrorPx": 114.01751684395524,
+      "releasedErrorPx": 0,
+      "rotatedErrorPx": 0
+    },
+    {
+      "fault": "smooth-dc-residual",
+      "beforeErrorPx": 0,
+      "duringErrorPx": 114.01751684395524,
+      "releasedErrorPx": 0,
+      "rotatedErrorPx": 0
+    },
+    {
+      "fault": "arc-fault",
+      "beforeErrorPx": 0,
+      "duringErrorPx": 114.01751684395524,
+      "releasedErrorPx": 0,
+      "rotatedErrorPx": 0
+    },
+    {
+      "fault": "protection-forced-open",
+      "beforeErrorPx": 0,
+      "duringErrorPx": 114.01755543286538,
+      "releasedErrorPx": 0,
+      "rotatedErrorPx": 0
+    },
+    {
+      "fault": "protection-bypass",
+      "beforeErrorPx": 0,
+      "duringErrorPx": 114.01755543286538,
+      "releasedErrorPx": 0,
+      "rotatedErrorPx": 0
+    },
+    {
+      "fault": "short-circuit",
+      "beforeErrorPx": 0,
+      "duringErrorPx": 114.01751684395524,
+      "releasedErrorPx": 0,
+      "rotatedErrorPx": 0
+    }
+  ],
+  "limitations": [
+    "Initial source CFL positive control checked values before opening Readings; final control passes unchanged production. Seven other failures are reproduced product defects.",
+    "Initial built attempt could not connect to stopped preview; fresh local server recovery reproduced seven defects on desktop and phone, with both CFL controls passing.",
+    "Geometry first source pass covers all fourteen badge anchors and original two defects. Expanded route and built verification pending."
+  ]
+}
