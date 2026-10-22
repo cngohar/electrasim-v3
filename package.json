@@ -93,6 +93,7 @@
     "graph:review": "bun scripts/code-graph.mjs review",
     "verify:phase-1.12": "bun scripts/verify-phase112.mjs",
     "verify:phase-1.13": "bun scripts/verify-phase113.mjs",
+    "verify:phase-1.14": "bun scripts/verify-phase114.mjs",
     "benchmark:catalogue-profiles": "bun scripts/benchmark-catalogue-profiles.ts"
   },
   "dependencies": {

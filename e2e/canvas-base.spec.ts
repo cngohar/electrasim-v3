@@ -1,12 +1,17 @@
 import { readFile } from 'node:fs/promises';
 import { type Page, expect, test } from '@playwright/test';
+import { activateControl } from './helpers/workbench';
 
 async function loadCanvas(page: Page) {
   await page.addInitScript(() => {
     localStorage.setItem('electrasim:welcomed', '1');
     localStorage.setItem('electrasim:mobile-suitability:v1', '1');
   });
-  await page.goto('/?e2e=canvas-base');
+  await page.goto(
+    test.info().config.metadata.delivery === 'built'
+      ? '/app/?e2e=canvas-base'
+      : '/?e2e=canvas-base',
+  );
   // Use an interactive control for setup instead of dispatching a shortcut
   // while the freshly mounted editor may still be registering its effects.
   await page.getByRole('button', { name: 'Menu', exact: true }).click();
@@ -141,10 +146,11 @@ test('SVG and PNG downloads retain device artwork and canvas theme', async ({ pa
   await loadCanvas(page);
   await page.keyboard.press('Control+e');
   const modal = page.getByRole('dialog');
+  await activateControl(page, modal.getByRole('button', { name: 'Export', exact: true }));
   for (const format of ['SVG', 'PNG']) {
-    await modal.getByRole('button', { name: new RegExp(`^${format}`) }).click();
+    await activateControl(page, modal.getByRole('button', { name: new RegExp(`^${format}`) }));
     const downloading = page.waitForEvent('download');
-    await modal.getByRole('button', { name: /Download/ }).click();
+    await activateControl(page, modal.getByRole('button', { name: /Download/ }));
     const download = await downloading;
     const path = info.outputPath(`canvas-export.${format.toLowerCase()}`);
     await download.saveAs(path);
@@ -162,11 +168,15 @@ test('SVG and PNG downloads retain device artwork and canvas theme', async ({ pa
 });
 
 test('dark theme and reduced motion apply to the device canvas', async ({ page }, info) => {
-  test.skip(info.project.name === 'mobile-chrome', 'Theme control is in the desktop header.');
   await loadCanvas(page);
   const svg = page.locator('[data-circuit-canvas]');
   const light = await svg.evaluate((el) => getComputedStyle(el).getPropertyValue('--canvas-text'));
-  await page.getByRole('button', { name: 'Switch to Dark Theme', exact: true }).click();
+  await activateControl(page, page.getByRole('button', { name: 'Settings', exact: true }));
+  const settings = page.getByRole('dialog', { name: 'Settings', exact: true });
+  await activateControl(page, settings.getByRole('button', { name: 'Display', exact: true }));
+  await activateControl(page, settings.getByRole('button', { name: /Dark Full dark mode/ }));
+  await page.keyboard.press('Escape');
+  await expect(settings).not.toBeVisible();
   await expect
     .poll(() => svg.evaluate((el) => getComputedStyle(el).getPropertyValue('--canvas-text')))
     .not.toBe(light);
@@ -178,4 +188,102 @@ test('dark theme and reduced motion apply to the device canvas', async ({ page }
     ),
   ).toBe(0);
   await page.screenshot({ path: info.outputPath('canvas-dark.png') });
+});
+
+test('grid paint stays aligned through zoom, pan and cancellation', async ({ page }, info) => {
+  await loadCanvas(page);
+  const canvas = page.locator('[data-circuit-canvas]');
+  const comparePaint = async () => {
+    const result = await canvas.evaluate(async (node) => {
+      const actual = node.cloneNode(true) as SVGSVGElement;
+      actual.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      actual.setAttribute('width', '600');
+      actual.setAttribute('height', '360');
+      const expected = actual.cloneNode(true) as SVGSVGElement;
+      const grid = expected.querySelector('[data-canvas-grid]')!;
+      const world = expected.querySelector('[data-canvas-world]')!;
+      // Independent reference: the original world-space grid covers nine viewports.
+      // Match its visible paint without retaining its oversized raster bounds.
+      const [, , width, height] = expected.getAttribute('viewBox')!.split(/\s+/).map(Number);
+      grid.setAttribute('x', String(-width! * 4));
+      grid.setAttribute('y', String(-height! * 4));
+      grid.setAttribute('width', String(width! * 9));
+      grid.setAttribute('height', String(height! * 9));
+      world.prepend(grid);
+      expected.querySelector('[data-canvas-grid-pattern]')!.removeAttribute('patternTransform');
+      const paint = async (svg: SVGSVGElement) => {
+        const image = new Image();
+        const url = URL.createObjectURL(
+          new Blob([new XMLSerializer().serializeToString(svg)], { type: 'image/svg+xml' }),
+        );
+        try {
+          image.src = url;
+          await image.decode();
+          const buffer = document.createElement('canvas');
+          buffer.width = 600;
+          buffer.height = 360;
+          const context = buffer.getContext('2d')!;
+          context.drawImage(image, 0, 0);
+          return context.getImageData(0, 0, 600, 360).data;
+        } finally {
+          URL.revokeObjectURL(url);
+        }
+      };
+      const a = await paint(actual);
+      const b = await paint(expected);
+      let differentPixels = 0;
+      for (let i = 0; i < a.length; i += 4)
+        if ([0, 1, 2, 3].some((channel) => Math.abs(a[i + channel]! - b[i + channel]!) > 4))
+          differentPixels++;
+      return { differentPixels, pixels: a.length / 4 };
+    });
+    await info.attach('grid-paint-comparison.json', {
+      body: Buffer.from(JSON.stringify(result)),
+      contentType: 'application/json',
+    });
+    expect(result.differentPixels / result.pixels).toBeLessThan(0.01);
+  };
+  await comparePaint();
+  await canvas.evaluate(async (node) => {
+    const box = node.getBoundingClientRect();
+    node.dispatchEvent(
+      new WheelEvent('wheel', {
+        bubbles: true,
+        cancelable: true,
+        deltaY: -100,
+        clientX: box.x + box.width / 2,
+        clientY: box.y + box.height / 2,
+      }),
+    );
+    await new Promise(requestAnimationFrame);
+  });
+  await expect(canvas).not.toHaveAttribute('data-canvas-gesture');
+  await comparePaint();
+  for (const finish of ['pointerup', 'pointercancel']) {
+    await canvas.evaluate(async (node, finish) => {
+      const box = node.getBoundingClientRect();
+      const props = {
+        bubbles: true,
+        button: 1,
+        buttons: 4,
+        pointerId: 91,
+        pointerType: 'mouse',
+        clientX: box.x + box.width / 2,
+        clientY: box.y + box.height / 2,
+      };
+      node.dispatchEvent(new PointerEvent('pointerdown', props));
+      window.dispatchEvent(
+        new PointerEvent('pointermove', {
+          ...props,
+          clientX: props.clientX + 85,
+          clientY: props.clientY + 30,
+        }),
+      );
+      await new Promise(requestAnimationFrame);
+      window.dispatchEvent(new PointerEvent(finish, props));
+      await new Promise(requestAnimationFrame);
+    }, finish);
+    await expect(canvas).not.toHaveAttribute('data-canvas-gesture');
+    await comparePaint();
+  }
 });

@@ -6,7 +6,7 @@ import { advanceControlStep } from '../core/controlStep';
 import { solveControlledOperatingPoint } from '../core/dimming';
 import { solvePhasorCircuit } from '../core/phasor';
 import { advancePhasorControlStep } from '../core/phasorControlStep';
-import { circuitRevision } from '../simulationEvidence';
+import { circuitRevision, circuitRevisionFromNormalized } from '../simulationEvidence';
 import type { Circuit, SimulationResult } from '../types';
 import { adaptMnaResult } from './mnaAdapter';
 import type { SimulateOptions } from './options';
@@ -15,15 +15,25 @@ import { adaptPhasorResult } from './phasorAdapter';
 export type { SimulateOptions } from './options';
 
 export function simulate(circuit: Circuit, options: SimulateOptions = {}): SimulationResult {
-  const result = simulateCircuit(circuit, options);
+  const { result, normalized } = simulateCircuit(circuit, options);
   return result.electricalContract?.status === 'invalid'
     ? result
-    : { ...result, inputRevision: circuitRevision(circuit) };
+    : {
+        ...result,
+        inputRevision: normalized
+          ? circuitRevisionFromNormalized(normalized)
+          : circuitRevision(circuit),
+      };
 }
 
-function simulateCircuit(circuit: Circuit, options: SimulateOptions): SimulationResult {
+function simulateCircuit(
+  circuit: Circuit,
+  options: SimulateOptions,
+): { result: SimulationResult; normalized?: Circuit } {
   const defs = options.defs ?? COMPONENT_DEFS;
   const compiled = compileCircuit(circuit, { defs });
+  const normalized =
+    compiled.status === 'compiled' && options.defs === undefined ? compiled.circuit : undefined;
   if (compiled.status === 'compiled' && compiled.graph.sources.some((s) => s.phaseSystemId)) {
     if (
       options.simulationState !== undefined ||
@@ -36,17 +46,23 @@ function simulateCircuit(circuit: Circuit, options: SimulateOptions): Simulation
         deltaSeconds: options.deltaSeconds,
       });
       return {
-        ...adaptPhasorResult(step.compiled, step.phasor),
-        ...(step.simulationState
-          ? {
-              simulationState: step.simulationState,
-              coilStates: { ...step.simulationState.contactStates },
-            }
-          : {}),
-        simulationEvents: step.simulationEvents,
+        result: {
+          ...adaptPhasorResult(step.compiled, step.phasor),
+          ...(step.simulationState
+            ? {
+                simulationState: step.simulationState,
+                coilStates: { ...step.simulationState.contactStates },
+              }
+            : {}),
+          simulationEvents: step.simulationEvents,
+        },
+        normalized,
       };
     }
-    return adaptPhasorResult(compiled, solvePhasorCircuit(circuit, { defs }));
+    return {
+      result: adaptPhasorResult(compiled, solvePhasorCircuit(circuit, { defs })),
+      normalized,
+    };
   }
   if (
     compiled.status === 'compiled' &&
@@ -66,11 +82,14 @@ function simulateCircuit(circuit: Circuit, options: SimulateOptions): Simulation
       deltaSeconds: options.deltaSeconds,
     });
     return {
-      ...adaptMnaResult(step.compiled, step.electrical, defs),
-      ...(step.simulationState ? { simulationState: step.simulationState } : {}),
-      simulationEvents: step.simulationEvents,
+      result: {
+        ...adaptMnaResult(step.compiled, step.electrical, defs),
+        ...(step.simulationState ? { simulationState: step.simulationState } : {}),
+        simulationEvents: step.simulationEvents,
+      },
+      normalized,
     };
   }
   const point = solveControlledOperatingPoint(compiled, { defs });
-  return adaptMnaResult(point.compiled, point.electrical, defs);
+  return { result: adaptMnaResult(point.compiled, point.electrical, defs), normalized };
 }

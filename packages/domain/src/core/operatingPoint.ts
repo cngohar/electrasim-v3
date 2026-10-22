@@ -5,7 +5,6 @@ import { type CompatibilityResult, assessTerminalCompatibility } from './compati
 import type {
   CompileOptions,
   CompileResult,
-  ElectricalBranch,
   ElectricalSimulationResult,
   ResolvedWireProperties,
 } from './contracts';
@@ -87,7 +86,7 @@ function measurement(
   values: Record<string, number>,
   id: string,
 ): number | null {
-  const value = Object.hasOwn(values, id) ? values[id] : undefined;
+  const value = values[id];
   return result.status === 'converged' && value !== undefined && Number.isFinite(value)
     ? value
     : null;
@@ -103,7 +102,8 @@ function loadResponse(power: number | null, ratio: number | null): LoadOperating
 function circuitOperation(result: ElectricalSimulationResult): CircuitOperatingState {
   if (result.status !== 'converged') return 'not-assessed';
   if (!result.loads.length) return 'no-load';
-  const active = result.loads.filter((load) => load.response !== 'idle');
+  const active: LoadOperatingPoint[] = [];
+  for (const load of result.loads) if (load.response !== 'idle') active.push(load);
   if (!active.length) return 'idle';
   if (active.some((load) => load.compatibility.status === 'incompatible')) return 'incompatible';
   if (result.readiness.earthing.diagnostics.some((diagnostic) => diagnostic.severity === 'error'))
@@ -127,12 +127,34 @@ export function deriveOperatingPoints(
   const capabilities = new Map(
     result.readiness.capabilities.map((item) => [item.componentId, item]),
   );
-  const groups = new Map(
-    result.readiness.groups.map((group) => [
-      JSON.stringify([group.componentId, group.groupId]),
-      group,
-    ]),
-  );
+  const groupsByComponent = new Map<
+    string,
+    Map<string, (typeof result.readiness.groups)[number]>
+  >();
+  for (const group of result.readiness.groups) {
+    const byGroup = groupsByComponent.get(group.componentId) ?? new Map();
+    byGroup.set(group.groupId, group);
+    groupsByComponent.set(group.componentId, byGroup);
+  }
+  const loadGroupByComponent = new Map<string, TerminalCapability>();
+  const contactGroupsByComponent = new Map<
+    string,
+    { group: TerminalCapability; terminals: Set<string> }[]
+  >();
+  for (const [componentId, capability] of capabilities) {
+    for (const group of capability.groups) {
+      if (group.role === 'load' && !loadGroupByComponent.has(componentId))
+        loadGroupByComponent.set(componentId, group);
+      else if (group.role === 'contact' || group.role === 'connection') {
+        const entries = contactGroupsByComponent.get(componentId) ?? [];
+        entries.push({
+          group,
+          terminals: new Set(group.ports.map((port) => terminalId(componentId, port))),
+        });
+        contactGroupsByComponent.set(componentId, entries);
+      }
+    }
+  }
   const sources = new Map(graph.sources.map((source) => [source.id, source]));
   const referenceSources = new Map(result.references.map((ref) => [ref.domainId, ref.sourceIds]));
   const read = (values: Record<string, number>, id: string) => measurement(result, values, id);
@@ -166,11 +188,10 @@ export function deriveOperatingPoints(
     }
     const component = branch.componentId ? components.get(branch.componentId) : undefined;
     if (!component) continue;
-    const capability = capabilities.get(component.id);
     if (branch.kind === 'load') {
-      const group = capability?.groups.find((item) => item.role === 'load');
+      const group = loadGroupByComponent.get(component.id);
       if (!group) continue;
-      const preflight = groups.get(JSON.stringify([component.id, group.id]));
+      const preflight = groupsByComponent.get(component.id)?.get(group.id);
       const sourceIds =
         result.status === 'converged'
           ? (referenceSources.get(result.terminalDomains[branch.from]!) ?? [])
@@ -234,10 +255,12 @@ export function deriveOperatingPoints(
             branchId: branch.id,
           });
     } else if (branch.kind === 'contact' || branch.kind === 'link') {
-      const group = capability?.groups.find((item) =>
-        matchesContactGroup(item, component.id, branch),
+      const matches = contactGroupsByComponent.get(component.id);
+      const match = matches?.find(
+        (entry) => entry.terminals.has(branch.from) && entry.terminals.has(branch.to),
       );
-      if (!group) continue;
+      if (!match) continue;
+      const group = match.group;
       const protection = getProtectionRole(component.type, defs);
       const capacityComparison = compareCurrentCapacity(
         current,
@@ -271,14 +294,4 @@ export function deriveOperatingPoints(
   }
   result.operation = circuitOperation(result);
   return result;
-}
-
-function matchesContactGroup(
-  group: TerminalCapability,
-  componentId: string,
-  branch: ElectricalBranch,
-): boolean {
-  if (group.role !== 'contact' && group.role !== 'connection') return false;
-  const terminals = group.ports.map((port) => terminalId(componentId, port));
-  return terminals.includes(branch.from) && terminals.includes(branch.to);
 }

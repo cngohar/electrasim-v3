@@ -2,26 +2,32 @@ import { ELECTRICAL_MODEL_VERSION } from './core/contracts';
 import { normalizeCircuitDocument } from './core/normalize';
 import type { Circuit, SimulationResult } from './types';
 
+const canonical = (value: unknown): unknown => {
+  if (Array.isArray(value)) return value.map(canonical);
+  if (value && typeof value === 'object') {
+    // Keep exact sorted-key JSON identity without allocating an entry pair
+    // for every property. A null prototype preserves literal special keys.
+    const result: Record<string, unknown> = Object.create(null);
+    for (const key of Object.keys(value).sort())
+      result[key] = canonical((value as Record<string, unknown>)[key]);
+    return result;
+  }
+  return value;
+};
+
+const byId = <T extends { id: string }>(items: T[]) =>
+  [...items].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 /** Exact, portable identity of the electrical inputs. Geometry and editor state
  * do not change a calculation. This is freshness metadata, never authorization. */
 export function circuitRevision(circuit: Circuit): string {
-  const canonical = (value: unknown): unknown => {
-    if (Array.isArray(value)) return value.map(canonical);
-    if (value && typeof value === 'object') {
-      // Keep exact sorted-key JSON identity without allocating an entry pair
-      // for every property. A null prototype preserves literal special keys.
-      const result: Record<string, unknown> = Object.create(null);
-      for (const key of Object.keys(value).sort())
-        result[key] = canonical((value as Record<string, unknown>)[key]);
-      return result;
-    }
-    return value;
-  };
   if (!circuit || !Array.isArray(circuit.components) || !Array.isArray(circuit.wires))
     return JSON.stringify(canonical(circuit)) ?? 'invalid';
-  const normalized = normalizeCircuitDocument(circuit, false);
-  const byId = <T extends { id: string }>(items: T[]) =>
-    [...items].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  return circuitRevisionFromNormalized(normalizeCircuitDocument(circuit, false));
+}
+
+/** Compilation already normalizes the same document; reuse it instead of a
+ * second normalization pass. Callers must pass the compiler's normalized circuit. */
+export function circuitRevisionFromNormalized(normalized: Circuit): string {
   return JSON.stringify(
     canonical({
       components: byId(normalized.components).map(({ id, type, state }) => ({ id, type, state })),

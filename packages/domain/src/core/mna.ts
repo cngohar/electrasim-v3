@@ -196,6 +196,7 @@ export function solveCompiledCircuit(
   const sources: SourceBranch[] = [];
   const sourceBranches: Record<string, string> = {};
   const resistors: ElectricalBranch[] = [];
+  const loadBranchByComponent = new Map<string, ElectricalBranch>();
   const idealEdges = new Map<string, ElectricalBranch[]>();
   for (const branch of graph.branches) {
     if (branch.kind === 'source') {
@@ -238,6 +239,12 @@ export function solveCompiledCircuit(
           },
         ]);
       resistors.push(branch);
+      if (
+        branch.kind === 'load' &&
+        branch.componentId &&
+        !loadBranchByComponent.has(branch.componentId)
+      )
+        loadBranchByComponent.set(branch.componentId, branch);
     }
   }
   sources.sort((a, b) => compareIds(a.source.id, b.source.id));
@@ -403,9 +410,7 @@ export function solveCompiledCircuit(
   }
   for (const { componentId, model } of graph.devices) {
     if (model.kind !== 'resistive-load') continue;
-    const branch = resistors.find(
-      (edge) => edge.componentId === componentId && edge.kind === 'load',
-    );
+    const branch = loadBranchByComponent.get(componentId);
     const plan = branch && planByDomain.get(domainByTerminal.get(branch.from)!);
     if (plan?.sources.some(({ source }) => !model.supplyKinds.includes(source.model.kind)))
       return unavailable('unsupported', [

@@ -4,7 +4,7 @@ import { type Page, expect, test } from '@playwright/test';
 import { controlCircuit, setControlSwitch } from '../packages/domain/src/core/controlFixtures';
 import { portableResult } from '../packages/domain/src/simulation/runtimeFixtures';
 import { simulate } from '../packages/domain/src/simulation/simulate';
-import { activateControl, inspectComponent } from './helpers/workbench';
+import { activateControl, closePhoneProperties, inspectComponent } from './helpers/workbench';
 
 // Generic inspector cases use the desktop surface on every browser engine.
 // Explicit phone cases below retain their 390 px viewport.
@@ -71,6 +71,7 @@ test('guest Run advances a declared coil through Comlink, displays current, drop
   await expect(
     page.locator('[data-electrical-readings="relay"] [data-reading="current"]'),
   ).toHaveText('0.0833 A');
+  await closePhoneProperties(page);
   await page.getByTitle('Zoom to fit all (F)').click();
   await page.locator('[data-component-id="switch"] [data-component-hitbox]').press('Enter');
   await expect.poll(async () => (await runtime(page)).coil).toBe(false);

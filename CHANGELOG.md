@@ -7,7 +7,33 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 
 ## [Unreleased]
 
+### Planned
+
+- Phase 1.14 performance reliability: profile and address the existing solver
+  and dense-editor timing exceptions. Challenge Mode was explicitly retired, so
+  its generator timings remain historical and excluded. Preserve applicable
+  budgets, independent electrical/runtime parity and renderer
+  accessibility; target performance and integrated acceptance remain open. Local development only.
+  [Plan and ledger](docs/plans/PHASE_1_14_PERFORMANCE_RELIABILITY_PLAN.md).
+
 ### Added
+
+- Phase 1.14 bounded solver preparation/recovery and viewport-sized SVG grid
+  paint have passing local functional evidence after focused recovery. The grid
+  retains world alignment and native export/hit/keyboard behavior. Adds a
+  sequential `verify:phase-1.14` runner with separate browser-stage evidence.
+  Electrical pre/post fixtures match all 897 cases exactly; full 2,224 units and
+  local runtime checks pass. Source 156 / built 68 unique cases pass through explicit
+  recovery, with 2 intentional built skips; production shell 63 pass. The runner
+  rejects skipped timing stages. Solver 8 ms and dense 60 fps/device targets remain open.
+  [Current ledger](docs/audits/phase-1-performance-reliability.md).
+
+- Started Phase 1.14 with the completed 1.14.0 baseline/profile milestone on
+  unchanged Phase 1.13 application source. Repeated solver runs still fail the
+  8 ms budget; source/production dense-browser narrow gates pass while zoom and
+  device acceptance remain open. Separate solver and production browser profiles
+  identify preparation/results and browser rendering/commit costs. That baseline made no application
+  optimization or performance-budget change. [Evidence](docs/audits/phase-1-performance-reliability.md).
 
 - Phase 1.13 completes UI clarity and Fault Lab reliability: all 14 fault markers
   follow movement and rotation, wire cuts follow displayed paths, and fault

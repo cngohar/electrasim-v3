@@ -101,6 +101,7 @@ export function CircuitCanvas({
   const pendingPanRef = useRef<{ x: number; y: number } | null>(null);
   const panPreviewRef = useRef<HTMLDivElement | null>(null);
   const worldGroupRef = useRef<SVGGElement | null>(null);
+  const gridPatternRef = useRef<SVGPatternElement | null>(null);
   /** Selection rectangle in world coordinates, committed on pointer up. */
   const dragRectRef = useRef<CanvasDragRect | null>(null);
   /**
@@ -273,6 +274,7 @@ export function CircuitCanvas({
     pendingPanRef,
     panPreviewRef,
     worldGroupRef,
+    gridPatternRef,
     panDidMoveRef,
     customCursorRef,
     pendingWireFrom,
@@ -468,6 +470,9 @@ export function CircuitCanvas({
         <defs>
           {theme.showGrid !== false && (
             <pattern
+              ref={gridPatternRef}
+              data-canvas-grid-pattern
+              patternTransform={`translate(${pan.x} ${pan.y}) scale(${zoom})`}
               id={`grid-${gridPatternId}`}
               width={gridSize}
               height={gridSize}
@@ -478,49 +483,49 @@ export function CircuitCanvas({
           )}
         </defs>
 
-        {/* Background fills the full viewBox so pan/zoom doesn't expose a
-          colour gap. The grid lives inside the world transform and pans
-          with the content. */}
+        {/* Background fills the full viewBox so pan/zoom does not expose a gap. */}
         <rect x={0} y={0} width={VIEW_W} height={VIEW_H} fill={theme.bg} pointerEvents="none" />
 
-        {/* World transform applies pan + zoom to everything. */}
+        {/* Bound grid paint to the viewport; its pattern follows the world. */}
+        {theme.showGrid !== false && (
+          <rect
+            data-canvas-grid
+            x={0}
+            y={0}
+            width={VIEW_W}
+            height={VIEW_H}
+            fill={`url(#grid-${gridPatternId})`}
+            onClick={(e) => {
+              // Use the same pan-suppression guard as the SVG-level
+              // click handler. The grid rect bubbles to the SVG handler
+              // too, so we only need to handle the placement / deselect
+              // intent here — the pan-flag reset happens upstream.
+              if (panDidMoveRef.current) return;
+              if (placingType) {
+                handleDrop(e.clientX, e.clientY);
+                return;
+              }
+              // Empty-canvas clicks add checkpoints to an in-flight custom path.
+              if (pendingCustomPath) {
+                if (!internalSvgRef.current) return;
+                const sp = screenToSvg(internalSvgRef.current, e.clientX, e.clientY);
+                const wp = svgToWorld(sp, pan, zoom);
+                useUiStore.getState().addCustomPathCheckpoint(wp);
+                return;
+              }
+              onSelect?.(null);
+              useCircuitStore.getState().selectWire(null);
+              cancelArmedReroute();
+            }}
+          />
+        )}
+
+        {/* World transform applies pan + zoom to circuit content. */}
         <g
           ref={worldGroupRef}
           data-canvas-world
           transform={`translate(${pan.x} ${pan.y}) scale(${zoom})`}
         >
-          {theme.showGrid !== false && (
-            <rect
-              x={-VIEW_W * 4}
-              y={-VIEW_H * 4}
-              width={VIEW_W * 9}
-              height={VIEW_H * 9}
-              fill={`url(#grid-${gridPatternId})`}
-              onClick={(e) => {
-                // Use the same pan-suppression guard as the SVG-level
-                // click handler. The grid rect bubbles to the SVG handler
-                // too, so we only need to handle the placement / deselect
-                // intent here — the pan-flag reset happens upstream.
-                if (panDidMoveRef.current) return;
-                if (placingType) {
-                  handleDrop(e.clientX, e.clientY);
-                  return;
-                }
-                // Empty-canvas clicks add checkpoints to an in-flight custom path.
-                if (pendingCustomPath) {
-                  if (!internalSvgRef.current) return;
-                  const sp = screenToSvg(internalSvgRef.current, e.clientX, e.clientY);
-                  const wp = svgToWorld(sp, pan, zoom);
-                  useUiStore.getState().addCustomPathCheckpoint(wp);
-                  return;
-                }
-                onSelect?.(null);
-                useCircuitStore.getState().selectWire(null);
-                cancelArmedReroute();
-              }}
-            />
-          )}
-
           <WireLayer
             wires={circuit.wires}
             componentsById={byId}

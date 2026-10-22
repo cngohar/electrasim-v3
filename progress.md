@@ -1051,7 +1051,7 @@ Finished the graph-led UI/Fault Lab scope, including all 14 moving fault anchors
 
 Final reconciled evidence: **246 unique source**, **76 built**, **10 built-shell** passing cases with documented split/focused recovery, **2224 units/145 files** plus types/lint, **897 real local Workerd cases**, **34 real local D1/cookie groups**, both catalogue snapshots, fresh build/static. Latest assets **266412 B JS / 29447 B CSS gzip** within 300000/30000 B budgets; 194 links, 191 SEO pages and CSP pass. [Acceptance/failed attempts/limitations](docs/audits/phase-1-ui-fault-lab.md) and [sanitized case manifest](docs/audits/data/phase113-acceptance.json).
 
-Dense zoom 150–249.9ms p95 samples and failed60fps goal remain explicit; the paired profiled HEAD/current sample is166.7ms both, with limited inference. Historical solver 45.07ms/8ms and generator limits remain open. Local functional completion is not an uninterrupted full-green or production-speed/owner acceptance claim. Active checkpoint stays1.13; all work remains local and uncommitted, with no push/deployment/account operation.
+Dense zoom 150–249.9ms p95 samples and failed60fps goal remain explicit; the paired profiled HEAD/current sample is166.7ms both, with limited inference. Historical solver 45.07ms/8ms and generator limits remain open. Local functional completion is not an uninterrupted full-green or production-speed/owner acceptance claim. This records the 2026-10-17 acceptance state before the separately authorized GitHub checkpoint below.
 
 
 ## 2026-10-17 — Authorized Phase 1.13 GitHub checkpoint
@@ -1074,4 +1074,120 @@ pass. The reference-inventory generator now uses the same canonical formatter
 as the existing model inventory, preventing commit formatting from making an
 unchanged snapshot appear stale. Its complete 116-entry check passes. The
 acceptance manifest retains original runs and updates current file fingerprints;
-normal commit hooks still apply without bypasses.
+normal commit hooks ran without bypasses. Commit `9ee378a86d222f66048fa3af75cfc640de1377cf`
+is verified on local `HEAD`, `origin/main` and GitHub `main`; divergence is zero
+and the worktree is clean. No Cloudflare operation or deployment occurred.
+
+
+## 2026-10-18 — Phase 1.14 performance reliability planned
+
+After graph review confirmed Phase 1.13 was the latest execution checkpoint and
+no subsequent plan existed, carried the documented solver and dense-editor
+timing exceptions into [Phase 1.14](docs/plans/PHASE_1_14_PERFORMANCE_RELIABILITY_PLAN.md).
+The [handoff](docs/handoffs/performance-reliability-next-chat.md) starts with
+reproducible current-tree profiling; the [ledger](docs/audits/phase-1-performance-reliability.md)
+keeps historical measurements separate. Existing budgets remain unchanged.
+Phase 1.14.0 profiling is pending; no implementation or baseline run is claimed.
+The user noted that Challenge Mode had been removed. Its retirement audit
+confirms the mode is deferred for a later stage; Phase 1.14 therefore excludes
+its historical generator timings while protecting Diagnosis's shared generator.
+
+## 2026-10-18 — Phase 1.14 started; reproduction/profiling complete
+
+Started the graph's next phase at **1.14.0**, preserving the existing planning
+changes and unchanged `9ee378a` application/domain/benchmark source. Repeated
+solver and source/production browser measurements ran sequentially, followed by
+separate solver CPU and production browser timeline analysis. The active phase
+is now **1.14 in progress**, with **1.14.0 complete locally**; optimization and
+integrated acceptance are pending.
+
+Canonical solve p95 **41.88 / 47.10 ms** still fails the unchanged **8 ms** budget;
+the reporting clone's **65.65 ms** failure is retained. Electrical assertions
+pass, with JSON transport measured separately. Two source and two production
+dense-browser cases pass the existing fixture/handler/commit/idle limits, while
+production zoom p95 **216.7 / 300.0 ms** still misses the broader target. A fifth,
+separately instrumented production case passes narrow gates with **250.0 ms**
+zoom p95. No 60 fps/device acceptance is claimed.
+
+The solver profile distributes cost across readiness/numerical preparation,
+operating results, compilation, adaptation and revision. The production zoom
+trace instead shows browser layout/paint/raster and commit waits dominating this
+host's measured window; exact underlying raster/commit cause remains unresolved.
+Fresh full build and asset checks pass at **266,410 B JS / 29,450 B CSS gzip**.
+The [ledger](docs/audits/phase-1-performance-reliability.md),
+[manifest](docs/audits/data/phase114-baseline.json) and
+[handoff](docs/handoffs/performance-reliability-next-chat.md) preserve environment,
+every outcome, raw evidence hashes and limits. **1.14.1 solver throughput is
+next.** No application optimization, timing-limit change, full integrated gate,
+commit/push or remote operation occurred.
+
+## 2026-10-18 — Phase 1.14 bounded implementation; batch gate running
+
+Implemented an indexed first-load lookup and an allocation-free return when
+there are no closed ideal links to recover. All **897 pre/post domain contract
+fixtures match exactly**; initial optimized solve **21.36 / 37.41 ms median/p95**
+still fails the unchanged 8 ms target. Implemented viewport-bounded SVG grid paint
+after a visible-grid production prototype; world alignment, circuit artwork and
+hit targets remain present. Source pixel comparisons pass on Chrome desktop,
+phone Chrome and Safari.
+
+The new `bun run verify:phase-1.14 --keep-going` runs a sequential declared matrix
+with separate stage reports. Full types/lint, **2,224 units**, build/static,
+**897 Bun/workerd cases** and **34 local API/D1/cookie groups** pass. Initial
+source browser attempt is **147 passed / 8 failed / 1 skipped**, with preserved
+export/theme/modal-navigation failures and one Safari selection failure requiring
+reproduction. Built canvas cases additionally need their old root URL changed to
+the app path. Built/production/timing stages and focused recovery are underway;
+no integrated acceptance, target closure, commit or publication is claimed.
+See the [current ledger](docs/audits/phase-1-performance-reliability.md) and
+`.wrangler/phase114/integrated-1/` for every status and raw report.
+
+## 2026-10-18 — Phase 1.14 verification reconciled; strict targets remain open
+
+The full sequential attempt finished; its failures remain preserved. Focused
+source recovery **24/24**, built canvas **10/10** and unchanged Safari selection
+repeats **2/2** pass. Aggregate evidence covers **156 unique source / 68 unique
+built cases**, with two intentional built parity skips; **63 production-shell**
+cases pass. Full types/lint, **2,224 units**, **897 exact Bun/workerd cases**, **34
+local API groups**, catalogue/build/static and post-recovery gate/graph checks pass.
+All **897 pre/post fixture outputs match exactly**. The original Safari selection
+failure remains an unreproduced intermittent failure, not a proven product fix.
+
+Latest solver median/p95 **22.89/41.49 ms** still fails **8 ms**; earlier post-change
+p95 **37.41/61.06 ms** also remain failed. Actual ordinary production zoom p95
+**316.6/216.6 ms** and separate diagnostic **316.7 ms** pass narrow checks but miss
+the broader target. Initial/guarded skipped timing and unavailable-preview profile
+attempts remain distinct from actual measurements. The runner now enables
+`PERF=1` and rejects empty/skipped measurement stages.
+
+The [execution manifest](docs/audits/data/phase114-acceptance.json),
+[ledger](docs/audits/phase-1-performance-reliability.md), plan, handoff and graph now
+agree: **1.14 stays active; 1.14.1/1.14.3 targets and 1.14.4 acceptance remain
+incomplete**. Continue measured solver traversal/results and SVG paint/commit work.
+No new exception, phase advancement, commit/push or remote operation is claimed.
+
+## 2026-10-22 — Phase 1.14 closed with explicit hardware-dependent exception
+
+The user closed Phase 1.14 locally by explicit decision: the solver and dense
+editor targets are wall-clock, hardware/environment-dependent measurements, and
+this shared AMD A8 desktop is not a stable certification environment. This is a
+scope decision, **not a passing measurement**: solver p95 **≤8 ms** on 200
+components/396 wires, the dense static-scene limits and the separate **60 fps/device**
+objective remain in force for target-hardware validation, with no assertion skipped,
+no budget changed and no earlier failure removed.
+
+Post-checkpoint bounded changes (numeric series reduction, normalized-circuit
+revision reuse, operating-point lookup/allocation reduction and voltage-lookup fast
+path) passed **811** affected core/simulation tests, **897** exact Bun/workerd
+parity cases, full types/lint and preserved the public result contract. The retained
+canonical solver p95 values **37.41 / 61.06 / 41.49 ms** and production zoom p95
+**316.6 / 216.6 ms** remain failed/uncertified evidence. Follow-up runs during the
+active desktop (load average roughly 5–11) were noisy and are environment evidence
+only, not a new pass/fail or regression claim.
+
+The [plan](docs/plans/PHASE_1_14_PERFORMANCE_RELIABILITY_PLAN.md),
+[ledger](docs/audits/phase-1-performance-reliability.md),
+[manifest](docs/audits/data/phase114-acceptance.json) and
+[handoff](docs/handoffs/performance-reliability-next-chat.md) record the closure.
+Graph active phase advances to planned **2** (Community); no Phase 2 work, commit,
+publication or deployment is authorized by this closure.

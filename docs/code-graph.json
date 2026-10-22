@@ -1,5 +1,5 @@
 {
-  "activePhase": "1.13",
+  "activePhase": "2",
   "phases": [
     {
       "id": "0",
@@ -80,7 +80,7 @@
     },
     {
       "id": "2",
-      "status": "planned; original timing is not a delivery commitment",
+      "status": "planned; original timing is not a delivery commitment; not started or authorized by the Phase 1.14 closure (2026-10-22)",
       "evidence": ["docs/REWRITE_PLAN_V3_FULL.md"]
     },
     {
@@ -247,7 +247,7 @@
     },
     {
       "id": "1.13",
-      "status": "locally functionally complete (2026-10-17), milestones 1.13.0-8. Reconciled 246 source/76 built/10 built-shell unique passing cases with explicit split/recovery; 2224 units/types/lint, local parity/access, build/static pass. Dense zoom, historical solver/generator limitations remain; no strict-performance, owner or publication claim. Active checkpoint stays 1.13.",
+      "status": "locally functionally complete (2026-10-17), milestones 1.13.0-8; 246 source/76 built/10 built-shell unique passing cases with explicit split/recovery, 2224 units/types/lint, local parity/access, build/static pass. Dense zoom and historical solver/generator limits remain; publication 9ee378a explicitly authorized and remotely verified 2026-10-18. No deployment or strict-performance/owner claim.",
       "evidence": [
         "docs/plans/PHASE_1_13_UI_FAULT_LAB_PLAN.md",
         "docs/handoffs/ui-fault-lab-next-chat.md",
@@ -255,6 +255,56 @@
         "docs/phases/phase-1-simulator-core.md",
         "progress.md",
         "docs/audits/data/phase113-acceptance.json"
+      ]
+    },
+    {
+      "id": "1.14",
+      "status": "Closed locally (2026-10-22) by explicit owner decision with a hardware/environment-dependent performance exception. Functional evidence: 2224-unit earlier matrix, 897 exact pre/post and Bun/workerd cases, 34 API groups, 156 source / 68 built unique passing cases with 2 intentional built skips, 63 production-shell cases; post-checkpoint changes passed 811 affected core/simulation tests, 897 parity, types/lint. Strict targets are NOT certified: solver p95 37.41 / 61.06 / 41.49 ms fails 8 ms; ordinary production zoom 316.6 / 216.6 ms leaves 60 fps/device open. Budgets unchanged; all failures retained. No publication/deployment.",
+      "evidence": [
+        "docs/plans/PHASE_1_14_PERFORMANCE_RELIABILITY_PLAN.md",
+        "docs/handoffs/performance-reliability-next-chat.md",
+        "docs/audits/phase-1-performance-reliability.md",
+        "docs/audits/data/phase114-baseline.json",
+        "docs/audits/data/phase114-acceptance.json"
+      ]
+    },
+    {
+      "id": "1.14.0",
+      "status": "Complete locally (2026-10-18): repeated sequential solver/source/production baselines, separate transport timing, solver-only CPU sample and production browser timeline. All failed timing results retained; no optimization/performance acceptance claimed.",
+      "evidence": [
+        "docs/plans/PHASE_1_14_PERFORMANCE_RELIABILITY_PLAN.md",
+        "docs/audits/phase-1-performance-reliability.md",
+        "docs/audits/data/phase114-baseline.json"
+      ]
+    },
+    {
+      "id": "1.14.1",
+      "status": "Closed locally with explicit hardware-dependent performance exception (2026-10-22). Bounded implementation includes indexed first-load lookup, empty ideal-link early return, numeric series reduction, normalized-circuit revision reuse, operating-point lookup/allocation reduction and voltage-lookup fast path. All 897 pre/post contracts match exactly; post-checkpoint 811 affected tests, 897 Bun/workerd parity, types/lint pass. Canonical p95 37.41 / 61.06 / 41.49 ms still fails 8 ms; no pass claimed. Original failures retained.",
+      "evidence": [
+        "docs/plans/PHASE_1_14_PERFORMANCE_RELIABILITY_PLAN.md",
+        "docs/audits/phase-1-performance-reliability.md",
+        "docs/audits/data/phase114-baseline.json",
+        "docs/audits/data/phase114-acceptance.json"
+      ]
+    },
+    {
+      "id": "1.14.3",
+      "status": "Closed locally with explicit hardware-dependent performance exception (2026-10-22). Viewport-grid SVG implementation retains passing source/built artwork, keyboard, hit/fit, export, reduced-motion and grid-paint evidence after recovery. Actual ordinary production zoom p95 316.6 / 216.6 ms, separate CDP diagnostic 316.7 ms; every reported zoom interval exceeds 50 ms. Narrow checks pass, but no stable speed gain or 60 fps/device acceptance; no pass claimed.",
+      "evidence": [
+        "docs/plans/PHASE_1_14_PERFORMANCE_RELIABILITY_PLAN.md",
+        "docs/audits/phase-1-performance-reliability.md",
+        "docs/audits/data/phase114-baseline.json",
+        "docs/audits/data/phase114-acceptance.json"
+      ]
+    },
+    {
+      "id": "1.14.4",
+      "status": "Closed locally with explicit exception (2026-10-22). Original sequential full gate failed; focused recovery reconciled separately. Original source 147/8/1 and built 58/10/2 retained. Recovery 24 source / 10 built / 2 unchanged Safari repeats passes, yielding 156 source / 68 built unique passing cases and 2 intentional skips; 63 production-shell passes. Empty/skipped timing is rejected; actual production timing recorded. Strict solver/dense/device targets remain uncertified, not passed.",
+      "evidence": [
+        "docs/plans/PHASE_1_14_PERFORMANCE_RELIABILITY_PLAN.md",
+        "docs/audits/phase-1-performance-reliability.md",
+        "docs/audits/data/phase114-baseline.json",
+        "docs/audits/data/phase114-acceptance.json"
       ]
     },
     {
@@ -876,7 +926,7 @@
     },
     {
       "id": "phase-1.13-combined-plan",
-      "summary": "2026-10-17: Phase 1.13 milestones 0-8 locally functionally complete. Final manifest reconciles 246 source/76 built/10 built-shell unique passing cases with preserved failed/interrupted/split/recovery attempts. Full 2224 units/types/lint,897 local Workerd cases,34 local D1/cookie groups,116 reference dispositions and final build/static gates pass. Four unsupported effects, manufacturer gaps, fresh-result/repair/access boundaries and all measured performance limitations remain explicit. No new human owner/device acceptance, commit/push/deployment or phase advance.",
+      "summary": "locally functionally complete (2026-10-17), milestones 1.13.0-8; 246 source/76 built/10 built-shell unique passing cases with explicit split/recovery, 2224 units/types/lint, local parity/access, build/static pass. Dense zoom and historical solver/generator limits remain; publication 9ee378a explicitly authorized and remotely verified 2026-10-18. No deployment or strict-performance/owner claim.",
       "evidence": [
         "docs/plans/PHASE_1_13_UI_FAULT_LAB_PLAN.md",
         "docs/handoffs/ui-fault-lab-next-chat.md",
@@ -884,9 +934,9 @@
         "docs/audits/data/phase113-acceptance.json"
       ],
       "review": {
-        "at": "2026-10-17T13:20:42.816Z",
-        "scope": "Reviewed the completed 14-issue/nine-milestone checkpoint, unchanged exact-case 246/76/10 acceptance and separately authorized GitHub preparation. Six formatter-only edits preserve parsed TS/CSS/JSON, 16 focused repair/notification tests and canonical 116-entry snapshot pass. Manifest fingerprints refreshed; historical failures/performance/owner limits retained. Git publication remains separately verified; no Cloudflare authorization.",
-        "fingerprint": "d92b752a162160d85fe5fe68dbd3f048215770ac792ce1a23b5150cfd159e5c0"
+        "at": "2026-10-18T01:57:13.096Z",
+        "scope": "Rechecked the completed Phase 1.13 plan, acceptance and exact-case manifest; updated the handoff/progress to record verified GitHub publication 9ee378a and the newly scoped Phase 1.14 follow-up. Local functional evidence, split/recovery, performance and owner/device limits remain bounded. No deployment or new test claim.",
+        "fingerprint": "5408ce5740077e6a562f290335a5e373d8d8aed859b4fe7d388552c55acff1f0"
       }
     },
     {
@@ -982,9 +1032,65 @@
         "docs/audits/data/phase113-acceptance.json"
       ],
       "review": {
-        "at": "2026-10-17T13:20:53.692Z",
-        "scope": "Reviewed unchanged six raw performance samples and comparison in the refreshed manifest plus GitHub handoff wording. Formatter-only CSS rules are structurally equivalent; reference generator normalization changes no benchmark or application logic. Preserve all tails, closed-Lab source scope, failed60fps goal and historical solver/generator limits. No new benchmark or production-speed claim.",
-        "fingerprint": "5fc6153a62143a36a1284c6d6ad945999d5fd004458d1a861395afdd808cb654"
+        "at": "2026-10-18T01:57:16.529Z",
+        "scope": "Rechecked the six raw Phase 1.13 same-host dense benchmark reports, manifest and handoff. Current zoom tails and matched profiled sample remain historical closed-Lab development evidence; solver and generator limits are separate. Phase 1.14 plan carries each exception forward without claiming new measurements, relaxing limits or proving production/device performance.",
+        "fingerprint": "2ab4579622ffcc12222dea51b819e59a8e7ad304129729ca088d40ab276b59bb"
+      }
+    },
+    {
+      "id": "phase-1.14-performance-scope",
+      "summary": "Phase 1.14 remains in progress after bounded implementation and a failed full attempt plus explicit focused recovery. Baseline 1.14.0 is complete; solver 8 ms and dense 60 fps/device targets remain unmet. Keep exact electrical/runtime parity, SVG artwork/accessibility/export, unchanged workloads/budgets, and failure/recovery boundaries. Challenge Mode is retired and excluded. Local-only; no renderer rewrite, threshold relaxation, new accepted exception, publication or deployment is implied.",
+      "evidence": [
+        "docs/PERFORMANCE.md",
+        "docs/audits/phase-1-legacy-retirement.md",
+        "docs/audits/phase-1-full-verification.md",
+        "docs/audits/phase-1-missing-component-calculation.md",
+        "docs/audits/phase-1-ui-fault-lab.md",
+        "docs/audits/phase-1-performance-reliability.md"
+      ],
+      "review": {
+        "at": "2026-10-18T14:04:04.153Z",
+        "scope": "Reviewed active plan, phase map, ledger, handoff and final execution manifest. Bounded implementation and aggregate functional recovery are recorded separately from original failed gates. Strict solver 8 ms, dense 60 fps/device and integrated acceptance remain incomplete; no new exception, threshold change, publication or remote operation.",
+        "fingerprint": "d4ac650994165a2fb206fe3ab39beea062167c9f7c92a0e3f91816ff04ec7c79"
+      }
+    },
+    {
+      "id": "phase114-performance-baseline",
+      "summary": "1.14.0 complete locally on unchanged 9ee378a application/benchmark source. Sequential canonical 200/396 solve median/p95 23.92/41.88 and 24.28/47.10 ms fails 8 ms; reporting clone 32.25/65.65 ms also retained. Every electrical assertion passes; separate JSON payload 2741551 B. Solver-only sampled simulate stage shares: controlled solve67.66%, compile17.14%, adapter9.21%, revision5.08%; readiness/operating results/reduction overlap inside solve. Two source/two production 200/400 runs plus one separate CDP diagnostic pass handler/commit/idle gates; production zoom p95 216.7/300.0 ms (profile250.0) and every zoom interval >50 ms. Production zoom trace10.725s contains5.800s commit waits,1.529s Layout,0.651s Paint,0.592s FunctionCall; event categories overlap;20.272s summed raster across threads is not elapsed time. Browser rendering/commit work dominates this trace; exact cause unresolved. Fresh build/assets pass266410B JS/29450B CSS gzip. Four-core AMD A8, Bun1.4.2, Chromium153, headless1280x720, active desktop; no exclusive/device acceptance. Tracked manifest retains hashes/aggregates; native ordinary browser attachments do not expose per-frame arrays. This baseline checkpoint made no app optimization/full parity gate/remote-work claim; later implementation is recorded separately.",
+      "evidence": [
+        "docs/audits/phase-1-performance-reliability.md",
+        "docs/audits/data/phase114-baseline.json",
+        "scripts/benchmark-simulation.ts",
+        "e2e/performance.spec.ts"
+      ],
+      "review": {
+        "at": "2026-10-18T14:04:06.420Z",
+        "scope": "Rechecked the unchanged baseline manifest hash, baseline measurements and diagnostic scope against the ledger and later execution manifest. Baseline values remain historical to unchanged 9ee378a application source; subsequent optimizations and recovery are separate. Fingerprint review does not certify passing performance.",
+        "fingerprint": "2a37d50123df1e20238ae075f42cb27bce7a4e412b98ac33a8217da0f15f346e"
+      }
+    },
+    {
+      "id": "phase114-bounded-execution",
+      "summary": "In progress (2026-10-18). Baseline complete; bounded solver/grid implementation has passing functional evidence after explicit recovery: 2224 units, 897 exact pre/post and Bun/workerd cases, 34 API groups, 156 source / 68 built unique passing cases with 2 intentional built skips, and 63 production-shell cases. Original failed attempts retained. Solver p95 37.41 / 61.06 / 41.49 ms fails 8 ms; ordinary production zoom 316.6 / 216.6 ms leaves 60 fps/device acceptance open. No full-green, closure or publication. Solver latest JSON median/p95 29.28 / 36.77 ms, 2741551 B, separate from solve. All benchmark electrical assertions pass. Unchanged Safari running-lock selection passed 2/2 isolated repeats; original intermittent empty-Inspector failure remains unreproduced, without proven root cause/product fix. Original built timing and intermediate guarded skip measured nothing; corrected runner sets PERF=1 and rejects skipped/empty measurements. First profile found localhost preview unavailable; second actual CDP capture remains separate. Post-change zoom window 11.363 s: commit waits 5.172 s, layout 1.655 s, paint 0.835 s, FunctionCall 0.850 s, raster 21.559 s summed across concurrent threads; categories overlap. Shared AMD A8/headless Chromium host, active desktop, no exclusive/device claim.",
+      "evidence": [
+        "docs/audits/phase-1-performance-reliability.md",
+        "docs/audits/data/phase114-acceptance.json",
+        "packages/domain/src/core/mna.ts",
+        "packages/domain/src/core/linearMeasurements.ts",
+        "src/ui/CircuitCanvas.tsx",
+        "src/ui/canvas/useCanvasPointerWindow.ts",
+        "e2e/canvas-base.spec.ts",
+        "e2e/timed-controls.spec.ts",
+        "e2e/electrical-editing.spec.ts",
+        "scripts/verify-phase114.mjs",
+        "scripts/code-graph.mjs",
+        "playwright.phase114-built.config.ts",
+        "playwright.performance-built.config.ts"
+      ],
+      "review": {
+        "at": "2026-10-18T14:04:09.074Z",
+        "scope": "Reviewed all four product diffs and unchanged build/gate fingerprints; exact 897 pre/post contracts, 2224 units, local runtime/API/static evidence, original source/built failures and 24/10/2 focused recovery. Verified 156 source/68 built unique passing cases, two intentional skips,63 production-shell passes, all three failed solver timings, actual production measurements and separate CDP/error/skip evidence. Verified 11 current source and80 artifact hashes. Strict targets and original intermittent Safari failure remain explicit; no full-green or closure claim.",
+        "fingerprint": "b663c6d5bbd6022e5e4f91830dd99ffb8a3662186e8c40221846144ec891b77a"
       }
     }
   ],
@@ -1459,6 +1565,26 @@
       "from": "packages/domain/src/circuitValidation.wires.test.ts",
       "relation": "tests",
       "to": "packages/domain/src/core/wireCapacity.ts"
+    },
+    {
+      "from": "e2e/canvas-base.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/CircuitCanvas.tsx"
+    },
+    {
+      "from": "e2e/canvas-base.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/canvas/useCanvasPointerWindow.ts"
+    },
+    {
+      "from": "e2e/canvas-base.spec.ts",
+      "relation": "tests",
+      "to": "src/lib/export/imageExport.ts"
+    },
+    {
+      "from": "e2e/performance.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/CircuitCanvas.tsx"
     }
   ],
   "features": [
@@ -2988,7 +3114,7 @@
     },
     {
       "id": "ui-fault-lab-phase-plan",
-      "summary": "locally functionally complete (2026-10-17), milestones 1.13.0-8. Reconciled 246 source/76 built/10 built-shell unique passing cases with explicit split/recovery; 2224 units/types/lint, local parity/access, build/static pass. Dense zoom, historical solver/generator limitations remain; no strict-performance, owner or publication claim. Active checkpoint stays 1.13.",
+      "summary": "locally functionally complete (2026-10-17), milestones 1.13.0-8; 246 source/76 built/10 built-shell unique passing cases with explicit split/recovery, 2224 units/types/lint, local parity/access, build/static pass. Dense zoom and historical solver/generator limits remain; publication 9ee378a explicitly authorized and remotely verified 2026-10-18. No deployment or strict-performance/owner claim.",
       "tags": [
         "phase-1.13",
         "1.13",
@@ -3058,7 +3184,9 @@
         "docs/design/phase-1.13-decisions.md",
         "docs/audits/phase-1.13-issue-checks.md",
         "docs/audits/data/phase-1.13-catalogue-reference.json",
-        "docs/audits/data/phase113-acceptance.json"
+        "docs/audits/data/phase113-acceptance.json",
+        "docs/plans/PHASE_1_14_PERFORMANCE_RELIABILITY_PLAN.md",
+        "docs/audits/phase-1-performance-reliability.md"
       ],
       "facts": [
         "phase-1.13-combined-plan",
@@ -3138,16 +3266,17 @@
       "decisions": [
         "The user authorized local implementation and all-fault marker movement checks, then separately authorized committing the completed Phase 1.13 checkpoint and pushing to GitHub. Verify actual remote equality before reporting publication; Cloudflare operations/deployment remain unauthorized.",
         "Execution started from the existing reviews/previews and completed baseline/milestones; preserve accepted Phase 1.12 and the completed Phase 1.13 implementation rather than restarting.",
-        "Prioritize user feedback and fault/run correctness before decorative layout polish; retain unsupported/model/ratings distinctions."
+        "Prioritize user feedback and fault/run correctness before decorative layout polish; retain unsupported/model/ratings distinctions.",
+        "Phase 1.13 GitHub publication was separately authorized and verified at 9ee378a on 2026-10-18. Phase 1.14 now plans local measurement and optimization of the explicitly retained solver, challenge-generator and dense-editor performance limits; no budget or Cloudflare/deployment permission changed."
       ],
       "broaderChecks": [
         "Production changes require the plan’s focused regressions and final full functional/static/source/built/local-access and affected runtime/performance evidence.",
         "No new arc/leakage/control model, invented catalogue ratings, capacity table or solver rewrite is part of this UI/fault presentation scope."
       ],
       "review": {
-        "at": "2026-10-17T13:20:55.900Z",
-        "scope": "Reviewed final checkpoint publication scope, changelog/progress/handoff and separately explicit user GitHub authorization. Six files normalized with equivalent parsed TS/CSS/JSON; reference generator now follows existing canonical snapshot formatting, full116 check and16 focused tests pass. Manifest retains246/76/10 cases, failed/recovery/performance evidence and refreshed76 fingerprints. Phase stays1.13; verify Git refs separately; no deployment authorization.",
-        "fingerprint": "78ae73862ffd282515185a4c9ede8b4820d2cf5f7c107568ab192ce5a4f9b1c1"
+        "at": "2026-10-18T01:57:20.004Z",
+        "scope": "Reviewed Phase 1.13 publication status and the newly established Phase 1.14 plan, handoff and ledger against unchanged 246/76/10 and 2224-unit local evidence. GitHub main equals 9ee378a with zero divergence and a clean worktree. Phase 1.14 is plan-only, budgets unchanged, baselines pending; no deployment or human-owner acceptance.",
+        "fingerprint": "23e4a0235680273818ccc4662fb41e3efa79c2013eedd2c52fe669a3a7b1cf15"
       }
     },
     {
@@ -3320,6 +3449,125 @@
         "at": "2026-10-17T13:21:02.615Z",
         "scope": "Reviewed unchanged native IndexedDB acknowledgement and WR-01 source/built case evidence with the refreshed publication manifest. Formatting/inventory normalization changes no persistence or protected-document/access behavior. Original failed assumptions/transport and focused recovery remain explicit; Ctrl+S remains export.",
         "fingerprint": "6ba9acbee6ce4ca6d220e7a41bdb58d02559d9d605aaa101a5af21de871c2252"
+      }
+    },
+    {
+      "id": "simulator-performance-reliability-phase",
+      "summary": "Closed locally (2026-10-22) by explicit owner decision: strict solver 8 ms p95 and dense 60 fps/device targets are hardware/environment-dependent and are not certified on this shared host. Functional evidence passes (prior 2224-unit/full matrix, 897 pre/post and runtime parity; post-checkpoint changes: 811 affected tests, 897 parity, types/lint). Solver p95 37.41/61.06/41.49 ms and production zoom 316.6/216.6 ms remain failed/certification-open. No budget, assertion or failure evidence changed; no publication/deployment.",
+      "tags": [
+        "phase-1.14",
+        "performance",
+        "benchmark",
+        "solver",
+        "MNA",
+        "dense editor",
+        "SVG",
+        "profiling"
+      ],
+      "entryPoints": [
+        "scripts/benchmark-simulation.ts",
+        "packages/domain/src/simulation/simulate.ts",
+        "packages/domain/src/simulation/mnaAdapter.ts",
+        "packages/domain/src/core/dimming.ts",
+        "packages/domain/src/core/readiness.ts",
+        "packages/domain/src/core/operatingPoint.ts",
+        "packages/domain/src/simulationEvidence.ts",
+        "packages/domain/src/simulation/index.ts",
+        "packages/domain/src/core/mna.ts",
+        "e2e/performance.spec.ts",
+        "src/ui/CircuitCanvas.tsx",
+        "src/ui/canvas/ComponentLayer.tsx",
+        "src/ui/canvas/DenseWireLayer.tsx",
+        "src/ui/canvas/WireLayer.tsx",
+        "src/ui/canvas/useCanvasGestureStart.ts",
+        "packages/domain/src/core/linearMeasurements.ts",
+        "scripts/verify-phase114.mjs",
+        "playwright.phase114-built.config.ts",
+        "playwright.performance-built.config.ts",
+        "src/ui/canvas/useCanvasPointerWindow.ts"
+      ],
+      "evidence": [
+        "docs/plans/PHASE_1_14_PERFORMANCE_RELIABILITY_PLAN.md",
+        "docs/handoffs/performance-reliability-next-chat.md",
+        "docs/audits/phase-1-performance-reliability.md",
+        "docs/PERFORMANCE.md",
+        "docs/audits/phase-1-legacy-retirement.md",
+        "docs/audits/phase-1-full-verification.md",
+        "docs/audits/phase-1-missing-component-calculation.md",
+        "docs/audits/phase-1-ui-fault-lab.md",
+        "docs/audits/data/phase114-baseline.json",
+        "e2e/canvas-base.spec.ts",
+        "scripts/verify-phase114.mjs",
+        "playwright.phase114-built.config.ts",
+        "playwright.performance-built.config.ts",
+        "e2e/timed-controls.spec.ts",
+        "scripts/code-graph.mjs",
+        "docs/audits/data/phase114-acceptance.json"
+      ],
+      "facts": [
+        "phase-1.14-performance-scope",
+        "phase114-performance-baseline",
+        "phase113-dense-performance-comparison",
+        "local-only",
+        "phase114-bounded-execution"
+      ],
+      "checks": [
+        {
+          "command": "bun run benchmark:simulation",
+          "files": ["scripts/benchmark-simulation.ts", "packages/domain/src/simulation/index.ts"],
+          "reason": "Existing independent 200/396 solver workload and unchanged 8 ms p95 budget; measure result serialization separately."
+        },
+        {
+          "command": "bun run benchmark:browser",
+          "files": ["e2e/performance.spec.ts", "playwright.config.ts"],
+          "reason": "Existing native 200/400 editor interaction and dense static-scene contract; report gesture frames separately from enforced handler/idle limits and retain headless evidence limits."
+        },
+        {
+          "command": "bun run build",
+          "files": ["vite.config.ts", "scripts/postbuild.mjs"],
+          "reason": "Fresh production assets must precede the localhost production benchmark; never build while measuring."
+        },
+        {
+          "command": "bun run check:perf",
+          "files": ["scripts/check-performance.mjs", "docs/PERFORMANCE.md"],
+          "reason": "Keep production JS/CSS/site/image delivery limits distinct from solver and gesture performance."
+        },
+        {
+          "command": "bun run verify:phase-1.14 --keep-going",
+          "files": [
+            "scripts/verify-phase114.mjs",
+            "playwright.phase114-built.config.ts",
+            "playwright.performance-built.config.ts",
+            "e2e/canvas-base.spec.ts"
+          ],
+          "reason": "Sequential declared full local matrix retains original failed attempts and per-stage reports; focused recovery stays separate. Sets PERF=1 and rejects empty/skipped measurement stages. Strict solver and 60 fps/device requirements remain open."
+        },
+        {
+          "command": "PERF=1 bun x playwright test e2e/performance.spec.ts --config=playwright.performance-built.config.ts --workers=1",
+          "files": [
+            "e2e/performance.spec.ts",
+            "playwright.performance-built.config.ts",
+            "scripts/verify-phase114.mjs"
+          ],
+          "reason": "Actual localhost production-asset workload; retain ordinary timing separately from CDP profiling and skipped/setup failures. Narrow gates do not certify 60 fps/device acceptance."
+        }
+      ],
+      "decisions": [
+        "Profile each expensive track sequentially before optimization.",
+        "Do not change budgets, electrical behavior, accessibility, renderer architecture or remote-work boundaries to obtain a passing timing result. Do not restore retired Challenge Mode.",
+        "Further solver changes follow measured preparation/results/traversal costs; further SVG changes follow layout/paint/commit evidence. Current measurements do not establish stable speed gains or justify renderer replacement.",
+        "Phase 1.14 was closed locally on 2026-10-22 by explicit owner decision because the wall-clock targets are hardware/environment-dependent. Closure is not a performance pass: budgets/assertions and all failures remain; target-hardware reruns are required before any pass claim."
+      ],
+      "broaderChecks": [
+        "Any solver edit requires independent numerical fixtures and application/Comlink/local Worker parity.",
+        "Diagnosis uses shared generation code; preserve its behavior if active scoped work touches that path.",
+        "Any canvas edit retains desktop/phone keyboard, terminal-hit, zoom/fit, reduced-motion, export and saved-result behavior.",
+        "Dense 60 fps target-device acceptance is separate from headless development/browser timing."
+      ],
+      "review": {
+        "at": "2026-10-22T12:37:46.993Z",
+        "scope": "Reviewed the 2026-10-22 Phase 1.14 owner closure note, plan/ledger/handoff/acceptance manifest updates, bounded solver changes (numeric series reduction, normalized revision reuse, operating-point lookup reduction, voltage fast path), and the affected verification evidence: 811 core/simulation tests, 897 Bun/workerd parity, types/lint. Confirmed budgets unchanged, failures retained and strict targets not certified. No remote work or publication.",
+        "fingerprint": "49c6b99c297206124821999b095b00c4c9aaf9e0007978360562f4719537d7e6"
       }
     }
   ]

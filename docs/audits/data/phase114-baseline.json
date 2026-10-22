@@ -1,0 +1,1068 @@
+{
+  "phase": "1.14",
+  "milestone": "1.14.0",
+  "date": "2026-10-18",
+  "status": "baseline and profile complete locally; optimization and integrated acceptance pending",
+  "baseCommit": "9ee378a86d222f66048fa3af75cfc640de1377cf",
+  "sourceSha256": {
+    "scripts/benchmark-simulation.ts": "c223ab01481ca28525ea5b8ca630568fea592af844c0a9262ee3f10459a9789e",
+    "e2e/performance.spec.ts": "3473743aa29d4773f1cebbca8b07a4363d509415497e40587d0ead4a3cb5c384",
+    "packages/domain/src/simulation/simulate.ts": "ca617d9827e1190dc7e81a428a8004f7df5cccc14f901e0f7d97b40fa113c6a6",
+    "packages/domain/src/core/mna.ts": "7dd8e534e0a7988e62058a258c2453011de40ee3f959a34ccf3b5dd724cf89db",
+    "src/ui/CircuitCanvas.tsx": "a845fadec9cf6eb928c115083620ce776eb06f9ffa8dae3050939fdbce2375d7"
+  },
+  "environment": {
+    "os": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39",
+    "cpu": "AMD PRO A8-8650B R7; 4 cores, 4 logical CPUs; 3.2 GHz maximum",
+    "bun": "1.4.2",
+    "node": "v24.14.1",
+    "playwright": "1.63.0",
+    "chromium": "153.0.8010.12",
+    "viewport": {
+      "width": 1280,
+      "height": 720,
+      "deviceScaleFactor": 1
+    },
+    "execution": "Headless Desktop Chrome, one Playwright worker, localhost only; sequential solver/source/build/production/profile runs. No parallel agent stress/build/test jobs. Active user desktop and Firefox remained running; no exclusive hardware claim.",
+    "initialLoadAverage": "1.69 2.08 2.24 1/1096 12254",
+    "sourceState": "Production/domain/browser source and canonical benchmarks match the committed Phase 1.13 HEAD. Pre-existing next-phase documentation was uncommitted. Ignored diagnostic wrappers do not change application sources."
+  },
+  "solverRuns": [
+    {
+      "id": "solver-1",
+      "canonical": true,
+      "reportOnlyAppendix": false,
+      "exitCode": 1,
+      "warmups": 20,
+      "samples": 100,
+      "components": 200,
+      "wires": 396,
+      "medianMs": 23.92,
+      "p95Ms": 41.88,
+      "p95BudgetMs": 8,
+      "electricalAssertions": "passed",
+      "timingBudget": "failed",
+      "serialization": {
+        "bytes": 2741551,
+        "samples": 100,
+        "medianMs": 35.92,
+        "p95Ms": 47.08
+      },
+      "log": ".wrangler/phase114/solver-1.log"
+    },
+    {
+      "id": "solver-2",
+      "canonical": true,
+      "reportOnlyAppendix": false,
+      "exitCode": 1,
+      "warmups": 20,
+      "samples": 100,
+      "components": 200,
+      "wires": 396,
+      "medianMs": 24.28,
+      "p95Ms": 47.1,
+      "p95BudgetMs": 8,
+      "electricalAssertions": "passed",
+      "timingBudget": "failed",
+      "serialization": {
+        "bytes": 2741551,
+        "samples": 100,
+        "medianMs": 31.52,
+        "p95Ms": 37.77
+      },
+      "log": ".wrangler/phase114/solver-2.log"
+    },
+    {
+      "id": "solver-raw",
+      "canonical": false,
+      "reportOnlyAppendix": true,
+      "exitCode": 1,
+      "warmups": 20,
+      "samples": 100,
+      "components": 200,
+      "wires": 396,
+      "medianMs": 32.25,
+      "p95Ms": 65.65,
+      "p95BudgetMs": 8,
+      "electricalAssertions": "passed",
+      "timingBudget": "failed",
+      "serialization": {
+        "bytes": 2741551,
+        "samples": 100,
+        "medianMs": 38.52,
+        "p95Ms": 47.91
+      },
+      "log": ".wrangler/phase114/solver-raw.log"
+    }
+  ],
+  "solverRawSamples": {
+    "warmups": 20,
+    "samples": 100,
+    "components": 200,
+    "wires": 396,
+    "solveMilliseconds": [
+      21.64514300000019, 22.771606000000247, 22.823193000000174, 23.1240200000002,
+      23.36289399999987, 23.366074000000026, 23.51212200000009, 24.35987299999988,
+      24.88266399999975, 25.217479999999796, 25.69072099999994, 25.810969000000114,
+      25.866989000000103, 25.960661000000073, 26.120468000000074, 26.49014199999965,
+      26.580387999999857, 26.97045100000014, 27.071301999999832, 27.081133000000136,
+      27.238402000000406, 27.526875000000018, 27.946277999999893, 27.959829999999783,
+      28.060006000000158, 28.099523999999292, 28.477120000000014, 28.53948500000024,
+      28.70753799999966, 28.80008799999996, 28.827729999999974, 28.872246000000132,
+      29.006193000000167, 29.129222000000027, 29.258472999999867, 29.348071999999775,
+      29.357724999999846, 29.48257700000022, 29.4829950000003, 29.567917000000307, 29.5996439999999,
+      29.65052199999991, 29.80730500000027, 30.211639000000105, 30.542183999999907,
+      30.90011400000003, 31.106477000000268, 31.471072000000277, 31.901488999999856,
+      32.05823899999996, 32.25206399999979, 32.620848000000024, 32.6979180000003,
+      32.871651000000384, 32.88373700000011, 32.90616399999999, 33.06684200000018,
+      33.367161000000124, 33.80696900000021, 34.10872999999992, 34.53468500000008,
+      34.76193599999988, 34.791147000000365, 34.80555400000003, 35.17491199999995,
+      35.41819200000009, 35.445316999999704, 36.352170000000115, 36.522071000000096,
+      36.61194399999977, 38.07193700000016, 38.186775000000125, 38.643012000000454,
+      39.271054999999706, 39.60418400000026, 39.72981299999992, 40.740335000000414,
+      41.269746999999825, 41.41114599999992, 41.693827000000056, 41.72371599999951,
+      42.36260500000026, 42.51093400000036, 42.98970599999984, 45.12958699999945, 45.636483,
+      46.774867000000086, 48.870316999999886, 49.35894899999994, 51.53713000000016,
+      56.24117799999976, 57.50564200000008, 58.575080999999955, 59.384287000000086,
+      65.0523189999999, 65.64963199999988, 71.63342200000011, 81.85313799999994, 82.50949199999991,
+      83.09131000000025
+    ],
+    "serializationMilliseconds": [
+      26.518283999999767, 26.80529000000024, 27.11923999999999, 28.11927900000046,
+      28.90418000000045, 30.07079199999953, 30.668979000000036, 31.40728399999989,
+      31.429330000000846, 32.05921500000022, 32.436445000000276, 32.52366500000062,
+      32.579257999999754, 32.99599800000033, 33.01602199999979, 33.23258900000019, 33.4883949999994,
+      33.73629399999936, 34.11547400000018, 34.3891050000002, 34.450723999999354, 34.89874299999974,
+      34.926017000000684, 34.98417800000061, 34.98981000000094, 35.034270999999535,
+      35.08782000000065, 35.4428939999998, 35.56126700000004, 35.78836200000114, 35.918289999999615,
+      35.95092099999965, 36.272140000000036, 36.45207300000038, 36.53088699999989,
+      36.58881199999996, 36.61128000000008, 36.63278200000059, 36.754845000001296,
+      36.880739000000176, 37.094646999999895, 37.24992700000075, 37.43642499999987,
+      37.485279999999875, 37.51813500000026, 37.57753699999921, 38.17015700000047,
+      38.38050199999998, 38.45070599999963, 38.482068000000254, 38.522179999999935,
+      38.65132999999969, 38.69784599999912, 38.76417399999991, 38.886077000000114,
+      38.90794199999982, 39.01980800000001, 39.43033899999955, 39.451224000000366,
+      39.52640100000008, 39.88813199999822, 39.90578199999982, 39.917461, 40.25625599999967,
+      40.437794000000395, 40.50328499999978, 40.53753400000005, 40.99967800000013,
+      41.15123399999993, 41.21434599999975, 41.512517999999545, 41.521372000000156,
+      41.577000999999655, 41.6335280000003, 41.85987899999964, 42.014908000000105,
+      42.51889200000005, 42.825692000000345, 42.898794000000635, 42.920634000000064,
+      42.95121899999958, 43.23549800000001, 43.43664700000045, 43.47305400000005, 43.56870600000002,
+      43.668924999999945, 44.34043399999973, 44.72119999999995, 44.89477299999999,
+      45.43699900000047, 45.53152399999999, 45.97768900000028, 46.095728000000236,
+      46.208544000000074, 46.415680000000066, 47.911744, 48.330895999999484, 49.4594189999998,
+      50.694234000000506, 52.67512799999986
+    ],
+    "serializedBytes": 2741551
+  },
+  "solverProfile": {
+    "scope": "Canonical fixture and electrical assertions; 20 warmups + 100 solves, result transport loop omitted. Sampling includes warmup and JIT. Diagnostic only, not a timing-gate run.",
+    "summary": {
+      "sampleCount": 2516,
+      "sampleMilliseconds": 3633.354,
+      "selfTime": [
+        {
+          "function": "solveCompiledCircuit",
+          "file": "packages/domain/src/core/mna.ts",
+          "line": 119,
+          "selfMilliseconds": 299.66,
+          "percent": 8.25
+        },
+        {
+          "function": "adaptMnaResult",
+          "file": "packages/domain/src/simulation/mnaAdapter.ts",
+          "line": 18,
+          "selfMilliseconds": 177.01,
+          "percent": 4.87
+        },
+        {
+          "function": "deriveOperatingPoints",
+          "file": "packages/domain/src/core/operatingPoint.ts",
+          "line": 119,
+          "selfMilliseconds": 153.7,
+          "percent": 4.23
+        },
+        {
+          "function": "filter",
+          "file": "",
+          "line": 1,
+          "selfMilliseconds": 149.69,
+          "percent": 4.12
+        },
+        {
+          "function": "stringify",
+          "file": "",
+          "line": 0,
+          "selfMilliseconds": 140.04,
+          "percent": 3.85
+        },
+        {
+          "function": "compileCircuit",
+          "file": "packages/domain/src/core/compile.ts",
+          "line": 79,
+          "selfMilliseconds": 138.5,
+          "percent": 3.81
+        },
+        {
+          "function": "Map",
+          "file": "",
+          "line": 0,
+          "selfMilliseconds": 132.6,
+          "percent": 3.65
+        },
+        {
+          "function": "reduceSeriesPaths",
+          "file": "packages/domain/src/core/seriesReduction.ts",
+          "line": 10,
+          "selfMilliseconds": 118.11,
+          "percent": 3.25
+        },
+        {
+          "function": "get",
+          "file": "",
+          "line": 0,
+          "selfMilliseconds": 104.42,
+          "percent": 2.87
+        },
+        {
+          "function": "sort",
+          "file": "",
+          "line": 0,
+          "selfMilliseconds": 102.86,
+          "percent": 2.83
+        },
+        {
+          "function": "map",
+          "file": "",
+          "line": 1,
+          "selfMilliseconds": 95.75,
+          "percent": 2.64
+        },
+        {
+          "function": "assessCompiledCircuitReadiness",
+          "file": "packages/domain/src/core/readiness.ts",
+          "line": 74,
+          "selfMilliseconds": 93.29,
+          "percent": 2.57
+        },
+        {
+          "function": "voltageBetween",
+          "file": "packages/domain/src/core/linearMeasurements.ts",
+          "line": 13,
+          "selfMilliseconds": 89.08,
+          "percent": 2.45
+        },
+        {
+          "function": "measurement",
+          "file": "packages/domain/src/core/operatingPoint.ts",
+          "line": 85,
+          "selfMilliseconds": 65.23,
+          "percent": 1.8
+        },
+        {
+          "function": "push",
+          "file": "",
+          "line": 0,
+          "selfMilliseconds": 63.16,
+          "percent": 1.74
+        },
+        {
+          "function": "copyDataProperties",
+          "file": "",
+          "line": 0,
+          "selfMilliseconds": 57.0,
+          "percent": 1.57
+        },
+        {
+          "function": "Set",
+          "file": "",
+          "line": 0,
+          "selfMilliseconds": 55.77,
+          "percent": 1.53
+        },
+        {
+          "function": "add",
+          "file": "packages/domain/src/core/seriesReduction.ts",
+          "line": 14,
+          "selfMilliseconds": 52.69,
+          "percent": 1.45
+        },
+        {
+          "function": "assessTerminalCompatibility",
+          "file": "packages/domain/src/core/compatibility.ts",
+          "line": 43,
+          "selfMilliseconds": 51.43,
+          "percent": 1.42
+        },
+        {
+          "function": "find",
+          "file": "",
+          "line": 1,
+          "selfMilliseconds": 51.12,
+          "percent": 1.41
+        },
+        {
+          "function": "verifyLinearMeasurements",
+          "file": "packages/domain/src/core/linearMeasurements.ts",
+          "line": 121,
+          "selfMilliseconds": 49.3,
+          "percent": 1.36
+        },
+        {
+          "function": "compareIds",
+          "file": "packages/domain/src/core/faultTopology.ts",
+          "line": 7,
+          "selfMilliseconds": 48.8,
+          "percent": 1.34
+        },
+        {
+          "function": "validateCircuitInput",
+          "file": "packages/domain/src/core/input.ts",
+          "line": 218,
+          "selfMilliseconds": 48.62,
+          "percent": 1.34
+        },
+        {
+          "function": "append",
+          "file": "packages/domain/src/core/pathBlocks.ts",
+          "line": 10,
+          "selfMilliseconds": 47.99,
+          "percent": 1.32
+        },
+        {
+          "function": "recoverLinkCurrents",
+          "file": "packages/domain/src/core/linearMeasurements.ts",
+          "line": 73,
+          "selfMilliseconds": 46.32,
+          "percent": 1.27
+        },
+        {
+          "function": "canonical",
+          "file": "packages/domain/src/simulationEvidence.ts",
+          "line": 8,
+          "selfMilliseconds": 45.55,
+          "percent": 1.25
+        },
+        {
+          "function": "resolveDeviceCapabilities",
+          "file": "packages/domain/src/core/capabilities.ts",
+          "line": 94,
+          "selfMilliseconds": 39.89,
+          "percent": 1.1
+        },
+        {
+          "function": "isArray",
+          "file": "",
+          "line": 0,
+          "selfMilliseconds": 34.81,
+          "percent": 0.96
+        },
+        {
+          "function": "flatIntoArrayWithCallback",
+          "file": "",
+          "line": 1,
+          "selfMilliseconds": 34.14,
+          "percent": 0.94
+        },
+        {
+          "function": "closedPathBlocks",
+          "file": "packages/domain/src/core/pathBlocks.ts",
+          "line": 7,
+          "selfMilliseconds": 33.72,
+          "percent": 0.93
+        }
+      ],
+      "fileSelfTimeMilliseconds": {
+        "": 1238.41,
+        "packages/domain/src/core/mna.ts": 379.08,
+        "packages/domain/src/core/operatingPoint.ts": 256.36,
+        "packages/domain/src/core/compile.ts": 232.13,
+        "packages/domain/src/core/linearMeasurements.ts": 203.6,
+        "packages/domain/src/simulation/mnaAdapter.ts": 200.49,
+        "packages/domain/src/core/seriesReduction.ts": 184.56,
+        "packages/domain/src/core/readiness.ts": 175.14,
+        "packages/domain/src/core/pathBlocks.ts": 83.98,
+        "packages/domain/src/core/conductorPaths.ts": 77.52,
+        "packages/domain/src/simulationEvidence.ts": 68.55,
+        "packages/domain/src/core/capabilities.ts": 64.25,
+        "packages/domain/src/core/input.ts": 60.82,
+        "packages/domain/src/core/compatibility.ts": 60.23,
+        "packages/domain/src/core/faultTopology.ts": 53.42
+      },
+      "simulateInclusiveSampleMilliseconds": 3582.458,
+      "simulateStageSamples": {
+        "solveControlledOperatingPoint": {
+          "weightedMilliseconds": 2423.95,
+          "percentOfSimulate": 67.66
+        },
+        "compileCircuit": {
+          "weightedMilliseconds": 614.04,
+          "percentOfSimulate": 17.14
+        },
+        "adaptMnaResult": {
+          "weightedMilliseconds": 329.91,
+          "percentOfSimulate": 9.21
+        },
+        "circuitRevision": {
+          "weightedMilliseconds": 181.95,
+          "percentOfSimulate": 5.08
+        },
+        "other simulate": {
+          "weightedMilliseconds": 32.6,
+          "percentOfSimulate": 0.91
+        }
+      },
+      "simulateInclusiveFunctions": {
+        "(module)": 100.0,
+        "(root)": 100.0,
+        "simulate": 100.0,
+        "simulateCircuit": 84.9,
+        "solveControlledOperatingPoint": 67.66,
+        "solveCompiledCircuit": 55.94,
+        "assessCompiledCircuitReadiness": 22.66,
+        "compileCircuit": 17.14,
+        "": 14.53,
+        "map": 13.63,
+        "deriveOperatingPoints": 11.66,
+        "adaptMnaResult": 9.21,
+        "reduceSeriesPaths": 8.41,
+        "filter": 6.75,
+        "circuitRevision": 5.08,
+        "sort": 4.73,
+        "circuitExcitation": 4.26,
+        "verifyLinearMeasurements": 4.23,
+        "stringify": 3.91,
+        "Map": 3.7,
+        "canonical": 3.25,
+        "flatIntoArrayWithCallback": 2.98
+      }
+    }
+  },
+  "browserSampling": {
+    "settleAfterRunMs": 500,
+    "panMoves": 60,
+    "dragMoves": 60,
+    "zoomWheelEvents": 60,
+    "gestureReportedFrameIntervals": 59,
+    "idleFrameIntervals": 180,
+    "events": "Frame-paced synthetic pointer/wheel intervals plus a trusted wire middle-button pan smoke check; no trusted target-device speed acceptance.",
+    "ordinaryReports": "Native aggregate attachments retained; individual frame interval arrays are not exposed by the unchanged benchmark."
+  },
+  "browserRuns": [
+    {
+      "id": "browser-source-1",
+      "mode": "development",
+      "diagnosticProfile": false,
+      "status": "passed",
+      "durationMs": 32899,
+      "components": 200,
+      "wires": 400,
+      "pan": {
+        "count": 59,
+        "average": 24.01016949152543,
+        "p95": 50.100000000000364,
+        "longFrameRatio": 0.05084745762711865,
+        "duration": 1546.5999999998603,
+        "handlerAverage": 0.15666666666511447,
+        "handlerP95": 0.5999999998603016,
+        "commitHandlerDuration": 0.2999999998137355
+      },
+      "drag": {
+        "count": 59,
+        "average": 45.19491525423729,
+        "p95": 66.79999999999927,
+        "longFrameRatio": 0.05084745762711865,
+        "duration": 3328,
+        "handlerAverage": 0.09999999996895591,
+        "handlerP95": 0.19999999995343387,
+        "commitHandlerDuration": 5.300000000046566
+      },
+      "zoom": {
+        "count": 59,
+        "average": 192.08250847457631,
+        "p95": 233.29999999999927,
+        "longFrameRatio": 1,
+        "handlerAverage": 3.831666666668995,
+        "handlerP95": 15.100000000093132
+      },
+      "idle": {
+        "average": 16.575000000000525,
+        "p95": 16.799999999999272,
+        "longFrameRatio": 0
+      },
+      "report": ".wrangler/phase114/browser-source-1.json"
+    },
+    {
+      "id": "browser-source-2",
+      "mode": "development",
+      "diagnosticProfile": false,
+      "status": "passed",
+      "durationMs": 36490,
+      "components": 200,
+      "wires": 400,
+      "pan": {
+        "count": 59,
+        "average": 33.05084745762712,
+        "p95": 133.39999999999964,
+        "longFrameRatio": 0.1016949152542373,
+        "duration": 2132.6999999999534,
+        "handlerAverage": 0.12333333333954215,
+        "handlerP95": 0.30000000004656613,
+        "commitHandlerDuration": 0.39999999990686774
+      },
+      "drag": {
+        "count": 59,
+        "average": 54.5169491525424,
+        "p95": 100,
+        "longFrameRatio": 0.06779661016949153,
+        "duration": 4061.100000000093,
+        "handlerAverage": 0.13833333331470687,
+        "handlerP95": 0.2999999998137355,
+        "commitHandlerDuration": 5.600000000093132
+      },
+      "zoom": {
+        "count": 59,
+        "average": 205.92277966101693,
+        "p95": 333.3999999999978,
+        "longFrameRatio": 1,
+        "handlerAverage": 5.591666666670547,
+        "handlerP95": 20
+      },
+      "idle": {
+        "average": 16.78722222222249,
+        "p95": 16.80000000000291,
+        "longFrameRatio": 0
+      },
+      "report": ".wrangler/phase114/browser-source-2.json"
+    },
+    {
+      "id": "browser-built-1",
+      "mode": "production",
+      "diagnosticProfile": false,
+      "status": "passed",
+      "durationMs": 23211,
+      "components": 200,
+      "wires": 400,
+      "pan": {
+        "count": 59,
+        "average": 25.422033898305077,
+        "p95": 50.100000000000364,
+        "longFrameRatio": 0.05084745762711865,
+        "duration": 1664.9000000001397,
+        "handlerAverage": 0.09333333331548298,
+        "handlerP95": 0.20000000018626451,
+        "commitHandlerDuration": 0.5
+      },
+      "drag": {
+        "count": 59,
+        "average": 23.44576271186441,
+        "p95": 50.099999999999454,
+        "longFrameRatio": 0.05084745762711865,
+        "duration": 1621.1000000000931,
+        "handlerAverage": 0.08666666665812954,
+        "handlerP95": 0.20000000018626451,
+        "commitHandlerDuration": 4.800000000046566
+      },
+      "zoom": {
+        "count": 59,
+        "average": 168.071186440678,
+        "p95": 216.70000000000073,
+        "longFrameRatio": 1,
+        "handlerAverage": 3.744999999999224,
+        "handlerP95": 19.5
+      },
+      "idle": {
+        "average": 17.17722222222326,
+        "p95": 16.799999999999272,
+        "longFrameRatio": 0.005555555555555556
+      },
+      "report": ".wrangler/phase114/browser-built-1.json"
+    },
+    {
+      "id": "browser-built-2",
+      "mode": "production",
+      "diagnosticProfile": false,
+      "status": "passed",
+      "durationMs": 24503,
+      "components": 200,
+      "wires": 400,
+      "pan": {
+        "count": 59,
+        "average": 28.528813559322032,
+        "p95": 50,
+        "longFrameRatio": 0.03389830508474576,
+        "duration": 1858.1000000000931,
+        "handlerAverage": 0.11333333333022892,
+        "handlerP95": 0.30000000004656613,
+        "commitHandlerDuration": 0.19999999995343387
+      },
+      "drag": {
+        "count": 59,
+        "average": 25.423728813559308,
+        "p95": 66.69999999999982,
+        "longFrameRatio": 0.05084745762711865,
+        "duration": 1716.6000000000931,
+        "handlerAverage": 0.10000000000776102,
+        "handlerP95": 0.20000000018626451,
+        "commitHandlerDuration": 5.2999999998137355
+      },
+      "zoom": {
+        "count": 59,
+        "average": 185.86837288135598,
+        "p95": 300,
+        "longFrameRatio": 1,
+        "handlerAverage": 6.100000000015522,
+        "handlerP95": 29.399999999906868
+      },
+      "idle": {
+        "average": 16.62833333333308,
+        "p95": 16.799999999999272,
+        "longFrameRatio": 0
+      },
+      "report": ".wrangler/phase114/browser-built-2.json"
+    },
+    {
+      "id": "browser-built-profile",
+      "mode": "production",
+      "diagnosticProfile": true,
+      "status": "passed",
+      "durationMs": 31487,
+      "components": 200,
+      "wires": 400,
+      "pan": {
+        "count": 59,
+        "average": 27.116949152542382,
+        "p95": 83.30000000000018,
+        "longFrameRatio": 0.05084745762711865,
+        "duration": 1697.5,
+        "handlerAverage": 0.19333333333876604,
+        "handlerP95": 0.4000000001396984,
+        "commitHandlerDuration": 0.5999999998603016
+      },
+      "drag": {
+        "count": 59,
+        "average": 29.6593220338983,
+        "p95": 99.90000000000055,
+        "longFrameRatio": 0.06779661016949153,
+        "duration": 2012,
+        "handlerAverage": 0.22166666666744278,
+        "handlerP95": 0.4000000001396984,
+        "commitHandlerDuration": 8.399999999906868
+      },
+      "zoom": {
+        "count": 59,
+        "average": 177.95911864406781,
+        "p95": 250,
+        "longFrameRatio": 1,
+        "handlerAverage": 4.616666666674428,
+        "handlerP95": 18.9000000001397
+      },
+      "idle": {
+        "average": 16.54888888888915,
+        "p95": 16.700000000000728,
+        "longFrameRatio": 0
+      },
+      "report": ".wrangler/phase114/browser-built-profile.json"
+    }
+  ],
+  "browserProfile": {
+    "window": "First synthetic wheel-before mark through final wheel-after + 200 ms settle; diagnostic only",
+    "wheelEventCount": 60,
+    "windowMilliseconds": 10724.774,
+    "mainThread": 13946,
+    "mainThreadEvents": [
+      {
+        "name": "RunTask",
+        "count": 625,
+        "unionMilliseconds": 10707.714
+      },
+      {
+        "name": "ThreadControllerImpl::RunTask",
+        "count": 625,
+        "unionMilliseconds": 10670.41
+      },
+      {
+        "name": "ProxyMain::BeginMainFrame",
+        "count": 60,
+        "unionMilliseconds": 10510.274
+      },
+      {
+        "name": "LayerTreeHost::WaitForCommitCompletion",
+        "count": 59,
+        "unionMilliseconds": 5800.317
+      },
+      {
+        "name": "Layout",
+        "count": 81,
+        "unionMilliseconds": 1528.81
+      },
+      {
+        "name": "Paint",
+        "count": 218,
+        "unionMilliseconds": 651.165
+      },
+      {
+        "name": "PrePaint",
+        "count": 119,
+        "unionMilliseconds": 621.91
+      },
+      {
+        "name": "FireAnimationFrame",
+        "count": 60,
+        "unionMilliseconds": 612.081
+      },
+      {
+        "name": "FunctionCall",
+        "count": 727,
+        "unionMilliseconds": 591.903
+      },
+      {
+        "name": "Layerize",
+        "count": 60,
+        "unionMilliseconds": 513.461
+      },
+      {
+        "name": "UpdateLayoutTree",
+        "count": 84,
+        "unionMilliseconds": 283.128
+      },
+      {
+        "name": "EventDispatch",
+        "count": 121,
+        "unionMilliseconds": 279.507
+      },
+      {
+        "name": "HitTest",
+        "count": 77,
+        "unionMilliseconds": 129.449
+      },
+      {
+        "name": "Commit",
+        "count": 60,
+        "unionMilliseconds": 62.162
+      },
+      {
+        "name": "MinorGC",
+        "count": 1,
+        "unionMilliseconds": 58.312
+      },
+      {
+        "name": "V8.GC_SCAVENGER",
+        "count": 1,
+        "unionMilliseconds": 58.168
+      },
+      {
+        "name": "Receive mojo message",
+        "count": 2,
+        "unionMilliseconds": 58.128
+      },
+      {
+        "name": "V8.GC_SCAVENGER_SCAVENGE",
+        "count": 1,
+        "unionMilliseconds": 58.114
+      },
+      {
+        "name": "V8.GC_MC_INCREMENTAL",
+        "count": 15,
+        "unionMilliseconds": 57.414
+      },
+      {
+        "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL_PHASE",
+        "count": 1,
+        "unionMilliseconds": 55.218
+      },
+      {
+        "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL",
+        "count": 1,
+        "unionMilliseconds": 54.965
+      },
+      {
+        "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+        "count": 15,
+        "unionMilliseconds": 44.244
+      },
+      {
+        "name": "SimpleWatcher::OnHandleReady",
+        "count": 62,
+        "unionMilliseconds": 32.375
+      },
+      {
+        "name": "MajorGC",
+        "count": 1,
+        "unionMilliseconds": 18.772
+      },
+      {
+        "name": "V8.GC_MARK_COMPACTOR",
+        "count": 1,
+        "unionMilliseconds": 18.687
+      },
+      {
+        "name": "V8.GC_MC_EVACUATE",
+        "count": 2,
+        "unionMilliseconds": 11.481
+      },
+      {
+        "name": "LocalFrameView::ScheduleAnimation",
+        "count": 224,
+        "unionMilliseconds": 10.536
+      },
+      {
+        "name": "V8.GC_MC_EVACUATE_COPY",
+        "count": 1,
+        "unionMilliseconds": 8.517
+      },
+      {
+        "name": "V8.GC_MC_EVACUATE_COPY_PARALLEL",
+        "count": 1,
+        "unionMilliseconds": 5.4
+      },
+      {
+        "name": "ProxyMain::BeginMainFrame::commit",
+        "count": 60,
+        "unionMilliseconds": 4.56
+      }
+    ],
+    "crossThreadRasterSummedMilliseconds": 20272.163,
+    "assetPaths": [
+      "/app/app-theme.js",
+      "/app/assets/app-cSfXkRBf.js",
+      "/app/assets/index-hosmI_SK.js",
+      "/app/assets/app-oCmjD2nN.css",
+      "/app/assets/glyphs-DmPApouY.js",
+      "/app/assets/virtual_pwa-register-hbanH9t0.js",
+      "/app/assets/workbox-window.prod.es5-BBnX5xw4.js",
+      "/app/assets/ImportExportModal-h5dzhhyb.js",
+      "/app/assets/simulate-bkZHfUWc.js",
+      "/app/assets/phasor-DtiYfq3G.js",
+      "/app/assets/zsCheck-sVmihANj.js",
+      "/app/assets/upload-BGDgwsAy.js",
+      "/app/assets/check-XBliKBTw.js",
+      "/app/assets/file-text-DXoqV9gj.js",
+      "/app/assets/sim.worker-4e7o8PSc.js"
+    ],
+    "limits": [
+      "Event categories overlap hierarchically and cannot be added as independent CPU time.",
+      "Raster time is summed across threads and may overlap main-thread events.",
+      "CDP capture and user-timing marks perturb this diagnostic run; ordinary baselines are separate."
+    ],
+    "zoomCpuSampleWeightedMilliseconds": 10722.101,
+    "zoomCpuSamples": [
+      {
+        "function": "(program)",
+        "url": "",
+        "line": 0,
+        "column": 0,
+        "weightedMilliseconds": 10117.956,
+        "percent": 94.37
+      },
+      {
+        "function": "Gt",
+        "url": "http://127.0.0.1:8788/app/assets/app-cSfXkRBf.js",
+        "line": 765,
+        "column": 47175,
+        "weightedMilliseconds": 143.971,
+        "percent": 1.34
+      },
+      {
+        "function": "(garbage collector)",
+        "url": "",
+        "line": 0,
+        "column": 0,
+        "weightedMilliseconds": 100.783,
+        "percent": 0.94
+      },
+      {
+        "function": "EventTarget.dispatchEvent",
+        "url": "",
+        "line": 4,
+        "column": 52,
+        "weightedMilliseconds": 78.062,
+        "percent": 0.73
+      },
+      {
+        "function": "preventDefault",
+        "url": "http://127.0.0.1:8788/app/assets/index-hosmI_SK.js",
+        "line": 48,
+        "column": 16983,
+        "weightedMilliseconds": 50.488,
+        "percent": 0.47
+      },
+      {
+        "function": "dispatchEvent",
+        "url": "",
+        "line": 0,
+        "column": 0,
+        "weightedMilliseconds": 15.114,
+        "percent": 0.14
+      },
+      {
+        "function": "sn",
+        "url": "http://127.0.0.1:8788/app/assets/index-hosmI_SK.js",
+        "line": 48,
+        "column": 5625,
+        "weightedMilliseconds": 14.0,
+        "percent": 0.13
+      },
+      {
+        "function": "hasAriaDisabledInChain",
+        "url": "",
+        "line": 4190,
+        "column": 32,
+        "weightedMilliseconds": 9.057,
+        "percent": 0.08
+      },
+      {
+        "function": "Tl",
+        "url": "http://127.0.0.1:8788/app/assets/index-hosmI_SK.js",
+        "line": 48,
+        "column": 50652,
+        "weightedMilliseconds": 8.662,
+        "percent": 0.08
+      },
+      {
+        "function": "fs",
+        "url": "http://127.0.0.1:8788/app/assets/index-hosmI_SK.js",
+        "line": 49,
+        "column": 8028,
+        "weightedMilliseconds": 8.012,
+        "percent": 0.07
+      },
+      {
+        "function": "Xc",
+        "url": "http://127.0.0.1:8788/app/assets/index-hosmI_SK.js",
+        "line": 48,
+        "column": 49451,
+        "weightedMilliseconds": 6.733,
+        "percent": 0.06
+      },
+      {
+        "function": "jy",
+        "url": "http://127.0.0.1:8788/app/assets/index-hosmI_SK.js",
+        "line": 48,
+        "column": 129160,
+        "weightedMilliseconds": 6.552,
+        "percent": 0.06
+      },
+      {
+        "function": "(idle)",
+        "url": "",
+        "line": 0,
+        "column": 0,
+        "weightedMilliseconds": 6.31,
+        "percent": 0.06
+      },
+      {
+        "function": "by",
+        "url": "http://127.0.0.1:8788/app/assets/index-hosmI_SK.js",
+        "line": 48,
+        "column": 110214,
+        "weightedMilliseconds": 6.227,
+        "percent": 0.06
+      },
+      {
+        "function": "b",
+        "url": "http://127.0.0.1:8788/app/assets/index-hosmI_SK.js",
+        "line": 48,
+        "column": 42331,
+        "weightedMilliseconds": 5.883,
+        "percent": 0.05
+      },
+      {
+        "function": "query",
+        "url": "",
+        "line": 5719,
+        "column": 21,
+        "weightedMilliseconds": 5.362,
+        "percent": 0.05
+      },
+      {
+        "function": "",
+        "url": "http://127.0.0.1:8788/app/assets/app-cSfXkRBf.js",
+        "line": 765,
+        "column": 63351,
+        "weightedMilliseconds": 5.008,
+        "percent": 0.05
+      },
+      {
+        "function": "hasExplicitAriaDisabled",
+        "url": "",
+        "line": 4185,
+        "column": 33,
+        "weightedMilliseconds": 4.807,
+        "percent": 0.04
+      },
+      {
+        "function": "i",
+        "url": "http://127.0.0.1:8788/app/assets/index-hosmI_SK.js",
+        "line": 48,
+        "column": 40230,
+        "weightedMilliseconds": 4.781,
+        "percent": 0.04
+      },
+      {
+        "function": "getComputedStyle",
+        "url": "",
+        "line": 0,
+        "column": 0,
+        "weightedMilliseconds": 4.351,
+        "percent": 0.04
+      }
+    ]
+  },
+  "build": {
+    "status": "passed",
+    "log": ".wrangler/phase114/build.log",
+    "assetBudgetStatus": "passed",
+    "initialJsGzipBytes": 266410,
+    "initialJsBudgetBytes": 300000,
+    "initialCssGzipBytes": 29450,
+    "initialCssBudgetBytes": 30000,
+    "generatedHtmlBytes": 7960733,
+    "generatedPages": 194,
+    "tagPages": 39,
+    "priorityImageBytes": 84798,
+    "assetsLog": ".wrangler/phase114/assets.log"
+  },
+  "acceptance": {
+    "electricalBenchmarkAssertions": "passed on all canonical and diagnostic solves",
+    "solver8msP95": "failed on every ordinary run; no exception closure",
+    "denseStaticHandlerCommitGates": "passed on 4 ordinary runs and 1 separate diagnostic run",
+    "dense60fps": "unmet; all zoom intervals in every reported run exceed 50 ms",
+    "ownerDeviceAcceptance": "not run",
+    "applicationOptimization": "not started",
+    "integratedPhaseGate": "not run",
+    "remoteOperations": "none"
+  },
+  "artifactSha256": {
+    ".wrangler/phase114/assets.log": "fa78b928f7805ed14e3e75d350f262aad9b2320642c4d85adf65fda5c6ca0014",
+    ".wrangler/phase114/browser-built-1.json": "57b4779aa9dab7fb8d4c467b4838cf2b4dbef0f3a91064bfb99b71e3887ae788",
+    ".wrangler/phase114/browser-built-1.log": "ed47083f0e8442a2e6c71daee101430a66a42685fdde4772af363b3a3171aef1",
+    ".wrangler/phase114/browser-built-2.json": "15591ca18890177b30989c76263e966d897144266562b66aeeb93d01c3c2c07f",
+    ".wrangler/phase114/browser-built-2.log": "3072e5f0d8904cfdc21b553d5736dfe1ec4cc7becee5657ae66af22c6b4cac0a",
+    ".wrangler/phase114/browser-built-profile.json": "906e848004ba78cc2895324ee0d903613405bbc04493c33e4fd0dcd5b1f35c37",
+    ".wrangler/phase114/browser-built-profile.log": "032c58753f140baf5735d8c8f1a65c0b40596761728f3b5ded71383c06dd868d",
+    ".wrangler/phase114/browser-built-profile/browser-profile-dense-edit-02e41-00-components-and-400-wires-chromium/attachments/browser-trace-json-fc02f3407e98617f7c29b285a23dbdcd815f1d8d.json": "8146db3abde674f7feb997f3df509c92f20987b2e374860ee213c8402eafcf0c",
+    ".wrangler/phase114/browser-built-profile/browser-profile-dense-edit-02e41-00-components-and-400-wires-chromium/attachments/cpu-profile-json-244887c691e70bab88de82409f67740cb7b0511d.json": "04c67e2ec87febfab3a32ea6ee1dc257034337573b9a0008cf380b0d14fdf0c3",
+    ".wrangler/phase114/browser-profile-summary.json": "5c0ecbf1cf7b57802d918f2527c43f126cff493327410697e336eac989040d43",
+    ".wrangler/phase114/browser-profile.config.ts": "1f0678fe47296124e2c4a1ebee5413280db7efe88cf4e3514ee1ceaaf0de4e68",
+    ".wrangler/phase114/browser-profile.spec.ts": "9c5ed61929696c13286829f214d133d4f40fc3f6ac9b81b46558e0e3e178c701",
+    ".wrangler/phase114/browser-source-1.json": "093544ec447bc2be7e2392c2f2cac41572624729532f0ad2143e5060f99e2a53",
+    ".wrangler/phase114/browser-source-1.log": "228939b7dafe6c332997536fb75e79fad99d87f9e82b36671e5e6c39e31ad25e",
+    ".wrangler/phase114/browser-source-2.json": "12e0a79c17efb11ca603bb9be883f07d64c0a86af4e5dc266e012eb057b8ded9",
+    ".wrangler/phase114/browser-source-2.log": "fc89f7df8c963f245aa7a10d628be94ba4c701c57e326f938f68ba9c767f6255",
+    ".wrangler/phase114/build-manifest.py": "a90d836d4263bf7a98180058ef26747292f4269addbfc66d4b50ab185aeea45d",
+    ".wrangler/phase114/build.log": "828fb9f666fad0c62263a32f066ae9e3e290a8f56e13f88d6d618b6afaf07283",
+    ".wrangler/phase114/environment.json": "db8c404cbcd271020a812a8cd4a03cddc473fc818c66570232a3c90a8acd8e44",
+    ".wrangler/phase114/reproduce.md": "4819ab7d23a43280f16453317d673f6884ea6740139aea8730269c2708bfdee6",
+    ".wrangler/phase114/solver-1.log": "625aac578fecf70604aa376b7be1dd712e883d306fbc981a5f488943deabb5d7",
+    ".wrangler/phase114/solver-2.log": "d9d2f91bcdf98d7ef5d32e7cfd2d7b1ccb22c393d9509883391f1f7e26ea4652",
+    ".wrangler/phase114/solver-only.cpuprofile": "72f930f047112e3f0b78b559d49535ce70cd2631db213ba2212a43c17eb8b94a",
+    ".wrangler/phase114/solver-profile-summary.json": "dbd976f22855d3c0dcd4ba855214d992718c4a615de3f2ecc24950dc8cc37f5a",
+    ".wrangler/phase114/solver-profile.log": "f15e1fbf30bd7adbfbc1e272195be1a96b871d284b06c71dca804938c741ad56",
+    ".wrangler/phase114/solver-profile.ts": "02c5512622021b162c83655798414bbf6a96143052ff5e55ade3920b1e363a71",
+    ".wrangler/phase114/solver-raw-samples.json": "1afe816aabf3d3e07f23df7898ff6dc6d22b8e190aed7a36a61d8b1206d3f845",
+    ".wrangler/phase114/solver-raw.log": "8042be158b57d1c790b0f27291b005d8cd1fdecfc784d9baea19b5037b153cd5",
+    ".wrangler/phase114/solver-raw.ts": "2809718aeca2ba0a1eb868e774423c996f0cde8395642215da6c00b79ee92917",
+    ".wrangler/phase114/summarize-trace.py": "5b3d5354294d81a392e61c2960daa2e5c334db36f1ffd635ba0c947943ac03f9"
+  }
+}

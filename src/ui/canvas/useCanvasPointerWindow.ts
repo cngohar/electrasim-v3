@@ -59,6 +59,7 @@ interface CanvasPointerWindowOptions {
   pendingPanRef: RefObject<Point2D | null>;
   panPreviewRef: RefObject<HTMLDivElement | null>;
   worldGroupRef: RefObject<SVGGElement | null>;
+  gridPatternRef: RefObject<SVGPatternElement | null>;
   panDidMoveRef: RefObject<boolean>;
   customCursorRef: RefObject<Point2D | null>;
   pendingWireFrom: PortLoc | null;
@@ -112,6 +113,7 @@ export function useCanvasPointerWindow({
   pendingPanRef,
   panPreviewRef,
   worldGroupRef,
+  gridPatternRef,
   panDidMoveRef,
   customCursorRef,
   pendingWireFrom,
@@ -337,10 +339,9 @@ export function useCanvasPointerWindow({
       const nextPan = pendingPanRef.current;
       pendingPanRef.current = null;
       if (commit && nextPan) {
-        worldGroupRef.current?.setAttribute(
-          'transform',
-          `translate(${nextPan.x} ${nextPan.y}) scale(${zoom})`,
-        );
+        const transform = `translate(${nextPan.x} ${nextPan.y}) scale(${zoom})`;
+        worldGroupRef.current?.setAttribute('transform', transform);
+        gridPatternRef.current?.setAttribute('patternTransform', transform);
         useViewportStore.getState().setPan(nextPan);
       }
       panPreviewRef.current?.style.removeProperty('transform');
@@ -426,6 +427,7 @@ export function useCanvasPointerWindow({
     dragRectRef,
     dragRef,
     gridSize,
+    gridPatternRef,
     pan,
     panDidMoveRef,
     panPreviewRef,

@@ -1,6 +1,3 @@
-/** Exact series reduction for private MNA equation preparation. Source,
- * transformer and reference nodes are retained. The authored graph stays intact
- * for branch recovery and all physical-terminal conservation checks. */
 export interface SeriesResistor {
   from: string;
   to: string;
@@ -8,53 +5,92 @@ export interface SeriesResistor {
 }
 
 export function reduceSeriesPaths(resistors: SeriesResistor[], retained: ReadonlySet<string>) {
-  const edges = new Map<number, SeriesResistor>();
-  const adjacent = new Map<string, Set<number>>();
-  let nextId = 0;
-  const add = (edge: SeriesResistor) => {
-    if (edge.from === edge.to) return;
-    const id = nextId++;
-    edges.set(id, edge);
-    for (const node of [edge.from, edge.to]) {
-      const ids = adjacent.get(node) ?? new Set<number>();
-      ids.add(id);
-      adjacent.set(node, ids);
-    }
+  const nodeIds = new Map<string, number>();
+  const nodeNames: string[] = [];
+  const retainedFlags: boolean[] = [];
+  const idFor = (node: string): number => {
+    const existing = nodeIds.get(node);
+    if (existing !== undefined) return existing;
+    const id = nodeNames.length;
+    nodeIds.set(node, id);
+    nodeNames.push(node);
+    retainedFlags.push(retained.has(node));
+    return id;
   };
-  for (const edge of resistors) add(edge);
-  const queue = [...adjacent.keys()].filter((node) => !retained.has(node));
-  const eliminated: { node: string; a: string; b: string; fraction: number }[] = [];
+  const from: number[] = [];
+  const to: number[] = [];
+  const resistance: number[] = [];
+  const alive: boolean[] = [];
+  const adjacent: number[][] = [];
+  const append = (node: number, edge: number) => {
+    const values = adjacent[node];
+    if (values) values.push(edge);
+    else adjacent[node] = [edge];
+  };
+  const add = (a: number, b: number, ohms: number) => {
+    if (a === b) return;
+    const id = from.length;
+    from.push(a);
+    to.push(b);
+    resistance.push(ohms);
+    alive.push(true);
+    append(a, id);
+    append(b, id);
+  };
+  for (const edge of resistors) add(idFor(edge.from), idFor(edge.to), edge.resistance);
+  const queue: number[] = [];
+  for (let id = 0; id < nodeNames.length; id++) if (!retainedFlags[id]) queue.push(id);
+  const eliminated: { node: number; a: number; b: number; fraction: number }[] = [];
   for (let index = 0; index < queue.length; index++) {
     const node = queue[index]!;
-    const ids = adjacent.get(node);
-    if (retained.has(node) || ids?.size !== 2) continue;
-    const [first, second] = [...ids];
-    const left = edges.get(first!)!;
-    const right = edges.get(second!)!;
-    const resistance = left.resistance + right.resistance;
-    // Keep the original equations when a reduced law would exceed the range.
-    if (!Number.isFinite(resistance) || !Number.isFinite(1 / resistance)) continue;
-    const a = left.from === node ? left.to : left.from;
-    const b = right.from === node ? right.to : right.from;
-    eliminated.push({ node, a, b, fraction: left.resistance / resistance });
-    for (const id of [first!, second!]) {
-      const edge = edges.get(id)!;
-      adjacent.get(edge.from)!.delete(id);
-      adjacent.get(edge.to)!.delete(id);
-      edges.delete(id);
+    if (retainedFlags[node]) continue;
+    const ids = adjacent[node];
+    if (ids === undefined) continue;
+    let first = -1;
+    let second = -1;
+    let count = 0;
+    for (let i = 0; i < ids.length; i++) {
+      const edge = ids[i]!;
+      if (!alive[edge]) continue;
+      if (count === 0) first = edge;
+      else if (count === 1) second = edge;
+      count++;
+      if (count > 2) break;
     }
-    add({ from: a, to: b, resistance });
+    if (count !== 2) continue;
+    const leftFrom = from[first!]!;
+    const leftTo = to[first!]!;
+    const rightFrom = from[second!]!;
+    const rightTo = to[second!]!;
+    const total = resistance[first!]! + resistance[second!]!;
+    if (!Number.isFinite(total) || !Number.isFinite(1 / total)) continue;
+    const a = leftFrom === node ? leftTo : leftFrom;
+    const b = rightFrom === node ? rightTo : rightFrom;
+    eliminated.push({ node, a, b, fraction: resistance[first!]! / total });
+    alive[first!] = false;
+    alive[second!] = false;
+    add(a, b, total);
     queue.push(a, b);
   }
+  const resulting: SeriesResistor[] = [];
+  const eliminatedNodes = new Set<string>();
+  for (const item of eliminated) eliminatedNodes.add(nodeNames[item.node]!);
+  for (let id = 0; id < from.length; id++)
+    if (alive[id]!)
+      resulting.push({
+        from: nodeNames[from[id]!]!,
+        to: nodeNames[to[id]!]!,
+        resistance: resistance[id]!,
+      });
   return {
-    resistors: [...edges.values()],
-    eliminatedNodes: new Set(eliminated.map(({ node }) => node)),
+    resistors: resulting,
+    eliminatedNodes,
     recover(potentials: Map<string, number>) {
       for (let index = eliminated.length - 1; index >= 0; index--) {
         const { node, a, b, fraction } = eliminated[index]!;
-        const va = potentials.get(a)!;
-        const vb = potentials.get(b)!;
-        potentials.set(node, va + (vb - va) * fraction);
+        const va = potentials.get(nodeNames[a]!)!;
+        const vb = potentials.get(nodeNames[b]!)!;
+        potentials.set(nodeNames[node]!, va + (vb - va) * fraction);
       }
     },
   };

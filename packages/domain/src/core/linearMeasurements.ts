@@ -47,12 +47,7 @@ export function voltageBetween(
     });
     return samples.every((sample) => sample !== null) ? signedRms(samples) : undefined;
   }
-  if (
-    result.status !== 'converged' ||
-    !Object.hasOwn(result.terminalVoltages, from) ||
-    !Object.hasOwn(result.terminalVoltages, to)
-  )
-    return undefined;
+  if (result.status !== 'converged') return undefined;
   const domain = result.terminalDomains[from];
   const a = result.terminalVoltages[from];
   const b = result.terminalVoltages[to];
@@ -71,6 +66,9 @@ export function voltageBetween(
  * the preparation step because their individual currents are not identifiable.
  */
 export function recoverLinkCurrents(graph: TerminalGraph, currents: Record<string, number>): void {
+  // Finite wires/loads already have their currents. Without a collapsed link,
+  // there is no current to recover and no need to allocate a forest per net.
+  if (!graph.branches.some((edge) => edge.closed && edge.idealConductor)) return;
   const outflow = new Map(graph.terminals.map((terminal) => [terminal.id, 0]));
   const adjacency = new Map<string, { terminal: string; edge: ElectricalBranch }[]>();
   const append = (terminal: string, next: string, edge: ElectricalBranch) => {
