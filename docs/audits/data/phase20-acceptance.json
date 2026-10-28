@@ -1,0 +1,208 @@
+{
+  "phase": "2.0",
+  "status": "complete locally",
+  "acceptedAt": "2026-10-24",
+  "scope": "Shared platform admin foundation; public subjects and overall Phase 2 remain open",
+  "localOnly": true,
+  "remoteAuthorized": false,
+  "command": "bun run verify:phase-2.0",
+  "selection": "full",
+  "exitCode": 0,
+  "evidenceRoot": ".wrangler/phase20/foundation-2026-10-24",
+  "stages": [
+    {
+      "id": "typecheck",
+      "command": "bun run typecheck",
+      "exitCode": 0,
+      "log": ".wrangler/phase20/foundation-2026-10-24/typecheck.log"
+    },
+    {
+      "id": "lint",
+      "command": "bun run lint",
+      "exitCode": 0,
+      "log": ".wrangler/phase20/foundation-2026-10-24/lint.log"
+    },
+    {
+      "id": "unit",
+      "command": "bun run test",
+      "exitCode": 0,
+      "log": ".wrangler/phase20/foundation-2026-10-24/unit.log"
+    },
+    {
+      "id": "test:gates",
+      "command": "bun run test:gates",
+      "exitCode": 0,
+      "log": ".wrangler/phase20/foundation-2026-10-24/test-gates.log"
+    },
+    {
+      "id": "test:graph",
+      "command": "bun run test:graph",
+      "exitCode": 0,
+      "log": ".wrangler/phase20/foundation-2026-10-24/test-graph.log"
+    },
+    {
+      "id": "build",
+      "command": "bun run build",
+      "exitCode": 0,
+      "log": ".wrangler/phase20/foundation-2026-10-24/build.log"
+    },
+    {
+      "id": "check:perf",
+      "command": "bun run check:perf",
+      "exitCode": 0,
+      "log": ".wrangler/phase20/foundation-2026-10-24/check-perf.log"
+    },
+    {
+      "id": "check:csp",
+      "command": "bun run check:csp",
+      "exitCode": 0,
+      "log": ".wrangler/phase20/foundation-2026-10-24/check-csp.log"
+    },
+    {
+      "id": "check:links",
+      "command": "bun run check:links",
+      "exitCode": 0,
+      "log": ".wrangler/phase20/foundation-2026-10-24/check-links.log"
+    },
+    {
+      "id": "check:seo",
+      "command": "bun run check:seo",
+      "exitCode": 0,
+      "log": ".wrangler/phase20/foundation-2026-10-24/check-seo.log"
+    },
+    {
+      "id": "test:phase-2.0-spike",
+      "command": "bun run test:phase-2.0-spike",
+      "exitCode": 0,
+      "log": ".wrangler/phase20/foundation-2026-10-24/test-phase-2.0-spike.log"
+    },
+    {
+      "id": "test:platform-admin",
+      "command": "bun run test:platform-admin",
+      "exitCode": 0,
+      "log": ".wrangler/phase20/foundation-2026-10-24/test-platform-admin.log"
+    },
+    {
+      "id": "test:membership",
+      "command": "bun run test:membership",
+      "exitCode": 0,
+      "log": ".wrangler/phase20/foundation-2026-10-24/test-membership.log"
+    },
+    {
+      "id": "test:domain-local",
+      "command": "bun run test:domain-local",
+      "exitCode": 0,
+      "log": ".wrangler/phase20/foundation-2026-10-24/test-domain-local.log"
+    },
+    {
+      "id": "browser",
+      "command": "bun x playwright test e2e/platform-admin.spec.ts e2e/admin-membership.spec.ts --workers=1",
+      "exitCode": 0,
+      "log": ".wrangler/phase20/foundation-2026-10-24/browser.log"
+    },
+    {
+      "id": "browser:2",
+      "command": "bun x playwright test --config=playwright.platform-admin-built.config.ts --workers=1",
+      "exitCode": 0,
+      "log": ".wrangler/phase20/foundation-2026-10-24/browser-2.log"
+    }
+  ],
+  "counts": {
+    "unitTests": 2232,
+    "unitFiles": 147,
+    "adminWorkerD1SessionGroups": 20,
+    "existingMembershipSimulatorGroups": 34,
+    "infrastructureSpikeGroups": 6,
+    "domainParityCases": 897,
+    "sourceBrowserCases": 66,
+    "builtBrowserCases": 66,
+    "newPlatformBrowserCasesAcrossBothDeliveries": 60,
+    "membershipBrowserCasesAcrossBothDeliveries": 72,
+    "phaseGateTests": 11,
+    "graphToolTests": 5
+  },
+  "assets": {
+    "initialJsGzipBytes": 266494,
+    "initialJsBudgetBytes": 300000,
+    "initialCssGzipBytes": 29450,
+    "initialCssBudgetBytes": 30000,
+    "builtHtmlFiles": 199,
+    "seoPages": 191
+  },
+  "additionalChecks": [
+    {
+      "command": "bun scripts/check-platform-assets.mjs",
+      "outcome": "7 actual built-Worker admin pages, 4 scripts, strict CSP/private no-store/noindex/separate editor entry and unknown-route 404",
+      "log": ".wrangler/platform-admin-assets.log"
+    },
+    {
+      "command": "PLATFORM_ASSET_TEST_ORIGIN=http://127.0.0.1:8791 bun scripts/check-platform-assets.mjs",
+      "outcome": "Same 7-page check passed against actual development configuration and src/worker.ts",
+      "log": ".wrangler/platform-admin-dev-assets.log"
+    },
+    {
+      "command": "bun x wrangler d1 migrations apply DB --local --persist-to .wrangler/state",
+      "outcome": "Only pending migration 0007 applied: 23 successful local commands",
+      "log": ".wrangler/platform-admin-dev-migration.log"
+    }
+  ],
+  "sourceFingerprints": {
+    "admin/audit/index.html": "2ff88361fa08e041dfc097401472a56f162d92361bbd62045ee700ced6838846",
+    "admin/index.html": "a1438fa3e3b4b5bc0f1cfc4d18756d4ed61d3fe9268af75b511335b97c86f73a",
+    "admin/permissions/index.html": "adee4196fed5723b39aa14adffa40eaf3957c63d1f6fb019d8bd616348d4e9c0",
+    "admin/pro/index.html": "f624aba470484f681a85f9bf6e148898fb0005c030906e7334c46af3d4e8a15e",
+    "admin/settings/index.html": "7e1489cc9949d5ab2405836dfe1cb024c30a2bdb4991ab9fd7765315644f4946",
+    "admin/standards/index.html": "2dd83b137d5e5a9c6b5abc2ead32d2587e0b37b8c5f944f40967f5c9507d45bf",
+    "admin/users/index.html": "12787fb3e67ba2601bf05c5ee3e57b819db64e23fd127378076ec5beeb8863e3",
+    "e2e/platform-admin.spec.ts": "8610b5f185febbcd81fc7a10d6fdd59a236bb044888c420b48aec016c892fc2c",
+    "migrations/0007_admin_foundation.sql": "940118aa05ee0c9410fd4e13fb0bda5cfdfb1627f332c9d98a0299cdf684b920",
+    "package.json": "1e1ae4a316e7146509d4e99b2705de54c5948ad61219355b108c0489047cb64e",
+    "packages/access/src/index.ts": "6967294149d3554afd04353bd9436871190fc527e515065b1e20ab2c9deb30ba",
+    "packages/db/admin-schema.ts": "f11c6ad2fa67038505bb8afa4f235df1c6f972e66f089a1f508f0fed84b4e1bf",
+    "packages/db/auth-schema.ts": "c24fff0c21822860f269ef6c44490474488f6ca618a5775ee2371ff59a7478d8",
+    "packages/db/auth.ts": "bd9bd668f7b45ed898a68e1c01eaab59ce84bf7b9f08407a5d202aeaf9cdc49f",
+    "playwright.platform-admin-built.config.ts": "bab96ea0c7f8e7cd644199ac32820fee669dfe9dd606d1431ab235971b0fdb38",
+    "public/_headers": "2de15494b6d3cde62cd12d7ccb8a232d7ed152718003f4c2224f108d5178016f",
+    "scripts/check-platform-assets.mjs": "4f65cae0aa426a55710bf015d8ed53172a25690b42780b9017a201b491d060a6",
+    "scripts/platform-admin-test.worker.ts": "3e757d29b036e77a7602f42e1d748e605f0056fda6654a2e426f05b26c17bdbd",
+    "scripts/start-platform-browser-worker.ts": "77496439c1da5636d0f3ae7680b8642e9438304c4b685296de74037dea7bad6c",
+    "scripts/test-platform-admin.ts": "15312a83a6ee35ab64f94b3d8d268d32f03e9a947a188c381cb0f10a27a52d83",
+    "scripts/verify-phase20.mjs": "d40c5a6924853f21c8ecad67bbbc8604825c240094b9b223d349bd1733bb8318",
+    "src/admin/Admin.tsx": "2158d31cd30db287b21d347cdf09af256c6d91c90f0bf8ca733caa0b5fadb7a9",
+    "src/admin/client.ts": "6ea5d13483fc43153e47df8ad6dfa8bf519040da45a0107c58a611c1ce89efa4",
+    "src/admin/platform/PlatformAdmin.tsx": "889a0b248de03f3a58c9cfed8ccc5a425b9bed09b821d7c3ee206d8c6db10b46",
+    "src/admin/platform/ReadViews.tsx": "6d612828bcc01968d4e76c79e536bd46e848f720e2e9a612682c6ddcaccc6698",
+    "src/admin/platform/RolesView.tsx": "1e81e639f2c04b9854fc4921178af4f3c1b104edb765f472bb67fce2da7822c8",
+    "src/admin/platform/SettingsView.tsx": "0d244a75b3537bcf385da45d2c5d3b8b97740c3a8c127235c22b537dbdd8534e",
+    "src/admin/platform/UsersView.tsx": "24a878e8434e70b31b0bac496a0c89286d69910fdb211ea54207849666d4bb08",
+    "src/admin/platform/main.tsx": "46873b76d93dfb237b8c96ab061880c291a4b17004af4713924e34c049ab1812",
+    "src/admin/platform/platform.css": "99c1fb49a104c0ce4587a51194fe3f2df9542044eef6ad4e8d8311f7198af917",
+    "src/admin/platform/resource.ts": "ba87675d8ad75c5f2d8a0dfbf5c21d4dbcb17a3adf68e07ef7fcdca3242571f4",
+    "src/admin/platform/types.ts": "0632a70775b89938e01a9777be2b77af8463f5384db6a6a5cc3e13ad99acba51",
+    "src/api/context.ts": "f5dac307151db7ab84f21d62031aebfd9d8a73d69de9515683df6b8421e09837",
+    "src/api/membership.ts": "2d684ec2772b06556f97b1922919c65a224d3097b721373126927dd8219fccbf",
+    "src/api/platform/access.ts": "cddd31b58c48a90f5f5e2e5d2df8dfe5bf0f93824cd5f2ea1a2521afa8126160",
+    "src/api/platform/controls.ts": "324a3d9c1357ce79ecda12a6330fcf01315a321cd93034a7406a439ed04876f6",
+    "src/api/platform/index.ts": "6dcbe8a4d8be1d5e8b3b1c61c679637bbe0a567c06b6ba0a1d71207b74bb64f2",
+    "src/api/platform/input.ts": "1dedd5145790453f3a05756af0df113272436feb0afa97685fc94ec08c2a53f3",
+    "src/api/platform/mutation.ts": "6d4482684b76cddb6128e73486a2de6a0e37f5da973ec1e36035e140f8032be8",
+    "src/api/platform/reads.ts": "cf9bfba36cea686498d74b945401748d5ea04066906eb7d0e6833cef13df24dd",
+    "src/api/platform/restrictions.ts": "f63a6828af114dab637e1a3e84f74391cdac0f90f8b72732a60a92de6833fc4a",
+    "src/api/platform/roles.ts": "eae775d71bd9a19ce448df8b5bba20eed1bc748d16a8d0799de588c2d91531a0",
+    "src/platform/migration.test.ts": "6ab0013ff53f966b176832abd6d24977a2465731bc20af603143601e97fafe75",
+    "src/platform/registry.test.ts": "8e7dd56c004044b09baee8bbdb64beceece674cddae554e2fd65480b6329e6d3",
+    "src/platform/registry.ts": "1e9ce3a58e174814d0896846c86e532c52a689ce280f821f03bf0f2107a37b75",
+    "src/worker.ts": "8cca6f347d2985bb953fb2829f5c0c3a7fabae09f3b4e58b84ab8266eb859821",
+    "tsconfig.membership-tests.json": "60613ea8285b0e5a719937e0a3410d8fb621fe4597fa8b7e26fb47966439983e",
+    "vite.config.ts": "01f03f8d2c9c5bee050868118a4cf24b373ecbfced5d333aaf941a567a5a3731",
+    "wrangler.platform-admin-test.jsonc": "9d7257b4bcd1111ac7c1681b3af9d42ed63ac7308c3b89d09c93a7050f46bb9b",
+    "wrangler.platform-browser-test.jsonc": "7d6e45a092a7c79f834fa7ea74a5d18c8707d400baa43d376c82ddfd5be60217"
+  },
+  "limitations": [
+    "Overall Phase 2 remains open; profiles/publications/social/report subject adapters and moderation screens are later milestones.",
+    "Headless Chrome/phone/WebKit evidence does not certify physical target devices.",
+    "Phase 1.14 hardware-dependent solver/rendering performance exceptions remain unchanged; no budget is relaxed or old failure removed.",
+    "Workerd logged broken-pipe client-disconnect diagnostics during the passing built suite; retained in browser-2.log.",
+    "Graph fingerprints compare evidence content; they do not execute tests or authorize remote work."
+  ]
+}

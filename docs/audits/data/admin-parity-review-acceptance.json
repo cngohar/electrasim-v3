@@ -1,0 +1,255 @@
+{
+  "scope": "Approved current-scope administration prototype parity review; Phase 2.0A runtime and overall Phase 2 remain open",
+  "status": "accepted locally across the complete 16-check scope",
+  "acceptedAt": "2026-10-24T16:36:11.366255+00:00",
+  "localOnly": true,
+  "remoteAuthorized": false,
+  "singleFullRunPassed": false,
+  "selection": "successful 14-stage non-browser prefix plus explicit full source/built browser recovery",
+  "runs": [
+    {
+      "command": "PHASE20_EVIDENCE_DIR=.wrangler/admin-parity-closure-2026-10-24 bun run verify:phase-2.0",
+      "selection": "full",
+      "exitCode": 1,
+      "scope": "14 non-browser stages passed; source browsers 77/78 with guest-session initial-read readiness race"
+    },
+    {
+      "command": "PHASE20_EVIDENCE_DIR=.wrangler/admin-parity-browser-recovery-2026-10-24 bun run verify:phase-2.0 --from browser",
+      "selection": "partial",
+      "exitCode": 0,
+      "scope": "All source and built cases after test-only readiness barrier; no product source change"
+    }
+  ],
+  "counts": {
+    "unitFiles": 147,
+    "units": 2235,
+    "localAdminApiGroups": 20,
+    "membershipSimulatorApiGroups": 34,
+    "domainParityCases": 897,
+    "sourceBrowserCases": 78,
+    "builtBrowserCases": 78,
+    "workflows": 26,
+    "sourceProjects": 3,
+    "builtProjects": 3,
+    "comparisonPairs": 16,
+    "comparisonImages": 32
+  },
+  "assets": {
+    "initialJsGzipBytes": 266556,
+    "initialCssGzipBytes": 29462,
+    "jsBudgetBytes": 300000,
+    "cssBudgetBytes": 30000
+  },
+  "stages": [
+    {
+      "id": "typecheck",
+      "args": ["run", "typecheck"],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "log": ".wrangler/admin-parity-closure-2026-10-24/typecheck.log"
+    },
+    {
+      "id": "lint",
+      "args": ["run", "lint"],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "log": ".wrangler/admin-parity-closure-2026-10-24/lint.log"
+    },
+    {
+      "id": "unit",
+      "args": ["run", "test"],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "log": ".wrangler/admin-parity-closure-2026-10-24/unit.log"
+    },
+    {
+      "id": "test:gates",
+      "args": ["run", "test:gates"],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "log": ".wrangler/admin-parity-closure-2026-10-24/test-gates.log"
+    },
+    {
+      "id": "test:graph",
+      "args": ["run", "test:graph"],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "log": ".wrangler/admin-parity-closure-2026-10-24/test-graph.log"
+    },
+    {
+      "id": "build",
+      "args": ["run", "build"],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "log": ".wrangler/admin-parity-closure-2026-10-24/build.log"
+    },
+    {
+      "id": "check:perf",
+      "args": ["run", "check:perf"],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "log": ".wrangler/admin-parity-closure-2026-10-24/check-perf.log"
+    },
+    {
+      "id": "check:csp",
+      "args": ["run", "check:csp"],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "log": ".wrangler/admin-parity-closure-2026-10-24/check-csp.log"
+    },
+    {
+      "id": "check:links",
+      "args": ["run", "check:links"],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "log": ".wrangler/admin-parity-closure-2026-10-24/check-links.log"
+    },
+    {
+      "id": "check:seo",
+      "args": ["run", "check:seo"],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "log": ".wrangler/admin-parity-closure-2026-10-24/check-seo.log"
+    },
+    {
+      "id": "test:phase-2.0-spike",
+      "args": ["run", "test:phase-2.0-spike"],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "log": ".wrangler/admin-parity-closure-2026-10-24/test-phase-2.0-spike.log"
+    },
+    {
+      "id": "test:platform-admin",
+      "args": ["run", "test:platform-admin"],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "log": ".wrangler/admin-parity-closure-2026-10-24/test-platform-admin.log"
+    },
+    {
+      "id": "test:membership",
+      "args": ["run", "test:membership"],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "log": ".wrangler/admin-parity-closure-2026-10-24/test-membership.log"
+    },
+    {
+      "id": "test:domain-local",
+      "args": ["run", "test:domain-local"],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "log": ".wrangler/admin-parity-closure-2026-10-24/test-domain-local.log"
+    },
+    {
+      "id": "browser",
+      "args": [
+        "x",
+        "playwright",
+        "test",
+        "e2e/platform-admin.spec.ts",
+        "e2e/admin-membership.spec.ts",
+        "--workers=1"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "log": ".wrangler/admin-parity-browser-recovery-2026-10-24/browser.log"
+    },
+    {
+      "id": "browser:2",
+      "args": [
+        "x",
+        "playwright",
+        "test",
+        "--config=playwright.platform-admin-built.config.ts",
+        "--workers=1"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "log": ".wrangler/admin-parity-browser-recovery-2026-10-24/browser-2.log"
+    }
+  ],
+  "review": "docs/audits/admin-prototype-parity-review.md",
+  "comparisonEvidence": ".wrangler/admin-comparison/final/metrics.json",
+  "queryPlanEvidence": ".wrangler/admin-comparison/query-plan.log",
+  "additionalBuiltAssets": {
+    "command": "PLATFORM_ASSET_TEST_ORIGIN=http://127.0.0.1:8793 bun scripts/check-platform-assets.mjs",
+    "exitCode": 0,
+    "pages": 7,
+    "scripts": 7,
+    "log": ".wrangler/admin-comparison/built-assets.log"
+  },
+  "sourceSha256": {
+    "e2e/admin-membership.spec.ts": "c0089159ee07f5f79c588f052265525fe89d0623e2be59bfd0389044f41a188f",
+    "e2e/platform-admin.spec.ts": "cc626104a7e55da858f71363a0016a1bcafa9cea1aeb77467ad0dd3f78db493b",
+    "migrations/0004_membership_foundation.sql": "107be07aff8bba0a5c80ef0c70f20a468daf83795d64b243adc129d4cae08e83",
+    "migrations/0007_admin_foundation.sql": "940118aa05ee0c9410fd4e13fb0bda5cfdfb1627f332c9d98a0299cdf684b920",
+    "migrations/0008_admin_directory_indexes.sql": "421975c1e58d449fa65fe01b1590502bf5a998780405f1412bcaa1aa48821c88",
+    "package.json": "1e1ae4a316e7146509d4e99b2705de54c5948ad61219355b108c0489047cb64e",
+    "playwright.config.ts": "6b04ef6b16768f8fa7eec37c7bbc8fb28bcc64af0e32193b2048ce77d56123ce",
+    "playwright.platform-admin-built.config.ts": "bab96ea0c7f8e7cd644199ac32820fee669dfe9dd606d1431ab235971b0fdb38",
+    "scripts/browser-test-worker.ts": "db181f3815cb399198e56a42886f377ae6df728c4ae5d697ffc6f486ecbe931a",
+    "scripts/check-platform-assets.mjs": "4f65cae0aa426a55710bf015d8ed53172a25690b42780b9017a201b491d060a6",
+    "scripts/seed-browser-standards.ts": "9bf79d8f39fcf4d75e2b084ebf3b45eaf80cbe4fe0139653d0f8c6d20397840a",
+    "scripts/seed-standards.ts": "6e5fac01f59ab234909fc9280d57edf6a3cb62d035764f46001efd8fddcf3802",
+    "scripts/standards-seed-data.ts": "1926e5dde1230e6e0ae29df573cf081e1e38007baf9e9d9566b0cf43dec4a027",
+    "scripts/start-browser-worker.ts": "99c62a323fa6e83cdaf0455664d0b09c67444287768da654dd61aa9dd3ab1b0a",
+    "scripts/start-platform-browser-worker.ts": "14d4bc064e966316b0a6a2bf232b022c84d205274fdbb3c6e9a65e563d2ae353",
+    "scripts/test-platform-admin.ts": "7d88ed32338594a486406d4bf7f1c3aeaf1c714fabff486abd803c6fb1c62574",
+    "scripts/verify-phase20.mjs": "d40c5a6924853f21c8ecad67bbbc8604825c240094b9b223d349bd1733bb8318",
+    "src/admin/Admin.tsx": "a2d5299b8e6b7042b5237fcd295f71c76cd2d49910b8ff32aece798e2149ee04",
+    "src/admin/Editor.tsx": "48210352ea67c2f1eade3a2dda5826eab4f2cf6e17d119e3e5b66307f11f1181",
+    "src/admin/client.test.ts": "c1b6d2b24aff958b1957162065f58452cf6a1e8a5e7dfccafa5dfbe673ebe5b2",
+    "src/admin/client.ts": "26367a3a425e0fc205aec6738be38963f8d364022160186c87e03384825c57b3",
+    "src/admin/main.tsx": "aa01073f8a9e072bc572edcf700dff05478ea49e56c77a81371a18f0914da3b3",
+    "src/admin/platform/AdminShell.tsx": "3b482b156451967353847da9471deb16ecf0cc82ee859d7347201a4a3df32de0",
+    "src/admin/platform/MembershipHistory.tsx": "9cc27936b051d5916650263916def4f90fbe6cbab2664756776d996244a035ca",
+    "src/admin/platform/PlatformAdmin.tsx": "eea4f6a696911faa885a5d9b7a905454abb840b4f82cdb080c0235cf95df42ec",
+    "src/admin/platform/ReadViews.tsx": "dcfce5491cd0649f447e909a0ecf63119a742888e8afd5bbdc82f9984e79f3ad",
+    "src/admin/platform/RolesView.tsx": "94f17a7cda810eb931ebfb24fabf76cf700251a857f2d42c0798a29e8169503a",
+    "src/admin/platform/SettingsView.tsx": "57946f616df3ace3181f4fcd45217e2cabdc8eb7beee404d7b77b284afdb76b3",
+    "src/admin/platform/UsersView.tsx": "2aa536521656935c92661c60a7a5a2fe318f57abd895fdb79667dce289eafda4",
+    "src/admin/platform/main.tsx": "bae415f9cae3e66f1b4155f0cf8193aaa488ca2e150b8822b0f7a17491550f0b",
+    "src/admin/platform/platform.css": "4fe50770bf633a6b8c8dde2310ae802d072bc3f557ca613294a947e78fcda8d4",
+    "src/admin/platform/resource.ts": "ba87675d8ad75c5f2d8a0dfbf5c21d4dbcb17a3adf68e07ef7fcdca3242571f4",
+    "src/admin/platform/theme.css": "ba8d9466f2dc5bb2855f77e779e679809050c9be93fb9de8b3787950cce8ca4f",
+    "src/admin/platform/types.ts": "f0d52c9cccc75184a084fc91505b12225d73ba39a6b0e5b32f588e8ecff90ee0",
+    "src/admin/style.css": "2a6e94b6adc7ab593d9d9bd65a2ad7100f7083762d6cc073bbcbe3bf46f05684",
+    "src/api/context.ts": "f5dac307151db7ab84f21d62031aebfd9d8a73d69de9515683df6b8421e09837",
+    "src/api/membership-store.ts": "bc2c87b6c775a89a64b8894b51e542781d8f345db4cb6a9888d78480ab37703f",
+    "src/api/membership.ts": "2d684ec2772b06556f97b1922919c65a224d3097b721373126927dd8219fccbf",
+    "src/api/platform/access.ts": "d0737bde1155cbcb1b1cad7c470affed3f8f31a07cb237d7c86cf7eb8c6ac6ef",
+    "src/api/platform/controls.ts": "324a3d9c1357ce79ecda12a6330fcf01315a321cd93034a7406a439ed04876f6",
+    "src/api/platform/index.ts": "6dcbe8a4d8be1d5e8b3b1c61c679637bbe0a567c06b6ba0a1d71207b74bb64f2",
+    "src/api/platform/input.ts": "1dedd5145790453f3a05756af0df113272436feb0afa97685fc94ec08c2a53f3",
+    "src/api/platform/mutation.ts": "6d4482684b76cddb6128e73486a2de6a0e37f5da973ec1e36035e140f8032be8",
+    "src/api/platform/reads.ts": "30c4c1a79f1477f0689bcc3ac2bb0067d014a96c07d51d583e8d019f1ef5dc0f",
+    "src/api/platform/restrictions.ts": "f63a6828af114dab637e1a3e84f74391cdac0f90f8b72732a60a92de6833fc4a",
+    "src/api/platform/roles.ts": "eae775d71bd9a19ce448df8b5bba20eed1bc748d16a8d0799de588c2d91531a0",
+    "src/worker.ts": "8cca6f347d2985bb953fb2829f5c0c3a7fabae09f3b4e58b84ab8266eb859821",
+    "vite.config.ts": "01f03f8d2c9c5bee050868118a4cf24b373ecbfced5d333aaf941a567a5a3731"
+  },
+  "notes": [
+    "The original foundation and earlier design-integration manifests remain historical and unchanged.",
+    "All accepted source/built cases run without skips or retries. The full gate was not claimed to exit zero in one invocation.",
+    "No product source changed after the retained full attempt; the only recovery edit adds initial Refresh readiness before expiring the guest session. E2E types/lint passed afterward.",
+    "Standards fixtures seed only isolated local browser D1 stores. No new migration or normal-development data seed was performed.",
+    "Existing Phase 1 hardware/performance acceptance exceptions remain open."
+  ],
+  "next": "Phase 2.0A runtime gates B-F before public profiles 2.1",
+  "deferrals": "See the explicit remaining-differences table in the parity review; additional analytics/bulk/export/protected-directory projections require separately scoped acceptance."
+}

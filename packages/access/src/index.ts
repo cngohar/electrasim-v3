@@ -1,5 +1,8 @@
-import { COMPONENT_DEFS } from '@electrasim/domain/components';
 import type { FaultType } from '@electrasim/domain/types';
+import { type ValidatedComponentPolicy, componentAccess } from './component-policy';
+
+export * from './component-baseline';
+export * from './component-policy';
 
 export const CAPABILITIES = ['pro_components', 'advanced_faults', 'advanced_diagnostics'] as const;
 export type Capability = (typeof CAPABILITIES)[number];
@@ -109,14 +112,16 @@ export const FAULT_ACCESS = {
 /** Inputs must come from validated content, after legacy fault normalization, not client claims.
  * Natural safety findings are deliberately absent. No scenario regeneration occurs here.
  */
-export function requirementsForContent(content: {
-  componentTypes: readonly string[];
-  injectedFaultTypes: readonly string[];
-}): Capability[] {
+export function requirementsForContent(
+  content: {
+    componentTypes: readonly string[];
+    injectedFaultTypes: readonly string[];
+  },
+  policy?: ValidatedComponentPolicy | null,
+): Capability[] {
   const required = new Set<Capability>();
   for (const type of content.componentTypes) {
-    if (!Object.hasOwn(COMPONENT_DEFS, type)) throw new Error(`Unknown component: ${type}`);
-    if (COMPONENT_DEFS[type].tier === 'pro') required.add('pro_components');
+    if (componentAccess(type, policy) === 'pro') required.add('pro_components');
   }
   for (const type of content.injectedFaultTypes) {
     if (!Object.hasOwn(FAULT_ACCESS, type)) throw new Error(`Unknown fault: ${type}`);

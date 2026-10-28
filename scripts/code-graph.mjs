@@ -26,6 +26,7 @@ const sourceRoots = [
   'docs',
   'migrations',
   'admin',
+  'settings',
   'public',
 ];
 const ignored = new Set(['node_modules', 'dist', '.wrangler', '.git', 'coverage']);
@@ -34,6 +35,7 @@ const graphVersion = 4;
 // Explicit build/runtime inputs, never arbitrary root files or environment secrets.
 const rootInputs = new Set([
   'vite.config.ts',
+  'biome.json',
   'vitest.config.ts',
   'playwright.config.ts',
   'playwright.production.config.ts',
@@ -43,6 +45,24 @@ const rootInputs = new Set([
   'playwright.performance-built.config.ts',
   'wrangler.jsonc',
   'wrangler.membership-test.jsonc',
+  'wrangler.phase20-test.jsonc',
+  'wrangler.platform-admin-test.jsonc',
+  'wrangler.platform-browser-test.jsonc',
+  'wrangler.component-access-test.jsonc',
+  'wrangler.profiles-test.jsonc',
+  'wrangler.profiles-browser-test.jsonc',
+  'playwright.platform-admin-built.config.ts',
+  'playwright.component-access-built.config.ts',
+  'playwright.component-admin-built.config.ts',
+  'playwright.component-acceptance-built.config.ts',
+  'playwright.profiles.config.ts',
+  'playwright.profiles-built.config.ts',
+  'playwright.publications.config.ts',
+  'playwright.publications-built.config.ts',
+  'playwright.preview.config.ts',
+  'playwright.preview-built.config.ts',
+  'tsconfig.membership-tests.json',
+  'package.json',
   'index.html',
 ]);
 async function filesUnder(relative) {

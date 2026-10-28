@@ -1,6 +1,8 @@
 {
   "extends": "./tsconfig.json",
-  "compilerOptions": { "types": ["node"] },
+  "compilerOptions": {
+    "types": ["node"]
+  },
   "include": [
     "scripts/bootstrap-super-admin.ts",
     "scripts/test-membership.ts",
@@ -13,6 +15,23 @@
     "scripts/domain-parity.worker.ts",
     "scripts/benchmark-mna.ts",
     "scripts/check-domain-worker.ts",
-    "scripts/local-test-url.ts"
+    "scripts/local-test-url.ts",
+    "scripts/test-phase20-spike.ts",
+    "scripts/phase20-spike.worker.ts",
+    "scripts/fixtures/phase20/env.d.ts",
+    "scripts/generate-phase20-types.ts",
+    "scripts/test-platform-admin.ts",
+    "scripts/platform-admin-test.worker.ts",
+    "scripts/start-platform-browser-worker.ts",
+    "scripts/test-component-access-storage.ts",
+    "scripts/test-component-access-api.ts",
+    "scripts/component-access-test.worker.ts",
+    "scripts/test-profile-storage.ts",
+    "scripts/test-profiles-api.ts",
+    "scripts/profiles-test.worker.ts",
+    "scripts/start-profiles-browser-worker.ts",
+    "scripts/test-publication-storage.ts",
+    "scripts/test-publications-api.ts",
+    "scripts/test-preview-api.ts"
   ]
 }

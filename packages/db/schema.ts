@@ -58,3 +58,8 @@ export const contentPages = sqliteTable('content_pages', {
   updatedAt: integer('updatedAt', { mode: 'timestamp' }).notNull(),
 });
 export * from './circuit-schema';
+export * from './admin-schema';
+export * from './component-access-schema';
+
+export * from './profile-schema';
+export * from './publication-schema';

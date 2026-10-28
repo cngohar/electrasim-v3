@@ -28,7 +28,14 @@ import { useEffect, useRef, useState } from 'react';
 import { simulateAsync } from '../sim-worker/client';
 import { useCircuitStore } from './circuitStore';
 import { useSettingsStore } from './settingsStore';
-import { AccessError, authorizeCircuit, useSimulatorAccess } from './simulatorAccess';
+import {
+  AccessError,
+  type AccessReceipt,
+  authorizeCircuit,
+  receiptIsCurrent,
+  requiresServerAuthorization,
+  useSimulatorAccess,
+} from './simulatorAccess';
 import { useUiStore } from './uiStore';
 
 // Keep continuous drags out of the worker-clone path. A 50 ms quiet period is
@@ -48,6 +55,7 @@ export function useSimulation() {
   const faults = useCircuitStore((s) => s.faults);
   const simRunning = useUiStore((s) => s.simRunning);
   const accessRevision = useSimulatorAccess((s) => s.revision);
+  const previousAccessRevision = useRef(accessRevision);
   const regulationStandard = useSettingsStore((s) => s.regulationStandard);
 
   // Track the last "errors signature" so we don't re-log identical errors.
@@ -67,6 +75,11 @@ export function useSimulation() {
     // debounce fires leaves a window where the previous worker request can
     // publish a result for a circuit that is no longer current.
     const mySeq = ++seqRef.current;
+    const accessChanged = previousAccessRevision.current !== accessRevision;
+    previousAccessRevision.current = accessRevision;
+    const lostRunAuthority =
+      accessChanged &&
+      requiresServerAuthorization({ components, wires, globalVoltage, supply, faults });
     const membershipRevision = accessRevision;
     const inputs = [
       components,
@@ -83,7 +96,8 @@ export function useSimulation() {
       inputs.every((value, i) => value === acceptedInputsRef.current[i]);
     if (clockTimerRef.current) clearTimeout(clockTimerRef.current);
 
-    if (!simRunning) {
+    if (!simRunning || lostRunAuthority) {
+      if (lostRunAuthority && simRunning) useUiStore.getState().setSimRunning(false);
       if (timerRef.current) {
         clearTimeout(timerRef.current);
         timerRef.current = null;
@@ -108,10 +122,12 @@ export function useSimulation() {
       // doesn't slip into the worker call we're about to make.
       const circuit = { components, wires, globalVoltage, supply, faults };
 
-      // Clock-only continuation reuses this run's authorization. Every input,
-      // membership revision and new Run goes through the fresh action check.
-      void (clockStep ? Promise.resolve() : authorizeCircuit(circuit))
-        .then(() => {
+      let authorization: AccessReceipt | undefined;
+      // Basic clock steps stay local. Originally-Pro results get a final fresh check below.
+      void (clockStep ? Promise.resolve(undefined) : authorizeCircuit(circuit))
+        .then((receipt) => {
+          authorization = receipt;
+          if (receipt && !receiptIsCurrent(receipt)) return null;
           if (mySeq !== seqRef.current || !useUiStore.getState().simRunning) return null;
           return simulateAsync(circuit, {
             appMode: 'pro',
@@ -121,7 +137,20 @@ export function useSimulation() {
               : {}),
           });
         })
-        .then((result) => {
+        .then(async (result) => {
+          if (!result || mySeq !== seqRef.current) return;
+          if (requiresServerAuthorization(circuit)) {
+            const final = await authorizeCircuit(circuit);
+            if (
+              !receiptIsCurrent(final) ||
+              (authorization?.policyRevision !== undefined &&
+                authorization.policyRevision !== null &&
+                authorization.policyRevision !== final.policyRevision)
+            )
+              throw new AccessError(
+                'Component policy changed during simulation. Run again after refreshing access.',
+              );
+          }
           // Drop result if a newer request was kicked off in the meantime
           // or the user paused the sim while we were waiting.
           if (

@@ -55,8 +55,20 @@ interface Saved {
 }
 export async function runSimulatorTests(context: Context) {
   const { signup, createPlan, assign, check, superAdmin, db } = context;
-  const request = async <T = Saved>(path: string, options: Options): Promise<T> =>
-    (await context.api(path, options)).body as T;
+  const request = async <T = Saved>(path: string, options: Options): Promise<T> => {
+    const { body, res } = await context.api(path, options);
+    if (path === '/simulator/simulate' && res.ok) {
+      const { access, ...electrical } = body as Record<string, unknown> & {
+        access: { policy: { revision: number; components: unknown[] }; required: string[] };
+      };
+      assert(access && Number.isSafeInteger(access.policy.revision));
+      assert.equal(access.policy.components.length, 116);
+      assert(Array.isArray(access.required));
+      // Retain exact domain-result comparisons; policy is separate authorization metadata.
+      return electrical as T;
+    }
+    return body as T;
+  };
   const user = await signup('simulator-paid');
   const other = await signup('simulator-other');
   const plan = await createPlan('simulator-full', [

@@ -1,5 +1,6 @@
 /** Playwright-only Worker and database. Every Wrangler operation is explicitly local. */
 import { spawn, spawnSync } from 'node:child_process';
+import { seedBrowserStandards } from './seed-browser-standards';
 const config = 'wrangler.membership-test.jsonc';
 const persist = '.wrangler/playwright-local';
 const migrate = spawnSync(
@@ -20,13 +21,14 @@ const migrate = spawnSync(
   { stdio: 'inherit', env: { ...process.env, WRANGLER_SEND_METRICS: 'false' } },
 );
 if (migrate.status !== 0) process.exit(migrate.status ?? 1);
+seedBrowserStandards(config, persist);
 const worker = spawn(
   'bun',
   [
     'x',
     'wrangler',
     'dev',
-    'scripts/browser-test-worker.ts',
+    'scripts/profiles-test.worker.ts',
     '--config',
     config,
     '--local',

@@ -1,6 +1,7 @@
 import { COMPONENT_DEFS, type Circuit, createInjectedFault } from '@electrasim/domain';
 import { exportJSON, importJSON } from '@electrasim/domain/circuitFormat';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { authorizationFixture } from '../test/componentAccess';
 import { releaseMomentarySwitches, setMomentarySwitchState } from './circuitActions';
 import { basicCopy } from './circuitRecovery';
 import { clearHistory, redo, undo, useCircuitStore } from './circuitStore';
@@ -21,7 +22,7 @@ const fetcher = vi.fn();
 const response = (ok: boolean) =>
   new Response(
     JSON.stringify(
-      ok ? { userId: 'paid', capabilities, nextChangeAt: null } : { error: 'Membership required' },
+      ok ? authorizationFixture(premium, capabilities) : { error: 'Membership required' },
     ),
     { status: ok ? 200 : 403 },
   );
@@ -144,6 +145,6 @@ describe('editor authorization boundary', () => {
     const request = authorizeCircuit(premium);
     invalidateAccess();
     finish(response(true));
-    await expect(request).rejects.toThrow('Session changed');
+    await expect(request).rejects.toThrow('Session or access changed');
   });
 });

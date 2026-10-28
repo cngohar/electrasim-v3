@@ -45,7 +45,7 @@ Private responses include a generated `X-Request-Id`, also saved with mutation a
 |---|---|
 | `GET /plans` | Public active plans with enabled, implemented, unarchived marketing benefits. No membership/user data. |
 | `GET /me/membership` | Authenticated caller's capability union, `asOf`, `nextExpiry`, `nextChangeAt`, paginated `grants`, and `total`. Each grant includes its derived `state`. User-ID query parameters cannot select another account. |
-| `GET /admin/pro/plans` | Super-admin paginated plans |
+| `GET /admin/pro/plans` | Super-admin paginated plans; includes bounded `benefits` (`key`, localized `name`, combined `enabled`) and `activeMemberCount` for the actual plan cards |
 | `GET /admin/pro/plans/:id` | Plan plus `features`, `grantCount`, and `affectedMemberCount` for review before editing |
 | `POST /admin/pro/plans` | Create a plan |
 | `PATCH /admin/pro/plans/:id` | Edit fields and optionally replace the complete feature list |
@@ -54,12 +54,21 @@ Private responses include a generated `X-Request-Id`, also saved with mutation a
 | `POST /admin/pro/features` | Create a marketing/configuration record for an implemented handler |
 | `PATCH /admin/pro/features/:id` | Edit localized text, enablement/order or `archived`; key and handler are immutable |
 | `DELETE /admin/pro/features/:id` | Hard-delete an unreferenced benefit; otherwise archive its marketing record |
-| `GET /admin/pro/memberships[/:id]` | List/read grants; list optionally filters by `userId` |
+| `GET /admin/pro/memberships[/:id]` | List/read grants; list optionally filters by `userId` and includes safe `planName`, `userName`, `createdByName` display projections |
 | `POST /admin/pro/memberships` | Assign a manual grant to an existing user and an active plan |
 | `PATCH /admin/pro/memberships/:id` | Edit dates, suspend/resume or reassign to an active plan; user is immutable |
 | `DELETE /admin/pro/memberships/:id` | Revoke and retain the row and audit history |
 | `GET /admin/pro/users?q=...` | Paginated name/email search for the member picker |
 | `GET /admin/pro/audit` | Paginated audit, optionally filtered by `targetId` |
+
+Protected plan list metadata, current active-member counts and page-local benefit
+labels are read in one D1 batch. Counts use distinct users with active grants at
+request time (`startsAt` inclusive, `endsAt` exclusive); they use the existing
+entitlement plan index. This is a plan-level count, not a claim that each member's
+full effective capability set has been computed. Benefit links retain their live
+semantics, including global disablement. No member identity is added to plan lists.
+The approved plan editor starts new plans at 30 days, retains existing plan values,
+and keeps descriptive pricing separate from the capability/duration workflow.
 
 Plans accept:
 

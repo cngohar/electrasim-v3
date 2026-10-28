@@ -5,6 +5,7 @@ import { motorCircuit, motorFixtureModel } from '../../packages/domain/src/core/
 import { threePhaseStarFixture } from '../../packages/domain/src/core/threePhaseFixtures';
 import { dimmingCircuit, timerCircuit } from '../../packages/domain/src/core/timerDimmingFixtures';
 import { component as C } from '../../packages/domain/src/simulation/auditFixtures';
+import { authorizationFixture, authorizationResponse } from '../test/componentAccess';
 import { clearHistory, redo, selectCircuit, undo, useCircuitStore } from './circuitStore';
 import { closeElectricalEdit, requestSupplyEdit, useElectricalEditing } from './electricalEditing';
 import { confirmElectricalEdit } from './electricalEditing.testHelpers';
@@ -44,16 +45,7 @@ describe('staged configuration and transaction history', () => {
   it('validates explicit motor settings and preserves Undo/Redo and running locks', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(
-        async () =>
-          new Response(
-            JSON.stringify({
-              userId: 'member',
-              capabilities: ['pro_components'],
-              nextChangeAt: null,
-            }),
-          ),
-      ),
+      vi.fn(async (_input, init) => authorizationResponse(init)),
     );
     useSimulatorAccess.setState({ userId: 'member', capabilities: ['pro_components'] });
     const circuit = motorCircuit();
@@ -310,11 +302,7 @@ describe('staged configuration and transaction history', () => {
         useCircuitStore.setState({
           supply: explicitSupplyProfile({ kind: 'ac-single-phase', voltage: 230, frequencyHz: 60 }),
         });
-      finish(
-        new Response(
-          JSON.stringify({ userId: 'paid', capabilities: ['pro_components'], nextChangeAt: null }),
-        ),
-      );
+      finish(new Response(JSON.stringify(authorizationFixture(c, ['pro_components']))));
       expect(await pending).toBe(false);
       expect(snapshot().globalVoltage).toBe(230);
     },

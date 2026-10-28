@@ -1,10 +1,10 @@
 import { produce } from 'immer';
 import type { CircuitState } from './circuitStore.types';
 import {
-  accessGeneration,
   accessMessage,
-  authorizeCircuit,
-  requiredForEditor,
+  authorizeCircuitChange,
+  receiptIsCurrent,
+  requiresServerAuthorization,
 } from './simulatorAccess';
 
 type Recipe = (state: CircuitState) => void;
@@ -32,20 +32,19 @@ export function guardedCircuitSet(get: () => CircuitState, commit: (state: Circu
       return true;
     }
     try {
-      const requiredBefore = requiredForEditor(before);
-      const requiredAfter = requiredForEditor(next);
-      if (!requiredBefore.length && !requiredAfter.length) {
+      if (!requiresServerAuthorization(before) && !requiresServerAuthorization(next)) {
         commit(next);
         return true;
       }
       return (async () => {
-        const generation = accessGeneration();
-        // Revocation locks the existing document too, even if the proposed edit removes Pro content.
-        if (requiredBefore.length) await authorizeCircuit(before);
-        if (requiredAfter.some((key) => !requiredBefore.includes(key)))
-          await authorizeCircuit(next);
-        if (generation !== accessGeneration() || !sameDocument(before, get()) || !canCommit()) {
-          accessMessage('The circuit changed while checking membership. Please retry the edit.');
+        // Both drawings cross the fresh boundary, even when their displayed requirements are empty.
+        const receipt = await authorizeCircuitChange(
+          before,
+          next,
+          () => sameDocument(before, get()) && canCommit(),
+        );
+        if (!receiptIsCurrent(receipt) || !sameDocument(before, get()) || !canCommit()) {
+          accessMessage('The circuit changed while checking access. Please retry the edit.');
           return false;
         }
         // Preserve selection and other UI state that may have changed during the request.

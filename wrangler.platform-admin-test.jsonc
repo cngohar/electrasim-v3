@@ -1,0 +1,22 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "electrasim-platform-admin-test-local",
+  "main": "scripts/platform-admin-test.worker.ts",
+  "compatibility_date": "2024-09-23",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "send_metrics": false,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "platform-admin-test",
+      "database_id": "local-platform-admin-test",
+      "remote": false,
+      "migrations_dir": "migrations"
+    }
+  ],
+  "vars": {
+    "ENV": "local"
+  }
+}

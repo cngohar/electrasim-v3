@@ -19,6 +19,7 @@ import { Search, X } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { useUiStore } from '../../store';
 import { useSettingsStore } from '../../store/settingsStore';
+import { componentAccessForEditor, useSimulatorAccess } from '../../store/simulatorAccess';
 import { ComponentPreview } from './ComponentPreview';
 import { Modal } from './Modal';
 
@@ -252,6 +253,7 @@ interface Props {
 }
 
 export function Palette({ open, isPhone }: Props) {
+  useSimulatorAccess((s) => s.revision);
   const guidance = usePlacementGuidance();
   const groups = useMemo(buildGroups, []);
   const placingType = useUiStore((s) => s.placingType);
@@ -333,7 +335,7 @@ export function Palette({ open, isPhone }: Props) {
       data-palette-type={entry.type}
       data-compatibility={guidance.results[entry.type]?.status}
       aria-pressed={placingType === entry.type}
-      title={`${entry.label}: ${guidance.hint(entry.type)}${entry.tier === 'pro' ? ' · Membership' : ''}`}
+      title={`${entry.label}: ${guidance.hint(entry.type)}${componentAccessForEditor(entry.type) === 'pro' ? ' · Membership' : ''}`}
       onClick={() => choose(entry)}
       className="table-component-tile"
     >
@@ -344,7 +346,7 @@ export function Palette({ open, isPhone }: Props) {
           {assessmentPresentation(guidance.results[entry.type]!).label}
         </small>
       )}
-      {entry.tier === 'pro' && <small>Pro</small>}
+      {componentAccessForEditor(entry.type) === 'pro' && <small>Pro</small>}
     </button>
   );
   return (

@@ -16,5 +16,14 @@
       "migrations_dir": "migrations"
     }
   ],
-  "vars": { "ENV": "local" }
+  "vars": {
+    "ENV": "local"
+  },
+  "r2_buckets": [
+    {
+      "binding": "R2",
+      "bucket_name": "membership-test-avatars",
+      "remote": false
+    }
+  ]
 }

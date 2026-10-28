@@ -1,5 +1,23 @@
-import { describe, expect, it } from 'vitest';
-import { dateValue, grantState, removalMessage } from './client';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { ApiError, dateValue, grantState, removalMessage, request } from './client';
+afterEach(() => vi.unstubAllGlobals());
+describe('administrative service responses', () => {
+  it('reports an empty failed proxy response without a JSON parser error', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('', { status: 500 })));
+    await expect(request('admin/access')).rejects.toThrow('incomplete response');
+  });
+  it('retains an empty denial status so callers still clear private data', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('', { status: 403 })));
+    await expect(request('admin/access')).rejects.toMatchObject({ status: 403 });
+  });
+  it('rejects malformed successful responses as a service error', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(new Response('<html>unavailable</html>', { status: 200 })),
+    );
+    await expect(request('admin/access')).rejects.toBeInstanceOf(ApiError);
+  });
+});
 describe('administrative lifecycle descriptions', () => {
   it('distinguishes draft deletion, referenced archive, and grant revocation', () => {
     expect(removalMessage('plans', { status: 'draft', grantCount: 0 })).toContain('Delete');

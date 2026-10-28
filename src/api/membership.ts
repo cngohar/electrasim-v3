@@ -38,7 +38,11 @@ import {
 } from './membership-validation';
 
 export const membershipApi = new Hono<ApiEnv>();
-membershipApi.use('*', freshContext);
+// Hono flattens mounted middleware into the parent router. Scope every guard to
+// membership-owned paths so future platform modules have independent policies.
+for (const path of ['/plans', '/me/membership', '/admin/ping', '/admin/pro', '/admin/pro/*']) {
+  membershipApi.use(path, freshContext);
+}
 membershipApi.onError((error, c) => {
   if (error instanceof HTTPException) return c.json({ error: error.message }, error.status);
   console.error('Membership request failed', c.get('requestId'), error);
@@ -89,7 +93,7 @@ membershipApi.get('/plans', async (c) => {
   });
 });
 
-membershipApi.use('/me/*', requireSession);
+membershipApi.use('/me/membership', requireSession);
 membershipApi.get('/me/membership', async (c) => {
   const { limit, offset } = pagination(c.req.query());
   return c.json({
@@ -98,11 +102,13 @@ membershipApi.get('/me/membership', async (c) => {
   });
 });
 
-membershipApi.use('/admin/*', requireSession, requireSuperAdmin, sameOriginMutation);
-membershipApi.use(
-  '/admin/*',
-  bodyLimit({ maxSize: 32 * 1024, onError: (c) => c.json({ error: 'Body too large' }, 413) }),
-);
+for (const path of ['/admin/ping', '/admin/pro', '/admin/pro/*']) {
+  membershipApi.use(path, requireSession, requireSuperAdmin, sameOriginMutation);
+  membershipApi.use(
+    path,
+    bodyLimit({ maxSize: 32 * 1024, onError: (c) => c.json({ error: 'Body too large' }, 413) }),
+  );
+}
 membershipApi.get('/admin/ping', (c) => c.json({ ok: true, userId: c.get('actor').id }));
 membershipApi.get('/admin/pro/audit', async (c) => {
   const { limit, offset } = pagination(c.req.query());

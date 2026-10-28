@@ -3,6 +3,7 @@ import { exportJSON, importJSON } from '@electrasim/domain/circuitFormat';
 import { explicitSupplyProfile } from '@electrasim/domain/core/supplies';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { component as C, wire as W } from '../../packages/domain/src/simulation/auditFixtures';
+import { authorizationFixture } from '../test/componentAccess';
 import { clearHistory, redo, selectCircuit, undo, useCircuitStore } from './circuitStore';
 import { useElectricalEditing } from './electricalEditing';
 import { confirmElectricalEdit } from './electricalEditing.testHelpers';
@@ -152,11 +153,7 @@ describe('supply profiles across editor boundaries', () => {
       frequencyHz: 50,
     });
     useCircuitStore.setState({ supply: revised });
-    finish(
-      new Response(
-        JSON.stringify({ userId: 'paid', capabilities: ['pro_components'], nextChangeAt: null }),
-      ),
-    );
+    finish(new Response(JSON.stringify(authorizationFixture(circuit, ['pro_components']))));
     await vi.waitFor(() => expect(useSimulatorAccess.getState().pending).toBe(0));
     expect(useCircuitStore.getState().supply).toEqual(revised);
     expect(useCircuitStore.getState().globalVoltage).toBe(230);

@@ -2,6 +2,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { planPhaseGate, runPhaseGate } from './phase-gate.mjs';
+import { componentAccessSteps } from './verify-phase20a.mjs';
+import { profileSteps } from './verify-phase21.mjs';
+import { publicationSteps } from './verify-phase22.mjs';
+import { previewSteps } from './verify-phase23.mjs';
 
 const steps = [
   ['run', 'check'],
@@ -144,4 +148,92 @@ test('separate browser groups are selectable without dropping either acceptance 
     [extra],
   );
   assert.equal(selected.full, false);
+});
+
+test('2.0A full gate retains foundation and dedicated migration/API/source+built coverage', () => {
+  const plan = planPhaseGate(componentAccessSteps, []);
+  assert.equal(plan.full, true);
+  assert.equal(plan.stages.length, 18);
+  for (const id of [
+    'typecheck',
+    'lint',
+    'unit',
+    'test:gates',
+    'test:graph',
+    'build',
+    'check:perf',
+    'check:csp',
+    'check:links',
+    'check:seo',
+    'test:phase-2.0-spike',
+    'test:component-access-storage',
+    'test:component-access-api',
+    'test:platform-admin',
+    'test:membership',
+    'test:domain-local',
+  ])
+    assert(
+      plan.stages.some((stage) => stage.id === id),
+      id,
+    );
+  const [source, built] = plan.stages.slice(-2);
+  for (const spec of ['platform-admin', 'admin-membership', 'component-admin', 'component-access'])
+    assert(source.args.includes(`e2e/${spec}.spec.ts`), spec);
+  assert(built.args.includes('--config=playwright.component-acceptance-built.config.ts'));
+  for (const stage of [source, built]) {
+    assert(stage.args.includes('--retries=0'));
+    assert(stage.args.includes('--forbid-only'));
+  }
+  assert.equal(planPhaseGate(componentAccessSteps, ['--only', 'browser:2']).full, false);
+});
+
+test('Phase 2.1 full selection preserves foundation/component gates and requires profile storage, API and source/built browsers', () => {
+  const plan = planPhaseGate(profileSteps, []);
+  assert.equal(plan.full, true);
+  assert(plan.stages.some((stage) => stage.args.includes('test:profile-storage')));
+  assert(plan.stages.some((stage) => stage.args.includes('test:profiles-api')));
+  for (const args of componentAccessSteps.slice(1))
+    assert(profileSteps.some((step) => JSON.stringify(step) === JSON.stringify(args)));
+  for (const config of ['playwright.profiles.config.ts', 'playwright.profiles-built.config.ts']) {
+    const browser = profileSteps.find((step) => step.includes(`--config=${config}`));
+    assert(browser);
+    assert(browser.includes('--retries=0'));
+    assert(browser.includes('--forbid-only'));
+    assert(!browser.some((arg) => arg.startsWith('--project') || arg.startsWith('--grep')));
+  }
+});
+
+test('Phase 2.2 full gate preserves profile/foundation regression and both publication browser deliveries', () => {
+  const plan = planPhaseGate(publicationSteps, []);
+  assert.equal(plan.full, true);
+  assert.equal(plan.stages.length, 26);
+  for (const step of profileSteps)
+    assert(publicationSteps.some((value) => JSON.stringify(value) === JSON.stringify(step)));
+  for (const command of ['test:publication-storage', 'test:publications-api'])
+    assert(plan.stages.some((stage) => stage.args.includes(command)));
+  for (const config of [
+    'playwright.publications.config.ts',
+    'playwright.publications-built.config.ts',
+  ]) {
+    const browser = publicationSteps.find((step) => step.includes(`--config=${config}`));
+    assert(browser);
+    assert(browser.includes('--retries=0'));
+    assert(browser.includes('--forbid-only'));
+    assert(!browser.some((arg) => arg.startsWith('--project') || arg.startsWith('--grep')));
+  }
+  assert.equal(planPhaseGate(publicationSteps, ['--only', 'test:publications-api']).full, false);
+});
+
+test('Phase 2.3 retains the complete publication gate and adds preview runtime/source/built stages', () => {
+  assert.deepEqual(previewSteps.slice(0, publicationSteps.length), publicationSteps);
+  assert.deepEqual(previewSteps[publicationSteps.length], ['run', 'test:preview-api']);
+  const plan = planPhaseGate(previewSteps, []);
+  assert.equal(plan.full, true);
+  assert.equal(plan.stages.length, planPhaseGate(publicationSteps, []).stages.length + 3);
+  for (const config of ['playwright.preview.config.ts', 'playwright.preview-built.config.ts']) {
+    const stage = previewSteps.find((args) => args.includes(`--config=${config}`));
+    assert(stage);
+    for (const arg of ['--workers=1', '--retries=0', '--forbid-only']) assert(stage.includes(arg));
+  }
+  assert.equal(planPhaseGate(previewSteps, ['--only', 'test:preview-api']).full, false);
 });

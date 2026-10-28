@@ -90,7 +90,7 @@ test('CLI refreshes edited inputs incrementally and reports unknown phases accur
             id: 'fixture-feature',
             summary: 'Fixture feature',
             evidence: ['PLAN.md'],
-            entryPoints: ['src/a.ts'],
+            entryPoints: ['src/a.ts', 'settings/profile/index.html'],
             facts: ['fixture'],
             checks: [
               {
@@ -109,6 +109,12 @@ test('CLI refreshes edited inputs incrementally and reports unknown phases accur
     await writeFile(path.join(fixture, '.env.local'), 'PRIVATE=do-not-index');
     await mkdir(path.join(fixture, 'admin/pro'), { recursive: true });
     await writeFile(path.join(fixture, 'admin/pro/index.html'), '<div>Admin entry</div>');
+    await mkdir(path.join(fixture, 'settings/profile'), { recursive: true });
+    await writeFile(
+      path.join(fixture, 'settings/profile/index.html'),
+      '<div>Owner profile entry</div>',
+    );
+    await writeFile(path.join(fixture, 'wrangler.profiles-test.jsonc'), '{}');
     const run = (...args) =>
       execFileSync(process.execPath, [script, ...args], {
         cwd: fixture,
@@ -133,6 +139,8 @@ test('CLI refreshes edited inputs incrementally and reports unknown phases accur
     assert.match(run('check'), /current evidence/);
     assert.match(run('brief', 'not-a-real-feature'), /No curated match/);
     assert.match(run('find', 'admin/pro/index.html'), /admin\/pro\/index.html/);
+    assert.match(run('find', 'settings/profile/index.html'), /settings\/profile\/index.html/);
+    assert.match(run('find', 'wrangler.profiles-test.jsonc'), /wrangler\.profiles-test\.jsonc/);
     assert.match(run('impact', 'vite.config.ts'), /configured-by\s+src\/a.ts/);
     await writeFile(path.join(fixture, 'src/a.ts'), 'export const replacementLonger = 2;');
     assert.match(run('status'), /STALE/);

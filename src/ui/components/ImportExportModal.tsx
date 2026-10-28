@@ -1,3 +1,5 @@
+import { openImportedCircuit } from '../../store/circuitOpening';
+import { accessGeneration } from '../../store/simulatorAccess';
 import { CircuitLibrary } from './CircuitLibrary';
 /** Coordinates circuit file, image, print, and share-link workflows. */
 
@@ -194,17 +196,25 @@ export function ImportExportModal({ open, onClose, svgRef }: Props) {
 
   // ── Import handlers ─────────────────────────────────────────────────────
 
-  const loadCircuit = useCallback((circuit: Circuit, task?: number) => {
-    useUiStore.getState().setSimRunning(false);
-    useCircuitStore.getState().setCircuit(circuit);
-    useCircuitStore.getState().clearSelection();
-    useUiStore.getState().notify({
-      id: task,
-      message: `Imported circuit: ${circuit.components.length} components, ${circuit.wires.length} wires.`,
-      type: 'success',
-    });
-    setSuccess(`Loaded ${circuit.components.length} components, ${circuit.wires.length} wires.`);
-  }, []);
+  const loadCircuit = useCallback(
+    async (
+      circuit: Circuit,
+      raw: string,
+      task?: number,
+      before = useCircuitStore.getState(),
+      generation = accessGeneration(),
+    ) => {
+      await openImportedCircuit(circuit, raw, before, generation);
+      useCircuitStore.getState().clearSelection();
+      useUiStore.getState().notify({
+        id: task,
+        message: `Imported circuit: ${circuit.components.length} components, ${circuit.wires.length} wires.`,
+        type: 'success',
+      });
+      setSuccess(`Loaded ${circuit.components.length} components, ${circuit.wires.length} wires.`);
+    },
+    [],
+  );
 
   const handleFileSelect = useCallback(
     (file: File) => {
@@ -213,10 +223,12 @@ export function ImportExportModal({ open, onClose, svgRef }: Props) {
       const task = useUiStore
         .getState()
         .notify({ message: 'Reading circuit file…', type: 'info', progress: true });
-      reader.onload = () => {
+      const before = useCircuitStore.getState();
+      const generation = accessGeneration();
+      reader.onload = async () => {
         try {
           const circuit = importJSON(reader.result as string);
-          loadCircuit(circuit, task);
+          await loadCircuit(circuit, reader.result as string, task, before, generation);
         } catch (err) {
           reportError(err instanceof Error ? err.message : 'Import failed.', task);
         }
@@ -227,7 +239,7 @@ export function ImportExportModal({ open, onClose, svgRef }: Props) {
     [clearMessages, loadCircuit, reportError],
   );
 
-  const handlePasteImport = useCallback(() => {
+  const handlePasteImport = useCallback(async () => {
     clearMessages();
     const text = textRef.current?.value?.trim();
     if (!text) {
@@ -236,7 +248,7 @@ export function ImportExportModal({ open, onClose, svgRef }: Props) {
     }
     try {
       const circuit = importJSON(text);
-      loadCircuit(circuit);
+      await loadCircuit(circuit, text);
       if (textRef.current) textRef.current.value = '';
     } catch (err) {
       reportError(err instanceof Error ? err.message : 'Import failed.');

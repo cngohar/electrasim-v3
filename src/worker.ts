@@ -1,8 +1,17 @@
 // V3 Worker — Hono on Workers. Serves API + assets. Local-first: `bun x wrangler dev --local`.
 import { Hono } from 'hono';
 import { circuitsApi } from './api/circuits';
+import { previewApi } from './api/community/preview';
+import { profilesApi } from './api/community/profiles';
+import { publicationsApi } from './api/community/publications';
+import { componentAccessApi } from './api/component-access';
 import { type ApiEnv, requestAuth } from './api/context';
+import { freshContext, requireSession } from './api/context';
 import { membershipApi } from './api/membership';
+import { createAdminApi } from './api/platform';
+import { currentCommunityRestriction } from './api/platform/restrictions';
+import { profilePages } from './community/pages';
+import { publicationPages } from './community/publication-pages';
 
 // ── Durable Object stub ──
 export class PresenceRoom {
@@ -87,7 +96,17 @@ app.get('/api/standards', async (c) => {
 // ── Better Auth — mount at /api/auth/* ──
 app.on(['GET', 'POST'], '/api/auth/*', (c) => requestAuth(c).handler(c.req.raw));
 app.route('/api', membershipApi);
+app.route('/api/admin', createAdminApi());
+app.route('/api/catalog', componentAccessApi);
+app.get('/api/me/community-status', freshContext, requireSession, async (c) =>
+  c.json({ restriction: await currentCommunityRestriction(c) }),
+);
 app.route('/api', circuitsApi);
+app.route('/api', profilesApi);
+app.route('/api', previewApi);
+app.route('/api', publicationsApi);
+app.route('/', profilePages);
+app.route('/', publicationPages);
 
 // ── Locale redirect + hreflang (applied to every non-API/asset request) ──
 app.use('*', async (c, next) => {

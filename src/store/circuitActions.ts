@@ -13,10 +13,13 @@ import { useCircuitStore } from './circuitStore';
 import type { CircuitState } from './circuitStore.types';
 import { editingAllowed } from './electricalEditing';
 import {
+  type AccessReceipt,
   accessGeneration,
   accessMessage,
   authorizeCircuit,
-  requiredForEditor,
+  authorizeCircuitChange,
+  receiptIsCurrent,
+  requiresServerAuthorization,
 } from './simulatorAccess';
 import { useUiStore } from './uiStore';
 
@@ -96,9 +99,9 @@ function changeHistory(kind: 'undo' | 'redo') {
   const target = (kind === 'undo' ? history.pastStates : history.futureStates).at(-1);
   if (!target) return;
   const candidate = { ...state, ...target };
-  const apply = () => {
+  const apply = (receipt?: AccessReceipt) => {
     if (
-      generation !== accessGeneration() ||
+      (receipt ? !receiptIsCurrent(receipt) : generation !== accessGeneration()) ||
       !sameDocument(state, useCircuitStore.getState()) ||
       !editingAllowed()
     ) {
@@ -110,14 +113,17 @@ function changeHistory(kind: 'undo' | 'redo') {
     reconcileSelection();
     notifySpatialChange(before, kind);
   };
-  if (!requiredForEditor(state).length && !requiredForEditor(candidate).length) {
+  if (!requiresServerAuthorization(state) && !requiresServerAuthorization(candidate)) {
     apply();
     return;
   }
   void (async () => {
-    await authorizeCircuit(state);
-    await authorizeCircuit(candidate);
-    apply();
+    const receipt = await authorizeCircuitChange(
+      state,
+      candidate,
+      () => sameDocument(state, useCircuitStore.getState()) && editingAllowed(),
+    );
+    apply(receipt);
   })().catch(() => {});
 }
 export const undo = () => changeHistory('undo');
@@ -138,10 +144,10 @@ export function setMomentarySwitchState(id: string, on: boolean): boolean {
   const intent = (momentaryIntents.get(id) ?? 0) + 1;
   momentaryIntents.set(id, intent);
   if (component.state.on === on) return true;
-  const apply = () => {
+  const apply = (receipt?: AccessReceipt) => {
     if (
       momentaryIntents.get(id) !== intent ||
-      (on && generation !== accessGeneration()) ||
+      (on && (receipt ? !receiptIsCurrent(receipt) : generation !== accessGeneration())) ||
       !sameDocument(state, useCircuitStore.getState())
     )
       return;
@@ -155,7 +161,7 @@ export function setMomentarySwitchState(id: string, on: boolean): boolean {
     });
     if (tracking) temporal.resume();
   };
-  if (!on || !requiredForEditor(state).length) apply();
+  if (!on || !requiresServerAuthorization(state)) apply();
   else
     void authorizeCircuit(state)
       .then(apply)

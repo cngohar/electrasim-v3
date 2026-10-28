@@ -15,6 +15,7 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { markGuideCompleted } from '../../lib/guideProgressPersistence';
 import { useCircuitStore, useUiStore } from '../../store';
+import { openCircuitDocument } from '../../store/circuitOpening';
 
 interface Props {
   isPhone: boolean;
@@ -156,7 +157,7 @@ export function GuidedCircuitPanel({ isPhone, guideId }: Props) {
   if (inspectorVisible && !inspectorCollapsed) return null;
 
   const restart = () => {
-    useCircuitStore.getState().setCircuit(cloneTemplateCircuit(template));
+    openCircuitDocument(cloneTemplateCircuit(template));
     const ui = useUiStore.getState();
     ui.setSimRunning(false);
     ui.setSimResult(null);

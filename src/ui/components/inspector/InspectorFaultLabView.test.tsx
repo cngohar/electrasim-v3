@@ -6,6 +6,7 @@ import { selectCircuit, undo, useCircuitStore } from '../../../store/circuitStor
 import { useFaultLabStore } from '../../../store/faultLabStore';
 import { invalidateAccess, useSimulatorAccess } from '../../../store/simulatorAccess';
 import { useUiStore } from '../../../store/uiStore';
+import { authorizationResponse } from '../../../test/componentAccess';
 import { Modal } from '../Modal';
 import { InspectorFaultLabView } from './InspectorFaultLabView';
 
@@ -199,15 +200,8 @@ describe('accepted Fault Lab investigation', () => {
   });
 
   it('clearing one cause preserves unrelated faults, cable damage and the declared model', async () => {
-    vi.spyOn(globalThis, 'fetch').mockImplementation(
-      async () =>
-        new Response(
-          JSON.stringify({
-            userId: 'member',
-            capabilities: ['advanced_faults'],
-            nextChangeAt: null,
-          }),
-        ),
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (_input, init) =>
+      authorizationResponse(init, ['advanced_faults']),
     );
     useSimulatorAccess.setState({ capabilities: ['advanced_faults'] });
     const circuit = damageCircuit();

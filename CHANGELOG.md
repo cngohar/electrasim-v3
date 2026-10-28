@@ -18,6 +18,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 
 ### Added
 
+- Phase 2.0–2.3 community foundations: shared permission-scoped administration,
+  protected Basic/Pro component policy, public profiles and privacy, immutable
+  publications with reporting/moderation, and public circuit detail/SVG thumbnails
+  with a lazy read-only simulation preview. Current local acceptance records
+  2,348 units, 390 selected source/built browser cases and 897 unchanged electrical
+  parity cases across explicit interrupted-run recoveries. Overall Phase 2 and
+  earlier hardware/performance exceptions remain open. GitHub checkpoint is
+  separately owner-authorized; Cloudflare deployment stays disabled.
+  [Scope and recovery evidence](docs/audits/phase-2-preview.md).
+
 - Phase 1.14 bounded solver preparation/recovery and viewport-sized SVG grid
   paint have passing local functional evidence after focused recovery. The grid
   retains world alignment and native export/hit/keyboard behavior. Adds a

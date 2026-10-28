@@ -23,6 +23,7 @@ import { Suspense, lazy } from 'react';
 import { setMomentarySwitchState, useCircuitStore } from '../../../store/circuitStore';
 import { requestSupplyEdit, useConfigurationLockReason } from '../../../store/electricalEditing';
 import { useCircuitDocument, useCircuitReadiness } from '../../../store/electricalReadiness';
+import { componentAccessForEditor, useSimulatorAccess } from '../../../store/simulatorAccess';
 import { useUiStore } from '../../../store/uiStore';
 import { requestDeleteComponent } from '../../canvas-actions';
 import { getComponentImage } from '../componentImages';
@@ -45,6 +46,7 @@ export function ComponentPropertiesView({
   selectedComp,
   simResult,
 }: { selectedComp: ComponentInstance; simResult: SimulationResult | null }) {
+  useSimulatorAccess((s) => s.revision);
   const circuit = useCircuitDocument();
   const readiness = useCircuitReadiness();
   const running = useUiStore((s) => s.simRunning);
@@ -404,7 +406,7 @@ export function ComponentPropertiesView({
                       }}
                     >
                       {candidate.label}
-                      {candidate.tier === 'pro' && (
+                      {componentAccessForEditor(type) === 'pro' && (
                         <span className="block text-[9px]">Membership required</span>
                       )}
                       {preview.status === 'blocked' && (

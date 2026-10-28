@@ -1191,3 +1191,667 @@ The [plan](docs/plans/PHASE_1_14_PERFORMANCE_RELIABILITY_PLAN.md),
 [handoff](docs/handoffs/performance-reliability-next-chat.md) record the closure.
 Graph active phase advances to planned **2** (Community); no Phase 2 work, commit,
 publication or deployment is authorized by this closure.
+
+## 2026-10-22 — Phase 2 Community planned locally
+
+Added the detailed [Phase 2 plan](docs/plans/PHASE_2_COMMUNITY_PLAN.md) and
+[phase map](docs/phases/phase-2-community.md). The plan defines immutable
+publication snapshots/versions, profiles and handles, Worker-rendered community
+routes, read-only previews, explore/feed/FTS5 search, forks/attribution, social
+interactions, in-app notifications, reports/moderation and SSR/OG acceptance.
+
+The design preserves owner-private working copies, capability guards and unchanged
+performance budgets; public pages read immutable snapshots and must mark stale
+model/version verification instead of presenting it as fresh. Defaults are
+post-publication moderation, separate profiles table, explicit FTS5 sync and no
+editor bundle on discovery pages.
+
+Planning only: no migration, product implementation, commit or remote operation is
+implied. Graph records the Phase 2 scope/feature and reviews; Phase 2 implementation
+starts only after the 2.0 routing/schema spike and explicit local work.
+
+## 2026-10-23 — Phase 2 refined for shared platform administration
+
+At the user's request, expanded the existing [Phase 2 draft](docs/plans/PHASE_2_COMMUNITY_PLAN.md)
+from community moderation endpoints into a shared platform admin foundation and
+complete community admin UI. Scope now includes overview/navigation, user directory,
+system/custom roles and permissions, separate community restrictions and platform
+suspension, typed settings and scoped audit. Existing membership administration
+retains its super-admin-only guard. Later phases add their business modules through
+the accepted route/permission/settings/audit contract.
+
+2.0 now proves routing/schema/auth isolation first, then builds and verifies the
+admin foundation before 2.1. Profile, publication and comment/collection staff
+controls arrive alongside those subjects; 2.7 completes integrated administration.
+The plan explicitly covers the current membership router's broad admin middleware,
+protected actions, role/session revocation, last-super-admin concurrency, hidden
+content/cache visibility and UI acceptance rather than backend-only acceptance.
+Updated the phase map, roadmap and graph mappings. Planning only; no runtime code,
+database migration, commit, publication or Cloudflare operation is authorized or
+performed by this refinement. Historical simulator performance exceptions remain.
+
+Planning validation: all **126** relative Markdown file links in the four touched
+planning/progress documents resolve; **five graph-tool tests** pass, and diff
+whitespace checks pass. Scoped graph reviews record this planning delta only.
+Global graph freshness still reports historical unreviewed/changed records; no
+product, API, browser or performance test was rerun or claimed by this refinement.
+
+
+## 2026-10-23 — Phase 2 started: local 2.0 foundation spike
+
+The user instructed the next phase to start and reconfirmed that V3 must not use a
+global Cloudflare login. Started Phase 2 with its required 2.0 gates 1–2 and the
+[spike decision/evidence record](docs/audits/phase-2-foundation-spike.md). Membership
+middleware now guards only membership-owned routes, preserving super-admin-only
+memberships while allowing a separately guarded, later-mounted staff fixture.
+
+The isolated test entry/config proves Worker SSR over built Assets, HTML encoding,
+explicit CSP/no-store, correct missing-route 404s, actual local D1 FTS5 query plans,
+R2/KV round trips and real Queue consumption. Fixtures never enter the application
+Worker. Reserved schema numbering begins at 0007; no new product migration was
+created. Production route ownership changes wait for actual community endpoints.
+
+Current-build checks passed: **6 spike groups**, **34 membership/simulator groups**
+(on fresh retry after a retained local SQLite lock), **36 desktop/phone/Safari
+membership browser cases**, **28 affected units**, full types/lint/build and
+asset/CSP/link/SEO checks. Generated binding types use a module wrapper after
+correcting the initial global declaration conflict. Initial JS is **266,483 B gzip**
+and CSS **29,450 B gzip**, within unchanged budgets. Five graph-tool tests pass;
+relative Markdown link checks resolve **130** file links. Historical graph review
+status is separate from execution evidence.
+
+**2.0 remains open:** gate 3 implementation contracts, shared admin product/UI,
+custom permissions, suspension/session/concurrency/audit and extension acceptance
+must precede 2.1. No community feature acceptance, full parity/performance renewal,
+commit, push, account/login operation or remote resource use occurred. Phase 1.14
+exceptions remain unchanged.
+
+## 2026-10-24 — Phase 2.0 admin contracts and foundation implemented; acceptance running
+
+Resumed the user-authorized shared admin foundation after interruption. Gate 3's
+[API/security contract](docs/api/platform-admin.md) and gate 4 implementation are
+present: common shell/users/roles and system matrix, separate community restrictions
+and platform suspension, typed settings/scoped audit, standards and protected
+membership integration. The [foundation record](docs/audits/phase-2-admin-foundation.md)
+tracks executed checks and retained failures; the
+[acceptance manifest](docs/audits/data/phase20-acceptance.json) is explicitly in progress.
+
+The implementation uses a conservative global revision for concurrent admin writes,
+atomic audit and session deletion, a Better Auth session hook/primary guards/insert
+trigger for suspension, and a local-only module extension fixture. Migration 0007
+preserves membership/private/retired data. The old external CMS index is replaced
+by local Vite admin entries and strict same-origin headers. Community subjects and
+reports remain unimplemented; no future module links or electrical-rule controls.
+
+Initial 18 real Worker/D1/session groups and eight focused registry/settings/upgrade
+checks passed. Browser exploration exercised the workflows and security cleanup;
+selector/persistent-test-data failures were corrected with focused recovery. The
+full `bun run verify:phase-2.0` gate is running, so **2.0 remains open and 2.1 is not
+started**. No account/login, remote operation, commit, push or publication occurred.
+
+
+## 2026-10-24 — Phase 2.0 shared admin foundation accepted locally
+
+The full `bun run verify:phase-2.0` gate exited 0 with all **16 stages** passing:
+**2,232 units / 147 files**, types/lint/build/static checks, **6 spike groups**,
+**20 new admin groups**, **34 existing membership/simulator groups**, **897 parity
+cases**, and **66 source + 66 built browser cases** across desktop/phone/WebKit.
+The [acceptance record](docs/audits/phase-2-admin-foundation.md) and
+[manifest](docs/audits/data/phase20-acceptance.json) record exact scope, files and
+retained limitations. No browser assertion was skipped or retried in the full gate.
+
+Seven admin routes also passed actual built-Worker and actual development-Worker
+CSP/private-no-store/noindex/entry-isolation/404 checks. Initial app JS is
+**266,494 B gzip**, CSS **29,450 B gzip**, within unchanged budgets. The populated
+upgrade preserves legacy private documents, memberships and audit. Applied only
+pending migration **0007** to `.wrangler/state` with `--local` (23 successful
+statements); the actual dev Worker serves `http://127.0.0.1:8791/admin/`.
+
+**2.0 is complete locally within its documented foundation scope.** The overall
+Community phase remains open; **2.1 profiles/privacy is planned, not started**.
+Public-subject/report moderation and later modules retain their own acceptance.
+Phase 1.14 hardware performance exceptions remain unchanged. Workerd's retained
+built-test broken-pipe diagnostics did not fail any browser case. No Cloudflare
+login/account/remote operation, commit, push or publication occurred.
+
+
+### 2026-10-24 — Admin design concept for owner review
+
+- Owner requested richer appearance and workflows, then explicitly asked for an
+  HTML demo before production changes. Functional 2.0 acceptance remains separate.
+- Local-only concept: `docs/design/platform-admin/`, served with
+  `node scripts/preview-platform-admin.mjs` at `http://127.0.0.1:8794/`.
+- Added explicit membership plan creation/editing (identity, capabilities, duration,
+  draft/active/archive, live preview, reviewed reason), protected assignment and
+  member grant history. Dedicated `#users/:id` pages expose identity, roles/effective
+  access, memberships, independent restrictions/suspension and scoped history;
+  the right drawer remains quick view with Open full profile.
+- Browser verification passed (exit 0) on desktop/phone Chrome and tablet WebKit:
+  `node scripts/check-platform-design.mjs`; artifacts in
+  ignored `.wrangler/platform-admin-design/`. These checks exercise the standalone
+  fictional demo, not production/API acceptance. Reload resets sample changes.
+- No production adaptation, phase advancement, deployment, account operations or
+  remote testing. Owner design approval remains pending.
+
+
+### 2026-10-24 — Schedule component access and support before Community launch
+
+- Owner authorized the recommendation to explicitly schedule component access
+  management and a small support desk; full Content Studio stays in Phase 5.
+- Added `docs/plans/PHASE_2_ADMIN_EXTENSIONS_PLAN.md`, linked through the Phase 2
+  map, detailed Community plan and master roadmap. **2.0A** is planned next,
+  before profiles: super-admin Free/Pro policy for existing Pro IDs, locked Basic
+  baseline, shared simulator/server enforcement, atomic audit and race/recovery
+  checks. Full executable component editing and per-plan packs remain deferred.
+- **2.7A** follows 2.6 notifications and 2.7 moderation: private user tickets,
+  staff queue/replies/internal notes, assignment/status/priority, scoped audit and
+  in-app updates. Owner isolation, internal-note confidentiality, revoked roles,
+  transition races and notification retries have explicit acceptance requirements.
+  Email, attachments, chat and SLA automation are outside the MVP.
+- Both new milestones must pass before final **2.8** Community closure. All new
+  schemas/endpoints/permissions/tests remain proposed and unimplemented; this is
+  scheduling/scope work, not a feature delivery or renewal of historical 2.0 tests.
+  No production source, deployment, Cloudflare login/account/resource operation or
+  live-site test was performed. Local-only restrictions and Phase 1 exceptions stand.
+
+- Planning verification: checked all 63 local Markdown link targets across the
+  extension plan, Community plan/map and master roadmap; checked planned graph
+  milestone mappings and all 50 unchanged production source fingerprints. These
+  are documentation/baseline checks, not execution of the future feature matrices.
+
+### 2026-10-24 — Start 2.0A and integrate the owner-approved admin panel
+
+- Started the next milestone, **2.0A**, with a complete canonical inventory:
+  **116 component IDs, 75 protected Basic and 41 originally Pro**. Added the
+  [execution gates](docs/plans/PHASE_2_0A_COMPONENT_ACCESS_PLAN.md),
+  [typed policy/schema/API contract](docs/api/component-access.md), baseline
+  inventory and dedicated audit. The contract explicitly closes previously-Free
+  policy races in server saves and client authorization, while preserving electrical
+  behavior and original read-only documents. Runtime implementation remains open.
+- Extended the isolated HTML Components demo with all canonical display records,
+  search/category/access filters/pagination, deep-link detail, Basic lock, reasoned
+  Free↔Pro review/history and stale-conflict/reload workflow. Inventory and browser
+  checks passed on desktop/phone Chromium and WebKit; these are design-only checks.
+- The owner then **approved this admin panel and explicitly authorized local
+  integration**. A subsequent instruction allows features outside the current
+  milestone to stay in their scheduled phase with explicit progress notes.
+- Integrated the approved shared responsive shell, actual staff identity/navigation,
+  command search, real scoped overview, user table/filter projections, dedicated
+  admin account routes/quick view, existing roles/settings/audit/standards, and
+  protected membership screens. User pages link to preselected real membership
+  assignments and grant history. Existing live plan-benefit semantics remain;
+  fictional prototype grant snapshots do not change the membership store.
+- Migration **0008** adds only role/name and registration indexes; the populated
+  upgrade test verifies preservation. Isolated local API gate passed **20 groups**;
+  focused unit/client/migration checks passed **11 tests**, initial types/lint/build
+  passed. Final full integration gate is running with a separate evidence root:
+  `.wrangler/platform-admin-integration-2026-10-24/`. Historical 2.0 manifest stays
+  unchanged. See the [integration audit](docs/audits/platform-admin-design-integration.md)
+  for retained failures and final acceptance status.
+- **Explicit later-phase work:** component policy/enforcement remains **2.0A**;
+  public profiles/privacy **2.1**; actual public-subject moderation with 2.2/2.6 and
+  integrated **2.7**; support desk **2.7A**; Content Studio **Phase 5**; billing
+  **Phase 7**. The approved preview does not move those modules into this integration.
+- **Additional admin proposals deferred:** registration-growth analytics, reviewed
+  bulk staff changes and full-directory CSV exports need their own scoped admin
+  enhancement and query/concurrency/export acceptance. No fictional values or
+  inactive production controls stand in for those features.
+- All development/testing remains local. No Cloudflare login/account/remote
+  operation, live-site test, deployment, commit or push is authorized or performed.
+  Phase 1 performance exceptions and overall Phase 2 closure remain unchanged.
+
+
+### 2026-10-24 — Approved admin integration complete locally
+
+- Full **16-stage scope accepted** from the recorded full-attempt prefix and
+  explicit browser recovery; the single full-default runner did not exit 0. The
+  recovery selected both browser stages and exited 0. Evidence is under
+  `.wrangler/platform-admin-integration-closure-2026-10-24/`; the separate
+  [integration acceptance](docs/audits/data/platform-admin-design-acceptance.json)
+  preserves the historical Phase 2.0 manifest and records final source fingerprints.
+- **2,232 units / 147 files**, types/lint/build/CSP/links/SEO/asset budgets,
+  **20 admin + 34 existing API groups**, **897 parity** and **75 source + 75 built
+  browser cases** passed on desktop, phone and WebKit. No skipped/retried accepted browser
+  cases. Earlier failed attempts and their actual layout/focus fixes remain in the
+  [audit](docs/audits/platform-admin-design-integration.md).
+- Real local panel: `http://127.0.0.1:8791/admin/`. Applied only pending **0008**
+  locally (index-only; three successful commands), preserving development data.
+  Seven final actual-Worker routes passed asset/privacy-header/unknown-route checks.
+- **2.0A design gate is complete; runtime policy/enforcement is still next and
+  required before 2.1.** Overall Phase 2 remains open. Current integration includes
+  the live existing foundation/membership workflows, not future feature modules.
+- Owner-approved deferrals remain explicit: profiles 2.1; actual subject moderation
+  with its subjects and 2.7; support 2.7A; Content Studio Phase 5; billing Phase 7.
+  Analytics, bulk staff operations and full-directory exports require a separately
+  scoped admin extension. No inactive production controls or fictional data ship.
+- No remote operation, deployment, commit or push. Phase 1 performance exceptions
+  remain unchanged; functional/asset acceptance is not hardware certification.
+
+## Session 2026-10-24 — Approved admin visual parity follow-up
+
+The owner compared the integrated routes with the approved prototype and reported
+that user detail tabs were missing and Standards, Community settings and Membership
+looked different. These are part of the current approved administration integration,
+not later-phase work; none was recorded as a deferral.
+
+Restored the user Overview/Access/Memberships/Activity tabs with arrow-key tab
+navigation, and applied the approved reference-card, settings and membership layouts
+to the actual routes while retaining real APIs, protected actions and current
+membership semantics. Added focused browser assertions for tabs, keyboard movement,
+page structure, read-only settings and route navigation. No sample data was added to
+production. The isolated browser D1 has no standards seed and therefore shows the
+intentional empty state; a local-only read confirmed that the actual development D1
+in `.wrangler/state` contains four canonical standards rows. No seed was run.
+
+Validation: two focused source-browser commands passed **3/3 desktop Chromium,
+phone Chromium and tablet Safari project cases each** (profile/layout flow and
+moderator/settings/standards flow). Changed-file Biome lint and full repository
+typecheck passed.
+Screenshots are ignored under `.wrangler/`. The previously recorded 16-check
+integration acceptance remains tied to its recorded source state; its complete gate
+was not rerun after these presentation corrections. Phase 2.0A B–F, Phase 2.1 and
+the previously documented later-phase deferrals remain open.
+
+## Session 2026-10-24 — Membership action placement and tab radius correction
+
+The owner found two remaining differences in the live prototype integration: the
+Membership screen's Create/Assign actions appeared below the tabs, and the profile
+tabs could retain rounded button styling. Both are current-scope visual parity bugs.
+Moved **Assign membership** and **Create membership plan** to the page heading's
+upper-right; removed the duplicate below-tab create action; explicitly set profile
+and membership tabs to square corners with the underline active state.
+
+Added browser assertions for header placement, no create button beneath the tabs,
+and computed profile-tab border radius. Changed-file Biome lint and full repository
+typecheck passed. The focused source-browser flow passed desktop Chromium, phone
+Chromium and tablet Safari (**3/3**). Its screenshot is ignored at
+`.wrangler/admin-parity-memberships.png`. The original 16-stage gate was not rerun
+after this focused presentation correction; Phase 2.0A runtime and later-phase
+features remain open as previously recorded.
+
+## Session 2026-10-24 — Complete actual/demo administration comparison
+
+Compared 16 actual/demo screen-state pairs (32 ignored local captures) across all
+seven current-scope pages, four full-user sections, three drawer sections, plan
+editing and assignment. Fixed further gaps in drawer workflows, profile hierarchy
+and latest/scoped activity, custom-role dialogs/table/permission matrix, plan
+editor/live preview and member assignment/review, plan benefit/count/code cards,
+compact audit filters, settings ordering, navigation order and legacy CSS overrides.
+Preserved actual membership semantics and protected/scoped reads. Empty API bodies
+now report a service error while retaining denial status. Canonical standards are
+seeded into isolated browser stores to cover the four actual reference cards.
+
+The detailed [parity review](docs/audits/admin-prototype-parity-review.md) explicitly
+records remaining demo-only and later work: analytics/attention/export and bulk
+tools, additional protected directory membership projections, unavailable sign-in
+metadata, and all previously deferred Components/subjects/support/CMS/billing work.
+The additional admin proposals have no committed delivery phase until separately
+scoped; they are not claimed complete. Demo role personas/reset/sample records never
+enter production. Code-owned labels and live plan-feature links remain authoritative.
+
+All 14 non-browser checks passed in the retained full attempt: 2,235 units / 147
+files, 20 admin and 34 existing API groups, 897 cross-runtime parity cases and all
+types/lint/build/static checks. Source browsers reached 77/78; the sole failure was
+a guest-session test revoking its cookie before initial loading completed. Added a
+readiness barrier, retaining the same private cleanup assertions. Product code is
+unchanged. E2E types/lint passed, and complete source/built browser matrices are
+being recovered with an explicit `--from browser` run. Full acceptance remains
+pending that recovery and must combine it with the retained non-browser prefix.
+Next remains 2.0A runtime gates B–F; this review does not start 2.1 or close Phase 2.
+
+
+## Session 2026-10-24 — Complete admin comparison accepted locally
+
+The explicit browser recovery exited 0 with **78/78 source + 78/78 built cases**
+(26 workflows across desktop Chromium, phone Chromium and tablet WebKit on both
+deliveries), without skips or retries. Combined with the retained 14-stage
+non-browser prefix, all **16 required checks** are accepted: **2,235 units / 147
+files, 20 admin and 34 existing API groups, 897 cross-runtime parity cases** plus
+types/lint/build/assets/CSP/links/SEO/tooling. The initial full-run guest-session
+readiness race and its test-only fix remain documented; no single full-default
+runner exit 0 is claimed. Product source hashes remained unchanged through recovery.
+
+Refreshed all 16 actual/demo pairs against final source (32 ignored captures; no
+desktop horizontal overflow). An additional built asset/header check passed seven
+routes/scripts. App assets remain **266,556 B JS gzip / 29,462 B CSS gzip**, within
+existing budgets. The [review](docs/audits/admin-prototype-parity-review.md) and
+[new manifest](docs/audits/data/admin-parity-review-acceptance.json) record current
+acceptance and explicit deferrals. Earlier manifests remain historical; graph
+fingerprints are review metadata, not passing-test claims.
+
+The requested comparison and current-scope corrections are complete locally.
+**Next is 2.0A runtime gates B–F before profiles 2.1.** Overall Phase 2 and prior
+hardware-performance exceptions remain open. No deployment, remote account/site
+operation, commit or push occurred; the normal development D1 was not seeded or migrated.
+
+## Session 2026-10-25 — Owner accepts admin review; Phase 2.0A Gate B
+
+The owner explicitly confirmed the completed Phase 2.0 admin panel review is
+accepted and authorized starting the next milestone. The accepted plan identifies
+**2.0A component Free/Pro access management before profiles 2.1**. Recorded that
+owner decision without changing historical acceptance manifests or their deferrals.
+
+Completed Gate B's shared policy/storage foundation: explicit code-owned 116-ID
+baseline (75 protected Basic / 41 originally Pro), complete strictly validated,
+immutable and runtime-branded policy snapshots, optional pure content/circuit
+policy inputs and original-Pro detection for later fresh action checks. Current
+application callers still use original classification. Migration 0009 follows
+actual 0008 and adds immutable baseline, separate policy revision and guarded
+Pro-only overrides with Drizzle mirror. Basic classification cannot be changed by
+UPDATE/DELETE/REPLACE; override target, enum, safe integer, timestamp and actor
+constraints apply. No electrical definitions or solver behavior changed.
+
+Focused checks passed: **59 access units**, **8 real local D1 storage groups**,
+full repository typecheck and inventory. Populated pre-0009 upgrade preserves every
+prior application table's rows, including private circuits, historical attempts,
+grants and both audits. All 116 immutable baseline IDs and all 75 Basic override
+denials are exercised; a failed D1 batch leaves revision/overrides/audit unchanged.
+Two test-harness setup failures and their corrections remain in the
+[component audit](docs/audits/phase-2-component-access.md); no assertion was skipped.
+The normal development database was not opened or migrated.
+
+The full existing 16-stage admin regression gate exited **0 with full selection**
+under `.wrangler/component-access-gate-b-2026-10-25/`: **2,269 units / 148 files,
+6 spike / 20 admin / 34 existing membership-simulator groups, 897 parity cases,
+78 source + 78 built browser cases without skips or retries**, plus full static,
+build and tooling checks. Asset budgets pass at 267,361 B entry JS gzip and
+29,462 B CSS gzip. Gate B source hashes remained unchanged. Existing workerd
+broken-pipe stderr is retained, as in the previous accepted built run. Global graph
+freshness still has historical unreviewed/changed records; scoped reviews do not
+turn a fingerprint into a test result.
+This is a regression check for the shared foundation, not dedicated 2.0A runtime
+acceptance. **Gates C–F remain pending**: authoritative protected/public API and
+racing action predicates, simulator policy lifecycle/recovery, real Components UI
+and dedicated source/built policy acceptance. Phase 2.1 and overall Phase 2 remain
+open; prior hardware/performance exceptions remain unchanged. All work is local.
+
+## Session 2026-10-25 — Phase 2.0A Gate C authoritative server boundary
+
+Continued the next supported step after Gate B, keeping profiles 2.1 blocked on
+full 2.0A. Implemented public metadata-only component policy, protected catalogue
+list/detail/access mutations and independently scoped history. Overrides, the admin
+revision, separate policy revision and append-only audit commit atomically under
+current actor/policy/effective-access predicates. All Basic mutations are locked;
+ordinary, paid, organization, custom and system roles cannot receive catalogue powers.
+Components navigation stays with the actual Gate E screen.
+
+Server circuit actions read primary policy and membership, bracket membership with
+policy revisions, and repeat final authority after authorization/simulation work.
+Every content-saving INSERT/PATCH has a policy predicate even with no required
+benefit; PATCH checks its read version and old/replacement requirement union.
+Owner documents remain intact/read-only after downgrades, explicit Basic copies
+and owner deletion remain available, and electrical results stay unchanged.
+Client policy freshness, action coverage and recovery remain Gate D.
+
+The new isolated local `test:component-access-api` passed **14/14 real Worker/D1 /
+cookie HTTP/race groups**. Test-only request-local D1 interception exercises actual
+production statements, without adding production hooks. Also passed **120 selected
+units**, full types, **20 existing admin** and **34 existing membership/simulator**
+groups. Initial harness failures, corrections and local paths are retained in the
+[component audit](docs/audits/phase-2-component-access.md); no assertion was skipped.
+The full existing 16-stage regression exited **0 with full selection** under
+`.wrangler/component-access-gate-c-2026-10-25/`: **2,269 units / 148 files, 6 spike /
+20 admin / 34 existing membership-simulator groups, 897 parity cases, and 78 source +
+78 built browser cases without skips/retries**. Types/lint/build/static/tooling and
+unchanged asset budgets passed (267,361 B JS gzip / 29,462 B CSS gzip). All 17 recorded
+source/harness hashes matched after completion. Built logs retain existing workerd
+broken-pipe stderr; no assertions or logs were suppressed.
+
+**Gate C is complete locally; next is Gate D client freshness/action/recovery.**
+This server evidence and existing-foundation regression do not accept full 2.0A. Gates D–F, profiles 2.1 and overall Phase 2 remain open.
+All development/testing stayed local; the normal development database was not migrated.
+
+## Session 2026-10-25 — Phase 2.0A Gate D client policy and recovery
+
+Implemented expiring validated display policy, local receipt timing, original-Pro
+fresh action checks even when Free, account/request/revision invalidation and
+fresh original/replacement checks before local commits. Focus, visibility return,
+offline, sign-out and the visible refresh timer invalidate prior authority.
+Basic-only operations keep their synchronous offline path. Originally-Pro local
+simulation results receive a final fresh check before publication or derived damage;
+authority loss stops the run and preserves its drawing.
+
+Imports/templates/opening retain complete drawings for viewing after denial;
+file imports retain exact raw text before replacement, Basic copies retain the
+original and remain independent of temporary Free policy, and Saved circuits can
+reopen preserved originals. Private account list/load/save completions check the
+captured account/access/document state. Effective component labels follow policy;
+curriculum/interface modes remain separate from paid benefits.
+
+Dedicated checks passed: **36 new policy/opening/simulation race units**, selected
+**53 units / 5 files**, repeated **14 existing Gate C server groups**, and **12 source
++ 12 built actual local editor browser cases** across desktop/phone/WebKit without
+skips/retries. The full existing 16-stage regression completed with full selection
+and exit 0 at `.wrangler/component-access-gate-d-2026-10-25/`, passing
+**2305 units / 151 files, 6 spike / 20 admin / 34 membership-simulator groups and
+897 unchanged parity cases**, full types/lint/build/static/tooling and asset budgets
+(268,946 B JS gzip / 29,462 B CSS gzip), plus **78 source + 78 built existing admin
+browser cases** without skips/retries. All 27 implementation/harness hashes matched.
+**Gate D is complete locally; next is Gate E, the reviewed Components admin UI.**
+Initial failures and their corrections remain in the
+[component audit](docs/audits/phase-2-component-access.md). Full 2.0A, actual Components
+admin UI Gate E, dedicated final acceptance F, profiles 2.1 and overall Phase 2 remain
+open. Development and testing remain local; no normal development migration or remote operation.
+
+
+## Session 2026-10-25 — Phase 2.0A Gate E production Components admin
+
+Implemented the approved Components catalogue in the shared shell at
+`/admin/components/`, with real protected navigation/API reads, canonical
+descriptions/category/inventory metadata, bounded filters/pagination, locked Basic,
+explicit unavailable usage counts, reasoned Pro↔Free reviews and actual scoped
+history. Save retains the selected detail; pending submissions cannot repeat.
+Conflicts require a current-policy reload and a new reason even after closing the
+review. Native dialog focus/cancel, phone layout, obsolete-response guards and
+revoked/expired staff data clearing are covered.
+
+Passed **15 source + 15 built dedicated browser cases** across desktop/phone/WebKit,
+**14 repeated server HTTP/race groups**, and actual built asset/header checks for
+**8 admin pages / 9 scripts / unknown-route 404**. The full existing 16-stage
+regression completed with full selection and exit 0: **2305 units / 151 files,
+6 spike / 20 admin / 34 membership-simulator groups, unchanged 897 parity and
+78 source + 78 built existing admin browser cases**, without skips/retries. Full
+types/lint/build/static/tooling and asset budgets passed (268,979 B JS gzip /
+29,462 B CSS gzip); all 31 source/harness fingerprints matched. Initial harness
+failures/corrections remain recorded in the [audit](docs/audits/phase-2-component-access.md)
+and [scoped manifest](docs/audits/data/component-access-gate-e-acceptance.json).
+
+**Gate E is complete locally. Next is dedicated full 2.0A acceptance F before
+profiles 2.1.** Overall Phase 2, support 2.7A and prior hardware exceptions remain
+open. Normal development persistence and remote resources were not used or migrated.
+
+
+## Session 2026-10-25 — Phase 2.0A Gate F full local acceptance
+
+Confirmed F was the next step after E. Added `bun run verify:phase-2.0a`, retaining
+the existing foundation scope plus dedicated migration/storage, policy API/races
+and combined source/built admin/editor browser suites. The gate preserves new
+evidence directories, full/partial selection, logs/artifacts and source stability;
+tooling verifies that required dedicated groups and all four browser suites remain
+in the full command. Built global setup checks actual admin assets/headers.
+
+Full execution exited **0 with all 18 stages passing**: **2305 units / 151 files**,
+6 infrastructure / 8 populated-upgrade storage / 14 component API-race / 20 admin /
+34 membership-simulator groups, **897 unchanged parity**, and **105 source + 105
+built browser cases** across desktop/phone Chromium and tablet WebKit without
+skips/retries (12.0m / 10.5m). All 8 admin pages / 9 entry scripts and unknown-route
+404 passed. Types/lint/build/static/tooling and unchanged 268979 B JS gzip / 29462 B
+CSS gzip budgets passed. All **1318 selected implementation/harness hashes** matched.
+
+Reviewed manifest, results, every stage log, browser project counts and fresh
+Components desktop/phone screenshots. No Gate F stage/assertion failed; existing
+workerd broken-pipe and tooling warnings remain in logs. Added the dedicated
+[2.0A manifest](docs/audits/data/phase20a-acceptance.json), full exit-group mapping,
+log/reviewed-source hashes and [audit](docs/audits/phase-2-component-access.md).
+Updated current phase/roadmap/graph status; historical foundation/admin-parity/B-E
+manifest scopes and recovery distinctions remain unchanged.
+
+**Gate F and 2.0A are complete locally. Next is profiles 2.1, not started.** Later
+publish/preview/fork policy checks remain required in 2.2/2.3/2.5 and 2.8. Overall
+Phase 2, support 2.7A and prior Phase 1 hardware/performance exceptions remain open.
+All stores/cookies/browser targets were local; normal development persistence,
+Cloudflare credentials/accounts/remote resources, deployment and publication were
+not used. No commit or push occurred.
+
+## Session 2026-10-25 — Phase 2.1 profiles design demo
+
+Owner requested starting the next phase and a demo for review/approval. Confirmed
+recorded 2.0A Gates A–F acceptance and 2.1 scope through the graph and linked plans.
+Built an isolated local [profile concept](docs/design/profiles/README.md): public
+profile/about/empty circuits, editor/live preview, handle claim and avatar, independent
+privacy, report submission/dedupe, staff reasoned hide/restore/remove/avatar removal,
+report outcomes, read-only persona and stale revision recovery. Reset chooses new,
+public, private, hidden and removed sample states. All changes are memory-only.
+
+`bun run check:profiles-demo` passed desktop/phone Chromium and tablet WebKit;
+focused lint/format/syntax checks passed. Reviewed desktop/phone screenshots and
+corrected the staff layout before the final run. These are prototype checks, not
+production schema/API/R2/SSR/auth/audit or source/built/full milestone acceptance.
+See the [audit](docs/audits/phase-2-profiles.md) and
+[execution gates](docs/plans/PHASE_2_1_PROFILES_PLAN.md).
+
+**2.1 started at design review; owner approval pending. Production not started.**
+Proposed review decisions: new profiles private by default, optional institution/
+level hidden, and handles claimed once without member rename UI in this release.
+After approval: storage/policy → APIs/avatar → owner/staff UI/SSR → full dedicated
+local acceptance. Overall Phase 2, later milestones and prior hardware exceptions
+remain open. No normal persistence, Cloudflare account/credential/remote operation,
+deployment, commit or push. Historical acceptance scopes remain unchanged.
+
+## Session 2026-10-26 — approved Phase 2.1 local integration and acceptance
+
+Owner approved the profile demo and authorized integration after confirming that
+public `/u/:handle`, owner-only `/settings/profile/` and staff-only
+`/admin/community/` are separate real routes. Implemented profile storage/backfill/
+permanent handles/private defaults, owner/public projections, bounded validated
+R2 avatars with visibility-safe delivery and durable cleanup candidates, profile
+reports/auto-hide/text policy/rate limits, and reasoned atomic staff moderation.
+Real owner settings and public SSR reuse the approved design; staff review reuses
+the existing permission-filtered shell. Product code uses no prototype personas or
+fictional account data. Normal browser harness has isolated profile fixtures/R2.
+
+Focused storage passed 8 groups; final HTTP/race selection passed 21, including a
+red→green post-commit response regression and owner/staff session revocation during
+R2 reads. Focused source and built profile browser matrices each passed 30 cases
+across desktop/phone Chromium and tablet WebKit; normal browser harness smoke
+passed 2 cases. Visually reviewed desktop/phone owner/public/staff screenshots.
+Fixed native claim-dialog focus return and the hidden phone admin reload action.
+Static private entry metadata was added without excluding SEO requirements.
+The historical SSR spike profile stub was namespaced so its assertions coexist
+with the real unavailable-profile route; all 6 infrastructure groups passed.
+
+The dedicated full `verify:phase-2.1` exited 0 at
+`.wrangler/phase21/acceptance-2026-10-26f/`: all 22 stages passed. This includes
+2339 units / 153 files, tooling, build/budgets/CSP/links/SEO, 6 spike / 8 component
+storage / 14 component API / 20 admin / 34 membership-simulator groups, 897 unchanged
+electrical parity and 8 profile storage / 21 profile API groups. All 105 existing
+source + 105 existing built + 30 profile source + 30 profile built browser cases
+passed without skips/retries across desktop/phone/WebKit. All 1350 selected source/
+harness hashes matched; stability is separate from executed outcomes. Reviewed all
+22 log hashes and current source hashes against the dedicated tracked manifest.
+
+**Phase 2.1 Gates A–E complete locally.** Normal local D1 files were backed up to
+`.wrangler/local-backups/profiles-20261026T020450Z/` before applying pending
+0009/0010 migrations with explicit local persistence. The integrated app is running
+at `http://127.0.0.1:8791`: real owner editor `/settings/profile/`, public
+`/u/:handle`, and permission-gated staff `/admin/community/`. Ordinary persistence
+smoke checks passed health/editor/admin delivery, anonymous owner API denial and
+neutral no-store/noindex public 404. No demo identities were seeded into it.
+
+See [execution plan](docs/plans/PHASE_2_1_PROFILES_PLAN.md),
+[API contract](docs/api/profiles.md), [audit](docs/audits/phase-2-profiles.md) and
+[acceptance manifest](docs/audits/data/phase21-acceptance.json).
+Overall Phase 2 remains active; 2.2 is the next planned milestone. Later publication/
+fork/social/support requirements and Phase 1 hardware/performance exceptions remain
+open. Historical acceptance scopes keep their recovery distinctions. No Cloudflare
+account/credential/remote operation, deployment, commit or push occurred.
+
+
+## Session 2026-10-27 — Phase 2.2 publications and local acceptance
+
+Implemented saved-circuit publishing with immutable, validated versions and stable
+slugs, owner republish/unpublish/tombstones, privacy-safe public metadata/history
+and version-bound reports. Added the owner publications workspace and reasoned
+publication/report moderation in the existing staff shell. Saved source, session,
+restriction, capability and policy guards commit with snapshot/quota/audit writes;
+private edits stay separate and publishing never claims electrical certification.
+
+All 26 stage identities have passing evidence on 1,367 unchanged source/harness
+inputs: 2,342 units / 154 files, 324 browser cases without skips/retries, 8 publication
+storage / 22 real Worker-D1 HTTP/race groups, complete existing profile/admin/
+component/membership checks and 897 unchanged electrical parity cases. Build/static
+checks preserve the existing app budgets. Reviewed all eight source/built desktop/
+phone owner/staff screenshots and actual built delivery/headers.
+
+Coverage explicitly combines D's first 18 passing stages with the eight-stage
+`recovery-2026-10-27a`, after a machine restart interrupted D's built profile stage
+and a source WebKit case timed out. The complete source browser recovery passed
+with unchanged deadlines; no failed attempt is relabelled successful. The recovery
+manifest records status 0 for all eight child stages and unchanged inputs, while
+the enclosing execution session subsequently reported 143. No uninterrupted
+full-default or whole-command exit-0 claim is made. See the
+[acceptance audit](docs/audits/phase-2-publications.md) and
+[dedicated manifest](docs/audits/data/phase22-acceptance.json).
+
+Ordinary local D1 was backed up before migration 0011. After the restart, the
+ordinary local Worker was restored on 8791 with all five delivery checks passing;
+no migration or fixture seeding was repeated. Historical acceptance scopes and
+hardware/performance exceptions remain unchanged. **2.2 is complete locally; next
+is 2.3 read-only preview/public detail.** Overall Phase 2 and support 2.7A remain
+open. No Cloudflare account/resource/credential operation, remote test, deployment,
+commit or push occurred.
+
+## Session 2026-10-27 — Phase 2.3 public detail and read-only preview
+
+Owner authorized continuing the next phase. 2.2's scoped local completion was
+reviewed before beginning 2.3. Added store-independent shared device/wire drawing,
+immutable `/c/:slug` HTML and SVG thumbnails, version/provenance/author metadata,
+and an explicitly lazy DOM-only preview. Simulation uses immutable snapshots and
+fresh current policy/membership checks before/after computation, plus final
+combined primary visibility/access predicates. No migration, editor/autosave/result
+write, remote account operation or deployment is involved.
+
+Focused renderer/editor and real local HTTP/browser checks passed within their
+recorded selections; the dedicated 29-stage gate is pending. See the
+[2.3 plan](docs/plans/PHASE_2_3_PREVIEW_PLAN.md),
+[API contract](docs/api/preview.md) and [audit](docs/audits/phase-2-preview.md).
+Overall Phase 2 and all earlier hardware/performance exceptions remain open.
+
+## Session 2026-10-28 — Phase 2.3 local closure with explicit recovery
+
+Completed public detail/no-JS schematics, deterministic SVG thumbnails and the
+lazy read-only simulation preview. All 29 stage identities now have passing
+evidence on 1,387 unchanged inputs: 2,348 units / 155 files, 390 browser cases,
+9 preview HTTP/race groups, complete previous regression and 897 unchanged
+simulation/compiler/electrical parity cases. Eight final screenshots inspected.
+
+D retained 19 passing stages before interruption. Recovery A passed nine later
+stages, with 104 built cases plus one existing stale-plan WebKit timeout in its
+failed built matrix. The unchanged case passed a supplementary traced selection;
+recovery B then passed the complete 105-case built matrix with the original
+assertions/deadlines and command exit 0. Only that full passing built stage
+contributes to closure. No uninterrupted full-selection exit 0 is claimed.
+See [audit](docs/audits/phase-2-preview.md) and
+[manifest](docs/audits/data/phase23-acceptance.json).
+
+The ordinary local Worker is available on 8791; all eight delivery checks passed
+without migration or fixture seeding. No remote account/resource/credential
+operation, deployment, commit or push occurred. **2.3 is complete locally; next
+is 2.4 Explore, feed and search.** Overall Phase 2 and earlier hardware/performance
+exceptions remain open.
+
+## Session 2026-10-28 — owner-authorized GitHub checkpoint
+
+After local Phase 2.3 acceptance, the owner explicitly requested updating Git and
+pushing to GitHub. The checkpoint includes the pending interdependent Phase 2.0
+admin foundation, 2.0A component policy, 2.1 profiles, 2.2 publications and 2.3
+public detail/preview work, plus their plans/contracts/acceptance records.
+The target is the existing `origin` repository `cngohar/electrasim-v3`, branch
+`main`; the legacy repository and other local remotes are excluded.
+
+The accepted 1,387 source/harness inputs were rechecked before staging and remain
+unchanged. GitHub publication is separately authorized from Cloudflare deployment:
+local bindings/placeholders, ignored credentials/state and the disabled deploy
+script remain in place. No Cloudflare account, credential, resource or deployment
+operation is included. This authorization supersedes only the earlier absence of
+commit/push authorization recorded in historical local acceptance scopes.

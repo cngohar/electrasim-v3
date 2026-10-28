@@ -1,16 +1,21 @@
+import { importJSON } from '@electrasim/domain/circuitFormat';
 import { useEffect, useState } from 'react';
 import { downloadText } from '../../lib/exportImport';
+import { sameDocument } from '../../store/circuitAccess';
 import { useCircuitLibraryStore } from '../../store/circuitLibraryStore';
 import type { CircuitLibraryDocument } from '../../store/circuitLibraryStore';
+import { openCircuitDocument } from '../../store/circuitOpening';
 import { recoveryCopies } from '../../store/circuitRecovery';
 import { clearHistory, useCircuitStore } from '../../store/circuitStore';
 import {
+  accessGeneration,
   apiJSON,
+  authorizeCircuit,
   invalidateAccess,
+  receiptIsCurrent,
   refreshAccess,
   useSimulatorAccess,
 } from '../../store/simulatorAccess';
-import { useUiStore } from '../../store/uiStore';
 const inputClass =
   'w-full rounded border border-slate-300 bg-transparent p-2 text-sm dark:border-slate-600';
 export function CircuitLibrary() {
@@ -39,16 +44,33 @@ export function CircuitLibrary() {
     }
   };
   const refresh = async () => {
+    const generation = accessGeneration();
+    const owner = useSimulatorAccess.getState().userId;
     const list = await apiJSON<{ items: CircuitLibraryDocument[] }>('/circuits?limit=100');
-    setItems(list.items);
+    if (generation === accessGeneration() && owner === useSimulatorAccess.getState().userId)
+      setItems(list.items);
   };
   useEffect(() => {
     setOwner(userId);
     setItems([]);
+    const generation = accessGeneration();
+    let active = true;
     if (userId)
       void apiJSON<{ items: CircuitLibraryDocument[] }>('/circuits?limit=100')
-        .then((data) => setItems(data.items))
-        .catch((e) => setMessage(e.message));
+        .then((data) => {
+          if (
+            active &&
+            generation === accessGeneration() &&
+            userId === useSimulatorAccess.getState().userId
+          )
+            setItems(data.items);
+        })
+        .catch((e) => {
+          if (active && generation === accessGeneration()) setMessage(e.message);
+        });
+    return () => {
+      active = false;
+    };
   }, [setOwner, userId]);
   useEffect(() => {
     void recoveryCopies()
@@ -66,17 +88,36 @@ export function CircuitLibrary() {
     await refreshAccess();
   };
   const save = async (update: boolean) => {
-    const { components, wires, globalVoltage, supply, faults } = useCircuitStore.getState();
+    const before = useCircuitStore.getState();
+    const owner = useSimulatorAccess.getState().userId;
+    const selection = useCircuitLibraryStore.getState().current;
+    const { components, wires, globalVoltage, supply, faults } = before;
     const circuit = { components, wires, globalVoltage, supply, faults };
-    const saved = await apiJSON<CircuitLibraryDocument>(
-      update && current ? `/circuits/${current.id}` : '/circuits',
-      update ? 'PATCH' : 'POST',
-      { name, circuit, ...(update && current ? { version: current.version } : {}) },
-    );
+    const receipt = await authorizeCircuit(circuit);
+    const unchanged = () =>
+      receiptIsCurrent(receipt) &&
+      owner === useSimulatorAccess.getState().userId &&
+      sameDocument(before, useCircuitStore.getState()) &&
+      selection === useCircuitLibraryStore.getState().current;
+    if (!unchanged()) throw new Error('Circuit or access changed; review before saving.');
+    let saved: CircuitLibraryDocument;
+    try {
+      saved = await apiJSON<CircuitLibraryDocument>(
+        update && current ? `/circuits/${current.id}` : '/circuits',
+        update ? 'PATCH' : 'POST',
+        { name, circuit, ...(update && current ? { version: current.version } : {}) },
+      );
+    } catch (error) {
+      invalidateAccess();
+      throw error;
+    }
+    if (!unchanged())
+      throw new Error('Circuit or access changed while saving. Reload the list before continuing.');
     setCurrent({ ...saved, circuit, readOnly: false });
     await refresh();
     setMessage('Circuit saved.');
   };
+
   return (
     <div className="table-account space-y-3 text-sm">
       <p>Account circuits are stored by the local development server.</p>
@@ -117,14 +158,22 @@ export function CircuitLibrary() {
           </>
         ) : (
           <>
+            <a
+              href="/settings/profile/"
+              className="mr-4 underline"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              Profile & privacy
+            </a>
             <button
               type="button"
               className="underline"
               onClick={() =>
                 void run(async () => {
-                  await apiJSON('/auth/sign-out', 'POST', {});
                   invalidateAccess();
                   useSimulatorAccess.setState({ userId: null });
+                  await apiJSON('/auth/sign-out', 'POST', {});
                 })
               }
             >
@@ -158,19 +207,42 @@ export function CircuitLibrary() {
             <button type="button" className="block underline" onClick={() => void run(refresh)}>
               Refresh list
             </button>
+            <a
+              className="block underline"
+              href="/settings/publications/"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              Your publications
+            </a>
             {items.map((item) => (
               <div key={item.id} className="flex items-center justify-between gap-2 border-t py-2">
                 <span>
                   {item.name} · version {item.version}
                 </span>
+                <a
+                  className="underline"
+                  href={`/settings/publications/?source=${encodeURIComponent(item.id)}`}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >
+                  Publish
+                </a>
                 <button
                   type="button"
                   className="underline"
                   onClick={() =>
                     void run(async () => {
+                      const generation = accessGeneration();
+                      const before = useCircuitStore.getState();
                       const doc = await apiJSON<CircuitLibraryDocument>(`/circuits/${item.id}`);
-                      useUiStore.getState().setSimRunning(false);
-                      useCircuitStore.getState().setCircuit(doc.circuit);
+                      if (
+                        generation !== accessGeneration() ||
+                        userId !== useSimulatorAccess.getState().userId ||
+                        !sameDocument(before, useCircuitStore.getState())
+                      )
+                        throw new Error('Circuit or account changed while loading. Please retry.');
+                      openCircuitDocument(doc.circuit);
                       clearHistory();
                       setCurrent(doc);
                       setName(doc.name);
@@ -207,20 +279,42 @@ export function CircuitLibrary() {
         <div>
           <p>Preserved originals</p>
           {backups.map((backup, i) => (
-            <button
-              key={backup.key}
-              type="button"
-              className="block underline"
-              onClick={() =>
-                downloadText(
-                  backup.json,
-                  `circuit-backup-${i + 1}.electrasim.json`,
-                  'application/json',
-                )
-              }
-            >
-              Download original {i + 1}
-            </button>
+            <div key={backup.key} className="flex gap-3">
+              <button
+                type="button"
+                className="block underline"
+                onClick={() =>
+                  downloadText(
+                    backup.json,
+                    `circuit-backup-${i + 1}.electrasim.json`,
+                    'application/json',
+                  )
+                }
+              >
+                Download original {i + 1}
+              </button>
+              <button
+                type="button"
+                className="underline"
+                disabled={busy}
+                onClick={() =>
+                  void run(async () => {
+                    if (
+                      !window.confirm(
+                        'Open this preserved original? Export your current drawing first if you need it.',
+                      )
+                    )
+                      return;
+                    openCircuitDocument(importJSON(backup.json));
+                    clearHistory();
+                    setCurrent(null);
+                    setMessage('Original opened. Editing and running require fresh access.');
+                  })
+                }
+              >
+                Open original {i + 1}
+              </button>
+            </div>
           ))}
         </div>
       )}

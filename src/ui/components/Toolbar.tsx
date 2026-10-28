@@ -14,7 +14,6 @@ import { useCircuitReadiness } from '../../store/electricalReadiness';
  * system-aware (⌘ on macOS, Search on Windows, Ctrl elsewhere).
  */
 
-import { COMPONENT_DEFS } from '@electrasim/domain';
 import {
   BookOpen,
   Command,
@@ -40,6 +39,7 @@ import { useEffect, useRef, useState } from 'react';
 import { isMacPlatform, remapShortcutLabel } from '../../lib/platform';
 import { redo, undo, useCircuitStore, useUiStore } from '../../store';
 import { useSettingsStore } from '../../store/settingsStore';
+import { componentAccessForEditor } from '../../store/simulatorAccess';
 import { preloadSettings } from '../deferredSurfacePreloads';
 import { useResolvedTheme } from '../hooks/useResolvedTheme';
 import { CanvasToolbar } from './CanvasToolbar';
@@ -192,7 +192,7 @@ export function Toolbar({ isPhone, simRunning, dashboardOpen, onToggleDashboard 
           // Make that explicit instead of leaving users to wonder.
           const proCount = useCircuitStore
             .getState()
-            .components.filter((c) => COMPONENT_DEFS[c.type]?.tier === 'pro').length;
+            .components.filter((c) => componentAccessForEditor(c.type) === 'pro').length;
           if (proCount > 0) {
             useUiStore
               .getState()

@@ -1,5 +1,6 @@
+import { originalComponentTier } from '@electrasim/access';
 import { circuitRequirements } from '@electrasim/access/circuit';
-import { COMPONENT_DEFS, type Circuit, normalizeCircuitFaults } from '@electrasim/domain';
+import { type Circuit, normalizeCircuitFaults } from '@electrasim/domain';
 import { exportJSON, importJSON } from '@electrasim/domain/circuitFormat';
 import { entries, set } from 'idb-keyval';
 
@@ -40,11 +41,15 @@ export function basicCopy(
   return result;
 }
 export function premiumComponents(circuit: Circuit) {
-  return circuit.components.filter((c) => COMPONENT_DEFS[c.type]?.tier === 'pro');
+  // A Basic copy must remain usable offline after any mutable Free override expires.
+  return circuit.components.filter((c) => originalComponentTier(c.type) === 'pro');
 }
 export async function saveRecovery(circuit: Circuit) {
+  return saveRawRecovery(exportJSON(circuit));
+}
+export async function saveRawRecovery(json: string) {
   const key = `${PREFIX}${Date.now()}:${crypto.randomUUID()}`;
-  await set(key, exportJSON(circuit)); // Abort replacement if the backup cannot be written.
+  await set(key, json); // Abort replacement if the backup cannot be written.
   return key;
 }
 export async function recoveryCopies(): Promise<{ key: string; json: string }[]> {

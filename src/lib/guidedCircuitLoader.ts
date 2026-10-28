@@ -8,6 +8,7 @@
  */
 import { type GuidedCircuitTemplate, cloneTemplateCircuit } from '@electrasim/domain/templates';
 import { useCircuitStore, useSettingsStore, useUiStore } from '../store';
+import { openCircuitDocument } from '../store/circuitOpening';
 
 export function loadGuidedCircuitIntoEditor(template: GuidedCircuitTemplate): void {
   const circuit = useCircuitStore.getState();
@@ -21,7 +22,7 @@ export function loadGuidedCircuitIntoEditor(template: GuidedCircuitTemplate): vo
     return;
   }
 
-  useCircuitStore.getState().setCircuit(cloneTemplateCircuit(template));
+  openCircuitDocument(cloneTemplateCircuit(template));
   const ui = useUiStore.getState();
   ui.setActiveGuideId(template.id);
   ui.setSimRunning(false);

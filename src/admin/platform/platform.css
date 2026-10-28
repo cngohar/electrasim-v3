@@ -1,0 +1,884 @@
+/* Production adaptations of the owner-approved administration design. */
+.platform-content {
+  min-width: 0;
+}
+.platform-content .counts section,
+.platform-content .account-sections > section,
+.platform-content
+  section:not(.panel):not(.metric-card):not(.detail-section):not(.membership-record-editor) {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 22px;
+  margin: 18px 0;
+}
+.platform-content h3 {
+  margin-top: 0;
+}
+.platform-content form label:not(.check):not(.search-field),
+.review-dialog form > label:not(.check) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  gap: 8px;
+  margin: 16px 0;
+  font-weight: 600;
+}
+.platform-admin input:not([type="checkbox"]):not([type="radio"]),
+.platform-admin select,
+.platform-admin textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  max-width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #dce3ed;
+  border-radius: 7px;
+  background: white;
+}
+.platform-admin textarea {
+  width: 100%;
+  min-height: 94px;
+}
+.platform-admin input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--blue);
+}
+.platform-content
+  button:not(.icon-button):not(.text-button):not(.segment):not(.btn):not(.section-tab):not(
+    .drawer-tab
+  ):not(.back-link),
+.review-dialog button:not(.icon-button):not(.text-button):not(.btn) {
+  border: 1px solid #dce3ed;
+  border-radius: 7px;
+  padding: 9px 14px;
+  background: white;
+  color: #30435f;
+  font-size: 12px;
+  font-weight: 700;
+  min-height: 38px;
+}
+.platform-content form > button,
+.platform-admin .review-dialog form .actions button:nth-child(2) {
+  background: var(--blue);
+  color: white;
+  border-color: var(--blue);
+}
+.platform-admin button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+.platform-admin fieldset {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin: 18px 0;
+  padding: 18px;
+}
+.platform-admin .check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+}
+.platform-admin .actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0;
+}
+.platform-admin .records {
+  padding: 0;
+  list-style: none;
+}
+.platform-admin .records > li {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+.platform-admin .records > li:last-child {
+  border: 0;
+}
+.platform-admin .permission-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 0 14px;
+}
+.platform-admin pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+.platform-admin output {
+  display: block;
+  color: #206f52;
+  margin: 12px 0;
+}
+.platform-admin [role="alert"] {
+  border-left: 3px solid #c2555f;
+  padding: 12px 18px;
+  color: #9e3746;
+  background: #fff0f1;
+}
+.platform-admin .directory-tools {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 16px 22px;
+  align-items: end;
+  border-bottom: 1px solid var(--line);
+}
+.platform-admin .directory-tools label {
+  margin: 0 !important;
+}
+.platform-admin .directory-tools label:first-child {
+  flex: 1;
+  min-width: min(240px, 100%);
+}
+.platform-admin .directory-tools button {
+  flex: 0 0 auto;
+}
+.platform-admin .avatar {
+  flex-shrink: 0;
+}
+.platform-admin .user-link {
+  text-align: left;
+}
+.platform-admin .result-pages {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 16px 22px;
+  border-top: 1px solid var(--line);
+}
+.platform-admin .account-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+}
+.platform-admin .account-heading .avatar {
+  width: 56px;
+  height: 56px;
+}
+.platform-admin .account-heading h2 {
+  margin: 0;
+  font-size: 24px;
+}
+.platform-admin .account-heading p {
+  margin: 4px 0;
+  color: var(--muted);
+}
+.platform-admin .account-sections {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  align-items: start;
+}
+.platform-admin .account-sections > section {
+  margin: 0 !important;
+}
+.platform-admin .account-sections .wide {
+  grid-column: 1 / -1;
+}
+.platform-admin .account-drawer > section {
+  padding: 20px;
+}
+.platform-admin .account-drawer h2 {
+  overflow-wrap: anywhere;
+}
+.platform-admin .command-result {
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
+  border-radius: 8px;
+  color: var(--ink);
+  text-decoration: none;
+}
+.platform-admin .command-result:hover {
+  background: var(--blue-pale);
+}
+.platform-admin .command-result small {
+  color: var(--muted);
+}
+.platform-admin .sidebar nav {
+  display: block;
+}
+.platform-admin .sidebar button {
+  color: #d6deec;
+}
+.platform-admin .sidebar-footer .nav-link {
+  padding: 10px 0;
+}
+.platform-admin .sidebar-footer {
+  margin-top: auto;
+}
+.platform-admin .topbar-actions {
+  gap: 12px;
+}
+.platform-admin .metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  gap: 20px;
+}
+.platform-admin .metric-grid .metric-value {
+  font-size: 32px;
+  font-family: Space, Jakarta, sans-serif;
+}
+.platform-admin .overview-columns {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 22px;
+  margin-top: 22px;
+}
+.platform-admin .role-cards .role-card {
+  margin: 0;
+}
+.platform-admin .readable-audit p {
+  margin: 6px 0;
+}
+@media (max-width: 1020px) {
+  .platform-admin .account-sections,
+  .platform-admin .overview-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 760px) {
+  .platform-admin .topbar-actions > .btn {
+    display: none;
+  }
+  .platform-admin .account-heading h2 {
+    font-size: 20px;
+  }
+  .platform-admin .directory-tools {
+    padding: 16px;
+  }
+  .platform-admin .directory-tools label {
+    flex: 1;
+    min-width: 120px;
+  }
+  .platform-admin .directory-tools button {
+    width: 100%;
+  }
+  .platform-admin .page-heading h1 {
+    font-size: 26px;
+  }
+}
+.platform-admin .membership-plans {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 20px;
+}
+.platform-admin .membership-plans > li {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 24px;
+}
+.platform-admin .membership-plans > li > strong {
+  font-size: 18px;
+}
+.platform-admin .membership-plans .plan-duration small {
+  display: block;
+  font: 12px Jakarta, sans-serif;
+  color: var(--muted);
+}
+.platform-admin .plan-live-preview {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--canvas);
+  padding: 20px;
+  margin: 20px 0;
+}
+.platform-admin .platform-content section[aria-label="Record editor"] {
+  max-width: 840px;
+}
+.platform-admin .system-policy-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.platform-admin .system-policy-grid .permission-list {
+  grid-template-columns: minmax(0, 1fr);
+}
+.platform-admin .metric-card {
+  padding: 0;
+}
+.platform-admin .readable-audit td {
+  vertical-align: top;
+}
+.platform-admin .readable-audit small {
+  display: block;
+}
+.platform-admin .readable-audit details[open] {
+  min-width: 220px;
+  max-width: 460px;
+}
+@media (max-width: 760px) {
+  .platform-admin .system-policy-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+/* WebKit includes native select option painting in ancestor scroll overflow even
+   when the control's own border box is constrained. Bound the form group, whose
+   padding preserves control focus rings, rather than clipping the document. */
+.platform-admin section[aria-label="Record editor"] fieldset {
+  overflow: hidden;
+}
+.platform-content {
+  overflow-wrap: anywhere;
+}
+.platform-admin dt {
+  font-weight: 600;
+}
+.platform-admin dd {
+  margin: 4px 0 16px;
+  overflow-wrap: anywhere;
+}
+.platform-admin [hidden] {
+  display: none !important;
+}
+.platform-admin .profile-facts dd {
+  margin: 0;
+}
+.platform-admin .account-facts {
+  margin: 0 0 28px;
+}
+.platform-admin .account-facts dt {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 400;
+}
+.platform-admin .account-facts dd {
+  font-size: 13px;
+  margin: 8px 0 0;
+}
+.platform-admin .detail-section {
+  padding: 0;
+  margin: 0 0 24px;
+  border: 0;
+  background: transparent;
+}
+.platform-admin .detail-box .row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.platform-admin .detail-box details {
+  margin-top: 14px;
+}
+.platform-admin .detail-box .btn {
+  white-space: normal;
+}
+.platform-admin .drawer-tabs .drawer-tab {
+  border: 0;
+  border-radius: 0;
+  padding: 8px 0;
+  background: transparent;
+  box-shadow: none;
+}
+.platform-admin .drawer-identity p {
+  overflow-wrap: anywhere;
+}
+.platform-admin .drawer-body form label:not(.check) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  margin: 16px 0;
+}
+.platform-admin .drawer-body input:not([type="checkbox"]),
+.platform-admin .drawer-body select {
+  min-width: 0;
+  width: 100%;
+}
+.platform-admin .history-entry {
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+.platform-admin .history-entry p {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 7px;
+}
+.platform-admin .history-entry details {
+  margin-top: 12px;
+}
+.platform-admin .audit-filter-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  gap: 0 18px;
+  padding: 18px 22px;
+  margin-bottom: 22px;
+}
+.platform-admin .audit-filter-form button {
+  justify-self: start;
+  margin-bottom: 10px;
+}
+.platform-admin .role-editor {
+  width: 620px;
+  max-width: calc(100% - 28px);
+  max-height: calc(100dvh - 36px);
+  overflow-y: auto;
+  padding: 26px;
+  border-radius: 12px;
+}
+.platform-admin .matrix tbody th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--ink);
+  font-size: 12px;
+  letter-spacing: 0;
+  text-transform: none;
+  background: white;
+}
+.platform-admin .matrix td {
+  text-align: center;
+}
+.platform-admin .protected-actions {
+  border-top: 1px solid var(--line);
+}
+.platform-admin .protected-actions h3 {
+  font-size: 12px;
+}
+.platform-admin .protected-actions ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.platform-admin .platform-content section.membership-record-editor {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  max-width: none;
+}
+.platform-admin .editor-fields {
+  padding: 28px;
+  min-width: 0;
+}
+.platform-admin .editor-fields > fieldset.borderless {
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+.platform-admin .record-form {
+  max-width: 840px;
+}
+.platform-admin .editor-fields .actions {
+  justify-content: flex-end;
+  margin-bottom: 0;
+}
+.platform-admin .editor-aside .detail-box {
+  margin-top: 26px;
+}
+.platform-admin .editor-aside .plan-card {
+  margin-top: 24px;
+}
+.platform-admin .plan-code {
+  display: block;
+  margin-top: 12px;
+  color: var(--muted);
+}
+.platform-admin .plan-card .plan-footer {
+  margin-top: auto;
+}
+.platform-admin .membership-editor-dialog {
+  width: 660px;
+  max-width: calc(100% - 24px);
+  max-height: calc(100dvh - 28px);
+  overflow-y: auto;
+  padding: 24px;
+  border-radius: 12px;
+}
+.platform-admin .membership-editor-dialog .editor-fields {
+  border: 0;
+  padding: 0;
+  box-shadow: none;
+}
+.platform-admin .membership-review {
+  width: 620px;
+  max-width: calc(100% - 24px);
+  max-height: calc(100dvh - 30px);
+  overflow-y: auto;
+  padding: 26px;
+  border-radius: 12px;
+}
+.platform-admin .membership-review h2 {
+  font-size: 20px;
+  margin-bottom: 16px;
+}
+.platform-admin .membership-review form > dl {
+  background: var(--canvas);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 18px;
+  margin-top: 18px;
+}
+.platform-admin .membership-review label {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+@media (max-width: 760px) {
+  .platform-admin .page-heading {
+    flex-wrap: wrap;
+  }
+  .platform-admin .audit-filter-form {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .platform-admin .editor-fields {
+    padding: 20px;
+  }
+  .platform-admin .membership-editor-dialog {
+    padding: 18px;
+  }
+}
+.account-profile > [role="tabpanel"] {
+  min-width: 0;
+}
+.account-profile .profile-hero {
+  margin-top: 10px;
+}
+.account-profile .profile-hero h2 {
+  font: 600 30px Space, system-ui;
+  letter-spacing: -.8px;
+  margin: 6px 0;
+  overflow-wrap: anywhere;
+}
+.membership-nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+.membership-tabs {
+  flex: 1;
+  margin-bottom: 18px;
+}
+.platform-admin .platform-content .section-tabs button.section-tab:not(.btn):not(.text-button) {
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  padding: 13px 0;
+  color: var(--muted);
+  font-size: 13px;
+  box-shadow: none;
+}
+.platform-admin
+  .platform-content
+  .section-tabs
+  button.section-tab.active:not(.btn):not(.text-button) {
+  color: var(--blue);
+  border-bottom-color: var(--blue);
+}
+.membership-signout {
+  margin-bottom: 18px;
+}
+.membership-audit .records {
+  padding: 0 22px 20px;
+}
+.settings-form .setting-row textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+.platform-content form label.setting-row:not(.check):not(.search-field) {
+  grid-template-columns: minmax(0, 1fr) 125px;
+  align-items: center;
+}
+.settings-form .setting-row input[type="number"] {
+  width: 100%;
+}
+.settings-form .setting-row .switch {
+  width: 33px;
+  min-height: 19px;
+  height: 19px;
+  padding: 0;
+  justify-self: end;
+}
+.standard-card .panel-heading {
+  padding: 0;
+}
+.standard-card .panel-heading h2 {
+  margin: 8px 0 0;
+  font-size: 17px;
+}
+.standard-card .values {
+  display: flex;
+  gap: 30px;
+  padding: 22px 0;
+  font: 600 26px Space, system-ui;
+}
+.standard-card .values small {
+  display: block;
+  margin-top: 4px;
+  font: 400 11px Jakarta, system-ui;
+  color: var(--muted);
+}
+.standard-card > p {
+  color: var(--muted);
+}
+.platform-admin .settings-form fieldset.borderless {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+@media (max-width: 760px) {
+  .membership-nav-row {
+    align-items: flex-start;
+  }
+  .membership-page-actions {
+    width: 100%;
+  }
+  .membership-tabs {
+    gap: 18px;
+  }
+  .settings-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .settings-menu {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+  }
+  .settings-menu span {
+    padding: 0;
+  }
+  .settings-menu .settings-readonly {
+    display: inline;
+  }
+  .platform-content form label.setting-row:not(.check):not(.search-field) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.platform-admin .audit-filter-form {
+  display: block;
+}
+.platform-admin .audit-primary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.platform-admin .audit-primary label:not(.check):not(.search-field) {
+  margin: 0;
+}
+.platform-admin .audit-primary .audit-action {
+  flex: 1;
+  min-width: min(220px, 100%);
+}
+.platform-admin .audit-primary button {
+  margin: 0;
+}
+.platform-admin .audit-advanced {
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.platform-admin .audit-extra {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 18px;
+}
+.platform-admin .duration-control {
+  margin: 10px 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+@media (max-width: 760px) {
+  .platform-admin .audit-extra {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.platform-admin .form-columns {
+  align-items: end;
+}
+.platform-admin .plan-card .pill {
+  text-transform: capitalize;
+}
+
+.platform-admin .component-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.platform-admin .component-id {
+  overflow-wrap: anywhere;
+}
+.platform-admin .component-detail-grid .panel-content p + p {
+  margin-top: 12px;
+}
+.platform-admin .component-facts {
+  display: grid;
+  grid-template-columns: minmax(100px, 1fr) minmax(0, 2fr);
+  gap: 14px;
+  font-size: 13px;
+}
+.platform-admin .component-facts dt {
+  color: var(--muted);
+}
+.platform-admin .component-facts dd {
+  margin: 0;
+}
+.platform-admin .component-review {
+  width: 620px;
+  max-width: calc(100% - 24px);
+  max-height: calc(100dvh - 30px);
+  overflow-y: auto;
+  border-radius: 12px;
+  padding: 26px;
+}
+.platform-admin .component-tools {
+  overflow: hidden;
+}
+@media (max-width: 1020px) {
+  .platform-admin .component-detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.community-detail {
+  display: grid;
+  gap: 22px;
+}
+.community-profile-card {
+  padding: 25px;
+}
+.community-profile-card h2 {
+  margin-bottom: 15px;
+}
+.community-person {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.community-person h2 {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.community-person p {
+  color: var(--muted);
+  font-size: 12px;
+}
+.community-person .avatar {
+  width: 58px;
+  height: 58px;
+  flex-shrink: 0;
+}
+.community-person .avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+.community-bio {
+  margin: 20px 0;
+  padding: 20px;
+  background: var(--canvas);
+  border-radius: 9px;
+}
+.community-bio p {
+  margin-top: 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.community-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  padding: 22px;
+}
+.community-filters label {
+  min-width: 0;
+  flex: 1;
+}
+.community-filters input,
+.community-filters select {
+  width: 100%;
+}
+.community-list-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 22px;
+  border-top: 1px solid var(--line);
+}
+.community-list-row strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.community-list-row small {
+  display: block;
+  color: var(--muted);
+}
+.community-pagination {
+  padding: 18px 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+  font-size: 12px;
+}
+.community-report {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--line);
+}
+.community-report p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.community-report .actions {
+  margin-top: 14px;
+}
+.community-profile-card .history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.community-profile-card .history li {
+  padding: 15px 0;
+  border-bottom: 1px solid var(--line);
+}
+@media (max-width: 760px) {
+  .community-profile-card {
+    padding: 20px;
+  }
+  .community-list-row {
+    flex-wrap: wrap;
+  }
+}
+
+.platform-admin .topbar-actions > .btn.admin-reload {
+  display: inline-flex;
+}
+@media (max-width: 760px) {
+  .platform-admin .admin-reload span {
+    display: none;
+  }
+  .platform-admin .topbar-actions > .btn.admin-reload {
+    width: 38px;
+    padding: 8px;
+  }
+}
+
+.publication-json {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 480px;
+  overflow: auto;
+  font-size: 12px;
+}

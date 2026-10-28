@@ -8,6 +8,7 @@ import { damageCircuit } from '../../packages/domain/src/core/damageFixtures';
 import { motorCircuit } from '../../packages/domain/src/core/motorFixtures';
 import { protectionCircuit } from '../../packages/domain/src/core/protectionFixtures';
 import { component, protectedLoad } from '../../packages/domain/src/simulation/auditFixtures';
+import { authorizationResponse } from '../test/componentAccess';
 
 const { simulateAsync } = vi.hoisted(() => ({
   simulateAsync: vi.fn(),
@@ -175,16 +176,7 @@ describe('useSimulation request sequencing', () => {
   it('keeps phasor phase-loss readings on the timed run without fabricating a legacy trip or repair verdict', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(
-        async () =>
-          new Response(
-            JSON.stringify({
-              userId: 'member',
-              capabilities: ['pro_components'],
-              nextChangeAt: null,
-            }),
-          ),
-      ),
+      vi.fn(async (_input, init) => authorizationResponse(init)),
     );
     useSimulatorAccess.setState({
       userId: 'member',

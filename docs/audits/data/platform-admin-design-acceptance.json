@@ -1,0 +1,298 @@
+{
+  "scope": "Owner-approved administration design integration within existing Phase 2 foundation and protected memberships; not full Phase 2 or component-policy runtime acceptance",
+  "phase": "2.admin-design",
+  "status": "complete locally within documented integration scope",
+  "acceptedAt": "2026-10-24",
+  "ownerApproved": true,
+  "localOnly": true,
+  "remoteAuthorized": false,
+  "command": "bun run verify:phase-2.0 (reproducible full gate; acceptance below combines the retained full attempt and explicit browser recovery)",
+  "selection": "full scope with explicit browser recovery",
+  "exitCode": 0,
+  "evidenceRoot": ".wrangler/platform-admin-integration-closure-2026-10-24",
+  "recoveryEvidenceRoot": ".wrangler/platform-admin-integration-browser-closure-2026-10-24",
+  "runs": [
+    {
+      "command": "PHASE20_EVIDENCE_DIR=.wrangler/platform-admin-integration-closure-2026-10-24 bun run verify:phase-2.0",
+      "selection": "full",
+      "exitCode": 1,
+      "scope": "14 non-browser stages passed; WebKit test raced safe denial while the initial list was loading"
+    },
+    {
+      "command": "PHASE20_EVIDENCE_DIR=.wrangler/platform-admin-integration-browser-closure-2026-10-24 bun run verify:phase-2.0 --from browser",
+      "selection": "partial",
+      "exitCode": 0,
+      "scope": "Complete source and built matrices with initial-read readiness barrier; unchanged production code"
+    }
+  ],
+  "stages": [
+    {
+      "id": "typecheck",
+      "command": "bun run typecheck",
+      "exitCode": 0,
+      "log": ".wrangler/platform-admin-integration-closure-2026-10-24/typecheck.log"
+    },
+    {
+      "id": "lint",
+      "command": "bun run lint",
+      "exitCode": 0,
+      "log": ".wrangler/platform-admin-integration-closure-2026-10-24/lint.log"
+    },
+    {
+      "id": "unit",
+      "command": "bun run test",
+      "exitCode": 0,
+      "log": ".wrangler/platform-admin-integration-closure-2026-10-24/unit.log"
+    },
+    {
+      "id": "test:gates",
+      "command": "bun run test:gates",
+      "exitCode": 0,
+      "log": ".wrangler/platform-admin-integration-closure-2026-10-24/test-gates.log"
+    },
+    {
+      "id": "test:graph",
+      "command": "bun run test:graph",
+      "exitCode": 0,
+      "log": ".wrangler/platform-admin-integration-closure-2026-10-24/test-graph.log"
+    },
+    {
+      "id": "build",
+      "command": "bun run build",
+      "exitCode": 0,
+      "log": ".wrangler/platform-admin-integration-closure-2026-10-24/build.log"
+    },
+    {
+      "id": "check:perf",
+      "command": "bun run check:perf",
+      "exitCode": 0,
+      "log": ".wrangler/platform-admin-integration-closure-2026-10-24/check-perf.log"
+    },
+    {
+      "id": "check:csp",
+      "command": "bun run check:csp",
+      "exitCode": 0,
+      "log": ".wrangler/platform-admin-integration-closure-2026-10-24/check-csp.log"
+    },
+    {
+      "id": "check:links",
+      "command": "bun run check:links",
+      "exitCode": 0,
+      "log": ".wrangler/platform-admin-integration-closure-2026-10-24/check-links.log"
+    },
+    {
+      "id": "check:seo",
+      "command": "bun run check:seo",
+      "exitCode": 0,
+      "log": ".wrangler/platform-admin-integration-closure-2026-10-24/check-seo.log"
+    },
+    {
+      "id": "test:phase-2.0-spike",
+      "command": "bun run test:phase-2.0-spike",
+      "exitCode": 0,
+      "log": ".wrangler/platform-admin-integration-closure-2026-10-24/test-phase-2.0-spike.log"
+    },
+    {
+      "id": "test:platform-admin",
+      "command": "bun run test:platform-admin",
+      "exitCode": 0,
+      "log": ".wrangler/platform-admin-integration-closure-2026-10-24/test-platform-admin.log"
+    },
+    {
+      "id": "test:membership",
+      "command": "bun run test:membership",
+      "exitCode": 0,
+      "log": ".wrangler/platform-admin-integration-closure-2026-10-24/test-membership.log"
+    },
+    {
+      "id": "test:domain-local",
+      "command": "bun run test:domain-local",
+      "exitCode": 0,
+      "log": ".wrangler/platform-admin-integration-closure-2026-10-24/test-domain-local.log"
+    },
+    {
+      "id": "browser",
+      "command": "bun x playwright test e2e/platform-admin.spec.ts e2e/admin-membership.spec.ts --workers=1",
+      "exitCode": 0,
+      "log": ".wrangler/platform-admin-integration-browser-closure-2026-10-24/browser.log"
+    },
+    {
+      "id": "browser:2",
+      "command": "bun x playwright test --config=playwright.platform-admin-built.config.ts --workers=1",
+      "exitCode": 0,
+      "log": ".wrangler/platform-admin-integration-browser-closure-2026-10-24/browser-2.log"
+    }
+  ],
+  "counts": {
+    "unitTests": 2232,
+    "unitFiles": 147,
+    "adminApiGroups": 20,
+    "existingApiGroups": 34,
+    "domainParityCases": 897,
+    "sourceBrowserCases": 75,
+    "builtBrowserCases": 75,
+    "totalUniqueDeliveryBrowserCases": 150
+  },
+  "additionalChecks": [
+    {
+      "command": "bun x tsc --noEmit -p tsconfig.e2e.json && bun run lint",
+      "exitCode": 0,
+      "scope": "Final test readiness assertion; production sources unchanged",
+      "logs": [
+        ".wrangler/admin-design-final-test-types.log",
+        ".wrangler/admin-design-final-test-lint.log"
+      ]
+    },
+    {
+      "command": "bun scripts/check-component-access-design.ts",
+      "exitCode": 0,
+      "scope": "Design inventory: 116 canonical entries, 75 Basic / 41 Pro; no runtime policy"
+    },
+    {
+      "command": "node scripts/check-platform-design.mjs",
+      "exitCode": 0,
+      "scope": "Isolated fictional HTML prototype; desktop/phone/WebKit, separate from product evidence"
+    },
+    {
+      "command": "WRANGLER_SEND_METRICS=false bun x wrangler d1 migrations apply DB --local --persist-to .wrangler/state",
+      "exitCode": 0,
+      "log": ".wrangler/admin-design-dev-migration.log",
+      "scope": "Applied pending 0008 only; three successful local commands; indexes only"
+    },
+    {
+      "command": "PLATFORM_ASSET_TEST_ORIGIN=http://127.0.0.1:8791 bun scripts/check-platform-assets.mjs",
+      "exitCode": 0,
+      "log": ".wrangler/admin-design-final-dev-assets.log",
+      "scope": "Actual local development Worker, seven routes/private-no-store/noindex/CSP/entry isolation and unknown-route 404"
+    }
+  ],
+  "retainedAttempts": [
+    {
+      "evidenceRoot": ".wrangler/platform-admin-integration-closure-2026-10-24",
+      "sourcePassed": 74,
+      "sourceFailed": 1,
+      "exitCode": 1,
+      "scope": "Role-removal test attempted Refresh after initial list had already denied and unmounted it; no private access was restored"
+    },
+    {
+      "log": ".wrangler/admin-design-source-first.log",
+      "scope": "Initial focused Chromium",
+      "passed": 11,
+      "failed": 2,
+      "exitCode": 1
+    },
+    {
+      "log": ".wrangler/admin-design-source-recovery.log",
+      "scope": "Focused Chromium recovery; focus return exposed",
+      "passed": 1,
+      "failed": 1,
+      "exitCode": 1
+    },
+    {
+      "evidenceRoot": ".wrangler/platform-admin-integration-2026-10-24",
+      "sourcePassed": 71,
+      "sourceFailed": 4,
+      "exitCode": 1
+    },
+    {
+      "evidenceRoot": ".wrangler/platform-admin-integration-final-2026-10-24",
+      "sourcePassed": 74,
+      "sourceFailed": 1,
+      "exitCode": 1
+    },
+    {
+      "log": ".wrangler/admin-design-final-layout-recovery.log",
+      "scope": "Final phone/WebKit membership lifecycle + benefit review checks",
+      "passed": 4,
+      "failed": 0,
+      "exitCode": 0
+    }
+  ],
+  "sourceFingerprintScope": "50 historical foundation entrypoints plus explicitly listed integration/design inputs; hashes are not test results or whole-repository coverage",
+  "sourceFingerprints": {
+    "admin/audit/index.html": "2ff88361fa08e041dfc097401472a56f162d92361bbd62045ee700ced6838846",
+    "admin/index.html": "a1438fa3e3b4b5bc0f1cfc4d18756d4ed61d3fe9268af75b511335b97c86f73a",
+    "admin/permissions/index.html": "adee4196fed5723b39aa14adffa40eaf3957c63d1f6fb019d8bd616348d4e9c0",
+    "admin/pro/index.html": "f624aba470484f681a85f9bf6e148898fb0005c030906e7334c46af3d4e8a15e",
+    "admin/settings/index.html": "7e1489cc9949d5ab2405836dfe1cb024c30a2bdb4991ab9fd7765315644f4946",
+    "admin/standards/index.html": "2dd83b137d5e5a9c6b5abc2ead32d2587e0b37b8c5f944f40967f5c9507d45bf",
+    "admin/users/index.html": "12787fb3e67ba2601bf05c5ee3e57b819db64e23fd127378076ec5beeb8863e3",
+    "docs/design/platform-admin/preview-catalog.js": "bd7e1f5dd65e6797e210cacb4a656afaed86a8f8f48c491254dd6630e5bcb90f",
+    "docs/design/platform-admin/preview.css": "36104437707adecdea92aa173c927b41ccdd9dbabbd791f9dff0e3a3b7ceb839",
+    "docs/design/platform-admin/preview.js": "2d9af78251ff3c324c1bfc756d76ed0285a3e4df33d3c368d01d07494cb8bf01",
+    "docs/specs/component-access-baseline.json": "2fa09ed28b1c92979b319c070702d01a23529afac52866e8a936db4955dee80c",
+    "e2e/admin-membership.spec.ts": "d1a61b768aa211b37fb876ab600b55efa3abe356eee62f0e9533f1bc172eac31",
+    "e2e/platform-admin.spec.ts": "e43afb191dea1fa73f1923269d9f1f1f4b4af2ffb8d54009617829fb41c36c57",
+    "migrations/0007_admin_foundation.sql": "940118aa05ee0c9410fd4e13fb0bda5cfdfb1627f332c9d98a0299cdf684b920",
+    "migrations/0008_admin_directory_indexes.sql": "421975c1e58d449fa65fe01b1590502bf5a998780405f1412bcaa1aa48821c88",
+    "package.json": "1e1ae4a316e7146509d4e99b2705de54c5948ad61219355b108c0489047cb64e",
+    "packages/access/src/index.ts": "6967294149d3554afd04353bd9436871190fc527e515065b1e20ab2c9deb30ba",
+    "packages/db/admin-schema.ts": "f11c6ad2fa67038505bb8afa4f235df1c6f972e66f089a1f508f0fed84b4e1bf",
+    "packages/db/auth-schema.ts": "471ecae592e0378f669f95a3910e390e4e30193e7275ffe3d46175f3d3f5fce5",
+    "packages/db/auth.ts": "bd9bd668f7b45ed898a68e1c01eaab59ce84bf7b9f08407a5d202aeaf9cdc49f",
+    "playwright.platform-admin-built.config.ts": "bab96ea0c7f8e7cd644199ac32820fee669dfe9dd606d1431ab235971b0fdb38",
+    "public/_headers": "2de15494b6d3cde62cd12d7ccb8a232d7ed152718003f4c2224f108d5178016f",
+    "scripts/check-component-access-design.ts": "f9e993c44e45482ea8d4a4d97ebfa7909fd2ad05ae1c674eeeba3cea8c623587",
+    "scripts/check-platform-assets.mjs": "4f65cae0aa426a55710bf015d8ed53172a25690b42780b9017a201b491d060a6",
+    "scripts/check-platform-design.mjs": "b88eda38263b306489c94d9af1dc1ebb502a07c90b62db22c8db22ccd82603e3",
+    "scripts/platform-admin-test.worker.ts": "3e757d29b036e77a7602f42e1d748e605f0056fda6654a2e426f05b26c17bdbd",
+    "scripts/start-platform-browser-worker.ts": "77496439c1da5636d0f3ae7680b8642e9438304c4b685296de74037dea7bad6c",
+    "scripts/test-platform-admin.ts": "de498f6e2a7769586b19103904203126deb3cbe0ca822bd000c7d86f29c6f4ad",
+    "scripts/verify-phase20.mjs": "d40c5a6924853f21c8ecad67bbbc8604825c240094b9b223d349bd1733bb8318",
+    "src/admin/Admin.tsx": "1360723c4eefe69b476d68ab5115a5113d1c2db994ac155c986ec2ff14c741b0",
+    "src/admin/Editor.tsx": "9edbab07367850d0307d58266a36eb0b2f04b1b0443d30ebd97677004b04ff20",
+    "src/admin/client.ts": "6ea5d13483fc43153e47df8ad6dfa8bf519040da45a0107c58a611c1ce89efa4",
+    "src/admin/main.tsx": "aa01073f8a9e072bc572edcf700dff05478ea49e56c77a81371a18f0914da3b3",
+    "src/admin/platform/AdminShell.tsx": "200b1c5b530490a45abdc4ed27379d3b09d85265db4914cfb0e95be14d83d53c",
+    "src/admin/platform/MembershipHistory.tsx": "9cc27936b051d5916650263916def4f90fbe6cbab2664756776d996244a035ca",
+    "src/admin/platform/PlatformAdmin.tsx": "a0c7e1a9329f9ed13c8882f40de0b9c3c91adcc34d673a14886f9486fbe7bf6d",
+    "src/admin/platform/ReadViews.tsx": "82c50814b61b4a6f14422df3b20aa5a8f5317a6d48dc35d4f03b886ec089a77b",
+    "src/admin/platform/RolesView.tsx": "6ce2d640ae2710139ffa8c98abe924e0c8a3da062bcc61c70fe6dd3fe1061a34",
+    "src/admin/platform/SettingsView.tsx": "0d244a75b3537bcf385da45d2c5d3b8b97740c3a8c127235c22b537dbdd8534e",
+    "src/admin/platform/UsersView.tsx": "2362ab543b81c383cb90920779ed8487c407a1c8b6d9c6a41312da2822d41731",
+    "src/admin/platform/main.tsx": "bae415f9cae3e66f1b4155f0cf8193aaa488ca2e150b8822b0f7a17491550f0b",
+    "src/admin/platform/platform.css": "c285782356e6742cc7793938034ccf2b1ea3e69c2250ef0fa26912aae1879828",
+    "src/admin/platform/resource.ts": "ba87675d8ad75c5f2d8a0dfbf5c21d4dbcb17a3adf68e07ef7fcdca3242571f4",
+    "src/admin/platform/theme.css": "ba8d9466f2dc5bb2855f77e779e679809050c9be93fb9de8b3787950cce8ca4f",
+    "src/admin/platform/types.ts": "f0d52c9cccc75184a084fc91505b12225d73ba39a6b0e5b32f588e8ecff90ee0",
+    "src/api/context.ts": "f5dac307151db7ab84f21d62031aebfd9d8a73d69de9515683df6b8421e09837",
+    "src/api/membership-store.ts": "d7571934f30c19a56b73bf5326d1cc8895b5a6ac7e2c3b7a1842a46da1d805e6",
+    "src/api/membership.ts": "2d684ec2772b06556f97b1922919c65a224d3097b721373126927dd8219fccbf",
+    "src/api/platform/access.ts": "d0737bde1155cbcb1b1cad7c470affed3f8f31a07cb237d7c86cf7eb8c6ac6ef",
+    "src/api/platform/controls.ts": "324a3d9c1357ce79ecda12a6330fcf01315a321cd93034a7406a439ed04876f6",
+    "src/api/platform/index.ts": "6dcbe8a4d8be1d5e8b3b1c61c679637bbe0a567c06b6ba0a1d71207b74bb64f2",
+    "src/api/platform/input.ts": "1dedd5145790453f3a05756af0df113272436feb0afa97685fc94ec08c2a53f3",
+    "src/api/platform/mutation.ts": "6d4482684b76cddb6128e73486a2de6a0e37f5da973ec1e36035e140f8032be8",
+    "src/api/platform/reads.ts": "30c4c1a79f1477f0689bcc3ac2bb0067d014a96c07d51d583e8d019f1ef5dc0f",
+    "src/api/platform/restrictions.ts": "f63a6828af114dab637e1a3e84f74391cdac0f90f8b72732a60a92de6833fc4a",
+    "src/api/platform/roles.ts": "eae775d71bd9a19ce448df8b5bba20eed1bc748d16a8d0799de588c2d91531a0",
+    "src/platform/migration.test.ts": "6dc6bfe446530938404f043a2de8b88a7a01d6b38f72ac8a5e7bd65c5efc6d50",
+    "src/platform/registry.test.ts": "8e7dd56c004044b09baee8bbdb64beceece674cddae554e2fd65480b6329e6d3",
+    "src/platform/registry.ts": "1e9ce3a58e174814d0896846c86e532c52a689ce280f821f03bf0f2107a37b75",
+    "src/worker.ts": "8cca6f347d2985bb953fb2829f5c0c3a7fabae09f3b4e58b84ab8266eb859821",
+    "tsconfig.membership-tests.json": "60613ea8285b0e5a719937e0a3410d8fb621fe4597fa8b7e26fb47966439983e",
+    "vite.config.ts": "01f03f8d2c9c5bee050868118a4cf24b373ecbfced5d333aaf941a567a5a3731",
+    "wrangler.jsonc": "7f9c2d88c9a20acc8364818b15f3dfc284dc66001294fc9cda70d2fc0c5e7f90",
+    "wrangler.platform-admin-test.jsonc": "9d7257b4bcd1111ac7c1681b3af9d42ed63ac7308c3b89d09c93a7050f46bb9b",
+    "wrangler.platform-browser-test.jsonc": "7d6e45a092a7c79f834fa7ea74a5d18c8707d400baa43d376c82ddfd5be60217"
+  },
+  "deferrals": [
+    "Component policy/enforcement and its dedicated migration/race/recovery matrix: Phase 2.0A, still required before 2.1",
+    "Public profiles/privacy: 2.1; actual public subject moderation with subjects and integration in 2.7",
+    "Support desk: 2.7A",
+    "Content Studio: Phase 5",
+    "Billing: Phase 7",
+    "Registration growth analytics, bulk staff actions and full-directory CSV exports require a separately scoped admin enhancement"
+  ],
+  "limitations": [
+    "Historical phase20 acceptance manifest remains unchanged",
+    "No snapshot-benefit membership store; existing live plan_features semantics remain authoritative",
+    "Overall Phase 2 remains open and Phase 1 performance exceptions are unchanged",
+    "No remote operation, deployment, commit or push",
+    "Built recovery log retains seven workerd disconnected/Broken pipe diagnostics; server continued and all 75 built cases exited 0."
+  ],
+  "performance": {
+    "initialAppJsGzip": 266556,
+    "initialAppCssGzip": 29462
+  }
+}

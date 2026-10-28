@@ -113,18 +113,38 @@
 /app/manifest.webmanifest
   Cache-Control: public, max-age=0, must-revalidate
 
-# ─── Admin panel — relaxed for Sveltia CMS (unpkg CDN + GitHub API) ──────────
-/admin/*
-  Cache-Control: no-store, no-cache, must-revalidate
-  Pragma: no-cache
-  Content-Security-Policy: default-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net https://api.github.com https://github.com data: blob:; img-src 'self' https: data: blob:; connect-src 'self' https://api.github.com https://github.com https://unpkg.com https://cdn.jsdelivr.net; frame-src https://github.com; font-src 'self' https: data:
+# ─── Platform administration — same-origin code, private HTML ─────────────
+/admin
+  Cache-Control: private, no-store
+  X-Robots-Tag: noindex, nofollow
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'
 
-# ─── Admin config — prevent caching + correct MIME type ──────────────────────
-/admin/config.yml
-  Cache-Control: no-store, no-cache, must-revalidate
-  Content-Type: text/yaml; charset=utf-8
+/admin/*
+  Cache-Control: private, no-store
+  X-Robots-Tag: noindex, nofollow
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'
 
 # Membership administration uses only same-origin code and APIs.
 /admin/pro/*
-  Cache-Control: no-store
+  Cache-Control: private, no-store
   Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'
+
+# Owner profile settings — private account UI, isolated from the simulator.
+/settings/publications/*
+  Cache-Control: private, no-store
+  X-Robots-Tag: noindex, nofollow
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'; img-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'
+
+/settings/profile/*
+  Cache-Control: private, no-store
+  X-Robots-Tag: noindex, nofollow
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'; img-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'
+
+/community/*
+  Cache-Control: public, max-age=0, must-revalidate
+  X-Content-Type-Options: nosniff
+
+# Worker-owned publication HTML and thumbnails recheck visibility on every read.
+/c/*
+  Cache-Control: private, no-store
+  X-Content-Type-Options: nosniff

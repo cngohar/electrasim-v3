@@ -18,9 +18,28 @@ export async function request<T>(path: string, method = 'GET', body?: Row): Prom
     headers: body ? { 'Content-Type': 'application/json' } : undefined,
     body: body ? JSON.stringify(body) : undefined,
   });
-  const data = await response.json();
-  if (!response.ok)
-    throw new ApiError(response.status, data.error?.message ?? data.error ?? 'Request failed');
+  let data: unknown;
+  try {
+    data = await response.json();
+  } catch {
+    throw new ApiError(
+      response.ok ? 502 : response.status,
+      'The administration service returned an incomplete response. Reload and try again.',
+    );
+  }
+  if (!response.ok) {
+    const error = data && typeof data === 'object' && 'error' in data ? data.error : undefined;
+    const message =
+      typeof error === 'string'
+        ? error
+        : error &&
+            typeof error === 'object' &&
+            'message' in error &&
+            typeof error.message === 'string'
+          ? error.message
+          : 'Request failed';
+    throw new ApiError(response.status, message);
+  }
   return data as T;
 }
 export function identifier(row: Row) {

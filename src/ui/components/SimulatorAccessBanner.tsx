@@ -3,9 +3,11 @@ import { exportJSON } from '@electrasim/domain/circuitFormat';
 import { useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { downloadText } from '../../lib/exportImport';
+import { sameDocument } from '../../store/circuitAccess';
 import { basicCopy, premiumComponents, saveRecovery } from '../../store/circuitRecovery';
 import { clearHistory, useCircuitStore } from '../../store/circuitStore';
 import {
+  accessGeneration,
   accessMessage,
   isCircuitReadOnly,
   refreshAccess,
@@ -38,9 +40,9 @@ export function SimulatorAccessBanner() {
     >
       <output className="block">
         {readOnly
-          ? 'This circuit is read-only. An active membership is needed to edit or run its premium content.'
+          ? 'This circuit is read-only until its component access and membership benefits can be verified.'
           : access.pending
-            ? 'Checking membership…'
+            ? 'Checking access…'
             : access.message}
       </output>
       {readOnly && access.message && <p>{access.message}</p>}
@@ -60,7 +62,7 @@ export function SimulatorAccessBanner() {
           </button>
         )}
         <button type="button" className="underline" onClick={() => void refreshAccess()}>
-          Refresh membership
+          Refresh access
         </button>
         {!readOnly && (
           <button type="button" className="underline" onClick={() => accessMessage(null)}>
@@ -101,13 +103,13 @@ export function SimulatorAccessBanner() {
             onClick={() => {
               void (async () => {
                 try {
+                  const generation = accessGeneration();
                   const original = useCircuitStore.getState();
                   const copy = basicCopy(original, removeComponents, removeFaults);
                   await saveRecovery(original);
                   if (
-                    original.components !== useCircuitStore.getState().components ||
-                    original.wires !== useCircuitStore.getState().wires ||
-                    original.faults !== useCircuitStore.getState().faults
+                    generation !== accessGeneration() ||
+                    !sameDocument(original, useCircuitStore.getState())
                   )
                     throw new Error('Circuit changed; retry the copy.');
                   useCircuitStore.getState().setCircuit(copy);

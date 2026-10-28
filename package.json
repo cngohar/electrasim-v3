@@ -12,6 +12,8 @@
   "scripts": {
     "dev": "vite --port=3000 --strictPort --host=0.0.0.0",
     "dev:marketing": "bun run --cwd astro-site dev",
+    "demo:profiles": "node scripts/preview-profiles.mjs",
+    "check:profiles-demo": "node scripts/check-profiles-design.mjs",
     "dev:worker": "wrangler dev --local --port 8791 --ip 127.0.0.1 --persist-to .wrangler/state",
     "build": "vite build && bun run build:astro && bun scripts/postbuild.mjs",
     "build:astro": "bun run --cwd astro-site build",
@@ -94,7 +96,22 @@
     "verify:phase-1.12": "bun scripts/verify-phase112.mjs",
     "verify:phase-1.13": "bun scripts/verify-phase113.mjs",
     "verify:phase-1.14": "bun scripts/verify-phase114.mjs",
-    "benchmark:catalogue-profiles": "bun scripts/benchmark-catalogue-profiles.ts"
+    "benchmark:catalogue-profiles": "bun scripts/benchmark-catalogue-profiles.ts",
+    "test:phase-2.0-spike": "bun scripts/test-phase20-spike.ts",
+    "types:phase-2.0-spike": "bun scripts/generate-phase20-types.ts",
+    "test:platform-admin": "bun scripts/test-platform-admin.ts",
+    "verify:phase-2.0": "bun scripts/verify-phase20.mjs",
+    "verify:phase-2.1": "bun scripts/verify-phase21.mjs",
+    "verify:phase-2.0a": "bun scripts/verify-phase20a.mjs",
+    "test:profile-storage": "bun scripts/test-profile-storage.ts",
+    "test:profiles-api": "bun scripts/test-profiles-api.ts",
+    "test:component-access-storage": "bun scripts/test-component-access-storage.ts",
+    "test:component-access-api": "bun scripts/test-component-access-api.ts",
+    "test:publication-storage": "bun scripts/test-publication-storage.ts",
+    "test:publications-api": "bun scripts/test-publications-api.ts",
+    "verify:phase-2.2": "bun scripts/verify-phase22.mjs",
+    "test:preview-api": "bun scripts/test-preview-api.ts",
+    "verify:phase-2.3": "bun scripts/verify-phase23.mjs"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "^1.7.6",

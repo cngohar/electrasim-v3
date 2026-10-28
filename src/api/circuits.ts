@@ -1,14 +1,21 @@
-import { circuitRequirements } from '@electrasim/access/circuit';
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { HTTPException } from 'hono/http-exception';
+import { policyGuard } from './component-access-store';
 import { type ApiEnv, freshContext, requireSession, sameOriginMutation } from './context';
-import { ownMembership } from './membership-store';
 import { integer, keys, object, pagination, string } from './membership-validation';
-import { authorize, capabilityGuard, readCircuit } from './simulator-access';
+import {
+  capabilityGuard,
+  circuitAccess,
+  readCircuit,
+  recheckCircuitAccess,
+} from './simulator-access';
 
 export const circuitsApi = new Hono<ApiEnv>();
-circuitsApi.use('*', freshContext, sameOriginMutation, bodyLimit({ maxSize: 10 * 1024 * 1024 }));
+// Mounted middleware is flattened by Hono; keep circuit policy on owned paths.
+for (const path of ['/circuits', '/circuits/*', '/simulator/*']) {
+  circuitsApi.use(path, freshContext, sameOriginMutation, bodyLimit({ maxSize: 10 * 1024 * 1024 }));
+}
 circuitsApi.onError((error, c) => {
   if (error instanceof HTTPException) return c.json({ error: error.message }, error.status);
   console.error('Circuit request failed', c.get('requestId'), error);
@@ -18,15 +25,9 @@ circuitsApi.onError((error, c) => {
 circuitsApi.post('/simulator/authorize', async (c) => {
   const input = object(await c.req.json());
   keys(input, ['circuit']);
-  const required = circuitRequirements(readCircuit(input.circuit));
-  const access = await authorize(c, required);
-  return c.json({
-    userId: c.get('actor')?.id,
-    required,
-    capabilities: access.capabilities,
-    nextChangeAt: access.nextChangeAt,
-    asOf: access.asOf,
-  });
+  const circuit = readCircuit(input.circuit);
+  const access = await circuitAccess(c, [circuit]);
+  return c.json(await recheckCircuitAccess(c, [circuit], access.policy));
 });
 circuitsApi.post('/simulator/simulate', async (c) => {
   const input = object(await c.req.json());
@@ -39,7 +40,7 @@ circuitsApi.post('/simulator/simulate', async (c) => {
   const standard = input.standard ?? 'int';
   if (typeof standard !== 'string' || !['uk', 'us', 'eu', 'int'].includes(standard))
     throw new HTTPException(400, { message: 'Unknown standard' });
-  await authorize(c, circuitRequirements(circuit));
+  const access = await circuitAccess(c, [circuit]);
   const { simulate } = await import('@electrasim/domain/simulation/simulate');
   // Domain validates the complete state, model/configuration identity and step bounds.
   // This calculation endpoint does not accept or grade exercise results.
@@ -58,11 +59,13 @@ circuitsApi.post('/simulator/simulate', async (c) => {
     )
   )
     return c.json({ error: diagnostics[0]?.message }, 400);
-  return c.json(
-    JSON.parse(
+  const finalAccess = await recheckCircuitAccess(c, [circuit], access.policy);
+  return c.json({
+    ...JSON.parse(
       JSON.stringify(result, (_key, value) => (value instanceof Set ? [...value] : value)),
     ),
-  );
+    access: finalAccess,
+  });
 });
 
 circuitsApi.use('/circuits', requireSession);
@@ -86,14 +89,15 @@ circuitsApi.get('/circuits/:id', async (c) => {
     .first<{ id: string; name: string; content: string; version: number }>();
   if (!row) throw new HTTPException(404, { message: 'Circuit not found' });
   const circuit = readCircuit(JSON.parse(row.content));
-  const required = circuitRequirements(circuit);
-  const access = await ownMembership(c.get('db'), c.get('actor').id, 1, 0);
+  const access = await circuitAccess(c, [circuit], undefined, false);
+  const required = access.required;
   return c.json({
     id: row.id,
     name: row.name,
     circuit,
     version: row.version,
     required,
+    policy: access.policy,
     readOnly: required.some((cap) => !access.capabilities.includes(cap)),
   });
 });
@@ -102,22 +106,36 @@ circuitsApi.post('/circuits', async (c) => {
   keys(input, ['name', 'circuit']);
   const name = string(input.name, 'name', 160);
   const circuit = readCircuit(input.circuit);
-  const required = circuitRequirements(circuit);
-  await authorize(c, required);
+  const access = await circuitAccess(c, [circuit]);
+  const required = access.required;
   const id = crypto.randomUUID();
   const now = Date.now();
   const userId = c.get('actor').id;
   const guard = capabilityGuard(userId, required, now);
+  const policy = policyGuard(access.policy.revision);
   const result = await c
     .get('db')
     .prepare(
-      `INSERT INTO circuits (id,user_id,name,content,version,created_at,updated_at) SELECT ?,?,?,?,1,?,? WHERE 1=1${guard.sql}`,
+      `INSERT INTO circuits (id,user_id,name,content,version,created_at,updated_at) SELECT ?,?,?,?,1,?,? WHERE 1=1${guard.sql}${policy.sql}`,
     )
-    .bind(id, userId, name, JSON.stringify(circuit), now, now, ...guard.args)
+    .bind(id, userId, name, JSON.stringify(circuit), now, now, ...guard.args, ...policy.args)
     .run();
-  if (!result.meta.changes)
+  if (!result.meta.changes) {
+    // Distinguish a policy conflict from the existing membership denial.
+    await recheckCircuitAccess(c, [circuit], access.policy);
     throw new HTTPException(403, { message: 'Membership changed; reload before retrying' });
-  return c.json({ id, name, version: 1, createdAt: now, updatedAt: now }, 201);
+  }
+  return c.json(
+    {
+      id,
+      name,
+      version: 1,
+      createdAt: now,
+      updatedAt: now,
+      policyRevision: access.policy.revision,
+    },
+    201,
+  );
 });
 circuitsApi.patch('/circuits/:id', async (c) => {
   const input = object(await c.req.json());
@@ -128,31 +146,44 @@ circuitsApi.patch('/circuits/:id', async (c) => {
   const userId = c.get('actor').id;
   const prior = await c
     .get('db')
-    .prepare('SELECT content FROM circuits WHERE id = ? AND user_id = ?')
+    .prepare('SELECT content, version FROM circuits WHERE id = ? AND user_id = ?')
     .bind(c.req.param('id'), userId)
-    .first<{ content: string }>();
+    .first<{ content: string; version: number }>();
   if (!prior) throw new HTTPException(404, { message: 'Circuit not found' });
-  const required = [
-    ...new Set([
-      ...circuitRequirements(circuit),
-      ...circuitRequirements(readCircuit(JSON.parse(prior.content))),
-    ]),
-  ];
-  await authorize(c, required);
+  if (prior.version !== version)
+    throw new HTTPException(409, { message: 'Circuit changed; reload before retrying' });
+  const access = await circuitAccess(c, [circuit, readCircuit(JSON.parse(prior.content))]);
+  const required = access.required;
   const now = Date.now();
   const guard = capabilityGuard(userId, required, now);
+  const policy = policyGuard(access.policy.revision);
   const result = await c
     .get('db')
     .prepare(
-      `UPDATE circuits SET name=?,content=?,version=version+1,updated_at=? WHERE id=? AND user_id=? AND version=?${guard.sql}`,
+      `UPDATE circuits SET name=?,content=?,version=version+1,updated_at=? WHERE id=? AND user_id=? AND version=?${guard.sql}${policy.sql}`,
     )
-    .bind(name, JSON.stringify(circuit), now, c.req.param('id'), userId, version, ...guard.args)
+    .bind(
+      name,
+      JSON.stringify(circuit),
+      now,
+      c.req.param('id'),
+      userId,
+      version,
+      ...guard.args,
+      ...policy.args,
+    )
     .run();
   if (!result.meta.changes)
     throw new HTTPException(409, {
-      message: 'Circuit or membership changed; reload before retrying',
+      message: 'Circuit, policy or membership changed; reload before retrying',
     });
-  return c.json({ id: c.req.param('id'), name, version: version + 1, updatedAt: now });
+  return c.json({
+    id: c.req.param('id'),
+    name,
+    version: version + 1,
+    updatedAt: now,
+    policyRevision: access.policy.revision,
+  });
 });
 circuitsApi.delete('/circuits/:id', async (c) => {
   const input = object(await c.req.json());

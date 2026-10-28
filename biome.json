@@ -85,7 +85,11 @@
   },
   "overrides": [
     {
-      "include": ["src/ui/canvas/ComponentNode.tsx", "src/ui/canvas/ComponentLayer.tsx"],
+      "include": [
+        "src/ui/canvas/ComponentNode.tsx",
+        "src/ui/canvas/ComponentLayer.tsx",
+        "src/ui/canvas/ComponentSceneNode.tsx"
+      ],
       "linter": {
         "rules": {
           "a11y": {

@@ -1,0 +1,24 @@
+import { defineConfig, devices } from '@playwright/test';
+
+/** Components Gate E against actual local Worker, built assets and isolated D1. */
+export default defineConfig({
+  testDir: 'e2e',
+  testMatch: /component-admin\.spec\.ts/,
+  metadata: { delivery: 'built' },
+  fullyParallel: false,
+  workers: 1,
+  retries: 0,
+  reporter: [['html', { open: 'never' }], ['list']],
+  use: { baseURL: 'http://127.0.0.1:8793', screenshot: 'only-on-failure' },
+  projects: [
+    { name: 'built-desktop', use: { ...devices['Desktop Chrome'] } },
+    { name: 'built-phone', use: { ...devices['Pixel 7'] } },
+    { name: 'built-safari', use: { ...devices['iPad Pro 11'] } },
+  ],
+  webServer: {
+    command: 'bun scripts/start-platform-browser-worker.ts',
+    url: 'http://127.0.0.1:8793/api/health',
+    reuseExistingServer: false,
+    timeout: 60000,
+  },
+});

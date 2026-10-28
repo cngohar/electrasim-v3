@@ -104,16 +104,41 @@ export async function listResource(
   const { table, key } = resources[resource];
   const where = resource === 'memberships' && userId ? ' WHERE user_id = ?' : '';
   const params = where ? [userId!] : [];
-  const [rows, total] = await db.batch<Data>([
+  const now = Date.now();
+  const [rows, total, benefits] = await db.batch<Data>([
     db
       .prepare(
-        `SELECT * FROM ${table}${where} ORDER BY created_at DESC, ${key} DESC LIMIT ? OFFSET ?`,
+        resource === 'memberships'
+          ? `SELECT e.*, p.name AS plan_name, u.name AS user_name, actor.name AS created_by_name FROM entitlements e JOIN plans p ON p.id = e.plan_id JOIN user u ON u.id = e.user_id LEFT JOIN user actor ON actor.id = e.created_by${userId ? ' WHERE e.user_id = ?' : ''} ORDER BY e.created_at DESC, e.id DESC LIMIT ? OFFSET ?`
+          : resource === 'plans'
+            ? `SELECT p.*, (SELECT COUNT(DISTINCT e.user_id) FROM entitlements e WHERE e.plan_id = p.id AND e.status = 'active' AND e.starts_at <= ? AND (e.ends_at IS NULL OR e.ends_at > ?)) AS active_member_count FROM plans p ORDER BY p.created_at DESC,p.id DESC LIMIT ? OFFSET ?`
+            : `SELECT * FROM ${table}${where} ORDER BY created_at DESC, ${key} DESC LIMIT ? OFFSET ?`,
       )
-      .bind(...params, limit, offset),
+      .bind(...(resource === 'plans' ? [now, now] : params), limit, offset),
     db.prepare(`SELECT COUNT(*) AS total FROM ${table}${where}`).bind(...params),
+    ...(resource === 'plans'
+      ? [
+          db
+            .prepare(
+              'SELECT pf.plan_id, f.key, f.name, pf.enabled, f.enabled AS globally_enabled FROM plan_features pf JOIN pro_features f ON f.key = pf.feature_key WHERE pf.plan_id IN (SELECT id FROM plans ORDER BY created_at DESC,id DESC LIMIT ? OFFSET ?) ORDER BY f.sort_order,f.key',
+            )
+            .bind(limit, offset),
+        ]
+      : []),
   ]);
   return {
-    items: rows.results.map(resource === 'features' ? decodeFeature : decode),
+    items: rows.results.map((row) => {
+      const item = resource === 'features' ? decodeFeature(row) : decode(row);
+      if (resource === 'plans')
+        item.benefits = benefits.results
+          .filter((benefit) => benefit.plan_id === row.id)
+          .map((benefit) => ({
+            key: benefit.key,
+            name: JSON.parse(String(benefit.name)),
+            enabled: benefit.enabled === 1 && benefit.globally_enabled === 1,
+          }));
+      return item;
+    }),
     total: total.results[0].total,
     limit,
     offset,

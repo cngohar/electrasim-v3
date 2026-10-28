@@ -1,0 +1,84 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "electrasim-phase20-spike-local",
+  "workers_dev": false,
+  "preview_urls": false,
+  "main": "scripts/phase20-spike.worker.ts",
+  "compatibility_date": "2024-09-23",
+  "compatibility_flags": ["nodejs_compat"],
+  "send_metrics": false,
+  "observability": {
+    "enabled": false
+  },
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "run_worker_first": [
+      "/api/*",
+      "/explore",
+      "/explore/*",
+      "/feed",
+      "/feed/*",
+      "/c/*",
+      "/u/*",
+      "/__phase20/*",
+      "/collections/*"
+    ]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "phase20-spike",
+      "database_id": "local-phase20-spike",
+      "remote": false,
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "R2",
+      "bucket_name": "phase20-spike-assets",
+      "remote": false
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "KV",
+      "id": "local-phase20-spike",
+      "remote": false
+    }
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "QUEUE",
+        "queue": "phase20-spike-jobs"
+      }
+    ],
+    "consumers": [
+      {
+        "queue": "phase20-spike-jobs",
+        "max_batch_size": 1,
+        "max_batch_timeout": 1
+      }
+    ]
+  },
+  "vars": {
+    "ENV": "local"
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "PRESENCE",
+        "class_name": "PresenceRoom"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["PresenceRoom"]
+    }
+  ]
+}

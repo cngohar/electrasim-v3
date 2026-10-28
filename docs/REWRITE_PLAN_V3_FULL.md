@@ -296,6 +296,15 @@ Client: `createAuthClient` from `better-auth/react` (`apps/web/src/lib/auth-clie
 
 ## 8. RBAC & Admin-Configurable Permissions
 
+**Phase 2 refinement (2026-10-23):** the shared admin foundation implements system
+roles, super-admin-managed custom roles and a validated permission matrix over
+implemented actions. Protected membership, staff-role and platform-suspension
+actions remain code-guarded and cannot be delegated by matrix overrides.
+Organization-scoped roles are enforced in the LMS phase. The
+[Phase 2 plan](./plans/PHASE_2_COMMUNITY_PLAN.md#platform-admin-and-community-controls)
+governs current schema/authorization decisions; examples below describe broader
+roadmap intent, not existing implementation or permission to add impersonation.
+
 ### Roles
 
 | Role | Scope |
@@ -472,6 +481,12 @@ Admin (`/admin/email`) picks provider and edits templates (verify, invite, annou
 
 ## 17. Content Studio — Mini CMS
 
+**Delivery: Phase 5, through the shared admin panel.** Blog posts and static pages
+receive editor/preview, media, SEO, approval/publishing, revisions and scheduling.
+The existing basic `content_pages` table is a foundation only; it does not provide
+an implemented editor or publishing API. The 2026-10-24 Phase 2 component-access
+and support-desk additions do not move the full CMS into Community.
+
 Anyone authenticated can **write**; publishing requires **approval**.
 
 - **Tables:** `content_pages { slug PK, title, body MDX, status draft|pending|approved|rejected, authorId, reviewerId, coverUrl R2, seoJson, publishedAt }`, `content_posts` (blog), `content_revisions`.
@@ -543,20 +558,49 @@ export function generateExamVariants(tid: string, studentIds: string[]): Map<use
 
 ## 21. Admin Panel
 
+**Delivery foundation (2026-10-23):** Phase 2 delivers the shared admin shell,
+overview, users, roles/permissions, separate platform/community restrictions,
+validated settings, scoped audit and complete community moderation UI. Existing
+membership administration remains super-admin-only. Gamification, procedural,
+Content Studio, LMS, payments and email add business modules in their own phases,
+using Phase 2's route/permission/settings/audit contract and their own acceptance.
+See the [detailed scope and gates](./plans/PHASE_2_COMMUNITY_PLAN.md).
+
 `/admin/*` — `super_admin`/`admin` where authorized; `/admin/pro` and all membership mutation APIs are **super-admin-only**. Public display config may use KV caching; authorization must use fresh primary D1 data (§9). Electrical standards remain read-only (§32).
 
 | Domain | Admin Action | Stored |
 |--------|-------------|--------|
-| Components | add/edit/disable, set `isPro`, upload SVG → R2, Matter body | `components_catalog` |
+| Component access — Phase 2.0A | Super admin controls Free/Pro access for existing Pro IDs; confirmed Basic baseline locked; audited policy and consistent simulator/server enforcement | Proposed `component_access_overrides` plus code-owned definitions |
+| Full component catalogue — deferred | Broader add/edit/disable, SVG/Matter asset management needs a separate implementation milestone; no arbitrary electrical-definition editor in 2.0A | Future `components_catalog` |
+| Support desk — Phase 2.7A | Private owner tickets, staff replies/internal notes, assignment/status/priority and in-app updates; scoped permissions/audit | Proposed `support_tickets`, `support_messages`, `support_ticket_events` |
 | Electrical standards | Read-only viewer; changes through code review + migration + release | `electrical_standards` projection |
 | Paid memberships | Super admin: plan/benefit CRUD, assign/edit/extend/suspend/revoke members and view audit (Phase 1); checkout/seat billing in Phase 7 | `plans`, `pro_features`, `plan_features`, `entitlements`, `audit_logs` |
 | Gamification | add/edit/delete levels/badges/quests, curve, criteria | `levels`, `badges`, `quests`, `app_config.levelCurve` |
 | Procedural | templates, difficulty, zones | `procedural_templates` |
-| Content studio | approve/reject pages/posts, SEO | `content_pages/posts` |
+| Content studio — Phase 5 | Create/edit blog posts and static pages, preview/media/SEO, submit/approve/publish, revisions and scheduled publication | Basic `content_pages` exists; full posts/revisions/editor workflow pending |
 | Permissions | create custom roles, edit matrix | `app_config.permissions` |
 | Feature flags | toggle, rollout %, allowlist | `feature_flags` (KV) |
 | Themes/homepage/LMS/community | CSS vars, layout, scales, thresholds | `app_config.*` |
 | Payments/email | provider pick, webhook status (keys in `env`) | `app_config.*` + `env` |
+
+**Owner-approved scheduling (2026-10-24):** 2.0A follows the accepted 2.0
+foundation before profiles (2.1); support desk 2.7A follows social notifications
+(2.6) and moderation integration (2.7), before final Community acceptance (2.8).
+The owner accepted the completed admin review and authorized 2.0A implementation
+on 2026-10-25. Gate B shared policy/storage and Gate C server API/policy
+focused checks passed (14 HTTP/race groups); full existing 16-stage regression passed.
+Gate D client policy/recovery is complete locally with 36 new units, 24 dedicated
+policy browser cases and full existing 16-stage exit 0 (2305 units, 78 source +
+78 built admin browsers). Gate E Components UI is complete locally (30 dedicated source/built cases, 14
+repeated server groups, 8 asset/header pages and full existing 16-stage regression).
+Dedicated full acceptance F now passed all 18 stages with exit 0 (2305 units,
+8 storage / 14 component API groups, 897 parity, 105 source + 105 built cases
+without skips/retries; 1318 unchanged source/harness inputs). Profiles 2.1 is complete locally after its dedicated full 22-stage acceptance (2339 units, 270 browser cases); Phase 2.2 publications is complete locally (2026-10-27): all 26 stage identities covered by passing evidence, 2342 units, 324 browser cases, 8 publication storage / 22 API groups, 897 unchanged parity and 1367 stable inputs. Acceptance combines an interrupted initial run and explicit eight-stage recovery; no uninterrupted full-default exit 0 is claimed. The recovery manifest records status 0, while the enclosing execution session reported 143 after completion. See [publication acceptance](audits/phase-2-publications.md) and [manifest](audits/data/phase22-acceptance.json). Next is 2.3 read-only preview/public detail; overall Phase 2 remains open.
+2.7A remains pending. See the [2.0A manifest](./audits/data/phase20a-acceptance.json).
+Scope, dependencies and local exit
+checks are in the [admin extension plan](./plans/PHASE_2_ADMIN_EXTENSIONS_PLAN.md).
+The support MVP excludes email, attachments, chat and SLA automation; full CMS
+remains Phase 5. Historical 2.0 acceptance does not accept these additions.
 
 Mandatory only: migrations, app-level guards, contracts, webhook sig, traversal.
 
@@ -665,13 +709,47 @@ The added Phase 1 membership/admin and electrical-rebuild scope requires re-esti
 |-------|-------|-------|------|
 | **0 — Foundation** | 1–2 | Bun workspaces + Hono Worker + Vite+Assets, D1 + Drizzle + Better Auth (sqlite) + Google/GitHub/Microsoft OAuth, KV+DO+Queues+R2 bindings, `packages/domain` extraction, `app_config`/`feature_flags` + admin shell, `nodejs_compat` | `bun run dev` serves营销+app, auth works, RBAC gates `/admin`, domain tests via `bun test` |
 | **1 — Simulator Core + Manual Memberships** | Re-estimate after 1.5A/1.5C | Standards/domain/membership/persistence foundations; **1.5A–1.5F MNA/behavior rebuild before Matter**; shared compatibility, confirmed supply edits, readiness and existing lab migration; SVG, accessible UI and super-admin member CRUD; basic diagnostics free | Independent electrical fixtures, truthful measurements, confirmation/readiness browser cases, versioned repair/results and cross-runtime parity; full local simulator/performance/Worker/D1/access gates |
-| **2 — Community (Published Circuit deferred until here)** | 6–8 | Published Circuit sharing, feed/explore/forks, follows/reactions/comments/collections, FTS5, SSR+OG and notifications; preserve circuit/model versions and applicability | Local publish/fork/comment/follow flow; stale results cannot masquerade as a fresh assessment |
+| **2 — Community + Shared Admin Foundation** | Re-estimate for expanded admin scope; original 6–8 is historical | Shared admin shell, users, roles/custom permissions, account/community restrictions, settings/audit and module extension contract; **2.0A component access controls** and **2.7A private support desk** before final 2.8 acceptance; full community moderation UI; Published Circuit sharing, feed/explore/forks, follows/reactions/comments/collections, FTS5, SSR+OG and notifications; preserve circuit/model versions | Local admin UI/API/access/session/audit gates with unchanged super-admin memberships; component policy/race/recovery and private support lifecycle/notification gates; publish/fork/comment/follow/moderate flow; stale results cannot masquerade as fresh; later phases reuse accepted admin contracts |
 | **3 — Gamification** | 9–10 | Levels/badges/quests/XP/streaks, leaderboards and admin CRUD; pin accepted exercise/model versions | Server-validated XP and comparable versioned results, tested locally |
 | **4 — Procedural Engine** | 11–12 | Seeded templates, homepage variants, games and HMAC exam variants; version generator and engine contracts | Local variant audit, deterministic replay and electrically verified solvability/repairs |
 | **5 — Wiring Games + Content Studio** | 13–15 | Games and content approval/CMS; model-aware authored lesson and template acceptance | Local game/CMS flows; lessons produce their stated outcomes within supported model scope |
 | **6 — LMS** | 16–18 | Institutions/classes/courses, assignments, gradebook, analytics, attendance/certificates, scoped lab and provider-agnostic invites; pin model/standard/exercise versions | Local institution → gradebook flow; unassessed physics cannot produce a false assessment pass |
 | **7 — Payments + Pro Polish** | Original 19–20; re-estimate | NOWPayments+Binance Pay checkout/webhooks and card stub (`OFF`), provider grants using Phase 1 memberships, institution pricing/seats, later artwork/overlays/export work | Verified payment → entitlement; idempotent refund/reconciliation preserves manual grants; benefit claims match implemented features |
 | **8 — Hardening & Future Cutover** | 21–22 | Local migration/URL/PWA/recovery, performance, access, dependency/security and accessibility checks; local Worker tests plus built-assets SEO/CSP. Hosted CI and eventual remote cutover are separately gated future operations. | Full local acceptance and backup/restore evidence; hosted testing needs a change to the local-only rule; Cloudflare cutover additionally needs the user's new account and explicit authorization |
+
+**Phase 2 started locally (2026-10-23):** the user authorized the next phase.
+The [2.0 spike record](./audits/phase-2-foundation-spike.md) covers routing/storage
+and membership-module isolation. Full implementation contracts and the shared admin
+foundation were subsequently accepted locally, as recorded below. Added 2.0A
+component access is required before 2.1. Phase 1.14 performance exceptions remain unchanged.
+No global Cloudflare login or remote operation is used.
+
+**2.0 accepted locally (2026-10-24):** shared platform administration passed its
+full 16-stage gate, including 2,232 units, 20 admin and 34 existing API groups,
+897 parity cases and 132 source/built browser cases. See the
+[foundation acceptance](./audits/phase-2-admin-foundation.md). Profiles (2.1) followed the required 2.0A and now have complete local acceptance; 2.7A support is required before final 2.8.
+See the [admin extension plan](./plans/PHASE_2_ADMIN_EXTENSIONS_PLAN.md). 2.0A has now started its local
+[design/contract gate](./plans/PHASE_2_0A_COMPONENT_ACCESS_PLAN.md), including the
+Components HTML workflow. The owner approved the admin panel and authorized local
+[integration](./plans/PLATFORM_ADMIN_DESIGN_INTEGRATION.md); 2.0A shared policy/storage
+and server policy/API are implemented with 14 focused HTTP/race groups passing;
+Gate D client policy/recovery and full existing 16-stage regression passed, while
+Gate E Components UI is complete with dedicated source/built checks and full existing regression;
+full acceptance F is complete locally with its dedicated 18-stage exit 0; support
+remains planned, and the overall Community phase and prior performance
+exceptions remain unchanged.
+
+The subsequent [complete actual/demo parity review](./audits/admin-prototype-parity-review.md)
+is accepted locally across all 16 checks using the retained non-browser prefix
+and explicit browser recovery: **2,235 units / 147 files, 20 admin and 34 existing
+API groups, 897 parity cases, 78 source + 78 built browser cases**. This supersedes
+the earlier focused presentation checks for the current source. Components runtime
+Gate B focused verification passed after explicit owner acceptance/authorization on
+2026-10-25. Gate C now passed 14 focused server HTTP/race groups; full existing 16-stage regression passed. Gate D passed 36 new units, 12 source + 12 built policy browser cases and full existing 16-stage exit 0 (2305 units, 78 source + 78 built admin browsers). Gate E Components UI passed 15 source + 15 built dedicated cases, 14 repeated server groups,
+8 asset/header pages and full existing 16-stage regression. Dedicated full Gate F
+now passed all 18 stages: 2305 units, 8 storage / 14 component API groups, 897 unchanged
+parity and 105 source + 105 built browser cases without skips/retries. All 1318 selected
+source/harness inputs matched. **2.0A and profiles 2.1 are complete locally. Owner-approved profiles integration passed its dedicated full 22-stage gate (2026-10-26): 2339 units / 153 files, 270 source/built browser cases without skips/retries, 8 profile storage / 21 profile API groups and 1350 unchanged source/harness inputs.** See the [profile acceptance](./audits/phase-2-profiles.md) and [manifest](./audits/data/phase21-acceptance.json). Overall Phase 2, support 2.7A and prior performance exceptions remain open.
 
 Post-V3.1: SCORM/xAPI, collaborative cursors, vector search (Vectorize), Workers AI tutor proxy.
 
@@ -938,3 +1016,16 @@ Let me know if you need additional detail on:
 - Locale list & priority (which languages first — `en` is default; `fr`/`de`/`es`/`ar` next? RTL scope?)
 - Standards update cadence and future national profiles; publication references and current scope corrections are recorded in the [source audit](./audits/electrical-standards-gap.md).
 - Whether Arabic (RTL) is in V3.0 or V3.1 (it doubles the layout work)
+
+### Phase 2.3 local acceptance update — 2026-10-28
+
+Read-only public detail/preview is complete locally with explicit interrupted-run
+recovery: all 29 stage identities have passing evidence, including 2,348 units,
+390 source/built browser cases, 9 preview API groups and 897 unchanged electrical
+parity on 1,387 unchanged inputs. D's 19 passing stages, nine from recovery A and
+the complete built matrix from recovery B contribute separately; A's timeout is
+retained and no uninterrupted full-selection exit 0 is claimed. See the
+[plan](plans/PHASE_2_3_PREVIEW_PLAN.md), [contract](api/preview.md),
+[audit](audits/phase-2-preview.md) and [manifest](audits/data/phase23-acceptance.json).
+Next is 2.4 Explore/feed/search. Overall Phase 2, later milestones and previous
+hardware/performance exceptions remain open. No remote operation or deployment.

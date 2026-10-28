@@ -1,10 +1,16 @@
-import { type Capability, missingCapabilities } from '@electrasim/access';
+import {
+  type Capability,
+  type ValidatedComponentPolicy,
+  missingCapabilities,
+} from '@electrasim/access';
+import { circuitRequirements } from '@electrasim/access/circuit';
 import { normalizeCircuit } from '@electrasim/domain/circuitFormat';
 import { validateCircuitInput } from '@electrasim/domain/core/input';
 import type { Circuit } from '@electrasim/domain/types';
 import type { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { type ApiEnv, requireSession } from './context';
+import { readComponentPolicy } from './component-access-store';
+import { type ApiEnv, requestAuth, requireSession } from './context';
 import { ownMembership } from './membership-store';
 
 export function readCircuit(value: unknown, preserveMomentary = false): Circuit {
@@ -15,16 +21,62 @@ export function readCircuit(value: unknown, preserveMomentary = false): Circuit 
     throw new HTTPException(400, { message: result.diagnostics[0]?.message ?? 'Invalid circuit.' });
   return normalizeCircuit(result.circuit, !preserveMomentary);
 }
-export async function authorize(c: Context<ApiEnv>, required: readonly Capability[]) {
-  if (!required.length)
-    return { capabilities: [] as Capability[], nextChangeAt: null, asOf: Date.now() };
-  if (!c.get('actor')) await requireSession(c, async () => {});
-  const membership = await ownMembership(c.get('db'), c.get('actor').id, 1, 0);
-  if (missingCapabilities(membership.capabilities, required).length)
+/** Compare revisions around the primary membership read. No client snapshot grants authority. */
+export async function circuitAccess(
+  c: Context<ApiEnv>,
+  circuits: readonly Circuit[],
+  expectedRevision?: number,
+  enforce = true,
+) {
+  const policy = await readComponentPolicy(c);
+  if (expectedRevision !== undefined && policy.revision !== expectedRevision) policyConflict();
+  const required = [
+    ...new Set(circuits.flatMap((circuit) => circuitRequirements(circuit, policy))),
+  ];
+  // Optional authenticated Free access still returns the actual user's benefits.
+  // Repeating this check at response time also catches expired/revoked sessions.
+  const authenticated =
+    c.get('actor') ||
+    required.length ||
+    (c.req.header('Cookie') &&
+      (await requestAuth(c).api.getSession({
+        headers: c.req.raw.headers,
+        query: { disableCookieCache: true },
+      })));
+  if (authenticated) {
+    c.set('db', c.env.DB.withSession('first-primary'));
+    await requireSession(c, async () => {});
+  }
+  const membership = c.get('actor')
+    ? await ownMembership(c.env.DB.withSession('first-primary'), c.get('actor').id, 1, 0)
+    : { capabilities: [] as Capability[], nextChangeAt: null, asOf: Date.now() };
+  const finalPolicy = await readComponentPolicy(c);
+  if (finalPolicy.revision !== policy.revision) policyConflict();
+  if (enforce && missingCapabilities(membership.capabilities, required).length)
     throw new HTTPException(403, {
       message: 'An active membership with the required benefits is needed.',
     });
-  return membership;
+  return {
+    userId: c.get('actor')?.id,
+    required,
+    capabilities: membership.capabilities,
+    nextChangeAt: membership.nextChangeAt,
+    asOf: membership.asOf,
+    policy,
+  };
+}
+
+export function policyConflict(): never {
+  throw new HTTPException(409, { message: 'Component policy changed; reload before retrying' });
+}
+
+/** Final response authorization, after computation, uses a new primary snapshot. */
+export function recheckCircuitAccess(
+  c: Context<ApiEnv>,
+  circuits: readonly Circuit[],
+  policy: ValidatedComponentPolicy,
+) {
+  return circuitAccess(c, circuits, policy.revision);
 }
 /** Repeat capability predicates in the write transaction so a racing revocation wins. */
 export function capabilityGuard(userId: string, required: readonly Capability[], now: number) {

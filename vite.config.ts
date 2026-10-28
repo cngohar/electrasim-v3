@@ -42,6 +42,16 @@ export default defineConfig(({ command }) => {
         input: {
           app: path.resolve(__dirname, 'index.html'),
           admin: path.resolve(__dirname, 'admin/pro/index.html'),
+          platform: path.resolve(__dirname, 'admin/index.html'),
+          users: path.resolve(__dirname, 'admin/users/index.html'),
+          permissions: path.resolve(__dirname, 'admin/permissions/index.html'),
+          settings: path.resolve(__dirname, 'admin/settings/index.html'),
+          audit: path.resolve(__dirname, 'admin/audit/index.html'),
+          standards: path.resolve(__dirname, 'admin/standards/index.html'),
+          components: path.resolve(__dirname, 'admin/components/index.html'),
+          community: path.resolve(__dirname, 'admin/community/index.html'),
+          profile: path.resolve(__dirname, 'settings/profile/index.html'),
+          publications: path.resolve(__dirname, 'settings/publications/index.html'),
         },
       },
     },
@@ -96,6 +106,11 @@ export default defineConfig(({ command }) => {
             '**/stats.html',
             'admin/**',
             '**/admin/**',
+            'settings/**',
+            '**/settings/**',
+            'community/**',
+            '**/community/**',
+            '**/profile-*.js',
             'og-image.*',
             'legacy-root-sw.js',
             '**/PixiCanvas-*.js',
@@ -109,7 +124,7 @@ export default defineConfig(({ command }) => {
             '**/browserAll-*.js',
             '**/webworkerAll-*.js',
           ],
-          navigateFallbackDenylist: [/^\/admin/],
+          navigateFallbackDenylist: [/^\/admin/, /^\/settings/, /^\/u\//, /^\/c\//],
           runtimeCaching: [
             {
               urlPattern: ({ url }) =>
@@ -142,6 +157,14 @@ export default defineConfig(({ command }) => {
     },
     server: {
       proxy: {
+        '/c/': {
+          target: `http://127.0.0.1:${Number(process.env.LOCAL_WORKER_PORT) || 8791}`,
+          changeOrigin: false,
+        },
+        '/u/': {
+          target: `http://127.0.0.1:${Number(process.env.LOCAL_WORKER_PORT) || 8791}`,
+          changeOrigin: false,
+        },
         '/api': {
           target: `http://127.0.0.1:${Number(process.env.LOCAL_WORKER_PORT) || 8791}`,
           changeOrigin: false,

@@ -1,0 +1,34 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "electrasim-profiles-browser-local",
+  "main": "scripts/profiles-test.worker.ts",
+  "compatibility_date": "2024-09-23",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "send_metrics": false,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "profiles-browser-test",
+      "database_id": "local-profiles-browser-test",
+      "remote": false,
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "R2",
+      "bucket_name": "profiles-browser-avatars",
+      "remote": false
+    }
+  ],
+  "vars": {
+    "ENV": "local"
+  },
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/api/*", "/u/*", "/c/*"]
+  }
+}

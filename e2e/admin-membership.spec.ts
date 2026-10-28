@@ -17,16 +17,24 @@ async function account(page: Page, role: string) {
 }
 async function confirm(page: Page, reason = 'Browser lifecycle test') {
   await page.getByLabel('Reason', { exact: true }).fill(reason);
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+      ),
+    )
+    .toBe(true);
   await page.getByRole('button', { name: 'Confirm change', exact: true }).click();
   await expect(page.getByText('Change saved and audited.')).toBeVisible();
 }
 async function plan(page: Page) {
   const name = `Browser plan ${randomUUID()}`;
-  await page.getByRole('button', { name: 'Create plan', exact: true }).click();
+  await page.getByRole('button', { name: 'Create membership plan', exact: true }).click();
   await page.getByLabel('Plan name', { exact: true }).fill(name);
-  await page.getByLabel('Slug', { exact: true }).fill(name.toLowerCase().replaceAll(' ', '-'));
+  await page.getByLabel('Plan code', { exact: true }).fill(name.toLowerCase().replaceAll(' ', '-'));
   await page.getByRole('combobox', { name: 'Status', exact: true }).selectOption('active');
   await page.locator('input[name="benefit:pro_components"]').check();
+  await page.getByLabel('No expiry', { exact: true }).check();
   await page.getByRole('button', { name: 'Review change', exact: true }).click();
   await page.getByRole('button', { name: 'Back to edit' }).click();
   await expect(page.getByLabel('Plan name', { exact: true })).toHaveValue(name);
@@ -41,8 +49,8 @@ test('real super-admin plan, grant, extend, suspend, resume, revoke and audit li
   const member = await account(page, 'super_admin');
   await page.goto('/admin/pro/');
   const name = await plan(page);
-  await page.getByRole('button', { name: 'Members', exact: true }).click();
-  await page.getByRole('button', { name: 'Create grant', exact: true }).click();
+  await page.getByRole('tab', { name: 'Member grants', exact: true }).click();
+  await page.getByRole('button', { name: 'Assign membership', exact: true }).click();
   await page.getByLabel('Search name or email').fill(member.email);
   await page
     .getByRole('combobox', { name: 'Selected member', exact: true })
@@ -51,8 +59,27 @@ test('real super-admin plan, grant, extend, suspend, resume, revoke and audit li
     .getByRole('combobox', { name: 'Selected plan', exact: true })
     .selectOption({ label: name });
   await expect
-    .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
-    .toBe(true);
+    .poll(() =>
+      page.evaluate(() => {
+        const width = document.documentElement.clientWidth;
+        return document.documentElement.scrollWidth <= width
+          ? null
+          : {
+              viewport: width,
+              content: document.documentElement.scrollWidth,
+              overflowing: [...document.querySelectorAll('body *')]
+                .filter((element) => element.getBoundingClientRect().right > width + 1)
+                .slice(0, 12)
+                .map((element) => ({
+                  tag: element.tagName,
+                  class: element.getAttribute('class'),
+                  right: element.getBoundingClientRect().right,
+                  width: element.getBoundingClientRect().width,
+                })),
+            };
+      }),
+    )
+    .toBeNull();
   await page.screenshot({
     path: `.wrangler/phase18-${test.info().project.name}.png`,
     fullPage: true,
@@ -61,7 +88,11 @@ test('real super-admin plan, grant, extend, suspend, resume, revoke and audit li
   await confirm(page);
   let membership = await (await page.request.get('/api/me/membership')).json();
   expect(membership.capabilities).toContain('pro_components');
-  await page.getByRole('button', { name: `Edit ${member.id}`, exact: true }).click();
+  await page
+    .getByRole('row')
+    .filter({ hasText: member.id })
+    .getByRole('button', { name: 'Manage grant', exact: true })
+    .click();
   await page.getByLabel('No expiry', { exact: true }).uncheck();
   await page.getByLabel('Ends at (UTC)').fill('2035-01-01T00:00');
   await page.getByRole('combobox', { name: 'Status', exact: true }).selectOption('suspended');
@@ -69,28 +100,40 @@ test('real super-admin plan, grant, extend, suspend, resume, revoke and audit li
   await confirm(page);
   membership = await (await page.request.get('/api/me/membership')).json();
   expect(membership.capabilities).not.toContain('pro_components');
-  await page.getByRole('button', { name: `Edit ${member.id}`, exact: true }).click();
+  await page
+    .getByRole('row')
+    .filter({ hasText: member.id })
+    .getByRole('button', { name: 'Manage grant', exact: true })
+    .click();
   await page.getByRole('combobox', { name: 'Status', exact: true }).selectOption('active');
   await page.getByLabel('Ends at (UTC)').fill('2036-01-01T00:00');
   await page.getByRole('button', { name: 'Review change', exact: true }).click();
   await confirm(page);
   membership = await (await page.request.get('/api/me/membership')).json();
   expect(membership.capabilities).toContain('pro_components');
-  await page.getByRole('button', { name: 'Plans', exact: true }).click();
-  await page.getByRole('button', { name: `Edit ${name}`, exact: true }).click();
+  await page.getByRole('tab', { name: 'Plans', exact: true }).click();
+  await page
+    .locator('.plan-card')
+    .filter({ hasText: name })
+    .getByRole('button', { name: /Manage plan/ })
+    .click();
   await expect(page.getByText(/1 affected members/)).toBeVisible();
   await page.getByRole('button', { name: 'Remove record' }).click();
   await expect(page.getByText(/Archive this plan/)).toBeVisible();
   await confirm(page);
   membership = await (await page.request.get('/api/me/membership')).json();
   expect(membership.capabilities).toContain('pro_components');
-  await page.getByRole('button', { name: 'Members', exact: true }).click();
-  await page.getByRole('button', { name: `Edit ${member.id}`, exact: true }).click();
+  await page.getByRole('tab', { name: 'Member grants', exact: true }).click();
+  await page
+    .getByRole('row')
+    .filter({ hasText: member.id })
+    .getByRole('button', { name: 'Manage grant', exact: true })
+    .click();
   await page.getByRole('button', { name: 'Revoke grant' }).click();
   await confirm(page);
   membership = await (await page.request.get('/api/me/membership')).json();
   expect(membership.capabilities).not.toContain('pro_components');
-  await page.getByRole('button', { name: 'Audit', exact: true }).click();
+  await page.getByRole('tab', { name: 'Audit', exact: true }).click();
   await expect(page.getByText(/Browser lifecycle test/).first()).toBeVisible();
 });
 for (const role of ['individual', 'admin', 'moderator', 'org_owner']) {
@@ -98,7 +141,9 @@ for (const role of ['individual', 'admin', 'moderator', 'org_owner']) {
     await account(page, role);
     await page.goto('/admin/pro/');
     await expect(page.getByRole('heading', { name: 'Access denied' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Create plan', exact: true })).toHaveCount(0);
+    await expect(
+      page.getByRole('button', { name: 'Create membership plan', exact: true }),
+    ).toHaveCount(0);
     expect((await page.request.get('/api/admin/pro/plans')).status()).toBe(403);
   });
 }
@@ -117,11 +162,18 @@ test('guest sign-in and expired session clear administration data', async ({ pag
   await expect(page.getByLabel('Email', { exact: true })).toHaveValue(member.email);
   await expect(page.getByLabel('Password', { exact: true })).toHaveValue('Local-password-123!');
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Create plan', exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Create membership plan', exact: true }),
+  ).toBeVisible();
+  // Complete the first private list before expiring its session so this case
+  // deterministically exercises the manual refresh path, not initial-load denial.
+  await expect(page.getByRole('button', { name: 'Refresh', exact: true })).toBeEnabled();
   await page.context().clearCookies();
   await page.getByRole('button', { name: 'Refresh', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Sign in', exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Create plan', exact: true })).toHaveCount(0);
+  await expect(
+    page.getByRole('button', { name: 'Create membership plan', exact: true }),
+  ).toHaveCount(0);
 });
 test('clipboard login survives switching windows between email and password', async ({ page }) => {
   const member = await account(page, 'super_admin');
@@ -148,14 +200,20 @@ test('clipboard login survives switching windows between email and password', as
   }
   await expect(page.getByLabel('Email', { exact: true })).toHaveValue(member.email);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Create plan', exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Create membership plan', exact: true }),
+  ).toBeVisible();
   await source.close();
 });
 test('stale plan edit requires reload without overwriting the winner', async ({ page }) => {
   await account(page, 'super_admin');
   await page.goto('/admin/pro/');
   const name = await plan(page);
-  await page.getByRole('button', { name: `Edit ${name}`, exact: true }).click();
+  await page
+    .locator('.plan-card')
+    .filter({ hasText: name })
+    .getByRole('button', { name: /Manage plan/ })
+    .click();
   const plans = await (await page.request.get('/api/admin/pro/plans?limit=100')).json();
   const row = plans.items.find((item: { name: string }) => item.name === name);
   const changed = await page.request.patch(`/api/admin/pro/plans/${row.id}`, {
@@ -177,7 +235,7 @@ test('benefit translations survive edits and unused records delete with an audit
 }) => {
   await account(page, 'super_admin');
   await page.goto('/admin/pro/');
-  await page.getByRole('button', { name: 'Benefits', exact: true }).click();
+  await page.getByRole('tab', { name: 'Benefits', exact: true }).click();
   await page.getByRole('button', { name: 'Create benefit', exact: true }).click();
   const key = `browser_${randomUUID().replaceAll('-', '')}`;
   await page.getByLabel('Benefit key', { exact: true }).fill(key);
@@ -185,9 +243,17 @@ test('benefit translations survive edits and unused records delete with an audit
   await page.getByLabel('Name translations (locale-to-text JSON)').fill('{"fr":"Composants"}');
   await page.getByRole('button', { name: 'Review change', exact: true }).click();
   await confirm(page);
-  await page.getByRole('button', { name: `Edit ${key}`, exact: true }).click();
+  await page
+    .locator('.plan-card')
+    .filter({ hasText: key })
+    .getByRole('button', { name: /Manage benefit/ })
+    .click();
   await expect
-    .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
+    .poll(() =>
+      page.evaluate(
+        () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+      ),
+    )
     .toBe(true);
   await page.getByLabel('Enabled for access').uncheck();
   await page.getByLabel('Archived from marketing').check();
@@ -197,7 +263,11 @@ test('benefit translations survive edits and unused records delete with an audit
   expect(feature.name.fr).toBe('Composants');
   expect(feature.enabled).toBe(false);
   expect(feature.archivedAt).not.toBeNull();
-  await page.getByRole('button', { name: `Edit ${key}`, exact: true }).click();
+  await page
+    .locator('.plan-card')
+    .filter({ hasText: key })
+    .getByRole('button', { name: /Manage benefit/ })
+    .click();
   await page.getByRole('button', { name: 'Remove record' }).click();
   await expect(page.getByText(/Delete this unreferenced benefit/)).toBeVisible();
   await confirm(page);
@@ -209,15 +279,28 @@ test('benefit translations survive edits and unused records delete with an audit
 test('role removal clears an open admin screen', async ({ page }) => {
   await account(page, 'super_admin');
   await page.goto('/admin/pro/');
-  await expect(page.getByRole('button', { name: 'Create plan', exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Create membership plan', exact: true }),
+  ).toBeVisible();
+  // Finish the initial private read before revoking the actor. Otherwise its
+  // safe 403 can remove Refresh before this case triggers the manual recheck.
+  await expect(page.getByRole('button', { name: 'Refresh', exact: true })).toBeEnabled();
   const response = await page.request.post('/api/__test/role', {
     headers: { Origin: new URL(test.info().project.use.baseURL as string).origin },
     data: { role: 'admin' },
   });
   expect(response.ok()).toBe(true);
-  await page.getByRole('button', { name: 'Refresh', exact: true }).click();
+  // Focus revalidation can clear the controls while the role mutation returns.
+  // If it wins, the denial heading is already the required completed state.
+  await page
+    .getByRole('button', { name: 'Refresh', exact: true })
+    .or(page.getByRole('heading', { name: 'Access denied', exact: true }))
+    .first()
+    .click();
   await expect(page.getByRole('heading', { name: 'Access denied' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Create plan', exact: true })).toHaveCount(0);
+  await expect(
+    page.getByRole('button', { name: 'Create membership plan', exact: true }),
+  ).toHaveCount(0);
 });
 
 test('focus revalidation finishes for a valid session and denies a changed role', async ({
@@ -225,8 +308,10 @@ test('focus revalidation finishes for a valid session and denies a changed role'
 }) => {
   await account(page, 'super_admin');
   await page.goto('/admin/pro/');
-  await expect(page.getByRole('button', { name: 'Create plan', exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Create plan', exact: true }).click();
+  await expect(
+    page.getByRole('button', { name: 'Create membership plan', exact: true }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Create membership plan', exact: true }).click();
   await page.getByLabel('Plan name', { exact: true }).fill('Unsaved focus draft');
   await Promise.all([
     page.waitForResponse((response) => response.url().endsWith('/api/admin/ping')),
@@ -260,7 +345,11 @@ test('review cannot erase plan benefits while their choices are still loading', 
     await route.continue();
   });
   try {
-    await page.getByRole('button', { name: `Edit ${name}`, exact: true }).click();
+    await page
+      .locator('.plan-card')
+      .filter({ hasText: name })
+      .getByRole('button', { name: /Manage plan/ })
+      .click();
     await expect(page.getByText('Loading benefits…')).toBeVisible();
     await page.getByRole('button', { name: 'Review change', exact: true }).click();
     await expect(page.getByRole('alert')).toHaveText(

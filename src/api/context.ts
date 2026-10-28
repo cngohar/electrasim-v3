@@ -1,4 +1,4 @@
-import type { D1Database, D1DatabaseSession } from '@cloudflare/workers-types';
+import type { D1Database, D1DatabaseSession, R2Bucket } from '@cloudflare/workers-types';
 import type { GlobalRole } from '@electrasim/access';
 import type { Context, MiddlewareHandler } from 'hono';
 import { HTTPException } from 'hono/http-exception';
@@ -7,7 +7,7 @@ import { createAuth } from '../../packages/db/auth';
 export type WorkerEnv = {
   DB: D1Database;
   KV: unknown;
-  R2: unknown;
+  R2: R2Bucket;
   QUEUE: unknown;
   PRESENCE: unknown;
   ENV: string;
@@ -20,6 +20,7 @@ export type ApiEnv = {
     db: D1DatabaseSession;
     actor: { id: string; globalRole: GlobalRole };
     requestId: string;
+    sessionId: string;
   };
 };
 export function requestAuth(c: Context<ApiEnv>) {
@@ -48,11 +49,20 @@ export const requireSession: MiddlewareHandler<ApiEnv> = async (c, next) => {
   // Roles are read from primary D1, never trusted from cookies or request input.
   const actor = await c
     .get('db')
-    .prepare('SELECT id, global_role AS globalRole FROM user WHERE id = ?')
+    .prepare(`SELECT u.id, u.global_role AS globalRole, a.suspended, a.ends_at AS endsAt
+      FROM user u LEFT JOIN account_controls a ON a.user_id = u.id WHERE u.id = ?`)
     .bind(session.user.id)
-    .first<{ id: string; globalRole: GlobalRole }>();
+    .first<{
+      id: string;
+      globalRole: GlobalRole;
+      suspended: number | null;
+      endsAt: number | null;
+    }>();
   if (!actor) throw new HTTPException(401, { message: 'Authentication required' });
+  if (actor.suspended === 1 && (actor.endsAt === null || actor.endsAt > Date.now()))
+    throw new HTTPException(403, { message: 'Platform account suspended' });
   c.set('actor', actor);
+  c.set('sessionId', session.session.id);
   await next();
 };
 export const requireSuperAdmin: MiddlewareHandler<ApiEnv> = async (c, next) => {

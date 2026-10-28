@@ -1,7 +1,8 @@
 import { drizzleAdapter } from '@better-auth/drizzle-adapter';
 // Better Auth — D1 (SQLite) + organization plugin. Local-first: all auth tested via --local.
 // CLI reads this file with: bun x auth generate --config packages/db/auth.ts
-import { betterAuth } from 'better-auth';
+import type { D1Database } from '@cloudflare/workers-types';
+import { APIError, betterAuth } from 'better-auth';
 import { organization } from 'better-auth/plugins/organization';
 import * as authSchema from './auth-schema';
 import { createDrizzle } from './drizzle';
@@ -30,7 +31,7 @@ export const auth = betterAuth({
 });
 
 // Factory so Worker can create per-request instance from c.env.DB (avoids global D1).
-export function createAuth(d1: unknown, opts: { baseURL: string; secret: string }) {
+export function createAuth(d1: D1Database, opts: { baseURL: string; secret: string }) {
   const db = createDrizzle(d1 as unknown as never);
   return betterAuth({
     database: drizzleAdapter(db, { provider: 'sqlite', schema: authSchema }),
@@ -39,6 +40,27 @@ export function createAuth(d1: unknown, opts: { baseURL: string; secret: string 
     emailAndPassword: { enabled: true, requireEmailVerification: false },
     user: trustedUserFields,
     session: { cookieCache: { enabled: false } },
+    databaseHooks: {
+      session: {
+        create: {
+          before: async (session) => {
+            const control = await d1
+              .withSession('first-primary')
+              .prepare(
+                'SELECT suspended, ends_at AS endsAt FROM account_controls WHERE user_id = ?',
+              )
+              .bind(session.userId)
+              .first<{ suspended: number; endsAt: number | null }>();
+            if (
+              control?.suspended === 1 &&
+              (control.endsAt === null || control.endsAt > Date.now())
+            )
+              throw new APIError('FORBIDDEN', { message: 'Platform account suspended' });
+            return { data: session };
+          },
+        },
+      },
+    },
     plugins: [organization({ allowUserToCreateOrganization: true, organizationLimit: 3 })],
     advanced: { database: { generateId: () => crypto.randomUUID() } },
   });

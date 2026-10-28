@@ -1,3 +1,4 @@
+import { currentComponentPolicy, useSimulatorAccess } from '../../store/simulatorAccess';
 import { fitCanvasView } from '../canvas/fitView';
 import { usePlacementGuidance } from '../hooks/usePlacementGuidance';
 import { Modal } from './Modal';
@@ -11,6 +12,7 @@ import { PlacementSupplyFilter } from './PlacementSupplyFilter';
  * Enter-to-run. No new state — every command calls an existing store action.
  */
 
+import { componentAccess } from '@electrasim/access';
 import { COMPONENT_DEFS } from '@electrasim/domain';
 import {
   BookOpen,
@@ -43,6 +45,8 @@ interface Command {
 }
 
 export function CommandPalette() {
+  useSimulatorAccess((s) => s.revision);
+  const policy = currentComponentPolicy();
   const guidance = usePlacementGuidance();
   const open = useUiStore((s) => s.commandPaletteOpen);
   const setOpen = useUiStore((s) => s.setCommandPaletteOpen);
@@ -214,14 +218,14 @@ export function CommandPalette() {
       .map(([type, def]) => ({
         id: `add-${type}`,
         label: `Add ${def.label}`,
-        hint: `${guidance.hint(type)}${def.tier === 'pro' ? ' · Membership required' : ''}`,
+        hint: `${guidance.hint(type)}${componentAccess(type, policy) === 'pro' ? ' · Membership required' : ''}`,
         icon: Layers,
         keywords: `add place ${def.label} ${type} ${def.category}`,
         run: () => setPlace(type),
       }));
 
     return { actions: actionCommands, components: addCommands };
-  }, [setOpen, guidance]);
+  }, [setOpen, guidance, policy]);
 
   const q = query.trim().toLowerCase();
   const scopeList =

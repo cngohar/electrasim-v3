@@ -1,0 +1,264 @@
+{
+  "scope": "Phase 2.0A Gate E production Components UI and existing-foundation regression only",
+  "status": "complete locally within Gate E scope",
+  "localOnly": true,
+  "full20AAccepted": false,
+  "remoteAuthorized": false,
+  "sourceBrowser": {
+    "command": "PLAYWRIGHT_DEV_PORT=3028 bun x playwright test e2e/component-admin.spec.ts --workers=1",
+    "exitCode": 0,
+    "passed": 15,
+    "skipped": 0,
+    "retries": 0,
+    "log": ".wrangler/component-gate-e-source-final.log"
+  },
+  "serverApi": {
+    "command": "bun run test:component-access-api",
+    "exitCode": 0,
+    "passedGroups": 14,
+    "log": ".wrangler/component-gate-e-api-final.log",
+    "evidenceRoot": ".wrangler/component-api-w545XO"
+  },
+  "builtBrowser": {
+    "command": "bun x playwright test --config=playwright.component-admin-built.config.ts --workers=1",
+    "exitCode": 0,
+    "passed": 15,
+    "skipped": 0,
+    "retries": 0,
+    "log": ".wrangler/component-gate-e-built.log"
+  },
+  "existingRegression": {
+    "command": "PHASE20_EVIDENCE_DIR=.wrangler/component-access-gate-e-2026-10-25 bun run verify:phase-2.0",
+    "scope": "existing shared admin foundation regression; does not subsume dedicated Components checks or full 2.0A acceptance",
+    "evidenceRoot": ".wrangler/component-access-gate-e-2026-10-25",
+    "selection": "full",
+    "exitCode": 0,
+    "units": 2305,
+    "unitFiles": 151,
+    "spikeGroups": 6,
+    "adminGroups": 20,
+    "membershipSimulatorGroups": 34,
+    "exactParityCases": 897,
+    "sourceBrowserPassed": 78,
+    "builtBrowserPassed": 78,
+    "skipped": 0,
+    "retries": 0,
+    "entryJsGzipBytes": 268979,
+    "entryCssGzipBytes": 29462,
+    "stages": [
+      {
+        "id": "typecheck",
+        "args": ["run", "typecheck"],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "log": ".wrangler/component-access-gate-e-2026-10-25/typecheck.log"
+      },
+      {
+        "id": "lint",
+        "args": ["run", "lint"],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "log": ".wrangler/component-access-gate-e-2026-10-25/lint.log"
+      },
+      {
+        "id": "unit",
+        "args": ["run", "test"],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "log": ".wrangler/component-access-gate-e-2026-10-25/unit.log"
+      },
+      {
+        "id": "test:gates",
+        "args": ["run", "test:gates"],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "log": ".wrangler/component-access-gate-e-2026-10-25/test-gates.log"
+      },
+      {
+        "id": "test:graph",
+        "args": ["run", "test:graph"],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "log": ".wrangler/component-access-gate-e-2026-10-25/test-graph.log"
+      },
+      {
+        "id": "build",
+        "args": ["run", "build"],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "log": ".wrangler/component-access-gate-e-2026-10-25/build.log"
+      },
+      {
+        "id": "check:perf",
+        "args": ["run", "check:perf"],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "log": ".wrangler/component-access-gate-e-2026-10-25/check-perf.log"
+      },
+      {
+        "id": "check:csp",
+        "args": ["run", "check:csp"],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "log": ".wrangler/component-access-gate-e-2026-10-25/check-csp.log"
+      },
+      {
+        "id": "check:links",
+        "args": ["run", "check:links"],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "log": ".wrangler/component-access-gate-e-2026-10-25/check-links.log"
+      },
+      {
+        "id": "check:seo",
+        "args": ["run", "check:seo"],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "log": ".wrangler/component-access-gate-e-2026-10-25/check-seo.log"
+      },
+      {
+        "id": "test:phase-2.0-spike",
+        "args": ["run", "test:phase-2.0-spike"],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "log": ".wrangler/component-access-gate-e-2026-10-25/test-phase-2.0-spike.log"
+      },
+      {
+        "id": "test:platform-admin",
+        "args": ["run", "test:platform-admin"],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "log": ".wrangler/component-access-gate-e-2026-10-25/test-platform-admin.log"
+      },
+      {
+        "id": "test:membership",
+        "args": ["run", "test:membership"],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "log": ".wrangler/component-access-gate-e-2026-10-25/test-membership.log"
+      },
+      {
+        "id": "test:domain-local",
+        "args": ["run", "test:domain-local"],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "log": ".wrangler/component-access-gate-e-2026-10-25/test-domain-local.log"
+      },
+      {
+        "id": "browser",
+        "args": [
+          "x",
+          "playwright",
+          "test",
+          "e2e/platform-admin.spec.ts",
+          "e2e/admin-membership.spec.ts",
+          "--workers=1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "log": ".wrangler/component-access-gate-e-2026-10-25/browser.log"
+      },
+      {
+        "id": "browser:2",
+        "args": [
+          "x",
+          "playwright",
+          "test",
+          "--config=playwright.platform-admin-built.config.ts",
+          "--workers=1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "log": ".wrangler/component-access-gate-e-2026-10-25/browser-2.log"
+      }
+    ]
+  },
+  "sourceHashes": {
+    "src/admin/platform/ComponentsView.tsx": "b9fee663407ff772ebc5f4d659bbf09e3a675f13629b0e49588123e82383f97e",
+    "src/admin/platform/PlatformAdmin.tsx": "8c0cad7876adb98f78dafa7c88c22d3f78fccaaa55c1815b14516adbb0b92b4e",
+    "src/admin/platform/AdminShell.tsx": "a6ceedc2bf2f827ca4d8592ca2d55a53e4041fef528c5a2d1addc429538d5ef8",
+    "src/admin/platform/ReadViews.tsx": "47af1f6498c524b036e9f13ef2b0e96ea46da155cda243f14e9471e7483a1aeb",
+    "src/admin/platform/platform.css": "85ddb996ad6a16e3d05eb161f38f45939f77e3891a75f38e815525cc765988a5",
+    "src/admin/platform/theme.css": "ba8d9466f2dc5bb2855f77e779e679809050c9be93fb9de8b3787950cce8ca4f",
+    "src/admin/platform/resource.ts": "ba87675d8ad75c5f2d8a0dfbf5c21d4dbcb17a3adf68e07ef7fcdca3242571f4",
+    "src/admin/platform/types.ts": "f0d52c9cccc75184a084fc91505b12225d73ba39a6b0e5b32f588e8ecff90ee0",
+    "src/admin/client.ts": "26367a3a425e0fc205aec6738be38963f8d364022160186c87e03384825c57b3",
+    "src/api/platform/components.ts": "52ec51b78efd3db84c38535b28669d6cff0f3205318ccf9765bbe4d8c457c0b8",
+    "src/platform/registry.ts": "251fe729e9f984b800575b8a773fc7f1b36555953973ae4fa6e5d37dd67a7af0",
+    "admin/components/index.html": "5fbd0669af937eed6f40f909421d8ebdc95a3aee4d2100a05e0392bef9762336",
+    "vite.config.ts": "b9d9052a5178ff30dc3a789806a395e83ddfe2bfbf92a9b32281a2993ada8ed6",
+    "public/_headers": "2de15494b6d3cde62cd12d7ccb8a232d7ed152718003f4c2224f108d5178016f",
+    "src/worker.ts": "09ce5220f1cfdbcafa1113e4dfbbe779e778e298841a4f596dfd093a0527f33d",
+    "scripts/test-component-access-api.ts": "d03331e6ca3cf77debafbb3753caa7721fdcbbfb4979d928fa4c0b867e615ab9",
+    "scripts/component-access-test.worker.ts": "5f4519c02ffc7dbd43b2f140bf8eeb3c833c6d24140940d90157e9509e7c8d87",
+    "scripts/check-platform-assets.mjs": "b63bb72ae80ade107afc434e9526f2e40426718050f96910f6c336ac4ce5f28b",
+    "scripts/start-browser-worker.ts": "99c62a323fa6e83cdaf0455664d0b09c67444287768da654dd61aa9dd3ab1b0a",
+    "scripts/start-platform-browser-worker.ts": "14d4bc064e966316b0a6a2bf232b022c84d205274fdbb3c6e9a65e563d2ae353",
+    "scripts/browser-test-worker.ts": "db181f3815cb399198e56a42886f377ae6df728c4ae5d697ffc6f486ecbe931a",
+    "scripts/platform-admin-test.worker.ts": "3e757d29b036e77a7602f42e1d748e605f0056fda6654a2e426f05b26c17bdbd",
+    "scripts/verify-phase20.mjs": "d40c5a6924853f21c8ecad67bbbc8604825c240094b9b223d349bd1733bb8318",
+    "e2e/component-admin.spec.ts": "78b8d942f22328e435e7c233f02683081e645b0976163fc661073732fa70f11a",
+    "playwright.component-admin-built.config.ts": "6e0410506ef8a3f9faf29dc22faac73a2f724a0a7386ef4e8f4531f3d5ae688a",
+    "playwright.config.ts": "6b04ef6b16768f8fa7eec37c7bbc8fb28bcc64af0e32193b2048ce77d56123ce",
+    "playwright.platform-admin-built.config.ts": "bab96ea0c7f8e7cd644199ac32820fee669dfe9dd606d1431ab235971b0fdb38",
+    "wrangler.platform-browser-test.jsonc": "7d6e45a092a7c79f834fa7ea74a5d18c8707d400baa43d376c82ddfd5be60217",
+    "wrangler.membership-test.jsonc": "2afdbad48ffb15750cb337e33b857801868d3f230a2c7b6e700e081efd014df5",
+    "wrangler.component-access-test.jsonc": "f5971bb4427d68f666516fbe460eb66708a901b357833d7a4f66f08ecbd84885",
+    "scripts/code-graph.mjs": "04ed78e36e22fb0e49f05b84a133ddedfbc3046896d95e890fa17463344b8f31"
+  },
+  "assets": {
+    "command": "bun scripts/check-platform-assets.mjs (while dedicated built browser Worker was listening)",
+    "exitCode": 0,
+    "pages": 8,
+    "scripts": 9,
+    "unknownRouteStatus": 404,
+    "log": ".wrangler/component-gate-e-assets.log"
+  },
+  "finalLint": {
+    "command": "bun run lint",
+    "exitCode": 0,
+    "files": 918,
+    "log": ".wrangler/component-gate-e-lint-final.log"
+  },
+  "acceptedAt": "2026-10-25",
+  "nextGate": "F \u2014 dedicated full 2.0A acceptance before profiles 2.1",
+  "fingerprintComparison": {
+    "files": 31,
+    "allMatched": true,
+    "meaning": "source/harness comparison only; executed checks are recorded separately"
+  },
+  "initialAttempts": [
+    {
+      "log": ".wrangler/component-gate-e-first-browser.log",
+      "exitCode": 130,
+      "result": "four harness locator/canonical-case failures, one interrupted after stopping the obsolete run"
+    },
+    {
+      "log": ".wrangler/component-gate-e-second-browser.log",
+      "exitCode": 1,
+      "result": "four passed, role-promotion fixture needed a full shell reload instead of hash-only navigation"
+    },
+    {
+      "log": ".wrangler/component-gate-e-source.log",
+      "exitCode": 0,
+      "passed": 15,
+      "result": "complete intermediate source run; final description/modal/focus refinements rerun separately"
+    }
+  ]
+}

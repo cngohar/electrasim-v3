@@ -80,8 +80,86 @@
     },
     {
       "id": "2",
-      "status": "planned; original timing is not a delivery commitment; not started or authorized by the Phase 1.14 closure (2026-10-22)",
-      "evidence": ["docs/REWRITE_PLAN_V3_FULL.md"]
+      "status": "In progress locally. Historical 2.0 foundation accepted with its original full gate (132 browser cases). Approved current-scope admin integration/parity remains separately accepted with explicit browser recovery (2235 units, 78 source + 78 built cases; not a single full-default exit 0). Owner accepted that review and authorized 2.0A implementation 2026-10-25. Phase 2.0A Gates A-F complete locally 2026-10-25. Dedicated verify:phase-2.0a full selection exited 0 with all 18 stages: 2305 units/151 files, 6 infrastructure/8 populated-upgrade storage/14 component API-race/20 existing admin/34 membership-simulator groups, 897 unchanged parity and 105 source + 105 built browser cases (35 per desktop/phone/WebKit project) without skips/retries. Actual built asset/header checks passed 8 pages/9 scripts and unknown-route 404; budgets 268979 B JS gzip/29462 B CSS gzip. All 1318 selected source/harness inputs matched. Dedicated manifest maps required exit groups and records log/source hashes; fingerprints are stability, not test results. Historical 2.0, admin integration/parity and Gates B-E keep their original scopes and explicit recovery distinctions. Profiles 2.1 Gates A-E complete locally 2026-10-26. Dedicated verify:phase-2.1 full selection exited 0 across all 22 stages: 2339 units/153 files, 8 profile storage/21 real HTTP-race groups, complete existing 2.0A regressions, 897 unchanged electrical parity, 105 source + 105 built existing browser cases and 30 source + 30 built profile cases across desktop/phone/WebKit without skips/retries. All 1350 selected source/harness hashes matched; stability is separate from executed outcomes. Dedicated manifest records stage/log/source evidence. Ordinary local D1 backed up before pending 0009/0010 migrations; integrated local Worker delivery verified on 8791. Overall Phase 2 remains active. No remote operation/deployment or hardware recertification. Owner approved design/integration 2026-10-25; later preview/fork policy integration remains required in 2.3/2.5 and 2.8. Overall Phase 2, support 2.7A and prior Phase 1 hardware/performance exceptions remain open. Local only; no account/remote operation or hardware recertification. Phase 2.2 complete locally 2026-10-27 with explicit interrupted-run recovery: all 26 stage identities have passing evidence (2342 units/154 files, 324 browser cases without skips/retries, 8 publication storage/22 HTTP-race groups and 897 unchanged parity), on 1367 unchanged source/harness inputs. D contributes its first 18 stages; an eight-stage recovery contributes all six browser matrices and publication storage/API. Recovery manifest status 0 is distinct from its enclosing exec result 143; no uninterrupted full-default or whole-command exit-0 claim. Dedicated manifest records stage/log/source hashes and inspected source/built desktop/phone screenshots. Hashes establish stability, not test outcomes. After this scoped 2.2 acceptance, 2.3 was next; overall Phase 2 and previous hardware/performance exceptions remain open. Local only. Phase 2.3 complete locally 2026-10-28 with explicit interrupted-run recovery: all 29 stage identities have passing evidence (2348 units/155 files, 390 source/built browser cases, 9 preview HTTP/race groups and 897 unchanged electrical parity) on 1387 unchanged inputs. D contributes 19 passing stages, recovery A nine and recovery B the complete 105-case built regression (command exit 0). A's WebKit stale-plan timeout and D's interruption remain explicit; no uninterrupted full-selection exit-0 claim. Eight screenshots inspected. Pure drawing/public detail/thumbnails/lazy preview enforce immutable snapshots and fresh current policy/membership/session/visibility. Fingerprints establish stability, not passing tests. Next is 2.4 Explore/feed/search; overall Phase 2 and historical hardware/performance exceptions remain open. Local only.",
+      "evidence": [
+        "docs/REWRITE_PLAN_V3_FULL.md",
+        "docs/phases/phase-2-community.md",
+        "docs/plans/PHASE_2_COMMUNITY_PLAN.md",
+        "docs/audits/phase-2-foundation-spike.md",
+        "docs/audits/phase-2-admin-foundation.md",
+        "docs/api/platform-admin.md",
+        "docs/design/platform-admin/README.md",
+        "docs/plans/PHASE_2_ADMIN_EXTENSIONS_PLAN.md",
+        "docs/plans/PLATFORM_ADMIN_DESIGN_INTEGRATION.md",
+        "docs/audits/platform-admin-design-integration.md",
+        "docs/audits/data/platform-admin-design-acceptance.json",
+        "docs/audits/admin-prototype-parity-review.md",
+        "docs/audits/data/admin-parity-review-acceptance.json",
+        "docs/plans/PHASE_2_0A_COMPONENT_ACCESS_PLAN.md",
+        "docs/audits/phase-2-component-access.md",
+        "docs/audits/data/component-access-gate-e-acceptance.json",
+        "docs/audits/data/phase20a-acceptance.json",
+        "docs/plans/PHASE_2_1_PROFILES_PLAN.md",
+        "docs/design/profiles/README.md",
+        "docs/audits/phase-2-profiles.md",
+        "docs/api/profiles.md",
+        "docs/audits/data/phase21-acceptance.json",
+        "docs/plans/PHASE_2_2_PUBLICATIONS_PLAN.md",
+        "docs/audits/phase-2-publications.md",
+        "docs/audits/data/phase22-acceptance.json",
+        "docs/plans/PHASE_2_3_PREVIEW_PLAN.md",
+        "docs/api/preview.md",
+        "docs/audits/phase-2-preview.md",
+        "docs/audits/data/phase23-acceptance.json"
+      ]
+    },
+    {
+      "id": "2.0",
+      "status": "complete locally 2026-10-24 within shared admin foundation scope; full 16-stage gate and seven-page actual assets checks passed; public subject moderation belongs to later milestones Historical functional baseline acceptance remains separate from the separately accepted owner-approved admin presentation integration. Owner explicitly confirmed the completed admin review accepted on 2026-10-25 and authorized Phase 2.0A local implementation.",
+      "evidence": [
+        "docs/audits/phase-2-admin-foundation.md",
+        "docs/audits/data/phase20-acceptance.json",
+        "docs/api/platform-admin.md",
+        "docs/phases/phase-2-community.md",
+        "docs/design/platform-admin/README.md",
+        "docs/audits/platform-admin-design-integration.md",
+        "docs/audits/data/platform-admin-design-acceptance.json"
+      ]
+    },
+    {
+      "id": "2.0A",
+      "status": "Phase 2.0A Gates A-F complete locally 2026-10-25. Dedicated verify:phase-2.0a full selection exited 0 with all 18 stages: 2305 units/151 files, 6 infrastructure/8 populated-upgrade storage/14 component API-race/20 existing admin/34 membership-simulator groups, 897 unchanged parity and 105 source + 105 built browser cases (35 per desktop/phone/WebKit project) without skips/retries. Actual built asset/header checks passed 8 pages/9 scripts and unknown-route 404; budgets 268979 B JS gzip/29462 B CSS gzip. All 1318 selected source/harness inputs matched. Dedicated manifest maps required exit groups and records log/source hashes; fingerprints are stability, not test results. Historical 2.0, admin integration/parity and Gates B-E keep their original scopes and explicit recovery distinctions. Profiles 2.1 now has separate owner-authorized complete local acceptance (22 stages, 2339 units, 270 browser cases); later publish/preview/fork policy integration remains required in 2.2/2.3/2.5 and 2.8. Overall Phase 2, support 2.7A and prior Phase 1 hardware/performance exceptions remain open. Local only; no account/remote operation or hardware recertification.",
+      "evidence": [
+        "docs/plans/PHASE_2_ADMIN_EXTENSIONS_PLAN.md",
+        "docs/phases/phase-2-community.md",
+        "docs/plans/PHASE_2_COMMUNITY_PLAN.md",
+        "docs/plans/PHASE_2_0A_COMPONENT_ACCESS_PLAN.md",
+        "docs/api/component-access.md",
+        "docs/audits/phase-2-component-access.md",
+        "scripts/verify-phase20a.mjs",
+        "playwright.component-acceptance-built.config.ts",
+        "docs/audits/data/phase20a-acceptance.json"
+      ]
+    },
+    {
+      "id": "2.1",
+      "status": "Profiles 2.1 Gates A-E complete locally 2026-10-26. Dedicated verify:phase-2.1 full selection exited 0 across all 22 stages: 2339 units/153 files, 8 profile storage/21 real HTTP-race groups, complete existing 2.0A regressions, 897 unchanged electrical parity, 105 source + 105 built existing browser cases and 30 source + 30 built profile cases across desktop/phone/WebKit without skips/retries. All 1350 selected source/harness hashes matched; stability is separate from executed outcomes. Dedicated manifest records stage/log/source evidence. Ordinary local D1 backed up before pending 0009/0010 migrations; integrated local Worker delivery verified on 8791. Overall Phase 2 remains active; 2.2 is next planned. No remote operation/deployment or hardware recertification. Separate public SSR /u/:handle, owner-only /settings/profile/ and authorized /admin/community/; private defaults, permanent handles and staff report/moderation are accepted within the linked scope.",
+      "evidence": [
+        "docs/plans/PHASE_2_1_PROFILES_PLAN.md",
+        "docs/design/profiles/README.md",
+        "docs/audits/phase-2-profiles.md",
+        "docs/api/profiles.md",
+        "docs/audits/data/phase21-acceptance.json"
+      ]
+    },
+    {
+      "id": "2.7A",
+      "status": "planned, not implemented: private user/staff tickets, replies/internal notes, assignment/status/priority, scoped audit and in-app updates; depends on 2.6/2.7 and required before final 2.8; email/attachments/chat/SLA deferred",
+      "evidence": [
+        "docs/plans/PHASE_2_ADMIN_EXTENSIONS_PLAN.md",
+        "docs/phases/phase-2-community.md",
+        "docs/plans/PHASE_2_COMMUNITY_PLAN.md"
+      ]
     },
     {
       "id": "3",
@@ -386,6 +464,16 @@
         "docs/plans/PHASE_1_13_UI_FAULT_LAB_PLAN.md",
         "docs/audits/phase-1-ui-fault-lab.md",
         "docs/audits/data/phase113-acceptance.json"
+      ]
+    },
+    {
+      "id": "2.2",
+      "status": "Phase 2.2 complete locally 2026-10-27 with explicit interrupted-run recovery: all 26 stage identities have passing evidence (2342 units/154 files, 324 browser cases without skips/retries, 8 publication storage/22 HTTP-race groups and 897 unchanged parity), on 1367 unchanged source/harness inputs. D contributes its first 18 stages; an eight-stage recovery contributes all six browser matrices and publication storage/API. Recovery manifest status 0 is distinct from its enclosing exec result 143; no uninterrupted full-default or whole-command exit-0 claim. Dedicated manifest records stage/log/source hashes and inspected source/built desktop/phone screenshots. Hashes establish stability, not test outcomes. Next is 2.3 read-only preview/public detail; overall Phase 2 and previous hardware/performance exceptions remain open. Local only.",
+      "evidence": [
+        "docs/plans/PHASE_2_2_PUBLICATIONS_PLAN.md",
+        "docs/api/publications.md",
+        "docs/audits/phase-2-publications.md",
+        "docs/audits/data/phase22-acceptance.json"
       ]
     }
   ],
@@ -1039,19 +1127,18 @@
     },
     {
       "id": "phase-1.14-performance-scope",
-      "summary": "Phase 1.14 remains in progress after bounded implementation and a failed full attempt plus explicit focused recovery. Baseline 1.14.0 is complete; solver 8 ms and dense 60 fps/device targets remain unmet. Keep exact electrical/runtime parity, SVG artwork/accessibility/export, unchanged workloads/budgets, and failure/recovery boundaries. Challenge Mode is retired and excluded. Local-only; no renderer rewrite, threshold relaxation, new accepted exception, publication or deployment is implied.",
+      "summary": "Phase 1.14 is closed locally (2026-10-22) by explicit owner decision with a hardware/environment-dependent performance exception. Functional evidence passes; strict solver 8 ms p95 and dense 60 fps/device targets are NOT certified on the shared host. Budgets, assertions, workloads and all failures remain unchanged. Challenge Mode is retired and excluded. No publication/deployment is implied.",
       "evidence": [
         "docs/PERFORMANCE.md",
-        "docs/audits/phase-1-legacy-retirement.md",
-        "docs/audits/phase-1-full-verification.md",
-        "docs/audits/phase-1-missing-component-calculation.md",
-        "docs/audits/phase-1-ui-fault-lab.md",
-        "docs/audits/phase-1-performance-reliability.md"
+        "docs/plans/PHASE_1_14_PERFORMANCE_RELIABILITY_PLAN.md",
+        "docs/audits/phase-1-performance-reliability.md",
+        "docs/audits/data/phase114-baseline.json",
+        "docs/audits/data/phase114-acceptance.json"
       ],
       "review": {
-        "at": "2026-10-18T14:04:04.153Z",
-        "scope": "Reviewed active plan, phase map, ledger, handoff and final execution manifest. Bounded implementation and aggregate functional recovery are recorded separately from original failed gates. Strict solver 8 ms, dense 60 fps/device and integrated acceptance remain incomplete; no new exception, threshold change, publication or remote operation.",
-        "fingerprint": "d4ac650994165a2fb206fe3ab39beea062167c9f7c92a0e3f91816ff04ec7c79"
+        "at": "2026-10-22T13:16:43.047Z",
+        "scope": "Reviewed the explicit 2026-10-22 owner closure of Phase 1.14 and the updated plan/ledger/manifest. Confirmed budgets/assertions unchanged, failures retained and strict solver/dense targets not certified. No remote work.",
+        "fingerprint": "f438e6d557c2da3bed2d2e293ce1b92453cb8abf87af76bad83a33b736289481"
       }
     },
     {
@@ -1071,7 +1158,7 @@
     },
     {
       "id": "phase114-bounded-execution",
-      "summary": "In progress (2026-10-18). Baseline complete; bounded solver/grid implementation has passing functional evidence after explicit recovery: 2224 units, 897 exact pre/post and Bun/workerd cases, 34 API groups, 156 source / 68 built unique passing cases with 2 intentional built skips, and 63 production-shell cases. Original failed attempts retained. Solver p95 37.41 / 61.06 / 41.49 ms fails 8 ms; ordinary production zoom 316.6 / 216.6 ms leaves 60 fps/device acceptance open. No full-green, closure or publication. Solver latest JSON median/p95 29.28 / 36.77 ms, 2741551 B, separate from solve. All benchmark electrical assertions pass. Unchanged Safari running-lock selection passed 2/2 isolated repeats; original intermittent empty-Inspector failure remains unreproduced, without proven root cause/product fix. Original built timing and intermediate guarded skip measured nothing; corrected runner sets PERF=1 and rejects skipped/empty measurements. First profile found localhost preview unavailable; second actual CDP capture remains separate. Post-change zoom window 11.363 s: commit waits 5.172 s, layout 1.655 s, paint 0.835 s, FunctionCall 0.850 s, raster 21.559 s summed across concurrent threads; categories overlap. Shared AMD A8/headless Chromium host, active desktop, no exclusive/device claim.",
+      "summary": "Closed locally with explicit hardware-dependent performance exception (2026-10-22). Baseline complete; bounded solver/grid implementation has passing functional evidence after explicit recovery: 2224 units, 897 exact pre/post and Bun/workerd cases, 34 API groups, 156 source / 68 built unique passing cases with 2 intentional built skips, and 63 production-shell cases. Original failed attempts retained. Solver p95 37.41 / 61.06 / 41.49 ms fails 8 ms; ordinary production zoom 316.6 / 216.6 ms leaves 60 fps/device acceptance open. Functional closure only; solver/dense targets remain uncertified and all failures retained. Post-checkpoint changes passed 811 affected core/simulation tests, 897 parity and types/lint. No performance pass, publication or deployment. Solver latest JSON median/p95 29.28 / 36.77 ms, 2741551 B, separate from solve. All benchmark electrical assertions pass. Unchanged Safari running-lock selection passed 2/2 isolated repeats; original intermittent empty-Inspector failure remains unreproduced, without proven root cause/product fix. Original built timing and intermediate guarded skip measured nothing; corrected runner sets PERF=1 and rejects skipped/empty measurements. First profile found localhost preview unavailable; second actual CDP capture remains separate. Post-change zoom window 11.363 s: commit waits 5.172 s, layout 1.655 s, paint 0.835 s, FunctionCall 0.850 s, raster 21.559 s summed across concurrent threads; categories overlap. Shared AMD A8/headless Chromium host, active desktop, no exclusive/device claim.",
       "evidence": [
         "docs/audits/phase-1-performance-reliability.md",
         "docs/audits/data/phase114-acceptance.json",
@@ -1088,9 +1175,57 @@
         "playwright.performance-built.config.ts"
       ],
       "review": {
-        "at": "2026-10-18T14:04:09.074Z",
-        "scope": "Reviewed all four product diffs and unchanged build/gate fingerprints; exact 897 pre/post contracts, 2224 units, local runtime/API/static evidence, original source/built failures and 24/10/2 focused recovery. Verified 156 source/68 built unique passing cases, two intentional skips,63 production-shell passes, all three failed solver timings, actual production measurements and separate CDP/error/skip evidence. Verified 11 current source and80 artifact hashes. Strict targets and original intermittent Safari failure remain explicit; no full-green or closure claim.",
-        "fingerprint": "b663c6d5bbd6022e5e4f91830dd99ffb8a3662186e8c40221846144ec891b77a"
+        "at": "2026-10-22T13:16:48.310Z",
+        "scope": "Reviewed the closing Phase 1.14 plan/ledger/manifest and post-checkpoint solver changes. Confirmed 811 affected tests, 897 parity, types/lint and no result-contract change; strict targets remain uncertified and failures retained.",
+        "fingerprint": "e2e7ff1f54d2e5f4c4312c4ef893176a685a61c7e966dafa60880534661ddaab"
+      }
+    },
+    {
+      "id": "phase-2-community-scope",
+      "summary": "Phase 2 in progress; historical 2.0/admin-parity acceptance and explicit recovery scopes stay separate. Phase 2.0A Gates A-F complete locally 2026-10-25. Dedicated verify:phase-2.0a full selection exited 0 with all 18 stages: 2305 units/151 files, 6 infrastructure/8 populated-upgrade storage/14 component API-race/20 existing admin/34 membership-simulator groups, 897 unchanged parity and 105 source + 105 built browser cases (35 per desktop/phone/WebKit project) without skips/retries. Actual built asset/header checks passed 8 pages/9 scripts and unknown-route 404; budgets 268979 B JS gzip/29462 B CSS gzip. All 1318 selected source/harness inputs matched. Dedicated manifest maps required exit groups and records log/source hashes; fingerprints are stability, not test results. Historical 2.0, admin integration/parity and Gates B-E keep their original scopes and explicit recovery distinctions. Profiles 2.1 Gates A-E complete locally 2026-10-26. Dedicated verify:phase-2.1 full selection exited 0 across all 22 stages: 2339 units/153 files, 8 profile storage/21 real HTTP-race groups, complete existing 2.0A regressions, 897 unchanged electrical parity, 105 source + 105 built existing browser cases and 30 source + 30 built profile cases across desktop/phone/WebKit without skips/retries. All 1350 selected source/harness hashes matched; stability is separate from executed outcomes. Dedicated manifest records stage/log/source evidence. Ordinary local D1 backed up before pending 0009/0010 migrations; integrated local Worker delivery verified on 8791. Overall Phase 2 remains active. No remote operation/deployment or hardware recertification; later preview/fork policy integration remains required in 2.3/2.5 and 2.8. Overall Phase 2, support 2.7A and prior Phase 1 hardware/performance exceptions remain open. Local only; no account/remote operation or hardware recertification. Private original documents, protected Basic, independent staff/membership/account/community restrictions and pure electrical truth remain protected. Full Content Studio stays Phase 5. Phase 2.2 complete locally 2026-10-27 with explicit interrupted-run recovery: all 26 stage identities have passing evidence (2342 units/154 files, 324 browser cases without skips/retries, 8 publication storage/22 HTTP-race groups and 897 unchanged parity), on 1367 unchanged source/harness inputs. D contributes its first 18 stages; an eight-stage recovery contributes all six browser matrices and publication storage/API. Recovery manifest status 0 is distinct from its enclosing exec result 143; no uninterrupted full-default or whole-command exit-0 claim. Dedicated manifest records stage/log/source hashes and inspected source/built desktop/phone screenshots. Hashes establish stability, not test outcomes. Next is 2.3 read-only preview/public detail; overall Phase 2 and previous hardware/performance exceptions remain open. Local only.",
+      "evidence": [
+        "docs/phases/phase-2-community.md",
+        "docs/plans/PHASE_2_COMMUNITY_PLAN.md",
+        "docs/REWRITE_PLAN_V3_FULL.md",
+        "docs/audits/phase-1-persistence.md",
+        "packages/db/circuit-schema.ts",
+        "src/api/circuits.ts",
+        "src/worker.ts",
+        "wrangler.jsonc",
+        "public/_headers",
+        "scripts/postbuild.mjs",
+        "src/admin/Admin.tsx",
+        "src/admin/client.ts",
+        "admin/pro/index.html",
+        "src/api/context.ts",
+        "src/api/membership.ts",
+        "packages/access/src/index.ts",
+        "packages/db/auth.ts",
+        "docs/api/membership.md",
+        "docs/audits/phase-2-foundation-spike.md",
+        "docs/audits/phase-2-admin-foundation.md",
+        "docs/api/platform-admin.md",
+        "docs/audits/data/phase20-acceptance.json",
+        "docs/design/platform-admin/README.md",
+        "docs/plans/PHASE_2_ADMIN_EXTENSIONS_PLAN.md",
+        "docs/audits/platform-admin-design-integration.md",
+        "docs/audits/data/platform-admin-design-acceptance.json",
+        "docs/audits/admin-prototype-parity-review.md",
+        "docs/audits/data/admin-parity-review-acceptance.json",
+        "docs/plans/PHASE_2_0A_COMPONENT_ACCESS_PLAN.md",
+        "docs/audits/phase-2-component-access.md",
+        "docs/audits/data/phase20a-acceptance.json",
+        "docs/plans/PHASE_2_1_PROFILES_PLAN.md",
+        "docs/audits/phase-2-profiles.md",
+        "docs/audits/data/phase21-acceptance.json",
+        "docs/plans/PHASE_2_2_PUBLICATIONS_PLAN.md",
+        "docs/audits/phase-2-publications.md",
+        "docs/audits/data/phase22-acceptance.json"
+      ],
+      "review": {
+        "at": "2026-10-25T12:43:59.033Z",
+        "scope": "Reviewed current Community boundary and 2.0A closure against dedicated 18-stage full exit 0 and authoritative plans. Preserved private documents, Basic access, independent authorization boundaries, historical parity recovery and performance exceptions; 2.1 remains planned, later publication/fork/support integration remains required. No remote operations.",
+        "fingerprint": "3a0159ae17b38e67d5467e25d2abfc21fbdb8774d36fb851cd90e12e0b0836a0"
       }
     }
   ],
@@ -1585,6 +1720,1043 @@
       "from": "e2e/performance.spec.ts",
       "relation": "tests",
       "to": "src/ui/CircuitCanvas.tsx"
+    },
+    {
+      "from": "scripts/test-phase20-spike.ts",
+      "relation": "tests",
+      "to": "src/api/membership.ts",
+      "note": "Real local composed application/fixture/Assets route boundary; fixture installed after actual app."
+    },
+    {
+      "from": "scripts/test-phase20-spike.ts",
+      "relation": "tests",
+      "to": "src/worker.ts",
+      "note": "Real local composed application/fixture/Assets route boundary; fixture installed after actual app."
+    },
+    {
+      "from": "scripts/test-phase20-spike.ts",
+      "relation": "tests",
+      "to": "scripts/phase20-spike.worker.ts",
+      "note": "Real local composed application/fixture/Assets route boundary; fixture installed after actual app."
+    },
+    {
+      "from": "scripts/test-phase20-spike.ts",
+      "relation": "tests",
+      "to": "wrangler.phase20-test.jsonc",
+      "note": "Real local composed application/fixture/Assets route boundary; fixture installed after actual app."
+    },
+    {
+      "from": "scripts/test-membership.ts",
+      "relation": "tests",
+      "to": "src/api/membership.ts",
+      "note": "Shared primary session/membership middleware affects owner/capability API regressions."
+    },
+    {
+      "from": "scripts/test-simulator.ts",
+      "relation": "tests",
+      "to": "src/api/membership.ts",
+      "note": "Shared primary session/membership middleware affects owner/capability API regressions."
+    },
+    {
+      "from": "scripts/test-platform-admin.ts",
+      "relation": "tests",
+      "to": "src/platform/registry.ts",
+      "note": "Phase 2.0 local foundation boundary; contract and audit determine acceptance."
+    },
+    {
+      "from": "scripts/test-platform-admin.ts",
+      "relation": "tests",
+      "to": "src/api/platform/index.ts",
+      "note": "Phase 2.0 local foundation boundary; contract and audit determine acceptance."
+    },
+    {
+      "from": "scripts/test-platform-admin.ts",
+      "relation": "tests",
+      "to": "src/api/platform/access.ts",
+      "note": "Phase 2.0 local foundation boundary; contract and audit determine acceptance."
+    },
+    {
+      "from": "scripts/test-platform-admin.ts",
+      "relation": "tests",
+      "to": "src/api/platform/mutation.ts",
+      "note": "Phase 2.0 local foundation boundary; contract and audit determine acceptance."
+    },
+    {
+      "from": "scripts/test-platform-admin.ts",
+      "relation": "tests",
+      "to": "src/api/platform/roles.ts",
+      "note": "Phase 2.0 local foundation boundary; contract and audit determine acceptance."
+    },
+    {
+      "from": "scripts/test-platform-admin.ts",
+      "relation": "tests",
+      "to": "src/api/platform/controls.ts",
+      "note": "Phase 2.0 local foundation boundary; contract and audit determine acceptance."
+    },
+    {
+      "from": "scripts/test-platform-admin.ts",
+      "relation": "tests",
+      "to": "src/api/platform/reads.ts",
+      "note": "Phase 2.0 local foundation boundary; contract and audit determine acceptance."
+    },
+    {
+      "from": "scripts/test-platform-admin.ts",
+      "relation": "tests",
+      "to": "src/api/platform/restrictions.ts",
+      "note": "Phase 2.0 local foundation boundary; contract and audit determine acceptance."
+    },
+    {
+      "from": "scripts/test-platform-admin.ts",
+      "relation": "tests",
+      "to": "src/api/context.ts",
+      "note": "Phase 2.0 local foundation boundary; contract and audit determine acceptance."
+    },
+    {
+      "from": "scripts/test-platform-admin.ts",
+      "relation": "tests",
+      "to": "packages/db/auth.ts",
+      "note": "Phase 2.0 local foundation boundary; contract and audit determine acceptance."
+    },
+    {
+      "from": "scripts/test-platform-admin.ts",
+      "relation": "tests",
+      "to": "migrations/0007_admin_foundation.sql",
+      "note": "Phase 2.0 local foundation boundary; contract and audit determine acceptance."
+    },
+    {
+      "from": "scripts/test-platform-admin.ts",
+      "relation": "tests",
+      "to": "scripts/platform-admin-test.worker.ts",
+      "note": "Phase 2.0 local foundation boundary; contract and audit determine acceptance."
+    },
+    {
+      "from": "e2e/platform-admin.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/platform/PlatformAdmin.tsx",
+      "note": "Phase 2.0 local foundation boundary; contract and audit determine acceptance."
+    },
+    {
+      "from": "e2e/platform-admin.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/platform/UsersView.tsx",
+      "note": "Phase 2.0 local foundation boundary; contract and audit determine acceptance."
+    },
+    {
+      "from": "e2e/platform-admin.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/platform/RolesView.tsx",
+      "note": "Phase 2.0 local foundation boundary; contract and audit determine acceptance."
+    },
+    {
+      "from": "e2e/platform-admin.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/platform/SettingsView.tsx",
+      "note": "Phase 2.0 local foundation boundary; contract and audit determine acceptance."
+    },
+    {
+      "from": "e2e/platform-admin.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/platform/ReadViews.tsx",
+      "note": "Phase 2.0 local foundation boundary; contract and audit determine acceptance."
+    },
+    {
+      "from": "e2e/platform-admin.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/platform/resource.ts",
+      "note": "Phase 2.0 local foundation boundary; contract and audit determine acceptance."
+    },
+    {
+      "from": "e2e/platform-admin.spec.ts",
+      "relation": "tests",
+      "to": "src/api/platform/index.ts",
+      "note": "Phase 2.0 local foundation boundary; contract and audit determine acceptance."
+    },
+    {
+      "from": "src/platform/registry.test.ts",
+      "relation": "tests",
+      "to": "src/platform/registry.ts",
+      "note": "Phase 2.0 local foundation boundary; contract and audit determine acceptance."
+    },
+    {
+      "from": "src/platform/migration.test.ts",
+      "relation": "tests",
+      "to": "migrations/0007_admin_foundation.sql",
+      "note": "Phase 2.0 local foundation boundary; contract and audit determine acceptance."
+    },
+    {
+      "from": "scripts/check-platform-assets.mjs",
+      "relation": "tests",
+      "to": "public/_headers",
+      "note": "Anonymous actual localhost Worker response/asset validation; separate from static source equality and browser UI assertions."
+    },
+    {
+      "from": "scripts/check-platform-assets.mjs",
+      "relation": "tests",
+      "to": "wrangler.jsonc",
+      "note": "Anonymous actual localhost Worker response/asset validation; separate from static source equality and browser UI assertions."
+    },
+    {
+      "from": "scripts/check-platform-assets.mjs",
+      "relation": "tests",
+      "to": "wrangler.platform-browser-test.jsonc",
+      "note": "Anonymous actual localhost Worker response/asset validation; separate from static source equality and browser UI assertions."
+    },
+    {
+      "from": "scripts/check-platform-assets.mjs",
+      "relation": "tests",
+      "to": "admin/index.html",
+      "note": "Anonymous actual localhost Worker response/asset validation; separate from static source equality and browser UI assertions."
+    },
+    {
+      "from": "scripts/check-platform-assets.mjs",
+      "relation": "tests",
+      "to": "admin/pro/index.html",
+      "note": "Anonymous actual localhost Worker response/asset validation; separate from static source equality and browser UI assertions."
+    },
+    {
+      "from": "scripts/check-platform-assets.mjs",
+      "relation": "tests",
+      "to": "admin/users/index.html",
+      "note": "Anonymous actual localhost Worker response/asset validation; separate from static source equality and browser UI assertions."
+    },
+    {
+      "from": "scripts/check-platform-assets.mjs",
+      "relation": "tests",
+      "to": "admin/permissions/index.html",
+      "note": "Anonymous actual localhost Worker response/asset validation; separate from static source equality and browser UI assertions."
+    },
+    {
+      "from": "scripts/check-platform-assets.mjs",
+      "relation": "tests",
+      "to": "admin/settings/index.html",
+      "note": "Anonymous actual localhost Worker response/asset validation; separate from static source equality and browser UI assertions."
+    },
+    {
+      "from": "scripts/check-platform-assets.mjs",
+      "relation": "tests",
+      "to": "admin/audit/index.html",
+      "note": "Anonymous actual localhost Worker response/asset validation; separate from static source equality and browser UI assertions."
+    },
+    {
+      "from": "scripts/check-platform-assets.mjs",
+      "relation": "tests",
+      "to": "admin/standards/index.html",
+      "note": "Anonymous actual localhost Worker response/asset validation; separate from static source equality and browser UI assertions."
+    },
+    {
+      "from": "scripts/check-platform-design.mjs",
+      "relation": "tests",
+      "to": "docs/design/platform-admin/index.html"
+    },
+    {
+      "from": "scripts/check-platform-design.mjs",
+      "relation": "tests",
+      "to": "docs/design/platform-admin/preview.css"
+    },
+    {
+      "from": "scripts/check-platform-design.mjs",
+      "relation": "tests",
+      "to": "docs/design/platform-admin/preview.js"
+    },
+    {
+      "from": "scripts/check-platform-design.mjs",
+      "relation": "tests",
+      "to": "scripts/preview-platform-admin.mjs"
+    },
+    {
+      "from": "scripts/check-component-access-design.ts",
+      "relation": "tests",
+      "to": "docs/specs/component-access-baseline.json"
+    },
+    {
+      "from": "scripts/check-component-access-design.ts",
+      "relation": "tests",
+      "to": "docs/design/platform-admin/preview-catalog.js"
+    },
+    {
+      "from": "scripts/check-component-access-design.ts",
+      "relation": "tests",
+      "to": "packages/domain/src/components/index.ts"
+    },
+    {
+      "from": "scripts/check-platform-design.mjs",
+      "relation": "tests",
+      "to": "docs/design/platform-admin/preview-catalog.js"
+    },
+    {
+      "from": "e2e/platform-admin.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/platform/AdminShell.tsx"
+    },
+    {
+      "from": "e2e/platform-admin.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/platform/MembershipHistory.tsx"
+    },
+    {
+      "from": "e2e/platform-admin.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/platform/theme.css"
+    },
+    {
+      "from": "e2e/admin-membership.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/platform/AdminShell.tsx"
+    },
+    {
+      "from": "e2e/admin-membership.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/platform/theme.css"
+    },
+    {
+      "from": "e2e/platform-admin.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/platform/UsersView.tsx"
+    },
+    {
+      "from": "e2e/platform-admin.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/platform/RolesView.tsx"
+    },
+    {
+      "from": "e2e/platform-admin.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/platform/ReadViews.tsx"
+    },
+    {
+      "from": "e2e/platform-admin.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/platform/SettingsView.tsx"
+    },
+    {
+      "from": "e2e/platform-admin.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/Editor.tsx"
+    },
+    {
+      "from": "e2e/platform-admin.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/Admin.tsx"
+    },
+    {
+      "from": "e2e/platform-admin.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/platform/platform.css"
+    },
+    {
+      "from": "e2e/platform-admin.spec.ts",
+      "relation": "tests",
+      "to": "src/api/membership-store.ts"
+    },
+    {
+      "from": "e2e/platform-admin.spec.ts",
+      "relation": "tests",
+      "to": "scripts/seed-browser-standards.ts"
+    },
+    {
+      "from": "e2e/admin-membership.spec.ts",
+      "relation": "tests",
+      "to": "src/api/membership-store.ts"
+    },
+    {
+      "from": "e2e/admin-membership.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/client.ts"
+    },
+    {
+      "from": "e2e/admin-membership.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/platform/platform.css"
+    },
+    {
+      "from": "scripts/test-platform-admin.ts",
+      "relation": "tests",
+      "to": "src/api/membership-store.ts"
+    },
+    {
+      "from": "src/admin/client.test.ts",
+      "relation": "tests",
+      "to": "src/admin/client.ts"
+    },
+    {
+      "from": "packages/access/src/component-policy.test.ts",
+      "relation": "tests",
+      "to": "packages/access/src/component-baseline.ts"
+    },
+    {
+      "from": "packages/access/src/component-policy.test.ts",
+      "relation": "tests",
+      "to": "packages/access/src/component-policy.ts"
+    },
+    {
+      "from": "packages/access/src/component-policy.test.ts",
+      "relation": "tests",
+      "to": "packages/access/src/index.ts"
+    },
+    {
+      "from": "packages/access/src/component-policy.test.ts",
+      "relation": "tests",
+      "to": "packages/access/src/circuit.ts"
+    },
+    {
+      "from": "packages/access/src/component-policy.test.ts",
+      "relation": "tests",
+      "to": "docs/specs/component-access-baseline.json"
+    },
+    {
+      "from": "scripts/test-component-access-storage.ts",
+      "relation": "tests",
+      "to": "migrations/0009_component_access.sql"
+    },
+    {
+      "from": "scripts/test-component-access-storage.ts",
+      "relation": "tests",
+      "to": "packages/db/component-access-schema.ts"
+    },
+    {
+      "from": "scripts/test-component-access-storage.ts",
+      "relation": "tests",
+      "to": "packages/db/schema.ts"
+    },
+    {
+      "from": "scripts/test-component-access-storage.ts",
+      "relation": "tests",
+      "to": "packages/access/src/component-baseline.ts"
+    },
+    {
+      "from": "scripts/test-component-access-api.ts",
+      "relation": "tests",
+      "to": "src/api/component-access-store.ts"
+    },
+    {
+      "from": "scripts/test-component-access-api.ts",
+      "relation": "tests",
+      "to": "src/api/component-access.ts"
+    },
+    {
+      "from": "scripts/test-component-access-api.ts",
+      "relation": "tests",
+      "to": "src/api/platform/components.ts"
+    },
+    {
+      "from": "scripts/test-component-access-api.ts",
+      "relation": "tests",
+      "to": "src/api/platform/access.ts"
+    },
+    {
+      "from": "scripts/test-component-access-api.ts",
+      "relation": "tests",
+      "to": "src/api/platform/index.ts"
+    },
+    {
+      "from": "scripts/test-component-access-api.ts",
+      "relation": "tests",
+      "to": "src/worker.ts"
+    },
+    {
+      "from": "scripts/test-component-access-api.ts",
+      "relation": "tests",
+      "to": "src/api/circuits.ts"
+    },
+    {
+      "from": "scripts/test-component-access-api.ts",
+      "relation": "tests",
+      "to": "src/api/simulator-access.ts"
+    },
+    {
+      "from": "scripts/test-component-access-api.ts",
+      "relation": "tests",
+      "to": "src/platform/registry.ts"
+    },
+    {
+      "from": "src/store/componentPolicy.test.ts",
+      "relation": "tests",
+      "to": "src/store/simulatorAccess.ts"
+    },
+    {
+      "from": "src/store/componentPolicy.test.ts",
+      "relation": "tests",
+      "to": "src/store/circuitAccess.ts"
+    },
+    {
+      "from": "src/store/componentPolicy.test.ts",
+      "relation": "tests",
+      "to": "src/store/circuitActions.ts"
+    },
+    {
+      "from": "src/store/componentPolicy.test.ts",
+      "relation": "tests",
+      "to": "src/store/useSimulation.ts"
+    },
+    {
+      "from": "src/store/circuitOpening.test.ts",
+      "relation": "tests",
+      "to": "src/store/circuitOpening.ts"
+    },
+    {
+      "from": "src/store/circuitOpening.test.ts",
+      "relation": "tests",
+      "to": "src/store/circuitRecovery.ts"
+    },
+    {
+      "from": "src/store/componentPolicySimulation.test.ts",
+      "relation": "tests",
+      "to": "src/store/simulatorAccess.ts"
+    },
+    {
+      "from": "src/store/componentPolicySimulation.test.ts",
+      "relation": "tests",
+      "to": "src/store/useSimulation.ts"
+    },
+    {
+      "from": "e2e/component-access.spec.ts",
+      "relation": "tests",
+      "to": "src/store/simulatorAccess.ts"
+    },
+    {
+      "from": "e2e/component-access.spec.ts",
+      "relation": "tests",
+      "to": "src/store/circuitAccess.ts"
+    },
+    {
+      "from": "e2e/component-access.spec.ts",
+      "relation": "tests",
+      "to": "src/store/circuitOpening.ts"
+    },
+    {
+      "from": "e2e/component-access.spec.ts",
+      "relation": "tests",
+      "to": "src/store/circuitRecovery.ts"
+    },
+    {
+      "from": "e2e/component-access.spec.ts",
+      "relation": "tests",
+      "to": "src/store/useSimulation.ts"
+    },
+    {
+      "from": "e2e/component-access.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/components/Palette.tsx"
+    },
+    {
+      "from": "e2e/component-access.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/components/SimulatorAccessBanner.tsx"
+    },
+    {
+      "from": "e2e/component-access.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/components/CircuitLibrary.tsx"
+    },
+    {
+      "from": "e2e/component-access.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/components/ImportExportModal.tsx"
+    },
+    {
+      "from": "e2e/component-admin.spec.ts",
+      "to": "src/admin/platform/ComponentsView.tsx",
+      "relation": "tests"
+    },
+    {
+      "from": "e2e/component-admin.spec.ts",
+      "relation": "tests",
+      "to": "src/api/platform/components.ts"
+    },
+    {
+      "from": "e2e/component-admin.spec.ts",
+      "relation": "tests",
+      "to": "src/platform/registry.ts"
+    },
+    {
+      "from": "e2e/component-admin.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/platform/PlatformAdmin.tsx"
+    },
+    {
+      "from": "e2e/component-admin.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/platform/AdminShell.tsx"
+    },
+    {
+      "from": "scripts/check-profiles-design.mjs",
+      "to": "docs/design/profiles/index.html",
+      "relation": "tests"
+    },
+    {
+      "from": "scripts/check-profiles-design.mjs",
+      "to": "docs/design/profiles/preview.js",
+      "relation": "tests"
+    },
+    {
+      "from": "scripts/check-profiles-design.mjs",
+      "to": "docs/design/profiles/preview.css",
+      "relation": "tests"
+    },
+    {
+      "from": "scripts/check-profiles-design.mjs",
+      "to": "scripts/preview-profiles.mjs",
+      "relation": "tests"
+    },
+    {
+      "from": "scripts/test-profile-storage.ts",
+      "relation": "tests",
+      "to": "migrations/0010_profiles.sql"
+    },
+    {
+      "from": "scripts/test-profile-storage.ts",
+      "relation": "tests",
+      "to": "packages/db/profile-schema.ts"
+    },
+    {
+      "from": "scripts/test-profiles-api.ts",
+      "relation": "tests",
+      "to": "src/api/community/profiles.ts"
+    },
+    {
+      "from": "scripts/test-profiles-api.ts",
+      "relation": "tests",
+      "to": "src/api/community/store.ts"
+    },
+    {
+      "from": "scripts/test-profiles-api.ts",
+      "relation": "tests",
+      "to": "src/api/community/avatar.ts"
+    },
+    {
+      "from": "scripts/test-profiles-api.ts",
+      "relation": "tests",
+      "to": "src/api/platform/profiles.ts"
+    },
+    {
+      "from": "scripts/test-profiles-api.ts",
+      "relation": "tests",
+      "to": "src/api/context.ts"
+    },
+    {
+      "from": "scripts/test-profiles-api.ts",
+      "relation": "tests",
+      "to": "src/api/circuits.ts"
+    },
+    {
+      "from": "scripts/test-profiles-api.ts",
+      "relation": "tests",
+      "to": "src/worker.ts"
+    },
+    {
+      "from": "scripts/test-profiles-api.ts",
+      "relation": "tests",
+      "to": "scripts/profiles-test.worker.ts"
+    },
+    {
+      "from": "e2e/profiles.spec.ts",
+      "relation": "tests",
+      "to": "src/community/ProfileSettings.tsx"
+    },
+    {
+      "from": "e2e/profiles.spec.ts",
+      "relation": "tests",
+      "to": "src/community/pages.ts"
+    },
+    {
+      "from": "e2e/profiles.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/platform/ProfilesView.tsx"
+    },
+    {
+      "from": "e2e/profiles.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/platform/PlatformAdmin.tsx"
+    },
+    {
+      "from": "e2e/profiles.spec.ts",
+      "relation": "tests",
+      "to": "public/community/profile.js"
+    },
+    {
+      "from": "e2e/profiles.spec.ts",
+      "relation": "tests",
+      "to": "public/community/profile.css"
+    },
+    {
+      "from": "e2e/profiles.spec.ts",
+      "relation": "tests",
+      "to": "src/api/community/profiles.ts"
+    },
+    {
+      "from": "e2e/profiles.spec.ts",
+      "relation": "tests",
+      "to": "src/api/platform/profiles.ts"
+    },
+    {
+      "from": "scripts/check-profile-assets.mjs",
+      "relation": "tests",
+      "to": "settings/profile/index.html"
+    },
+    {
+      "from": "scripts/check-profile-assets.mjs",
+      "relation": "tests",
+      "to": "admin/community/index.html"
+    },
+    {
+      "from": "scripts/check-profile-assets.mjs",
+      "relation": "tests",
+      "to": "public/_headers"
+    },
+    {
+      "from": "scripts/check-profile-assets.mjs",
+      "relation": "tests",
+      "to": "public/community/profile.css"
+    },
+    {
+      "from": "scripts/check-profile-assets.mjs",
+      "relation": "tests",
+      "to": "public/community/profile.js"
+    },
+    {
+      "from": "scripts/check-profile-assets.mjs",
+      "relation": "tests",
+      "to": "vite.config.ts"
+    },
+    {
+      "from": "scripts/check-profile-assets.mjs",
+      "relation": "tests",
+      "to": "wrangler.profiles-browser-test.jsonc"
+    },
+    {
+      "from": "e2e/profiles.spec.ts",
+      "relation": "tests",
+      "to": "scripts/start-browser-worker.ts"
+    },
+    {
+      "from": "e2e/profiles.spec.ts",
+      "relation": "tests",
+      "to": "wrangler.membership-test.jsonc"
+    },
+    {
+      "from": "scripts/test-publication-storage.ts",
+      "relation": "tests",
+      "to": "migrations/0011_publications.sql"
+    },
+    {
+      "from": "scripts/test-publication-storage.ts",
+      "relation": "tests",
+      "to": "packages/db/publication-schema.ts"
+    },
+    {
+      "from": "scripts/test-publications-api.ts",
+      "relation": "tests",
+      "to": "src/api/community/publications.ts"
+    },
+    {
+      "from": "scripts/test-publications-api.ts",
+      "relation": "tests",
+      "to": "src/api/community/publication-store.ts"
+    },
+    {
+      "from": "scripts/test-publications-api.ts",
+      "relation": "tests",
+      "to": "src/api/community/profiles.ts"
+    },
+    {
+      "from": "scripts/test-publications-api.ts",
+      "relation": "tests",
+      "to": "src/api/platform/publications.ts"
+    },
+    {
+      "from": "scripts/test-publications-api.ts",
+      "relation": "tests",
+      "to": "src/api/simulator-access.ts"
+    },
+    {
+      "from": "scripts/test-publications-api.ts",
+      "relation": "tests",
+      "to": "src/platform/registry.ts"
+    },
+    {
+      "from": "scripts/test-publications-api.ts",
+      "relation": "tests",
+      "to": "scripts/profiles-test.worker.ts"
+    },
+    {
+      "from": "e2e/publications.spec.ts",
+      "relation": "tests",
+      "to": "src/community/PublicationSettings.tsx"
+    },
+    {
+      "from": "e2e/publications.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/platform/PublicationsView.tsx"
+    },
+    {
+      "from": "e2e/publications.spec.ts",
+      "relation": "tests",
+      "to": "src/admin/platform/PlatformAdmin.tsx"
+    },
+    {
+      "from": "e2e/publications.spec.ts",
+      "relation": "tests",
+      "to": "src/community/pages.ts"
+    },
+    {
+      "from": "e2e/publications.spec.ts",
+      "relation": "tests",
+      "to": "public/community/publications.js"
+    },
+    {
+      "from": "e2e/publications.spec.ts",
+      "relation": "tests",
+      "to": "src/api/community/publications.ts"
+    },
+    {
+      "from": "e2e/publications.spec.ts",
+      "relation": "tests",
+      "to": "src/api/platform/publications.ts"
+    },
+    {
+      "from": "e2e/publications.spec.ts",
+      "relation": "tests",
+      "to": "scripts/start-profiles-browser-worker.ts"
+    },
+    {
+      "from": "e2e/publications.spec.ts",
+      "relation": "tests",
+      "to": "wrangler.profiles-browser-test.jsonc"
+    },
+    {
+      "from": "scripts/phase-gate.test.mjs",
+      "relation": "tests",
+      "to": "scripts/verify-phase22.mjs"
+    },
+    {
+      "from": "scripts/check-profile-assets.mjs",
+      "relation": "tests",
+      "to": "settings/publications/index.html"
+    },
+    {
+      "from": "scripts/check-profile-assets.mjs",
+      "relation": "tests",
+      "to": "public/community/publications.js"
+    },
+    {
+      "from": "src/community/publication-policy.test.ts",
+      "relation": "tests",
+      "to": "src/community/publication-policy.ts"
+    },
+    {
+      "from": "src/community/preview/render.test.tsx",
+      "relation": "tests",
+      "to": "src/community/publication-pages.ts"
+    },
+    {
+      "from": "src/community/preview/render.test.tsx",
+      "relation": "tests",
+      "to": "src/community/preview/render.tsx"
+    },
+    {
+      "from": "src/community/preview/render.test.tsx",
+      "relation": "tests",
+      "to": "src/community/preview/policy.ts"
+    },
+    {
+      "from": "src/community/preview/render.test.tsx",
+      "relation": "tests",
+      "to": "src/community/preview/FaultMarkers.tsx"
+    },
+    {
+      "from": "src/community/preview/render.test.tsx",
+      "relation": "tests",
+      "to": "src/api/community/preview.ts"
+    },
+    {
+      "from": "src/community/preview/render.test.tsx",
+      "relation": "tests",
+      "to": "src/api/community/preview-store.ts"
+    },
+    {
+      "from": "src/community/preview/render.test.tsx",
+      "relation": "tests",
+      "to": "src/ui/canvas/ComponentSceneNode.tsx"
+    },
+    {
+      "from": "src/community/preview/render.test.tsx",
+      "relation": "tests",
+      "to": "src/ui/canvas/WireScenePath.tsx"
+    },
+    {
+      "from": "src/community/preview/render.test.tsx",
+      "relation": "tests",
+      "to": "src/ui/canvas/ComponentNode.tsx"
+    },
+    {
+      "from": "src/community/preview/render.test.tsx",
+      "relation": "tests",
+      "to": "src/ui/canvas/WireLayer.tsx"
+    },
+    {
+      "from": "scripts/test-preview-api.ts",
+      "relation": "tests",
+      "to": "src/community/publication-pages.ts"
+    },
+    {
+      "from": "scripts/test-preview-api.ts",
+      "relation": "tests",
+      "to": "src/community/preview/render.tsx"
+    },
+    {
+      "from": "scripts/test-preview-api.ts",
+      "relation": "tests",
+      "to": "src/community/preview/policy.ts"
+    },
+    {
+      "from": "scripts/test-preview-api.ts",
+      "relation": "tests",
+      "to": "src/community/preview/FaultMarkers.tsx"
+    },
+    {
+      "from": "scripts/test-preview-api.ts",
+      "relation": "tests",
+      "to": "src/api/community/preview.ts"
+    },
+    {
+      "from": "scripts/test-preview-api.ts",
+      "relation": "tests",
+      "to": "src/api/community/preview-store.ts"
+    },
+    {
+      "from": "scripts/test-preview-api.ts",
+      "relation": "tests",
+      "to": "src/ui/canvas/ComponentSceneNode.tsx"
+    },
+    {
+      "from": "scripts/test-preview-api.ts",
+      "relation": "tests",
+      "to": "src/ui/canvas/WireScenePath.tsx"
+    },
+    {
+      "from": "scripts/test-preview-api.ts",
+      "relation": "tests",
+      "to": "src/ui/canvas/ComponentNode.tsx"
+    },
+    {
+      "from": "scripts/test-preview-api.ts",
+      "relation": "tests",
+      "to": "src/ui/canvas/WireLayer.tsx"
+    },
+    {
+      "from": "e2e/preview.spec.ts",
+      "relation": "tests",
+      "to": "src/community/publication-pages.ts"
+    },
+    {
+      "from": "e2e/preview.spec.ts",
+      "relation": "tests",
+      "to": "src/community/preview/render.tsx"
+    },
+    {
+      "from": "e2e/preview.spec.ts",
+      "relation": "tests",
+      "to": "src/community/preview/policy.ts"
+    },
+    {
+      "from": "e2e/preview.spec.ts",
+      "relation": "tests",
+      "to": "src/community/preview/FaultMarkers.tsx"
+    },
+    {
+      "from": "e2e/preview.spec.ts",
+      "relation": "tests",
+      "to": "src/api/community/preview.ts"
+    },
+    {
+      "from": "e2e/preview.spec.ts",
+      "relation": "tests",
+      "to": "src/api/community/preview-store.ts"
+    },
+    {
+      "from": "e2e/preview.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/canvas/ComponentSceneNode.tsx"
+    },
+    {
+      "from": "e2e/preview.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/canvas/WireScenePath.tsx"
+    },
+    {
+      "from": "e2e/preview.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/canvas/ComponentNode.tsx"
+    },
+    {
+      "from": "e2e/preview.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/canvas/WireLayer.tsx"
+    },
+    {
+      "from": "e2e/preview.spec.ts",
+      "relation": "tests",
+      "to": "public/community/detail.js"
+    },
+    {
+      "from": "e2e/preview.spec.ts",
+      "relation": "tests",
+      "to": "public/community/preview.js"
+    },
+    {
+      "from": "e2e/preview.spec.ts",
+      "relation": "tests",
+      "to": "public/community/detail.css"
+    },
+    {
+      "from": "e2e/preview.spec.ts",
+      "relation": "tests",
+      "to": "src/community/pages.ts"
+    },
+    {
+      "from": "e2e/preview.spec.ts",
+      "relation": "tests",
+      "to": "src/community/PublicationSettings.tsx"
+    },
+    {
+      "from": "e2e/preview.spec.ts",
+      "relation": "tests",
+      "to": "src/worker.ts"
+    },
+    {
+      "from": "e2e/preview.spec.ts",
+      "relation": "tests",
+      "to": "wrangler.jsonc"
+    },
+    {
+      "from": "e2e/preview.spec.ts",
+      "relation": "tests",
+      "to": "wrangler.profiles-browser-test.jsonc"
+    },
+    {
+      "from": "e2e/preview.spec.ts",
+      "relation": "tests",
+      "to": "vite.config.ts"
+    },
+    {
+      "from": "e2e/preview.spec.ts",
+      "relation": "tests",
+      "to": "public/_headers"
+    },
+    {
+      "from": "e2e/preview.spec.ts",
+      "relation": "tests",
+      "to": "biome.json"
+    },
+    {
+      "from": "src/community/preview/render.test.tsx",
+      "relation": "tests",
+      "to": "src/ui/canvas/lightTheme.ts"
+    },
+    {
+      "from": "e2e/preview.spec.ts",
+      "relation": "tests",
+      "to": "src/ui/canvas/lightTheme.ts"
     }
   ],
   "features": [
@@ -3568,6 +4740,1452 @@
         "at": "2026-10-22T12:37:46.993Z",
         "scope": "Reviewed the 2026-10-22 Phase 1.14 owner closure note, plan/ledger/handoff/acceptance manifest updates, bounded solver changes (numeric series reduction, normalized revision reuse, operating-point lookup reduction, voltage fast path), and the affected verification evidence: 811 core/simulation tests, 897 Bun/workerd parity, types/lint. Confirmed budgets unchanged, failures retained and strict targets not certified. No remote work or publication.",
         "fingerprint": "49c6b99c297206124821999b095b00c4c9aaf9e0007978360562f4719537d7e6"
+      }
+    },
+    {
+      "id": "phase-2-community-plan",
+      "summary": "Phase 2 remains in progress locally. Shared admin foundation 2.0 and approved admin integration/parity have separately scoped acceptance. Phase 2.0A Gates A-F complete locally 2026-10-25. Dedicated verify:phase-2.0a full selection exited 0 with all 18 stages: 2305 units/151 files, 6 infrastructure/8 populated-upgrade storage/14 component API-race/20 existing admin/34 membership-simulator groups, 897 unchanged parity and 105 source + 105 built browser cases (35 per desktop/phone/WebKit project) without skips/retries. Actual built asset/header checks passed 8 pages/9 scripts and unknown-route 404; budgets 268979 B JS gzip/29462 B CSS gzip. All 1318 selected source/harness inputs matched. Dedicated manifest maps required exit groups and records log/source hashes; fingerprints are stability, not test results. Historical 2.0, admin integration/parity and Gates B-E keep their original scopes and explicit recovery distinctions. Profiles 2.1 Gates A-E complete locally 2026-10-26. Dedicated verify:phase-2.1 full selection exited 0 across all 22 stages: 2339 units/153 files, 8 profile storage/21 real HTTP-race groups, complete existing 2.0A regressions, 897 unchanged electrical parity, 105 source + 105 built existing browser cases and 30 source + 30 built profile cases across desktop/phone/WebKit without skips/retries. All 1350 selected source/harness hashes matched; stability is separate from executed outcomes. Dedicated manifest records stage/log/source evidence. Ordinary local D1 backed up before pending 0009/0010 migrations; integrated local Worker delivery verified on 8791. Overall Phase 2 remains active; 2.2 is next planned. No remote operation/deployment or hardware recertification; later publish/preview/fork policy integration remains required in 2.2/2.3/2.5 and 2.8. Overall Phase 2, support 2.7A and prior Phase 1 hardware/performance exceptions remain open. Local only; no account/remote operation or hardware recertification.",
+      "tags": [
+        "phase-2",
+        "community",
+        "published circuits",
+        "feed",
+        "explore",
+        "fork",
+        "comments",
+        "follows",
+        "collections",
+        "notifications",
+        "moderation",
+        "FTS5",
+        "SSR",
+        "OG",
+        "profiles",
+        "admin",
+        "users",
+        "roles",
+        "permissions",
+        "suspensions",
+        "settings",
+        "audit",
+        "admin panel",
+        "component access",
+        "support desk",
+        "tickets",
+        "2.0A",
+        "2.7A"
+      ],
+      "entryPoints": [
+        "docs/plans/PHASE_2_COMMUNITY_PLAN.md",
+        "docs/phases/phase-2-community.md",
+        "packages/db/circuit-schema.ts",
+        "src/api/circuits.ts",
+        "src/api/context.ts",
+        "src/worker.ts",
+        "wrangler.jsonc",
+        "scripts/postbuild.mjs",
+        "public/_headers",
+        "src/ui/CircuitCanvas.tsx",
+        "src/lib/export/imageExport.ts",
+        "src/ui/components/CircuitLibrary.tsx",
+        "astro-site/src/lib/seo.ts",
+        "astro-site/src/lib/structured-data.ts",
+        "scripts/test-membership.ts",
+        "scripts/test-simulator.ts",
+        "scripts/browser-test-worker.ts",
+        "src/admin/Admin.tsx",
+        "src/admin/client.ts",
+        "admin/pro/index.html",
+        "src/api/membership.ts",
+        "packages/access/src/index.ts",
+        "packages/db/auth.ts",
+        "docs/api/membership.md",
+        "e2e/admin-membership.spec.ts",
+        "docs/audits/phase-2-foundation-spike.md"
+      ],
+      "evidence": [
+        "docs/REWRITE_PLAN_V3_FULL.md",
+        "docs/plans/PHASE_2_COMMUNITY_PLAN.md",
+        "docs/phases/phase-2-community.md",
+        "docs/audits/phase-1-persistence.md",
+        "docs/api/simulator.md",
+        "docs/PERFORMANCE.md",
+        "packages/db/schema.ts",
+        "packages/db/circuit-schema.ts",
+        "packages/db/auth-schema.ts",
+        "src/worker.ts",
+        "wrangler.jsonc",
+        "public/_headers",
+        "scripts/postbuild.mjs",
+        "src/admin/Admin.tsx",
+        "src/admin/client.ts",
+        "admin/pro/index.html",
+        "src/api/context.ts",
+        "src/api/membership.ts",
+        "packages/access/src/index.ts",
+        "packages/db/auth.ts",
+        "docs/api/membership.md",
+        "e2e/admin-membership.spec.ts",
+        "docs/audits/phase-2-foundation-spike.md",
+        "docs/audits/phase-2-admin-foundation.md",
+        "docs/api/platform-admin.md",
+        "docs/audits/data/phase20-acceptance.json",
+        "docs/design/platform-admin/README.md",
+        "docs/plans/PHASE_2_ADMIN_EXTENSIONS_PLAN.md",
+        "docs/audits/platform-admin-design-integration.md",
+        "docs/audits/data/platform-admin-design-acceptance.json",
+        "docs/audits/admin-prototype-parity-review.md",
+        "docs/audits/data/admin-parity-review-acceptance.json",
+        "docs/plans/PHASE_2_0A_COMPONENT_ACCESS_PLAN.md",
+        "docs/audits/phase-2-component-access.md",
+        "docs/audits/data/phase20a-acceptance.json",
+        "docs/plans/PHASE_2_1_PROFILES_PLAN.md",
+        "docs/audits/phase-2-profiles.md",
+        "docs/audits/data/phase21-acceptance.json"
+      ],
+      "facts": ["local-only", "phase-2-community-scope"],
+      "checks": [
+        {
+          "command": "bun run verify:phase-2.0a",
+          "files": [
+            "scripts/verify-phase20a.mjs",
+            "playwright.component-acceptance-built.config.ts",
+            "docs/audits/data/phase20a-acceptance.json",
+            "docs/audits/phase-2-component-access.md"
+          ],
+          "reason": "Dedicated full component access milestone accepted locally: all 18 stages exit 0, including existing admin/editor regressions, 8 populated-upgrade storage and 14 component API groups, 105 source + 105 built cases without skips/retries. Profiles 2.1 now has separately complete local acceptance; later Community/support acceptance stays separate."
+        },
+        {
+          "command": "bun run check:links",
+          "files": [
+            "scripts/check-internal-links.mjs",
+            "docs/plans/PHASE_2_COMMUNITY_PLAN.md",
+            "docs/phases/phase-2-community.md"
+          ],
+          "reason": "Checks built HTML links during implementation acceptance; does not validate Markdown links or establish that planned SSR routes exist."
+        },
+        {
+          "command": "bun run test:graph",
+          "files": ["scripts/code-graph.test.mjs"],
+          "reason": "Regression tests for graph tooling and fixture reference/review behavior; graph:check separately validates actual knowledge records."
+        }
+      ],
+      "decisions": [
+        "Keep circuits owner-private; publish immutable versions and read only those publicly.",
+        "Use Worker SSR for community HTML and keep discovery pages free of the editor bundle.",
+        "Add a separate profiles table instead of changing Better Auth tables.",
+        "Default to post-publication moderation with reports, auto-hide, moderator actions and audit.",
+        "Store model/engine/fingerprint provenance and mark stale verification rather than presenting it as fresh.",
+        "Use explicit write-time FTS5 synchronization and keyset pagination.",
+        "Keep all Wrangler/D1/R2/KV/Queue/DO operations local; no deployment or remote migration is authorized.",
+        "Accept shared platform administration in 2.0 before 2.1; later phases register independently authorized modules and their own acceptance.",
+        "Super admin manages system/custom staff grants and protected operations; permission settings cannot delegate memberships, staff administration or platform suspension.",
+        "Moderate publications/comments/profiles/public collections through working UI and APIs as each subject arrives; 2.7 completes integrated operations.",
+        "The owner approved scheduling component access in 2.0A before profiles and private support in 2.7A before final Community acceptance; neither addition is covered by historical 2.0 acceptance."
+      ],
+      "broaderChecks": [
+        "Any publication/fork path must preserve circuitRequirements and capabilityGuard semantics.",
+        "Any public read must exclude private profile fields and mutable private circuit content.",
+        "Any SSR/route change must preserve marketing routes, existing /app/ behavior, CSP/cache headers and no-JS accessibility.",
+        "Any social write must be idempotent, rate-limited and auditable where moderation applies.",
+        "Phase 3 gamification must wait for accepted Phase 2 event/counter contracts.",
+        "Any admin dispatch change must prove community staff access without broadening existing super-admin membership middleware.",
+        "Role/policy/suspension changes require fresh primary checks, revocation/session/concurrency cases and atomic audit; shared auth changes require existing membership and simulator API regressions.",
+        "Hidden content must be absent from API/SSR/search/assets/OG and delayed notifications; test UI workflows, not only endpoints."
+      ],
+      "review": {
+        "at": "2026-10-25T12:43:56.642Z",
+        "scope": "Reviewed 2.0A full Gate F acceptance, linked audit/manifest and updated phase/plan/roadmap pointers. Profiles 2.1 is next but not started; overall Community, support 2.7A and historical hardware exceptions remain open. Historical 2.0 and admin-parity acceptance/recovery scopes unchanged. This review does not accept later milestones.",
+        "fingerprint": "e5be904559f59da3a5bfedfdca517435bff7103d3dfa1d6fe16d973f25adbbd1"
+      }
+    },
+    {
+      "id": "platform-admin-foundation",
+      "summary": "Phase 2.0 accepted locally 2026-10-24: full 16-stage gate passed (2232 units, 20 new admin groups, 34 existing API groups, 897 parity, 132 source/built desktop/phone/WebKit cases), plus seven-page actual asset/header checks and local dev migration 0007. Shared admin shell/overview/user directory, system/custom roles and matrix, separate community restrictions/platform suspension, typed settings/scoped immutable audit, read-only standards and protected membership navigation. Revision-claimed D1 batches audit atomically; session hooks/primary guards/insert trigger revoke suspension access. Module extension fixture is local-test-only. Public subject moderation, later modules and 2.1 remain pending. Historical functional baseline acceptance remains separate from the separately accepted owner-approved admin presentation integration. 2.0A design/contract and a canonical 116-ID Components demo started locally 2026-10-24; runtime policy is pending before 2.1. The owner approved the admin panel and authorized local integration; its current-scope integration passed the full 16-stage local check scope with explicit browser recovery (2232 units, 20 admin/34 existing API groups, 897 parity, 150 source/built browser cases). 2.7A support remains planned after 2.6/2.7 and before 2.8. Confirmed Basic access/electrical truth stay protected; full Content Studio remains Phase 5.",
+      "tags": [
+        "phase-2",
+        "community",
+        "admin",
+        "admin panel",
+        "platform",
+        "users",
+        "roles",
+        "custom roles",
+        "permissions",
+        "moderator",
+        "profiles",
+        "comments",
+        "collections",
+        "restrictions",
+        "suspensions",
+        "settings",
+        "audit",
+        "future phases",
+        "component access",
+        "support desk",
+        "tickets",
+        "2.0A",
+        "2.7A"
+      ],
+      "entryPoints": [
+        "docs/plans/PHASE_2_COMMUNITY_PLAN.md",
+        "docs/phases/phase-2-community.md",
+        "src/admin/Admin.tsx",
+        "src/admin/client.ts",
+        "admin/pro/index.html",
+        "src/api/context.ts",
+        "src/api/membership.ts",
+        "packages/access/src/index.ts",
+        "packages/db/auth.ts",
+        "docs/api/membership.md",
+        "docs/audits/phase-2-foundation-spike.md",
+        "docs/audits/phase-2-admin-foundation.md",
+        "docs/api/platform-admin.md",
+        "src/platform/registry.ts",
+        "src/api/platform/index.ts",
+        "migrations/0007_admin_foundation.sql",
+        "src/admin/platform/PlatformAdmin.tsx",
+        "e2e/platform-admin.spec.ts",
+        "scripts/test-platform-admin.ts",
+        "docs/audits/data/phase20-acceptance.json",
+        "scripts/check-platform-assets.mjs"
+      ],
+      "evidence": [
+        "docs/plans/PHASE_2_COMMUNITY_PLAN.md",
+        "docs/phases/phase-2-community.md",
+        "docs/REWRITE_PLAN_V3_FULL.md",
+        "docs/api/membership.md",
+        "src/admin/Admin.tsx",
+        "src/admin/client.ts",
+        "admin/pro/index.html",
+        "src/api/context.ts",
+        "src/api/membership.ts",
+        "packages/access/src/index.ts",
+        "packages/db/auth.ts",
+        "packages/db/auth-schema.ts",
+        "docs/audits/phase-2-foundation-spike.md",
+        "docs/audits/phase-2-admin-foundation.md",
+        "docs/api/platform-admin.md",
+        "src/platform/registry.ts",
+        "src/api/platform/index.ts",
+        "migrations/0007_admin_foundation.sql",
+        "src/admin/platform/PlatformAdmin.tsx",
+        "e2e/platform-admin.spec.ts",
+        "scripts/test-platform-admin.ts",
+        "docs/audits/data/phase20-acceptance.json",
+        "src/api/platform/access.ts",
+        "src/api/platform/mutation.ts",
+        "src/api/platform/roles.ts",
+        "src/api/platform/controls.ts",
+        "src/api/platform/reads.ts",
+        "src/api/platform/restrictions.ts",
+        "src/api/platform/input.ts",
+        "packages/db/admin-schema.ts",
+        "src/admin/platform/UsersView.tsx",
+        "src/admin/platform/RolesView.tsx",
+        "src/admin/platform/SettingsView.tsx",
+        "src/admin/platform/ReadViews.tsx",
+        "src/admin/platform/resource.ts",
+        "src/admin/platform/types.ts",
+        "src/admin/platform/main.tsx",
+        "src/admin/platform/platform.css",
+        "admin/index.html",
+        "admin/users/index.html",
+        "admin/permissions/index.html",
+        "admin/settings/index.html",
+        "admin/audit/index.html",
+        "admin/standards/index.html",
+        "scripts/platform-admin-test.worker.ts",
+        "scripts/start-platform-browser-worker.ts",
+        "scripts/verify-phase20.mjs",
+        "wrangler.platform-admin-test.jsonc",
+        "wrangler.platform-browser-test.jsonc",
+        "playwright.platform-admin-built.config.ts",
+        "public/_headers",
+        "vite.config.ts",
+        "src/worker.ts",
+        "src/platform/registry.test.ts",
+        "src/platform/migration.test.ts",
+        "scripts/check-platform-assets.mjs",
+        "docs/design/platform-admin/README.md",
+        "docs/plans/PHASE_2_ADMIN_EXTENSIONS_PLAN.md",
+        "docs/audits/platform-admin-design-integration.md",
+        "docs/audits/data/platform-admin-design-acceptance.json"
+      ],
+      "facts": ["local-only", "phase-2-community-scope"],
+      "checks": [
+        {
+          "command": "bun run verify:phase-2.0",
+          "files": [
+            "scripts/verify-phase20.mjs",
+            "scripts/phase-gate.mjs",
+            "scripts/test-platform-admin.ts",
+            "e2e/platform-admin.spec.ts",
+            "playwright.platform-admin-built.config.ts"
+          ],
+          "reason": "Full local foundation gate includes all units/types/lint/build/static checks, spike/infrastructure, real admin and existing membership/simulator groups, domain parity and source/built desktop/phone/WebKit. Partial selectors never close acceptance."
+        },
+        {
+          "command": "bun run test:platform-admin",
+          "files": [
+            "scripts/test-platform-admin.ts",
+            "scripts/platform-admin-test.worker.ts",
+            "wrangler.platform-admin-test.jsonc"
+          ],
+          "reason": "Actual local cookie sessions and one serving D1: role/custom-policy and session revocation, last-super-admin concurrency, audit rollback, restrictions/expiry, namespace and test-route isolation."
+        },
+        {
+          "command": "bun x vitest run src/platform",
+          "files": ["src/platform/registry.test.ts", "src/platform/migration.test.ts"],
+          "reason": "Reject invalid/protected/cross-namespace module grants; validate settings and preserve populated pre-0007 data."
+        },
+        {
+          "command": "PLATFORM_ASSET_TEST_ORIGIN=http://127.0.0.1:8791 bun scripts/check-platform-assets.mjs",
+          "files": [
+            "scripts/check-platform-assets.mjs",
+            "public/_headers",
+            "admin/index.html",
+            "wrangler.jsonc",
+            "wrangler.platform-browser-test.jsonc"
+          ],
+          "reason": "Additional anonymous localhost check while actual built/dev Worker is running: seven admin pages, strict CSP/private no-store/noindex/separate editor entry and unknown-admin 404. Does not create sessions or call remote services."
+        }
+      ],
+      "decisions": [
+        "2.0 proves routing/schema/security first, then implements and accepts the shared admin foundation before 2.1.",
+        "Preserve super-admin-only membership access; use a dedicated shared admin access endpoint and module guards.",
+        "Keep community write restrictions separate from super-admin platform suspension and from paid grant state.",
+        "Only registered implemented permissions/settings may be configured; protected powers and electrical standards remain code-owned.",
+        "Later phases extend navigation/permission/settings/audit contracts and deliver their business controls in their own phase.",
+        "Gate 3 contract records conservative global admin revision conflicts; every mutation and audit commits in a guarded D1 batch.",
+        "Session-create hook plus DB trigger and shared primary guard enforce suspension, with atomic session deletion and no revival on restore.",
+        "No public subject/report adapters or staff content screens ship until their subject milestones; only their contract is defined in 2.0.",
+        "The owner approved scheduling component access in 2.0A before profiles and private support in 2.7A before final Community acceptance; neither addition is covered by historical 2.0 acceptance."
+      ],
+      "broaderChecks": [
+        "Role/custom-policy writes require revocation, concurrent last-super-admin, atomic audit and no self-escalation cases.",
+        "Shared auth/suspension changes require real local session, membership and simulator API tests, including sign-in and stale-cookie denial.",
+        "Moderation UI and all public/queued/cached read paths must agree on visibility for every subject.",
+        "API-only checks do not accept admin UI; later module registration needs permission and audit isolation evidence."
+      ],
+      "review": {
+        "at": "2026-10-24T07:02:43.259Z",
+        "scope": "Read the historical foundation audit and retained phase20 manifest, current API contract, source entrypoints and new integration audit/manifest. Historical 132-case/full-default acceptance stays historical; current panel has separate complete 16-check evidence with explicit 150-case browser recovery, current hashes and index-only local migration 0008. Fresh primary role/session/atomic-audit/membership boundaries are retained and rechecked; no future component/public/support module or overall Phase 2 acceptance claimed.",
+        "fingerprint": "118c496f7e93f04b023499b5551d9f3f60a374ced3b5ee961b3d8b5d574b525c"
+      }
+    },
+    {
+      "id": "phase-2-foundation-spike",
+      "summary": "2.0 gates 1–2 local spike: actual app mounted before staff fixture proves membership middleware isolation; SSR beats built explore assets, escapes input and sets explicit CSP/no-store; API/community misses remain 404; real D1 FTS5 indexed MATCH, R2/KV roundtrips and Queue consumer delivery pass. Follow-up admin foundation 2.0 accepted separately on 2026-10-24; this record covers only the spike. 2.1 remains planned. Generated binding declarations are module scoped to avoid changing Node/browser globals.",
+      "tags": [
+        "phase-2",
+        "phase-2.0",
+        "spike",
+        "routing",
+        "SSR",
+        "Assets",
+        "CSP",
+        "FTS5",
+        "R2",
+        "KV",
+        "Queue",
+        "admin",
+        "membership",
+        "isolation",
+        "schema"
+      ],
+      "entryPoints": [
+        "docs/audits/phase-2-foundation-spike.md",
+        "scripts/test-phase20-spike.ts",
+        "scripts/phase20-spike.worker.ts",
+        "wrangler.phase20-test.jsonc",
+        "src/api/membership.ts"
+      ],
+      "evidence": [
+        "docs/audits/phase-2-foundation-spike.md",
+        "docs/phases/phase-2-community.md",
+        "docs/plans/PHASE_2_COMMUNITY_PLAN.md",
+        "src/api/membership.ts",
+        "src/api/context.ts",
+        "src/api/circuits.ts",
+        "src/worker.ts",
+        "wrangler.jsonc",
+        "wrangler.phase20-test.jsonc",
+        "scripts/test-phase20-spike.ts",
+        "scripts/phase20-spike.worker.ts",
+        "scripts/generate-phase20-types.ts",
+        "scripts/fixtures/phase20/env.d.ts",
+        "tsconfig.membership-tests.json",
+        "package.json",
+        "docs/audits/phase-2-admin-foundation.md"
+      ],
+      "facts": ["local-only", "phase-2-community-scope"],
+      "checks": [
+        {
+          "command": "bun run build && bun run test:phase-2.0-spike",
+          "files": [
+            "scripts/test-phase20-spike.ts",
+            "scripts/phase20-spike.worker.ts",
+            "wrangler.phase20-test.jsonc"
+          ],
+          "reason": "Real local Worker/Assets, isolated migrated D1, real Better Auth cookies and actual Queue consumer. Build first; fixture HTML is not community acceptance."
+        },
+        {
+          "command": "bun run test:membership",
+          "files": [
+            "scripts/test-membership.ts",
+            "scripts/test-simulator.ts",
+            "scripts/test-simulator-browser.ts"
+          ],
+          "reason": "Membership middleware changes require existing primary role, audit/rollback, owner/capability and browser regressions against actual local Worker/D1."
+        },
+        {
+          "command": "PLAYWRIGHT_DEV_PORT=3020 bun x playwright test e2e/admin-membership.spec.ts --workers=1",
+          "files": [
+            "e2e/admin-membership.spec.ts",
+            "scripts/start-browser-worker.ts",
+            "playwright.config.ts"
+          ],
+          "reason": "Desktop, phone and Safari membership UI denial/lifecycle/revocation regression; does not accept new admin screens or built browser matrix."
+        },
+        {
+          "command": "bun run typecheck && bun run lint",
+          "files": [
+            "tsconfig.membership-tests.json",
+            "scripts/generate-phase20-types.ts",
+            "scripts/fixtures/phase20/env.d.ts"
+          ],
+          "reason": "Check app/tests and module-wrapped generated binding declarations without injecting Worker Request/Response globals into browser tests."
+        }
+      ],
+      "decisions": [
+        "Routing rules live in the spike config until real community endpoints arrive; production config is unchanged.",
+        "Reserve migration 0007 for separate admin foundation/audit; SQL directory runs through 0006, journal currently ends at 0005. No new product migration in the spike.",
+        "Hono template escaping and explicit Worker response headers are required; static _headers does not apply to SSR.",
+        "Membership guards cover only membership-owned routes; every later module needs its own authorization."
+      ],
+      "broaderChecks": [
+        "Before 2.0 closes, complete gate 3 contracts, full working admin UI, custom permissions, suspension/session revocation, concurrent last-super-admin protection, atomic settings/audit and module-extension fixture.",
+        "Public asset delivery/search/notifications require subject visibility tests in later milestones; storage/Queue wiring alone is insufficient."
+      ],
+      "review": {
+        "at": "2026-10-24T04:27:11.445Z",
+        "scope": "Reviewed changed phase/master-plan references and historical spike follow-up. Owner-approved new 2.0A/2.7A milestones do not alter the spike or extend its acceptance; neither feature is implemented. No infrastructure checks rerun, all 50 existing production fingerprints unchanged, and no account/remote operation authorized.",
+        "fingerprint": "00e6694ec5ce93018f74279508790c074bdb2403c184bbfc710b5e32388010f6"
+      }
+    },
+    {
+      "id": "platform-admin-design-review",
+      "summary": "Owner APPROVED the HTML admin panel on 2026-10-24 and explicitly authorized local integration; later-phase features may defer with progress notes. Standalone canonical Components/people/membership workflows remain an isolated review artifact with passing desktop/phone/WebKit checks. Current foundation/membership workflows are integrated with real data/guards and separately accepted across the full 16-stage check scope with explicit browser recovery (156 delivery browser cases). Public profiles 2.1, support 2.7A, CMS Phase 5 and billing Phase 7 remain deferred. Complete actual/demo parity follow-up is accepted across the 16-check scope using the retained non-browser prefix and explicit browser recovery; see its separate current manifest and explicit differences/deferrals.",
+      "tags": [
+        "admin",
+        "design",
+        "prototype",
+        "html",
+        "preview",
+        "membership",
+        "creation",
+        "plans",
+        "assignment",
+        "dedicated",
+        "user",
+        "profile",
+        "drawer",
+        "review",
+        "phase-2"
+      ],
+      "entryPoints": [
+        "docs/design/platform-admin/index.html",
+        "docs/design/platform-admin/preview.css",
+        "docs/design/platform-admin/preview.js",
+        "docs/design/platform-admin/README.md",
+        "scripts/preview-platform-admin.mjs",
+        "scripts/check-platform-design.mjs",
+        "docs/design/platform-admin/preview-catalog.js",
+        "scripts/check-component-access-design.ts"
+      ],
+      "evidence": [
+        "docs/design/platform-admin/README.md",
+        "docs/audits/phase-2-admin-foundation.md",
+        "docs/plans/PLATFORM_ADMIN_DESIGN_INTEGRATION.md",
+        "docs/audits/platform-admin-design-integration.md",
+        "docs/audits/data/platform-admin-design-acceptance.json",
+        "docs/audits/admin-prototype-parity-review.md",
+        "docs/audits/data/admin-parity-review-acceptance.json"
+      ],
+      "facts": ["local-only"],
+      "checks": [
+        {
+          "command": "node scripts/check-platform-design.mjs",
+          "files": [
+            "docs/design/platform-admin/index.html",
+            "docs/design/platform-admin/preview.css",
+            "docs/design/platform-admin/preview.js",
+            "docs/design/platform-admin/README.md",
+            "scripts/preview-platform-admin.mjs",
+            "scripts/check-platform-design.mjs"
+          ],
+          "reason": "Run with standalone preview server on localhost:8794. Desktop/phone Chromium and tablet WebKit exercise full user routes/reload, quick view, reviewed access, independent restriction/suspension/restore and per-user targeting, active plan creation/assignment and membership history, persona guards, CSP and same-origin GET-only traffic. Chromium captures review screenshots; WebKit runs unmodified strict-CSP interaction/layout assertions."
+        }
+      ],
+      "decisions": [
+        "Owner panel approval and local integration authorization received 2026-10-24; keep prototype, historical foundation and new production integration evidence separate.",
+        "Names open dedicated user routes; the drawer provides quick view and Open full profile.",
+        "Create membership plan defines reusable access; Assign membership grants an active plan to a selected user.",
+        "Basic is default access; paid capabilities remain separate from protected staff privileges."
+      ],
+      "broaderChecks": [
+        "Production integration needs scoped API/UI acceptance for plan/grant semantics, permissions, concurrency, safe scoped projections, pagination and atomic audit. Prototype browser checks do not exercise production endpoints or renew the foundation gate."
+      ],
+      "review": {
+        "at": "2026-10-24T16:36:45.813Z",
+        "scope": "Reviewed approved isolated demo README and current production mapping against final comparison/evidence. Demo personas, fictional records, snapshots and proposed analytics/bulk/export remain distinct from actual protected data/live plan features. Current production parity has separate 16-check aggregate acceptance (2235 units, 156 browser cases); prototype checks remain historical and do not accept Components runtime or later modules.",
+        "fingerprint": "b59046b042f373a64d4df13833a399608b076d14815a72c9d1b857e9b5bcd140"
+      }
+    },
+    {
+      "id": "component-access-admin-plan",
+      "summary": "Phase 2.0A Gates A-F complete locally 2026-10-25. Dedicated verify:phase-2.0a full selection exited 0 with all 18 stages: 2305 units/151 files, 6 infrastructure/8 populated-upgrade storage/14 component API-race/20 existing admin/34 membership-simulator groups, 897 unchanged parity and 105 source + 105 built browser cases (35 per desktop/phone/WebKit project) without skips/retries. Actual built asset/header checks passed 8 pages/9 scripts and unknown-route 404; budgets 268979 B JS gzip/29462 B CSS gzip. All 1318 selected source/harness inputs matched. Dedicated manifest maps required exit groups and records log/source hashes; fingerprints are stability, not test results. Historical 2.0, admin integration/parity and Gates B-E keep their original scopes and explicit recovery distinctions. Profiles 2.1 has separately complete local 22-stage acceptance (2339 units, 270 browser cases); later publish/preview/fork policy integration remains required in 2.2/2.3/2.5 and 2.8. Overall Phase 2, support 2.7A and prior Phase 1 hardware/performance exceptions remain open. Local only; no account/remote operation or hardware recertification.",
+      "tags": [
+        "phase-2",
+        "2.0A",
+        "admin",
+        "component",
+        "components",
+        "catalogue",
+        "catalog",
+        "pro",
+        "free",
+        "membership",
+        "classification",
+        "access",
+        "policy",
+        "plan",
+        "storage",
+        "migration",
+        "gate-b",
+        "gate-c",
+        "server",
+        "race",
+        "gate-d",
+        "lifecycle",
+        "recovery",
+        "gate-e",
+        "Components UI",
+        "gate-f",
+        "acceptance"
+      ],
+      "entryPoints": [
+        "packages/access/src/component-baseline.ts",
+        "packages/access/src/component-policy.ts",
+        "packages/db/component-access-schema.ts",
+        "migrations/0009_component_access.sql",
+        "docs/plans/PHASE_2_ADMIN_EXTENSIONS_PLAN.md",
+        "packages/access/src/index.ts",
+        "packages/access/src/circuit.ts",
+        "src/api/simulator-access.ts",
+        "src/api/circuits.ts",
+        "src/store/simulatorAccess.ts",
+        "src/platform/registry.ts",
+        "src/api/component-access-store.ts",
+        "src/api/component-access.ts",
+        "src/api/platform/components.ts",
+        "src/admin/platform/ComponentsView.tsx",
+        "src/admin/platform/PlatformAdmin.tsx",
+        "admin/components/index.html",
+        "scripts/verify-phase20a.mjs",
+        "playwright.component-acceptance-built.config.ts"
+      ],
+      "evidence": [
+        "docs/plans/PHASE_2_ADMIN_EXTENSIONS_PLAN.md",
+        "docs/phases/phase-2-community.md",
+        "docs/plans/PHASE_2_COMMUNITY_PLAN.md",
+        "docs/REWRITE_PLAN_V3_FULL.md",
+        "docs/plans/PHASE_2_0A_COMPONENT_ACCESS_PLAN.md",
+        "docs/api/component-access.md",
+        "docs/specs/component-access-baseline.json",
+        "docs/audits/phase-2-component-access.md",
+        "docs/design/platform-admin/preview-catalog.js",
+        "packages/access/src/component-baseline.ts",
+        "packages/access/src/component-policy.ts",
+        "packages/db/component-access-schema.ts",
+        "migrations/0009_component_access.sql",
+        "src/api/component-access-store.ts",
+        "src/api/component-access.ts",
+        "src/api/platform/components.ts",
+        "src/api/platform/access.ts",
+        "src/api/platform/index.ts",
+        "src/worker.ts",
+        "scripts/test-component-access-api.ts",
+        "scripts/component-access-test.worker.ts",
+        "wrangler.component-access-test.jsonc",
+        "scripts/test-simulator.ts",
+        "src/store/simulatorAccess.ts",
+        "src/store/circuitAccess.ts",
+        "src/store/circuitActions.ts",
+        "src/store/circuitOpening.ts",
+        "src/store/circuitRecovery.ts",
+        "src/store/useSimulation.ts",
+        "src/ui/components/CircuitLibrary.tsx",
+        "src/ui/components/SimulatorAccessBanner.tsx",
+        "src/ui/components/ImportExportModal.tsx",
+        "src/ui/components/Palette.tsx",
+        "src/ui/components/CommandPalette.tsx",
+        "src/ui/components/inspector/ComponentPropertiesView.tsx",
+        "src/lib/guidedCircuitLoader.ts",
+        "src/ui/components/GuidedCircuitPanel.tsx",
+        "src/store/componentPolicy.test.ts",
+        "src/store/circuitOpening.test.ts",
+        "src/store/componentPolicySimulation.test.ts",
+        "src/test/componentAccess.ts",
+        "e2e/component-access.spec.ts",
+        "playwright.component-access-built.config.ts",
+        "src/ui/components/Toolbar.tsx",
+        "src/admin/platform/ComponentsView.tsx",
+        "src/admin/platform/PlatformAdmin.tsx",
+        "src/admin/platform/AdminShell.tsx",
+        "src/admin/platform/ReadViews.tsx",
+        "src/admin/platform/platform.css",
+        "admin/components/index.html",
+        "e2e/component-admin.spec.ts",
+        "playwright.component-admin-built.config.ts",
+        "scripts/check-platform-assets.mjs",
+        "vite.config.ts",
+        "docs/audits/data/component-access-gate-e-acceptance.json",
+        "scripts/verify-phase20a.mjs",
+        "playwright.component-acceptance-built.config.ts",
+        "scripts/phase-gate.test.mjs",
+        "docs/audits/data/phase20a-acceptance.json"
+      ],
+      "facts": ["local-only", "phase-2-community-scope"],
+      "checks": [
+        {
+          "command": "bun run verify:phase-2.0a",
+          "files": [
+            "scripts/verify-phase20a.mjs",
+            "scripts/phase-gate.test.mjs",
+            "scripts/phase-gate.mjs",
+            "playwright.component-acceptance-built.config.ts",
+            "scripts/check-platform-assets.mjs",
+            "scripts/test-component-access-storage.ts",
+            "scripts/test-component-access-api.ts",
+            "e2e/platform-admin.spec.ts",
+            "e2e/admin-membership.spec.ts",
+            "e2e/component-admin.spec.ts",
+            "e2e/component-access.spec.ts",
+            "src/lib/guidedCircuitLoader.test.ts",
+            "src/ui/components/TemplatesModal.test.tsx",
+            "src/ui/components/GuidedCircuitPanel.test.tsx",
+            "src/ui/components/inspector/InspectorFaultLabView.test.tsx",
+            "src/store/simulatorAccess.test.ts",
+            "docs/audits/data/phase20a-acceptance.json"
+          ],
+          "reason": "Gate F completed: dedicated full 18-stage exit 0, 2305 units/151 files, 6 spike/8 storage/14 component API/20 admin/34 membership-simulator groups, 897 parity and 105 source + 105 built browser cases without skips/retries; actual 8-page/9-script built header/assets checks. All 1318 selected implementation/harness hashes matched; no failed stages. See dedicated phase20a manifest. Existing guided/template and applicable lab unit regressions combine with reviewed shared opening/mutation boundary tests, not individual policy browser cases for every guide/lab."
+        },
+        {
+          "command": "PLAYWRIGHT_DEV_PORT=3028 bun x playwright test e2e/component-admin.spec.ts --workers=1",
+          "files": [
+            "e2e/component-admin.spec.ts",
+            "src/admin/platform/ComponentsView.tsx",
+            "src/admin/platform/AdminShell.tsx",
+            "src/admin/platform/PlatformAdmin.tsx",
+            "src/api/platform/components.ts",
+            "src/platform/registry.ts",
+            "playwright.config.ts"
+          ],
+          "reason": "Gate E final source matrix passed 15/15 cases across desktop/phone Chromium and tablet WebKit without skips/retries: actual catalogue filters/paging/detail/Basic locks, reasoned Pro-Free-Pro with audit, pending duplicate submit, focus/cancel, real concurrent conflict with mandatory reload/new reason, ordinary/revoked/expired staff denial, loading/error/unknown/deferred-response recovery. Same 15 built cases and full existing 16-stage regression also passed separately; not full 2.0A acceptance."
+        },
+        {
+          "command": "bun x playwright test --config=playwright.component-admin-built.config.ts --workers=1",
+          "files": [
+            "e2e/component-admin.spec.ts",
+            "playwright.component-admin-built.config.ts",
+            "scripts/start-platform-browser-worker.ts",
+            "admin/components/index.html",
+            "vite.config.ts",
+            "public/_headers",
+            "scripts/check-platform-assets.mjs"
+          ],
+          "reason": "Gate E dedicated built Components UI matrix passed 15/15 across desktop/phone Chromium and tablet WebKit without skips/retries against actual local built Assets/Worker and isolated D1. Separate asset/header checks passed all 8 admin pages, 9 entry scripts and unknown-route 404. Full existing 16-stage regression passed separately; not full 2.0A acceptance."
+        },
+        {
+          "command": "bun x vitest run src/store/componentPolicy.test.ts src/store/circuitOpening.test.ts src/store/componentPolicySimulation.test.ts src/store/simulatorAccess.test.ts src/store/useSimulation.test.ts",
+          "files": [
+            "src/store/simulatorAccess.ts",
+            "src/store/circuitAccess.ts",
+            "src/store/circuitActions.ts",
+            "src/store/circuitOpening.ts",
+            "src/store/circuitRecovery.ts",
+            "src/store/useSimulation.ts",
+            "src/ui/components/CircuitLibrary.tsx",
+            "src/ui/components/SimulatorAccessBanner.tsx",
+            "src/ui/components/ImportExportModal.tsx",
+            "src/ui/components/Palette.tsx",
+            "src/ui/components/CommandPalette.tsx",
+            "src/ui/components/inspector/ComponentPropertiesView.tsx",
+            "src/lib/guidedCircuitLoader.ts",
+            "src/ui/components/GuidedCircuitPanel.tsx",
+            "src/store/componentPolicy.test.ts",
+            "src/store/circuitOpening.test.ts",
+            "src/store/componentPolicySimulation.test.ts",
+            "src/test/componentAccess.ts",
+            "e2e/component-access.spec.ts",
+            "playwright.component-access-built.config.ts",
+            "src/ui/components/Toolbar.tsx"
+          ],
+          "reason": "Gate D final selected 53 units/5 files passed, including 36 new lifecycle/action/raw-recovery/simulation publication races. Covers exact expiry, malformed/stale/reordered policy, membership/session/account isolation, originally-Pro actions while Free, old+replacement content, obsolete drawings, raw backup failure/races, original Basic-copy restoration and stale simulation results. Full existing units separately passed 2305/151. Does not accept Components UI E or full acceptance F."
+        },
+        {
+          "command": "PLAYWRIGHT_DEV_PORT=3027 bun x playwright test e2e/component-access.spec.ts --workers=1",
+          "files": [
+            "e2e/component-access.spec.ts",
+            "playwright.config.ts",
+            "scripts/start-browser-worker.ts",
+            "scripts/browser-test-worker.ts"
+          ],
+          "reason": "Gate D 12/12 source cases passed across desktop/phone Chromium and tablet WebKit without skips/retries: real local primary API Free/Pro changes, guest placement/paste/run and fresh denial preserving the drawing, offline exact raw original/Basic-copy restoration, delayed public policy and private-account load isolation. Gate E/F remain open."
+        },
+        {
+          "command": "bun x playwright test --config=playwright.component-access-built.config.ts --workers=1",
+          "files": [
+            "e2e/component-access.spec.ts",
+            "playwright.component-access-built.config.ts",
+            "scripts/start-platform-browser-worker.ts"
+          ],
+          "reason": "Gate D same 12/12 policy cases passed against built local Worker/assets/D1 across desktop/phone Chromium and tablet WebKit without skips/retries. No production source imports or test-only production routes; no actual Components admin UI or full 2.0A acceptance."
+        },
+        {
+          "command": "bun run test:component-access-api",
+          "files": [
+            "src/api/component-access-store.ts",
+            "src/api/component-access.ts",
+            "src/api/platform/components.ts",
+            "src/api/platform/access.ts",
+            "src/api/platform/index.ts",
+            "src/worker.ts",
+            "scripts/test-component-access-api.ts",
+            "scripts/component-access-test.worker.ts",
+            "wrangler.component-access-test.jsonc",
+            "scripts/test-simulator.ts"
+          ],
+          "reason": "Gate C: all 14 actual local Worker/D1/cookie groups passed: complete public-only policy, protected catalogue read/write/audit and delegation denials, all 75 Basic IDs locked for both access values, validation, concurrent revisions/atomic audit rollback, revoked/suspended actor races, guest/free/paid and fault boundaries, Basic/previously-Free INSERT/PATCH/cycle conflicts, membership and final response races, original-document/copy/deletion preservation, identical electrical results, bounded immutable history and absent production test routes. Does not accept client lifecycle/recovery, Components UI or full 2.0A. Repeated unchanged during Gate D: all 14 groups passed at .wrangler/component-api-ixwGcz/."
+        },
+        {
+          "command": "bun run test:component-access-storage",
+          "files": [
+            "scripts/test-component-access-storage.ts",
+            "migrations/0009_component_access.sql",
+            "packages/db/component-access-schema.ts",
+            "packages/db/schema.ts"
+          ],
+          "reason": "Gate B: 8 real isolated local D1 groups exercise populated pre-0009 upgrade and unchanged prior rows, exact baseline/primary reads, immutable baseline including REPLACE, all Basic override denials, constraints and atomic batch rollback. This does not accept HTTP authorization, policy races or UI."
+        },
+        {
+          "command": "bun x vitest run packages/access/src",
+          "files": [
+            "packages/access/src/access.test.ts",
+            "packages/access/src/circuit.test.ts",
+            "packages/access/src/component-policy.test.ts",
+            "packages/access/src/component-baseline.ts",
+            "packages/access/src/component-policy.ts",
+            "packages/access/src/index.ts",
+            "packages/access/src/circuit.ts"
+          ],
+          "reason": "Gate B: 59 access units passed, covering exact canonical/recorded baseline, strict malformed-policy rejection, immutable runtime branding, Free/Pro toggles, independent faults/membership, unchanged document and no-policy fallback."
+        },
+        {
+          "command": "bun run verify:phase-2.0",
+          "files": [
+            "scripts/verify-phase20.mjs",
+            "scripts/test-platform-admin.ts",
+            "scripts/test-membership.ts",
+            "scripts/test-domain-local.ts",
+            "e2e/platform-admin.spec.ts",
+            "e2e/admin-membership.spec.ts",
+            "playwright.platform-admin-built.config.ts"
+          ],
+          "reason": "Gate E existing-foundation regression: full selection, all 16 stages exit 0 under .wrangler/component-access-gate-e-2026-10-25; 2305 units/151 files, 6 spike/20 admin/34 membership-simulator groups, 897 unchanged exact parity, 78 source + 78 built admin cases without skips/retries, full types/lint/build/static/tooling and 268979 B JS gzip/29462 B CSS gzip budgets. Dedicated 15 source + 15 built Components cases, 14 repeated server groups and 8-page/9-script actual asset/header checks passed separately. All 31 source/harness hashes matched. Historical B-D and admin-parity scopes/recovery records remain unchanged. Gate E complete; full 2.0A F still open."
+        },
+        {
+          "command": "bun scripts/check-component-access-design.ts",
+          "files": [
+            "scripts/check-component-access-design.ts",
+            "docs/specs/component-access-baseline.json",
+            "docs/design/platform-admin/preview-catalog.js",
+            "packages/domain/src/components/index.ts"
+          ],
+          "reason": "Executed design inventory check only: 116 IDs and 75/41 baseline match canonical names/categories/descriptions/tiers. No runtime policy or D1 acceptance."
+        },
+        {
+          "command": "node scripts/check-platform-design.mjs",
+          "files": [
+            "scripts/check-platform-design.mjs",
+            "docs/design/platform-admin/preview.js",
+            "docs/design/platform-admin/preview-catalog.js"
+          ],
+          "reason": "Executed prototype browser checks with localhost-only preview server: Free/Pro review, reason/cancel, Basic lock, stale conflict/reload, filters/deep links and staff visibility. Fictional memory-only demo; not real policy enforcement."
+        },
+        {
+          "command": "bun run graph:check",
+          "files": ["scripts/code-graph.mjs", "docs/plans/PHASE_2_ADMIN_EXTENSIONS_PLAN.md"],
+          "reason": "Documentation/reference/freshness validation only, not feature tests; historical unrelated unreviewed/changed records may keep the global exit nonzero."
+        },
+        {
+          "command": "bun run test:membership",
+          "files": ["scripts/test-membership.ts"],
+          "reason": "Existing membership regression foundation when 2.0A is implemented; current tests do not accept dynamic component policy, its races or the new screen."
+        },
+        {
+          "command": "bun run test:simulator",
+          "files": ["scripts/test-simulator.ts"],
+          "reason": "Existing server/simulator regression foundation; new policy matrix/UI/race tests must be added and recorded at 2.0A, with later publish/preview/fork cases in 2.2/2.3/2.5."
+        }
+      ],
+      "decisions": [
+        "2.0A must pass before profiles 2.1; keep historical 2.0 gate separate.",
+        "Allow existing Pro IDs to become Free or return to Pro; confirmed Basic IDs cannot be paywalled.",
+        "Fresh authoritative policy is required to grant free access to originally-Pro content; stale/offline policy cannot override its original classification.",
+        "Policy changes and membership revocation must be checked together, including writes that initially appeared free; preserve original documents and electrical results.",
+        "Owner explicitly accepted completed 2.0 admin review and authorized 2.0A implementation 2026-10-25.",
+        "Gate B introduced optional validated policy inputs; Gate C activates primary server callers and Gate D uses expiring display snapshots with independent fresh action receipts. Snapshot validation alone conveys no authority or freshness.",
+        "Gates A-F are complete locally including dedicated full acceptance; profiles 2.1 has separately completed owner-authorized local integration and full acceptance; see its dedicated plan/audit/manifest."
+      ],
+      "broaderChecks": [
+        "Gate F satisfies the linked 2.0A exit matrix with its own full acceptance manifest. Historical A-E/foundation scopes stay separate; repeat current policy checks for later publish/preview/fork integration.",
+        "Changing shared access requires local membership/simulator and source/built admin/editor browser regressions, unchanged domain parity and later publication/fork integration."
+      ],
+      "review": {
+        "at": "2026-10-25T12:43:54.213Z",
+        "scope": "Reviewed A-E scoped audits and current implementation/check relationships, authoritative extension exit matrix, dedicated full Gate F manifest and all 18 passing logs (2305 units, 6 spike/8 storage/14 component API/20 admin/34 membership-simulator, 897 parity, 105 source + 105 built without skips/retries), actual asset/header output and desktop/phone screenshots; 1318 stable inputs are separate from test results. Accepted 2.0A locally; later publish/preview/fork and hardware scopes remain open.",
+        "fingerprint": "dd1f7a04dc3dcf64075cfb45999ffdadffba203a50d364640da74e62f1848ccb"
+      }
+    },
+    {
+      "id": "support-desk-plan",
+      "summary": "Planned/unimplemented Phase 2.7A private support desk before final 2.8: owner tickets/replies, staff queue/public replies/internal notes, assignment/status/priority, scoped history and in-app notifications. Reuses accepted 2.0 identity/permissions/navigation/audit and future 2.6 notifications/2.7 moderation integration. No ticket schema/API/UI currently exists. Separate from public reports and Phase 5 CMS; email, attachments, live chat, anonymous intake and SLA automation deferred.",
+      "tags": [
+        "phase-2",
+        "2.7A",
+        "admin",
+        "support",
+        "desk",
+        "helpdesk",
+        "help",
+        "ticket",
+        "tickets",
+        "internal notes",
+        "notifications",
+        "plan"
+      ],
+      "entryPoints": [
+        "docs/plans/PHASE_2_ADMIN_EXTENSIONS_PLAN.md",
+        "src/platform/registry.ts",
+        "docs/api/platform-admin.md"
+      ],
+      "evidence": [
+        "docs/plans/PHASE_2_ADMIN_EXTENSIONS_PLAN.md",
+        "docs/phases/phase-2-community.md",
+        "docs/plans/PHASE_2_COMMUNITY_PLAN.md",
+        "docs/REWRITE_PLAN_V3_FULL.md",
+        "docs/audits/phase-2-admin-foundation.md"
+      ],
+      "facts": ["local-only", "phase-2-community-scope"],
+      "checks": [
+        {
+          "command": "bun run graph:check",
+          "files": ["scripts/code-graph.mjs", "docs/plans/PHASE_2_ADMIN_EXTENSIONS_PLAN.md"],
+          "reason": "Documentation/reference/freshness validation only, not feature tests; historical unrelated unreviewed/changed records may keep the global exit nonzero."
+        },
+        {
+          "command": "bun run test:platform-admin",
+          "files": ["scripts/test-platform-admin.ts"],
+          "reason": "Existing foundation role/revocation/audit regression to retain when integrating support. Does not exercise tickets, note privacy or support notifications; new real Worker and user/admin browser cases are required by 2.7A."
+        }
+      ],
+      "decisions": [
+        "2.7A depends on 2.6 in-app notifications and 2.7 access/moderation integration, then blocks final 2.8 Community closure.",
+        "Owner predicates and registered support permissions govern every read/write; user lookup, community moderation or assignment alone grants no private ticket access.",
+        "Internal notes never enter owner projections, counts, public HTML or notifications; administrative audit contains safe metadata rather than conversation bodies.",
+        "Free and paid users can request support; bounded support remains available under community restrictions, while platform suspension keeps existing session denial.",
+        "Blog/static-page Content Studio remains Phase 5 with its own editor/publishing acceptance."
+      ],
+      "broaderChecks": [
+        "The linked pending matrix requires owner/staff lifecycle, internal-note privacy, role revocation, assignment/status races, atomic audit/outbox, duplicate retries, indexed pagination and source/built desktop/phone/WebKit evidence. No support-specific tests have been implemented or run.",
+        "Shared session/permission changes require existing local auth/membership regressions; 2.8 must include real ticket/inbox integration rather than accepting a mock or API-only check."
+      ],
+      "review": {
+        "at": "2026-10-24T04:26:43.141Z",
+        "scope": "Reviewed planned 2.7A owner/staff workflows, independent support permissions, internal-note privacy, indexed data/optimistic concurrency, safe audit/outbox and notification dependencies. Scheduled after 2.6/2.7 and before final 2.8; email/attachments/chat/SLA deferred and CMS stays Phase 5. Foundation reuse is explicit; tickets, APIs, UI and support-specific tests remain unimplemented. Documentation review only.",
+        "fingerprint": "34909e3453685b9f3831249e4fce99673ed870b6ee0ad66e66e375de1c29ef02"
+      }
+    },
+    {
+      "id": "platform-admin-design-integration",
+      "summary": "Owner-approved current-scope admin presentation and complete actual/demo follow-up are accepted locally across the 16-check scope: retained 14-stage non-browser prefix (2235 units/147 files, 20 admin/34 existing API groups, 897 parity) plus explicit full browser recovery (78 source + 78 built cases). Reviewed 16 actual/demo state pairs; fixed drawer/profile tabs/history/controls, role dialog/table/matrix, membership headers/cards/editor/preview/assignment/review, standards/settings/audit/navigation/CSS and useful empty-response errors. Safe protected benefit/active-member/assigning-actor projections use existing indexes. Canonical standards seed only isolated browser D1 stores. Original manifests remain historical; no single full-default exit 0 claimed. 2.0A runtime B-F remains next; public subjects/support/CMS/billing and separately scoped analytics/bulk/export/protected directory projections remain explicit deferrals.",
+      "tags": [
+        "phase-2",
+        "admin",
+        "integration",
+        "design",
+        "approved",
+        "membership",
+        "users",
+        "directory",
+        "quick view",
+        "overview",
+        "audit"
+      ],
+      "entryPoints": [
+        "src/admin/platform/AdminShell.tsx",
+        "src/admin/platform/PlatformAdmin.tsx",
+        "src/admin/platform/UsersView.tsx",
+        "src/admin/platform/MembershipHistory.tsx",
+        "src/admin/platform/ReadViews.tsx",
+        "src/admin/platform/theme.css",
+        "src/admin/platform/platform.css",
+        "src/admin/Admin.tsx",
+        "src/admin/Editor.tsx",
+        "src/api/platform/reads.ts",
+        "src/api/platform/access.ts",
+        "src/api/membership-store.ts",
+        "migrations/0008_admin_directory_indexes.sql",
+        "src/admin/platform/SettingsView.tsx",
+        "src/admin/platform/RolesView.tsx",
+        "src/admin/client.ts",
+        "scripts/seed-browser-standards.ts",
+        "scripts/standards-seed-data.ts"
+      ],
+      "evidence": [
+        "docs/plans/PLATFORM_ADMIN_DESIGN_INTEGRATION.md",
+        "docs/audits/platform-admin-design-integration.md",
+        "docs/api/platform-admin.md",
+        "docs/api/membership.md",
+        "docs/design/platform-admin/README.md",
+        "docs/audits/data/platform-admin-design-acceptance.json",
+        "docs/audits/admin-prototype-parity-review.md",
+        "docs/audits/data/admin-parity-review-acceptance.json"
+      ],
+      "facts": ["local-only", "phase-2-community-scope"],
+      "checks": [
+        {
+          "command": "PHASE20_EVIDENCE_DIR=.wrangler/admin-parity-closure-2026-10-24 bun run verify:phase-2.0",
+          "files": [
+            "scripts/verify-phase20.mjs",
+            "scripts/test-platform-admin.ts",
+            "e2e/platform-admin.spec.ts",
+            "e2e/admin-membership.spec.ts",
+            "playwright.platform-admin-built.config.ts"
+          ],
+          "reason": "Retained full attempt passed all 14 non-browser stages; source 77/78 exposed test-only guest-session initial-read readiness race. Combined with explicit full browser recovery, not a single uninterrupted full-green command."
+        },
+        {
+          "command": "PHASE20_EVIDENCE_DIR=.wrangler/admin-parity-browser-recovery-2026-10-24 bun run verify:phase-2.0 --from browser",
+          "files": [
+            "e2e/platform-admin.spec.ts",
+            "e2e/admin-membership.spec.ts",
+            "scripts/start-browser-worker.ts",
+            "scripts/start-platform-browser-worker.ts",
+            "scripts/seed-browser-standards.ts",
+            "playwright.platform-admin-built.config.ts"
+          ],
+          "reason": "Explicit partial selector passed all 78 source and 78 built cases without skips/retries after test-only readiness fix. Product hashes remained unchanged. Must combine with the retained 14-stage non-browser prefix for complete acceptance."
+        }
+      ],
+      "decisions": [
+        "Use real protected records and actual labels/counts; demo personas/reset/sample analytics remain fictional.",
+        "Preserve primary permission/session/atomic-audit/reason/version boundaries and independent restrictions/suspension.",
+        "Memberships use live plan-feature links; a partial/latest-grant summary never claims complete effective Pro access.",
+        "Seed canonical standards only into isolated local browser databases; preserve normal development data.",
+        "Explicit remaining differences and phase placement are recorded in the complete parity review; 2.0A runtime is not accepted here."
+      ],
+      "broaderChecks": [
+        "Any further source change invalidates the current scoped source-hash assertion and needs appropriate new checks. Historical foundation/integration manifests are not renewed.",
+        "Phase 2.0A needs its own policy/enforcement and recovery acceptance before profiles 2.1; current administration acceptance does not close overall Phase 2 or prior hardware exceptions."
+      ],
+      "review": {
+        "at": "2026-10-24T16:36:41.150Z",
+        "scope": "Reviewed latest complete actual/demo parity corrections and acceptance manifest, preserving historical foundation/integration evidence. Current source accepted across all 16 checks via retained non-browser prefix plus full 156-case source/built browser recovery without skips/retries; 2235 units and protected API/parity checks passed. Final comparisons and safe projections preserve permissions, live plan links, scoped audit, independent controls and local-only persistence. Explicit separate admin proposals and later phases remain open; no single full-default exit 0 claimed.",
+        "fingerprint": "4812df69444f81b2cd189343f11fde1369b001d05fb4ad1ff54d1d2be5128783"
+      }
+    },
+    {
+      "id": "admin-prototype-parity-review",
+      "summary": "Complete owner-requested comparison of actual app with approved admin demo accepted locally 2026-10-24. Sixteen screen-state pairs (32 ignored final captures) reviewed, current-scope differences fixed. Complete 16-check acceptance is retained 14-stage non-browser prefix plus explicit 78-source/78-built recovery; 2235 units, 20 admin/34 existing API groups, 897 parity. Guest-session test-only readiness fix and earlier failures retained; no single full-default exit 0 claimed. Additional demo proposals and later phases remain explicit; next is 2.0A runtime B-F.",
+      "tags": [
+        "admin",
+        "prototype",
+        "parity",
+        "comparison",
+        "drawer",
+        "roles",
+        "membership",
+        "plan",
+        "preview",
+        "standards",
+        "audit",
+        "settings",
+        "phase-2"
+      ],
+      "entryPoints": [
+        "src/admin/platform/UsersView.tsx",
+        "src/admin/platform/RolesView.tsx",
+        "src/admin/platform/ReadViews.tsx",
+        "src/admin/platform/SettingsView.tsx",
+        "src/admin/platform/AdminShell.tsx",
+        "src/admin/platform/PlatformAdmin.tsx",
+        "src/admin/platform/platform.css",
+        "src/admin/Admin.tsx",
+        "src/admin/Editor.tsx",
+        "src/admin/client.ts",
+        "src/admin/client.test.ts",
+        "src/api/membership-store.ts",
+        "scripts/standards-seed-data.ts",
+        "scripts/seed-browser-standards.ts",
+        "scripts/start-browser-worker.ts",
+        "scripts/start-platform-browser-worker.ts",
+        "scripts/test-platform-admin.ts",
+        "e2e/platform-admin.spec.ts",
+        "e2e/admin-membership.spec.ts"
+      ],
+      "evidence": [
+        "docs/audits/admin-prototype-parity-review.md",
+        "docs/audits/data/admin-parity-review-acceptance.json",
+        "docs/api/membership.md",
+        "docs/api/platform-admin.md",
+        "docs/plans/PLATFORM_ADMIN_DESIGN_INTEGRATION.md",
+        "docs/design/platform-admin/README.md"
+      ],
+      "facts": ["local-only", "phase-2-community-scope"],
+      "checks": [
+        {
+          "command": "PHASE20_EVIDENCE_DIR=.wrangler/admin-parity-closure-2026-10-24 bun run verify:phase-2.0",
+          "files": [
+            "scripts/verify-phase20.mjs",
+            "scripts/test-platform-admin.ts",
+            "e2e/platform-admin.spec.ts",
+            "e2e/admin-membership.spec.ts",
+            "playwright.platform-admin-built.config.ts"
+          ],
+          "reason": "Retained full attempt passed all 14 non-browser stages; source 77/78 exposed test-only guest-session initial-read readiness race. Combined with explicit full browser recovery, not a single uninterrupted full-green command."
+        },
+        {
+          "command": "PHASE20_EVIDENCE_DIR=.wrangler/admin-parity-browser-recovery-2026-10-24 bun run verify:phase-2.0 --from browser",
+          "files": [
+            "e2e/platform-admin.spec.ts",
+            "e2e/admin-membership.spec.ts",
+            "scripts/start-browser-worker.ts",
+            "scripts/start-platform-browser-worker.ts",
+            "scripts/seed-browser-standards.ts",
+            "playwright.platform-admin-built.config.ts"
+          ],
+          "reason": "Explicit partial selector passed all 78 source and 78 built cases without skips/retries after test-only readiness fix. Product hashes remained unchanged. Must combine with the retained 14-stage non-browser prefix for complete acceptance."
+        },
+        {
+          "command": "PLATFORM_ASSET_TEST_ORIGIN=http://127.0.0.1:8793 bun scripts/check-platform-assets.mjs",
+          "files": ["scripts/check-platform-assets.mjs"],
+          "reason": "Additional built local Worker Assets check passed seven routes/seven script entries with private/no-store/noindex, strict CSP, separate entrypoints and unknown-route 404."
+        },
+        {
+          "command": "bun run test",
+          "files": ["src/admin/client.test.ts", "src/admin/client.ts"],
+          "reason": "Three new regressions cover empty 500, empty 403 denial preservation and malformed successful JSON; included in 2235-unit acceptance."
+        }
+      ],
+      "decisions": [
+        "Directory badges/analytics/attention/bulk/export are additional scoped proposals, not silently completed foundation features.",
+        "Role cards use actual permission counts, grant/plan cards use real protected projections; no fictional people/counts or inferred effective entitlement.",
+        "Accepted live plan-feature semantics supersede fictional demo snapshots; grant dates remain recorded.",
+        "Canonical four-standard browser fixtures use isolated local stores, not the normal development database.",
+        "Components 2.0A B-F next; profiles 2.1, subjects 2.2/2.6/2.7, support 2.7A, CMS 5 and billing 7 remain open."
+      ],
+      "broaderChecks": [
+        "Full check scope combines retained prefix and explicit recovery; no standalone partial selector or graph fingerprint certifies acceptance.",
+        "Prior Phase 1 hardware/performance exceptions remain unchanged. No remote testing/deployment/account actions are authorized."
+      ],
+      "review": {
+        "at": "2026-10-25T02:32:50.005Z",
+        "scope": "Reviewed full parity audit, retained original 14-stage prefix plus explicit browser recovery provenance and explicit deferrals. Added owner confirmation of completed review acceptance on 2026-10-25 and authorized 2.0A start; Components progress now links to its separate audit. No new screenshot/demo comparison or retroactive single-full-exit claim. Subsequent Gate B shared-policy/storage regression passed separately; this record does not accept 2.0A runtime or later modules.",
+        "fingerprint": "1e5d411b1293dc6c868c3cec82c8d5e90d385442fa362563fe0ec18e8a295f1d"
+      }
+    },
+    {
+      "id": "community-profiles-design",
+      "summary": "Phase 2.1 profile design Gate A approved by owner 2026-10-25; local product integration authorized. Public /u/:handle, owner-only /settings/profile/ and authorized /admin/community/ routes confirmed. Private defaults and one-time handles approved. Prototype checks are separate from the subsequently completed local product acceptance B-E (2026-10-26), recorded in community-profiles-runtime.",
+      "tags": [
+        "phase-2",
+        "2.1",
+        "profiles",
+        "profile",
+        "handles",
+        "avatar",
+        "privacy",
+        "moderation",
+        "reports",
+        "demo",
+        "design",
+        "approval"
+      ],
+      "entryPoints": [
+        "docs/plans/PHASE_2_1_PROFILES_PLAN.md",
+        "docs/design/profiles/index.html",
+        "docs/design/profiles/preview.js",
+        "docs/design/profiles/preview.css",
+        "scripts/preview-profiles.mjs"
+      ],
+      "evidence": [
+        "docs/plans/PHASE_2_1_PROFILES_PLAN.md",
+        "docs/design/profiles/README.md",
+        "docs/audits/phase-2-profiles.md",
+        "docs/phases/phase-2-community.md",
+        "docs/plans/PHASE_2_COMMUNITY_PLAN.md",
+        "package.json"
+      ],
+      "facts": ["local-only"],
+      "checks": [
+        {
+          "command": "bun run check:profiles-demo",
+          "files": [
+            "scripts/check-profiles-design.mjs",
+            "scripts/preview-profiles.mjs",
+            "docs/design/profiles/index.html",
+            "docs/design/profiles/preview.js",
+            "docs/design/profiles/preview.css"
+          ],
+          "reason": "Executed isolated concept workflows on desktop/phone Chromium and tablet WebKit: edit/avatar/claim/privacy/report/moderation/conflict/access presentation, layout, strict CSP and loopback GET-only. Does not exercise real product storage/APIs/SSR/authorization or renew historical gates."
+        }
+      ],
+      "decisions": [
+        "Owner approved the isolated concept and authorized local integration 2026-10-25, including private defaults and permanent first-release handles. Keep design-only checks separate from the runtime feature and its complete local full acceptance. See docs/plans/PHASE_2_1_PROFILES_PLAN.md."
+      ],
+      "broaderChecks": [
+        "Production requires populated migration, unique claim and HTTP races, permission/restriction/session checks, R2 byte validation and visibility-safe asset/cache delivery, real staff audited actions, no-JS SSR/metadata, source/built browser workflows and the dedicated complete 2.1 regression gate. Prototype personas and fingerprints do not prove these."
+      ],
+      "review": {
+        "at": "2026-10-26T08:06:57.762Z",
+        "scope": "Reviewed owner approval of isolated concept on 2026-10-25, permanent handles/private defaults and separate public/owner/staff routes, historical concept checker scope and design README/plan/audit. Local product acceptance is now separately complete in the runtime feature and dedicated 22-stage manifest. Prototype personas/checks prove presentation only; no prototype tests rerun or historical acceptance renewed in this documentation closure.",
+        "fingerprint": "7b1b4e28a360ae55a94af77cdf3e60feb6f734d50c560d988744e5e2745516de"
+      }
+    },
+    {
+      "id": "community-profiles-runtime",
+      "summary": "Profiles 2.1 Gates A-E complete locally 2026-10-26. Dedicated verify:phase-2.1 full selection exited 0 across all 22 stages: 2339 units/153 files, 8 profile storage/21 real HTTP-race groups, complete existing 2.0A regressions, 897 unchanged electrical parity, 105 source + 105 built existing browser cases and 30 source + 30 built profile cases across desktop/phone/WebKit without skips/retries. All 1350 selected source/harness hashes matched; stability is separate from executed outcomes. Dedicated manifest records stage/log/source evidence. Ordinary local D1 backed up before pending 0009/0010 migrations; integrated local Worker delivery verified on 8791. Overall Phase 2 remains active; 2.2 is next planned. No remote operation/deployment or hardware recertification. Separate public SSR, owner settings and permission-gated staff views enforce private defaults, permanent claims, validated visibility-gated avatars and atomic revision/session/policy/audit boundaries. Prototype approval stays separate; later publication/social/support scopes remain open.",
+      "tags": [
+        "phase-2",
+        "2.1",
+        "community",
+        "profiles",
+        "profile",
+        "privacy",
+        "handles",
+        "avatar",
+        "SSR",
+        "reports",
+        "moderation",
+        "owner",
+        "staff",
+        "acceptance"
+      ],
+      "entryPoints": [
+        "src/community/profile-policy.ts",
+        "src/community/pages.ts",
+        "src/community/ProfileSettings.tsx",
+        "src/community/main.tsx",
+        "src/community/client.ts",
+        "src/api/community/store.ts",
+        "src/api/community/avatar.ts",
+        "src/api/community/profiles.ts",
+        "src/api/platform/profiles.ts",
+        "src/api/platform/index.ts",
+        "src/api/context.ts",
+        "src/api/circuits.ts",
+        "src/worker.ts",
+        "src/platform/registry.ts",
+        "src/admin/platform/ProfilesView.tsx",
+        "src/admin/platform/PlatformAdmin.tsx",
+        "src/admin/platform/AdminShell.tsx",
+        "src/admin/platform/platform.css",
+        "src/admin/platform/types.ts",
+        "src/ui/components/CircuitLibrary.tsx",
+        "packages/db/profile-schema.ts",
+        "packages/db/schema.ts",
+        "migrations/0010_profiles.sql",
+        "settings/profile/index.html",
+        "admin/community/index.html",
+        "public/community/profile.css",
+        "public/community/profile.js",
+        "public/_headers",
+        "vite.config.ts",
+        "wrangler.jsonc"
+      ],
+      "evidence": [
+        "docs/plans/PHASE_2_1_PROFILES_PLAN.md",
+        "docs/api/profiles.md",
+        "docs/audits/phase-2-profiles.md",
+        "docs/phases/phase-2-community.md",
+        "docs/audits/data/phase21-acceptance.json"
+      ],
+      "facts": ["local-only", "phase-2-community-scope"],
+      "checks": [
+        {
+          "command": "bun run verify:phase-2.1",
+          "files": [
+            "scripts/verify-phase21.mjs",
+            "scripts/verify-phase20a.mjs",
+            "scripts/phase-gate.test.mjs",
+            "package.json",
+            "e2e/profiles.spec.ts",
+            "playwright.profiles.config.ts",
+            "playwright.profiles-built.config.ts",
+            "scripts/check-profile-assets.mjs",
+            "scripts/start-profiles-browser-worker.ts",
+            "wrangler.profiles-browser-test.jsonc",
+            "scripts/start-browser-worker.ts",
+            "wrangler.membership-test.jsonc",
+            "scripts/test-phase20-spike.ts",
+            "scripts/phase20-spike.worker.ts",
+            "wrangler.phase20-test.jsonc",
+            "docs/audits/data/phase21-acceptance.json"
+          ],
+          "reason": "Dedicated full 22-stage selection exited 0 locally 2026-10-26: 2339 units/153 files, all prior infrastructure/component/admin/membership regressions, 897 unchanged parity, 8 profile storage/21 profile HTTP groups and 270 browser cases (105 existing source + 105 built + 30 profile source + 30 built) without skips/retries. Actual Assets/header and unchanged performance budgets passed. All 1350 selected hashes stayed unchanged; reviewed stage exit codes/logs establish executions, fingerprints establish stability only. See dedicated acceptance manifest."
+        },
+        {
+          "command": "bun run test:profile-storage",
+          "files": [
+            "scripts/test-profile-storage.ts",
+            "migrations/0010_profiles.sql",
+            "packages/db/profile-schema.ts"
+          ],
+          "reason": "Focused and full-gate 8-group populated local D1 upgrade/constraints/collision/tombstone/rollback run passed. Existing component storage test is explicitly bounded through 0009 to preserve its original upgrade boundary."
+        },
+        {
+          "command": "bun run test:profiles-api",
+          "files": [
+            "scripts/test-profiles-api.ts",
+            "scripts/profiles-test.worker.ts",
+            "wrangler.profiles-test.jsonc",
+            "src/api/community/profiles.ts",
+            "src/api/community/store.ts",
+            "src/api/community/avatar.ts",
+            "src/api/platform/profiles.ts"
+          ],
+          "reason": "Focused and full-gate 21-group real local Worker/D1/R2/cookie/race selection passed, including a red→green post-commit response regression, fresh owner/staff session rechecks after R2 reads, PNG/JPEG/WebP validation/metadata, claims/privacy/roles/reports/rates and atomic audit. Dedicated full milestone acceptance also passed; see manifest."
+        },
+        {
+          "command": "bun x vitest run src/community/profile-policy.test.ts src/api/community/avatar.test.ts",
+          "files": [
+            "src/community/profile-policy.test.ts",
+            "src/api/community/avatar.test.ts",
+            "scripts/fixtures/profiles/avatar-images.json",
+            "src/community/profile-policy.ts",
+            "src/community/pages.ts",
+            "src/api/community/avatar.ts"
+          ],
+          "reason": "34 focused units passed: explicit public/owner privacy projections, neutral/escaped SSR/JSON-LD, handle rules, complete/truncated/trailing JPEG/WebP containers and type/size rejection."
+        }
+      ],
+      "decisions": [
+        "Owner approved local integration on 2026-10-25 after confirming separate public, owner-only and staff-only routes. New profiles are private; handles are claimed once. See docs/plans/PHASE_2_1_PROFILES_PLAN.md and docs/api/profiles.md.",
+        "Owner edits retain hidden/removed moderation; restoration retains private visibility; avatar delivery rechecks primary visibility and live access after R2 I/O. Report outcomes do not restore a profile.",
+        "Prototype and product evidence stay separate. No publication/social counters, membership authority or remote operation is conferred. Later neutral publication attribution and fork defaults require their scheduled phase integration."
+      ],
+      "broaderChecks": [
+        "Shared auth context, circuit middleware scoping, admin registry/UI, asset routing and signup migration require the entire existing local 2.0A regression plus the dedicated profile storage/API/source/built matrix. Planned checks or matching fingerprints alone do not close the milestone."
+      ],
+      "review": {
+        "at": "2026-10-26T08:06:55.024Z",
+        "scope": "Reviewed owner-authorized profile storage/policy/API/avatar/SSR/owner/staff implementation and documented boundaries; final full verify:phase-2.1 manifest plus 22 successful stage logs, 2339 units/153 files, 8 profile storage/21 HTTP-race groups, existing regressions/897 parity and 270 source/built browser cases without skips/retries. Verified all log hashes and 1350 current selected source hashes; stability remains separate from executed outcomes. Reviewed actual built Assets/header/budget and desktop/phone visual evidence. Ordinary local backup, pending 0009/0010 migrations and localhost 8791 delivery checks passed. Gates A-E complete locally; historical scopes/recovery, Phase 1 performance exceptions and later publication/fork/social/support requirements unchanged; no remote operation.",
+        "fingerprint": "63da114e2b1b6d2adb36c9a1f5adea2879832ec43e031a92ff106b2ea50adb3a"
+      }
+    },
+    {
+      "id": "community-publications-runtime",
+      "summary": "Immutable publication snapshots, owner publish/republish/withdrawal, privacy-safe public metadata/history/reporting and scoped staff moderation. Phase 2.2 complete locally 2026-10-27 with explicit interrupted-run recovery: all 26 stage identities have passing evidence (2342 units/154 files, 324 browser cases without skips/retries, 8 publication storage/22 HTTP-race groups and 897 unchanged parity), on 1367 unchanged source/harness inputs. D contributes its first 18 stages; an eight-stage recovery contributes all six browser matrices and publication storage/API. Recovery manifest status 0 is distinct from its enclosing exec result 143; no uninterrupted full-default or whole-command exit-0 claim. Dedicated manifest records stage/log/source hashes and inspected source/built desktop/phone screenshots. Hashes establish stability, not test outcomes. Next is 2.3 read-only preview/public detail; overall Phase 2 and previous hardware/performance exceptions remain open. Local only. Private working circuits remain separate; renderer/detail SSR, discovery, forks and notifications retain 2.3/2.4/2.5/2.6 scopes.",
+      "tags": [
+        "phase-2",
+        "2.2",
+        "publications",
+        "publication",
+        "publishing",
+        "versions",
+        "snapshots",
+        "moderation",
+        "reports"
+      ],
+      "entryPoints": [
+        "src/api/community/publications.ts",
+        "src/api/community/publication-store.ts",
+        "src/community/publication-policy.ts",
+        "src/community/PublicationSettings.tsx",
+        "src/api/platform/publications.ts",
+        "src/admin/platform/PublicationsView.tsx",
+        "migrations/0011_publications.sql",
+        "packages/db/publication-schema.ts",
+        "settings/publications/index.html",
+        "public/community/publications.js",
+        "src/api/community/profiles.ts",
+        "src/community/pages.ts",
+        "src/community/main.tsx",
+        "src/worker.ts",
+        "src/api/platform/index.ts",
+        "src/platform/registry.ts",
+        "src/admin/platform/PlatformAdmin.tsx",
+        "src/ui/components/CircuitLibrary.tsx",
+        "public/_headers",
+        "public/community/profile.css",
+        "vite.config.ts",
+        "scripts/code-graph.mjs",
+        "packages/db/schema.ts",
+        "src/admin/platform/platform.css"
+      ],
+      "evidence": [
+        "docs/plans/PHASE_2_2_PUBLICATIONS_PLAN.md",
+        "docs/api/publications.md",
+        "docs/audits/phase-2-publications.md",
+        "docs/audits/data/phase22-acceptance.json"
+      ],
+      "facts": ["local-only"],
+      "checks": [
+        {
+          "command": "bun run test:publication-storage",
+          "files": ["scripts/test-publication-storage.ts", "migrations/0011_publications.sql"],
+          "reason": "Populated local upgrade, immutable versions, terminal identities, report constraints and atomic rollback."
+        },
+        {
+          "command": "bun run test:publications-api",
+          "files": [
+            "scripts/test-publications-api.ts",
+            "scripts/profiles-test.worker.ts",
+            "wrangler.profiles-test.jsonc"
+          ],
+          "reason": "Real local HTTP sessions, immutable snapshots, owner/private isolation, policies, moderation, reporting and transaction/response races."
+        },
+        {
+          "command": "bun run verify:phase-2.2",
+          "files": [
+            "scripts/verify-phase22.mjs",
+            "scripts/verify-phase21.mjs",
+            "scripts/phase-gate.test.mjs",
+            "e2e/publications.spec.ts",
+            "playwright.publications.config.ts",
+            "playwright.publications-built.config.ts",
+            "scripts/check-profile-assets.mjs",
+            "e2e/admin-membership.spec.ts",
+            "e2e/component-admin.spec.ts",
+            "package.json",
+            "scripts/phase-gate.mjs",
+            "tsconfig.membership-tests.json"
+          ],
+          "reason": "Dedicated 26-stage coverage includes existing profiles/admin/component/membership/electrical regression and publication storage/API/source/built browsers. All stage identities have passing evidence across the interrupted initial run and explicit recovery; see manifest for outer exec 143 versus recorded gate status 0. No uninterrupted full-default exit 0 is claimed."
+        }
+      ],
+      "decisions": [
+        "Publication versions store validated circuit JSON and provenance; verifiedAt remains null because publishing is not a fresh electrical assessment. Owner withdrawal is independent from staff moderation. See the 2.2 plan."
+      ],
+      "broaderChecks": [
+        "Focused checks alone do not close a milestone. The 2.2 manifest maps passing evidence for all 26 stage identities on unchanged sources, with interruption/recovery and outer execution results explicit. Changes require assessing affected source/built, API/race/storage and prior regression coverage."
+      ],
+      "review": {
+        "at": "2026-10-27T07:04:44.856Z",
+        "scope": "Reviewed Phase 2.2 migration, owner/public/staff runtime and UI, guarded transaction/read paths, focused and all 26-stage evidence mappings, 324 browser passes and eight screenshots; verified 1367 stable inputs and explicit restart recovery plus recorded manifest 0 versus outer exec 143. Historical baselines and performance exceptions unchanged; no uninterrupted full-gate exit 0 claimed.",
+        "fingerprint": "52bcf1477e5964e9a6b90ea227efdef568229046285fca8669696ccfee007476"
+      }
+    },
+    {
+      "id": "community-public-preview",
+      "summary": "Phase 2.3 complete locally 2026-10-28 with explicit interrupted-run recovery: all 29 stage identities have passing evidence (2348 units/155 files, 390 source/built browser cases, 9 preview HTTP/race groups and 897 unchanged electrical parity) on 1387 unchanged inputs. D contributes 19 passing stages, recovery A nine and recovery B the complete 105-case built regression (command exit 0). A's WebKit stale-plan timeout and D's interruption remain explicit; no uninterrupted full-selection exit-0 claim. Eight screenshots inspected. Pure drawing/public detail/thumbnails/lazy preview enforce immutable snapshots and fresh current policy/membership/session/visibility. Fingerprints establish stability, not passing tests. Next is 2.4 Explore/feed/search; overall Phase 2 and historical hardware/performance exceptions remain open. Local only.",
+      "tags": [
+        "phase-2",
+        "2.3",
+        "preview",
+        "renderer",
+        "detail",
+        "thumbnail",
+        "simulation",
+        "read-only"
+      ],
+      "entryPoints": [
+        "src/community/publication-pages.ts",
+        "src/community/preview/render.tsx",
+        "src/community/preview/policy.ts",
+        "src/community/preview/FaultMarkers.tsx",
+        "src/api/community/preview.ts",
+        "src/api/community/preview-store.ts",
+        "src/ui/canvas/ComponentSceneNode.tsx",
+        "src/ui/canvas/WireScenePath.tsx",
+        "src/ui/canvas/ComponentNode.tsx",
+        "src/ui/canvas/WireLayer.tsx",
+        "public/community/detail.js",
+        "public/community/preview.js",
+        "public/community/detail.css",
+        "src/community/pages.ts",
+        "src/community/PublicationSettings.tsx",
+        "src/worker.ts",
+        "wrangler.jsonc",
+        "wrangler.profiles-browser-test.jsonc",
+        "vite.config.ts",
+        "public/_headers",
+        "biome.json",
+        "src/ui/canvas/lightTheme.ts",
+        "src/ui/theme.ts",
+        "scripts/phase20-spike.worker.ts"
+      ],
+      "evidence": [
+        "docs/plans/PHASE_2_3_PREVIEW_PLAN.md",
+        "docs/api/preview.md",
+        "docs/audits/phase-2-preview.md",
+        "docs/audits/data/phase23-acceptance.json"
+      ],
+      "facts": ["local-only"],
+      "checks": [
+        {
+          "command": "bun x vitest run src/community/preview/render.test.tsx src/ui/canvas/ComponentNode.test.tsx src/ui/canvas/componentAppearance.test.tsx src/ui/canvas/geometry.test.ts",
+          "files": [
+            "src/community/preview/render.test.tsx",
+            "src/ui/canvas/ComponentNode.test.tsx",
+            "src/ui/canvas/componentAppearance.test.tsx",
+            "src/ui/canvas/geometry.test.ts"
+          ],
+          "reason": "Complete catalogue and rotated port/frame/artwork parity, route bounds, strict-CSP/determinism, fault visibility and existing editor interactions."
+        },
+        {
+          "command": "bun run test:preview-api",
+          "files": [
+            "scripts/test-preview-api.ts",
+            "scripts/profiles-test.worker.ts",
+            "scripts/fixtures/preview-circuit.ts",
+            "wrangler.profiles-test.jsonc"
+          ],
+          "reason": "Real local HTTP immutable detail/thumbnail/preview, source/author isolation, current policy and publication/membership/session/expiry races."
+        },
+        {
+          "command": "bun run verify:phase-2.3",
+          "files": [
+            "scripts/verify-phase23.mjs",
+            "scripts/verify-phase22.mjs",
+            "scripts/phase-gate.test.mjs",
+            "scripts/check-preview-assets.mjs",
+            "e2e/preview.spec.ts",
+            "playwright.preview.config.ts",
+            "playwright.preview-built.config.ts",
+            "package.json",
+            "tsconfig.membership-tests.json",
+            "scripts/test-phase20-spike.ts"
+          ],
+          "reason": "Dedicated 29-stage scope has passing evidence across D's 19-stage prefix, nine passing recovery-A stages and recovery-B's complete 105-case built matrix. Complete prior regressions plus both 33-case preview matrices passed on unchanged inputs; failed/interrupted attempts remain explicit in audit/manifest. No uninterrupted full-selection exit 0 claimed."
+        }
+      ],
+      "decisions": [
+        "Pure drawing is extracted from the editor; public pages load a DOM-only island and server-rendered simulation results, never the editor store or client electrical engine. See 2.3 plan/API contract.",
+        "No migration, result storage, autosave or fork. Social OG remains static until 2.8; server simulation retains the existing 500-component/1000-wire bound.",
+        "The old 2.0 /c fixture is isolated under /__phase20/c after production takes ownership of /c. Fixture escaping/CSP/404 assertions remain; current product routes receive separate real snapshot acceptance."
+      ],
+      "broaderChecks": [
+        "Renderer extraction requires existing editor/electrical regressions in addition to new preview units. Focused HTTP/browser passes do not close 2.3; source/built full gate and evidence review remain required."
+      ],
+      "review": {
+        "at": "2026-10-28T08:17:34.274Z",
+        "scope": "Reviewed pure component/wire/theme extraction, immutable public detail/thumbnail and ephemeral simulation access/visibility, final plan/API/audit/manifest, passing evidence for all 29 stage identities across interrupted D and explicit recoveries A/B, 390 selected browser cases, 2348 units, 897 electrical parity, 1387 stable inputs and eight screenshots. Retained A timeout, D interruption and historical scopes; no uninterrupted full-selection exit-0 claim or hardware recertification.",
+        "fingerprint": "35d06e1f11a5db36ede0e243eee67618a41468e45b4e327a1f63de98e8d5d39c"
       }
     }
   ]
