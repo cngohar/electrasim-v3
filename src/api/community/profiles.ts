@@ -215,7 +215,8 @@ async function ownerChange(
       throw new HTTPException(409, { message: 'This handle is already claimed. Choose another.' });
     throw error;
   }
-  if (results[0].meta.changes !== 1) {
+  // Discovery/FTS triggers may add changes; the guarded UPDATE targets one profile.
+  if (results[0].meta.changes < 1) {
     const rate = await db
       .prepare('SELECT writes FROM profile_write_windows WHERE user_id=? AND window_start=?')
       .bind(before.userId, window)

@@ -5,6 +5,21 @@ import { fileURLToPath } from 'node:url';
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const outputRoot = resolve(projectRoot, process.argv[2] ?? 'dist');
 const siteOrigin = 'https://electrasim.com';
+// These pages are served by the Worker, so they have no generated HTML file.
+// Keep the exception narrow and tied to the registered local routes.
+const workerPages = new Set(['/c/explore', '/c/feed']);
+const workerSource = readFileSync(join(projectRoot, 'src/worker.ts'), 'utf8');
+const discoverySource = readFileSync(join(projectRoot, 'src/community/discovery-pages.ts'), 'utf8');
+const workerConfig = readFileSync(join(projectRoot, 'wrangler.jsonc'), 'utf8');
+if (
+  !workerSource.includes("app.route('/', discoveryPages)") ||
+  !workerConfig.includes('"/c/*"') ||
+  !discoverySource.includes('discoveryPages.get(path') ||
+  [...workerPages].some((path) => !discoverySource.includes(`'${path}'`))
+) {
+  console.error('Internal-link check failed: dynamic community routes are not registered.');
+  process.exit(1);
+}
 
 if (!existsSync(outputRoot)) {
   console.error(`Internal-link check failed: ${relative(projectRoot, outputRoot)} does not exist.`);
@@ -103,6 +118,7 @@ for (const filePath of htmlFiles) {
     }
 
     const targetFile = htmlFileFor(pathname);
+    if (workerPages.has(pathname) && !url.hash) continue;
     if (!existsSync(targetFile)) {
       failures.push({ source, href, target: url.pathname });
       continue;

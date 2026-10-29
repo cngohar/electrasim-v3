@@ -124,6 +124,13 @@ test('CLI refreshes edited inputs incrementally and reports unknown phases accur
     assert.match(run('phase'), /Phase 1.8: planned/);
     assert.match(run('status'), /Current graph/);
     assert.match(run('brief', 'fixture feature'), /echo suggested-only/);
+    assert.match(run('brief', 'fixture', '--detail'), /Active phase: 1.8 \(planned\)/);
+    assert.ok(run('brief', 'fixture', '--budget', '2000').length <= 2001);
+    assert.throws(() => run('brief', 'fixture', '--budget', 'NaN'));
+    assert.throws(() => run('brief', 'fixture', '--changed'));
+    const changedBrief = run('brief', '--changed');
+    assert.match(changedBrief, /fixture-feature/);
+    assert.doesNotMatch(changedBrief, /PRIVATE|\.env.local/);
     assert.throws(
       () => run('check'),
       (error) => /unreviewed/.test(error.stdout),
@@ -206,4 +213,177 @@ test('knowledge validation rejects broken mappings and fingerprints include defi
   assert.equal(briefing(graph, 'anchors'), briefing(graph, 'anchors'));
   assert.match(briefing(graph, 'anchors', { limit: 1 }), /Constraints and findings \(1\/1\)/);
   assert.throws(() => briefing(graph, '!!!'), /searchable query/);
+});
+
+test('brief search ranks exact IDs/tags and keeps numeric identifiers atomic', async () => {
+  const { searchRecords } = await import('./code-graph-knowledge.mjs');
+  const knowledge = {
+    features: [
+      { id: 'incidental', summary: 'Membership access implementation' },
+      { id: 'membership-access', summary: 'Access rules' },
+      { id: 'tagged', tags: ['membership access'], summary: 'Rules' },
+      { id: 'measurement', summary: 'Drift was 12.47 px' },
+      { id: 'milestone', tags: ['2.4'], summary: 'Discovery' },
+    ],
+  };
+  assert.equal(searchRecords(knowledge, 'membership-access').ranked[0].r.id, 'membership-access');
+  assert.equal(searchRecords(knowledge, 'membership access').ranked[0].r.id, 'tagged');
+  assert.deepEqual(
+    searchRecords(knowledge, '2.4').ranked.map(({ r }) => r.id),
+    ['milestone'],
+  );
+  assert.equal(searchRecords(knowledge, 'membership access troubleshooting').partial, true);
+  assert.equal(searchRecords(knowledge, 'membership access 9.9').ranked.length, 0);
+  assert.equal(searchRecords(knowledge, 'nonexistent').ranked.length, 0);
+  assert.deepEqual(
+    searchRecords(
+      {
+        features: [
+          { id: 'first', summary: 'Source', entryPoints: ['src/a.ts'] },
+          { id: 'second', summary: 'Source', entryPoints: ['src/b.ts'] },
+        ],
+      },
+      'src/a.ts',
+    ).ranked.map(({ r }) => r.id),
+    ['first'],
+  );
+});
+
+test('compact briefs budget the whole result, retain constraints and expand full caveats', async () => {
+  const { briefing } = await import('./code-graph-knowledge.mjs');
+  const caveat = 'Recovered stages only; never an uninterrupted gate exit 0.';
+  const graph = {
+    activePhase: '2',
+    evidenceHashes: {},
+    nodes: [],
+    edges: [],
+    knowledge: {
+      phases: [{ id: '2', status: `Historical evidence. ${'history '.repeat(100)}${caveat}` }],
+      facts: [
+        {
+          id: 'local',
+          global: true,
+          summary: 'Local only; no deployment.',
+          evidence: ['AGENTS.md'],
+        },
+      ],
+      features: Array.from({ length: 25 }, (_, i) => ({
+        id: `search-${i}`,
+        summary: `Search ${'evidence '.repeat(60)}${caveat}`,
+        entryPoints: ['src/shared.ts'],
+        evidence: ['audit.md'],
+        checks: [
+          { command: 'bun run test:search', reason: 'Check results', files: ['search.test.ts'] },
+        ],
+        broaderChecks: ['Full phase gate required.'],
+      })),
+    },
+  };
+  const brief = briefing(graph, 'search', { budget: 2200 });
+  assert.ok(brief.length <= 2200, brief.length);
+  assert.match(brief, /Local only; no deployment/);
+  assert.match(brief, /Required phase gates still apply/);
+  assert.match(brief, /bun run test:search/);
+  assert.match(brief, /src\/shared.ts/);
+  assert.equal(brief.split('- src/shared.ts').length - 1, 1);
+  assert.doesNotMatch(brief, /history history/);
+  assert.match(brief, /Counts show omissions/);
+  const detail = briefing(graph, 'search', { detail: true, budget: 50000, limit: 40 });
+  assert.match(detail, /Recovered stages only; never an uninterrupted gate exit 0/);
+  assert.match(detail, /Features \(25\/25\)/);
+  graph.knowledge.facts[0].summary = 'Required constraint. '.repeat(400);
+  const overflow = briefing(graph, 'search', { budget: 1000 });
+  assert.ok(overflow.includes(graph.knowledge.facts[0].summary));
+  assert.match(overflow, /exceed the requested budget/);
+});
+
+test('partial matches are labelled and global evidence does not pollute related tests', async () => {
+  const { briefing } = await import('./code-graph-knowledge.mjs');
+  const graph = {
+    activePhase: '1',
+    evidenceHashes: {},
+    nodes: [],
+    edges: [
+      { from: 'file:unrelated.test.ts', relation: 'tests', to: 'file:global.ts' },
+      { from: 'file:search.test.ts', relation: 'tests', to: 'file:search.ts' },
+    ],
+    knowledge: {
+      phases: [{ id: '1', status: 'planned' }],
+      facts: [{ id: 'global', global: true, summary: 'Global rule', evidence: ['global.ts'] }],
+      features: [
+        {
+          id: 'search-feature',
+          summary: 'Search workflow',
+          entryPoints: ['search.ts'],
+          evidence: ['audit.md'],
+        },
+      ],
+    },
+  };
+  const brief = briefing(graph, 'search workflow improvement');
+  assert.match(brief, /Partial matches only/);
+  assert.match(brief, /search.test.ts/);
+  assert.doesNotMatch(brief, /unrelated.test.ts/);
+  const changed = briefing(graph, undefined, { changed: ['search.ts'], affected: [] });
+  assert.match(changed, /search-feature/);
+  assert.match(changed, /Changed indexed paths: 1/);
+  assert.match(briefing(graph, undefined, { changed: [] }), /No curated match/);
+  graph.nodes = [{ id: 'file:search.ts', name: 'search.ts', path: 'search.ts' }];
+  graph.knowledge.features = [];
+  assert.match(briefing(graph, 'search.ts'), /search.test.ts/);
+});
+
+test('changed brief prioritizes implementation over shared evidence and combines check reasons', async () => {
+  const { briefing } = await import('./code-graph-knowledge.mjs');
+  const graph = {
+    activePhase: '1',
+    evidenceHashes: {},
+    nodes: [],
+    edges: [],
+    knowledge: {
+      phases: [],
+      facts: [],
+      features: [
+        {
+          id: 'a-broad',
+          summary: 'Historical scope',
+          evidence: ['shared.md'],
+          checks: [
+            { command: 'bun run test:graph', reason: 'Historical caveat', files: ['old.test.ts'] },
+          ],
+        },
+        {
+          id: 'z-implementation',
+          summary: 'Implementation scope',
+          evidence: ['shared.md'],
+          entryPoints: ['impl.ts'],
+          checks: [
+            { command: 'bun run test:graph', reason: 'Current scope', files: ['impl.test.ts'] },
+          ],
+        },
+      ],
+    },
+  };
+  const brief = briefing(graph, undefined, { changed: ['shared.md', 'impl.ts'], detail: true });
+  assert.ok(brief.indexOf('z-implementation:') < brief.indexOf('a-broad:'));
+  assert.equal(brief.split('- bun run test:graph').length - 1, 1);
+  assert.match(brief, /Current scope \/ Historical caveat/);
+});
+
+test('changed paths handle staged/unstaged, deletion, rename, copy and spaces', async () => {
+  const { changedPaths } = await import('./code-graph-knowledge.mjs');
+  assert.deepEqual(
+    changedPaths(
+      ' M src/a.ts\0M  src/b.ts\0 D src/deleted.ts\0R  src/new name.ts\0src/old name.ts\0C  src/copy.ts\0src/a.ts\0?? src/fresh.ts\0',
+    ),
+    [
+      'src/a.ts',
+      'src/b.ts',
+      'src/deleted.ts',
+      'src/new name.ts',
+      'src/old name.ts',
+      'src/copy.ts',
+      'src/fresh.ts',
+    ],
+  );
 });

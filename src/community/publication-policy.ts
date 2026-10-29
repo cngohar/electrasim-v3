@@ -4,6 +4,10 @@ export const PUBLICATION_REPORT_REASONS = [
   'Spam',
   'Other',
 ] as const;
+export const DISCOVERY_ZONES = ['general', 'lighting', 'protection', 'control', 'power'] as const;
+export const DISCOVERY_STANDARDS = ['int', 'uk', 'us', 'eu'] as const;
+export type DiscoveryZone = (typeof DISCOVERY_ZONES)[number];
+export type DiscoveryStandard = (typeof DISCOVERY_STANDARDS)[number];
 export type Publication = {
   id: string;
   ownerId: string;
@@ -16,6 +20,8 @@ export type Publication = {
   currentVersionId: string;
   publishedAt: number;
   updatedAt: number;
+  zone: DiscoveryZone;
+  standard: DiscoveryStandard;
   versionNumber: number;
   title: string;
   description: string;
@@ -23,7 +29,7 @@ export type Publication = {
   allowForks: number;
 };
 export const publicationSelect =
-  'SELECT p.id,p.owner_id AS ownerId,p.source_circuit_id AS sourceCircuitId,p.slug,p.status,p.moderation,p.revision,p.mutation_id AS mutationId,p.current_version_id AS currentVersionId,p.published_at AS publishedAt,p.updated_at AS updatedAt,v.version_number AS versionNumber,v.title,v.description,v.tags_json AS tagsJson,v.allow_forks AS allowForks FROM publications p JOIN publication_versions v ON v.id=p.current_version_id AND v.publication_id=p.id';
+  'SELECT p.id,p.owner_id AS ownerId,p.source_circuit_id AS sourceCircuitId,p.slug,p.status,p.moderation,p.revision,p.mutation_id AS mutationId,p.current_version_id AS currentVersionId,p.published_at AS publishedAt,p.updated_at AS updatedAt,p.zone,p.standard,v.version_number AS versionNumber,v.title,v.description,v.tags_json AS tagsJson,v.allow_forks AS allowForks FROM publications p JOIN publication_versions v ON v.id=p.current_version_id AND v.publication_id=p.id';
 export const visiblePublication = "p.status='published' AND p.moderation='visible'";
 export function publicationSummary(p: Publication, owner = false) {
   return {
@@ -37,6 +43,8 @@ export function publicationSummary(p: Publication, owner = false) {
     versionNumber: p.versionNumber,
     publishedAt: p.publishedAt,
     updatedAt: p.updatedAt,
+    zone: p.zone,
+    standard: p.standard,
     ...(owner
       ? {
           sourceCircuitId: p.sourceCircuitId,

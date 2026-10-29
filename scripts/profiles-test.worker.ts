@@ -42,11 +42,12 @@ tests.post('/api/__profiles/race', sameOriginMutation, async (c) => {
       | 'preview-attribution'
       | 'preview-result'
       | 'preview-policy'
-      | 'preview-membership';
+      | 'preview-membership'
+      | 'discovery';
     statements: Statement[];
   }>();
   if (
-    !/^\/(?:api\/(?:me\/(?:profile|avatar|publications)|community\/(?:users|publications)(?:\/|$)|admin\/community\/)|u\/|c\/)/.test(
+    !/^\/(?:api\/(?:me\/(?:profile|avatar|publications)|community\/(?:users|publications|explore|search|feed)(?:\/|\?|$)|admin\/community\/)|u\/|c\/)/.test(
       input.path,
     )
   )
@@ -89,6 +90,17 @@ tests.post('/api/__profiles/race', sameOriginMutation, async (c) => {
                                 input.point === 'read') &&
                               (sql.includes('FROM profiles') ||
                                 sql.includes('FROM publications')) &&
+                              !fired
+                            )
+                              await compete();
+                            return value;
+                          };
+                        if (name === 'all')
+                          return async (...params: Parameters<D1PreparedStatement['all']>) => {
+                            const value = await statement.all(...params);
+                            if (
+                              input.point === 'discovery' &&
+                              sql.includes('FROM publication_discovery d JOIN publications p') &&
                               !fired
                             )
                               await compete();

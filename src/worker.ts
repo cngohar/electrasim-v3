@@ -1,6 +1,7 @@
 // V3 Worker — Hono on Workers. Serves API + assets. Local-first: `bun x wrangler dev --local`.
 import { Hono } from 'hono';
 import { circuitsApi } from './api/circuits';
+import { discoveryApi } from './api/community/discovery';
 import { previewApi } from './api/community/preview';
 import { profilesApi } from './api/community/profiles';
 import { publicationsApi } from './api/community/publications';
@@ -10,6 +11,7 @@ import { freshContext, requireSession } from './api/context';
 import { membershipApi } from './api/membership';
 import { createAdminApi } from './api/platform';
 import { currentCommunityRestriction } from './api/platform/restrictions';
+import { discoveryPages } from './community/discovery-pages';
 import { profilePages } from './community/pages';
 import { publicationPages } from './community/publication-pages';
 
@@ -105,7 +107,9 @@ app.route('/api', circuitsApi);
 app.route('/api', profilesApi);
 app.route('/api', previewApi);
 app.route('/api', publicationsApi);
+app.route('/api', discoveryApi);
 app.route('/', profilePages);
+app.route('/', discoveryPages);
 app.route('/', publicationPages);
 
 // ── Locale redirect + hreflang (applied to every non-API/asset request) ──

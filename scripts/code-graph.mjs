@@ -6,6 +6,7 @@ import { impact, parseSource, resolveImport } from './code-graph-lib.mjs';
 
 import {
   briefing,
+  changedPaths,
   evidencePaths,
   fingerprint,
   freshness,
@@ -61,6 +62,8 @@ const rootInputs = new Set([
   'playwright.publications-built.config.ts',
   'playwright.preview.config.ts',
   'playwright.preview-built.config.ts',
+  'playwright.discovery.config.ts',
+  'playwright.discovery-built.config.ts',
   'tsconfig.membership-tests.json',
   'package.json',
   'index.html',
@@ -275,7 +278,13 @@ function options(args) {
       result.scope = args[++i];
       if (!result.scope?.trim()) throw new Error('--scope requires review details');
     } else if (flag === '--semantic') result.semantic = true;
-    else if (flag === '--depth' || flag === '--limit') {
+    else if (flag === '--detail') result.detail = true;
+    else if (flag === '--changed') result.changed = true;
+    else if (flag === '--budget') {
+      result.budget = Number(args[++i]);
+      if (!Number.isInteger(result.budget) || result.budget < 1000 || result.budget > 200000)
+        throw new Error('--budget must be an integer from 1000 to 200000 characters');
+    } else if (flag === '--depth' || flag === '--limit') {
       const value = Number(args[++i]);
       if (!Number.isInteger(value) || value < 1 || value > (flag === '--depth' ? 10 : 500))
         throw new Error(`Invalid ${flag}`);
@@ -292,12 +301,18 @@ try {
   const [command, ...args] = process.argv.slice(2);
   if (!['build', 'find', 'phase', 'impact', 'status', 'brief', 'review', 'check'].includes(command))
     throw new Error(
-      'Usage: graph build|status|brief QUERY|check|review ID --scope DETAILS|find QUERY|phase [PHASE]|impact FILE [--depth 2 --limit 40 --direction dependents]; build --semantic enables compiler calls.',
+      'Usage: graph build|status|brief [QUERY|--changed] [--detail --budget 6000 --limit 12]|check|review ID --scope DETAILS|find QUERY|phase [PHASE]|impact FILE [--depth 2 --limit 40 --direction dependents]; build --semantic enables compiler calls.',
     );
   const query = args[0] && !args[0].startsWith('--') ? args.shift() : undefined;
   const opts = options(args);
+  if (command !== 'brief' && (opts.detail || opts.budget !== undefined))
+    throw new Error('--detail and --budget are briefing options');
+  if (opts.changed && opts.direction !== 'dependents')
+    throw new Error('--changed uses reverse dependencies; use graph:impact for dependencies');
   if (command === 'brief' && !args.includes('--limit')) opts.limit = 12;
-  if (['brief', 'review'].includes(command) && !query)
+  if (opts.changed && (command !== 'brief' || query))
+    throw new Error('--changed requires brief without a query');
+  if (['brief', 'review'].includes(command) && !query && !opts.changed)
     throw new Error(`${command} requires a query or record id`);
   const existing = await readIndex();
   const current = await inventory();
@@ -311,7 +326,24 @@ try {
       stale || (opts.semantic && !existing?.semantic)
         ? await build(current, existing, opts.semantic)
         : existing;
-    if (command === 'brief') console.log(briefing(graph, query, opts));
+    if (command === 'brief') {
+      if (opts.changed) {
+        const indexed = new Set(
+          graph.nodes.filter((n) => n.kind === 'file' || n.kind === 'document').map((n) => n.path),
+        );
+        const changed = changedPaths(gitStatus()).filter((p) => indexed.has(p));
+        const affected = new Set();
+        let impactOmitted = 0;
+        for (const file of changed) {
+          const result = impact(graph, file, { depth: opts.depth, limit: opts.limit });
+          for (const item of result.results) affected.add(item.path);
+          impactOmitted += result.total - result.results.length;
+        }
+        console.log(
+          briefing(graph, query, { ...opts, changed, affected: [...affected], impactOmitted }),
+        );
+      } else console.log(briefing(graph, query, opts));
+    }
     if (command === 'check') {
       const findings = records(graph.knowledge).map((r) => ({
         id: r.id,

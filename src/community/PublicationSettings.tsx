@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ApiError, profileRequest as request } from './client';
 import type { Profile } from './profile-policy';
+import type { DiscoveryStandard, DiscoveryZone } from './publication-policy';
 
 type Saved = { id: string; name: string; version: number };
 export type OwnerPublication = {
@@ -16,6 +17,8 @@ export type OwnerPublication = {
   currentVersionId: string;
   status: string;
   moderation: string;
+  zone: DiscoveryZone;
+  standard: DiscoveryStandard;
 };
 type Detail = {
   publication: OwnerPublication;
@@ -38,6 +41,8 @@ export function PublicationSettings() {
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState('');
   const [allowForks, setAllowForks] = useState(true);
+  const [zone, setZone] = useState<DiscoveryZone>('general');
+  const [standard, setStandard] = useState<DiscoveryStandard>('int');
   const [status, setStatus] = useState('loading');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -57,6 +62,8 @@ export function PublicationSettings() {
     setTitle('');
     setDescription('');
     setTags('');
+    setZone('general');
+    setStandard('int');
     setNotice('');
     selection.current++;
   }
@@ -115,6 +122,8 @@ export function PublicationSettings() {
     setDescription('');
     setTags('');
     setAllowForks(p?.allowForks ?? true);
+    setZone('general');
+    setStandard('int');
     try {
       const fresh = await request<{ items: OwnerPublication[] }>(
         `me/publications?sourceCircuitId=${encodeURIComponent(id)}&limit=1`,
@@ -138,6 +147,8 @@ export function PublicationSettings() {
         setDescription(d.publication.description);
         setTags(d.publication.tags.join(', '));
         setAllowForks(d.publication.allowForks);
+        setZone(d.publication.zone);
+        setStandard(d.publication.standard);
       }
     } catch (cause) {
       if (token === epoch.current && generation === selection.current) fail(cause);
@@ -206,6 +217,8 @@ export function PublicationSettings() {
               description,
               tags: tags.trim() ? tags.split(',').map((t) => t.trim()) : [],
               allowForks,
+              zone,
+              standard,
             }
           : { revision: p!.revision };
       const result = await request<{ publication: OwnerPublication }>(
@@ -430,6 +443,32 @@ export function PublicationSettings() {
                               onChange={(e) => setAllowForks(e.target.checked)}
                             />
                             Allow forks when community forking becomes available
+                          </label>
+                          <label>
+                            Discovery zone
+                            <select
+                              value={zone}
+                              onChange={(e) => setZone(e.target.value as DiscoveryZone)}
+                            >
+                              <option value="general">General</option>
+                              <option value="lighting">Lighting</option>
+                              <option value="protection">Protection</option>
+                              <option value="control">Control</option>
+                              <option value="power">Power</option>
+                            </select>
+                          </label>
+                          <label>
+                            Study standard
+                            <select
+                              value={standard}
+                              onChange={(e) => setStandard(e.target.value as DiscoveryStandard)}
+                            >
+                              <option value="int">International / not specified</option>
+                              <option value="uk">UK</option>
+                              <option value="us">US</option>
+                              <option value="eu">EU</option>
+                            </select>
+                            <small>This is a discovery label, not a compliance assessment.</small>
                           </label>
                           <p className="note">
                             Publishing records a snapshot; it does not certify electrical safety or

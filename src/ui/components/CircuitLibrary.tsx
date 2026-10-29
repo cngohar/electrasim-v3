@@ -215,6 +215,14 @@ export function CircuitLibrary() {
             >
               Your publications
             </a>
+            <a
+              className="block underline"
+              href="/c/explore"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              Explore community circuits
+            </a>
             {items.map((item) => (
               <div key={item.id} className="flex items-center justify-between gap-2 border-t py-2">
                 <span>

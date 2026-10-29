@@ -30,6 +30,8 @@ export const publications = sqliteTable(
     mutationId: text('mutation_id').notNull(),
     publishedAt: integer('published_at').notNull(),
     updatedAt: integer('updated_at').notNull(),
+    zone: text('zone').notNull().default('general'),
+    standard: text('standard').notNull().default('int'),
   },
   (t) => [
     uniqueIndex('publication_source').on(t.ownerId, t.sourceCircuitId),
@@ -41,6 +43,11 @@ export const publications = sqliteTable(
     ),
     check('publication_status', sql`${t.status} IN ('published','unpublished','deleted')`),
     check('publication_moderation', sql`${t.moderation} IN ('visible','hidden','removed')`),
+    check(
+      'publication_zone',
+      sql`${t.zone} IN ('general','lighting','protection','control','power')`,
+    ),
+    check('publication_standard', sql`${t.standard} IN ('int','uk','us','eu')`),
     check(
       'publication_revision',
       sql`typeof(${t.revision})='integer' AND ${t.revision} BETWEEN 1 AND 9007199254740991`,

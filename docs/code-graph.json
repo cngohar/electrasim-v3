@@ -80,7 +80,7 @@
     },
     {
       "id": "2",
-      "status": "In progress locally. Historical 2.0 foundation accepted with its original full gate (132 browser cases). Approved current-scope admin integration/parity remains separately accepted with explicit browser recovery (2235 units, 78 source + 78 built cases; not a single full-default exit 0). Owner accepted that review and authorized 2.0A implementation 2026-10-25. Phase 2.0A Gates A-F complete locally 2026-10-25. Dedicated verify:phase-2.0a full selection exited 0 with all 18 stages: 2305 units/151 files, 6 infrastructure/8 populated-upgrade storage/14 component API-race/20 existing admin/34 membership-simulator groups, 897 unchanged parity and 105 source + 105 built browser cases (35 per desktop/phone/WebKit project) without skips/retries. Actual built asset/header checks passed 8 pages/9 scripts and unknown-route 404; budgets 268979 B JS gzip/29462 B CSS gzip. All 1318 selected source/harness inputs matched. Dedicated manifest maps required exit groups and records log/source hashes; fingerprints are stability, not test results. Historical 2.0, admin integration/parity and Gates B-E keep their original scopes and explicit recovery distinctions. Profiles 2.1 Gates A-E complete locally 2026-10-26. Dedicated verify:phase-2.1 full selection exited 0 across all 22 stages: 2339 units/153 files, 8 profile storage/21 real HTTP-race groups, complete existing 2.0A regressions, 897 unchanged electrical parity, 105 source + 105 built existing browser cases and 30 source + 30 built profile cases across desktop/phone/WebKit without skips/retries. All 1350 selected source/harness hashes matched; stability is separate from executed outcomes. Dedicated manifest records stage/log/source evidence. Ordinary local D1 backed up before pending 0009/0010 migrations; integrated local Worker delivery verified on 8791. Overall Phase 2 remains active. No remote operation/deployment or hardware recertification. Owner approved design/integration 2026-10-25; later preview/fork policy integration remains required in 2.3/2.5 and 2.8. Overall Phase 2, support 2.7A and prior Phase 1 hardware/performance exceptions remain open. Local only; no account/remote operation or hardware recertification. Phase 2.2 complete locally 2026-10-27 with explicit interrupted-run recovery: all 26 stage identities have passing evidence (2342 units/154 files, 324 browser cases without skips/retries, 8 publication storage/22 HTTP-race groups and 897 unchanged parity), on 1367 unchanged source/harness inputs. D contributes its first 18 stages; an eight-stage recovery contributes all six browser matrices and publication storage/API. Recovery manifest status 0 is distinct from its enclosing exec result 143; no uninterrupted full-default or whole-command exit-0 claim. Dedicated manifest records stage/log/source hashes and inspected source/built desktop/phone screenshots. Hashes establish stability, not test outcomes. After this scoped 2.2 acceptance, 2.3 was next; overall Phase 2 and previous hardware/performance exceptions remain open. Local only. Phase 2.3 complete locally 2026-10-28 with explicit interrupted-run recovery: all 29 stage identities have passing evidence (2348 units/155 files, 390 source/built browser cases, 9 preview HTTP/race groups and 897 unchanged electrical parity) on 1387 unchanged inputs. D contributes 19 passing stages, recovery A nine and recovery B the complete 105-case built regression (command exit 0). A's WebKit stale-plan timeout and D's interruption remain explicit; no uninterrupted full-selection exit-0 claim. Eight screenshots inspected. Pure drawing/public detail/thumbnails/lazy preview enforce immutable snapshots and fresh current policy/membership/session/visibility. Fingerprints establish stability, not passing tests. Next is 2.4 Explore/feed/search; overall Phase 2 and historical hardware/performance exceptions remain open. Local only.",
+      "status": "In progress locally. Historical 2.0 foundation accepted with its original full gate (132 browser cases). Approved current-scope admin integration/parity remains separately accepted with explicit browser recovery (2235 units, 78 source + 78 built cases; not a single full-default exit 0). Owner accepted that review and authorized 2.0A implementation 2026-10-25. Phase 2.0A Gates A-F complete locally 2026-10-25. Dedicated verify:phase-2.0a full selection exited 0 with all 18 stages: 2305 units/151 files, 6 infrastructure/8 populated-upgrade storage/14 component API-race/20 existing admin/34 membership-simulator groups, 897 unchanged parity and 105 source + 105 built browser cases (35 per desktop/phone/WebKit project) without skips/retries. Actual built asset/header checks passed 8 pages/9 scripts and unknown-route 404; budgets 268979 B JS gzip/29462 B CSS gzip. All 1318 selected source/harness inputs matched. Dedicated manifest maps required exit groups and records log/source hashes; fingerprints are stability, not test results. Historical 2.0, admin integration/parity and Gates B-E keep their original scopes and explicit recovery distinctions. Profiles 2.1 Gates A-E complete locally 2026-10-26. Dedicated verify:phase-2.1 full selection exited 0 across all 22 stages: 2339 units/153 files, 8 profile storage/21 real HTTP-race groups, complete existing 2.0A regressions, 897 unchanged electrical parity, 105 source + 105 built existing browser cases and 30 source + 30 built profile cases across desktop/phone/WebKit without skips/retries. All 1350 selected source/harness hashes matched; stability is separate from executed outcomes. Dedicated manifest records stage/log/source evidence. Ordinary local D1 backed up before pending 0009/0010 migrations; integrated local Worker delivery verified on 8791. Overall Phase 2 remains active. No remote operation/deployment or hardware recertification. Owner approved design/integration 2026-10-25; later preview/fork policy integration remains required in 2.3/2.5 and 2.8. Overall Phase 2, support 2.7A and prior Phase 1 hardware/performance exceptions remain open. Local only; no account/remote operation or hardware recertification. Phase 2.2 complete locally 2026-10-27 with explicit interrupted-run recovery: all 26 stage identities have passing evidence (2342 units/154 files, 324 browser cases without skips/retries, 8 publication storage/22 HTTP-race groups and 897 unchanged parity), on 1367 unchanged source/harness inputs. D contributes its first 18 stages; an eight-stage recovery contributes all six browser matrices and publication storage/API. Recovery manifest status 0 is distinct from its enclosing exec result 143; no uninterrupted full-default or whole-command exit-0 claim. Dedicated manifest records stage/log/source hashes and inspected source/built desktop/phone screenshots. Hashes establish stability, not test outcomes. After this scoped 2.2 acceptance, 2.3 was next; overall Phase 2 and previous hardware/performance exceptions remain open. Local only. Phase 2.3 complete locally 2026-10-28 with explicit interrupted-run recovery: all 29 stage identities have passing evidence (2348 units/155 files, 390 source/built browser cases, 9 preview HTTP/race groups and 897 unchanged electrical parity) on 1387 unchanged inputs. D contributes 19 passing stages, recovery A nine and recovery B the complete 105-case built regression (command exit 0). A's WebKit stale-plan timeout and D's interruption remain explicit; no uninterrupted full-selection exit-0 claim. Eight screenshots inspected. Pure drawing/public detail/thumbnails/lazy preview enforce immutable snapshots and fresh current policy/membership/session/visibility. Fingerprints establish stability, not passing tests. Phase 2.4 complete locally 2026-10-29 with explicit timeout/source-stability recovery: all 33 stage identities have passing evidence (2348 units, 402 source/built browser cases, five discovery storage/eight HTTP groups, 897 unchanged electrical parity) on 1400 matching acceptance-run inputs; the commit hook later formatted 13 source inputs, and focused final-tree build/unit/storage/API/source+built discovery checks passed. The broad source admin browser command had one WebKit timeout after 104 passes; that exact case passed alone at the original limit. No uninterrupted full-selection exit 0 is claimed. Next is 2.5 forks/attribution. Overall Phase 2 and historical hardware/performance exceptions remain open. Local only.",
       "evidence": [
         "docs/REWRITE_PLAN_V3_FULL.md",
         "docs/phases/phase-2-community.md",
@@ -110,7 +110,11 @@
         "docs/plans/PHASE_2_3_PREVIEW_PLAN.md",
         "docs/api/preview.md",
         "docs/audits/phase-2-preview.md",
-        "docs/audits/data/phase23-acceptance.json"
+        "docs/audits/data/phase23-acceptance.json",
+        "docs/plans/PHASE_2_4_DISCOVERY_PLAN.md",
+        "docs/api/discovery.md",
+        "docs/audits/phase-2-discovery.md",
+        "docs/audits/data/phase24-acceptance.json"
       ]
     },
     {
@@ -3023,28 +3027,44 @@
     },
     {
       "id": "repository-knowledge",
-      "summary": "Local repository graph navigation, task briefings and scoped evidence freshness.",
-      "tags": ["graph", "knowledge", "brief", "freshness", "tests"],
-      "entryPoints": ["scripts/code-graph.mjs", "scripts/code-graph-knowledge.mjs"],
-      "evidence": ["docs/knowledge-base.md"],
+      "summary": "Local repository graph navigation with budgeted briefings, ranked exact-token retrieval, working-tree impact and scoped evidence freshness.",
+      "tags": [
+        "graph",
+        "knowledge",
+        "brief",
+        "freshness",
+        "tests",
+        "workflow",
+        "development",
+        "token saving",
+        "retrieval",
+        "changed"
+      ],
+      "entryPoints": [
+        "scripts/code-graph.mjs",
+        "scripts/code-graph-knowledge.mjs",
+        "scripts/code-graph-lib.mjs"
+      ],
+      "evidence": ["docs/knowledge-base.md", "docs/audits/repository-graph-briefings.md"],
       "facts": ["local-only"],
       "checks": [
         {
           "command": "bun run test:graph",
           "files": ["scripts/code-graph.test.mjs"],
-          "reason": "Checks graph traversal, CLI refresh, retrieval and evidence invalidation."
+          "reason": "Checks bounded traversal, incremental CLI refresh, ranked/numeric/partial retrieval, output budgets, changed-path handling and evidence invalidation."
         }
       ],
       "decisions": [
-        "Keep curated knowledge in Git and generated indexes local. Review fingerprints are explicit and never renewed by index rebuilds. Reconsider storage only after measured retrieval problems."
+        "Keep curated knowledge in Git and generated indexes local. Review fingerprints are explicit and never renewed by index rebuilds. Reconsider storage only after measured retrieval problems.",
+        "Compact output preserves mandatory global constraints; full status and acceptance narratives remain available through graph:phase and brief --detail. Output budgets count characters, not model tokens. Changed-file suggestions never replace required phase gates."
       ],
       "broaderChecks": [
         "Graph-only changes need graph tests and targeted lint; runtime tests are required when runtime code also changes."
       ],
       "review": {
-        "at": "2026-10-10T06:23:23.038Z",
-        "scope": "Reviewed graph CLI, knowledge helper, workflow documentation and feature/check mapping; graph regression tests passed. No application runtime tests rerun.",
-        "fingerprint": "25a6e895b4b5c7bebcd97a55be30b152ce01ebc86dc60114340b21c4a575ccd9"
+        "at": "2026-10-28T12:33:19.062Z",
+        "scope": "Reviewed graph CLI, search/budget/changed-file implementation, traversal helper, workflow documentation, feature/check mapping and measured briefing audit. Final 10 graph tests and targeted Biome checks passed. All other knowledge records and phase status verified unchanged. No application runtime or phase acceptance tests rerun; output-byte reductions are not measured model-token savings.",
+        "fingerprint": "1e2173fa8626057ba52c5545f25b1ff64c38a3847d1eb35d94d4f894038c2a20"
       }
     },
     {
@@ -6186,6 +6206,77 @@
         "at": "2026-10-28T08:17:34.274Z",
         "scope": "Reviewed pure component/wire/theme extraction, immutable public detail/thumbnail and ephemeral simulation access/visibility, final plan/API/audit/manifest, passing evidence for all 29 stage identities across interrupted D and explicit recoveries A/B, 390 selected browser cases, 2348 units, 897 electrical parity, 1387 stable inputs and eight screenshots. Retained A timeout, D interruption and historical scopes; no uninterrupted full-selection exit-0 claim or hardware recertification.",
         "fingerprint": "35d06e1f11a5db36ede0e243eee67618a41468e45b4e327a1f63de98e8d5d39c"
+      }
+    },
+    {
+      "id": "community-discovery-runtime",
+      "summary": "Phase 2.4 complete locally 2026-10-29 with explicit timeout/source-stability recovery: 33 stage identities have passing evidence (2348 units, 402 source/built browser cases, five discovery storage/eight HTTP groups, 897 unchanged electrical parity) on 1400 matching acceptance-run inputs; the commit hook later formatted 13 source inputs, and focused final-tree build/unit/storage/API/source+built discovery checks passed. One broad WebKit admin case timed out after 104 passes, then passed alone at its original limit; no uninterrupted full-selection exit 0 is claimed. Worker SSR /c/explore and /c/feed use current visible versions, author-supplied study labels, D1 FTS5, keyset filters, neutral private attribution and primary-state rechecks. Existing staff hide/restore/remove immediately affect discovery. Follow writes remain 2.6, wider admin review remains 2.7, and overall Phase 2/historical exceptions remain open.",
+      "tags": ["phase-2", "2.4", "discovery", "explore", "feed", "search", "fts5", "moderation"],
+      "entryPoints": [
+        "src/api/community/discovery-store.ts",
+        "src/api/community/discovery.ts",
+        "src/community/discovery-pages.ts",
+        "public/community/discovery.css",
+        "migrations/0012_discovery.sql",
+        "packages/db/discovery-schema.ts",
+        "packages/db/publication-schema.ts",
+        "src/api/community/publications.ts",
+        "src/api/community/profiles.ts",
+        "src/community/PublicationSettings.tsx",
+        "src/worker.ts",
+        "astro-site/src/components/layout/SiteHeader.astro",
+        "astro-site/src/components/layout/SiteFooter.astro",
+        "scripts/check-internal-links.mjs"
+      ],
+      "evidence": [
+        "docs/plans/PHASE_2_4_DISCOVERY_PLAN.md",
+        "docs/api/discovery.md",
+        "docs/audits/phase-2-discovery.md",
+        "docs/audits/data/phase24-acceptance.json"
+      ],
+      "facts": ["local-only"],
+      "checks": [
+        {
+          "command": "bun run test:discovery-storage",
+          "files": ["scripts/test-discovery-storage.ts", "migrations/0012_discovery.sql"],
+          "reason": "Populated 0011-to-0012 migration, FTS5/query plan, trigger synchronization, constraints and rollback."
+        },
+        {
+          "command": "bun run test:discovery-api",
+          "files": [
+            "scripts/test-discovery-api.ts",
+            "scripts/profiles-test.worker.ts",
+            "wrangler.profiles-test.jsonc"
+          ],
+          "reason": "Real local Worker/D1 search, filters, cursor, publication/profile/session races and staff hide/restore/remove."
+        },
+        {
+          "command": "bun run verify:phase-2.4",
+          "files": [
+            "scripts/verify-phase24.mjs",
+            "scripts/verify-phase23.mjs",
+            "scripts/phase-gate.mjs",
+            "e2e/discovery.spec.ts",
+            "playwright.discovery.config.ts",
+            "playwright.discovery-built.config.ts",
+            "scripts/check-discovery-assets.mjs",
+            "scripts/check-internal-links.mjs",
+            "package.json"
+          ],
+          "reason": "Dedicated local predecessor and discovery type/lint/unit/storage/API/source/built browser/performance/asset/parity gate. All 33 stage identities have passing evidence across documented recovery; one broad WebKit timeout and changed graph input list preclude an uninterrupted full-selection exit 0."
+        }
+      ],
+      "decisions": [
+        "Community routes use /c/explore and /c/feed; Astro /explore/ keeps its historical purpose and /c/:slug stays the immutable detail route.",
+        "Discovery labels are author supplied study metadata, not electrical compliance certification. The follows read side ships in 2.4; follow mutations remain 2.6."
+      ],
+      "broaderChecks": [
+        "The 2.4 milestone is accepted locally only after review of all 33 stage identities, stable final hashes, screenshots, moderation races and explicit timeout/source-change recovery. Overall Phase 2 and historical exceptions remain open."
+      ],
+      "review": {
+        "at": "2026-10-29T09:31:57.092Z",
+        "scope": "Rechecked Phase 2.4 discovery source, post-format manifest and audit after the commit hook formatted JSON. Acceptance-run recovery covers 33 stage identities; the commit-hook formatted tree passed typecheck/lint, 2348 units, build, performance/links, discovery storage/API, publication/preview API and all 12 source/built discovery browser cases. Full predecessor matrix was not rerun after source formatting. Overall Phase 2 and later 2.6/2.7 work remain open; no remote operations.",
+        "fingerprint": "4e9880c78801b00e5888d158db15f55efa21bd7d005b1e2257ec2ddb4e16d533"
       }
     }
   ]

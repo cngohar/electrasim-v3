@@ -50,8 +50,12 @@ cases, 8 publication storage / 22 API groups and 897 unchanged parity cases on
 recovery, not an uninterrupted full-default exit 0. The recovery manifest records
 status 0; its enclosing execution session reported 143 after completion. See the
 [execution plan](PHASE_2_2_PUBLICATIONS_PLAN.md), [publication audit](../audits/phase-2-publications.md)
-and [dedicated manifest](../audits/data/phase22-acceptance.json). Next is **2.3
-read-only preview and public detail**. Overall Phase 2 remains open.
+and [dedicated manifest](../audits/data/phase22-acceptance.json). Phases 2.3 and
+2.4 are complete locally with recorded recovery. The 2.4
+[audit](../audits/phase-2-discovery.md) and
+[manifest](../audits/data/phase24-acceptance.json) preserve the WebKit timeout,
+source-index change and separate stable-input recovery; next is 2.5 forks.
+Overall Phase 2 remains open.
 
 ## Outcome
 
@@ -116,7 +120,7 @@ local-only spike, then implements and accepts the shared admin foundation before
 community feature work depends on it.
 
 1. **Route ownership.** Keep Astro as the static marketing surface. Serve
-   `/explore`, `/feed`, `/c/:slug`, `/u/:handle`, `/collections/:slug` and their
+   `/c/explore`, `/c/feed`, `/c/:slug`, `/u/:handle`, `/collections/:slug` and their
    metadata from the Hono Worker. Add explicit asset-routing rules so a community
    URL cannot fall through to the marketing SPA shell. Do not add a client router
    to the editor or move existing `/app/` routes.
@@ -357,7 +361,7 @@ request-size limits. Public reads use indexed queries and keyset pagination.
 | Profiles | `GET /api/community/users/:handle`, `GET /api/community/users/:handle/publications`, `PATCH /api/me/profile`, `POST /api/me/avatar` |
 | Publishing | `POST /api/community/publications`, `PATCH /api/community/publications/:id`, `POST /api/community/publications/:id/unpublish`, `DELETE /api/community/publications/:id` |
 | Public detail | `GET /api/community/publications/:slug`, `GET /api/community/publications/:slug/versions`, `GET /c/:slug` (SSR) |
-| Discovery | `GET /api/community/explore`, `GET /api/community/feed`, `GET /api/community/search`, `GET /explore` and `GET /feed` (SSR) |
+| Discovery | `GET /api/community/explore`, `GET /api/community/feed`, `GET /api/community/search`, `GET /c/explore` and `GET /c/feed` (SSR); Astro `/explore/` keeps its existing purpose |
 | Forks | `POST /api/community/publications/:id/fork` |
 | Social | `POST/DELETE /api/community/users/:handle/follow`, `POST/DELETE /api/community/publications/:id/reactions`, comment and accepted-answer routes, collection CRUD |
 | Notifications | `GET /api/community/notifications`, `POST /api/community/notifications/read` |
@@ -394,7 +398,7 @@ contract record before implementation.
 | **2.1 — Profiles and privacy** | `profiles`, handle claim/backfill, reserved names, avatar upload to local R2, privacy settings and `/u/:handle` SSR profile with metadata; profile reporting and staff review/hide/restore/remove controls. | Claim/reject/collision/rename behavior; private and moderated profiles/avatars hidden from anonymous reads; JSON-LD/no-JS profile page; profile API and staff UI tests; edits cannot bypass moderation. |
 | **2.2 — Publications and immutable versions** | Publish from a saved circuit; snapshot validation and capability capture; versions, slug allocation, republish, unpublish, tombstone; owner-only mutation and optimistic checks; report and staff publication controls. | Private edits never leak; every publish creates an immutable version; capability and restriction checks survive publishing; version history/tombstone tests; report-to-review UI works and hidden snapshots cannot leak through alternate reads. |
 | **2.3 — Read-only preview and public detail** | Extract the pure renderer; server-rendered SVG fallback/thumbnail; lazy read-only preview island; `/c/:slug` metadata/structured data; Pro simulation gate. | Visual and interaction parity checks; preview cannot write or autosave; anonymous detail page works without JS; premium simulation denied without entitlement; mobile/reduced-motion checks. |
-| **2.4 — Explore, feed and search** | `/explore` and `/feed` SSR lists, filters/sorts, keyset pagination, tags, following/own feed and D1 FTS5 search. | Seeded discovery fixtures; FTS query/case/tag tests; empty/error/private behavior; pagination and query-plan evidence; no editor bundle on discovery pages. |
+| **2.4 — Explore, feed and search** | `/c/explore` and `/c/feed` SSR lists, filters/sorts, keyset pagination, tags, following/own feed and D1 FTS5 search. Astro `/explore/` stays a separate page. | Seeded discovery fixtures; FTS query/case/tag tests; empty/error/private behavior; pagination and query-plan evidence; no editor bundle on discovery pages. |
 | **2.5 — Forks and lineage** | Fork a published version into a private working copy; optional publish as a fork; attribution chain, fork counters and deletion behavior. | A→B→C lineage; source snapshot immutability; self/duplicate/forbidden fork handling; capabilities rechecked on fork; counters remain consistent. |
 | **2.6 — Social and notifications** | Follows, reactions, threaded comments, accepted answers, collections, notification inbox/unread and Queue fan-out; comment/collection reports and admin controls. | Full local social lifecycle; unique constraints/counts; comment sanitization/pagination; restriction checks; no self-notification; dedupe/read tests; hidden answers/thread placeholders/collections and queued notice visibility covered through API and UI. |
 | **2.7 — Complete community administration** | Complete report assignment/resolution, cross-subject content review, banned words/auto-hide/rate-limit settings, user restrictions, outcome notices, overview counts and scoped action history using the shared admin foundation. | Staff complete report→review→hide→restore/remove through real screens for publications/comments/profiles/collections; settings and user restrictions work; concurrent/stale actions fail safely; audit atomicity, cache/asset visibility and all role boundaries pass; no backend-only acceptance. |

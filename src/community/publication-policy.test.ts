@@ -46,6 +46,8 @@ describe('publication boundary rules', () => {
       currentVersionId: 'snapshot',
       publishedAt: 1,
       updatedAt: 2,
+      zone: 'lighting',
+      standard: 'uk',
       versionNumber: 3,
       title: 'Circuit',
       description: 'Published text',

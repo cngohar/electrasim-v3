@@ -1855,3 +1855,23 @@ local bindings/placeholders, ignored credentials/state and the disabled deploy
 script remain in place. No Cloudflare account, credential, resource or deployment
 operation is included. This authorization supersedes only the earlier absence of
 commit/push authorization recorded in historical local acceptance scopes.
+
+## Session 2026-10-29 — Phase 2.4 and GitHub checkpoint
+
+The owner approved the isolated discovery concept and local app integration.
+Worker-rendered `/c/explore` and `/c/feed` now use current visible publication
+versions, FTS5 search, filters, keyset pagination and no-JavaScript pages. Existing
+publication hide, restore and remove controls update discovery immediately.
+Follow/unfollow actions remain 2.6 and the broader admin review queue remains 2.7.
+
+Phase 2.4 is complete locally with explicit recovery: all 33 stage identities
+have passing evidence, including 2,348 units, 402 source/built browser cases,
+five discovery storage/eight HTTP groups and 897 unchanged electrical parity
+cases. One broad WebKit admin test timed out after 104 passes and passed alone at
+the original limit; no uninterrupted full-selection exit 0 is claimed. See the
+[audit](docs/audits/phase-2-discovery.md) and
+[manifest](docs/audits/data/phase24-acceptance.json). Overall Phase 2 remains open.
+
+The owner explicitly requested updating Git and pushing this local checkpoint
+to `origin/main`. The ignored local test stores and Cloudflare credentials are
+excluded; this GitHub authorization does not authorize a Cloudflare operation.

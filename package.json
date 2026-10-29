@@ -111,7 +111,10 @@
     "test:publications-api": "bun scripts/test-publications-api.ts",
     "verify:phase-2.2": "bun scripts/verify-phase22.mjs",
     "test:preview-api": "bun scripts/test-preview-api.ts",
-    "verify:phase-2.3": "bun scripts/verify-phase23.mjs"
+    "test:discovery-api": "bun scripts/test-discovery-api.ts",
+    "test:discovery-storage": "bun scripts/test-discovery-storage.ts",
+    "verify:phase-2.3": "bun scripts/verify-phase23.mjs",
+    "verify:phase-2.4": "bun scripts/verify-phase24.mjs"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "^1.7.6",

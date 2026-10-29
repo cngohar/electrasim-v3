@@ -205,6 +205,8 @@ _Template for first V3 release — remove this block when 3.0.0 ships._
 
 ### Added
 - (Phase 0) Bun workspaces + Hono Worker + D1 via `wrangler d1` + Better Auth (`provider:"sqlite"`).
+- (Phase 2.4) Local `/c/explore` and `/c/feed` pages with FTS5 search, filters, fixed circuit cards, and moderation-aware discovery reads. The Astro `/explore/` page keeps its existing purpose.
+- Knowledge graph task briefings with bounded output, ranked matches, explicit evidence freshness, and scoped review records.
 
 ### Changed
 - Runtime: Node/npm → Bun. DB: Postgres/Neon → D1. Auth: none → Better Auth (Google/GitHub/Microsoft).

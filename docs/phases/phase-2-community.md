@@ -57,8 +57,9 @@ cases, 8 publication storage / 22 API groups and 897 unchanged parity cases on
 recovery, not an uninterrupted full-default exit 0. The recovery manifest records
 status 0; its enclosing execution session reported 143 after completion. See the
 [execution plan](../plans/PHASE_2_2_PUBLICATIONS_PLAN.md), [publication audit](../audits/phase-2-publications.md)
-and [dedicated manifest](../audits/data/phase22-acceptance.json). Next is **2.3
-read-only preview and public detail**. Overall Phase 2 remains open.
+and [dedicated manifest](../audits/data/phase22-acceptance.json). Phases 2.3 and
+2.4 are complete locally with recorded recovery.
+Overall Phase 2 remains open.
 
 ## Scope
 
@@ -91,9 +92,9 @@ Challenge Mode and Diagnosis remain retired.
 | **2.0** | Routing/schema/security spike first; then shared admin shell, users, roles/permissions, restrictions/suspension, settings/audit and protected membership integration; local foundation acceptance | Complete locally — full 16-stage gate; 132 source/built browser cases; scoped evidence linked above |
 | **2.0A** | Component Free/Pro access management, protected Basic baseline, super-admin policy/audit and simulator enforcement; required before 2.1 | Complete locally — Gates A-F; dedicated full 18-stage exit 0; 2305 units, 8 storage / 14 component API groups, 897 parity, 105 source + 105 built cases; acceptance linked above |
 | **2.1** | Profiles, handles, avatar, privacy and `/u/:handle` SSR; profile reports and staff controls | Complete locally — Gates A–E; full 22-stage exit 0; 2339 units, 8 profile storage / 21 API groups, 270 source/built browser cases; [manifest](../audits/data/phase21-acceptance.json) |
-| **2.2** | Publish/unpublish, immutable versions, slugs, tags and tombstones; publication reports and staff controls | In progress locally — implementation and focused storage/API/browser verification; full dedicated acceptance pending |
-| **2.3** | Read-only circuit renderer, thumbnails and `/c/:slug` detail page | Planned |
-| **2.4** | Explore/feed, filters, keyset pagination and FTS5 search | Planned |
+| **2.2** | Publish/unpublish, immutable versions, slugs, tags and tombstones; publication reports and staff controls | Complete locally with recorded recovery; [audit](../audits/phase-2-publications.md) |
+| **2.3** | Read-only circuit renderer, thumbnails and `/c/:slug` detail page | Complete locally with recorded recovery; [audit](../audits/phase-2-preview.md) |
+| **2.4** | `/c/explore` and `/c/feed`, filters, keyset pagination and FTS5 search | Complete locally with explicit recovery; [audit](../audits/phase-2-discovery.md) |
 | **2.5** | Forks, attribution lineage and fork counters | Planned |
 | **2.6** | Follows, reactions, threaded comments, accepted answers, collections and in-app notifications; comment/collection moderation | Planned |
 | **2.7** | Complete community admin workflows: report assignment/resolution, content review, user restrictions, settings, outcome notices and scoped audit | Planned |
@@ -160,5 +161,16 @@ full-selection exit 0 is claimed. Eight final screenshots were inspected.
 
 See the [2.3 plan](../plans/PHASE_2_3_PREVIEW_PLAN.md), [contract](../api/preview.md),
 [audit](../audits/phase-2-preview.md) and [manifest](../audits/data/phase23-acceptance.json).
-Next is 2.4 Explore, feed and search. Overall Phase 2 and all historical exceptions
-remain open. No schema/ordinary-store seed, remote operation or deployment occurred.
+Phase 2.4 Explore, feed and search is complete locally with explicit recovery:
+all 33 stage identities have passing evidence across interrupted/partial runs,
+including 2,348 units, 402 source/built browser cases, five discovery storage /
+eight HTTP groups and 897 unchanged electrical parity cases. The broad source
+admin browser command had one WebKit timeout after 104 passes; that exact case
+passed alone at the original limit. The 1,400 acceptance-run inputs matched
+across stable recovery runs. The Git commit hook then formatted 13 source inputs;
+focused final-tree checks passed as recorded in the audit. See the
+[2.4 plan](../plans/PHASE_2_4_DISCOVERY_PLAN.md),
+[contract](../api/discovery.md), [audit](../audits/phase-2-discovery.md) and
+[manifest](../audits/data/phase24-acceptance.json). Next is 2.5 forks and
+attribution. Overall Phase 2 and all historical exceptions remain open. No
+ordinary-store seed, remote operation or deployment occurred.

@@ -63,3 +63,4 @@ export * from './component-access-schema';
 
 export * from './profile-schema';
 export * from './publication-schema';
+export * from './discovery-schema';

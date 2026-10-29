@@ -10,14 +10,50 @@ bun run graph:impact -- src/admin/Admin.tsx
 bun run graph:check
 ```
 
-`brief` matches all query terms across each record's ID, summary, tags and paths.
-It includes linked findings, global constraints, entry points, suggested commands,
-related test files, decisions and broader-check triggers. Each section has a
-12-item default limit and reports omitted counts. Narrow the query or raise
-`--limit` to inspect omitted context. Unmatched queries fall back to source/symbol
-matches and explicitly report missing curated coverage. Commands are displayed,
-never executed. Read linked evidence before editing; graph edges do not prove
-runtime coverage. No test selection overrides a required phase gate.
+`brief` returns a compact task briefing with a 6,000-character body budget.
+Exact IDs and tags rank ahead of incidental text; numeric identifiers are atomic
+(`2.4` does not match `12.47`). All meaningful query terms are matched first.
+If no full match exists, a labelled partial fallback requires at least two terms
+(or the sole term for a one-term query), and every numeric term must still match.
+Partial matches are navigation suggestions; inspect linked source and evidence.
+
+```bash
+bun run graph:brief -- "membership access"
+bun run graph:brief -- "membership access" --detail --budget 24000 --limit 40
+bun run graph:brief --changed
+bun run graph:brief --changed --depth 3 --limit 20
+```
+
+The default prints the active phase ID and a command to read its full status.
+`--detail` includes the original phase history and full record summaries and check
+rationales; its default budget is 24,000 characters. Historical acceptance,
+interrupted-run recovery and exceptions remain in the authoritative records.
+Compact mode explicitly replaces long summaries/rationales with a detail pointer;
+it never cuts an acceptance sentence in half or invents a condensed acceptance.
+
+`--budget` accepts 1,000–200,000 characters (not a model-specific token count).
+The body is bounded as a whole, with round-robin space for entry points, checks,
+decisions, findings and tests. Whole rows are omitted when they do not fit.
+Section counts report shown/available rows, and matched-record counts report the
+selection limit. Global constraints and the required-gate reminder are always
+retained; a warning reports if these plus the header exceed a requested budget.
+A graph-refresh diagnostic is separate from the briefing body.
+
+`--limit` defaults to 12 per section and selected-record list. Increase both budget
+and limit for detail, or narrow the query. Paths and commands are deduplicated.
+Global constraint evidence does not automatically add unrelated test files.
+Unmatched queries still fall back to exact-token source/symbol paths and explicitly
+report missing curated coverage. Commands are displayed, never executed.
+
+`--changed` accepts no query. It reads staged, unstaged and untracked paths from
+local Git status, handles rename/copy paths, and uses only paths in the graph's
+existing file inventory. It maps those files and bounded reverse dependencies to
+curated records through entry points, evidence and check files. Traversal defaults
+to depth 2 and the briefing's limit per changed file; omitted impact counts are
+reported. Unindexed files are excluded, including environment files. Deleted
+paths cannot be traversed once absent from the index; broken declared evidence
+continues to fail validation. This is navigation, not a complete test selector.
+No test selection overrides a required phase gate.
 
 ## Authoritative records
 

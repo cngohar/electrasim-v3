@@ -1,0 +1,445 @@
+{
+  "schemaVersion": 1,
+  "phase": "2.4",
+  "status": "complete locally with explicit timeout and source-stability recovery",
+  "scope": "Worker SSR Explore and Feed, current-version D1 FTS5 discovery, filters/keyset pagination, existing publication moderation integration, and complete predecessor local regression.",
+  "ownerAuthorization": "Approved HTML concept and local app integration; no remote operation or deployment authorized.",
+  "gate": {
+    "stageCount": 33,
+    "allStageIdentitiesHavePassingEvidence": true,
+    "uninterruptedFullSelectionExit0": false,
+    "selection": "First full attempt stopped at static link check; second full attempt passed 18 prefix stages then had 104/105 broad source browser cases, with one WebKit timeout. The exact case passed alone at its original limit. Final 14 stages passed in a stable partial recovery. Early type/lint/unit/gate checks were rerun on the final source after a graph input-list edit."
+  },
+  "sourceStability": {
+    "secondFullAttemptChangedSource": ["scripts/code-graph.mjs"],
+    "firstFullAttemptChangedSource": [],
+    "acceptanceRunInputCount": 1400,
+    "acceptanceRunHashesFile": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z/source-hashes.json",
+    "acceptanceRunHashesSha256": "32fb48f64231463bd4ab2f9d9cb5565d40310468e92c2b8c89c27b583a011a7c",
+    "recoveryAndPrefixHashesMatch": true,
+    "commitHookFormatting": {
+      "changedSourceInputs": [
+        "e2e/discovery.spec.ts",
+        "packages/db/discovery-schema.ts",
+        "packages/db/publication-schema.ts",
+        "public/community/discovery.css",
+        "scripts/test-discovery-api.ts",
+        "scripts/test-discovery-storage.ts",
+        "src/api/community/discovery-store.ts",
+        "src/api/community/discovery.ts",
+        "src/api/community/publications.ts",
+        "src/community/PublicationSettings.tsx",
+        "src/community/discovery-pages.ts",
+        "src/ui/components/CircuitLibrary.tsx",
+        "src/worker.ts"
+      ],
+      "postFormatInputCount": 1400,
+      "postFormatHashesFile": ".wrangler/phase24/postformat-source-hashes.json",
+      "postFormatHashesSha256": "2f82b013d3ba4ac26d81b6f7f8a5e8b87e6c85715f1602613d0cdd7fc344ccf0",
+      "postFormatFocusedVerification": "passed; see postFormatVerification"
+    }
+  },
+  "runs": [
+    {
+      "path": ".wrangler/phase24/run-2026-10-29T00-37-03.567Z",
+      "manifest": ".wrangler/phase24/run-2026-10-29T00-37-03.567Z/manifest.json",
+      "status": 1,
+      "selection": "full"
+    },
+    {
+      "path": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z",
+      "manifest": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z/manifest.json",
+      "status": 1,
+      "selection": "full"
+    },
+    {
+      "path": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z",
+      "manifest": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z/manifest.json",
+      "status": 0,
+      "selection": "partial"
+    },
+    {
+      "path": ".wrangler/phase24/run-2026-10-29T08-49-44.559Z",
+      "manifest": ".wrangler/phase24/run-2026-10-29T08-49-44.559Z/manifest.json",
+      "status": 0,
+      "selection": "partial"
+    }
+  ],
+  "interruption": {
+    "run": ".wrangler/phase24/run-2026-10-29T08-47-37.276Z",
+    "type": "external SIGTERM during unit; completed typecheck and lint; unit and gate tests rerun in final partial run"
+  },
+  "focusedResults": {
+    "unitTests": 2348,
+    "electricalParityCases": 897,
+    "discoveryStorageGroups": 5,
+    "discoveryHttpGroups": 8,
+    "publicationStorageGroups": 8,
+    "publicationHttpGroups": 22,
+    "previewHttpGroups": 9,
+    "profileHttpGroups": 21,
+    "browserCases": {
+      "browser": 105,
+      "browser:2": 105,
+      "browser:3": 30,
+      "browser:4": 30,
+      "browser:5": 27,
+      "browser:6": 27,
+      "browser:7": 33,
+      "browser:8": 33,
+      "browser:9": 6,
+      "browser:10": 6
+    },
+    "browserTotal": 402
+  },
+  "stages": [
+    {
+      "id": "typecheck",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T08-47-37.276Z",
+      "log": ".wrangler/phase24/run-2026-10-29T08-47-37.276Z/typecheck.log",
+      "logSha256": "ee9885b0117b7e0d01a3c921a2ffd5182274af4b538f0f74150d4a89b1558cd2"
+    },
+    {
+      "id": "lint",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T08-47-37.276Z",
+      "log": ".wrangler/phase24/run-2026-10-29T08-47-37.276Z/lint.log",
+      "logSha256": "f25ca643a7837fde47fbc5fe24ebb8b7dd25451537d2c7873cfb66ed68857d1f"
+    },
+    {
+      "id": "unit",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T08-49-44.559Z",
+      "log": ".wrangler/phase24/run-2026-10-29T08-49-44.559Z/unit.log",
+      "logSha256": "5461f98a2be810690deb33a92fad519c6d7b98d0e00624f0b679c5dc7242821f"
+    },
+    {
+      "id": "test:gates",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T08-49-44.559Z",
+      "log": ".wrangler/phase24/run-2026-10-29T08-49-44.559Z/test-gates.log",
+      "logSha256": "9a3a5cbd42205ea3272bffa9c113243e579348fcf47ea5026846f4f662177c6e"
+    },
+    {
+      "id": "test:graph",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z",
+      "log": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z/test-graph.log",
+      "logSha256": "5ee7fd4dc775410cadf4687898e36fc1d4f923c2ad7d1474e8747d850a259594"
+    },
+    {
+      "id": "build",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z",
+      "log": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z/build.log",
+      "logSha256": "c77c91c2b9055734161eb9797294f91fb8ef9fae54c6ad7983e03e5d185b7b58"
+    },
+    {
+      "id": "check:perf",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z",
+      "log": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z/check-perf.log",
+      "logSha256": "e01c5d625e5a77be86658c0103c89fa35f1ce6eecfaf8bd20483ad61c96acca5"
+    },
+    {
+      "id": "check:csp",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z",
+      "log": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z/check-csp.log",
+      "logSha256": "71dfbf8577593e8c20e9522021b37863c3a4c858308f739228708ea12350129e"
+    },
+    {
+      "id": "check:links",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z",
+      "log": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z/check-links.log",
+      "logSha256": "019117fb6cbfbee24e13b6796b462526f1eafde1781e55704f4015d1a7e94009"
+    },
+    {
+      "id": "check:seo",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z",
+      "log": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z/check-seo.log",
+      "logSha256": "b343bafed27585b4ebe95f1532e5feb92b3b4643e9874e94274bc2b3b66bd51e"
+    },
+    {
+      "id": "test:phase-2.0-spike",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z",
+      "log": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z/test-phase-2.0-spike.log",
+      "logSha256": "37b50eff8009f0fa78fe92b993b1b9b2108d72c38ec26f2e0fcfe854edf7574e"
+    },
+    {
+      "id": "test:component-access-storage",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z",
+      "log": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z/test-component-access-storage.log",
+      "logSha256": "44a5bbcc51e1cbb0679e79f9d3ca418348b0105308c21a31409eddcd2fc3c0d4"
+    },
+    {
+      "id": "test:component-access-api",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z",
+      "log": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z/test-component-access-api.log",
+      "logSha256": "ba74e45d737890bdc51c5f135f7facc111c5aa7513b24f99665a454dc1c058af"
+    },
+    {
+      "id": "test:platform-admin",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z",
+      "log": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z/test-platform-admin.log",
+      "logSha256": "35569adf28376536ea5eb14a2681fe44c711f729447a16e31ae475ef3ed3c894"
+    },
+    {
+      "id": "test:membership",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z",
+      "log": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z/test-membership.log",
+      "logSha256": "f06770f858c86e645eb80b36f7684111fc03c280d08ec29a4f55ec7ab6b96a19"
+    },
+    {
+      "id": "test:domain-local",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z",
+      "log": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z/test-domain-local.log",
+      "logSha256": "642a8e5ff513586cecd0bbfb172bcd354709e8e2d1460b379e424949d5b47506"
+    },
+    {
+      "id": "test:profile-storage",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z",
+      "log": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z/test-profile-storage.log",
+      "logSha256": "3229cad528fb5877bfca57287e8dd9fb0751211930d1fbb521959eb85ae02559"
+    },
+    {
+      "id": "test:profiles-api",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z",
+      "log": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z/test-profiles-api.log",
+      "logSha256": "6e6d13134a491306afc52c849b8fc2f93920635f4b41050245297ada801d9009"
+    },
+    {
+      "id": "browser",
+      "status": "passed with targeted recovery",
+      "run": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z",
+      "log": ".wrangler/phase24/run-2026-10-29T03-49-08.799Z/browser.log",
+      "logSha256": "0b746caa9a2a16176f3e3d985326eef83ff458d96510fee17b2c85e2929ecc17",
+      "recovery": {
+        "command": "bun x playwright test e2e/component-admin.spec.ts --project=tablet-safari --grep=reasoned Pro to Free to Pro changes retain history, selection and keyboard focus --workers=1 --retries=0 --forbid-only",
+        "log": ".wrangler/phase24/recovered-component-admin-webkit.log",
+        "logSha256": "f3ccb574e6c2d7c564de1cf1f671b635ca5bf60bfa4c25fcdebceb716a308c6b",
+        "caseResult": "1 passed at original 30000ms test limit; broad run had 104 passed and one timeout"
+      }
+    },
+    {
+      "id": "browser:2",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z",
+      "log": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z/browser-2.log",
+      "logSha256": "ea4a0a89d371744d4142ca72de7cbf4c9f10fb996f43248ea3064bd9a3d1afc6"
+    },
+    {
+      "id": "browser:3",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z",
+      "log": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z/browser-3.log",
+      "logSha256": "9620a471af0a36f91fe19d002838c8e66453565ae7362bd514cbd0fa0500172b"
+    },
+    {
+      "id": "browser:4",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z",
+      "log": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z/browser-4.log",
+      "logSha256": "38bf0800174206640f067fdc9ce89d3772d9cdc7a7db661c77eec8f29f1afbf7"
+    },
+    {
+      "id": "test:publication-storage",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z",
+      "log": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z/test-publication-storage.log",
+      "logSha256": "72247cce77daecad039ec9afb6a15d7aef25ec20315e123679ebdbc8fd2e0e46"
+    },
+    {
+      "id": "test:publications-api",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z",
+      "log": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z/test-publications-api.log",
+      "logSha256": "f1227b9fe43302e4203323659c6c1eb6bd190855233aad1376b734dd0dc1baa5"
+    },
+    {
+      "id": "browser:5",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z",
+      "log": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z/browser-5.log",
+      "logSha256": "6db84bffdc3d15f30a7f2d81156a7e3bd572ee4913c03063973c44abd31c7c33"
+    },
+    {
+      "id": "browser:6",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z",
+      "log": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z/browser-6.log",
+      "logSha256": "3ccdcb193a8c354ce3ca452d86853a01d1d1e4e0c0ec57e17b074af38f4251b0"
+    },
+    {
+      "id": "test:preview-api",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z",
+      "log": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z/test-preview-api.log",
+      "logSha256": "d3896e70e6801374b3cca4f64ee350c161a04f77ac6965e3d51c7ffac84ce520"
+    },
+    {
+      "id": "browser:7",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z",
+      "log": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z/browser-7.log",
+      "logSha256": "17e87d2c5c9241d496273b121d6ee9430fe048489eabb804f0e77067d96850d7"
+    },
+    {
+      "id": "browser:8",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z",
+      "log": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z/browser-8.log",
+      "logSha256": "921c5eec6e020932cc5aa5889fdb8b42baa23c4358cb447043c5eb5e656d90d5"
+    },
+    {
+      "id": "test:discovery-storage",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z",
+      "log": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z/test-discovery-storage.log",
+      "logSha256": "24d1679b0a9d4f21804a515107b4a267dcafe3f22f97ea0edeafba160dc90155"
+    },
+    {
+      "id": "test:discovery-api",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z",
+      "log": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z/test-discovery-api.log",
+      "logSha256": "47183db18ca8f57bbf49751aa783817bb92d51c90bb2afddf8df1b2676dd8987"
+    },
+    {
+      "id": "browser:9",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z",
+      "log": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z/browser-9.log",
+      "logSha256": "9ab835f5cfe091e69a9e4eeb6cca838b141b45bbbf1c45aa0d23c413c4443601"
+    },
+    {
+      "id": "browser:10",
+      "status": "passed",
+      "run": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z",
+      "log": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z/browser-10.log",
+      "logSha256": "1855edf852a7de284f65598a50a88ece3906cd7b74141b3e4f5b5b4a6d658278"
+    }
+  ],
+  "screenshotReview": {
+    "scope": "Agent inspected source and built desktop/phone Explore and Feed screenshots; browser assertions also ran on WebKit. No target-device human approval inferred.",
+    "screenshots": [
+      {
+        "mode": "source",
+        "path": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z/browser-9-results/discovery-Explore-renders--fd273-earch-clear-and-detail-work-profile-desktop/explore-no-js.png",
+        "sha256": "fb36b3490cc4ca0262a099e80fc361d42ac237dbc232cd23ba5bf155a142d5b0"
+      },
+      {
+        "mode": "source",
+        "path": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z/browser-9-results/discovery-Explore-renders--fd273-earch-clear-and-detail-work-profile-phone/explore-no-js.png",
+        "sha256": "a3b59d225275c8bc5f7b2175e9c3867b2b86e194a28d0f8e27eb4e53fa8deb5f"
+      },
+      {
+        "mode": "source",
+        "path": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z/browser-9-results/discovery-signed-in-Feed-s-5f0a0-s-moderation-removes-a-card-profile-desktop/feed-following.png",
+        "sha256": "fcceb10593e906816d2b6901c6ea5188cb5ea381cb0bad1507e802323a26f553"
+      },
+      {
+        "mode": "source",
+        "path": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z/browser-9-results/discovery-signed-in-Feed-s-5f0a0-s-moderation-removes-a-card-profile-phone/feed-following.png",
+        "sha256": "4a8a4f0b0dd82265c6b9005136323c672b98e812b8dbf6bd952383d32b4186df"
+      },
+      {
+        "mode": "built",
+        "path": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z/browser-10-results/discovery-Explore-renders--fd273-earch-clear-and-detail-work-profile-desktop/explore-no-js.png",
+        "sha256": "1427598e5b7fbc48843c562d4549cb2c8847e3bc11a57ae2d5c51b7217dba755"
+      },
+      {
+        "mode": "built",
+        "path": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z/browser-10-results/discovery-Explore-renders--fd273-earch-clear-and-detail-work-profile-phone/explore-no-js.png",
+        "sha256": "124f873eb1e5200cc4c950b161ae6cb62970d2910f420ac3eaab6f4191207d30"
+      },
+      {
+        "mode": "built",
+        "path": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z/browser-10-results/discovery-signed-in-Feed-s-5f0a0-s-moderation-removes-a-card-profile-desktop/feed-following.png",
+        "sha256": "0430735bc142e6e682afc470500be65f061c2e1defd5061bddc23fd37aab259f"
+      },
+      {
+        "mode": "built",
+        "path": ".wrangler/phase24/run-2026-10-29T04-19-23.732Z/browser-10-results/discovery-signed-in-Feed-s-5f0a0-s-moderation-removes-a-card-profile-phone/feed-following.png",
+        "sha256": "331dabb20324b0494dc71cc6be6ff8d8d521712a8d505f5056d2ce9939f8eae9"
+      }
+    ]
+  },
+  "limitations": [
+    "Overall Phase 2, follow/unfollow workflow 2.6, broad community admin queue 2.7 and historical hardware/performance exceptions remain open.",
+    "The first full gate failed static link checking before the Worker route exception was added; the second full attempt changed graph index inputs during the run and one broad WebKit case timed out. No uninterrupted full-selection exit 0 is claimed.",
+    "All Cloudflare activity was local using isolated persisted test stores; no deployment or live-account operation.",
+    "The commit hook formatted 13 source inputs after the 33-stage recovery. Full predecessor matrix was not rerun on those formatted bytes; post-format build, units, focused storage/API and source/built discovery browsers passed."
+  ],
+  "postFormatVerification": {
+    "reason": "The pre-commit Biome hook formatted 13 implementation/harness inputs after the 33-stage recovery. These are different source fingerprints; the complete predecessor matrix was not rerun on the formatted tree.",
+    "status": "all selected post-format checks passed",
+    "checks": [
+      {
+        "command": "bun run typecheck",
+        "result": "passed in pre-commit hook"
+      },
+      {
+        "command": "bun run lint",
+        "result": "passed in pre-commit hook"
+      },
+      {
+        "command": "bun run test",
+        "result": "2348 passed / 155 files"
+      },
+      {
+        "command": "bun run build",
+        "result": "passed",
+        "log": ".wrangler/phase24/postformat-build.log",
+        "logSha256": "813514744c5d3f4148cb3e9d8146d28a38e801232067cfa1c534fd7f8cfc0d8c"
+      },
+      {
+        "command": "bun run check:perf",
+        "result": "passed; initial JS 269379 B gzip and CSS 29462 B gzip"
+      },
+      {
+        "command": "bun run check:links",
+        "result": "passed; 203 generated HTML files"
+      },
+      {
+        "command": "bun run test:discovery-storage",
+        "result": "5 groups passed",
+        "evidence": ".wrangler/discovery-storage-Eikxhs"
+      },
+      {
+        "command": "bun run test:discovery-api",
+        "result": "8 groups passed",
+        "evidence": ".wrangler/discovery-api-FaSJDH"
+      },
+      {
+        "command": "bun run test:publications-api",
+        "result": "22 groups passed",
+        "evidence": ".wrangler/publications-api-p7RD2x"
+      },
+      {
+        "command": "bun run test:preview-api",
+        "result": "9 groups passed",
+        "evidence": ".wrangler/preview-api-qVmXN8"
+      },
+      {
+        "command": "bun x playwright test --config=playwright.discovery.config.ts --workers=1 --retries=0 --forbid-only",
+        "result": "6 passed; desktop, phone, WebKit"
+      },
+      {
+        "command": "bun x playwright test --config=playwright.discovery-built.config.ts --workers=1 --retries=0 --forbid-only",
+        "result": "6 passed; desktop, phone, WebKit"
+      }
+    ]
+  }
+}

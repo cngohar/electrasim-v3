@@ -7,6 +7,8 @@ import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { HTTPException } from 'hono/http-exception';
 import {
+  DISCOVERY_STANDARDS,
+  DISCOVERY_ZONES,
   PUBLICATION_REPORT_REASONS,
   type Publication,
   normalizedTags,
@@ -122,6 +124,8 @@ async function publish(c: Context<ApiEnv>, existing?: Publication) {
     'description',
     'tags',
     'allowForks',
+    'zone',
+    'standard',
   ]);
   const owner = c.get('actor').id;
   const sourceId =
@@ -149,6 +153,12 @@ async function publish(c: Context<ApiEnv>, existing?: Publication) {
   const description = string(data.description ?? '', 'description', 2000, true);
   const tags = normalizedTags(data.tags ?? []);
   if (!tags) invalid('Use up to eight distinct tags of 2–24 lowercase letters, numbers or hyphens');
+  const zone = data.zone ?? existing?.zone ?? 'general';
+  const standard = data.standard ?? existing?.standard ?? 'int';
+  if (!DISCOVERY_ZONES.includes(zone as (typeof DISCOVERY_ZONES)[number]))
+    invalid('Invalid discovery zone');
+  if (!DISCOVERY_STANDARDS.includes(standard as (typeof DISCOVERY_STANDARDS)[number]))
+    invalid('Invalid study standard');
   const profile = await requireRow(c);
   if (!profile.handle)
     throw new HTTPException(409, {
@@ -214,12 +224,12 @@ async function publish(c: Context<ApiEnv>, existing?: Publication) {
   const claim = existing
     ? db
         .prepare(
-          `UPDATE publications SET status='published',moderation=?,revision=revision+1,mutation_id=?,updated_at=? WHERE id=? AND owner_id=? AND revision=? AND status!='deleted' AND moderation!='removed' ${where}`,
+          `UPDATE publications SET status='published',moderation=?,zone=?,standard=?,revision=revision+1,mutation_id=?,updated_at=? WHERE id=? AND owner_id=? AND revision=? AND status!='deleted' AND moderation!='removed' ${where}`,
         )
-        .bind(moderation, mutation, now, id, owner, revision, ...args)
+        .bind(moderation, zone, standard, mutation, now, id, owner, revision, ...args)
     : db
         .prepare(
-          `INSERT INTO publications(id,owner_id,source_circuit_id,slug,status,moderation,revision,mutation_id,published_at,updated_at) SELECT ?,?,?,?,'published',?,1,?,?,? WHERE NOT EXISTS(SELECT 1 FROM publications WHERE owner_id=? AND source_circuit_id=?) ${where}`,
+          `INSERT INTO publications(id,owner_id,source_circuit_id,slug,status,moderation,zone,standard,revision,mutation_id,published_at,updated_at) SELECT ?,?,?,?,'published',?,?,?,1,?,?,? WHERE NOT EXISTS(SELECT 1 FROM publications WHERE owner_id=? AND source_circuit_id=?) ${where}`,
         )
         .bind(
           id,
@@ -227,6 +237,8 @@ async function publish(c: Context<ApiEnv>, existing?: Publication) {
           sourceId,
           publicationSlug(title, id),
           moderation,
+          zone,
+          standard,
           mutation,
           now,
           now,
@@ -302,7 +314,8 @@ async function publish(c: Context<ApiEnv>, existing?: Publication) {
         ),
     );
   const result = await db.batch(statements);
-  if (result[0].meta.changes !== 1) {
+  // Discovery/FTS triggers may add changes; the guarded claim targets one publication.
+  if (result[0].meta.changes < 1) {
     const rate = await db
       .prepare('SELECT writes FROM publication_write_windows WHERE user_id=? AND window_start=?')
       .bind(owner, window)
@@ -340,7 +353,7 @@ async function withdraw(c: Context<ApiEnv>, status: 'unpublished' | 'deleted') {
     )
     .bind(status, mutation, Date.now(), p.id, c.get('actor').id, revision, ...actor.args)
     .run();
-  if (result.meta.changes !== 1)
+  if (result.meta.changes < 1)
     throw new HTTPException(409, { message: 'Publication changed; reload before retrying' });
   return c.json({
     publication: publicationSummary(await ownerPublication(c, p.id, mutation), true),
